@@ -49,7 +49,7 @@ using namespace std;
 
 // instantiate the global lists
 VarListT      sysVarList;
-VarListT      obsoleteSysVarList; //spceial case of very very old sysvar, some point to [parts of] values in sysVar (e.g. !CXMAX): cannot be destroyed in a .RESET (double free())
+VarListT      obsoleteSysVarList; //special case of very very old sysvar, some point to [parts of] values in sysVar (e.g. !CXMAX): cannot be destroyed in a .RESET (double free())
 VarListT      sysVarRdOnlyList;
 VarListT      sysVarNoSaveList;
 
@@ -87,16 +87,19 @@ namespace structDesc {
   DStructDesc* IDLFFXMLSAX = NULL;
 }
 
-// for OpenMP
+//// for OpenMP
 DLong CpuTPOOL_NTHREADS;
 DLong64 CpuTPOOL_MIN_ELTS;
 DLong64 CpuTPOOL_MAX_ELTS;
-//const DULong64 CpuTPOOL_MAX_ELTS_max = numeric_limits<DLong64>::max();
 
 // instantiate own AST factory
 //_DNodeFactory DNodeFactory;
 antlr::ASTFactory DNodeFactory("DNode",DNode::factory);
 
+//this string contains the value of DATADIR
+std::string gdlDataDir;
+//this string contains the value of LIBDIR
+std::string gdlLibDir;
 //do we use WxWidgets at all?
 volatile bool useWxWidgets;
 //do we use WxWidgets for graphics?
@@ -106,18 +109,18 @@ volatile bool iAmANotebook;
 //do we use name Devices differently among platforms?
 volatile bool usePlatformDeviceName;
 // do we force fonts to be the ugly IDL fonts?
-volatile bool forceWxWidgetsUglyFonts;
-
+volatile bool tryToMimicOriginalWidgets;
+//do we use our own copy of (better?) drivers?
+volatile bool useLocalDrivers;
 //do we favor SIMD-accelerated random number generation?
 volatile bool useDSFMTAcceleration;
+//Transpose() operations are faster with our method, but setting this may test if this is still true for future Eigen:: versions or platforms.
+volatile bool useEigenForTransposeOps=false;
+//experimental TPOOL use adaptive number of threads.
+volatile bool useSmartTpool=false;
 
 void ResetObjects()
 {
-#ifdef HAVE_LIBWXWIDGETS
-
-  // un-initialize widget system
-  GDLWidget::UnInit();
-#endif
   
   GraphicsDevice::DestroyDevices();
 
@@ -125,7 +128,9 @@ void ResetObjects()
   cerr << flush; cout << flush; clog << flush;
 
   PurgeContainer(sysVarList);
-//   sysVarRdOnlyList.clear(); // data is owned by sysVarList
+  sysVarRdOnlyList.clear(); // data is owned by sysVarList
+  obsoleteSysVarList.clear();
+  sysVarNoSaveList.clear();
   PurgeContainer(funList);
   PurgeContainer(proList);
 
@@ -854,7 +859,16 @@ void InitStructs()
   treeexpandstruct->AddTag("EXPAND", &aLong);
   // insert into structList
   structList.push_back( treeexpandstruct); 
-  
+ 
+  DStructDesc* treeecheckedstruct = new DStructDesc( "WIDGET_TREE_CHECKED");
+  treeecheckedstruct->AddTag("ID", &aLong);
+  treeecheckedstruct->AddTag("TOP", &aLong);
+  treeecheckedstruct->AddTag("HANDLER", &aLong);
+  treeecheckedstruct->AddTag("TYPE", &aInt);
+  treeecheckedstruct->AddTag("STATE", &aLong);
+  // insert into structList
+  structList.push_back( treeecheckedstruct); 
+   
  DStructDesc* idltracebackstruct = new DStructDesc( "IDL_TRACEBACK");
   idltracebackstruct->AddTag("ROUTINE", &aString);
   idltracebackstruct->AddTag("FILENAME", &aString);
@@ -897,9 +911,11 @@ void InitObjects()
   // We need to initialize the multi-device object that inherits from the single-device object.
   GraphicsMultiDevice::Init();
 
-  string gdlPath=GetEnvString("GDL_PATH");
-  if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH");
-  if( gdlPath == "") gdlPath = "+" GDLDATADIR "/lib";
+  string gdlPath=GetEnvPathString("GDL_PATH");
+  if( gdlPath == "") gdlPath=GetEnvPathString("IDL_PATH");
+  if( gdlPath == "") {
+    gdlPath = "+" + gdlDataDir + lib::PathSeparator() + "lib";
+  }
   SysVar::SetGDLPath( gdlPath);
 }
 

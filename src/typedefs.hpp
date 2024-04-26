@@ -78,6 +78,9 @@
 #include <cassert>
 #include <iostream>
 
+//AC24/04/20
+#include <limits>
+
 #undef USE_MPFR
 
 #ifdef USE_MPFR
@@ -100,6 +103,15 @@
 #define TRACEOMP( file, line)   std::cout << "TRACEOMP\t" << file << "\t" << line << std::endl;
 #else
 #define TRACEOMP( file, line) 
+#endif
+
+//#define TRACE_OPCALLS
+#undef TRACE_OPCALLS
+
+#if defined(TRACE_OPCALLS)
+#define TRACE_ROUTINE(func,file,line) std::cout << func << "\t" << file << "\t" << line << std::endl;
+#else
+#define TRACE_ROUTINE(func,file,line)
 #endif
 
 // SA: fixing bug no. 3296360

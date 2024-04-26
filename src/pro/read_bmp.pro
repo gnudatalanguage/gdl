@@ -76,19 +76,15 @@ if ((FILE_INFO(filename)).exists EQ 0) then MESSAGE, "Error opening file. File: 
 if (FILE_TEST(filename, /regular) EQ 0) then MESSAGE, "Not a regular File: "+filename
 ;
 ; testing whether the format is as expected
-;
-if ( ~MAGICK_PING(filename, 'BMP') )then MESSAGE, "File "+filename+" is not in bitmap file format."
+; NOT USEFUL AND BESIDES WRONG (BMP2, BMP3 ...)
+;if ( ~MAGICK_PING(filename, 'BMP') )then MESSAGE, "File "+filename+" is not in bitmap file format."
 
-READ_ANYGRAPHICSFILEWITHMAGICK, filename, image, colortable, /order
-if n_elements(colortable) then begin 
+READ_ANYGRAPHICSFILEWITHMAGICK, filename, image, colortable
+if (n_elements(colortable) gt 0) then begin 
   red=colortable[*,0]
   green=colortable[*,1]
   blue=colortable[*,2]
-endif else begin
-  red=bindgen(256)
-  green=red
-  blue=red
-endelse
+endif
 return, image
 ;
 end

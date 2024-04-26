@@ -22,7 +22,6 @@ SizeT w2 = width[1] / 2;
 SizeT nEl = dimx*dimy;
 SMOOTH_Ty* tmp=(SMOOTH_Ty*)malloc(nEl*sizeof(SMOOTH_Ty));
 //parallelizing all that stuff is more complicated than a single pragma...
-//#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 {
  for (SizeT j = 0; j < dimy; ++j) {
   DDouble z;

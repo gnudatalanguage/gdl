@@ -1,0 +1,29 @@
+// interface to elmhes.inccc with floats and doubles
+#undef MIN
+#define MIN(a,b) ((a) > (b) ? (b) : (a))
+#undef MAX
+#define MAX(a,b) ((a) < (b) ? (b) : (a))
+#define ABS fabs
+#define SIGN(a,b) std::copysign(*a,*b)
+#define doubleprecision DDouble
+#include "pythag.inccc"
+#include "elmhes.inccc"
+#include "balanc.inccc"
+#include "hqr.inccc"
+#include "tred2.inccc"
+#include "tql2.inccc"
+#undef ABS
+#undef SIGN
+#undef doubleprecision
+#define ABS fabsf
+#define SIGN(a,b) std::copysignf(*a,*b)
+#define doubleprecision DFloat
+#include "pythag.inccc"
+#include "elmhes.inccc"
+#include "balanc.inccc"
+#include "hqr.inccc"
+#include "tred2.inccc"
+#include "tql2.inccc"
+#undef ABS
+#undef doubleprecision
+

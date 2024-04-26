@@ -1,0 +1,6 @@
+# Instructing GitHub to exlude all files from auto-generated release tar/zip-balls
+# as we chose to create custom release tarballs through CI workflow that include:
+# - git submodule contents,
+# - cmake-generated version.h file with version id taken from git metadata.
+
+* export-ignore

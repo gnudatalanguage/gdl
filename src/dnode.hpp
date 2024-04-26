@@ -68,14 +68,19 @@ public:
 	   var(NULL), 
 	   libFun(NULL),
 	   libPro(NULL),
-	   arrIxList(NULL),arrIxListNoAssoc(NULL), labelStart( -1), labelEnd( -1)
+	   arrIxList(NULL),arrIxListNoAssoc(NULL), labelStart( -1), labelEnd( -1), initInt(0)
   {
   }
 
   DNode( const DNode& cp);
 
-  DNode(antlr::RefToken t) : antlr::CommonAST(t) //, down(), right()
+  DNode(antlr::RefToken t) : antlr::CommonAST(t), //, down(), right()
 //   	, keepRight( false)
+	   cData(NULL), 
+	   var(NULL), 
+	   libFun(NULL),
+	   libPro(NULL),
+	   arrIxList(NULL),arrIxListNoAssoc(NULL), labelStart( -1), labelEnd( -1), initInt(0)
 {
     //    antlr::CommonAST::setType(t->getType() );
     //    antlr::CommonAST::setText(t->getText() );
@@ -100,6 +105,7 @@ public:
     var=NULL;
     arrIxList=NULL;
     arrIxListNoAssoc=NULL;
+    initInt=0;
   }
 
   // used by DNodeFactory
@@ -208,80 +214,8 @@ public:
     var=v;
   }
 
-  template<typename T> bool Text2Number( T& out, int base)
-  {
-    bool noOverflow = true;
+  template<typename T> bool Text2Number(T& out, int base);
 
-    T number=0;
-
-    for(unsigned i=0; i < text.size(); ++i)
-      {
-	char c=text[i];
-	if( c >= '0' && c <= '9')
-	  {
-	    c -= '0';
-	  }
-	else if( c >= 'a' &&  c <= 'f')
-	  {
-	    c -= 'a'-10;
-	  }
-	else 
-	  {
-	    c -= 'A'-10;
-	  }
-
-	T newNumber = base * number + c;
-
-	// check for overflow
-	if( newNumber < number)
-	  {
-	    noOverflow = false;
-	  }
-
-	number=newNumber;
-      }
-    out=number;
-
-    return noOverflow;
-  }
-  
-  bool Text2Number( DByte& out, int base)
-  {
-    bool noOverflow = true;
-
-    DByte number=0;
-
-    for(unsigned i=0; i < text.size(); ++i)
-      {
-	char c=text[i];
-	if( c >= '0' && c <= '9')
-	  {
-	    c -= '0';
-	  }
-	else if( c >= 'a' &&  c <= 'f')
-	  {
-	    c -= 'a'-10;
-	  }
-	else 
-	  {
-	    c -= 'A'-10;
-	  }
-
-	DInt newNumber = base * number + c;
-
-	// check for overflow
-	if( newNumber > 255)
-	  {
-	    noOverflow = false;
-	  }
-
-	number=newNumber;
-      }
-    out=number;
-
-    return noOverflow;
-  }
-  
   void Text2Byte(int base);
   // promote: use Long if number to large
   void Text2Int(int base, bool promote=false);

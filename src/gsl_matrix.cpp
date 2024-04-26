@@ -20,7 +20,6 @@
 #include <map>
 #include <cmath>
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 #include "basic_fun.hpp"
 #include "gsl_fun.hpp"
@@ -48,8 +47,6 @@ namespace lib {
     //  cout << szdbl << " " <<szflt << " " << szlng << " " szlng64 << endl;
 
     SizeT nParam=e->NParam(1);
-    //     if( nParam == 0)
-    //       e->Throw( "Incorrect number of arguments.");
 
     BaseGDL* p0 = e->GetParDefined( 0);
     
@@ -111,7 +108,12 @@ namespace lib {
     if (p0->Type() == GDL_DOUBLE) double_flag=1;
     static int doubleIx=e->KeywordIx("DOUBLE");
     if (e->KeywordSet(doubleIx)) double_flag=1;
-    
+    static int INTERCHANGES=e->KeywordIx("INTERCHANGES");
+    if (e->KeywordPresent(  INTERCHANGES)) {
+	  e->AssureGlobalKW(INTERCHANGES);
+	  e->SetKW(INTERCHANGES,new DLongGDL(s));
+    }
+ 
     // this code will always return GDL_DOUBLE because I don't know how to do :(
     // AC 13-Feb-2012 : this is not working and I don't know how to do :(
     // if (double_flag == 0)

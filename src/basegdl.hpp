@@ -247,7 +247,24 @@ const bool IsNonPODType[]={
   true, //GDL_LONG64,
   true //GDL_ULONG64
  };
-  
+ const bool IsUnsignedType[] = {
+  false, //GDL_UNDEF
+  true, //GDL_BYTE
+  false, //GDL_INT
+  false, //GDL_LONG,	
+  false, //GDL_FLOAT,	
+  false, //GDL_DOUBLE,	
+  false, //GDL_COMPLEX,	
+  false, //GDL_STRING,	
+  false, //GDL_STRUCT,	
+  false, //GDL_COMPLEXDBL,	
+  false, //GDL_PTR,		
+  false, //GDL_OBJ,
+  true, //GDL_UINT,	
+  true, //GDL_ULONG,
+  false, //GDL_LONG64,
+  true //GDL_ULONG64
+ };  
 } //namespace gdl_type_lookup 
 
 inline bool NonPODType( DType t)
@@ -278,8 +295,6 @@ inline bool ComplexType( DType t)
 inline bool NumericType( DType t) // Float or Int or Complex
 {
   return gdl_type_lookup::IsNumericType[ t];
-//   int o = DTypeOrder[ t];
-//   return (o >= 2 && o <= 11);
 }
 inline bool ConvertableType( DType t) // everything except Struct, Ptr, Obj
 {
@@ -288,6 +303,10 @@ inline bool ConvertableType( DType t) // everything except Struct, Ptr, Obj
 inline bool LongLongType( DType t) // POD but 64 bits
 {
   return gdl_type_lookup::IsLongLongType[ t];
+}
+inline bool UnsignedType( DType t) // integer, unsigned type
+{
+  return gdl_type_lookup::IsUnsignedType[ t];
 }
 class   BaseGDL;
 class   ArrayIndexListT;
@@ -326,7 +345,7 @@ public:
 #if defined(HAVE_MALLOC_ZONE_STATISTICS) && defined(HAVE_MALLOC_MALLOC_H)
 // - the sbrk(0) does not give any meaningfull info for HIGHWATER
 // - using mallinfo() frequently gives a large performace loss
-    UpdateCurrent(); // updates the highwater mark 
+// avoid doing this here, explains the slowness on OSX  //   UpdateCurrent(); // updates the highwater mark 
 #endif
   }
 
@@ -366,6 +385,7 @@ public:
 
 protected:
   dimension dim;
+  bool shared=false;
   
 public:
   // type of initalization
@@ -427,7 +447,9 @@ public:
   BaseGDL();//: dim() {} 
   explicit BaseGDL(const dimension& dim_);//: dim(dim_) {} 
 
-
+  //shared
+  bool IsShared() {return shared;}
+  void SetShared() {shared=true;} //used only with shmvar variables, explicitely in theur creation.
   // provide access to dim member
   inline const dimension& Dim()   const      { return dim;}
   inline SizeT    Dim(SizeT d)    const      { return dim[d];}
@@ -478,7 +500,7 @@ public:
   virtual void Destruct();
   virtual std::ostream& Write( std::ostream& os, bool swapEndian, 
 			       bool compress, XDR *xdrs);
-  virtual std::istream& Read( std::istream& os, bool swapEndian, 
+  virtual std::istream& Read( std::istream& is, bool swapEndian, 
 			      bool compress, XDR *xdrs);
 
   virtual std::ostream& ToStream(std::ostream& o, SizeT width = 0, 
@@ -557,12 +579,13 @@ public:
   virtual BaseGDL* Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
  			   bool center, bool normalize, int edgeMode,
                                 bool doNan, BaseGDL* missing, bool doMissing,
-                                BaseGDL* invalid, bool doInvalid);
+                                BaseGDL* invalid, bool doInvalid, DDouble edgeVal);
   virtual BaseGDL* Smooth( DLong* width, int edgeMode,
                                 bool doNan, BaseGDL* missing);
   virtual BaseGDL* Rebin( const dimension& newDim, bool sample);
   // for STRUCT_ASSIGN
   virtual void Assign( BaseGDL* src, SizeT nEl);
+  virtual void AssignIndexedValue( BaseGDL* src, SizeT index);
 
   virtual BaseGDL* Log();              
   virtual BaseGDL* LogThis();
@@ -692,7 +715,7 @@ public:
   virtual SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width, int code);
   virtual SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, int prec, const int code=0, const BaseGDL::IOMode oM = FIXED); 
   virtual SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, int minN, int code=0, BaseGDL::IOMode oM = DEC);
-  virtual SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, int minN, char *fill, int code=0, BaseGDL::Cal_IOMode oM = DEFAULT);
+  virtual SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, int minN, const std::string &s, int code=0, BaseGDL::Cal_IOMode oM = DEFAULT);
   virtual SizeT IFmtA( std::istream* is, SizeT offset, SizeT num, int width);
   virtual SizeT IFmtF( std::istream* is, SizeT offs, SizeT num, int width);
   virtual SizeT IFmtI( std::istream* is, SizeT offs, SizeT num, int width, 
@@ -732,6 +755,7 @@ struct ForLoopInfoT
   BaseGDL*  endLoopVar; // the source for foreach as well
   BaseGDL*  loopStepVar;
   DLong     foreachIx;
+  bool (BaseGDL::*IncrOrDec)(BaseGDL*); //for FORSTEPLoop: method pointer saves if test on increment sign inside loop
 //   bool      isHash; // only used in FOREACH_INDEXNode::Run() and FOREACH_INDEX_LOOPNode::Run()
 
   ForLoopInfoT()
@@ -767,6 +791,16 @@ struct ForLoopInfoT
 // before NullGDL instance must not be deleted, now this is fine (overloaded operators new and delete)
 // inline void GDLDelete( BaseGDL* toDelete) { delete toDelete;}
 void GDLDelete( BaseGDL* toDelete);
+ 
+enum ThreadPoolType {
+    TP_DEFAULT=0, //the same as IDL, reserved for routines that use the thread pool, ideally check the special thread pool keywords.
+    TP_ARRAY_INITIALISATION, // used by GDL array initialisation (new, convert, gdlarray): probably needs som special tuning
+    TP_MEMORY_ACCESS, // concurrent memory access, probably needs to be capped to preserve bandwidth 
+    TP_CPU_INTENSIVE  // benefit from max number of threads
+  };
+
+extern  int GDL_NTHREADS;
+int parallelize(SizeT n, int modifier=TP_DEFAULT);
 
 #endif
 

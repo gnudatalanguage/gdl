@@ -15,20 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "nullgdl.hpp"
-#include "dstructgdl.hpp"
-#include "arrayindexlistt.hpp"
-#include "assocdata.hpp"
-#include "io.hpp"
 #include "dinterpreter.hpp"
-#include "terminfo.hpp"
-
-
-//#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
-//#include <numpy/arrayobject.h>
-//#endif
-
-
 
 #include "real2int.hpp"
 #include "ofmt.hpp" // OutAuto
@@ -38,8 +25,6 @@
 // needed with gcc-3.3.2
 #include <cassert>
 
-// 
-// #include "dinterpreter.hpp"
 
 using namespace std;
 

@@ -41,18 +41,20 @@ private:
     int m_width;   //!< Width of dc/plot area.
     int m_height;   //!< Height of dc/plot area.
     bool isplot; //precise the status of associated widget: plot (true) or widget_draw (false)
+    bool olddriver; //memory of if the wxwidgets driver is old, and thus... OK: reliable and fast!
 public:
     gdlwxGraphicsPanel* container; // for Update()
 
     GDLWXStream( int width, int height );  
     ~GDLWXStream(); 
-    
+    virtual bool IsWxStream() final{return true;}
+
     wxMemoryDC* GetStreamDC() const { return streamDC;}
 
 //     void set_stream();   //!< Calls some code before every PLplot command.
     void SetSize( const wxSize s );   //!< Set new size of plot area.
     void RenewPlot();   //!< Redo plot.
-    void Update();
+    virtual void Update() final;
     void SetGdlxwGraphicsPanel(gdlwxGraphicsPanel* w, bool isPlot=true);
     gdlwxGraphicsPanel* GetMyContainer(){return container;}
     void DestroyContainer(){delete container; container=NULL;}
@@ -92,14 +94,17 @@ public:
     bool CursorStandard(int cursorNumber);
     bool CursorImage(char* v, int x, int y, char* m);
     DLong GetVisualDepth();
-    BaseGDL* GetFontnames(DString pattern);
-    DLong GetFontnum(DString pattern);
     void SetCurrentFont(std::string fontname);
     DString GetVisualName();
     bool GetScreenResolution(double& resx, double& resy);
-    DByteGDL* GetBitmapData();
-    float GetPlplotFudge(){return 1.8;}; //correction factor
+    virtual DByteGDL* GetBitmapData(int xoff, int yoff, int nx, int ny) final;
     static void DefineSomeWxCursors(); //global initialisation of 77 X11-like cursors.
+    virtual void fontChanged() final {
+     if (olddriver) {
+      PLINT doFont = ((PLINT) SysVar::GetPFont()>-1) ? 1 : 0;
+      pls->dev_text = doFont;
+     }
+    }
 };
 
 

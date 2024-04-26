@@ -23,7 +23,6 @@
 #ifndef CONVOL_HPP_
 #define CONVOL_HPP_
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 
 namespace lib {

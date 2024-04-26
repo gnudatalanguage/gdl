@@ -1,0 +1,21 @@
+Data_* right = static_cast<Data_*> (r);
+
+ULong nEl = N_Elements();
+Data_* res = NewResult();
+assert(nEl);
+Ty s = (*right)[0];
+if (s != zero) {
+  if (nEl == 1) {
+    (*res)[0] = s;
+    return res;
+  }
+  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+    for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = s;
+  } else {
+    TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+      for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = s;
+  }
+  return res;
+}
+return this->Dup();

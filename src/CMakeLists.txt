@@ -8,13 +8,15 @@ GDLInterpreter.cpp
 GDLLexer.cpp
 GDLParser.cpp
 GDLTreeParser.cpp
-datatypes.cpp #long
-convol.cpp #long
-convol2.cpp #long
-smooth.cpp   #long also
+datatypes.cpp
+)
+ 
+if(NOT ONE_DATAFILE)
+message(STATUS "Using Splitted datatypes.cpp.")
+set(SOURCES
+${SOURCES}
 basic_op.cpp
 basic_op_new.cpp
-getas.cpp
 basic_op_add.cpp
 basic_op_sub.cpp
 basic_op_mult.cpp
@@ -22,6 +24,15 @@ basic_op_div.cpp
 default_io.cpp
 ifmt.cpp
 ofmt.cpp
+)
+endif(NOT ONE_DATAFILE)
+
+set (SOURCES
+${SOURCES}
+convol.cpp #long
+convol2.cpp #long
+smooth.cpp   #long also
+getas.cpp
 datatypes_minmax.cpp
 allix.cpp
 arrayindex.cpp
@@ -39,35 +50,32 @@ dialog.cpp
 dinterpreter.cpp
 dnode.cpp
 dpro.cpp
+dSFMT/dSFMT.c
 dstructdesc.cpp
 dstructfactory.cxx
 dstructgdl.cpp
 dvar.cpp
+eigenvalues_solvers.cpp
 envt.cpp
 extrat.cpp
 exists_fun.cpp
 fftw.cpp
 file.cpp
 fmtnode.cpp
+gdlarray.cpp
 gdleventhandler.cpp
 gdlexception.cpp
+gdlfpexceptions.cpp
 gdlgstream.cpp
-dSFMT/dSFMT.c
 )
 
-if(WIN32)
+if(NOT WIN32)
 set(SOURCES
 ${SOURCES}
-otherdevices/gdlwinstream.cpp
-gtdhelper.cpp
-otherdevices/devicewin.cpp
+gdlxstream.cpp
+shm.cpp
 )
-else(WIN32)
-set(SOURCES
-${SOURCES}
-otherdevices/gdlxstream.cpp
-)
-endif(WIN32)
+endif(NOT WIN32)
 
 set(SOURCES
 ${SOURCES}
@@ -92,12 +100,14 @@ hash.cpp
 hdf5_fun.cpp
 hdf_fun.cpp
 hdf_pro.cpp
+histogram.cpp
 image.cpp
 initct.cpp
 initsysvar.cpp
 interpolate.cpp
 interpol.cpp
 io.cpp
+labelregion.cpp
 lapack.cpp
 least_squares.cpp
 libinit.cpp
@@ -157,13 +167,14 @@ randomgenerators.cpp
 read.cpp
 saverestore.cpp
 semshm.cpp
-sigfpehandler.cpp
 sorting.cpp
+sparse_matrix.cpp
 str.cpp
 terminfo.cpp
 tiff.cxx
 triangulation.cpp
 typetraits.cpp
+value_locate.cpp
 where.cpp
 widget.cpp
 )
@@ -179,12 +190,20 @@ ${SOURCES}
 sax.cpp
 )
 endif(USE_EXPAT)
+if(HAVE_QHULL)
+set (SOURCES
+${SOURCES}
+qhull.cpp
+)
+endif(HAVE_QHULL)
+
 if(WIN32)
 set(SOURCES
 ${SOURCES}
 gdl.rc
 )
 endif(WIN32)
+
 if(HAVE_LIBWXWIDGETS AND WIN32)
 find_file(WX_RC wx.rc HINTS ${wxWidgets_INCLUDE_DIRS} PATH_SUFFIXES wx/msw)
 set(SOURCES
@@ -193,9 +212,14 @@ ${WX_RC}
 )
 endif(HAVE_LIBWXWIDGETS AND WIN32)
 
+#local plplot drivers
+add_subdirectory(plplotdriver)
+#whereami
+add_library(whereami STATIC ${CMAKE_SOURCE_DIR}/src/whereami/src/whereami.c)
+
 add_subdirectory(antlr)
 
-include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/antlr ${CMAKE_BINARY_DIR})
+include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/antlr ${CMAKE_SOURCE_DIR}/src/plplotdriver ${CMAKE_SOURCE_DIR}/src/whereami/src ${CMAKE_BINARY_DIR})
 link_directories(${LINK_DIRECTORIES})
 
 if(PYTHON_MODULE) #GDL.so
@@ -213,13 +237,24 @@ if(USE_OPENMP)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif(USE_OPENMP)
 
-add_dependencies(gdl antlr) # be sure that antlr is built before gdl
-target_link_libraries(gdl antlr) # link antlr against gdl
+add_dependencies(gdl antlr whereami) # be sure that antlr is built before gdl
+target_link_libraries(gdl antlr whereami) # link antlr against gdl. added librt for mmap (unix only, not osx, apparently)
 if (MINGW)
 target_link_libraries(gdl ws2_32)
 endif (MINGW)
+if (NOT APPLE AND NOT OSX AND NOT MINGW)
+target_link_libraries(gdl rt) # link antlr against gdl. added librt for mmap (unix only, not osx, apparently)
+endif (NOT APPLE AND NOT OSX AND NOT MINGW)
 target_link_libraries(gdl ${LIBRARIES})
+
 add_definitions(-DHAVE_CONFIG_H)
+
+# Workaround MinGW build problem: force problematic large file to be optimized to prevent string table overflow error
+# see also: https://github.com/assimp/assimp/pull/2418/files
+if ((MINGW) AND (CMAKE_BUILD_TYPE MATCHES Debug))
+	message("-- Applying MinGW basic_op.cpp Debug Workaround")
+	set_source_files_properties(basic_op.cpp PROPERTIES COMPILE_OPTIONS "-Os")
+endif()
 
 if(PYTHON_MODULE)
         find_package( PythonInterp ${PYTHONVERSION} REQUIRED )
@@ -250,3 +285,9 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource DESTINATION ${CMAKE_INSTALL_PREFI
 	PATTERN checks EXCLUDE
 	PATTERN Makefile* EXCLUDE
 	PATTERN UrgentNeed.txt EXCLUDE)
+
+configure_file(
+ 	${CMAKE_SOURCE_DIR}/scripts/quick_start_GDL.sh.in
+	${CMAKE_BINARY_DIR}/quick_start_GDL.sh
+)
+

@@ -1,0 +1,38 @@
+    for (SizeT j = 0; j < nx; ++j) { //nb output points
+      x = xx[j];
+      if (x < 0) {
+        res[j] = missing;
+      } else if (x < n1 - 1) {
+        ix = floor(x); //floor  ix is [0 .. n1[
+        xi[0] = ix - 1;
+        xi[1] = ix;
+        xi[2] = ix + 1;
+        xi[3] = ix + 2;
+        //make in range
+        if (xi[0] < 0) xi[0] = 0; else if (xi[0] > n1 - 1) xi[0] = n1 - 1;
+        if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
+        if (xi[2] < 0) xi[2] = 0; else if (xi[2] > n1 - 1) xi[2] = n1 - 1;
+        if (xi[3] < 0) xi[3] = 0; else if (xi[3] > n1 - 1) xi[3] = n1 - 1;
+        dx = (x - xi[1]);
+        double d2 = dx*dx;
+        double d3 = d2*dx;
+        double omd = 1 - dx;
+        double omd2 = omd*omd;
+        double omd3 = omd2*omd;
+        double opd = 1 + dx;
+        double opd2 = opd*opd;
+        double opd3 = opd2*opd;
+        double dmd = 2 - dx;
+        double dmd2 = dmd*dmd;
+        double dmd3 = dmd2*dmd;
+        double c1 = ((g + 2) * d3 - (g + 3) * d2 + 1);
+        double c2 = ((g + 2) * omd3 - (g + 3) * omd2 + 1);
+        double c0 = (g * opd3 - 5 * g * opd2 + 8 * g * opd - 4 * g);
+        double c3 = (g * dmd3 - 5 * g * dmd2 + 8 * g * dmd - 4 * g);
+        res[j] = c1 * array[xi[1]] + c2 * array[xi[2]] + c0 * array[xi[0]] + c3 * array[xi[3]];
+      } else if (x < n1) {
+        res[j] = array[n1 - 1];
+      } else {
+        res[j] = missing;
+      }
+    }

@@ -1,39 +1,64 @@
 ;
+; Unknown origin ...
 ;
-; provide a test-case object besides LIST
+; Modifications history :
+; -2024-04-15 AC : cleaning (details ...)
 ;
-PRO ObjTEST::Cleanup, prm1, prm2, prm3
-  COMPILE_OPT IDL2 ,HIDDEN
-  ; Call our superclass Cleanup method
-  ; self->IDL_Object::Cleanup ; (there is no GDL_OBJECT::cleanup)
-
-nprm = N_PARAMS()
-print,' ObjTEST::Cleanup, #params=',nprm
+; -------------------------------------------------
 ;
-END
-
-PRO ObjTEST__define
-  COMPILE_OPT IDL2 ,HIDDEN
-  void = {ObjTEST, $
-  inherits IDL_Object, $ ; superclass
-  center: [0d, 0d], $ ; two-element array
-  radius: 0d}  ; scalar value
-END
+pro TEST_OBJ_HASMETHOD_INTERNAL, input, cumul_errors, debug=debug, $
+                                 test=test, verbose=verbose
 ;
-pro test_obj_hasmethod
-llist = list(fltarr(4),"hello",2.)
-mlist = list(!gdl, "goodbye",findgen(3,4))
-;if ~(obj_valid(llist) and obj_valid(mlist)) then exit, status=1
-
-hasadd = obj_hasmethod(mlist,'ADD')
-; MOVE is not yet a list method.
-hasmove= obj_hasmethod(mlist,'MOVE')
-;	print,' test_obj_hasmethod 1'
-hasremove= obj_hasmethod(mlist,'REMOVE')
-hastoarray=obj_hasmethod(mlist,'TOARRAY')
-;	print,' test_obj_hasmethod 2'
-hasall= hasadd + hasmove + hasremove + hastoarray
-if(hasall ge 3) then print,'SUCCESS' else exit, status=1
-
-return
+errors=0
+;
+if ~OBJ_VALID(input) then ERRORS_ADD, errors, 'Not an valid OBJ'
+;
+hasadd = OBJ_HASMETHOD(input,'ADD')
+if ~hasadd then ERRORS_ADD, errors, 'Method ADD not available'
+;
+hasmove= OBJ_HASMETHOD(input,'MOVE')
+if ~hasmove then ERRORS_ADD, errors, 'Method MOVE not available'
+;
+hasremove= OBJ_HASMETHOD(input,'REMOVE')
+if ~hasremove then ERRORS_ADD, errors, 'Method REMOVE not available'
+;
+hastoarray=OBJ_HASMETHOD(input,'TOARRAY')
+if ~hastoarray then ERRORS_ADD, errors, 'Method TOARRAY not available'
+;
+; --------------
+;
+BANNER_FOR_TESTSUITE, 'TEST_OBJ_HASMETHOD_INTERNAL', errors, /short, verb=verbose
+ERRORS_CUMUL, cumul_errors, errors
+if KEYWORD_SET(test) then STOP
+;
 end
+;
+; ----------------------------
+;
+pro TEST_OBJ_HASMETHOD, help=help, verbose=verbose, test=test, no_exit=no_exit
+;
+if KEYWORD_SET(help) then begin
+   print, 'TEST_OBJ_HASMETHOD, help=help, verbose=verbose, $'
+   print, '                    test=test, no_exit=no_exit'
+   return
+endif
+;
+cumul_errors=0
+;
+llist = LIST(FLTARR(4), "hello", 2.)
+TEST_OBJ_HASMETHOD_INTERNAL, llist, cumul_errors
+
+mlist = LIST(!pi, "goodbye", FINDGEN(3,4))
+TEST_OBJ_HASMETHOD_INTERNAL, mlist, cumul_errors;
+;
+; ----------------- final message ----------
+;
+BANNER_FOR_TESTSUITE, 'TEST_OBJ_HASMETHOD', cumul_errors, short=short
+;
+if (cumul_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+
+

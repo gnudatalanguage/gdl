@@ -20,7 +20,7 @@
 #include "allix.hpp"
  
 // older versions of gcc put the vtable into this file (where destructor is defined)
-AllIxBaseT::~AllIxBaseT() {}
+//AllIxBaseT::~AllIxBaseT() {}
 
 SizeT AllIxIndicesT::operator[]( SizeT i) const
 {

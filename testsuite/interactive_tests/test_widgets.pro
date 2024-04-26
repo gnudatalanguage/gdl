@@ -95,12 +95,12 @@ end
 pro i_am_realized, id
   print,"Widget "+string(id)+" is realized now."
 end
-pro base_event_ok, id
-  print,"event in base Authorized"
+pro base_event_base, id
+  print,"event in bases base"
   help,id
 end
-pro base_event_nok, id
-  print,"FATAL: event in base Not Authorized"
+pro base_event, id
+  print,"event in top base"
   help,id
 end
 pro slider_killed,id
@@ -119,24 +119,94 @@ pro deletedraw,ev
   tobedeleted = WIDGET_INFO(ev.TOP, FIND_BY_UNAME = 'drawToBeDeleted')
   widget_control,tobedeleted,/destroy
 end
+function draw2_event,ev
+  print,"draw2 event"
+  return,ev
+end
+
+pro draw1_event,ev
+widget_id=ev.id
+print,"draw1 started, will exit on key 1 release"
+sav_draw_motion_events = widget_info(widget_id, /draw_motion_events)
+sav_draw_button_events = widget_info(widget_id, /draw_button_events)
+sav_event_pro = widget_info(widget_id,/event_pro)
+sav_event_func = widget_info(widget_id,/event_func)
+
+widget_control, widget_id, /draw_button_events
+widget_control, widget_id, event_pro=''
+widget_control, widget_id, event_func='draw2_event'
+while 1 do begin
+
+	ev = widget_event (widget_id)
+;	print,'event in stretch_box
+;	help,ev,/st
+
+	if ev.press eq 1 then begin
+          print,"keypress 1"
+	endif
+
+        if ev.release eq 1 then begin
+			if sav_event_pro ne '' then widget_control, widget_id, event_pro=sav_event_pro
+			if sav_event_func ne '' then widget_control, widget_id, event_func=sav_event_func
+			widget_control, widget_id, draw_button_events=sav_draw_button_events, $
+                           draw_motion_events=sav_draw_motion_events
+                        print,"reset pro fun events & exit draw1"
+                        return
+	endif
+	wait, .1
+endwhile
+end
 
 pro list_event,event
 toto=["A","list","created","with","WIDGET_LIST","YSIZE=3"]
 print,toto[event.index] 
 end
 pro handle_Event,ev
-common mycount,count
-help,ev,/str
-if tag_names(ev, /structure_name) eq 'WIDGET_KILL_REQUEST' then begin
-   acceptance=dialog_message(dialog_parent=ev.id,"I Do want to close the window", /CANCEL, /DEFAULT_NO,/QUESTION) ; +strtrim(ev.id,2))
-   if acceptance eq "Yes" then begin
-      widget_control,ev.id,tlb_kill_request_events=0 ; remove blocking kill
-      widget_control,ev.id,/destroy
-   endif
-   
-endif
+  common mycount,count
+  common pixmaps,green_bmp,red_bmp
+  help,ev,/str
+  if tag_names(ev, /structure_name) eq 'WIDGET_KILL_REQUEST' then begin
+     acceptance=dialog_message(dialog_parent=ev.id,"I Do want to close the window", /CANCEL, /DEFAULT_NO,/QUESTION) ; +strtrim(ev.id,2))
+     if acceptance eq "Yes" then begin
+        widget_control,ev.id,tlb_kill_request_events=0 ; remove blocking kill
+        widget_control,ev.id,/destroy
+        return
+     endif
+     
+  endif
 
-widget_control,ev.id,get_uvalue=uv 
+  if tag_names(ev, /structure_name) eq 'WIDGET_TABLE_CELL_DESEL' then begin
+     col=[255b,255,255]
+     disj=widget_info(ev.id,/table_disj)
+     if disj then begin
+        desel=[ev.sel_left,ev.sel_top]
+        nel=1
+     endif else  begin
+        desel=[ev.sel_left,ev.sel_top,ev.sel_right,ev.sel_bottom]
+        nel=(ev.sel_right+1-ev.sel_left)*(ev.sel_bottom+1-ev.sel_top)
+     endelse
+     widget_control,ev.id,use_table_select=desel,background_color=col,set_value=replicate(-1,nel)
+     
+     return
+  endif
+  if tag_names(ev, /structure_name) eq 'WIDGET_TABLE_CELL_SEL' then begin
+     if ev.sel_left eq -1 then begin
+        ;widget_control,ev.id,background_color=[255,255,255]
+        return
+     endif
+     col=byte(randomu(seed,3)*255) 
+     widget_control,ev.id,background_color=col,/use_table_select
+     z=widget_info(ev.id,/table_select)
+     col=byte(randomu(seed,3)*255)
+     nel=n_elements(z)
+     if nel gt 0 then widget_control,ev.id,foreground_color=col,set_value=indgen(nel),use_table_select=z
+     ;; disj=widget_info(ev.id,/table_disj)
+     ;; if disj then dozero=[-1,-1] else dozero=[-1,-1,-1,-1]
+     ;; widget_control,ev.id,set_table_select=dozero
+     return
+  endif
+ 
+  widget_control,ev.id,get_uvalue=uv 
   widget_control,ev.top,get_uvalue=topuv
   if n_elements(uv) gt 0 then begin
      if (strlen(tag_names(ev,/structure_name)) le 1) then begin
@@ -162,7 +232,37 @@ widget_control,ev.id,get_uvalue=uv
            widget_control,ev.id,get_value=value
            widget_control,topuv[0],set_value=value
            widget_control,topuv[1],set_value=value
-           end
+        end
+        'test_check': begin
+           check=widget_info(ev.id,/button_set)
+           if (check) then begin
+              print,"unsetting checkmark..."
+              widget_control,ev.id,set_button=0
+              widget_control,ev.id,set_value="entry 3 (unchecked)"
+           endif else begin
+              print,"setting checkmark..."
+              widget_control,ev.id,set_button=1
+              widget_control,ev.id,set_value="entry 3 (checked)"
+           endelse
+        end
+        'clickbutton': begin
+           widget_control,ev.id,get_value = val
+	   if val eq 'ON' then begin
+              widget_control,ev.id,set_value = 'OFF' 
+           endif else begin
+              widget_control,ev.id,set_value = 'ON'
+           endelse
+        end
+        'clickpixmapbutton': begin
+           widget_control,ev.id,get_uvalue = val
+           if val.pos[0] eq 0 then begin
+              val.pos[0]=1
+              widget_control,ev.id,set_value = red_bmp, set_uvalue= val
+           endif else begin
+              val.pos[0]=0
+               widget_control,ev.id,set_value = green_bmp, set_uvalue= val
+           endelse
+        end
         'quit':  widget_control,ev.top,/DESTROY
         else: begin
            print, "(other, not treated, event: ok)"
@@ -179,7 +279,7 @@ ex = widget_button(menu,VALUE="Exit",EVENT_PRO="exit_gui") ; 4
 siz= widget_button(menu,VALUE="Resize (error)",EVENT_PRO="resize_gui") ; 5
 ;buttons as menu buttons
         fileID = Widget_Button(mbar, Value='Complicated Menu') ; 6
-        saveID = Widget_Button(fileID, Value='submenu 1', /MENU,font=fontname,xsize=100)
+        saveID = Widget_Button(fileID, Value='submenu 1', /MENU,font=fontname)
         button = Widget_Button(saveID, Value='entry 1 (inactive)', UNAME='POSTSCRIPT',sensitive=0,font=fontname)
         button = Widget_Button(saveID, Value='entry 2', UNAME='PDF')
         raster = Widget_Button(saveID, Value='submenu 2', /MENU)
@@ -197,7 +297,7 @@ siz= widget_button(menu,VALUE="Resize (error)",EVENT_PRO="resize_gui") ; 5
         button = Widget_Button(imraster, Value='entry 5', UNAME='IMAGEMAGICK_TIFF')
         button = Widget_Button(fileID, Value='entry 1', /Separator, UNAME='SAVECOMMANDS')
         button = Widget_Button(fileID, Value='entry 2', UNAME='RESTORECOMMANDS')
-        button = Widget_Button(fileID, Value='entry 3 (separed)', /Separator, UNAME='QUIT')
+        button = Widget_Button(fileID, Value='entry 3 (unchecked)', /Separator, /check ,UVALUE={vEv,'test_check',[0,0]})
         bitmap = Widget_Button(mbar, Value='bitmap menus')
         ;; this one is allowed by IDL only on WINDOWS but possible with GDL
         ;;button = Widget_Button(bitmap, Value='a bitmap', image=myBitmap(), UNAME='BUT',/menu)
@@ -205,8 +305,13 @@ siz= widget_button(menu,VALUE="Resize (error)",EVENT_PRO="resize_gui") ; 5
         button = Widget_Button(button, Value=myBitmap(), UNAME='BUT')
      end
 
-pro test_widgets,table,help=help,nocanvas=nocanvas,notree=notree,block=block,fontname=fontname,present=present,_extra=extra
+pro test_widgets,table,help=help,nocanvas=nocanvas,notree=notree,block=block,fontname=fontname,present=present,select=select,_extra=extra
   common mycount,count
+  common pixmaps,green_bmp,red_bmp
+
+  green_bmp= bytarr(7,7,3)& green_bmp[*,*,1] = 255& & green_bmp[0,0,1] = 254
+  red_bmp= bytarr(7,7,3)& red_bmp[*,*,0] = 255& & red_bmp[0,0,0] = 254
+  if (n_elements(select) gt 0) then present=select
   if (n_elements(present) eq 0) then present=['TEXT','LIST','DRAW','SLIDER','BUTTON','TABLE','TREE','LABEL','DROPLIST','COMBOBOX','BASE']
 count=0
 title='GDL Widget Examples'
@@ -248,10 +353,9 @@ doMbar,mbar,fontname
 ;mysize=widget_info(base,string_size='012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234')
 
 ; define a tabbed base that contains everything:
-label=widget_label(base,value='to best mimic IDL`s widgets, call GDL with option "--widget-compat" ',/align_left)
-label=widget_label(base,value='Test calling me with options like "test_widgets,/col,font="Arial 32",/base_align_right" ',/align_left)
-label=widget_label(base,value='                          or like "test_widgets,/col,x_scroll=400,y_scroll=400" ',/align_left)
-label=widget_label(base,value='                          or like "test_widgets,/col,select="TEXT" (see test_widgets,/help) ',/align_left)
+label=widget_label(base,value='to best mimic IDL`s widgets, call GDL ',/align_left)
+label=widget_label(base,value='with option "--widget-compat" ',/align_left)
+label=widget_label(base,value='See test_widget,/help for useful hints.',/align_left)
 
 tabbed_base = widget_tab( base, frame=12) ;, scr_xsize=400, scr_ysize=400);, multiline=6)
 
@@ -264,7 +368,7 @@ endif
 ;TEXT
 if total(strcmp('TEXT',present,/fold)) then begin
    text_base = widget_base( tabbed_base, TITLE="TEXT",_extra=extra) & offy=0
-   label=widget_label(yoff=offy,text_base,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=20 ;
+
    label=widget_label(yoff=offy,text_base,/align_center,value='Various Sizes, no event should be issued') & offy+=20                                               ;
    text1=widget_text(yoff=offy,text_base,VALUE=["xsize=30,/scroll, (no ysize), follow base alignment","Line 2","line 3","line 4","line 5"],/scroll, xsize=30) & offy+=30     ;
    text1=widget_text(yoff=offy,text_base,VALUE=["xsize=20, no ysize, follow base alignment","Line 2","line 3","line 4","line 5"],XSIZE=20) & offy+=30              ;
@@ -275,7 +379,7 @@ if total(strcmp('TEXT',present,/fold)) then begin
    text1=widget_text(yoff=offy,text_base,VALUE=["idem but with scr_xsize=200,scr_ysize=50"," a non editable LONG line using /wrap option..."],$
                      scr_xsize=200,scr_ysize=50,/wrap) & offy+=20                                                                                 ;
    label=widget_label(yoff=offy,text_base,/align_center,value='Various Positioning, no event should be issued') & offy+=20      ;
-   text3=widget_text(yoff=offy,text_base,VALUE=["Caratères Accentués ça ü û, frame=10,left"],frame=10,/align_left)  & offy+=50  ;
+   text3=widget_text(yoff=offy,text_base,VALUE=["Caractères Accentués ça ü û, frame=10,left"],frame=10,/align_left)  & offy+=50  ;
    text3=widget_text(yoff=offy,text_base,VALUE=["fancy center aligned, frame=10"],/align_center,frame=10,font=fontname) & offy+=50 ;
    text3=widget_text(yoff=offy,text_base,VALUE=["follows alignment, frame=10"],frame=10) & offy+=50                                ;
    
@@ -283,7 +387,7 @@ if total(strcmp('TEXT',present,/fold)) then begin
    text1=widget_text(yoff=offy,text_base,VALUE=["a non editable LONG line using /wrap option in a restricted xsize=20,ysize=5 panel (sizes guaranteed only if an alignment has been defined), this is not finished there is still text below...","a non editable LONG line using /wrap option in a restricted xsize=20,ysize=5 panel (sizes guaranteed only if an alignment has been defined), this is not finished there is still text below...","a non editable LONG line using /wrap option in a restricted xsize=20,ysize=5 panel (sizes guaranteed only if an alignment has been defined), this is not finished there is still text below..."],$
                      xsize=20, ysize=5,/wrap,/all_events) & offy+=50 ;
    label=widget_label(yoff=offy,text_base,value='Is EDITABLE + ALL_EVENTS: input change widget content and events are generated') & offy+=20    ;
-   text1=widget_text(yoff=offy,text_base,VALUE=["EDITABLE, all_events","Line 2","line 3","line 4","line 5"],/EDITABLE,/ALL_EVENTS) & offy+=30   ;
+   text1=widget_text(yoff=offy,text_base,VALUE=["EDITABLE, all_events","Line 2","line 3","line 4","line 5"],/EDITABLE,/ALL_EVENTS,ysize=3) & offy+=30   ;
    label=widget_label(yoff=offy,text_base,value='Is NOT EDITABLE + ALL_EVENTS: no change but events are generated') & offy+=20                  ;
    text1=widget_text(yoff=offy,text_base,VALUE=["NOT EDITABLE, all_events","Line 2","line 3","line 4","line 5"],EDITABLE=0,/ALL_EVENTS) & offy+=30 ;
    label=widget_label(yoff=offy,text_base,value='Is only EDITABLE: input change widget content and <Return> generates an event.') & offy+=20       ;
@@ -293,7 +397,7 @@ endif
  if total(strcmp('LIST',present,/fold)) then begin  
 ;LIST
     list_base = widget_base( tabbed_base, TITLE="LISTs",_extra=extra) & offy=0                                                                                     ;
-    label=widget_label(yoff=offy,list_base,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10 ;
+
     label=widget_label(yoff=offy,list_base,value='3 lines, placement inherited') & offy+=10                                                                         ;
     list=widget_list(yoff=offy,list_base,value=["Simple rather long text of widget_list, ysize=3","created","with","WIDGET_LIST","widget_list, ysize=3","created","with","WIDGET_LIST", "ysize=3","created","with","WIDGET_LIST","widget_list, ysize=3","created","with","WIDGET_LIST","widget_list, ysize=3","created","with","WIDGET_LIST","widget_list, ysize=3","created","with","WIDGET_LIST", "ysize=3","created","with","WIDGET_LIST","widget_list, ysize=3","created","with","WIDGET_LIST"],/multiple,YSIZE=3) & offy+=100 ;
     label=widget_label(yoff=offy,list_base,value='idem,fancy,framed(32 pix)') & offy+=10 ;
@@ -315,10 +419,10 @@ endif
   if total(strcmp('DRAW',present,/fold)) then begin     
 ;DRAW_BASE: Attach 256 x 256 draw widgets. Offsets 256 pix
     draw_base = widget_base( tabbed_base, TITLE="DRAW",_extra=extra) & offy=0 ;,YSIZE=1000,XSIZE=1000,Y_SCROLL=300);XPAD=25,YPAD=50,SPACE=30)
-    label=widget_label(yoff=offy,draw_base,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10 ;
+
 ; populate
     if ~keyword_set(nocanvas) then begin 
-       draw = WIDGET_DRAW(yoff=offy,draw_base, XSIZE = 1800, YSIZE = 600,x_scroll_size=256,y_scroll_size=256,frame=20)  & offy+=300                                         ;
+       draw = WIDGET_DRAW(yoff=offy,draw_base, XSIZE = 1800, YSIZE = 600,x_scroll_size=256,y_scroll_size=256,frame=20,/button_events,event_pro="draw1_event")  & offy+=300                                         ;
        draw2 = WIDGET_DRAW(yoff=offy,draw_base, xoff=100, xsize=400,ysize=400,x_scroll_size=200,y_scroll_size=200,/button_events,keyboard_events=1,/motion_events)  & offy+=250 ;
        tmp=widget_label(xoff=200,yoff=offy,draw_base,value="below, has tooltip and has a popup") & offy+=10                                                                     ;
        
@@ -326,7 +430,8 @@ endif
        contextBase = WIDGET_BASE(yoff=offy,draw3, /CONTEXT_MENU,col=2,TITLE="ZZZZZZZZZZZZZZ",UNAME = 'drawContext') & offy+=10;
        b1 = WIDGET_BUTTON(yoff=offy,contextBase, VALUE = 'Delete this draw widget', /SEPARATOR, EVENT_PRO = 'DeleteDraw') 
        b2 = WIDGET_BUTTON(contextBase, VALUE = 'just an entry') & offy+=10;
-       b2 = WIDGET_BUTTON(contextBase, VALUE = 'just an entry') & offy+=10;
+       b2 = WIDGET_BUTTON(contextBase, VALUE = 'just an entry, checked', /check) & offy+=10 ;
+       widget_control,b2,/set_button
        b2 = WIDGET_BUTTON(contextBase, VALUE = 'just an entry') & offy+=10;
        b3 = WIDGET_BUTTON(contextBase, VALUE = 'a menu', /menu) & offy+=10;
        b4 = WIDGET_BUTTON(b3         , VALUE = 'an item.') & offy+=10;
@@ -341,52 +446,61 @@ endif
  if total(strcmp('SLIDER',present,/fold)) then begin
 ; SLIDER_BASE: 
     slider_baseh = widget_base( tabbed_base, TITLE="H_SLIDER",_extra=extra) & offy=0                                                                                           ;
-    label=widget_label(yoff=offy,slider_baseh,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10         ;
+
 ;SLIDERs
     tmp=widget_label(xoff=150,yoff=offy,slider_baseh,value="fancy, framed, horizontal, align:inherit") & offy+=10                                                              ;
     sl1=widget_slider(xoff=150,yoff=offy,slider_baseh,MIN=0,MAX=100,TITLE="FRAME=100+DRAG+HORIZONTAL+FANCY",kill_notify='slider_killed',/DRAG,FRAME=100,font=fontname) & offy+=200 ;
     tmp=widget_label(yoff=offy,slider_baseh,value="fancy, simple, horizontal, align:inherit") & offy+=10                                                                           ;
     sl3=widget_slider(yoff=offy,slider_baseh,MIN=0,MAX=1000,TITLE="SIMPLE,HORIZONTAL",font=fontname) & offy+=100                                                                   ;
-    tmp=widget_label(yoff=offy,slider_baseh,value="no label, horizontal, align:inherit") & offy+=10                                                                                ;
+    tmp=widget_label(yoff=offy,slider_baseh,value="no label, horizontal, align:inherit") & offy+=10                                                                             ;
     sl3=widget_slider(yoff=offy,slider_baseh,MIN=0,MAX=1000) & offy+=30                                                                                                            ;
     tmp=widget_label(yoff=offy,slider_baseh,value="except the following no label slider, centered",/align_center) & offy+=10                                                       ;
     sl3=widget_slider(yoff=offy,slider_baseh,MIN=0,MAX=1000,/align_center) & offy+=10                                                                                              ;
     
     
     slider_basev = widget_base( tabbed_base, TITLE="V_SLIDER",_extra=extra) & offy=0
-    label=widget_label(yoff=offy,slider_basev,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10     ;
+
 ;SLIDERs
-    sl=widget_slider(yoff=offy,slider_basev,MIN=0,MAX=100,TITLE="FRAME=100+VERTICAL",kill_notify='slider_killed',ysize=300,xsize=200,FRAME=20,/VERT,font=fontname) & offy+=400 ;
-    sl3=widget_slider(yoff=offy,slider_basev,MIN=0,MAX=1000,TITLE="SIMPLE,VERTICAL",font=fontname,/vert) & offy+=200                                                           ;
-    tmp=widget_label(yoff=offy,slider_basev,value="except the following no label slider, centered",/align_center) & offy+=10                                                   ;
+    tmp=widget_label(yoff=offy,slider_basev,value="Vertical slider, xsize=200, ysize=300, frame=20, fancy, kill_notify") & offy+=10                                                       ;
+    sl=widget_slider(yoff=offy,slider_basev,MIN=0,MAX=100,TITLE="A Quite Long Title.",kill_notify='slider_killed',ysize=300,xsize=200,FRAME=20,/VERT,font=fontname) & offy+=400 ;
+    tmp=widget_label(yoff=offy,slider_basev,value="Vertical slider, fancy") & offy+=10                                                       ;
+    sl3=widget_slider(yoff=offy,slider_basev,MIN=0,MAX=1000,TITLE="A title",font=fontname,/vert) & offy+=200                                                           ;
+    tmp=widget_label(yoff=offy,slider_basev,value="following no label slider will be always centered",/align_center) & offy+=10                                                   ;
     sl3=widget_slider(yoff=offy,slider_basev,MIN=0,MAX=1000,/vert,/align_center) & offy+=10                                                                                    ;
     
  endif
  if total(strcmp('BUTTON',present,/fold)) then begin
 ; BUTTON_BASE: 
-    button_base = widget_base( tabbed_base, TITLE="BUTTONs",_extra=extra) & offy=10
-    label=widget_label(yoff=offy,button_base,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10 ;
+    button_base00 = widget_base( tabbed_base, TITLE="BUTTONs", COL=2, $
+       SPACE=10, XPAD=10, YPAD=10) & offy=10
+
+    button_base01 = widget_base(button_base00, TITLE="BUTTONs",/COL) & offy=10
+    button_base02 = widget_base(button_base00, TITLE="BUTTONs",/COL) & offy=10
 ; BUTTONs
-    tmp=widget_label(yoff=offy,button_base,value="Simple Button") & offy+=10           ;
-    tmp=widget_button(yoff=offy,button_base,value="Simple Button") & offy+=10 ;
-    tmp=widget_label(yoff=offy,button_base,value="Framed Simple Button") & offy+=10           ;
-    tmp=widget_button(yoff=offy,button_base,value="Framed 10 px Simple Button",frame=10) & offy+=10 ;
-    tmp=widget_label(yoff=offy,button_base,value="Fancy Simple Button") & offy+=10           ;
-    tmp=widget_button(yoff=offy,button_base,value="Fancy Button",font=fontname) & offy+=10 ;
-    tmp=widget_label(yoff=offy,button_base,value="Exclusive base, framed 30") & offy+=10  ;
-    radio=widget_base(yoff=offy,button_base,/EXCLUSIVE,COL=1,frame=30) & offy+=150         ;
+    tmp=widget_label(yoff=offy,button_base01,value="Simple ON/OFF Button") & offy+=10           ;
+    tmp=widget_button(yoff=offy,button_base01,value="OFF",uvalue={vEv,'clickbutton',[0,0]}) & offy+=10                                                                    ;
+    tmp=widget_label(yoff=offy,button_base01,value="Simple Color Button") & offy+=10           ;
+    tmp=widget_button(yoff=offy,button_base01,value=green_bmp,uvalue={vEv,'clickpixmapbutton',[0,0]}) & offy+=10                                                                    ;
+    tmp=widget_label(yoff=offy,button_base01,value="Framed Simple Button") & offy+=10           ;
+    tmp=widget_button(yoff=offy,button_base01,value="Framed 10 px Simple Button",frame=10) & offy+=10 ;
+    tmp=widget_label(yoff=offy,button_base01,value="Bitmap Simple Button") & offy+=10           ;
+    tmp=widget_button(yoff=offy,button_base01,value=myBitmap()) & offy+=10 ;
+    tmp=widget_label(yoff=offy,button_base01,value="Fancy Simple Button") & offy+=10           ;
+    tmp=widget_button(yoff=offy,button_base01,value="Fancy Button",font=fontname) & offy+=10 ;
+    tmp=widget_label(yoff=offy,button_base01,value="Exclusive base, framed 30") & offy+=10  ;
+    radio=widget_base(yoff=offy,button_base01,/EXCLUSIVE,COL=1,frame=30) & offy+=150         ;
     rb1=widget_button(radio,VALUE="button in EXCLUSIVE base 1",uvalue={vEv,'rb1',[8,0]}, font=fontname)
     rb2=widget_button(radio,VALUE="button in EXCLUSIVE base 2",uvalue={vEv,'rb2',[9,0]})
     
-    tmp=widget_label(yoff=offy,button_base,value="Non-Exclusive base,simple look") & offy+=10 ;
+    tmp=widget_label(yoff=offy,button_base01,value="Non-Exclusive base,simple look") & offy+=10 ;
     
-    check=widget_base(yoff=offy,button_base,/NONEXCLUSIVE,COL=1) & offy+=100 ;
+    check=widget_base(yoff=offy,button_base01,/NONEXCLUSIVE,COL=1) & offy+=100 ;
     cb1=widget_button(check,VALUE="button in NONEXCLUSIVE base 1",uvalue={vEv,'cb1',[81,0]}, font=fontname)
     cb2=widget_button(check,VALUE="button in NONEXCLUSIVE base 2",uvalue={vEv,'cb2',[12,0]})
     
-    tmp=widget_label(yoff=offy,button_base,value='2 CW_BGROUP /COL in a framed base') & offy+=10 ;
+    tmp=widget_label(yoff=offy,button_base01,value='2 CW_BGROUP /COL in a framed base') & offy+=10 ;
     
-    bg=widget_base(yoff=offy,button_base,/ROW,Frame=10) & offy+=300 ;
+    bg=widget_base(yoff=offy,button_base01,/ROW,Frame=10) & offy+=300 ;
     values = ['One', 'Two', 'Three', 'Four', 'Five','Six'] 
     
     bgroup1 = CW_BGROUP(yoff=offy,bg, values, /COLUMN, /EXCLUSIVE, $ 
@@ -394,13 +508,13 @@ endif
     bgroup2 = CW_BGROUP(yoff=offy,bg, values, /COLUMN, /NONEXCLUSIVE, $ 
                         LABEL_TOP='Nonexclusive', FRAME=10, SET_VALUE=[1,0,1,0,1])
     
-    tmp=widget_label(yoff=offy,button_base,value="A menu button frame 10") & offy+=10 ;
-    menu=widget_button(yoff=offy,button_base,value="Menu",/menu,frame=10) & offy+=100 ;
+    tmp=widget_label(yoff=offy,button_base02,value="A menu button frame 10") & offy+=10 ;
+    menu=widget_button(yoff=offy,button_base02,value="Menu",/menu,frame=10) & offy+=100 ;
     entry1=widget_button(menu,value="entry 1")
     entry2=widget_button(menu,value="entry 2")
     
-    tmp=widget_label(yoff=offy,button_base,value="A menu button with Bitmap, frame 30") & offy+=10              ;
-    menu=widget_button(yoff=offy,button_base,value=myBitmap(),/menu,frame=30,tooltip='A TOOOOOLTIP!!!') & offy+=100 ;
+    tmp=widget_label(yoff=offy,button_base02,value="A menu button with Bitmap, frame 30") & offy+=10              ;
+    menu=widget_button(yoff=offy,button_base02,value=myBitmap(),/menu,frame=30,tooltip='A TOOOOOLTIP!!!') & offy+=100 ;
     entry1b=widget_button(menu,value=myBitmap(),/menu)
     entry1=widget_button(menu,value='submenu',/menu)
     entry2b=widget_button(entry1b,value=myBitmap(),/menu)
@@ -408,13 +522,13 @@ endif
     entry3b=widget_button(entry2b,value=myBitmap())
     entry3=widget_button(entry2,value='entry')
     
-    tmp=widget_label(yoff=offy,button_base,value="A fancy menu button") & offy+=10     ;
-    menu=widget_button(yoff=offy,button_base,value="Menu",/menu,font=fontname) & offy+=100 ;
+    tmp=widget_label(yoff=offy,button_base02,value="A fancy menu button") & offy+=10     ;
+    menu=widget_button(yoff=offy,button_base02,value="Menu",/menu,font=fontname) & offy+=100 ;
     entry1=widget_button(menu,value="entry 1",font=fontname)
     entry2=widget_button(menu,value="entry 2")
     
-    tmp=widget_label(yoff=offy,button_base,value="ALIGNMENTS",/align_center,/fram) & offy+=10 ;
-    base1=widget_base(yoff=offy,button_base,/COL,/fram,xsize=400) & offy+=10                  ;
+    tmp=widget_label(yoff=offy,button_base02,value="ALIGNMENTS",/align_center,/fram) & offy+=10 ;
+    base1=widget_base(yoff=offy,button_base02,/COL,/fram) & offy+=10                  ;
     tmp=widget_label(yoff=offy,base1,value="Row Base 1")
     base11=widget_base(yoff=offy,base1,/ROW,/fram)
     tmp=widget_label(base11,value="inherited")
@@ -427,7 +541,7 @@ endif
     base13=widget_base(yoff=offy,base1,/ROW,/fram)
     tmp=widget_label(base13,value="/align_right") & offy+=10                                   ;
     but=widget_button(base13,value="some button, right-aligned",xsize=200,/align_right) & offy+=10 ;
-    base2=widget_base(yoff=offy,button_base,/COL,/fram) & offy+=10                               ;
+    base2=widget_base(yoff=offy,button_base02,/COL,/fram) & offy+=10                               ;
     tmp=widget_label(base2,value="Column Base") & offy+=10                                       ;
     tmp=widget_label(base2,value="A Button inheriting base orientation: text centered") & offy+=10 ;
     but=widget_button(base2,value="some button, no align",xsize=200) & offy+=10                      ;
@@ -440,21 +554,22 @@ endif
 if total(strcmp('TABLE',present,/fold)) then begin
 ; TABLE
    table_base = widget_base( tabbed_base, TITLE="TABLEs",_extra=extra) & offy=0
-   label=widget_label(yoff=offy,table_base,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10 ;
+
 ;
-   mytable1=widget_table(yoff=offy,table_base,value=dist(7),xsize=5,ysize=5,/editable,/all_events,font=fontname,frame=30) & offy+=200 ;
+   mytable1=widget_table(UVALUE={vEv,'table1',[0,0]},yoff=offy,table_base,value=dist(7),xsize=5,ysize=5,/all);,font=fontname,frame=30) & offy+=200 ;
 ;to be implemented! ;widget_control,mytable1,/editable,use_table_sel=[1,1,4,4]
-   widget_control,mytable1,edit_cell=[0,0]
+   widget_control,mytable1,edit_cell=[1,1]
    widget_control,mytable1,background_color=[255,255,0],use_table_sel=[1,1,4,4]
+   widget_control,mytable1,/table_disjoint
    nrows=n_elements(table)
    subsize=nrows < 6
-   mytable2=widget_table(yoff=offy,table_base,value=table[0:subsize-1],/row_major,row_labels='',column_labels=tags,column_width=60,/resizeable_columns,y_scroll_size=40,/disjoint,/all_events,alignment=2,frame=50) & offy+=10 ;
+   mytable2=widget_table(UVALUE={vEv,'table2',[0,0]},yoff=offy,table_base,value=table[0:subsize-1],/row_major,row_labels='',column_labels=tags,column_width=60,/resizeable_columns,y_scroll_size=40,/edit,alignment=2,frame=20) & offy+=10 ;
 endif
 
 if total(strcmp('TREE',present,/fold)) then begin
 ; TREE
    tree_base = widget_base( tabbed_base, TITLE="TREE",_extra=extra) & offy=0
-   label=widget_label(yoff=offy,tree_base,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10 ;
+
    if ~keyword_set(notree) then begin
       racine = widget_tree(yoff=offy,tree_base,ysize=100) & offy+=90 ;
       wtRoot = widget_tree(racine, VALUE='GDL', /folder, /draggable, /drop_events,ysize=200)
@@ -493,7 +608,7 @@ endif
 if total(strcmp('LABEL',present,/fold)) then begin
 ; LABEL
    label_base = widget_base( tabbed_base, TITLE="LABELs",_extra=extra) & offy=0
-   label=widget_label(yoff=offy,label_base,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10 ;
+
 ;
    label1=widget_label(yoff=offy,label_base,VALUE="Sunken-frame label, inherits centering",/align_center) & offy+=10                   ;
    label1=widget_label(yoff=offy,label_base,VALUE="Sunken-frame label",uvalue={vEv,'lll',[1,-1]},/sunken_frame,frame=33) & offy+=10                   ;
@@ -519,7 +634,7 @@ endif
 if total(strcmp('DROPLIST',present,/fold)) then begin   
 ; DROPLIST
    droplist_base = widget_base( tabbed_base, TITLE="DROPLISTs",_extra=extra) & offy=0
-   label=widget_label(yoff=offy,droplist_base,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10                   ;
+
 ;
    droplist=widget_droplist(yoff=offy,droplist_base,VALUE=["droplist","created","with","WIDGET_DROPLIST","(no YSIZE)"],title="A fancy droplist (framed)",font=fontname,frame=10) & offy+=50 ;
    droplist=widget_droplist(yoff=offy,droplist_base,VALUE=["droplist","created","with","WIDGET_DROPLIST","(no YSIZE)"],title="A fancy droplist",font=fontname) & offy+=50                   ;
@@ -530,7 +645,7 @@ endif
 if total(strcmp('COMBOBOX',present,/fold)) then begin
 ;COMBO
 combobox_base = widget_base( tabbed_base, TITLE="COMBOBOXs",_extra=extra) & offy=0
-label=widget_label(yoff=offy,combobox_base,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10;
+
 ;
 combo=widget_combobox(xoff=100,yoff=offy,combobox_base,VALUE=["A fancy combobox (framed)","not editable","created","with","WIDGET_COMBOBOX"],frame=30,font=fontname) & offy+=100;
 combo=widget_combobox(yoff=offy,combobox_base,VALUE=["A combobox","editable","created","with","WIDGET_COMBOBOX"],/editable) & offy+=30;
@@ -539,8 +654,8 @@ combo=widget_combobox(yoff=offy,combobox_base,VALUE=["Same, centered combobox","
 endif
 if total(strcmp('BASE',present,/fold)) then begin
  ;MISC. BASES
- bases_base0 = widget_base( tabbed_base , TITLE="BASEs",event_pro='base_event_ok',_extra=extra) & offy=0
- label=widget_label(yoff=offy,bases_base0,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10;
+ bases_base0 = widget_base( tabbed_base , TITLE="BASEs",event_pro='base_event_base',_extra=extra) & offy=0
+
  tmp=widget_label(yoff=offy,bases_base0,value="below a tab-based base with frame=30",font=fontname) & offy+=10;
  tmp=widget_label(yoff=offy,bases_base0,value="containing a base, frame=100, with 2 buttons; ",font=fontname) & offy+=10;
  tmp=widget_label(yoff=offy,bases_base0,value="another with a label and a text; ",font=fontname) & offy+=10;
@@ -581,11 +696,11 @@ fileNumbers = lonarr(nRows)
 ;   fileBase=widget_base(bases_base,/scroll,frame=3)
 ;base to contain column labels and cells with table values and selected files
 dummy = widget_label(bases_base,value=' ')
-listentries=widget_base(bases_base,row=nRows+1,/scroll,space=50, x_scroll=300,frame=10,y_scroll=300)
-widget_control,dummy,set_value='Scrolled Base below has ID='+string(listentries) 
+listentries=widget_base(bases_base,row=nRows+1,/scroll,space=10, x_scroll=300,frame=10,y_scroll=300)
+widget_control,dummy,set_value='300x300 pix Scrolled Base below has ID='+string(listentries) 
 ;create column labels 
-dummy = widget_label(listentries,value=' ', xsize=30)
-dummy1 = widget_label(listentries,value=' ',xsize=30)
+dummy = widget_label(listentries,value=' ', xsize=10)
+dummy1 = widget_label(listentries,value=' ',xsize=10)
 for icol =0, nCols-1 do tagButtons[icol]=widget_label(listentries,value=tags[icol], xsize=charpix*maxSize[icol],/align_left)
 for iRow=0,nRows-1 do begin
    fileNumbers[iRow]=widget_label(listentries, value=string(iRow), xsize=30, ysize=25)

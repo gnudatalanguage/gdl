@@ -22,18 +22,14 @@
 #include <memory>
 #include <sys/stat.h>
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 #include "basic_fun.hpp"
-#include "io.hpp"
 #include "dinterpreter.hpp"
-#include "objects.hpp"
 #include "basic_fun_jmg.hpp"
-#include "nullgdl.hpp"
 
 
 //#define GDL_DEBUG
-#undef GDL_DEBUG
+//#undef GDL_DEBUG
 
 namespace lib {
 
@@ -44,7 +40,7 @@ namespace lib {
  
   BaseGDL* isa_fun( EnvT* e) 
   {
-    if (e->NParam() == 0) e->Throw("Requires at least one argument !");
+    e->NParam(1);
 
     DString type;
     BaseGDL *p0;
@@ -173,7 +169,7 @@ namespace lib {
       n_elem = p0->N_Elements();
       rank = p0->Rank();
       if (debug) cout << "type : "<< p0->Type() << ", Rank : "<< rank << endl;
-      
+
       switch (p0->Type())
 	{
 	case GDL_UNDEF: type="UNDEFINED"; isNUMBER=false; res=false; break; 
@@ -211,8 +207,8 @@ namespace lib {
     }
 
     if(type == "OBJREF"){
-      rank=1; // alway array following ISA() doc.
-      //cout << "OBJREF" << endl;
+      // AC 2024/03/21 wrong here rank=1; // alway array following ISA() doc.
+      // cout << "OBJREF" << endl;
       DObjGDL* obj = static_cast<DObjGDL*>(p0);
       DObj objID = (*obj)[0];
       if(objID == 0) res = false; else res = true;
@@ -228,7 +224,11 @@ namespace lib {
 	else {
 	  objectName = str->Desc()->Name();
 	}
-	// cout << objectName << endl;
+	SizeT nEl;
+	if (str->Desc()->IsParent("LIST")) nEl=LIST_count(str);
+	if (str->Desc()->IsParent("HASH")) nEl=HASH_count(str);
+	if (debug) cout << objectName << " " << nEl<< endl;
+	if (nEl > 0) rank=1;
       }
     }
 
@@ -263,10 +263,10 @@ namespace lib {
       if(type == "STRUCT"){ if(structName == (*p1Str)[0]) res = true;}
       if(type == "OBJREF"){ if(objectName == (*p1Str)[0]) res = true;}
 
-      debug=1;
+      debug=0;
       if (debug) cout << type << " " << (*p1Str)[0] << " " << res << endl;
     }
-	
+
     if(type != "UNDEFINED"){
 
       if (sub_type == 1) isBOOLEAN = true;
@@ -460,14 +460,13 @@ namespace lib {
 	    if( oStructGDL != NULL) // if object not valid -> default behaviour
 	      {  
 		DStructDesc* desc = oStructGDL->Desc();
-
 		if( desc->IsParent("LIST"))
 		  {
-				isObjectContainer = true; nEl = LIST_count(oStructGDL);
+		    isObjectContainer = true; nEl = LIST_count(oStructGDL);
 		  }
 		if( desc->IsParent("HASH"))
 		  {
-				isObjectContainer = true; nEl = HASH_count(oStructGDL);
+		    isObjectContainer = true; nEl = HASH_count(oStructGDL);
 		  }
 	      }
 	  }
@@ -475,7 +474,7 @@ namespace lib {
 
     if( isObjectContainer)
       {
-	LogicalRank = 1;
+	if (nEl > 0) LogicalRank = 1; // AC2024/03/21 bug  #1725
       }
     
     // DIMENSIONS
@@ -568,23 +567,33 @@ namespace lib {
 	res->InitTag("FILE_OFFSET", DLongGDL(0));
 	res->InitTag("N_ELEMENTS",  DLongGDL(nEl));
       }
-      res->InitTag("N_DIMENSIONS",  DLongGDL(Rank));
+      
+      // AC2024/03/21 bug  #1810
+      //res->InitTag("N_DIMENSIONS",  DLongGDL(Rank));
+      res->InitTag("N_DIMENSIONS",  DLongGDL(LogicalRank));
 
       // Initialize dimension values to 0
       if (e->KeywordSet(L64Ix) || forceL64 ) {
 	DLong64GDL *dims_res = new DLong64GDL(dimension(MAXRANK), BaseGDL::ZERO);
-	for( SizeT i=Rank; i<MAXRANK; ++i) (*dims_res)[ i] = 0;
-	for( SizeT i=0; i<Rank; ++i) (*dims_res)[ i] = p0->Dim(i);
+	for( SizeT i=LogicalRank; i<MAXRANK; ++i) (*dims_res)[ i] = 0;
+	if (isObjectContainer) {
+	  (*dims_res)[0]=nEl;
+	} else {
+	  for( SizeT i=0; i<LogicalRank; ++i) (*dims_res)[ i] = p0->Dim(i);
+	}
 	res->InitTag("DIMENSIONS",  *dims_res);
       } else {
 	DLongGDL *dims_res = new DLongGDL(dimension(MAXRANK), BaseGDL::ZERO);	
-	for( SizeT i=Rank; i<MAXRANK; ++i) (*dims_res)[ i] = 0;
-	for( SizeT i=0; i<Rank; ++i) (*dims_res)[ i] = p0->Dim(i);
+	for( SizeT i=LogicalRank; i<MAXRANK; ++i) (*dims_res)[ i] = 0;
+	if (isObjectContainer) {
+	  (*dims_res)[0]=nEl;
+	} else {
+	  for( SizeT i=0; i<LogicalRank; ++i) (*dims_res)[ i] = p0->Dim(i);
+	}
 	res->InitTag("DIMENSIONS",  *dims_res);
       }
 
       return res;
-      //e->Throw( "STRUCTURE not supported yet.");
     }
     
     // SNAME
@@ -717,10 +726,18 @@ namespace lib {
 	fileStatus->InitTag("CTIME", DLong64GDL( buffer.st_ctime)); 
 	fileStatus->InitTag("MTIME", DLong64GDL( buffer.st_mtime));  
 //	fileStatus->InitTag("TRANSFER_COUNT", DLongGDL( 0 ));
-	if (big) fileStatus->InitTag("CUR_PTR", DLong64GDL( actUnit.Tell()));
-	else fileStatus->InitTag("CUR_PTR", DLongGDL( actUnit.Tell()));
-	if (big) fileStatus->InitTag("SIZE", DLong64GDL( buffer.st_size ));
-        else  fileStatus->InitTag("SIZE", DLongGDL( buffer.st_size ));
+  //hopefully this solves #1394
+	if (big) {
+          DLong64 pos;
+          if (actUnit.Eof()) pos=buffer.st_size; else pos=actUnit.Tell(); //CUR_PTR needs to be the EOF offset position, not the EOF symbol (-1)! 
+          fileStatus->InitTag("CUR_PTR", DLong64GDL( pos) );
+          fileStatus->InitTag("SIZE", DLong64GDL( buffer.st_size ));
+        } else {
+          DLong pos;
+          if (actUnit.Eof()) pos=buffer.st_size; else pos=actUnit.Tell();
+          fileStatus->InitTag("CUR_PTR", DLongGDL( pos ));
+          fileStatus->InitTag("SIZE", DLongGDL( buffer.st_size ));
+        }
 //	fileStatus->InitTag("REC_LEN", DLongGDL( 0 ));
       }
 
@@ -1100,7 +1117,7 @@ namespace lib {
           // Keywords are already counted (in FindVar)
           // 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
           if (((EnvT*)(callStack[desiredlevnum - 1]))->NParam() < 1) return NULL; //meaning this fetch level is not initialized. Avoids throwing an #assert in debug mode
-          BaseGDL*& par = ((EnvT*) (callStack[desiredlevnum - 1]))->GetKW(xI);
+          BaseGDL*& par = ((EnvT*) (callStack[desiredlevnum - 1]))->GetTheKW(xI);
 
 // not IDL behaviour                    if (par == NULL) e->Throw("Variable is undefined: " + varName);
            if (par == NULL) return NULL;
@@ -1211,7 +1228,7 @@ namespace lib {
         // 	BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey);
 
         // 	((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey) = res->Dup();
-        ((EnvT*) (callStack[desiredlevnum - 1]))->GetKW(s) = res->Dup();
+        ((EnvT*) (callStack[desiredlevnum - 1]))->GetTheKW(s) = res->Dup();
 
         //	cout << "par: " << &par << endl << endl;
         // 	memcpy(&par, &res, sizeof(par)); 
@@ -1330,7 +1347,7 @@ namespace lib {
         //	cout << xI << endl;
         if (xI != -1) {
           // 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
-          BaseGDL*& par = ((EnvT*) (callStack[desiredlevnum - 1]))->GetKW(xI);
+          BaseGDL*& par = ((EnvT*) (callStack[desiredlevnum - 1]))->GetTheKW(xI);
           if (par == NULL) return NULL;
           return &par; // <-  HERE IS THE DIFFERENCE
         } else {

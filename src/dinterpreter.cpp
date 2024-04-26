@@ -32,11 +32,15 @@
 #include "dinterpreter.hpp"
 #include "gdljournal.hpp"
 #include "gdleventhandler.hpp"
+#include "gdlfpexceptions.hpp"
 #include "basic_pro_jmg.hpp"
 
 #ifdef USE_MPI
 #include "mpi.h"
 #endif
+/* Macros for min/max.  */
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
 
 #include <cassert>
 
@@ -62,7 +66,9 @@ GDLInterpreter::ObjHeapT  GDLInterpreter::objHeap;
 SizeT                     GDLInterpreter::heapIx;
 EnvStackT                 GDLInterpreter::callStack;
 DLong                     GDLInterpreter::stepCount;
+std::string               GDLInterpreter::MyProName;
 bool                      GDLInterpreter::noInteractive; // To exit on error or stop in line execution mode (gdl -e do_something)
+bool                      GDLInterpreter::InBatchProcedureAtMain; // To exit on error or stop in interactive batch file (@file at MAIN level)
 ProgNode                  GDLInterpreter::NULLProgNode;
 ProgNodeP GDLInterpreter::NULLProgNodeP = &GDLInterpreter::NULLProgNode;
 
@@ -178,7 +184,7 @@ void GDLInterpreter::SetRootL( ProgNodeP tt, DotAccessDescT* aD, BaseGDL* r, Arr
 	    {
 	      static_cast<DObjGDL*>(r)->Scalar( ooo); // checked in ObjectStruct
 
-	      BaseGDL* self = callStack.back()->GetKW(callStack.back()->GetPro()->NKey()); // SELF
+	      BaseGDL* self = callStack.back()->GetTheKW(callStack.back()->GetPro()->NKey()); // SELF //TheKW to keep old behaviour (OK?)
 
 	      assert( dynamic_cast<DObjGDL*>(self) != NULL);
 
@@ -259,7 +265,7 @@ else
 	    {
 	      static_cast<DObjGDL*>(r)->Scalar( ooo); // checked in ObjectStruct
 
-	      BaseGDL* self = callStack.back()->GetKW(callStack.back()->GetPro()->NKey()); // SELF
+	      BaseGDL* self = callStack.back()->GetTheKW(callStack.back()->GetPro()->NKey()); // SELF //TheKW to keep old behaviour (OK?)
 
 	      assert( dynamic_cast<DObjGDL*>(self) != NULL);
 
@@ -336,8 +342,19 @@ else
 // }
 
 // searches and compiles procedure (searchForPro == true) or function (searchForPro == false)  'pro'
+// if pro/fun is already present because it has been restored, (thus there may be no files, and no filename), return immediately 
 bool GDLInterpreter::SearchCompilePro(const string& pro, bool searchForPro) 
 {
+  std::string name_in_list = StrUpCase(pro);
+  if (searchForPro) {
+    for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+		  if ((*i)->ObjectName() == name_in_list) return true;
+	}
+  } else {
+	for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
+	  if ((*i)->ObjectName() == name_in_list) return true;
+	}
+  }
   static StrArr openFiles;
 
   string proFile=StrLowCase(pro)+".pro";
@@ -553,7 +570,23 @@ int GDLInterpreter::GetProIx( const string& subName)
     }
   return proIx;
 }
-
+//Before calling GetProIx in CallEventPro, better check procedure exist for reasons explicited in CallEventPro. This is the way.
+bool GDLInterpreter::CheckProExist( const string& subName)
+{
+  int proIx=ProIx(subName);
+  if( proIx == -1)
+    {
+      // trigger reading/compiling of source file
+      /*bool found=*/ SearchCompilePro(subName, true);
+	  
+      proIx=ProIx(subName);
+      if( proIx == -1)
+	{
+        return false;
+	}
+    }
+  return true;
+}
 // converts inferior type to superior type
 void GDLInterpreter::AdjustTypes(BaseGDL* &a, BaseGDL* &b)
 {
@@ -641,7 +674,6 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro, bool s
 #ifdef GDL_DEBUG
   RefDNode trAST;
 #endif
-
   GDLTreeParser treeParser( f, untilPro);
   try
     {
@@ -680,6 +712,47 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro, bool s
   
   return true;
 }      
+
+bool GDLInterpreter::CompileSaveFile(RefDNode theSemiCompiledAST) 
+{  
+#ifdef GDL_DEBUG
+  cout << "Parser output:" << endl;
+  antlr::print_tree pt;
+  pt.pr_tree(static_cast<antlr::RefAST>(theSemiCompiledAST));
+  cout << "CompileFile: Parser end." << endl;
+#endif
+
+#ifdef GDL_DEBUG
+  RefDNode trAST;
+#endif
+  GDLTreeParser treeParser( "", "");
+
+  try
+    {
+      treeParser.translation_unit(theSemiCompiledAST);
+//     if( treeParser.ActiveProCompiled()) RetAll(); //should not happen as CompileSaveFile is not called in this case
+    }
+  catch( GDLException& e)
+    {
+      ReportCompileError( e, "");
+//      if( treeParser.ActiveProCompiled()) RetAll();
+      return false;
+    }
+  catch( ANTLRException& e)
+    {
+      cerr << "Compiler exception: " <<  e.getMessage() << endl;
+//      if( treeParser.ActiveProCompiled()) RetAll();
+      return false;
+    }
+#ifdef GDL_DEBUG
+      cout << "Tree parser output:" << endl;
+      antlr::print_tree ptTP;
+      ptTP.pr_tree(static_cast<antlr::RefAST>(trAST));
+      cout << "CompileFile: Tree parser end." << endl;
+#endif
+  
+  return true;
+}   
 
 void AppendExtension( string& argstr)
 {
@@ -837,135 +910,112 @@ DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
 }
 
 // execute GDL command (.run, .step, ...)
-DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
-{
+
+DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command) {
   string cmdstr = command;
   string args;
-  size_t sppos = cmdstr.find(" ",0);
+  size_t sppos = cmdstr.find(" ", 0);
   if (sppos != string::npos) {
-    args = cmdstr.substr(sppos+1);
+    args = cmdstr.substr(sppos + 1);
     cmdstr = cmdstr.substr(0, sppos);
   }
-    
+
   //   cout << "Execute command: " << command << endl;
 
-  String_abbref_eq cmd( StrUpCase( cmdstr));
+  String_abbref_eq cmd(StrUpCase(cmdstr));
 
   // AC: Continue before Compile to have ".c" giving ".continue"
-  if( cmd( "CONTINUE"))
-    {
-      return CC_CONTINUE;
-    }
-  if( cmd( "COMPILE"))
-    {
-      return CmdCompile( command);
-    }
-  if( cmd( "EDIT"))
-    {
-      cout << "Can't edit file without running GDLDE." << endl;
-      return CC_OK;
-    }
-  if( cmd( "FULL_RESET_SESSION"))
-    {
-      return CmdFullReset();
-    }
-  if( cmd( "GO"))
-    {
-      cout << "GO not implemented yet." << endl;
-      return CC_OK;
-    }
-  if( cmd( "OUT"))
-    {
-      cout << "OUT not implemented yet." << endl;
-      return CC_OK;
-    }
-  if( cmd( "RUN"))
-    {
-      return CmdRun( command);
-    }
-  if( cmd( "RETURN"))
-    {
-      cout << "RETURN not implemented yet." << endl;
-      return CC_OK;
-    }
-  if( cmd( "RESET_SESSION"))
-    {
-      return CmdReset();
-    }
-  if( cmd( "RNEW"))
-    {
-	    EnvUDT* mainEnv = 
-		   static_cast<EnvUDT*>(GDLInterpreter::callStack[0]);
-			  SizeT nEnv = mainEnv->EnvSize();
+  if (cmd("CONTINUE")) {
+    return CC_CONTINUE;
+  } else if (cmd("COMPILE")) {
+    return CmdCompile(command);
+  } else if (cmd("EDIT")) {
+    cout << "Can't edit file without running GDLDE." << endl;
+    return CC_OK;
+  } else if (cmd("FULL_RESET_SESSION")) {
+    return CmdFullReset();
+  } else if (cmd("GO")) {
+    cout << "GO not implemented yet." << endl;
+    return CC_OK;
+  } else if (cmd("OUT")) {
+    debugMode = DEBUG_OUT;
+    MyProName=callStack.back()->GetProName();
+    return CC_CONTINUE;
+  } else if (cmd("RUN")) {
+    return CmdRun(command);
+  } else if (cmd("RETURN")) {
+    debugMode = DEBUG_RETURN;
+    MyProName=callStack.back()->GetProName();
+    return CC_CONTINUE;
+  } else if (cmd("RESET_SESSION")) {
+    return CmdReset();
+  } else if (cmd("RNEW")) {
+    EnvUDT* mainEnv =
+      static_cast<EnvUDT*> (GDLInterpreter::callStack[0]);
+    SizeT nEnv = mainEnv->EnvSize();
 
-		dynamic_cast<DSubUD*>(mainEnv->GetPro())->Reset();
-		if(!mainEnv->Removeall()) 
-			cout << " Danger ! Danger! Unexpected result. Please exit asap & report" <<endl;
+    dynamic_cast<DSubUD*> (mainEnv->GetPro())->Reset();
+    if (!mainEnv->Removeall())
+      cout << " Danger ! Danger! Unexpected result. Please exit asap & report" << endl;
 
-      return CmdRun( command);
-    }
-  // GD:Here to have ".s" giving ".step"
-  if( cmd( "STEP"))
-    {
-      DLong sCount;
-      if( args == "")
-      {
-	  sCount = 1;
+    return CmdRun(command);
+  } else if (cmd("STEP")) { //before skip to have .s give .step not .skip and not .stepover
+    DLong sCount;
+    if (args == "") {
+      sCount = 1;
+    } else {
+      const char* cStart = args.c_str();
+      char* cEnd;
+      sCount = strtol(cStart, &cEnd, 10);
+      if (cEnd == cStart) {
+        cout << "Type conversion error: Unable to convert given STRING: '" + args + "' to LONG." << endl;
+        return CC_OK;
       }
-      else
-      {
-	  const char* cStart=args.c_str();
-	  char* cEnd;
-	  sCount = strtol(cStart,&cEnd,10);
-	  if( cEnd == cStart)
-	  {
-	    cout << "Type conversion error: Unable to convert given STRING: '"+args+"' to LONG." << endl;
-	    return CC_OK;
-	  }
-	}
-	stepCount = sCount;
-	debugMode = DEBUG_STEP;
-	return CC_STEP;
     }
-
-  if( cmd( "SKIP"))
-    {
-      DLong sCount;
-      if( args == "")
-      {
-	  sCount = 1;
+    stepCount = sCount;
+    debugMode = DEBUG_STEP;
+    return CC_STEP;
+  } else if (cmd("STEPOVER")|| cmd("SO")) { //.so is an abbrev of .stepover
+    DLong sCount;
+    if (args == "") {
+      sCount = 1;
+    } else {
+      const char* cStart = args.c_str();
+      char* cEnd;
+      sCount = strtol(cStart, &cEnd, 10);
+      if (cEnd == cStart) {
+        cout << "Type conversion error: Unable to convert given STRING: '" + args + "' to LONG." << endl;
+        return CC_OK;
       }
-      else
-      {
-	const char* cStart=args.c_str();
-	char* cEnd;
-	sCount = strtol(cStart,&cEnd,10);
-	if( cEnd == cStart)
-	{
-	  cout << "Type conversion error: Unable to convert given STRING: '"+args+"' to LONG." << endl;
-	  return CC_OK;
-	}
+    }
+    stepCount = sCount;
+    debugMode = DEBUG_STEPOVER;
+    MyProName=callStack.back()->GetProName();
+    return CC_STEP;
+  } else if (cmd("SKIP")) {
+    DLong sCount;
+    if (args == "") {
+      sCount = 1;
+    } else {
+      const char* cStart = args.c_str();
+      char* cEnd;
+      sCount = strtol(cStart, &cEnd, 10);
+      if (cEnd == cStart) {
+        cout << "Type conversion error: Unable to convert given STRING: '" + args + "' to LONG." << endl;
+        return CC_OK;
       }
-      stepCount = sCount;
-      return CC_SKIP;
     }
-  if( cmd( "STEPOVER"))
-    {
-      cout << "STEPOVER not implemented yet." << endl;
-      return CC_OK;
-    }
-  if( cmd( "SIZE"))
-    {
-      cout << "SIZE not implemented yet." << endl;
-      return CC_OK;
-    }
-  if( cmd( "TRACE"))
-    {
-      cout << "TRACE not implemented yet." << endl;
-      return CC_OK;
-    }
-  cout << SysVar::MsgPrefix() << 
-    "Unknown command: "<< command << endl;
+    stepCount = sCount;
+    return CC_SKIP;
+  } else if (cmd("SIZE")) {
+    cout << "% The .SIZE executive command is obsolete and no longer has any effect." << endl;
+    return CC_OK;
+  } else if (cmd("TRACE")) //Trace seems to be same as CONTINUE for IDL 
+  {
+    return CC_CONTINUE;
+  }
+  cout << SysVar::MsgPrefix() <<
+    "Unknown command: " << command << endl;
   return CC_OK; // get rid of warning
 }
 
@@ -1121,8 +1171,9 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 	  file = fileRaw;
 	  CompleteFileName( file);
 	}
-
+      InBatchProcedureAtMain=true;
       ExecuteFile( file);
+      InBatchProcedureAtMain=false;
       return CC_OK;
     }
 
@@ -1312,32 +1363,40 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 
   return CC_OK;
 }
+#define GDL_MAX_INPUT_STR_LENGTH 32766 //current limitation of our esteemed model
 
 void inputThread() {
-    while (1) {
-      // patch by Ole, 2017-01-06
-      //char ch = getchar(); if (ch==EOF) return NULL;
-      char ch = getchar();
+  while (1) {
+	// patch by Ole, 2017-01-06
+	//char ch = getchar(); if (ch==EOF) return NULL;
+	int ch = getchar(); //see #1377
       if (ch==EOF) {
 	return;
-      }        
-      inputstr += ch;
-      if (ch == '\n')
-	break;
-    }
+	}
+	inputstr += ch;
+	if (ch == '\n')
+	  break;
+  }
 }
 
 // if readline is not available or !EDIT_INPUT set to zero
 char* DInterpreter::NoReadline( const string& prompt)
 {
+  static const size_t inputStrMaxSize = MIN(GDL_MAX_INPUT_STR_LENGTH, inputstr.max_size()/2); //plenty of room left!!!
   if (isatty(0)) cout << prompt << flush;
   if( feof(stdin)) return NULL;
 
-  thread th(inputThread);
-
+  std::thread th(inputThread);
+  std::thread::native_handle_type h=th.native_handle();
   for (;;)
     {
         GDLEventHandler();
+		if (inputstr.size() > inputStrMaxSize) {
+		  Warning ("Input line is too long for input buffer of " + i2s(inputStrMaxSize) + " characters.");
+		  pthread_cancel(h);
+		  
+		  exit (EXIT_FAILURE);
+		}
         if (inputstr.size() && inputstr[inputstr.size() - 1] == '\n') break;
         if (feof(stdin)) 
         {
@@ -1389,7 +1448,8 @@ string DInterpreter::GetLine()
 	actualPrompt = SysVar::Prompt();
 
     lineEdit = true;
-
+	//report last math exceptions
+	GDLCheckFPExceptionsAtLineLevel();
 #if defined(HAVE_LIBREADLINE)
     
     if( edit_input != 0)
@@ -1462,42 +1522,35 @@ else
 
 // reads user input and executes it
 // inner loop (called via Control-C, STOP, error)
-RetCode DInterpreter::InnerInterpreterLoop(SizeT lineOffset)
-{
+
+ RetCode DInterpreter::InnerInterpreterLoop(SizeT lineOffset) {
   ProgNodeP retTreeSave = _retTree;
   for (;;) {
-#if defined (_MSC_VER) && _MSC_VER < 1800
-	_clearfp();
-#else
-    feclearexcept(FE_ALL_EXCEPT);
-#endif
 
-    DInterpreter::CommandCode ret=ExecuteLine(NULL, lineOffset);
+    DInterpreter::CommandCode ret = ExecuteLine(NULL, lineOffset);
 
     _retTree = retTreeSave; // on return, _retTree should be kept
 
-    if( ret == CC_SKIP)
-    {
-      for( int s=0; s<stepCount; ++s)
-      {
-	if( _retTree == NULL)
-	  break;
-	
-	_retTree = _retTree->getNextSibling();
+    if (ret == CC_SKIP) {
+      for (int s = 0; s < stepCount; ++s) {
+        if (_retTree == NULL)
+          break;
+
+        _retTree = _retTree->getNextSibling();
       }
-//       cout << ".SKIP " << stepCount << "   " << _retTree << endl;
+      //       cout << ".SKIP " << stepCount << "   " << _retTree << endl;
 
       stepCount = 0;
       retTreeSave = _retTree;
       // we stay at the command line here
-      if( _retTree == NULL)
-	Message( "Can't continue from this point.");
+      if (_retTree == NULL)
+        Message("Can't continue from this point.");
       else
-	DebugMsg( _retTree, "Skipped to: ");
-    }
-    else if( ret == CC_RETURN) return RC_RETURN;
-    else if( ret == CC_CONTINUE) return RC_OK; 
-    else if( ret == CC_STEP) return RC_OK;
+        DebugMsg(_retTree, "Skipped to: ");
+    } 
+    else if (ret == CC_RETURN) return RC_RETURN;
+    else if (ret == CC_CONTINUE) return RC_OK;
+    else if (ret == CC_STEP) return RC_OK;
   }
 }
 
@@ -1509,11 +1562,6 @@ bool DInterpreter::RunBatch( istream* in)
 
   while( in->good())
     {
-#if defined (_MSC_VER) && _MSC_VER < 1800
-	  _clearfp();
-#else
-      feclearexcept(FE_ALL_EXCEPT);
-#endif
       
       try
 	{
@@ -1556,12 +1604,6 @@ void DInterpreter::ExecuteFile( const string& file)
   bool runCmd = false;
   while( in.good())
     {
-#if defined (_MSC_VER) && _MSC_VER < 1800
-	  _clearfp();
-#else
-      feclearexcept(FE_ALL_EXCEPT);
-#endif 
-
       try
  	{
 	  if( runCmd)
@@ -1641,12 +1683,6 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
     bool runCmd = false;
     try {
       while (in.good()) {
-#if defined (_MSC_VER) && _MSC_VER < 1800
-        _clearfp();
-#else
-        feclearexcept(FE_ALL_EXCEPT);
-#endif
-
         try {
           if (runCmd) {
             runCmd = false;
@@ -1748,8 +1784,8 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
 
     result = read_history(history_filename.c_str());
     if (debug) {
-      if (result == 0) cout << "Successfull reading of ~/.gdl/history" << endl;
-      else cout << "Fail to read back ~/.gdl/history" << endl;
+      if (result == 0) cout << "Successfull reading of "<< history_filename << endl;
+      else cout << "Fail to read back "<< history_filename << endl;
     }
   }
 
@@ -1763,13 +1799,7 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
 
   // go into main loop
   for (;;) {
-#if defined (_MSC_VER) && _MSC_VER < 1800
-    _clearfp();
-#else
-    feclearexcept(FE_ALL_EXCEPT);
-#endif
-
-    try {
+   try {
       if (runCmd) {
         runCmd = false;
         continueCmd = false;
@@ -1842,12 +1872,6 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
           bool runCmd = false;
           try {
             while (in.good()) {
-#if defined (_MSC_VER) && _MSC_VER < 1800
-              _clearfp();
-#else
-              feclearexcept(FE_ALL_EXCEPT);
-#endif
-
               try {
                 if (runCmd) {
                   runCmd = false;

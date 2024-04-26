@@ -84,7 +84,144 @@ end
 ;
 ; -----------------------------------------------
 ;
+pro TEST_HDF5_OBJ_INFO, cumul_errors, create=create
+
+   errors=0
+
+   file_name = "hdf5-obj-info-test.h5"
+   full_file_name = file_search_for_testsuite(file_name, /warning)
+   if (STRLEN(full_file_name) eq 0) then begin
+      cumul_errors++
+      return
+   endif
+
+   ; --- create a mock dataset (not implemented in GDL yet)
+
+   if keyword_set(create) then begin
+
+      a_number=123
+
+      file_id = h5f_create(file_name)
+
+      group_id = h5g_create(file_id, "a_group")
+
+      type_id = h5t_idl_create(a_number)
+      space_id = h5s_create_scalar()
+      dset_id = h5d_create(group_id, "a_dataset", type_id, space_id)
+
+      h5d_write, dset_id, a_number
+      h5d_close, dset_id &  h5s_close, space_id &  h5t_close, type_id
+
+      h5g_close, group_id
+
+      h5g_link, file_id, "a_group", "a_first_hard_link"
+      h5g_link, file_id, "a_group", "a_second_hard_link"
+
+      h5g_link, file_id, "a_group", "a_soft_link", /soft
+
+      h5f_close, file_id
+
+      return
+   endif
+
+   ; --- check H5G_GET_OBJINFO functionality
+
+   file_id = h5f_open(full_file_name)
+
+   stat = h5g_get_objinfo(file_id, "/a_group")
+   if (stat.nlink ne 3) then errors++
+   if (stat.type ne 'GROUP') then errors++
+
+   stat = h5g_get_objinfo(file_id, "/a_first_hard_link")
+   if (stat.nlink ne 3) then errors++
+   if (stat.type ne 'GROUP') then errors++
+
+   stat = h5g_get_objinfo(file_id, "/a_group/a_dataset")
+   ;;; cmd='date -r '+full_file_name+' "+%s"' & spawn, cmd, mtime
+   ;;; if (stat.mtime ne mtime) then errors++
+   if (stat.nlink ne 1) then errors++
+   if (stat.type ne 'DATASET') then errors++
+
+
+   stat = h5g_get_objinfo(file_id, "/a_soft_link")
+   if (stat.nlink ne 0) then errors++
+   if (stat.type ne 'LINK') then errors++
+   if (stat.linklen ne 8) then errors++
+
+   stat = h5g_get_objinfo(file_id, "/a_soft_link", /follow_link)
+   if (stat.nlink ne 3) then errors++
+   if (stat.type ne 'GROUP') then errors++
+
+   ; --- print banner
+
+   banner_for_testsuite, 'TEST_HDF5_OBJ_INFO', errors, /short
+
+   if ~isa(cumul_errors) then cumul_errors=0
+   cumul_errors=cumul_errors+errors
+
+end
+;
+; -----------------------------------------------
+;
+pro TEST_HDF5_EXTEND, cumul_errors, create=create
+
+   errors=0
+
+   file_name = "hdf5-extend-test.h5"
+   full_file_name = file_search_for_testsuite(file_name, /warning)
+   if (STRLEN(full_file_name) eq 0) then begin
+      cumul_errors++
+      return
+   endif
+
+   ; --- create an extensible mock dataset
+
+   data=[ [1,2,3,4,5,6], [7,8,9,10,11,12], [13,14,15,16,17,18] ]
+
+   if keyword_set(create) then f_id = h5f_create(file_name) $
+   else                        f_id = h5f_create("gdl-"+file_name)
+
+   t_id = h5t_idl_create(data)
+   s_id = h5s_create_simple([4,2], max_dim=[6,-1])
+
+   d_id = h5d_create(f_id, "chunked_dataset", t_id, s_id, chunk_dim=[2,1])
+
+   h5d_extend, d_id, [6,3] &  h5d_write, d_id, data
+
+   h5d_close, d_id
+   h5f_close, f_id
+
+   if keyword_set(create) then return
+
+   ; --- test the result against HDF5 file created using IDL
+
+   spawn, 'h5diff gdl-'+file_name+' '+full_file_name, res, exit_status=exit
+   errors += (exit ne 0)
+   spawn, 'rm -f gdl-'+file_name
+
+   ; --- print banner
+
+   banner_for_testsuite, 'TEST_HDF5_EXTEND', errors, /short
+
+   if ~isa(cumul_errors) then cumul_errors=0
+   cumul_errors=cumul_errors+errors
+
+end
+;
+; -----------------------------------------------
+;
 pro TEST_HDF5_ATTR, cumul_errors, create=create
+
+   errors=0
+
+   file_name = "hdf5-attr-test.h5"
+   full_file_name = file_search_for_testsuite(file_name, /warning)
+   if (strlen(full_file_name) eq 0) then begin
+      cumul_errors++
+      return
+   endif
+
+   ; --- specify some dimensions
 
    some_elem_dims = list( [], [3], [2,3] )
    some_data_dims = list( [], [4], [4,3], [4,3,2] )
@@ -111,13 +248,20 @@ pro TEST_HDF5_ATTR, cumul_errors, create=create
 
          ndata=1 & for i=0,n_elements(dims)-1 do ndata *= dims[i]
 
-         case (rank mod 3) of
+         fibo = lonarr( ndata ) & fibo[0:1]=[0,1]
+         for i=2,ndata-1 do fibo[i]=fibo[i-1]+fibo[i-2]
+
+         case (rank mod 4) of
             0: data = intarr( ndata )
             1: data = fltarr( ndata )
             2: data = dblarr( ndata )
+            3: data = strarr( ndata )
          endcase
 
-         for i=0,ndata-1 do data[i] = i
+         if (rank mod 4 eq 3) then $
+            for i=0,ndata-1 do data[i] = string(fo='(%"%08d")', fibo[i]) $
+         else $
+            for i=0,ndata-1 do data[i] = fibo[i]
 
          ; --- create lists
          attr_data.add, reform( data, dims )
@@ -128,44 +272,62 @@ pro TEST_HDF5_ATTR, cumul_errors, create=create
 
    endfor
 
-   if keyword_set(create) then begin
+   ; --- write mock attributes to HDF5 file (now implemented in GDL)
 
-      ; --- write mock attributes to HDF5 file (not yet implemented in GDL)
+   if keyword_set(create) then f_id = h5f_create(file_name) $
+   else                        f_id = h5f_create("gdl-"+file_name)
 
-      f_id = h5f_create("hdf5-attr-test.h5")
+   for i=0,n_elements(attr_data)-1 do begin
 
-      for i=0,n_elements(attr_data)-1 do begin
+      elem_t_id = h5t_idl_create(attr_data[i])
 
-         elem_t_id = h5t_idl_create(attr_data[i])
+      if elem_rank[i] gt 0 then begin ; non-scalar element datatype
 
-         if elem_rank[i] gt 0 then begin ; non-scalar element datatype
+         t_id = h5t_array_create(elem_t_id, some_elem_dims[elem_rank[i]])
+         h5t_close, elem_t_id
 
-            t_id = h5t_array_create(elem_t_id, some_elem_dims[elem_rank[i]])
-            h5t_close, elem_t_id
+      endif else t_id = elem_t_id
 
-         endif else t_id = elem_t_id
+      if data_rank[i] gt 0 then $ ; non-scalar dataspace
+         s_id = h5s_create_simple(some_data_dims[data_rank[i]]) $
+      else s_id = h5s_create_scalar()
 
-         if data_rank[i] gt 0 then $ ; non-scalar dataspace
-            s_id = h5s_create_simple(some_data_dims[data_rank[i]]) $
-         else s_id = h5s_create_scalar()
+      a_id = h5a_create( f_id, string(i,fo='(%"attr-%02d")'), t_id, s_id )
 
-         a_id = h5a_create( f_id, string(i,fo='(%"attr-%02d")'), t_id, s_id )
+      h5a_write, a_id, attr_data[i]
 
-         h5a_write, a_id, attr_data[i]
+      h5a_close, a_id
+      h5s_close, s_id
+      h5t_close, t_id
 
-         h5a_close, a_id
-         h5s_close, s_id
-         h5t_close, t_id
+   endfor
 
-      endfor
+   h5f_close, f_id
 
-      h5f_close, f_id
+   if keyword_set(create) then return
 
-   endif
+   ; --- test GDL output against reference file created using IDL
+
+   spawn, 'h5diff gdl-'+file_name+' '+full_file_name, res, exit_status=exit
+   errors += (exit ne 0)
+
+   ; --- test 'H5F_OPEN, /write' and 'H5A_DELETE' functionality
+
+   spawn, 'h5dump -a "attr-02" gdl-'+file_name, res, exit_status=exit
+   errors += (exit ne 0)
+
+   f_id = h5f_open("gdl-"+file_name, /write)
+   h5a_delete, f_id, "attr-02"
+   h5f_close, f_id
+
+   spawn, 'h5dump -a "attr-02" gdl-'+file_name, res, exit_status=exit
+   errors += (exit eq 0)
+
+   spawn, 'rm -f gdl-'+file_name
 
    ; --- read HDF5 attributes
 
-   f_id = h5f_open("hdf5-attr-test.h5")
+   f_id = h5f_open(full_file_name)
 
    for idx=0,n_elements(attr_data)-1 do begin
 
@@ -173,12 +335,22 @@ pro TEST_HDF5_ATTR, cumul_errors, create=create
       read_attr_data = h5a_read(a_id)
       h5a_close, a_id
 
-      if ( total( attr_data[idx] - read_attr_data ) gt 0. ) then $
-         cumul_errors++
+      ;;; help, attr_data[idx], read_attr_data
+
+      if ( not array_equal(size(attr_data[idx]),size(read_attr_data)) ) then $
+         errors++
+
+      if ( not array_equal(attr_data[idx],read_attr_data,/no_typeconv) ) then $
+         errors++
 
    endfor
 
    h5f_close, f_id
+
+   banner_for_testsuite, 'TEST_HDF5_ATTR', errors, /short
+
+   if ~isa(cumul_errors) then cumul_errors=0
+   cumul_errors = cumul_errors + errors
 
    return
 end
@@ -187,8 +359,19 @@ end
 ;
 pro TEST_HDF5_DATA, cumul_errors, create=create
 
+   errors=0
+
+   file_name = "hdf5-data-test.h5"
+   full_file_name = file_search_for_testsuite(file_name, /warning)
+   if (strlen(full_file_name) eq 0) then begin
+      cumul_errors++
+      return
+   endif
+
+   ; --- specify some dimensions
+
    some_elem_dims = list( [], [3], [2,3] )
-   some_data_dims = list( [], [5], [5,4], [5,4,3] )
+   some_data_dims = list( [], [4], [5,4], [6,5,4] )
 
    ; --- create mock data
 
@@ -212,13 +395,20 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
 
          ndata=1 & for i=0,n_elements(dims)-1 do ndata *= dims[i]
 
-         case (rank mod 3) of
+         fibo = lonarr( ndata ) & fibo[0:1]=[0,1]
+         for i=2,ndata-1 do fibo[i]=fibo[i-1]+fibo[i-2]
+
+         case (rank mod 4) of
             0: data = intarr( ndata )
             1: data = fltarr( ndata )
             2: data = dblarr( ndata )
+            3: data = strarr( ndata )
          endcase
 
-         for i=0,ndata-1 do data[i] = i
+         if (rank mod 4 eq 3) then $
+            for i=0,ndata-1 do data[i] = string(fo='(%"%08d")', fibo[i]) $
+         else $
+            for i=0,ndata-1 do data[i] = fibo[i]
 
          ; --- create lists
          mock_data.add, reform( data, dims )
@@ -229,58 +419,425 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
 
    endfor
 
-   if keyword_set(create) then begin
+   ; --- write mock datasets to HDF5 file (now implemented in GDL)
 
-      ; --- write mock datasets to HDF5 file (not yet implemented in GDL)
+   if keyword_set(create) then f_id = h5f_create(file_name) $
+   else                        f_id = h5f_create("gdl-"+file_name)
 
-      f_id = h5f_create("hdf5-data-test.h5")
+   for i=0,n_elements(mock_data)-1 do begin
 
-      for i=0,n_elements(mock_data)-1 do begin
+      elem_t_id = h5t_idl_create(mock_data[i])
 
-         elem_t_id = h5t_idl_create(mock_data[i])
+      if elem_rank[i] gt 0 then begin ; non-scalar element datatype
 
-         if elem_rank[i] gt 0 then begin ; non-scalar element datatype
+         t_id = h5t_array_create(elem_t_id, some_elem_dims[elem_rank[i]])
+         h5t_close, elem_t_id
 
-            t_id = h5t_array_create(elem_t_id, some_elem_dims[elem_rank[i]])
-            h5t_close, elem_t_id
+      endif else t_id = elem_t_id
 
-         endif else t_id = elem_t_id
+      if data_rank[i] gt 0 then $ ; non-scalar dataspace
+         s_id = h5s_create_simple(some_data_dims[data_rank[i]]) $
+      else s_id = h5s_create_scalar()
 
-         if data_rank[i] gt 0 then $ ; non-scalar dataspace
-            s_id = h5s_create_simple(some_data_dims[data_rank[i]]) $
-         else s_id = h5s_create_scalar()
+      d_id = h5d_create( f_id, string(i,fo='(%"dset-%02d")'), t_id, s_id )
 
-         d_id = h5d_create( f_id, string(i,fo='(%"dset-%02d")'), t_id, s_id )
+      h5d_write, d_id, mock_data[i]
 
-         h5d_write, d_id, mock_data[i]
-
-         h5d_close, d_id
-         h5s_close, s_id
-         h5t_close, t_id
-
-      endfor
-
-      h5f_close, f_id
-
-   endif
-
-   ; --- read HDF5 datasets
-
-   f_id = h5f_open("hdf5-data-test.h5")
-
-   for idx=1,n_elements(mock_data)-1 do begin
-
-      d_id = h5d_open(f_id,string(idx, fo='(%"dset-%02d")'))
-
-      read_mock_data = h5d_read(d_id)
       h5d_close, d_id
-
-      if ( total( mock_data[idx] - read_mock_data ) gt 0. ) then $
-         cumul_errors++
+      h5s_close, s_id
+      h5t_close, t_id
 
    endfor
 
    h5f_close, f_id
+
+   if keyword_set(create) then return
+
+   ; --- test GDL output against reference file created using IDL
+
+   spawn, 'h5diff gdl-'+file_name+' '+full_file_name, res, exit_status=exit
+   errors += (exit ne 0)
+   spawn, 'rm -f gdl-'+file_name
+
+   ; --- read HDF5 datasets
+
+   f_id = h5f_open(full_file_name)
+
+   for idx=0,n_elements(mock_data)-1 do begin
+
+      d_id = h5d_open(f_id,string(idx, fo='(%"dset-%02d")'))
+
+      read_mock_data = h5d_read(d_id)
+
+      h5d_close, d_id
+
+      ;;; help, mock_data[idx], read_mock_data
+
+      if ( not array_equal(size(mock_data[idx]),size(read_mock_data)) ) then $
+         errors++
+
+      if ( not array_equal(mock_data[idx],read_mock_data,/no_typeconv) ) then $
+         errors++
+
+   endfor
+
+   ; --- read full HDF5 datasets once more, using explicit data spaces
+
+   for idx=0,n_elements(mock_data)-1 do begin
+
+      d_id = h5d_open(f_id,string(idx, fo='(%"dset-%02d")'))
+
+      fs_id = h5d_get_space(d_id)
+
+      rank = h5s_get_simple_extent_ndims(fs_id)
+
+      if(rank eq 0) then ms_id = h5s_create_scalar() $
+      else begin
+         dims = h5s_get_simple_extent_dims(fs_id)
+         ms_id = h5s_create_simple(dims)
+      endelse
+
+      read_mock_data = h5d_read(d_id, file_space=fs_id, memory_space=ms_id)
+
+      h5d_close, d_id
+      h5s_close, fs_id
+      h5s_close, ms_id
+
+      ;;; help, mock_data[idx], read_mock_data
+
+      if ( not array_equal(size(mock_data[idx]),size(read_mock_data)) ) then $
+         errors++
+
+      if ( not array_equal(mock_data[idx],read_mock_data,/no_typeconv) ) then $
+         errors++
+
+   endfor
+
+   ; --- read subsets from HDF5 datasets, using hyperslab selection
+
+   for idx=0,n_elements(mock_data)-1 do begin
+
+      if data_rank[idx] eq 0 then continue ; skip scalar datasets
+
+      d_id = h5d_open(f_id,string(idx, fo='(%"dset-%02d")'))
+
+      fs_id = h5d_get_space(d_id)
+
+      rank = h5s_get_simple_extent_ndims(fs_id)
+
+      if(rank gt 0) then begin
+         dims = h5s_get_simple_extent_dims(fs_id)
+
+         ; FIXME: come up with less trivial hyperslabs (+ use block/stride)
+
+         for i=0,rank-1 do dims[i]-=2
+         h5s_select_hyperslab, fs_id, replicate(1,rank), dims, /reset
+         ms_id = h5s_create_simple(dims)
+
+      endif
+
+      read_mock_data = h5d_read(d_id, file_space=fs_id, memory_space=ms_id)
+
+      h5d_close, d_id
+      h5s_close, fs_id
+      h5s_close, ms_id
+
+      case elem_rank[idx] of
+         0: begin
+            case data_rank[idx] of
+               1: slab = (mock_data[idx])[1:-2]
+               2: slab = (mock_data[idx])[1:-2,1:-2]
+               3: slab = (mock_data[idx])[1:-2,1:-2,1:-2]
+            endcase
+         end
+
+         1: begin
+            case data_rank[idx] of
+               1: slab = (mock_data[idx])[*,1:-2]
+               2: slab = (mock_data[idx])[*,1:-2,1:-2]
+               3: slab = (mock_data[idx])[*,1:-2,1:-2,1:-2]
+            endcase
+         end
+
+         2: begin
+            case data_rank[idx] of
+               1: slab = (mock_data[idx])[*,*,1:-2]
+               2: slab = (mock_data[idx])[*,*,1:-2,1:-2]
+               3: slab = (mock_data[idx])[*,*,1:-2,1:-2,1:-2]
+            endcase
+         end
+      endcase
+
+      ;;; help, slab, read_mock_data
+
+      if ( not array_equal(size(slab),size(read_mock_data)) ) then $
+         errors++
+
+      if ( not array_equal(slab,read_mock_data,/no_typeconv) ) then $
+         errors++
+
+   endfor
+
+   h5f_close, f_id
+
+   banner_for_testsuite, 'TEST_HDF5_DATA', errors, /short
+
+   if ~isa(cumul_errors) then cumul_errors=0
+   cumul_errors = cumul_errors + errors
+
+   return
+end
+;
+; -----------------------------------------------
+;
+pro TEST_HDF5_GROUP, cumul_errors, create=create
+
+   errors=0
+
+   file_name = "hdf5-group-test.h5"
+   full_file_name = file_search_for_testsuite(file_name, /warning)
+   if (strlen(full_file_name) eq 0) then begin
+      cumul_errors++
+      return
+   endif
+
+   ; --- create group within HDF5 file
+
+   if keyword_set(create) then f_id = h5f_create(file_name) $
+   else                        f_id = h5f_create("gdl-"+file_name)
+
+   g1_id = h5g_create(f_id, "a_sample_group")
+   h5g_set_comment, f_id,  "a_sample_group", "a_sample_comment"
+
+   h5g_link, f_id, "a_sample_group", "hard_link_1"
+   h5g_link, f_id, "a_sample_group", "soft_link_1", /soft
+
+   g2_id = h5g_create(f_id, "a_second_group")
+   h5g_link, f_id, "a_sample_group", "hard_link_2", new_loc_id=g2_id
+   h5g_link, f_id, "a_sample_group", "soft_link_2", new_loc_id=g2_id, /soft
+
+   g3_id = h5g_create(f_id, "a_third_group")
+   h5g_unlink, f_id, "a_third_group"
+
+   g4_id = h5g_create(f_id, "a_fourth_group")
+   h5g_move, f_id, "a_fourth_group", "a_renamed_group"
+   h5g_move, f_id, "a_renamed_group", "a_renamed_group", new_loc_id=g2_id
+
+   h5g_close, g1_id
+   h5g_close, g2_id
+   h5g_close, g3_id
+   h5g_close, g4_id
+
+   h5f_close, f_id
+
+   if keyword_set(create) then return
+
+   ; --- test GDL output against reference file created using IDL
+
+   spawn, 'h5diff gdl-'+file_name+' '+full_file_name, res, exit_status=exit
+   errors += (exit ne 0)
+   spawn, 'rm -f gdl-'+file_name
+
+   ; --- test the 'H5G_GET_COMMENT' function
+
+   f_id = h5f_open(full_file_name)
+   errors += ( strcmp( "a_sample_comment", $
+                       h5g_get_comment(f_id, "a_sample_group") ) eq 0 )
+
+   ; --- test the 'H5G_GET_NMEMBERS' and 'H5G_GET_MEMBER_NAME' functions
+
+   errors += ( h5g_get_nmembers(f_id,"/") ne 4 )
+   errors += ( strcmp("a_sample_group", h5g_get_member_name(f_id,"/",0)) eq 0 )
+
+   ; --- test the 'H5G_GET_NUM_OBJS' and 'H5G_GET_OBJ_NAME_BY_IDX' functions
+
+   errors += ( h5g_get_num_objs(f_id) ne 4 )
+   errors += ( strcmp("a_sample_group", h5g_get_obj_name_by_idx(f_id,0)) eq 0 )
+
+   ; --- test the 'H5G_GET_LINKVAL' function
+
+   errors += ( strcmp("a_sample_group", $
+                      h5g_get_linkval(f_id,"soft_link_1")) eq 0 )
+   errors += ( strcmp("a_sample_group", $
+                      h5g_get_linkval(f_id,"a_second_group/soft_link_2")) eq 0 )
+   h5f_close, f_id
+
+   ; --- output summary
+
+   banner_for_testsuite, 'TEST_HDF5_GROUP', errors, /short
+
+   if ~isa(cumul_errors) then cumul_errors=0
+   cumul_errors = cumul_errors + errors
+
+   return
+end
+;
+; -----------------------------------------------
+;
+pro TEST_HDF5_COMP, cumul_errors, create=create
+
+   errors=0
+
+   file_name = "hdf5-struct-test.h5"
+   full_file_name = file_search_for_testsuite(file_name, /warning)
+   if (not keyword_set(create) and strlen(full_file_name) eq 0) then begin
+      cumul_errors++
+      return
+   endif
+
+   if keyword_set(create) then f_id = h5f_create(file_name) $
+   else                        f_id = h5f_create("gdl-"+file_name)
+
+   ; --- create some mock GDL structures
+
+   nested = { an_integer:1, a_long:2l, a_float:1.1, a_double:1.2d, $
+              a_float_arr:[1.3,1.4,1.5], $
+              a_double_arr:[ [1.6d,1.7], [1.8,1.9], [2.0,2.1] ], $
+              a_string:"nested compound" }
+
+   main = { a_byte:4b, a_byte_arr:byte([5,6,7,8]), $
+            sub:nested, a_string:"main compound", $
+            a_string_arr:["abc","def","ghi"] }
+
+   ; --- write mock structures to HDF5 file
+
+   s_id = h5s_create_scalar()
+   t_id = h5t_idl_create(main)
+   d_id = h5d_create(f_id, "a_compund_dataset", t_id, s_id)
+   a_id = h5a_create(d_id, "a_compund_attribute", t_id, s_id)
+
+   h5d_write, d_id, main
+   h5a_write, a_id, main
+
+   h5d_close, d_id &  h5a_close, a_id
+   h5t_close, t_id &  h5s_close, s_id
+
+   ; ---
+
+   repl = replicate( nested, 3,2 )
+   for i=0,2 do $
+      for j=0,1 do $
+         if ( i gt 0 or j gt 0 ) then begin
+            repl[i,j].a_float_arr[*] += 10.*i+100.*j
+            repl[i,j].a_double_arr[*] += 20.*i+200.*j
+         endif
+
+   s_id = h5s_create_simple([3,2])
+   t_id = h5t_idl_create(repl)
+   d_id = h5d_create(f_id, "a_compund_dataset_array", t_id, s_id)
+
+   h5d_write, d_id, repl
+
+   h5d_close, d_id
+   h5t_close, t_id &  h5s_close, s_id
+
+   ; ---
+
+   h5f_close, f_id
+
+   if keyword_set(create) then return
+
+   ; --- test the result against HDF5 file created using IDL
+
+   spawn, 'h5diff gdl-'+file_name+' '+full_file_name, res, exit_status=exit
+   errors += (exit ne 0)
+   spawn, 'rm -f gdl-'+file_name
+
+   ; --- read HDF5 compound datasets into GDL structures
+
+   f_id = h5f_open(full_file_name)
+   d_id = h5d_open(f_id, "a_compund_dataset")
+   a_id = h5a_open_name(d_id, "a_compund_attribute")
+
+   read_data = h5d_read(d_id)
+   read_attr = h5a_read(a_id)
+
+   ;;; help, read_data, read_data.sub, main, main.sub, /st
+
+   h5a_close, a_id
+   h5d_close, d_id
+   h5f_close, f_id
+
+   ; --- check the result for errors
+
+   tags = [ tag_names(main), "SUB."+tag_names(main.sub) ]
+
+   foreach tag, tags do begin
+
+      if(tag eq "SUB") then continue
+
+      void = execute("is_string_tag=isa(MAIN."+tag+",'String')")
+      test = (is_string_tag) ? 'STRCMP' : 'ARRAY_EQUAL'
+      test_kw = (is_string_tag) ? '' : ', /no_typeconv'
+
+      ; --- test dataset
+      cmd = "result = "+test+"( MAIN."+tag+","+" READ_DATA."+tag+test_kw+" )"
+      void=execute(cmd)
+
+      errors += total(result eq 0)
+
+      ; --- test attribute
+      cmd = "result = "+test+"( MAIN."+tag+","+" READ_ATTR."+tag+test_kw+" )"
+      void=execute(cmd)
+
+      errors += total(result eq 0)
+
+   endforeach
+
+   ;;; FIXME: check result for reading 'a_compund_dataset_array' ;;;
+
+   banner_for_testsuite, 'TEST_HDF5_COMP', errors, /short
+
+   if ~isa(cumul_errors) then cumul_errors=0
+   cumul_errors = cumul_errors + errors
+
+   return
+end
+;
+; -----------------------------------------------
+;
+pro TEST_HDF5_INTER, cumul_errors
+
+   errors=0
+
+   file_name = "hdf5-interface-test.h5"
+
+   f_id = h5f_create(file_name)
+   g_id = h5g_create(f_id,"a_sample_group")
+   t_id = h5t_idl_create(errors)
+   s_id = h5s_create_scalar()
+   d_id = h5d_create(g_id,"a_sample_dataset",t_id,s_id)
+   a_id = h5a_create(g_id,"a_sample_attribute",t_id,s_id)
+
+   ; --- test function 'H5I_GET_TYPE' ---
+
+   errors += ( strcmp("FILE", h5i_get_type(f_id)) eq 0 )
+   errors += ( strcmp("GROUP", h5i_get_type(g_id)) eq 0 )
+   errors += ( strcmp("DATATYPE", h5i_get_type(t_id)) eq 0 )
+   errors += ( strcmp("DATASPACE", h5i_get_type(s_id)) eq 0 )
+   errors += ( strcmp("DATASET", h5i_get_type(d_id)) eq 0 )
+   errors += ( strcmp("ATTR", h5i_get_type(a_id)) eq 0 )
+   errors += ( strcmp("BADID", h5i_get_type(123)) eq 0 )
+
+   ; --- test function 'H5I_GET_FILE_ID' ---
+
+   errors += ( h5i_get_file_id(g_id) ne f_id )
+   errors += ( h5i_get_file_id(d_id) ne f_id )
+   errors += ( h5i_get_file_id(a_id) ne f_id )
+
+   h5a_close, a_id
+   h5d_close, d_id
+   h5s_close, s_id
+   h5t_close, t_id
+   h5g_close, g_id
+   h5f_close, f_id
+
+   spawn, 'rm -f '+file_name
+
+   banner_for_testsuite, 'TEST_HDF5_INTER', errors, /short
+
+   if ~isa(cumul_errors) then cumul_errors=0
+   cumul_errors = cumul_errors + errors
 
    return
 end
@@ -316,6 +873,14 @@ TEST_HDF5_STRING, cumul_errors
 TEST_HDF5_ATTR, cumul_errors
 ;
 TEST_HDF5_DATA, cumul_errors
+;
+TEST_HDF5_GROUP, cumul_errors
+;
+TEST_HDF5_OBJ_INFO, cumul_errors
+;
+TEST_HDF5_COMP, cumul_errors
+;
+TEST_HDF5_INTER, cumul_errors
 ;
 BANNER_FOR_TESTSUITE, 'TEST_HDF5', cumul_errors
 ;

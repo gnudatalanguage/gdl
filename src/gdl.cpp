@@ -39,12 +39,9 @@
 #include <sys/resource.h> //rlimits to augment stack size (needed fot DICOM objects)
 #endif
 
-//#include <fenv.h>
-
 #include "str.hpp"
 #include "dinterpreter.hpp"
 #include "terminfo.hpp"
-#include "sigfpehandler.hpp"
 #include "gdleventhandler.hpp"
 
 #ifdef _OPENMP
@@ -62,15 +59,21 @@
 // GDLDATADIR
 #include "config.h"
 
-//initialize wxWidgets system
+//we use gdlgstream in gdl.cpp
+#include "gdlgstream.hpp"
+
+//initialize wxWidgets system:  create an instance of wxAppGDL
 #ifdef HAVE_LIBWXWIDGETS
 #include "gdlwidget.hpp"
-#if __WXMSW__ 
-wxIMPLEMENT_APP_NO_MAIN( wxAppGDL);
-#else
-wxIMPLEMENT_APP_NO_MAIN( wxApp);
+//displaced in gdlwidget.cpp to make wxGetApp() available under Python (in GDL.so)
+//#ifndef __WXMAC__ 
+//wxIMPLEMENT_APP_NO_MAIN( wxAppGDL);
+//#else
+//wxIMPLEMENT_APP_NO_MAIN( wxApp);
+//#endif
 #endif
-#endif
+
+#include "version.hpp"
 
 using namespace std;
 
@@ -119,11 +122,8 @@ void InitOpenMP() {
 
 void AtExit()
 {
-  //this function probably cleans otherwise cleaned objets and should be called only for debugging purposes.
-  cerr << "Using AtExit() for debugging" << endl;
-  cerr << flush; cout << flush; clog << flush;
-  // clean up everything
-  // (for debugging memory leaks)
+  //this function cleans objets and should be called only for debugging purposes.(for debugging memory leaks)
+  // enabled with flag --clean-at-exit
   ResetObjects();
   PurgeContainer(libFunList);
   PurgeContainer(libProList);
@@ -132,14 +132,14 @@ void AtExit()
 #ifndef _WIN32
 void GDLSetLimits()
 {
-#define GDL_PREFERED_STACKSIZE 20480000 //20000*1024 OK for the time being
-struct rlimit* gdlstack=new struct rlimit;
-  int r=getrlimit(RLIMIT_STACK,gdlstack); 
+#define GDL_PREFERED_STACKSIZE  1024000000 //1000000*1024 like IDL
+struct rlimit gdlstack;
+  int r=getrlimit(RLIMIT_STACK,&gdlstack); 
 //  cerr <<"Current rlimit = "<<gdlstack->rlim_cur<<endl;
 //  cerr<<"Max rlimit = "<<  gdlstack->rlim_max<<endl;
-  if (gdlstack->rlim_cur >= GDL_PREFERED_STACKSIZE ) return; //the bigger the better.
-  if (gdlstack->rlim_max > GDL_PREFERED_STACKSIZE ) gdlstack->rlim_cur=GDL_PREFERED_STACKSIZE; //not completely satisfactory.
-  r=setrlimit(RLIMIT_STACK,gdlstack);
+  if (gdlstack.rlim_cur >= GDL_PREFERED_STACKSIZE ) return; //the bigger the better.
+  if (gdlstack.rlim_max > GDL_PREFERED_STACKSIZE ) gdlstack.rlim_cur=GDL_PREFERED_STACKSIZE; //not completely satisfactory.
+  r=setrlimit(RLIMIT_STACK,&gdlstack);
 }
 #endif
 
@@ -148,6 +148,12 @@ void InitGDL()
 #ifndef _WIN32
   GDLSetLimits();
 #endif
+
+//rl_event_hook (defined below) uses a wxwidgets event loop, so wxWidgets must be started
+#ifdef HAVE_LIBWXWIDGETS
+    if (useWxWidgets) GDLWidget::Init();
+#endif
+
 #if defined(HAVE_LIBREADLINE)
   // initialize readline (own version - not pythons one)
   // in includefirst.hpp readline is disabled for python_module
@@ -159,9 +165,7 @@ void InitGDL()
   //but... without it we have no graphics event handler! FIXME!!! 
   rl_event_hook = GDLEventHandler;
 #endif
-#ifdef HAVE_LIBWXWIDGETS
-    if (useWxWidgets) GDLWidget::Init();
-#endif
+
   // ncurses blurs the output, initialize TermWidth here
   TermWidth();
 
@@ -177,12 +181,11 @@ void InitGDL()
   setlocale(LC_ALL, "C");
 #endif
 
-  // turn on all floating point exceptions
+  // for debug one could turn on all floating point exceptions, it will stop at first one.
   //  feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
 
   signal(SIGINT,ControlCHandler);
-  signal(SIGFPE,SigFPEHandler);
-  
+
   lib::SetGDLGenericGSLErrorHandler();
 }
 
@@ -209,15 +212,110 @@ namespace lib {
 
 }
 
+#include <whereami.h>
+
+namespace MyPaths {
+  std::string getExecutablePath(){
+  char* path = NULL;
+  
+  int length, dirname_length;
+  int i;
+  length = wai_getExecutablePath(NULL, 0, &dirname_length);
+  if (length > 0)
+  {
+    path = (char*)malloc(length + 1);
+    if (!path) return std::string(".");
+    wai_getExecutablePath(path, length, &dirname_length);
+    path[dirname_length] = '\0';
+//    printf("  dirname: %s\n", path);
+    std::string pathstring(path);
+    free(path);
+    return pathstring;
+  }
+  return std::string(".");
+}
+}
+
+
 int main(int argc, char *argv[])
 {
-#if GDL_DEBUG
-  if( atexit( AtExit) != 0) cerr << "atexit registration failed." << endl;
-#endif
   // indicates if the user wants to see the welcome message
   bool quiet = false;
   bool gdlde = false;
 
+//The default installation location --- will not always be there.  
+  gdlDataDir = std::string(GDLDATADIR);
+  gdlLibDir = std::string(GDLLIBDIR);
+#ifdef _WIN32
+  std::replace(gdlDataDir.begin(), gdlDataDir.end(), '/', '\\');
+  std::replace(gdlLibDir.begin(), gdlLibDir.end(), '/', '\\');
+#endif 
+
+//check where is the executable being run
+ std::string whereami=MyPaths::getExecutablePath();
+// if I am at a 'bin' location, then there are chances that I've bee INSTALLED, so all the resources I need can be accessed relatively to this 'bin' directory.
+// if not, then I'm probably just a 'build' gdl and my ressources may (should?) be in the default location GDLDATADIR
+  std::size_t pos=whereami.rfind("bin");
+  if (pos == whereami.size()-3) { //we are the installed gdl!
+    gdlDataDir.assign( whereami+ lib::PathSeparator() + ".." + lib::PathSeparator() + "share" + lib::PathSeparator() + "gnudatalanguage") ;
+//    std::cerr<<"installed at: "<<gdlDataDir<<std::endl;
+  }
+
+//PATH. This one is often modified by people before starting GDL.
+  string gdlPath=GetEnvPathString("GDL_PATH"); //warning: is a Path, use system separator.
+  if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH"); //warning: is a Path, use system separator.
+  if( gdlPath == "") gdlPath = gdlDataDir + lib::PathSeparator() + "lib";
+
+//LIBDIR. Can be '' in which case the location of drivers is deduced from the location of
+//the executable (OSX, Windows, unix in user-installed mode).
+  string driversPath = GetEnvPathString("GDL_DRV_DIR");
+  if (driversPath == "") { //NOT enforced by GDL_DRV_DIR
+    driversPath = gdlLibDir; //e.g. Fedora
+    if (driversPath == "") { //NOT enforced by GDLLIBDIR at build : not a distro
+      driversPath = gdlDataDir + lib::PathSeparator() + "drivers"; //deduced from the location of the executable 
+    }
+  }
+  //drivers if local
+  useLocalDrivers=false;
+  bool driversNotFound=false;
+
+  //The current value for PLPLOT_DRV_DIR.
+  //To find our drivers, the plplot library needs to have PLPLOT_DRV_DIR set to the good path, i.e., driversPath.
+  const char* DrvEnvName = "PLPLOT_DRV_DIR";
+  //In a startup message (below), the value of $PLPLOT_DRV_DIR appears.
+  //It will be the value set inside the program (just below) to find the relevant drivers.
+
+#ifdef INSTALL_LOCAL_DRIVERS
+  useLocalDrivers=true;
+  //For WIN32 the drivers dlls are copied along with the gdl.exe and plplot does not use PLPLOT_DRV_DIR to find them.
+#ifndef _WIN32
+  char* oldDriverEnv=getenv(DrvEnvName);
+  // We must declare here (and not later) where our local copy of (customized?) drivers is to be found.
+  char s[256];
+  strcpy(s,DrvEnvName);
+  strcat(s,"=");
+  strcat(s,driversPath.c_str());
+      //set nex drvPath as PLPLOT_DRV_DIR
+  putenv(s);
+  //Now, it is possible that GDL WAS compiled with INSTALL_LOCAL_DRIVERS, but the plplot installation is NOT compiled with DYNAMIC DRIVERS.
+  //So I check here the plplot driver list to check if wxwidgets is present. If not, useLocalDriver=false
+  bool driversOK=GDLGStream::checkPlplotDriver("ps"); //ps because xwin and wxwidgets may be absent. ps is always present.
+  if (!driversOK) {
+    driversNotFound=true; 
+    useLocalDrivers=false;
+    unsetenv(DrvEnvName); //unknown on windows
+    //eventually restore previous value
+    if (oldDriverEnv) {
+      strcpy(s,DrvEnvName);
+      strcat(s,"=");
+      strcat(s,oldDriverEnv);
+      putenv(s);
+    }
+    plend(); //this is necessary to reset PLPLOT to a state that will read again the driver configuration at PLPLOT_DRV_DIR
+             // otherwise the next call to checkPlplotDriver() in GDLWxStream will fail.
+  }
+#endif
+#endif
   // keeps a list of files to be executed after the startup file
   // and before entering the interactive mode
   vector<string> batch_files;
@@ -228,14 +326,23 @@ int main(int argc, char *argv[])
 
   bool force_no_wxgraphics = false;
   usePlatformDeviceName=false;
-  forceWxWidgetsUglyFonts = false;
+  tryToMimicOriginalWidgets = false;
   useDSFMTAcceleration = true;
   iAmANotebook=false; //option --notebook
+  iAmSilent=false; //option --silent
  #ifdef HAVE_LIBWXWIDGETS 
-  useWxWidgets=true;
+
+    #if defined (__WXMAC__) 
+      useWxWidgets=true;
+    #elif defined (__WXMSW__)
+      useWxWidgets=true;
+    #else  
+      if (GetEnvString("DISPLAY").length() > 0) useWxWidgets=true; else useWxWidgets=false;
+    #endif
+  
 #else
   useWxWidgets=false;
-#endif  
+#endif
 #ifdef _WIN32
   lib::posixpaths = false;
 #endif
@@ -256,14 +363,17 @@ int main(int argc, char *argv[])
       cerr << "  --sloppy           Sets the traditional (default) compiling option where \"()\"  can be used both with functions and arrays." << endl;
       cerr << "                     Needed to counteract temporarily the effect of the enviromnment variable \"GDL_IS_FUSSY\"." << endl;
       cerr << "  --MAC              Graphic device will be called 'MAC' on MacOSX. (default: 'X')" << endl;
-      cerr << "  --no-use-wx        Tells GDL not to use WxWidgets graphics." << endl;
+      cerr << "  [--no-use-wx | -X] Tells GDL not to use WxWidgets graphics and resort to X11 (if available)." << endl;
       cerr << "                     Also enabled by setting the environment variable GDL_DISABLE_WX_PLOTS to a non-null value." << endl;
       cerr << "  --notebook         Force SVG-only device, used only when GDL is a Python Notebook Kernel." << endl;
       cerr << "  --widget-compat    Tells GDL to use a default (rather ugly) fixed pitch font for compatiblity with IDL widgets." << endl;
       cerr << "                     Also enabled by setting the environment variable GDL_WIDGET_COMPAT to a non-null value." << endl;
-      cerr << "                     Using this option may render some historical widgets unworkable (as they are based on fixed sizes)." << endl;
+      cerr << "                     Using this option may render some historical widgets more readable (as they are based on fixed sizes)." << endl;
       cerr << "  --no-dSFMT         Tells GDL not to use double precision SIMD oriented Fast Mersenne Twister(dSFMT) for random doubles." << endl;
       cerr << "                     Also disable by setting the environment variable GDL_NO_DSFMT to a non-null value." << endl;
+      cerr << "  --with-eigen-transpose lets GDL use Eigen::transpose and related functions instead of our accelerated transpose function. Normally slower." <<endl;
+      cerr << "  --smart-tpool      switch to a mode where the number of threads is adaptive (experimental). Should enable better perfs on many core machines." <<endl;
+      cerr << "  --silent           Supresses some messages (mainly \"Compiled Module XXX\" ." <<endl;
 #ifdef _WIN32
       cerr << "  --posix (Windows only): paths will be posix paths (experimental)." << endl;
 #endif
@@ -278,7 +388,7 @@ int main(int argc, char *argv[])
       cerr << "  -pref=/path/to/params_file  loads the specified preference file" << endl;
       cerr << "  -quiet (--quiet, -q) suppress welcome messages" << endl;
       cerr << endl;
-      cerr << "Homepage: http://gnudatalanguage.sf.net" << endl;
+      cerr << "Homepage: https://gnudatalanguage.github.io" << endl;
       return 0;
     }
       else if (string(argv[a])=="--version" | string(argv[a])=="-v" | string(argv[a])=="-V")
@@ -362,7 +472,7 @@ int main(int argc, char *argv[])
       }
       else if (string(argv[a]) == "--widget-compat")
       {
-          forceWxWidgetsUglyFonts = true;
+          tryToMimicOriginalWidgets = true;
       }      
 #ifdef _WIN32
       else if (string(argv[a]) == "--posix") lib::posixpaths=true;
@@ -371,13 +481,25 @@ int main(int argc, char *argv[])
       {
          usePlatformDeviceName = true;
       }
-      else if (string(argv[a]) == "--no-use-wx")
+      else if (string(argv[a]) == "--no-use-wx" |  string(argv[a]) == "-X")
       {
          force_no_wxgraphics = true;
+      }
+      else if (string(argv[a]) == "--with-eigen-transpose")
+      {
+         useEigenForTransposeOps = true;
+      }
+      else if (string(argv[a]) == "--smart-tpool")
+      {
+         useSmartTpool = true;
       }
       else if (string(argv[a]) == "--notebook")
       {
          iAmANotebook = true;
+      }
+      else if (string(argv[a]) == "--silent")
+      {
+         iAmSilent = true;
       }
       else if (string(argv[a]) == "--fakerelease")
       {
@@ -387,9 +509,9 @@ int main(int argc, char *argv[])
             return 0;
           }
         pretendRelease = string(argv[++a]);
-      }
-      else if (*argv[a] == '-')
-      {
+	} else if (string(argv[a]) == "--clean-at-exit") {
+	  if (atexit(AtExit) != 0) cerr << "atexit registration failed. option \"--clean-at-exit\" unefficient." << endl;
+	} else if (*argv[a] == '-') {
         cerr << argv[0] << ": " << argv[a] << " option not recognized." << endl;
         return 0;
       }
@@ -409,7 +531,7 @@ int main(int argc, char *argv[])
   
 #ifdef HAVE_LIBWXWIDGETS
   //tells if wxWidgets is working (may not be the case if DISPLAY is not set) by setting useWxWidgets to false
-  useWxWidgets=GDLWidget::InitWx();
+  if (useWxWidgets) useWxWidgets=GDLWidget::InitWx();
   // default is wx Graphics...
   useWxWidgetsForGraphics=useWxWidgets;
 #else
@@ -422,31 +544,25 @@ int main(int argc, char *argv[])
   if (force_no_wxgraphics) useWxWidgetsForGraphics=false; //this has the last answer, whatever the setup.
 #endif  
   std::string doUseUglyFonts=GetEnvString("GDL_WIDGETS_COMPAT");
-  if ( doUseUglyFonts.length() > 0) forceWxWidgetsUglyFonts=true; 
+  if ( doUseUglyFonts.length() > 0) tryToMimicOriginalWidgets=true; 
   
   InitGDL(); 
 
   // must be after !cpu initialisation
-  InitOpenMP();
-
-  if (gdlde || (isatty(0) && !quiet)) StartupMessage();
+  InitOpenMP(); //will supersede values for CpuTPOOL_NTHREADS
 
   // instantiate the interpreter
   DInterpreter interpreter;
 
-  string gdlPath=GetEnvString("GDL_PATH");
-  if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH");
-  if( gdlPath == "")
-    {
-      gdlPath = "+" GDLDATADIR "/lib";
-      if (gdlde || (isatty(0) && !quiet)) cerr <<
-        "- Default library routine search path used (GDL_PATH/IDL_PATH env. var. not set): " GDLDATADIR "/lib" << endl;
+  if (gdlde || (isatty(0) && !quiet)) {
+    StartupMessage();
+    cerr << "- Default library routine search path used (GDL_PATH/IDL_PATH env. var. not set): " << gdlPath << endl;
+    if (useWxWidgetsForGraphics) cerr << "- Using WxWidgets as graphics library (windows and widgets)." << endl;
+    if (useLocalDrivers || driversNotFound) {
+      if (driversNotFound) cerr << "- Local drivers not found --- using default ones. " << endl;
+      else if (getenv(DrvEnvName)) cerr << "- Using local drivers in " << getenv(DrvEnvName) << endl; //protect against NULL.
     }
-  if (useWxWidgetsForGraphics) {
-      if (gdlde || (isatty(0) && !quiet)) cerr << "- Using WxWidgets as graphics library (windows and widgets)." << endl;
-    }
-
-  
+  }
   if (useDSFMTAcceleration && (GetEnvString("GDL_NO_DSFMT").length() > 0)) useDSFMTAcceleration=false;
   
   //report in !GDL status struct
@@ -458,8 +574,6 @@ int main(int argc, char *argv[])
   unsigned  useWXTAG= gdlconfig->Desc()->TagIndex("GDL_USE_WX");
   (*static_cast<DByteGDL*> (gdlconfig->GetTag(useWXTAG, 0)))[0]=useWxWidgetsForGraphics;
   
-  SysVar::SetGDLPath( gdlPath); //probably duplicate with the one in initobjects!
-  
   if (!pretendRelease.empty()) SysVar::SetFakeRelease(pretendRelease);
   //fussyness setup and change if switch at start
   if (syntaxOptionSet) { //take it no matters any env. var.
@@ -469,8 +583,8 @@ int main(int argc, char *argv[])
   }
   
   
-  string startup=GetEnvString("GDL_STARTUP");
-  if( startup == "") startup=GetEnvString("IDL_STARTUP");
+  string startup=GetEnvPathString("GDL_STARTUP");
+  if( startup == "") startup=GetEnvPathString("IDL_STARTUP");
   if( startup == "")
     {
       if (gdlde || (isatty(0) && !quiet)) cerr << 

@@ -32,7 +32,6 @@ private:
   void pr_name( ProgNodeP node );
   void pr_indent();
   void pr_top( RefAST top );
-  void pr_top( ProgNodeP  top );
   void pr_open_angle();
   void pr_close_angle(bool first);
   void pr_leaves( RefAST top );
@@ -49,6 +48,7 @@ private:
     return rslt;
   }
 public:
+    void pr_top(ProgNodeP top);
   void pr_tree( const RefAST top );
   void pr_tree( const ProgNodeP top );
 }; // print_tree

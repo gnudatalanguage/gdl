@@ -1,4 +1,4 @@
-.TH GDL 1 "2020-05-19" "The GDL Team"
+.TH GDL 1 "2024-03-19" "The GDL Team"
 .SH NAME
 gdl \- GNU Data Language incremental compiler
 .SH SYNOPSIS
@@ -42,19 +42,10 @@ processing, file input/output (incl. graphical and scientific data
 formats such as TIFF, PNG, netCDF, HDF etc) and interaction with host
 OS.
 
-Information on GDL/IDL/PV\-WAVE syntax and library routines can be
-found in e.g.:
+For a list of resources on GDL/IDL/PV\-WAVE syntax and library routines,
+see references in GDL v1.0 JOSS paper: https://doi.org/10.21105/joss.04633
 
-\- GDL documentation draft at: http://aramis.obspm.fr/~coulais/GDL/gdl.pdf
-
-\- IDL manual on\-line @ NASA.gov:
-http://idlastro.gsfc.nasa.gov/idl_html_help/home.html
-
-\- ITTVIS (ittvis.com) and Visual Numerics (vni.com) websites
-
-\- comp.lang.idl\-pvwave newsgroup
-
-\- newsletter at: https://sympa.obspm.fr/wws/info/gdl-announces
+GDL mailing list is maintained at: https://sympa.obspm.fr/wws/info/gdl-announces
 
 A vast part of GDL library routines is implemented using open\-source
 libraries including GSL, plPlot, and optionally: readline, FFTW, Eigen3,
@@ -88,7 +79,7 @@ batch files)
 variables including default preferences (e.g. X11 Windows Size)
 .TP
 .B \-\-fakerelease version
-setting !VERSION.RELASE to that value. !VERSION.RELASE is often tested by
+setting !VERSION.RELEASE to that value. !VERSION.RELEASE is often tested by
 procedures to decide whether some function or option should be used. It is
 sometimes possible to use this option to fool a procedure that request a
 specific value of !VERSION.RELEASE (e.g. atv.pro)
@@ -98,15 +89,21 @@ signals that all used procedures will adhere with modern IDL,
 where "()" are for functions and "[]" are for arrays.
 This speeds up (sometimes terribly) compilation but choke on every use of "()" with arrays.
 Conversion of procedures to modern IDL can be done with D. Landsman's idlv4_to_v5 procedure.
-Use enviromnment variable "GDL_IS_FUSSY" to set up permanently this feature.
+Use environment variable "GDL_IS_FUSSY" to set up permanently this feature.
 
 Incidentally "being fussy" can help find all places in a procedure 
 that need to be corrected to have it in the modern IDL format.
 .TP
+.B \-\-silent
+Supresses some messages (mainly "Compiled Module XXX" .)
+.TP
 .B \-\-sloppy
 inverse of fussy above.
 Sets the traditional (default) compiling option where "()"  can be used both with functions and arrays.
-Needed to counteract temporarily the effect of the enviromnment variable "GDL_IS_FUSSY".
+Needed to counteract temporarily the effect of the environment variable "GDL_IS_FUSSY".
+.TP
+.B \-\-smart-tpool
+switch to a mode where the number of threads is adaptive (experimental). Should enable better perfs on many core machines.
 .TP
 .B \-\-use-wx
 Tells GDL to use WxWidgets graphics instead of X11 or Windows. (nicer plots).
@@ -205,7 +202,7 @@ if set to true (1) this will prevent the use of the GDL_GR_X_HEIGHT and GDL_GR_X
 Sets the preference for the default width of an X11 graphic window
 .TP
 .B GDL_WX_BACKEND
-can be set to [0,1,2] which will select, respectively, the backends 0,1 or 2 of plplot's old wxWidgets driver (plplot versions < 5.10). Backend 2 has antialiasing enabled.
+can be set to [0,1,2] which will select, respectively, the back-ends 0,1 or 2 of plplot's old wxWidgets driver (plplot versions < 5.10). Back-end 2 has anti-aliasing enabled.
 .TP
 .B GDL_MAPS_DIR
 If not automatically found, tells GDL where the maps files (coasts rivers, etc, used by MAPS_CONTINENTS) are located. 

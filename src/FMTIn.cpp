@@ -71,7 +71,7 @@ void FMTIn::format(RefFMTNode _t) {
 	switch ( _t->getType()) {
 	case FORMAT:
 	case STRING:
-	case CSTRING:
+	case CSTYLE_STRING:
 	case TL:
 	case TR:
 	case TERM:
@@ -122,11 +122,11 @@ void FMTIn::q(RefFMTNode _t) {
 	case 3:
 	case FORMAT:
 	case STRING:
-	case TL:
-	case TR:
 	case TERM:
 	case NONL:
 	case Q:
+	case TL:
+	case TR:
 	case T:
 	case X:
 	case A:
@@ -454,8 +454,6 @@ void FMTIn::f(RefFMTNode _t) {
 			_t = ASTNULL;
 		switch ( _t->getType()) {
 		case STRING:
-		case TL:
-		case TR:
 		case X:
 		case CMOA:
 		case CMoA:
@@ -578,7 +576,7 @@ void FMTIn::format_recursive(RefFMTNode _t) {
 	switch ( _t->getType()) {
 	case FORMAT:
 	case STRING:
-	case CSTRING:
+	case CSTYLE_STRING:
 	case TL:
 	case TR:
 	case TERM:
@@ -647,7 +645,7 @@ void FMTIn::format_reversion(RefFMTNode _t) {
 	switch ( _t->getType()) {
 	case FORMAT:
 	case STRING:
-	case CSTRING:
+	case CSTYLE_STRING:
 	case TL:
 	case TR:
 	case TERM:
@@ -714,8 +712,8 @@ void FMTIn::f_csubcode(RefFMTNode _t) {
 		match(antlr::RefAST(_t),TR);
 		_t = _t->getNextSibling();
 		
-		int    tlVal = tl->getW();
-		ioss.seekg( tlVal, std::ios_base::cur);
+		int    trVal = tr->getW();
+		ioss.seekg( trVal, std::ios_base::cur);
 		
 		break;
 	}
@@ -737,7 +735,7 @@ void FMTIn::x(RefFMTNode _t) {
 	
 	if( _t != static_cast<RefFMTNode>(antlr::nullAST))
 	{
-	int    tlVal = tl->getW();if (tlVal<1) tlVal=1;
+	int    tlVal = tl->getW();if (tlVal<=1) tlVal=1;
 	ioss.seekg( tlVal, std::ios_base::cur);
 	}
 	
@@ -765,6 +763,7 @@ void FMTIn::calendar_code(RefFMTNode _t,
 	RefFMTNode c15 = RefFMTNode(antlr::nullAST);
 	RefFMTNode c16 = RefFMTNode(antlr::nullAST);
 	RefFMTNode c17 = RefFMTNode(antlr::nullAST);
+	RefFMTNode s = RefFMTNode(antlr::nullAST);
 	
 	if (_t == RefFMTNode(antlr::nullAST) )
 		_t = ASTNULL;
@@ -956,17 +955,21 @@ void FMTIn::calendar_code(RefFMTNode _t,
 		
 		break;
 	}
+	case STRING:
+	{
+		s = _t;
+		match(antlr::RefAST(_t),STRING);
+		_t = _t->getNextSibling();
+		
+				SizeT actP  = ioss.tellg(); 
+				int  strlen = s->getText().length();
+				ioss.seekg( actP + strlen);
+		
+		break;
+	}
 	case X:
 	{
 		x(_t);
-		_t = _retTree;
-		break;
-	}
-	case STRING:
-	case TL:
-	case TR:
-	{
-		f_csubcode(_t);
 		_t = _retTree;
 		break;
 	}
@@ -1021,11 +1024,12 @@ const char* FMTIn::tokenNames[] = {
 	"RBRACE",
 	"SLASH",
 	"STRING",
-	"\"tl\"",
-	"\"tr\"",
 	"TERM",
 	"NONL",
 	"Q",
+	"CSTRING",
+	"TL",
+	"TR",
 	"T",
 	"X",
 	"A",
@@ -1060,7 +1064,7 @@ const char* FMTIn::tokenNames[] = {
 	"CSF",
 	"NUMBER",
 	"DOT",
-	"CSTRING",
+	"CSTYLE_STRING",
 	"H",
 	"L",
 	"R",
@@ -1071,12 +1075,12 @@ const char* FMTIn::tokenNames[] = {
 	0
 };
 
-const unsigned long FMTIn::_tokenSet_0_data_[] = { 0UL, 134152130UL, 0UL, 0UL };
-// FORMAT STRING "tl" "tr" TERM NONL Q T X A F E SE G SG I O B Z ZZ C 
+const unsigned long FMTIn::_tokenSet_0_data_[] = { 0UL, 268303298UL, 0UL, 0UL };
+// FORMAT STRING TERM NONL Q TL TR T X A F E SE G SG I O B Z ZZ C 
 const antlr::BitSet FMTIn::_tokenSet_0(_tokenSet_0_data_,4);
-const unsigned long FMTIn::_tokenSet_1_data_[] = { 0UL, 4160758208UL, 4095UL, 0UL, 0UL, 0UL, 0UL, 0UL };
-// STRING "tl" "tr" X CMOA CMoA CmoA CHI ChI CDWA CDwA CdwA CAPA CApA CapA 
-// CMOI CDI CYI CMI CSI CSF 
+const unsigned long FMTIn::_tokenSet_1_data_[] = { 0UL, 4026548288UL, 8191UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+// STRING X CMOA CMoA CmoA CHI ChI CDWA CDwA CdwA CAPA CApA CapA CMOI CDI 
+// CYI CMI CSI CSF 
 const antlr::BitSet FMTIn::_tokenSet_1(_tokenSet_1_data_,8);
 
 

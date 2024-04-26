@@ -28,16 +28,8 @@
 #   include <unistd.h> 
 #endif
 
-#include "basegdl.hpp"
 #include "str.hpp"
-
-
-#include "envt.hpp"
 #include "file.hpp"
-#include "objects.hpp"
-
-#include "dinterpreter.hpp"
-
 
 #include <zlib.h>
 
@@ -1266,7 +1258,7 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
         bool recursive=false, bool accErr=false, bool mark=false,
         bool quote=false, 
         bool match_dot=false,
-        bool  forceAbsPath=false,
+        bool  forceAbsPath=true,
         bool fold_case=false,
         bool onlyDir=false,   bool *tests = NULL)
 {               
@@ -2060,37 +2052,73 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
       e->Throw("invalid argument");
 
     static int compressIx = e->KeywordIx("COMPRESS");
-    bool compressed = e->KeywordSet(compressIx); // we actually don't use it. zlib does it all for us!
+    bool compressed = e->KeywordSet(compressIx); 
     static int noExpIx = e->KeywordIx("NOEXPAND_PATH");
     bool noExp = e->KeywordSet(noExpIx);
     
     DLongGDL* res = new DLongGDL( p0S->Dim(), BaseGDL::NOZERO);
 
-    gzFile gfd = NULL;
-    char newinput, lastchar = 0;
-    SizeT lines;
 
-      for( SizeT i=0; i<nEl; ++i)
-    {
-          std::string fname = (*p0S)[i];
 
-          if (!noExp) WordExp(fname);
+    if (compressed) {
+      char newinput, lastchar = 0;
+      SizeT lines;
+              gzFile gfd = NULL;
+        for (SizeT i = 0; i < nEl; ++i) {
+        std::string fname = (*p0S)[i];
 
-          if ((gfd = gzopen(fname.c_str(), "rb")) == NULL) {
-              e->Throw("Could not open file for reading ");// + p0[i]);
+        if (!noExp) WordExp(fname);
+
+        if ((gfd = gzopen(fname.c_str(), "r")) == NULL) {
+          e->Throw("Could not open file for reading "); // + p0[i]);
+        }
+        lines = 0;
+        while (gzread(gfd, &newinput, 1) == 1) {
+          if (newinput == '\n') {
+            lines++;
+            if (lastchar == '\r') lines--;
+          } else if (newinput == '\r') lines++;
+          lastchar = newinput;
+        }
+        gzclose(gfd);
+        if (lastchar != '\n' && lastchar != '\r') lines++;
+
+        (*res)[ i] = lines;
+      }
+    } else { //
+      char* newinput=(char*) malloc(BUFSIZ);
+      char lastchar = 0;
+      SizeT lines;
+        int fd = 0;
+        for (SizeT i = 0; i < nEl; ++i) {
+        std::string fname = (*p0S)[i];
+
+        if (!noExp) WordExp(fname);
+
+        if ((fd = open(fname.c_str(), O_RDONLY)) == -1) {
+          e->Throw("Could not open file for reading "); // + p0[i]);
+        }
+        lines = 0;
+        int count=0;
+        count=read(fd, newinput, BUFSIZ);
+        while (count > 0) {
+          for (int i = 0; i < count; ++i) {
+            if (newinput[i] == '\n') {
+              lines++;
+              if (lastchar == '\r') lines--;
+            } else if (newinput[i] == '\r') lines++;
+
+            lastchar = newinput[i];
           }
-          lines = 0;
-          while (gzread(gfd, &newinput, 1) == 1) {
-              if (newinput == '\r') lines++;
-              if (newinput == '\n') lines++;
-//                  if (newinput == '\r' && lastchar == '\n') length--;
-              if (newinput == '\n' && lastchar == '\r') lines--;
-              lastchar = newinput;
-          }
-          gzclose(gfd);
-      if (lastchar != '\n' && lastchar != '\r') lines++;
+          count=read(fd, newinput, BUFSIZ);
+        }
 
-      (*res)[ i] = lines;
+        close(fd);
+        if (lastchar != '\n' && lastchar != '\r') lines++;
+
+        (*res)[ i] = lines;
+      }
+      free(newinput);
     }
 
     return res;
@@ -2119,7 +2147,6 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 
     DStringGDL* res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
 
-
     {
 
       for( SizeT r=0; r<nPath ; ++r) {
@@ -2132,54 +2159,63 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
         struct stat64 statStruct;
         int actStat = lstat64(tmp.c_str(), &statStruct);
         if(actStat != 0) {
-            if(!allow_nonexist) e->Throw(" Link path does not exist "+tmp);
-            (*res)[r]=""; 
-            continue;
+	  if(!allow_nonexist) e->Throw(" Link path does not exist "+tmp);
+	  (*res)[r]=""; 
+	  continue;
         }
 #ifdef _WIN32
-    DWORD dwattrib;
+	DWORD dwattrib;
         int addlink = 0;
         fstat_win32(tmp, addlink, dwattrib);
         statStruct.st_mode |= addlink;
 #endif
-        SizeT lenpath = statStruct.st_size;
+	
+        // AC24 this is NOT the length od the path !!
+	// SizeT lenpath = statStruct.st_size;
+	
         bool isaSymLink = (S_ISLNK(statStruct.st_mode) != 0);
+
         if(!isaSymLink ) {
-            if(!allow_nonsymlink) e->Throw(" Path provided is not a symlink "+tmp);
-            (*res)[r]=""; 
-            continue;
+	  if(!allow_nonsymlink) e->Throw(" Path provided is not a symlink "+tmp);
+	  (*res)[r]=""; 
+	  continue;
         }           
-          char *symlinkpath =const_cast<char*> (tmp.c_str());
-          char actualpath [PATH_MAX+1];
-          char *ptr;
+	char *symlinkpath =const_cast<char*> (tmp.c_str());
+	char actualpath [PATH_MAX+1];
+	char *ptr;
 #ifndef _WIN32
-//      SizeT len; // doesn't work this way (opengroup doc):
-//      if( len = readlink(symlinkpath, actualpath, PATH_MAX) != -1)
-//                          actualpath[len] = '\0';
-        if( readlink(symlinkpath, actualpath, PATH_MAX) != -1)
-                actualpath[lenpath]='\0';
+	//      SizeT len; // doesn't work this way (opengroup doc):
+	//      if( len = readlink(symlinkpath, actualpath, PATH_MAX) != -1)
+	//                          actualpath[len] = '\0';
+
+	// follwing https://stackoverflow.com/questions/5525668/how-to-implement-readlink-to-find-the-path
+	ssize_t len1 = ::readlink(symlinkpath, actualpath, PATH_MAX);
+	if (len1 != -1) { actualpath[len1] = '\0';}
         ptr = &actualpath[0];
+
 #else
-          ptr = realpath(symlinkpath, actualpath);
-    if (lib::posixpaths) for(int i=0;ptr[i] != 0;i++) if(ptr[i] == '\\') ptr[i] = '/';
+	ptr = realpath(symlinkpath, actualpath);
+	//cout << "symlinkpath" << ptr << endl;
+	if (lib::posixpaths) for(int i=0;ptr[i] != 0;i++) if(ptr[i] == '\\') ptr[i] = '/';
+	//cout << "symlinkpath" << ptr << endl;
         
 #endif
-          if( ptr != NULL ){
-        (*res)[r] =string(ptr);
-          } else {
-        (*res)[r] = tmp ;
-          }
+	if( ptr != NULL ){
+	  (*res)[r] =string(ptr);
+	} else {
+	  (*res)[r] = tmp ;
+	}
         }
       }
       return res;
-
+      
     }
     
-      }
-    
-    
-    BaseGDL* file_info( EnvT* e)
-    {
+  }
+
+
+BaseGDL* file_info( EnvT* e)
+{
       SizeT nParam=e->NParam( 1); 
       DStringGDL* p0S = dynamic_cast<DStringGDL*>(e->GetParDefined(0));
       if( p0S == NULL)
@@ -2579,7 +2615,7 @@ static int copy_basic(const char *source, const char *dest)
         status = chmod(dest, srcmode);
 
     return status;
-}
+  }
 
 static void FileCopy(   FileListT& fileList, const DString& destdir,
             bool overwrite, bool recursive=false,

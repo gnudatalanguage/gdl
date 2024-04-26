@@ -17,7 +17,6 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 
 namespace lib {

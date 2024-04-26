@@ -2,50 +2,112 @@ name: build
 
 on:
   schedule:
-    - cron: "0 0 * * 2"
+    - cron: "35 9 * * 2"
   push:
     branches:
       - master
+      - '1.0'
+    tags:
+      - v**
   pull_request:
   workflow_dispatch:
+    inputs:
+      type:
+        description: 'Build type (`debug` or `release`)'
+        default: 'debug'
+        required: true
 
-# Tip: Use this action to debug with SSH.
+# Tip: Use below action to debug with SSH.
 #      - name: Setup upterm session
 #        uses: lhotari/action-upterm@v1
+# On Windows:
+#      - name: Setup tmate session
+#        uses: mxschmitt/action-tmate@v3
  
 jobs:
   prelude:
     runs-on: ubuntu-latest
     outputs:
-      matrix-windows: ${{ steps.set-matrix-windows.outputs.matrix-windows }}
-      matrix-others: ${{ steps.set-matrix-others.outputs.matrix-others }}
+      matrix-windows: ${{ steps.set-matrix-windows.outputs.matrix_windows }}
+      matrix-others: ${{ steps.set-matrix-others.outputs.matrix_others }}
     steps:
     - name: Create Build Matrix (Windows)
       id: set-matrix-windows
       run: |
-        if [[ '${{ github.event_name }}' == "schedule" ]]; then 
-            matrix="{deps: ['standard', 'headless'], arch: ['x86_64'], configuration: ['Release']}"
+        if [[ '${{ github.event_name }}' == "schedule" || '${{ github.event.inputs.type }}' == "release" || '${{ github.ref }}' == "refs/tags/v"* ]]; then 
+            matrix="{deps: ['standard'], arch: ['x86_64'], configuration: ['Release']}"
         else
             matrix="{deps: ['debug'], arch: ['x86_64'], configuration: ['Debug']}"
         fi
-        echo "::set-output name=matrix-windows::$matrix"
+        echo "matrix_windows=$matrix" >> $GITHUB_OUTPUT
     - name: Create Build Matrix (Linux/macOS)
       id: set-matrix-others
       run: |
-        if [[ '${{ github.event_name }}' == "schedule" ]]; then 
-            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['standard', 'headless'], configuration: ['Release']}"
+        if [[ '${{ github.event_name }}' == "schedule" || '${{ github.event.inputs.type }}' == "release" || '${{ github.ref }}' == "refs/tags/v"* ]]; then 
+            matrix="{os: ['ubuntu-latest', 'macos-12'], deps: ['standard', 'headless'], configuration: ['Release']}"
         else
-            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['debug'], configuration: ['Debug']}"
+            matrix="{os: ['ubuntu-latest', 'macos-12'], deps: ['debug'], configuration: ['Debug']}"
         fi
-        echo "::set-output name=matrix-others::$matrix"
+        echo "matrix_others=$matrix" >> $GITHUB_OUTPUT
     - name: Remove Release (scheduled build only)
-      if: github.event_name == 'schedule'
-      uses: dev-drprasad/delete-tag-and-release@v0.2.0
+      if: github.event_name == 'schedule' || github.event.inputs.type == 'release'
+      uses: dev-drprasad/delete-tag-and-release@v0.2.1
       with:
         delete_release: true
         tag_name: weekly-release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  upload-source-code:
+    runs-on: ubuntu-latest
+    needs: prelude
+    steps:
+      - name: Checkout GDL
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - name: Compress Source Code Distribution
+        id: step-compress-source-code
+        run: |
+          RELEASE_NAME=
+          if [[ '${{ github.event_name }}' == "schedule" || '${{ github.event.inputs.type }}' == "release" ]]; then
+            RELEASE_NAME="unstable-${GITHUB_SHA:0:7}"
+          elif [[ '${{ github.ref }}' == "refs/tags/v"* ]]; then
+            RELEASE_NAME="${GITHUB_REF_NAME}"
+          fi
+          if [[ ! -z "${RELEASE_NAME}" ]]; then
+            cp -r $PWD /tmp/gdl-${RELEASE_NAME}
+            cmake -D SRC=/tmp/gdl-${RELEASE_NAME}/src/version.hpp.in -D DST=/tmp/gdl-${RELEASE_NAME}/src/version.hpp -D GIT_EXECUTABLE=git -P /tmp/gdl-${RELEASE_NAME}/CMakeModules/GenerateVersionHeader.cmake 
+            rm -rf /tmp/gdl-${RELEASE_NAME}/.git
+            cd /tmp
+            rm /tmp/gdl-${RELEASE_NAME}/src/version.hpp.in
+            tar czf "/tmp/gdl-${RELEASE_NAME}.tar.gz" gdl-${RELEASE_NAME}
+            echo "released=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Upload Release Assets (unstable)
+        if: (github.event_name == 'schedule' || github.event.inputs.type == 'release') && steps.step-compress-source-code.outputs.released == 'true'
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "/tmp/gdl-*.tar.gz"
+          name: Weekly Binary Release (unstable)
+          body: Weekly Binary Release (unstable)
+          prerelease: true
+          allowUpdates: true
+          replacesArtifacts: true
+          commit: ${{ github.sha }}
+          tag: weekly-release
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload Release Assets (stable)
+        if: startsWith(github.ref, 'refs/tags/v') && steps.step-compress-source-code.outputs.released == 'true'
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "/tmp/gdl-*.tar.gz"
+          name: ${{ github.event.release.tag_name }}
+          prerelease: false
+          allowUpdates: true
+          replacesArtifacts: true
+          commit: ${{ github.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
   build-linux-macos:
     runs-on: ${{ matrix.os }}
     needs: prelude
@@ -58,54 +120,39 @@ jobs:
       ROOT_DIR: ${{ github.workspace }}/..
     steps:
       - name: Checkout GDL
-        uses: actions/checkout@v2
-      - name: Cache Dependencies (macOS, Homebrew)
-        if: matrix.os == 'macos-latest'
-        id: cache
-        uses: actions/cache@v2
+        uses: actions/checkout@v4
         with:
-          path: ${{ runner.temp }}/cache
-          key: cache-gdl-deps-${{ matrix.os }}-v3
-      - name: Install Dependencies (macOS, Homebrew)
-        if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit != 'true'
-        run: |
-          find /usr/local -path /usr/local/miniconda -prune -false -or -type l -or -type f | sort > ~/snapshot1.txt
-          scripts/build_gdl.sh prep
-          find /usr/local -path /usr/local/miniconda -prune -false -or -type l -or -type f | sort > ~/snapshot2.txt
-          echo "Setting up cache..."
-          mkdir -p ${{ runner.temp }}/cache
-          for fn in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
-            rsync -aR ${fn} ${{ runner.temp }}/cache || true
-          done
-      - name: Install Dependencies (Linux, Apt)
-        if: matrix.os == 'ubuntu-latest'
+          submodules: recursive
+          fetch-depth: 0
+      - name: Install Dependencies
         run: |
           scripts/build_gdl.sh prep
-      - name: Restore cache (macOS, Homebrew)
-        if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit == 'true'
-        run: |
-          cd ${{ runner.temp }}
-          for d in `ls cache`; do
-            sudo rsync -rt --links --no-t --inplace cache/$d/ /$d
-          done
       - name: Build GDL
         run: |
           scripts/build_gdl.sh configure
           scripts/build_gdl.sh build
-          scripts/build_gdl.sh install
       - name: Package GDL
         run: |
+          scripts/build_gdl.sh install
+          scripts/build_gdl.sh pack
           scripts/build_gdl.sh prep_deploy
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v2.2.1
+        if: contains(matrix.os, 'macos')
+        uses: actions/upload-artifact@v4
+        with:
+          path: gdl-*-${{ matrix.deps }}.dmg
+          name: GDL (${{ matrix.os }}, ${{ matrix.deps }}, ${{ matrix.configuration }})
+      - name: Upload Build Artifacts
+        if: "!contains(matrix.os, 'macos')"
+        uses: actions/upload-artifact@v4
         with:
           path: gdl-*-${{ matrix.deps }}.zip
           name: GDL (${{ matrix.os }}, ${{ matrix.deps }}, ${{ matrix.configuration }})
-      - name: Upload Release Assets
-        if: github.event_name == 'schedule' && matrix.os == 'macos-latest'
+      - name: Upload Release Assets (unstable)
+        if: (github.event_name == 'schedule' || github.event.inputs.type == 'release') && matrix.os == 'macos-12'
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "gdl-*-${{ matrix.deps }}.zip"
+          artifacts: "gdl-*-${{ matrix.deps }}.dmg"
           name: Weekly Binary Release (unstable)
           body: Weekly Binary Release (unstable)
           prerelease: true
@@ -114,9 +161,20 @@ jobs:
           commit: ${{ github.sha }}
           tag: weekly-release
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload Release Assets (stable)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "gdl-*-${{ matrix.deps }}.zip"
+          name: ${{ github.event.release.tag_name }}
+          prerelease: false
+          allowUpdates: true
+          replacesArtifacts: true
+          commit: ${{ github.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Test GDL
         run: |
-          scripts/build_gdl.sh check || exit 0
+          scripts/build_gdl.sh check
   build-windows:
     runs-on: windows-latest
     needs: prelude
@@ -130,7 +188,7 @@ jobs:
       Configuration: ${{ matrix.configuration }}
     steps:
       - name: Setup MSYS2
-        uses: msys2/setup-msys2@v2
+        uses: msys2/setup-msys2@v2.22.0
         with:
           msystem: MSYS
           update: false
@@ -144,24 +202,23 @@ jobs:
             tar
             zstd
             make
+            patch
             git
             rsync
+            patch
       - name: Checkout GDL
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
       - name: Cache Dependencies
         if: matrix.arch == 'x86_64'
         id: cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             C:\msys64\cache
-          key: cache-gdl-deps-windows-msys2-${{ matrix.arch }}-v5
-      - name: Check Version of Latest GDL Workbench
-        if: matrix.arch == 'x86_64'
-        id: gdl_workbench
-        uses: pozetroninc/github-action-get-latest-release@master
-        with:
-          repository: gnudatalanguage/gdlde
+          key: cache-gdl-deps-windows-msys2-${{ matrix.arch }}-v9
       - name: Install MSMPI
         if: matrix.deps == 'debug' || matrix.deps == 'headless'
         run: |
@@ -173,8 +230,10 @@ jobs:
         run: |
           pacman -Q | tr ' ' '-' | sort > ~/snapshot1.txt
           scripts/build_gdl.sh prep
-          ls ../MINGW-packages/mingw-w64-graphicsmagick/
-          mv ../MINGW-packages/mingw-w64-graphicsmagick/mingw-w64-*-graphicsmagick-*.tar.* /var/cache/pacman/pkg
+          ls MINGW-packages/mingw-w64-graphicsmagick/
+          mv MINGW-packages/mingw-w64-graphicsmagick/mingw-w64-*-graphicsmagick-*.tar.* /var/cache/pacman/pkg
+          ls MINGW-packages/mingw-w64-plplot/
+          mv MINGW-packages/mingw-w64-plplot/mingw-w64-*-plplot-*.tar.* /var/cache/pacman/pkg
           pacman -Q | tr ' ' '-' | sort > ~/snapshot2.txt
           echo "Setting up cache..."
           mkdir -p /cache
@@ -197,14 +256,14 @@ jobs:
           rsync -rt --no-t --inplace /cache/ /
       - name: Setup Python (64 bit)
         id: setup-python-64
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         if: matrix.arch == 'x86_64'
         with:
           python-version: '3.x'
           architecture: x64
       - name: Setup Python (32 bit)
         id: setup-python-32
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         if: matrix.arch == 'i686'
         with:
           python-version: '3.x'
@@ -227,21 +286,23 @@ jobs:
       - name: Package GDL
         shell: msys2 {0}  
         run: |
-          export GDLDE_VERSION=${{ steps.gdl_workbench.outputs.release }}
+          export GDLDE_VERSION=$(git ls-remote --refs --tags https://github.com/gnudatalanguage/gdlde | tail -n1 | cut -d '/' -f3)
           scripts/build_gdl.sh pack
           scripts/build_gdl.sh prep_deploy
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v2.2.1
+      - name: Upload GDL Installer
+        uses: actions/upload-artifact@v4
         with:
           name: GDL Installer (${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
           path: gdlsetup-*-${{ matrix.deps }}.exe
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v2.2.1
-        with:
-          name: GDL (windows-latest, ${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
-          path: gdl-*-${{ matrix.deps }}.zip
-      - name: Upload Release Assets
-        if: github.event_name == 'schedule'
+# DO NOT export .zip as artifact: due to necessary use of a precise location for our customized plplot drivers,
+# only an installer can be used (sets the correct environment variables) 
+#      - name: Upload Build Artifacts
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: GDL (windows-latest, ${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
+#          path: gdl-*-${{ matrix.deps }}.zip
+      - name: Upload Release Windows Installer (unstable)
+        if: github.event_name == 'schedule' || github.event.inputs.type == 'release'
         uses: ncipollo/release-action@v1
         with:
           artifacts: "gdlsetup-*-${{ matrix.deps }}.exe,gdl-*-${{ matrix.deps }}.zip"
@@ -251,8 +312,21 @@ jobs:
           replacesArtifacts: true
           tag: weekly-release
           token: ${{ secrets.GITHUB_TOKEN }}
+
+# supressed, same reason as above
+#       - name: Upload Release Assets (stable)
+#        if: startsWith(github.ref, 'refs/tags/v')
+#        uses: ncipollo/release-action@v1
+#        with:
+#          artifacts: "gdlsetup-*-${{ matrix.deps }}.exe,gdl-*-${{ matrix.deps }}.zip"
+#          name: ${{ github.event.release.tag_name }}
+#          prerelease: false
+#          allowUpdates: true
+#          replacesArtifacts: true
+#          commit: ${{ github.sha }}
+#          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Test GDL
         shell: msys2 {0}
         run: |
           export PATH=`cygpath "${pythonLocation}"`:$PATH
-          scripts/build_gdl.sh check || exit 0
+          scripts/build_gdl.sh check

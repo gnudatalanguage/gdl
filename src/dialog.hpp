@@ -16,8 +16,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "datatypes.hpp"
-#include "dinterpreter.hpp"
+#include "envt.hpp"
 
 //#ifndef _U
 //// only in wxWidget 3.0 and after : 

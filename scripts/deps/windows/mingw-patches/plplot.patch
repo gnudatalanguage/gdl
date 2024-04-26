@@ -1,0 +1,11 @@
+--- PKGBUILD       2022-01-26 17:10:50.421172521 +0100
++++ PKGBUILD       2022-01-26 17:11:23.086840918 +0100
+@@ -119,7 +119,7 @@
+     -DENABLE_python=ON \
+     -DENABLE_tcl=ON \
+     -DENABLE_tk=ON \
+-    -DENABLE_DYNDRIVERS=OFF \
++    -DENABLE_DYNDRIVERS=ON \
+     -DENABLE_wxwidgets=ON \
+     -DENABLE_itk=OFF \
+     -DENABLE_qt=OFF \

@@ -1,0 +1,97 @@
+      for (SizeT j = 0; j < n; ++j) { //nb output points
+        vres = &(res[ncontiguous * j]);
+        x = xx[j];
+        if (x < 0) {
+          for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
+        } else if (x <= n1 - 1) {
+          y = yy[j];
+          if (y < 0) {
+            for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
+          } else if (y <= n2 - 1) {
+            ix = floor(x); //floor  ix is [0 .. n1[
+            xi[0] = ix - 1;
+            xi[1] = ix;
+            xi[2] = ix + 1;
+            xi[3] = ix + 2;
+            //make in range
+            if (xi[0] < 0) xi[0] = 0; else if (xi[0] > n1 - 1) xi[0] = n1 - 1;
+            if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
+            if (xi[2] < 0) xi[2] = 0; else if (xi[2] > n1 - 1) xi[2] = n1 - 1;
+            if (xi[3] < 0) xi[3] = 0; else if (xi[3] > n1 - 1) xi[3] = n1 - 1;
+            dx = (x - xi[1]);
+            double dx2 = dx*dx;
+            double dx3 = dx2*dx;
+            double omdx = 1 - dx;
+            double omdx2 = omdx*omdx;
+            double omdx3 = omdx2*omdx;
+            double opdx = 1 + dx;
+            double opdx2 = opdx*opdx;
+            double opdx3 = opdx2*opdx;
+            double dmdx = 2 - dx;
+            double dmdx2 = dmdx*dmdx;
+            double dmdx3 = dmdx2*dmdx;
+            double cx1 = ((g + 2) * dx3 - (g + 3) * dx2 + 1);
+            double cx2 = ((g + 2) * omdx3 - (g + 3) * omdx2 + 1);
+            double cx0 = (g * opdx3 - 5 * g * opdx2 + 8 * g * opdx - 4 * g);
+            double cx3 = (g * dmdx3 - 5 * g * dmdx2 + 8 * g * dmdx - 4 * g);
+
+            iy = floor(y);
+            yi[0] = iy - 1;
+            yi[1] = iy;
+            yi[2] = iy + 1;
+            yi[3] = iy + 2;
+            //make in range
+            if (yi[0] < 0) yi[0] = 0; else if (yi[0] > n2 - 1) yi[0] = n2 - 1;
+            if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
+            if (yi[2] < 0) yi[2] = 0; else if (yi[2] > n2 - 1) yi[2] = n2 - 1;
+            if (yi[3] < 0) yi[3] = 0; else if (yi[3] > n2 - 1) yi[3] = n2 - 1;
+            dy = (y - yi[1]);
+            double dy2 = dy*dy;
+            double dy3 = dy2*dy;
+            double omdy = 1 - dy;
+            double omdy2 = omdy*omdy;
+            double omdy3 = omdy2*omdy;
+            double opdy = 1 + dy;
+            double opdy2 = opdy*opdy;
+            double opdy3 = opdy2*opdy;
+            double dmdy = 2 - dy;
+            double dmdy2 = dmdy*dmdy;
+            double dmdy3 = dmdy2*dmdy;
+            double cy1 = ((g + 2) * dy3 - (g + 3) * dy2 + 1);
+            double cy2 = ((g + 2) * omdy3 - (g + 3) * omdy2 + 1);
+            double cy0 = (g * opdy3 - 5 * g * opdy2 + 8 * g * opdy - 4 * g);
+            double cy3 = (g * dmdy3 - 5 * g * dmdy2 + 8 * g * dmdy - 4 * g);
+            vx0y0 = &(array[ncontiguous * (yi[0] * n1 + xi[0])]);
+            vx1y0 = &(array[ncontiguous * (yi[0] * n1 + xi[1])]);
+            vx2y0 = &(array[ncontiguous * (yi[0] * n1 + xi[2])]);
+            vx3y0 = &(array[ncontiguous * (yi[0] * n1 + xi[3])]);
+
+            vx0y1 = &(array[ncontiguous * (yi[1] * n1 + xi[0])]);
+            vx1y1 = &(array[ncontiguous * (yi[1] * n1 + xi[1])]);
+            vx2y1 = &(array[ncontiguous * (yi[1] * n1 + xi[2])]);
+            vx3y1 = &(array[ncontiguous * (yi[1] * n1 + xi[3])]);
+
+            vx0y2 = &(array[ncontiguous * (yi[2] * n1 + xi[0])]);
+            vx1y2 = &(array[ncontiguous * (yi[2] * n1 + xi[1])]);
+            vx2y2 = &(array[ncontiguous * (yi[2] * n1 + xi[2])]);
+            vx3y2 = &(array[ncontiguous * (yi[2] * n1 + xi[3])]);
+
+            vx0y3 = &(array[ncontiguous * (yi[3] * n1 + xi[0])]);
+            vx1y3 = &(array[ncontiguous * (yi[3] * n1 + xi[1])]);
+            vx2y3 = &(array[ncontiguous * (yi[3] * n1 + xi[2])]);
+            vx3y3 = &(array[ncontiguous * (yi[3] * n1 + xi[3])]);
+
+            for (SizeT i = 0; i < ncontiguous; ++i) {
+              double r0=cx1*vx1y0[i]+cx2*vx2y0[i]+cx0*vx0y0[i]+cx3*vx3y0[i];
+              double r1=cx1*vx1y1[i]+cx2*vx2y1[i]+cx0*vx0y1[i]+cx3*vx3y1[i];
+              double r2=cx1*vx1y2[i]+cx2*vx2y2[i]+cx0*vx0y2[i]+cx3*vx3y2[i];
+              double r3=cx1*vx1y3[i]+cx2*vx2y3[i]+cx0*vx0y3[i]+cx3*vx3y3[i];
+              vres[i] = cy1*r1+cy2*r2+cy0*r0+cy3*r3;
+            }
+          } else {
+            for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
+          }
+        } else {
+          for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
+        }
+      }

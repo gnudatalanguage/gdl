@@ -17,10 +17,6 @@
 #ifndef GDL_JOURNAL_H
 #define GDL_JOURNAL_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-#include "datatypes.hpp"
 #include "envt.hpp"
 #include "io.hpp"
 
@@ -30,8 +26,8 @@ namespace lib
   extern const char*  JOURNALCOMMENT;
 
   void journal(EnvT *e);
-  void write_journal(const std::string str);
-  void write_journal_comment(const std::string str);
+  void write_journal(const std::string &str);
+  void write_journal_comment(const std::string &str);
   void write_journal_comment(EnvT *e, int offset, SizeT width);
   GDLStream* get_journal();
   

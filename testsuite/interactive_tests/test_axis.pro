@@ -77,7 +77,7 @@ oplot, 25-findgen(25)
 
 end
 ;
-pro TEST_AXIS
+pro TEST_AXIS, test=test, no_exit=no_exit
 ;
 WINDOW, 0
 AXIS_BASIC
@@ -88,8 +88,7 @@ AXIS_RANGE
 WINDOW, 2
 AXIS_COMPLEX
 ;
-s=''
-READ, 'Please type any key to continue', s
-WDELETE, 0, 1, 2
-
+if KEYWORD_SET(no_exit) then STOP
+if KEYWORD_SET(test) then STOP
+;
 end

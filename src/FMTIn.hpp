@@ -45,7 +45,7 @@ public:
             format_reversion( reversionAnker);
             
             if( (nextParIx == nextParIxComp) && (valIx == valIxComp))   
-                throw GDLException("Infinite format loop detected.");
+                throw GDLException("Format in Error."); //Infinite format loop detected.");
         }
     }
     
@@ -238,10 +238,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 86;
+	static const int NUM_TOKENS = 87;
 #else
 	enum {
-		NUM_TOKENS = 86
+		NUM_TOKENS = 87
 	};
 #endif
 	

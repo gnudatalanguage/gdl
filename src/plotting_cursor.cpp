@@ -48,7 +48,7 @@ void tvcrs( EnvT* e)
 
   if (nParam < 2 )
   {
-    e->Throw("TVCRS with 1 argument not implemented (fixme)");
+    return; // ignore e->Throw("TVCRS with 1 argument not implemented (fixme)");
   }
   DDoubleGDL *x,*y;
 
@@ -118,6 +118,7 @@ void tvcrs( EnvT* e)
      gdlGetAxisType(YAXIS, yLog);
      if(xLog) tempx=pow(10,tempx);
      if(yLog) tempy=pow(10,tempy);
+     std::cerr<<"WARNING ---- Using obseolete WorldToDevice function"<<std::endl;
     actStream->WorldToDevice(tempx,tempy,ix,iy);
   }
   else if (e->KeywordSet(NORMAL))
@@ -201,13 +202,10 @@ void cursor(EnvT* e){
   if (e->KeywordSet(UPIx)) wait=UP;
   if(actStream->GetGin(&gin, wait)==false) return;
   // outside window report -1 -1 at least for DEVICE values
-  if (gin.pX < 0 || gin.pX > actStream->xPageSize() || gin.pY < 0 || gin.pY > actStream->yPageSize())
-  {
-    gin.pX = -1;
-    gin.pY = -1;
-  }
+  bool out=(gin.pX < 0 || gin.pX > actStream->xPageSize() || gin.pY < 0 || gin.pY > actStream->yPageSize());
   if (e->KeywordSet(DEVICEIx))
   {
+    if (out) { gin.pX = -1; gin.pY = -1;}
     DLongGDL* xLong;
     DLongGDL* yLong;
     xLong = new DLongGDL(gin.pX);
@@ -218,6 +216,7 @@ void cursor(EnvT* e){
   }
   else
   {
+    if (out) { gin.dX = 0; gin.dY = 0;}
     DDoubleGDL* x;
     DDoubleGDL* y;
     if (e->KeywordSet(NORMALIx))
@@ -227,6 +226,7 @@ void cursor(EnvT* e){
     }
     else
     { // default (/data)
+     if (out) { gin.dX = 0; gin.dY = 0;}
       DDouble tempx,tempy;
 #ifdef USE_LIBPROJ
       bool mapSet = false;

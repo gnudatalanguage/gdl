@@ -20,17 +20,14 @@
 #include <iostream>
 #include <complex>
 #include <cmath>
-
-#include "datatypes.hpp"
+#include <cfenv>
 #include "envt.hpp"
-#include "dinterpreter.hpp"
-#include "initsysvar.hpp"
 #include "math_utl.hpp"
 #include "math_fun_jmg.hpp"
-#include "graphicsdevice.hpp"
+#include "gdl_util.hpp"
 
 //#define GDL_DEBUG
-#undef GDL_DEBUG
+//#undef GDL_DEBUG
 
 #define COMPLEX2 GDL_COMPLEX
 
@@ -58,8 +55,10 @@ namespace lib {
     long int ibeta, it, irnd, ngrd, machep, negep, iexp, minexp, maxexp;
     float  eps, epsneg, xmin, xmax;
     double epsD, epsnegD, xminD, xmaxD;
-    
-    if( e->KeywordSet(0)) //DOUBLE
+
+    static int doubleIx=e->KeywordIx("DOUBLE");
+
+    if (e->KeywordSet(doubleIx))
       {
 	machar_d(&ibeta, &it, &irnd, &ngrd, &machep, 
 		 &negep, &iexp, &minexp, &maxexp, 
@@ -191,28 +190,41 @@ namespace lib {
   // slightly modified by Marc Schellens, m_schellens@users.sourceforge.net
 
   // general template
-   template< typename T, bool> struct finite_helper
-   {
-    inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity)
-    {
-     DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::NOZERO);
-     SizeT nEl = src->N_Elements();
 
-     if (kwNaN){
-      #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-       for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isnan((*src)[ i]);
-     }
-     else if (kwInfinity){
-      #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-       for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isinf((*src)[ i]);
-     }
-     else{
-      #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-       for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isfinite((*src)[ i]);
-     }
-     return res;
+  template< typename T, bool> struct finite_helper {
+
+    inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity) {
+      DByteGDL* res = new DByteGDL(src->Dim(), BaseGDL::NOZERO);
+      SizeT nEl = src->N_Elements();
+
+      if (kwNaN) {
+        if ((GDL_NTHREADS=parallelize( nEl))==1) {
+          for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = isnan((*src)[ i]);
+        } else {
+          TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS) 
+            for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = isnan((*src)[ i]);
+        }
+      } else if (kwInfinity) {
+        if ((GDL_NTHREADS=parallelize( nEl))==1) {
+          for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = isinf((*src)[ i]);
+        } else {
+          TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS) 
+            for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = isinf((*src)[ i]);
+        }
+      } else {
+        if ((GDL_NTHREADS=parallelize( nEl))==1) {
+          for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = isfinite((*src)[ i]);
+        } else {
+          TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS) 
+            for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = isfinite((*src)[ i]);
+        }
+      }
+      return res;
     }
-   };
+  };
 
    // partial specialization for GDL_COMPLEX, DCOMPLEX
    template< typename T> struct finite_helper<T, true>
@@ -222,21 +234,32 @@ namespace lib {
        DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::NOZERO);
        SizeT nEl = src->N_Elements();
        if (kwNaN){
-	    #pragma omp parallel  for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-         for ( SizeT i=0; i<nEl; ++i) 
-     	    (*res)[ i] = isnan((*src)[ i].real()) || isnan((*src)[ i].imag());
+	 if ((GDL_NTHREADS=parallelize( nEl))==1) {
+         for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isnan((*src)[ i].real()) || isnan((*src)[ i].imag());
+	 } else {
+   TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel  for num_threads(GDL_NTHREADS) 
+         for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isnan((*src)[ i].real()) || isnan((*src)[ i].imag());
 	   }
+       }
        else if (kwInfinity){
-   	    #pragma omp parallel  for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-         for ( SizeT i=0; i<nEl; ++i)
-           (*res)[ i] = isinf((*src)[ i].real()) || isinf((*src)[ i].imag());
+	 if ((GDL_NTHREADS=parallelize( nEl))==1) {
+         for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isinf((*src)[ i].real()) || isinf((*src)[ i].imag());
+	 } else {
+   TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel  for num_threads(GDL_NTHREADS) 
+         for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isinf((*src)[ i].real()) || isinf((*src)[ i].imag());
 	   }
+       }
        else{
-	    #pragma omp parallel  for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-         for ( SizeT i=0; i<nEl; ++i)
-           (*res)[ i] = isfinite((*src)[ i].real()) && 
-                        isfinite((*src)[ i].imag());
+	 if ((GDL_NTHREADS=parallelize( nEl))==1) {
+         for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isfinite((*src)[ i].real()) && isfinite((*src)[ i].imag());
+	 } else {
+   TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel  for num_threads(GDL_NTHREADS) 
+         for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isfinite((*src)[ i].real()) && isfinite((*src)[ i].imag());
 	   }
+       }
      return res;
     }
    };
@@ -248,95 +271,149 @@ namespace lib {
        do_it(static_cast<T*>(src), kwNaN, kwInfinity);
    };
 
-   //general signed template
-   template< typename T, bool> struct finite_helper_sign
-   {
-     inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity, DLong kwSign)
-     {
+  //general signed template
+
+  template< typename T, bool> struct finite_helper_sign {
+
+    inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity, DLong kwSign) {
 
 
-       DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::ZERO); // ::ZERO is not working
-       SizeT nEl = src->N_Elements();
-	if (kwInfinity || kwNaN)
-	{
-	 {
-		if (kwInfinity) {
-			if (kwSign > 0) {
-				#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-				for ( SizeT i=0; i<nEl; ++i) {
-					 (*res)[i] = (isinf((*src)[ i]) && (signbit((*src)[ i]) == 0)); 
-				}
-			} else {
-				#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-				for ( SizeT i=0; i<nEl; ++i) {
-					(*res)[i] = (isinf((*src)[ i]) && (signbit((*src)[ i]) != 0)) ; 
-				}
-			}
-		}
-		if (kwNaN) {
-			if (kwSign > 0) {
-				#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-				for ( SizeT i=0; i<nEl; ++i) {
-					 (*res)[i] = (isnan((*src)[ i]) && (signbit((*src)[ i]) == 0)); 
-				}
-			} else {
-				#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-				for ( SizeT i=0; i<nEl; ++i) {
-					 (*res)[i] = (isnan((*src)[ i]) && (signbit((*src)[ i]) != 0)); 
-				}
-			}
-		}
-	 }
-	 return res;
-	}
-		assert( false);
-        return NULL; //-Wreturn-type
-     }
-   };
+      DByteGDL* res = new DByteGDL(src->Dim(), BaseGDL::ZERO); // ::ZERO is not working
+      SizeT nEl = src->N_Elements();
+      if (kwInfinity || kwNaN) {
+        {
+          if (kwInfinity) {
+            if (kwSign > 0) {
+              if ((GDL_NTHREADS=parallelize( nEl))==1) {
+                for (SizeT i = 0; i < nEl; ++i) {
+                  (*res)[i] = (isinf((*src)[ i]) && (signbit((*src)[ i]) == 0));
+                }
+              } else {
+                TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS) 
+                  for (SizeT i = 0; i < nEl; ++i) {
+                  (*res)[i] = (isinf((*src)[ i]) && (signbit((*src)[ i]) == 0));
+                }
+              }
+            } else {
+              if ((GDL_NTHREADS=parallelize( nEl))==1) {
+                for (SizeT i = 0; i < nEl; ++i) {
+                  (*res)[i] = (isinf((*src)[ i]) && (signbit((*src)[ i]) != 0));
+                }
+              } else {
+                TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS) 
+                  for (SizeT i = 0; i < nEl; ++i) {
+                  (*res)[i] = (isinf((*src)[ i]) && (signbit((*src)[ i]) != 0));
+                }
+              }
+            }
+          }
+          if (kwNaN) {
+            if (kwSign > 0) {
+              if ((GDL_NTHREADS=parallelize( nEl))==1) {
+                for (SizeT i = 0; i < nEl; ++i) {
+                  (*res)[i] = (isnan((*src)[ i]) && (signbit((*src)[ i]) == 0));
+                }
+              } else {
+                TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS) 
+                  for (SizeT i = 0; i < nEl; ++i) {
+                  (*res)[i] = (isnan((*src)[ i]) && (signbit((*src)[ i]) == 0));
+                }
+              }
+            } else {
+              if ((GDL_NTHREADS=parallelize( nEl))==1) {
+                for (SizeT i = 0; i < nEl; ++i) {
+                  (*res)[i] = (isnan((*src)[ i]) && (signbit((*src)[ i]) != 0));
+                }
+              } else {
+                TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS) 
+                  for (SizeT i = 0; i < nEl; ++i) {
+                  (*res)[i] = (isnan((*src)[ i]) && (signbit((*src)[ i]) != 0));
+                }
+              }
+            }
+          }
+        }
+        return res;
+      }
+      assert(false);
+      return NULL; //-Wreturn-type
+    }
+  };
 
-   // partial specialization for GDL_COMPLEX, DCOMPLEX
-   template< typename T> struct finite_helper_sign<T, true>
-   {
-     inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity, DLong kwSign)
-     {
-       DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::ZERO); 
-       SizeT nEl = src->N_Elements();
-	if (kwInfinity || kwNaN)
-	{
-	 {
-		if (kwInfinity) {
-			if (kwSign > 0) {
-				#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-				for ( SizeT i=0; i<nEl; ++i) {
-					 (*res)[i] = ((isinf((*src)[ i].real()) && (!signbit((*src)[ i].real())))||(isinf((*src)[ i].imag()) && (!signbit((*src)[ i].imag())))); 
-				}
-			} else {
-				#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-				for ( SizeT i=0; i<nEl; ++i) {
-					 (*res)[i] = ((isinf((*src)[ i].real()) && (signbit((*src)[ i].real())))||(isinf((*src)[ i].imag()) && (signbit((*src)[ i].imag())))); 
-				}
-			}
-		}
-		if (kwNaN) {
-			if (kwSign > 0) {
-				#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-				for ( SizeT i=0; i<nEl; ++i) {
-					 (*res)[i] = ((isnan((*src)[ i].real()) && (!signbit((*src)[ i].real())))||(isnan((*src)[ i].imag()) && (!signbit((*src)[ i].imag())))); 
-				}
-			} else {
-				#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-				for ( SizeT i=0; i<nEl; ++i) {
-					 (*res)[i] = ((isnan((*src)[ i].real()) && (signbit((*src)[ i].real())))||(isnan((*src)[ i].imag()) && (signbit((*src)[ i].imag())))); 
-				}
-			}
-		}
-	 }
-	 return res;
-	}
-		assert( false);
-        return NULL; //-Wreturn-type
-     }
-   };
+  // partial specialization for GDL_COMPLEX, DCOMPLEX
+
+  template< typename T> struct finite_helper_sign<T, true> {
+
+    inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity, DLong kwSign) {
+      DByteGDL* res = new DByteGDL(src->Dim(), BaseGDL::ZERO);
+      SizeT nEl = src->N_Elements();
+      if (kwInfinity || kwNaN) {
+        {
+          if (kwInfinity) {
+            if (kwSign > 0) {
+              if ((GDL_NTHREADS=parallelize( nEl))==1) {
+                for (SizeT i = 0; i < nEl; ++i) {
+                  (*res)[i] = ((isinf((*src)[ i].real()) && (!signbit((*src)[ i].real()))) || (isinf((*src)[ i].imag()) && (!signbit((*src)[ i].imag()))));
+                }
+              } else {
+                TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS) 
+                  for (SizeT i = 0; i < nEl; ++i) {
+                  (*res)[i] = ((isinf((*src)[ i].real()) && (!signbit((*src)[ i].real()))) || (isinf((*src)[ i].imag()) && (!signbit((*src)[ i].imag()))));
+                }
+              }
+            } else {
+              if ((GDL_NTHREADS=parallelize( nEl))==1) {
+                for (SizeT i = 0; i < nEl; ++i) {
+                  (*res)[i] = ((isinf((*src)[ i].real()) && (signbit((*src)[ i].real()))) || (isinf((*src)[ i].imag()) && (signbit((*src)[ i].imag()))));
+                }
+              } else {
+                TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS) 
+                  for (SizeT i = 0; i < nEl; ++i) {
+                  (*res)[i] = ((isinf((*src)[ i].real()) && (signbit((*src)[ i].real()))) || (isinf((*src)[ i].imag()) && (signbit((*src)[ i].imag()))));
+                }
+              }
+            }
+          }
+          if (kwNaN) {
+            if (kwSign > 0) {
+              if ((GDL_NTHREADS=parallelize( nEl))==1) {
+                for (SizeT i = 0; i < nEl; ++i) {
+                  (*res)[i] = ((isnan((*src)[ i].real()) && (!signbit((*src)[ i].real()))) || (isnan((*src)[ i].imag()) && (!signbit((*src)[ i].imag()))));
+                }
+              } else {
+                TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS) 
+                  for (SizeT i = 0; i < nEl; ++i) {
+                  (*res)[i] = ((isnan((*src)[ i].real()) && (!signbit((*src)[ i].real()))) || (isnan((*src)[ i].imag()) && (!signbit((*src)[ i].imag()))));
+                }
+              }
+            } else {
+              if ((GDL_NTHREADS=parallelize( nEl))==1) {
+                for (SizeT i = 0; i < nEl; ++i) {
+                  (*res)[i] = ((isnan((*src)[ i].real()) && (signbit((*src)[ i].real()))) || (isnan((*src)[ i].imag()) && (signbit((*src)[ i].imag()))));
+                }
+              } else {
+                TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS) 
+                  for (SizeT i = 0; i < nEl; ++i) {
+                  (*res)[i] = ((isnan((*src)[ i].real()) && (signbit((*src)[ i].real()))) || (isnan((*src)[ i].imag()) && (signbit((*src)[ i].imag()))));
+                }
+              }
+            }
+          }
+        }
+        return res;
+      }
+      assert(false);
+      return NULL; //-Wreturn-type
+    }
+  };
 
 //   template< typename T> struct finite_helper_sign<T, true>
 //   {
@@ -345,7 +422,7 @@ namespace lib {
 //       DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::ZERO);
 //       SizeT nEl = src->N_Elements();
 //       
-// 	   #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+//		if ((GDL_NTHREADS=parallelize( nEl))==1) {
 //       for ( SizeT i=0; i<nEl; ++i)
 //	  {
 //	   if      ((kwInfinity && isinf((*src)[ i].real()) || kwNaN && isnan((*src)[ i].real())) && signbit((*src)[ i].real())==0 && kwSign > 0) (*res)[i]=1;
@@ -353,6 +430,17 @@ namespace lib {
 //	   else if ((kwInfinity && isinf((*src)[ i].real()) || kwNaN && isnan((*src)[ i].real())) && signbit((*src)[ i].real())!=0 && kwSign < 0) (*res)[i]=1;
 //	   else if ((kwInfinity && isinf((*src)[ i].imag()) || kwNaN && isnan((*src)[ i].imag())) && signbit((*src)[ i].imag())!=0 && kwSign < 0) (*res)[i]=1;	 
 //	  }
+//		} else {
+//  TRACEOMP(__FILE__,__LINE__)
+// 	   #pragma omp parallel for num_threads(GDL_NTHREADS) 
+//       for ( SizeT i=0; i<nEl; ++i)
+//	  {
+//	   if      ((kwInfinity && isinf((*src)[ i].real()) || kwNaN && isnan((*src)[ i].real())) && signbit((*src)[ i].real())==0 && kwSign > 0) (*res)[i]=1;
+//	   else if ((kwInfinity && isinf((*src)[ i].imag()) || kwNaN && isnan((*src)[ i].imag())) && signbit((*src)[ i].imag())==0 && kwSign > 0) (*res)[i]=1;
+//	   else if ((kwInfinity && isinf((*src)[ i].real()) || kwNaN && isnan((*src)[ i].real())) && signbit((*src)[ i].real())!=0 && kwSign < 0) (*res)[i]=1;
+//	   else if ((kwInfinity && isinf((*src)[ i].imag()) || kwNaN && isnan((*src)[ i].imag())) && signbit((*src)[ i].imag())!=0 && kwSign < 0) (*res)[i]=1;	 
+//	  }
+//     }
 //     return res;
 //    } 
 //   };
@@ -781,8 +869,8 @@ namespace lib {
 
       // Write rho array to KW
       static int rhoIx = e->KeywordIx( "RHO"); 
-      if( e->KeywordPresent( rhoIx)) {
-	BaseGDL** rhoKW = &e->GetKW( rhoIx);
+      if( e->WriteableKeywordPresent( rhoIx)) {
+	BaseGDL** rhoKW = &e->GetTheKW( rhoIx);
 	delete (*rhoKW);
 	dimension dim((DLong *) &nrho, (SizeT) 1);
 	*rhoKW = new DFloatGDL(dim, BaseGDL::NOZERO);
@@ -791,10 +879,10 @@ namespace lib {
       }
 
       // If THETA KW present but variable doesn't exist then write theta array
-      if( e->KeywordPresent( thetaIx)) {
+      if( e->WriteableKeywordPresent( thetaIx)) {
 	if (e->IfDefGetKWAs<DFloatGDL>( thetaIx) == NULL) {
 	  dimension dim((DLong *) &ntheta, (SizeT) 1);
-	  BaseGDL** thetaKW = &e->GetKW( thetaIx);
+	  BaseGDL** thetaKW = &e->GetTheKW( thetaIx);
 	  delete (*thetaKW);
 	  *thetaKW = new DFloatGDL(dim, BaseGDL::NOZERO);
 	for( SizeT itheta=0; itheta<ntheta; ++itheta)
@@ -827,19 +915,38 @@ namespace lib {
     T2* res = (T2*) res_->DataAddr();
     T2* data = (T2*) data_->DataAddr();
     if (doMissing) {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-      {
-#pragma omp for
-        for (DLong i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
+        for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
+      } else {
+      TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+        for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       }
     }
 
     /* Double loop on the output image  */
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for collapse(2)
-      for (DLong j = 0; j < nRows; ++j) {
-        for (DLong i = 0; i < nCols; ++i) {
+    if ((GDL_NTHREADS=parallelize( nEl, TP_CPU_INTENSIVE))==1) {
+      for (OMPInt j = 0; j < nRows; ++j) {
+        for (OMPInt i = 0; i < nCols; ++i) {
+          // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
+          DLong px = (DLong) (P[0] + P[1] * (DDouble) j + P[2] * (DDouble) i);
+          DLong py = (DLong) (Q[0] + Q[1] * (DDouble) j + Q[2] * (DDouble) i);
+          if (doMissing && ((px < 0) || (px > (lx - 1)) || (py < 0) || (py > (ly - 1)))) {
+            continue; // already initialised to 'missing' value.
+          } else {
+            if (px < 0) px = 0;
+            if (px > (lx - 1)) px = (lx - 1);
+            if (py < 0) py = 0;
+            if (py > (ly - 1)) py = (ly - 1);
+            res[i + j * nCols] = data[px + py * lx];
+          }
+        }
+      }
+    } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for collapse(2) num_threads(GDL_NTHREADS)
+        for (OMPInt j = 0; j < nRows; ++j) {
+        for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
           DLong px = (DLong) (P[0] + P[1] * (DDouble) j + P[2] * (DDouble) i);
           DLong py = (DLong) (Q[0] + Q[1] * (DDouble) j + Q[2] * (DDouble) i);
@@ -908,19 +1015,91 @@ namespace lib {
 
 
     if (doMissing) {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-      {
-#pragma omp for
-        for (DLong i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
+        for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
+      } else {
+      TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+        for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       }
     }
 
     /* Double loop on the output image  */
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for collapse(2)
-      for (DLong j = 0; j < nRows; ++j) {
-        for (DLong i = 0; i < nCols; ++i) {
+    if ((GDL_NTHREADS=parallelize( nEl, TP_CPU_INTENSIVE))==1) {
+      for (OMPInt j = 0; j < nRows; ++j) {
+        for (OMPInt i = 0; i < nCols; ++i) {
+          // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
+          DDouble x = (P[0] + P[1] * (DDouble) j + P[2] * (DDouble) i);
+          DLong px = (DLong) x;
+          DDouble y = (Q[0] + Q[1] * (DDouble) j + Q[2] * (DDouble) i);
+          DLong py = (DLong) y;
+          if (doMissing && ((px < 0) || (px > (lx - 1)) || (py < 0) || (py > (ly - 1)))) {
+            continue; // already initialised to 'missing' value.
+          } else {
+            if (px < 1) px = 0;
+            if (px > (lx - 1)) px = (lx - 1);
+            if (py < 1) py = 0;
+            if (py > (ly - 1)) py = (ly - 1);
+            if ((px < 1) || (px > (lx - 3)) || (py < 1) || (py > (ly - 3))) res[i + j * nCols] = data[px + py * lx];
+            else {
+              DDouble cur;
+              DDouble neighbors[16];
+              DDouble rsc[8], sumrs;
+
+              // Feed the positions for the closest 16 neighbors
+              for (SizeT k = 0; k < 16; ++k) neighbors[k] = data[px + py * lx + leaps[k]];
+
+              DDouble dpx = (DDouble) px;
+              DDouble dpy = (DDouble) py;
+              // Which tabulated value index shall we use?
+              DLong tabx = (DLong) ((x - dpx) * (DDouble) (TABSPERPIX));
+              DLong taby = (DLong) ((y - dpy) * (DDouble) (TABSPERPIX));
+
+              /* Compute resampling coefficients  */
+              /* rsc[0..3] in x, rsc[4..7] in y   */
+
+              rsc[0] = kernel[TABSPERPIX + tabx];
+              rsc[1] = kernel[tabx];
+              rsc[2] = kernel[TABSPERPIX - tabx];
+              rsc[3] = kernel[2 * TABSPERPIX - tabx];
+              rsc[4] = kernel[TABSPERPIX + taby];
+              rsc[5] = kernel[taby];
+              rsc[6] = kernel[TABSPERPIX - taby];
+              rsc[7] = kernel[2 * TABSPERPIX - taby];
+
+              sumrs = (rsc[0] + rsc[1] + rsc[2] + rsc[3]) *
+                (rsc[4] + rsc[5] + rsc[6] + rsc[7]);
+
+              /* Compute interpolated pixel now   */
+              cur = rsc[4] * (rsc[0] * neighbors[0] +
+                rsc[1] * neighbors[1] +
+                rsc[2] * neighbors[2] +
+                rsc[3] * neighbors[3]) +
+                rsc[5] * (rsc[0] * neighbors[4] +
+                rsc[1] * neighbors[5] +
+                rsc[2] * neighbors[6] +
+                rsc[3] * neighbors[7]) +
+                rsc[6] * (rsc[0] * neighbors[8] +
+                rsc[1] * neighbors[9] +
+                rsc[2] * neighbors[10] +
+                rsc[3] * neighbors[11]) +
+                rsc[7] * (rsc[0] * neighbors[12] +
+                rsc[1] * neighbors[13] +
+                rsc[2] * neighbors[14] +
+                rsc[3] * neighbors[15]);
+
+              /* Affect the value to the output image */
+              res[i + j * nCols] = (cur / sumrs);
+              /* done ! */
+            }
+          }
+        }
+      }
+    } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for collapse(2) num_threads(GDL_NTHREADS)
+      for (OMPInt j = 0; j < nRows; ++j) {
+        for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
           DDouble x = (P[0] + P[1] * (DDouble) j + P[2] * (DDouble) i);
           DLong px = (DLong) x;
@@ -1034,19 +1213,76 @@ namespace lib {
 
 
     if (doMissing) {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-      {
-#pragma omp for
-        for (DLong i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
+        for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
+      } else {
+      TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+        for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       }
     }
 
     /* Double loop on the output image  */
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for collapse(2)
-      for (DLong j = 0; j < nRows; ++j) {
-        for (DLong i = 0; i < nCols; ++i) {
+    if ((GDL_NTHREADS=parallelize( nEl, TP_CPU_INTENSIVE))==1) {
+      for (OMPInt j = 0; j < nRows; ++j) {
+        for (OMPInt i = 0; i < nCols; ++i) {
+          // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
+          DDouble x = (P[0] + P[1] * (DDouble) j + P[2] * (DDouble) i);
+          DLong px = (DLong) x;
+          DDouble y = (Q[0] + Q[1] * (DDouble) j + Q[2] * (DDouble) i);
+          DLong py = (DLong) y;
+          if (doMissing && ((px < 0) || (px > (lx - 1)) || (py < 0) || (py > (ly - 1)))) {
+            continue; // already initialised to 'missing' value.
+          } else {
+            if (px < 1) px = 0;
+            if (px > (lx - 1)) px = (lx - 1);
+            if (py < 1) py = 0;
+            if (py > (ly - 1)) py = (ly - 1);
+            if ((px < 1) || (px > (lx - 2)) || (py < 1) || (py > (ly - 2))) res[i + j * nCols] = data[px + py * lx];
+            else {
+              DDouble cur;
+              DDouble neighbors[9];
+              DDouble rsc[6], sumrs;
+
+              // Feed the positions for the closest 16 neighbors
+              for (SizeT k = 0; k < 9; ++k) neighbors[k] = data[px + py * lx + leaps[k]];
+
+              DDouble dpx = (DDouble) px;
+              DDouble dpy = (DDouble) py;
+              // Which tabulated value index shall we use?
+              DLong tabx = (DLong) ((x - dpx) * (DDouble) (TABSPERPIX));
+              DLong taby = (DLong) ((y - dpy) * (DDouble) (TABSPERPIX));
+
+              /* Compute resampling coefficients  */
+              /* rsc[0..3] in x, rsc[4..7] in y   */
+
+              rsc[0] = kernel[TABSPERPIX + tabx];
+              rsc[1] = kernel[tabx];
+              rsc[2] = kernel[TABSPERPIX - tabx];
+              rsc[3] = kernel[TABSPERPIX + taby];
+              rsc[4] = kernel[taby];
+              rsc[5] = kernel[TABSPERPIX - taby];
+
+              sumrs = (rsc[0] + rsc[1] + rsc[2]) *
+                (rsc[3] + rsc[4] + rsc[5]);
+
+              /* Compute interpolated pixel now   */
+              cur = rsc[3] * (rsc[0] * neighbors[0] + rsc[1] * neighbors[1] + rsc[2] * neighbors[2]) +
+                rsc[4] * (rsc[0] * neighbors[3] + rsc[1] * neighbors[4] + rsc[2] * neighbors[5]) +
+                rsc[5] * (rsc[0] * neighbors[6] + rsc[1] * neighbors[7] + rsc[2] * neighbors[8]);
+
+              /* Affect the value to the output image */
+              res[i + j * nCols] = (cur / sumrs);
+              /* done ! */
+            }
+          }
+        }
+      }
+    } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for collapse(2) num_threads(GDL_NTHREADS)
+      for (OMPInt j = 0; j < nRows; ++j) {
+        for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
           DDouble x = (P[0] + P[1] * (DDouble) j + P[2] * (DDouble) i);
           DLong px = (DLong) x;
@@ -1125,19 +1361,40 @@ namespace lib {
     T2* res = (T2*) res_->DataAddr();
     T2* data = (T2*) data_->DataAddr();
     if (doMissing) {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-      {
-#pragma omp for
-        for (DLong i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
+        for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
+      } else {
+      TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+        for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       }
     }
 
     /* Double loop on the output image  */
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for collapse(2)
-      for (DLong j = 0; j < nRows; ++j) {
-        for (DLong i = 0; i < nCols; ++i) {
+    if ((GDL_NTHREADS=parallelize( nEl, TP_CPU_INTENSIVE))==1) {
+      for (OMPInt j = 0; j < nRows; ++j) {
+        for (OMPInt i = 0; i < nCols; ++i) {
+          // Compute the original source for this pixel, note order of j and i.
+          DDouble x = poly2d_compute(poly_u, (DDouble) j, (DDouble) i);
+          DDouble y = poly2d_compute(poly_v, (DDouble) j, (DDouble) i);
+          DLong px = (DLong) x;
+          DLong py = (DLong) y;
+          if (doMissing && ((px < 0) || (px > (lx - 1)) || (py < 0) || (py > (ly - 1)))) {
+            continue; // already initialised to 'missing' value.
+          } else {
+            if (px < 0) px = 0;
+            if (px > (lx - 1)) px = (lx - 1);
+            if (py < 0) py = 0;
+            if (py > (ly - 1)) py = (ly - 1);
+            res[i + j * nCols] = data[px + py * lx];
+          }
+        }
+      }
+    } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for collapse(2) num_threads(GDL_NTHREADS)
+      for (OMPInt j = 0; j < nRows; ++j) {
+        for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i.
           DDouble x = poly2d_compute(poly_u, (DDouble) j, (DDouble) i);
           DDouble y = poly2d_compute(poly_v, (DDouble) j, (DDouble) i);
@@ -1216,19 +1473,91 @@ namespace lib {
 
 
     if (doMissing) {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-      {
-#pragma omp for
-        for (DLong i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
+        for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
+      } else {
+      TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+        for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       }
     }
 
     /* Double loop on the output image  */
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for collapse(2)
-      for (DLong j = 0; j < nRows; ++j) {
-        for (DLong i = 0; i < nCols; ++i) {
+    if ((GDL_NTHREADS=parallelize( nEl, TP_CPU_INTENSIVE))==1) {
+      for (OMPInt j = 0; j < nRows; ++j) {
+        for (OMPInt i = 0; i < nCols; ++i) {
+          // Compute the original source for this pixel, note order of j and i.
+          DDouble x = poly2d_compute(poly_u, (DDouble) j, (DDouble) i);
+          DDouble y = poly2d_compute(poly_v, (DDouble) j, (DDouble) i);
+          DLong px = (DLong) x;
+          DLong py = (DLong) y;
+          if (doMissing && ((px < 0) || (px > (lx - 1)) || (py < 0) || (py > (ly - 1)))) {
+            continue; // already initialised to 'missing' value.
+          } else {
+            if (px < 1) px = 0;
+            if (px > (lx - 1)) px = (lx - 1);
+            if (py < 1) py = 0;
+            if (py > (ly - 1)) py = (ly - 1);
+            if ((px < 1) || (px > (lx - 3)) || (py < 1) || (py > (ly - 3))) res[i + j * nCols] = data[px + py * lx];
+            else {
+              DDouble cur;
+              DDouble neighbors[16];
+              DDouble rsc[8], sumrs;
+
+              // Feed the positions for the closest 16 neighbors
+              for (SizeT k = 0; k < 16; ++k) neighbors[k] = data[px + py * lx + leaps[k]];
+
+              DDouble dpx = (DDouble) px;
+              DDouble dpy = (DDouble) py;
+              // Which tabulated value index shall we use?
+              DLong tabx = (DLong) ((x - dpx) * (DDouble) (TABSPERPIX));
+              DLong taby = (DLong) ((y - dpy) * (DDouble) (TABSPERPIX));
+
+              /* Compute resampling coefficients  */
+              /* rsc[0..3] in x, rsc[4..7] in y   */
+
+              rsc[0] = kernel[TABSPERPIX + tabx];
+              rsc[1] = kernel[tabx];
+              rsc[2] = kernel[TABSPERPIX - tabx];
+              rsc[3] = kernel[2 * TABSPERPIX - tabx];
+              rsc[4] = kernel[TABSPERPIX + taby];
+              rsc[5] = kernel[taby];
+              rsc[6] = kernel[TABSPERPIX - taby];
+              rsc[7] = kernel[2 * TABSPERPIX - taby];
+
+              sumrs = (rsc[0] + rsc[1] + rsc[2] + rsc[3]) *
+                (rsc[4] + rsc[5] + rsc[6] + rsc[7]);
+
+              /* Compute interpolated pixel now   */
+              cur = rsc[4] * (rsc[0] * neighbors[0] +
+                rsc[1] * neighbors[1] +
+                rsc[2] * neighbors[2] +
+                rsc[3] * neighbors[3]) +
+                rsc[5] * (rsc[0] * neighbors[4] +
+                rsc[1] * neighbors[5] +
+                rsc[2] * neighbors[6] +
+                rsc[3] * neighbors[7]) +
+                rsc[6] * (rsc[0] * neighbors[8] +
+                rsc[1] * neighbors[9] +
+                rsc[2] * neighbors[10] +
+                rsc[3] * neighbors[11]) +
+                rsc[7] * (rsc[0] * neighbors[12] +
+                rsc[1] * neighbors[13] +
+                rsc[2] * neighbors[14] +
+                rsc[3] * neighbors[15]);
+
+              /* Affect the value to the output image */
+              res[i + j * nCols] = (cur / sumrs);
+              /* done ! */
+            }
+          }
+        }
+      }
+    } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for collapse(2) num_threads(GDL_NTHREADS)
+      for (OMPInt j = 0; j < nRows; ++j) {
+        for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i.
           DDouble x = poly2d_compute(poly_u, (DDouble) j, (DDouble) i);
           DDouble y = poly2d_compute(poly_v, (DDouble) j, (DDouble) i);
@@ -1350,19 +1679,76 @@ namespace lib {
 
 
     if (doMissing) {
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-      {
-#pragma omp for
-        for (DLong i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
+        for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
+      } else {
+      TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+        for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       }
     }
 
     /* Double loop on the output image  */
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for collapse(2)
-      for (DLong j = 0; j < nRows; ++j) {
-        for (DLong i = 0; i < nCols; ++i) {
+    if ((GDL_NTHREADS=parallelize( nEl, TP_CPU_INTENSIVE))==1) {
+      for (OMPInt j = 0; j < nRows; ++j) {
+        for (OMPInt i = 0; i < nCols; ++i) {
+          // Compute the original source for this pixel, note order of j and i.
+          DDouble x = poly2d_compute(poly_u, (DDouble) j, (DDouble) i);
+          DDouble y = poly2d_compute(poly_v, (DDouble) j, (DDouble) i);
+          DLong px = (DLong) x;
+          DLong py = (DLong) y;
+          if (doMissing && ((px < 0) || (px > (lx - 1)) || (py < 0) || (py > (ly - 1)))) {
+            continue; // already initialised to 'missing' value.
+          } else {
+            if (px < 1) px = 0;
+            if (px > (lx - 1)) px = (lx - 1);
+            if (py < 1) py = 0;
+            if (py > (ly - 1)) py = (ly - 1);
+            if ((px < 1) || (px > (lx - 2)) || (py < 1) || (py > (ly - 2))) res[i + j * nCols] = data[px + py * lx];
+            else {
+              DDouble cur;
+              DDouble neighbors[9];
+              DDouble rsc[6], sumrs;
+
+              // Feed the positions for the closest 16 neighbors
+              for (SizeT k = 0; k < 9; ++k) neighbors[k] = data[px + py * lx + leaps[k]];
+
+              DDouble dpx = (DDouble) px;
+              DDouble dpy = (DDouble) py;
+              // Which tabulated value index shall we use?
+              DLong tabx = (DLong) ((x - dpx) * (DDouble) (TABSPERPIX));
+              DLong taby = (DLong) ((y - dpy) * (DDouble) (TABSPERPIX));
+
+              /* Compute resampling coefficients  */
+              /* rsc[0..3] in x, rsc[4..7] in y   */
+
+              rsc[0] = kernel[TABSPERPIX + tabx];
+              rsc[1] = kernel[tabx];
+              rsc[2] = kernel[TABSPERPIX - tabx];
+              rsc[3] = kernel[TABSPERPIX + taby];
+              rsc[4] = kernel[taby];
+              rsc[5] = kernel[TABSPERPIX - taby];
+
+              sumrs = (rsc[0] + rsc[1] + rsc[2]) *
+                (rsc[3] + rsc[4] + rsc[5]);
+
+              /* Compute interpolated pixel now   */
+              cur = rsc[3] * (rsc[0] * neighbors[0] + rsc[1] * neighbors[1] + rsc[2] * neighbors[2]) +
+                rsc[4] * (rsc[0] * neighbors[3] + rsc[1] * neighbors[4] + rsc[2] * neighbors[5]) +
+                rsc[5] * (rsc[0] * neighbors[6] + rsc[1] * neighbors[7] + rsc[2] * neighbors[8]);
+
+              /* Affect the value to the output image */
+              res[i + j * nCols] = (cur / sumrs);
+              /* done ! */
+            }
+          }
+        }
+      }
+    } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for collapse(2) num_threads(GDL_NTHREADS)
+      for (OMPInt j = 0; j < nRows; ++j) {
+        for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i.
           DDouble x = poly2d_compute(poly_u, (DDouble) j, (DDouble) i);
           DDouble y = poly2d_compute(poly_v, (DDouble) j, (DDouble) i);
@@ -1435,9 +1821,9 @@ namespace lib {
     N. Devillard, "The eclipse software", The messenger No 87 - March 1997 http://www.eso.org/projects/aot/eclipse/
      */
 
-    SizeT nParam = e->NParam();
-    if (nParam < 3)
-      e->Throw("Incorrect number of arguments.");
+    // GD: POLY_2D IS 5 times slower that IDL's. TBC . I note that the loops contains a lot of 'ifs', so algorithm is not efficient.
+    
+    SizeT nParam = e->NParam(3);
 
     BaseGDL* p0 = e->GetParDefined(0);
     
@@ -1655,52 +2041,6 @@ namespace lib {
   }
 
 
-/*-------------------------------------------------------------------------*/
-/**
-  @brief        Same as pow(x,y) but for integer values of y only (faster).
-  @param        x       A double number.
-  @param        p       An integer power.
-  @return       x to the power p.
-
-  This is much faster than the math function due to the integer. Some
-  compilers make this optimization already, some do not.
-
-  p can be positive, negative or null.
- */
-/*--------------------------------------------------------------------------*/
-double ipow(double x, int p)
-{
-        double r, recip ;
-
-        /* Get rid of trivial cases */
-        switch (p) {
-                case 0:
-                return 1.00 ;
-
-                case 1:
-                return x ;
-
-                case 2:
-                return x*x ;
-
-                case 3:
-                return x*x*x ;
-
-                case -1:
-                return 1.00 / x ;
-
-                case -2:
-                return (1.00 / x) * (1.00 / x) ;
-        }
-        if (p>0) {
-                r = x ;
-                while (--p) r *= x ;
-        } else {
-                r = recip = 1.00 / x ;
-                while (++p) r *= recip ;
-        }
-        return r;
-}
 
 /*-------------------------------------------------------------------------*/
 /**
@@ -1724,7 +2064,7 @@ double poly2d_compute(
 
 	z = 0.00 ;
 	for (i=0 ; i<p->nc ; i++) {
-		z += p->c[i] * ipow(x, p->px[i]) * ipow(y, p->py[i]) ;
+		z += p->c[i] * gdl::powI(x, p->px[i]) * gdl::powI(y, p->py[i]) ;
 	}
 	return z ;
 }
@@ -1786,10 +2126,10 @@ DDouble * generate_interpolation_kernel(int kernel_type, DDouble cubicParameter)
 	  for (i=1 ; i<samples ; ++i) {
 	    x = (double)KERNEL_WIDTH * (double)i/(double)(samples-1) ;
 	    if (x < 1)
-	      tab[i] = (cubicParameter+2)*ipow(x,3) - (cubicParameter+3)*ipow(x,2) + 1;
+	      tab[i] = (cubicParameter+2)*gdl::powI(x,3) - (cubicParameter+3)*gdl::powI(x,2) + 1;
 	    else if (x < 2)
-	      tab[i] = cubicParameter*ipow(x,3) - 
-		(5*cubicParameter)*ipow(x,2) + (8*cubicParameter)*x - (4*cubicParameter);
+	      tab[i] = cubicParameter*gdl::powI(x,3) - 
+		(5*cubicParameter)*gdl::powI(x,2) + (8*cubicParameter)*x - (4*cubicParameter);
 	  }
     } else if (kernel_type == 3) { //quintic
 	  tab = (double *) calloc(samples , sizeof(double)) ;
@@ -1797,22 +2137,22 @@ DDouble * generate_interpolation_kernel(int kernel_type, DDouble cubicParameter)
 	  for (i=1 ; i<samples ; ++i) {
 	    x = (double)KERNEL_WIDTH * (double)i/(double)(samples-1) ;
 	    if (x < 1)
-	      tab[i] = (10.*cubicParameter-(21./16.))*ipow(x,5) +
-            (-18.*cubicParameter+(45./16))*ipow(x,4)+
-            (8.*cubicParameter-(5./2.))*ipow(x,2)+
+	      tab[i] = (10.*cubicParameter-(21./16.))*gdl::powI(x,5) +
+            (-18.*cubicParameter+(45./16))*gdl::powI(x,4)+
+            (8.*cubicParameter-(5./2.))*gdl::powI(x,2)+
             1.0;
 	    else if (x < 2)
-	      tab[i] = (11.*cubicParameter-(5./16.))*ipow(x,5)+
-            (-88.*cubicParameter+(45./16.))*ipow(x,4)+
-            (270.*cubicParameter-10)*ipow(x,3)+
-            (-392.*cubicParameter+(35./2.))*ipow(x,2)+
+	      tab[i] = (11.*cubicParameter-(5./16.))*gdl::powI(x,5)+
+            (-88.*cubicParameter+(45./16.))*gdl::powI(x,4)+
+            (270.*cubicParameter-10)*gdl::powI(x,3)+
+            (-392.*cubicParameter+(35./2.))*gdl::powI(x,2)+
             (265.*cubicParameter-15.)*x+
             (-66.*cubicParameter+5);
         else if (x < 3)
-	      tab[i] = cubicParameter*ipow(x,5) +
-            (-14.*cubicParameter)*ipow(x,4) +
-            (78.*cubicParameter)*ipow(x,3)  +
-            (-216.*cubicParameter)*ipow(x,2)+
+	      tab[i] = cubicParameter*gdl::powI(x,5) +
+            (-14.*cubicParameter)*gdl::powI(x,4) +
+            (78.*cubicParameter)*gdl::powI(x,3)  +
+            (-216.*cubicParameter)*gdl::powI(x,2)+
             297.*cubicParameter*x +
             (-162.*cubicParameter);
 	  }

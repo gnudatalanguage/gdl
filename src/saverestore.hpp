@@ -23,14 +23,11 @@
 #ifndef SAVERESTORE_HPP_
 #define SAVERESTORE_HPP_
 
-#include "datatypes.hpp"
 #include "envt.hpp"
-//enum gdlSaveEnumOfCodes {START_MARKER=0, COMMON_VARIABLE, VARIABLE, SYSTEM_VARIABLE, UNKOWN1, UNKNOWN2 , END_MARKER,
-//     UNKNOWN3 , UNKNOWN4 ,UNKNOWN5 , TIMESTAMP, UNKNOWN6 , COMPILED,  IDENTIFICATION, THEVERSION,
-//      HEAP_HEADER, HEAP_DATA, PROMOTE64, UNKNOWN7, NOTICE, DESCRIPTION};
 
 namespace lib {
   void gdl_restore(EnvT* e);
   void gdl_save(EnvT* e);
+  void gdl_savetest(EnvT* e);
 }
 #endif

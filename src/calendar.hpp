@@ -18,6 +18,7 @@
 #ifndef CALENDAR_HPP_
 #define CALENDAR_HPP_
 #include "basegdl.hpp" // DLong
+DDouble Gregorian2Julian(struct tm *ts, double tm_nsec);
 double Gregorian2Julian(struct tm *ts);
 bool dateToJD(DDouble &jd, DLong day, DLong month, DLong year, DLong hour, DLong minute, DDouble second);
 bool j2ymdhms(DDouble jd, DLong &iMonth, DLong &iDay , DLong &iYear ,

@@ -10,13 +10,11 @@
 
 
 #include <fstream>
-
-#include "GDLParser.hpp"
-
-#include "str.hpp"
-#include "dnodefactory.hpp"
+#include "basegdl.hpp"
+//#include "str.hpp"
+//#include "dnodefactory.hpp"
 #include "objects.hpp"
-#include "initsysvar.hpp"
+//#include "initsysvar.hpp"
 
 #include <antlr/TokenStreamSelector.hpp>
 
@@ -25,6 +23,8 @@
 #include <antlr/TokenStreamIOException.hpp>
 #include <antlr/CharInputBuffer.hpp>
 
+// GD: set to 1 to traceout what the Parser does.
+#define debugParser 0
 //#include "dinterpreter.hpp"
 
 // defintion in dinterpreter.cpp
@@ -44,7 +44,9 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
         IDL2=DEFINT32 | STRICTARR,
         STRICTARRSUBS=32,
         STATIC=64,
-        NOSAVE=128
+        NOSAVE=128,
+        GDL_HIDDEN=256 //flag to avoid writing "Compiled module" at compilation. 
+                       //Not the same as HIDDEN, that can be set in the procdure code and hides also the procedure from the HELP. 
     };
 
     void SetCompileOpt( unsigned int cOpt)
@@ -138,7 +140,7 @@ public:
 	public: void endcaseelse_mark();
 	public: void identifier_list();
 	public: void keyword_declaration();
-	public: std::string  object_name();
+	protected: std::string  object_name();
 	public: void compile_opt();
 	public: void endforeach_mark();
 	public: void endfor_mark();
@@ -193,10 +195,10 @@ public:
 	public: void array_expr_nth();
 	public: void tag_array_expr_nth_sub();
 	public: void tag_array_expr_nth();
-	public: int  tag_access_keeplast();
-	public: SizeT  tag_access();
+	protected: int  tag_access_keeplast();
+	protected: SizeT  tag_access();
 	public: void deref_dot_expr();
-	public: bool  member_function_call();
+	protected: bool  member_function_call();
 	public: void member_function_call_dot();
 	public: void arrayexpr_mfcall();
 	public: void primary_expr_tail();

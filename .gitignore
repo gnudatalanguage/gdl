@@ -1,7 +1,11 @@
+*~
 src/gdl
 testsuite/launchtest.c
 nbproject/
 build/
+cmake-build*/
 install/
 gdlde/
 gdlde*.zip
+.vscode
+.idea/

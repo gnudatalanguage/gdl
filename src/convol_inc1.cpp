@@ -19,7 +19,7 @@
 // NOTE: All the unreadble #ifdef below are there to avoid IF constructs which results in much faster code when optimization is on.
 
 #ifdef INCLUDE_CONVOL_INC_CPP
-
+TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel num_threads(nchunk) firstprivate(scale,bias) shared(ker,kIxArr,res,aInitIxRef,regArrRef,nchunk,chunksize,aBeg,aEnd,nDim,aBeg0,aStride,ddP,invalidValue,kDim0,kDim0_nDim,nKel,missingValue,aEnd0,dim0,nA,absker,biasker,dim0_1) //default(none)
   {
 #pragma omp for
@@ -53,7 +53,9 @@
         for (long k = 0; k < nKel; ++k) {
           long aLonIx = aInitIx0 + kIx[0];
 #if defined(CONVOL_EDGE_ZERO)
-          bool doit = true;
+          bool omit = false;
+          bool doedge=(edgeVal!=0);
+          bool cste=false;
 #endif
           if (aLonIx < 0) {
 #if defined (CONVOL_EDGE_WRAP)
@@ -64,7 +66,7 @@
             aLonIx = 0;
 #elif defined(CONVOL_EDGE_ZERO)
             aLonIx = 0;
-            doit=false;
+            if (!doedge) omit=true;
 #endif
           } else if (aLonIx >= dim0) {
 #if defined (CONVOL_EDGE_WRAP)
@@ -75,11 +77,11 @@
                 aLonIx = dim0 - 1;
 #elif defined(CONVOL_EDGE_ZERO)
                 aLonIx = dim0 - 1;
-                doit = false;
+            if (!doedge)  omit = true; else cste=true;
 #endif
           }
 #if defined(CONVOL_EDGE_ZERO)
-          if (doit) {
+          if (!omit) {
 #endif
             for (long rSp = 1; rSp < nDim; ++rSp) {
               long aIx = aInitIx[ rSp] + kIx[ rSp];
@@ -92,7 +94,7 @@
                 aIx = 0;
 #elif defined(CONVOL_EDGE_ZERO)
                 aIx = 0;
-                doit = false;
+            if (!doedge)  omit = true; else cste=true;
 #endif 
               } else if (aIx >= this->dim[ rSp]) {
 #if defined (CONVOL_EDGE_WRAP)
@@ -103,16 +105,18 @@
                 aIx = this->dim[ rSp] - 1;
 #elif defined(CONVOL_EDGE_ZERO)
                 aIx = this->dim[ rSp] - 1;
-                doit = false;
+            if (!doedge)  omit = true; else cste=true;
 #endif
               }
               aLonIx += aIx * aStride[ rSp];
             }
 #if defined(CONVOL_EDGE_ZERO)
           }
-          if (doit) {
-#endif
+          if (!omit) {
+            Ty ddpHlp = (cste)?edgeVal:ddP[ aLonIx];
+#else
             Ty ddpHlp = ddP[ aLonIx];
+#endif
 #if defined(CONVOL_NAN_INVALID)
             if (ddpHlp != invalidValue && gdlValid(ddpHlp)) {
               counter++;

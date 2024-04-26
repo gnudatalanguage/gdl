@@ -15,10 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-#include "datatypes.hpp"
 #include "envt.hpp"
-#include "dinterpreter.hpp"
 
 
 //#if defined(HAVE_GLPK)
@@ -193,11 +190,11 @@ namespace lib {
 //    }
     BaseGDL* ret;
     if (isDouble) {
-        ret  = new DDoubleGDL(dimension(n+1));
+        ret  = new DDoubleGDL(dimension(n+1),BaseGDL::NOZERO);
         (*(DDoubleGDL*)ret)[0] = glp_get_obj_val(theProblem);
         for (int i = 1; i < n+1; ++i) (*(DDoubleGDL*)ret)[i] = glp_get_col_prim(theProblem, i);
     } else {
-        ret  = new DFloatGDL(dimension(n+1));
+        ret  = new DFloatGDL(dimension(n+1),BaseGDL::NOZERO);
         (*(DFloatGDL*)ret)[0] = glp_get_obj_val(theProblem);
         for (int i = 1; i < n+1; ++i) (*(DFloatGDL*)ret)[i] = glp_get_col_prim(theProblem, i);
     }

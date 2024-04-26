@@ -23,7 +23,7 @@
 #include "accessdesc.hpp"
 #include "initsysvar.hpp"
 #include "gdljournal.hpp"
-#include "nullgdl.hpp"
+//#include "nullgdl.hpp"
 
 //class ProgNode;
 //typedef ProgNode* ProgNodeP;
@@ -117,6 +117,7 @@ public:
     static int GetFunIx( ProgNodeP);
     static int GetFunIx( const std::string& subName);
     static int GetProIx( ProgNodeP);//const std::string& subName);
+    static bool CheckProExist( const std::string& subName);
     static int GetProIx( const std::string& subName);
     DStructGDL* ObjectStruct( DObjGDL* self, ProgNodeP mp);
     void SetRootR( ProgNodeP tt, DotAccessDescT* aD, BaseGDL* r, ArrayIndexListT* aL);
@@ -178,7 +179,7 @@ public:
     static bool CompileFile(const std::string& f, 
                             const std::string& untilPro="",
                             bool searchForPro=true); 
-
+    static bool CompileSaveFile(RefDNode theAST); 
     typedef RefHeap<BaseGDL> RefBaseGDL;
     typedef RefHeap<DStructGDL> RefDStructGDL;
 
@@ -200,8 +201,9 @@ protected:
 
     static EnvStackT  callStack; 
     static bool noInteractive;
+    static bool InBatchProcedureAtMain;
     static DLong stepCount;
-
+    static std::string MyProName;
 
 // smuggle optimizations in
 //#include "GDLInterpreterOptimized.inc"
@@ -765,7 +767,7 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
         std::string file=callStack.back()->GetFilename();
         if( file != "")
         {
-            SizeT line = e.getLine();
+            SizeT line = callStack.back()->GetLineNumber(); //e.getLine();
             if( line != 0)
             {       
                 std::cerr << std::right << std::setw(6) << line;

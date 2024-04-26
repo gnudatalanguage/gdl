@@ -1,0 +1,13 @@
+    for (SizeT j = 0; j < nx; ++j) {
+      vres = &(res[ncontiguous * j]);
+      x = xx[j];
+      if (x < 0) {
+        v0 = &(array[0]);
+      } else if (x < n1 - 1) {
+        ix = floor(x); //floor  ix is [0 .. n1[
+        v0 = &(array[ncontiguous * ix]);
+      } else {
+        v0 = &(array[ncontiguous * (n1 - 1)]);
+      }
+      for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = v0[i];
+    }

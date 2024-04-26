@@ -68,7 +68,7 @@ void FMTOut::format(RefFMTNode _t) {
 	case TL:
 	case TR:
 	case TERM:
-	case NONL:
+	//case NONL:
 	case Q: case T: case X: case A:
 	case F: case D: case E: case SE: case G: case SG:
 	case I: case O: case B: case Z: case ZZ: case C:
@@ -77,7 +77,7 @@ void FMTOut::format(RefFMTNode _t) {
 	// no break
 	}
 	case STRING:
-	case CSTRING:
+	case CSTYLE_STRING:
 	{
 	f(_t);
 	//                                if( actPar == NULL && termFlag) goto endFMT;
@@ -104,61 +104,77 @@ void FMTOut::q(RefFMTNode _t) {
 	RefFMTNode q_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	RefFMTNode s = RefFMTNode(antlr::nullAST);
 	
-	{
 	if (_t == RefFMTNode(antlr::nullAST) )
 		_t = ASTNULL;
-	switch ( _t->getType()) {
-	case SLASH:
-	{
-		s = _t;
-		match(antlr::RefAST(_t),SLASH);
+	if ((_t->getType() == NONL)) {
+		RefFMTNode tmp1_AST_in = _t;
+		match(antlr::RefAST(_t),NONL);
 		_t = _t->getNextSibling();
-		
-		// only one newline to journal file
-		GDLStream* j = lib::get_journal();
-		if( j != NULL && j->OStream().rdbuf() == os->rdbuf())
-		(*os) << '\n' << lib::JOURNALCOMMENT;
-		else
-		for( int r=s->getRep(); r > 0; r--) (*os) << '\n';
-		
-		break;
+		nonlFlag = true;
 	}
-	case 3:
-	case FORMAT:
-	case STRING:
-	case TL:
-	case TR:
-	case TERM:
-	case NONL:
-	case Q:
-	case T:
-	case X:
-	case A:
-	case F:
-	case E:
-	case SE:
-	case G:
-	case SG:
-	case I:
-	case O:
-	case B:
-	case Z:
-	case ZZ:
-	case C:
-	{
-		break;
+	else if ((_tokenSet_1.member(_t->getType()))) {
+		{
+		if (_t == RefFMTNode(antlr::nullAST) )
+			_t = ASTNULL;
+		switch ( _t->getType()) {
+		case SLASH:
+		{
+			s = _t;
+			match(antlr::RefAST(_t),SLASH);
+			_t = _t->getNextSibling();
+			
+			// only one newline to journal file
+			GDLStream* j = lib::get_journal();
+			if( j != NULL && j->OStream().rdbuf() == os->rdbuf())
+			(*os) << '\n' << lib::JOURNALCOMMENT;
+			else
+			for( int r=s->getRep(); r > 0; r--) (*os) << '\n';
+			
+			break;
+		}
+		case 3:
+		case FORMAT:
+		case STRING:
+		case TERM:
+		case NONL:
+		case Q:
+		case TL:
+		case TR:
+		case T:
+		case X:
+		case A:
+		case F:
+		case E:
+		case SE:
+		case G:
+		case SG:
+		case I:
+		case O:
+		case B:
+		case Z:
+		case ZZ:
+		case C:
+		{
+			break;
+		}
+		default:
+		{
+			throw antlr::NoViableAltException(antlr::RefAST(_t));
+		}
+		}
+		}
 	}
-	default:
-	{
+	else {
 		throw antlr::NoViableAltException(antlr::RefAST(_t));
 	}
-	}
-	}
+	
 	_retTree = _t;
 }
 
 void FMTOut::f(RefFMTNode _t) {
 	RefFMTNode f_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
+	RefFMTNode tl = RefFMTNode(antlr::nullAST);
+	RefFMTNode tr = RefFMTNode(antlr::nullAST);
 	RefFMTNode t = RefFMTNode(antlr::nullAST);
 	RefFMTNode a = RefFMTNode(antlr::nullAST);
 	RefFMTNode ff = RefFMTNode(antlr::nullAST);
@@ -178,7 +194,7 @@ void FMTOut::f(RefFMTNode _t) {
 	switch ( _t->getType()) {
 	case TERM:
 	{
-		RefFMTNode tmp1_AST_in = _t;
+		RefFMTNode tmp2_AST_in = _t;
 		match(antlr::RefAST(_t),TERM);
 		_t = _t->getNextSibling();
 		termFlag = true;
@@ -186,7 +202,7 @@ void FMTOut::f(RefFMTNode _t) {
 	}
 	case NONL:
 	{
-		RefFMTNode tmp2_AST_in = _t;
+		RefFMTNode tmp3_AST_in = _t;
 		match(antlr::RefAST(_t),NONL);
 		_t = _t->getNextSibling();
 		nonlFlag = true;
@@ -194,9 +210,36 @@ void FMTOut::f(RefFMTNode _t) {
 	}
 	case Q:
 	{
-		RefFMTNode tmp3_AST_in = _t;
+		RefFMTNode tmp4_AST_in = _t;
 		match(antlr::RefAST(_t),Q);
 		_t = _t->getNextSibling();
+		break;
+	}
+	case TL:
+	{
+		tl = _t;
+		match(antlr::RefAST(_t),TL);
+		_t = _t->getNextSibling();
+		//relative position left
+		SizeT actP  = os->tellp(); 
+		int    tlVal = tl->getW();
+		if( tlVal > actP)
+		os->seekp( 0);
+		else
+		os->seekp( actP - tlVal);
+		
+		break;
+	}
+	case TR:
+	{
+		tr = _t;
+		match(antlr::RefAST(_t),TR);
+		_t = _t->getNextSibling();
+		//relative position right
+		int    trVal = tr->getW();
+		for( int i=trVal; i>0; --i) (*os) << " "; //just add blanks.
+		//            os->seekp( trVal, std::ios_base::cur);
+		
 		break;
 	}
 	case T:
@@ -204,16 +247,16 @@ void FMTOut::f(RefFMTNode _t) {
 		t = _t;
 		match(antlr::RefAST(_t),T);
 		_t = _t->getNextSibling();
-		
+		//absolute position
 		int    tVal = t->getW();
-		assert( tVal >= 1);
-		os->seekp( tVal-1, std::ios_base::beg);
+		if (tVal < 1) throw GDLException("Value must be greater or equal to 1.");
+		SizeT actP  = os->tellp(); 
+		if( tVal > actP) for( int i=0; i<tVal-actP-1; ++i) (*os) << " "; //just add blanks.
+		else os->seekp( tVal-1); //like IDL
 		
 		break;
 	}
 	case STRING:
-	case TL:
-	case TR:
 	{
 		f_csubcode(_t);
 		_t = _retTree;
@@ -246,7 +289,7 @@ void FMTOut::f(RefFMTNode _t) {
 		SizeT tCount = actPar->OFmtA( os, valIx, r, w, c);
 		r -= tCount;
 		NextVal( tCount);
-		if( actPar == NULL) break;
+		if( actPar == NULL) {termFlag=true; break;};
 		} while( r>0);
 		
 		break;
@@ -267,7 +310,7 @@ void FMTOut::f(RefFMTNode _t) {
 		SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, c, BaseGDL::FIXED);
 		r -= tCount;
 		NextVal( tCount);
-		if( actPar == NULL) break;
+		if( actPar == NULL) {termFlag=true; break;};
 		} while( r>0);
 		
 		break;
@@ -288,7 +331,7 @@ void FMTOut::f(RefFMTNode _t) {
 		SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, c, BaseGDL::SCIENTIFIC);
 		r -= tCount;
 		NextVal( tCount);
-		if( actPar == NULL) break;
+		if( actPar == NULL) {termFlag=true; break;};
 		} while( r>0);
 		
 		break;
@@ -310,7 +353,7 @@ void FMTOut::f(RefFMTNode _t) {
 		SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, c, BaseGDL::SCIENTIFIC);
 		r -= tCount;
 		NextVal( tCount);
-		if( actPar == NULL) break;
+		if( actPar == NULL) {termFlag=true; break;};
 		} while( r>0);
 		
 		break;
@@ -331,7 +374,7 @@ void FMTOut::f(RefFMTNode _t) {
 		SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, c, BaseGDL::AUTO);
 		r -= tCount;
 		NextVal( tCount);
-		if( actPar == NULL) break;
+		if( actPar == NULL) {termFlag=true; break;};
 		} while( r>0);
 		
 		break;
@@ -353,7 +396,7 @@ void FMTOut::f(RefFMTNode _t) {
 		SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, c, BaseGDL::AUTO);
 		r -= tCount;
 		NextVal( tCount);
-		if( actPar == NULL) break;
+		if( actPar == NULL) {termFlag=true; break;};
 		} while( r>0);
 		
 		break;
@@ -374,7 +417,7 @@ void FMTOut::f(RefFMTNode _t) {
 		SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, c, BaseGDL::DEC);
 		r -= tCount;
 		NextVal( tCount);
-		if( actPar == NULL) break;
+		if( actPar == NULL) {termFlag=true; break;};
 		} while( r>0);
 		
 		break;
@@ -395,7 +438,7 @@ void FMTOut::f(RefFMTNode _t) {
 		SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, c, BaseGDL::OCT);
 		r -= tCount;
 		NextVal( tCount);
-		if( actPar == NULL) break;
+		if( actPar == NULL) {termFlag=true; break;};
 		} while( r>0);
 		
 		break;
@@ -416,7 +459,7 @@ void FMTOut::f(RefFMTNode _t) {
 		SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, c, BaseGDL::BIN);
 		r -= tCount;
 		NextVal( tCount);
-		if( actPar == NULL) break;
+		if( actPar == NULL) {termFlag=true; break;};
 		} while( r>0);
 		
 		break;
@@ -437,7 +480,7 @@ void FMTOut::f(RefFMTNode _t) {
 		SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, c, BaseGDL::HEX);
 		r -= tCount;
 		NextVal( tCount);
-		if( actPar == NULL) break;
+		if( actPar == NULL) {termFlag=true; break;};
 		} while( r>0);
 		
 		break;
@@ -458,7 +501,7 @@ void FMTOut::f(RefFMTNode _t) {
 		SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, c, BaseGDL::HEXL);
 		r -= tCount;
 		NextVal( tCount);
-		if( actPar == NULL) break;
+		if( actPar == NULL) {termFlag=true; break;};
 		} while( r>0);
 		
 		break;
@@ -475,7 +518,7 @@ void FMTOut::f(RefFMTNode _t) {
 		if( actPar == NULL) break;
 		SizeT nTrans = actPar->ToTransfer();
 		if (r > nTrans) r=nTrans;
-		actPar->OFmtCal( os, valIx, r, 0, 0, NULL, 0, BaseGDL::COMPUTE); //convert to hour, min, etc
+		actPar->OFmtCal( os, valIx, r, 0, 0, "", 0, BaseGDL::COMPUTE); //convert to hour, min, etc
 		
 		{
 		if (_t == RefFMTNode(antlr::nullAST) )
@@ -506,7 +549,7 @@ void FMTOut::f(RefFMTNode _t) {
 			for (;;) {
 				if (_t == RefFMTNode(antlr::nullAST) )
 					_t = ASTNULL;
-				if ((_tokenSet_1.member(_t->getType()))) {
+				if ((_tokenSet_2.member(_t->getType()))) {
 					calendar_code(_t,r);
 					_t = _retTree;
 				}
@@ -524,7 +567,7 @@ void FMTOut::f(RefFMTNode _t) {
 		{
 			
 			if( actPar == NULL) break;
-			actPar->OFmtCal( os, valIx, r, 0, 0, NULL, 0, BaseGDL::DEFAULT);
+			actPar->OFmtCal( os, valIx, r, 0, 0, "", 0, BaseGDL::DEFAULT);
 			
 			break;
 		}
@@ -536,7 +579,7 @@ void FMTOut::f(RefFMTNode _t) {
 		}
 		
 		if( actPar == NULL) break;
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, 0, 0, NULL, 0, BaseGDL::WRITE); //Write the complete formatted string to os.
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, 0, 0, "", 0, BaseGDL::WRITE); //Write the complete formatted string to os.
 		NextVal( tCount);
 		if( actPar == NULL) break;
 		
@@ -592,11 +635,11 @@ void FMTOut::format_reversion(RefFMTNode _t) {
 	switch ( _t->getType()) {
 	case FORMAT:
 	case STRING:
-	case CSTRING:
+	case CSTYLE_STRING:
 	case TL:
 	case TR:
 	case TERM:
-	case NONL:
+	// case NONL:
 	case Q: case T: case X: case A:
 	case F: case D: case E: case SE: case G: case SG:
 	case I: case O: case B: case Z: case ZZ: case C:
@@ -620,53 +663,11 @@ void FMTOut::format_reversion(RefFMTNode _t) {
 void FMTOut::f_csubcode(RefFMTNode _t) {
 	RefFMTNode f_csubcode_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	RefFMTNode s = RefFMTNode(antlr::nullAST);
-	RefFMTNode tl = RefFMTNode(antlr::nullAST);
-	RefFMTNode tr = RefFMTNode(antlr::nullAST);
 	
-	if (_t == RefFMTNode(antlr::nullAST) )
-		_t = ASTNULL;
-	switch ( _t->getType()) {
-	case STRING:
-	{
-		s = _t;
-		match(antlr::RefAST(_t),STRING);
-		_t = _t->getNextSibling();
-		(*os) << s->getText();
-		break;
-	}
-	case TL:
-	{
-		tl = _t;
-		match(antlr::RefAST(_t),TL);
-		_t = _t->getNextSibling();
-		
-		SizeT actP  = os->tellp(); 
-		int    tlVal = tl->getW();
-		if( tlVal > actP)
-		os->seekp( 0);
-		else
-		os->seekp( actP - tlVal);
-		
-		break;
-	}
-	case TR:
-	{
-		tr = _t;
-		match(antlr::RefAST(_t),TR);
-		_t = _t->getNextSibling();
-		
-		int    tlVal = tl->getW();
-		for( int i=tlVal; i>0; --i)
-		(*os) << " ";
-		//            os->seekp( tlVal, std::ios_base::cur);
-		
-		break;
-	}
-	default:
-	{
-		throw antlr::NoViableAltException(antlr::RefAST(_t));
-	}
-	}
+	s = _t;
+	match(antlr::RefAST(_t),STRING);
+	_t = _t->getNextSibling();
+	(*os) << s->getText();
 	_retTree = _t;
 }
 
@@ -728,7 +729,7 @@ void FMTOut::calendar_code(RefFMTNode _t,
 		int w = c1->getW();
 		int d = c1->getD();
 		int c = c1->getCode();
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CMOA);
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CMOA);
 		
 		break;
 	}
@@ -743,7 +744,7 @@ void FMTOut::calendar_code(RefFMTNode _t,
 		int w = c2->getW();
 		int d = c2->getD();
 		int c = c2->getCode();
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CMoA);
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CMoA);
 		
 		break;
 	}
@@ -758,7 +759,7 @@ void FMTOut::calendar_code(RefFMTNode _t,
 		int w = c3->getW();
 		int d = c3->getD();
 		int c = c3->getCode();
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CmoA);
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CmoA);
 		
 		break;
 	}
@@ -773,7 +774,7 @@ void FMTOut::calendar_code(RefFMTNode _t,
 		int w = c4->getW();
 		int d = c4->getD();
 		int c = c4->getCode();
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CHI);
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CHI);
 		
 		break;
 	}
@@ -788,7 +789,7 @@ void FMTOut::calendar_code(RefFMTNode _t,
 		int w = c5->getW();
 		int d = c5->getD();
 		int c = c5->getCode();
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::ChI);
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::ChI);
 		
 		break;
 	}
@@ -803,7 +804,7 @@ void FMTOut::calendar_code(RefFMTNode _t,
 		int w = c6->getW();
 		int d = c6->getD();
 		int c = c6->getCode();
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CDWA);
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CDWA);
 		
 		break;
 	}
@@ -818,7 +819,7 @@ void FMTOut::calendar_code(RefFMTNode _t,
 		int w = c7->getW();
 		int d = c7->getD();
 		int c = c7->getCode();
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CDwA);
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CDwA);
 		
 		break;
 	}
@@ -833,7 +834,7 @@ void FMTOut::calendar_code(RefFMTNode _t,
 		int w = c8->getW();
 		int d = c8->getD();
 		int c = c8->getCode();
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CdwA);
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CdwA);
 		
 		break;
 	}
@@ -848,7 +849,7 @@ void FMTOut::calendar_code(RefFMTNode _t,
 		int w = c9->getW();
 		int d = c9->getD();
 		int c = c9->getCode();
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CAPA);
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CAPA);
 		
 		break;
 	}
@@ -863,7 +864,7 @@ void FMTOut::calendar_code(RefFMTNode _t,
 		int w = c10->getW();
 		int d = c10->getD();
 		int c = c10->getCode();
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CApA);
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CApA);
 		
 		break;
 	}
@@ -878,7 +879,7 @@ void FMTOut::calendar_code(RefFMTNode _t,
 		int w = c11->getW();
 		int d = c11->getD();
 		int c = c11->getCode();
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CapA);
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CapA);
 		
 		break;
 	}
@@ -893,7 +894,7 @@ void FMTOut::calendar_code(RefFMTNode _t,
 		int w = c12->getW();
 		int d = c12->getD();
 		int c = c12->getCode();
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CMOI);
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CMOI);
 		
 		break;
 	}
@@ -908,7 +909,7 @@ void FMTOut::calendar_code(RefFMTNode _t,
 		int w = c13->getW();
 		int d = c13->getD();
 		int c = c13->getCode();
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CDI);
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CDI);
 		
 		break;
 	}
@@ -923,7 +924,7 @@ void FMTOut::calendar_code(RefFMTNode _t,
 		int w = c14->getW();
 		int d = c14->getD();
 		int c = c14->getCode();
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CYI);
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CYI);
 		
 		break;
 	}
@@ -938,7 +939,7 @@ void FMTOut::calendar_code(RefFMTNode _t,
 		int w = c15->getW();
 		int d = c15->getD();
 		int c = c15->getCode();
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CMI);
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CMI);
 		
 		break;
 	}
@@ -953,7 +954,7 @@ void FMTOut::calendar_code(RefFMTNode _t,
 		int w = c16->getW();
 		int d = c16->getD();
 		int c = c16->getCode();
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CSI);
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CSI);
 		
 		break;
 	}
@@ -967,7 +968,7 @@ void FMTOut::calendar_code(RefFMTNode _t,
 		int w = c17->getW();
 		int d = c17->getD();
 		int c = c17->getCode();
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CSF);
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CSF);
 		
 		break;
 	}
@@ -978,10 +979,9 @@ void FMTOut::calendar_code(RefFMTNode _t,
 		_t = _t->getNextSibling();
 		
 				if( actPar == NULL) break;
-				int    tlVal = c18->getW(); if (tlVal < 1) tlVal=1;
-				std::string *s=new std::string(tlVal,' ');
-				SizeT tCount = actPar->OFmtCal( os, valIx, r, 0, 0, (char*)s->c_str(), BaseGDL::STRING);
-		delete s;
+				int    tlVal = c18->getW(); if (tlVal <= 1) tlVal=1;
+				std::string s(tlVal,' ');
+				SizeT tCount = actPar->OFmtCal( os, valIx, r, 0, 0, s, 0, BaseGDL::STRING);
 		
 		break;
 	}
@@ -992,7 +992,7 @@ void FMTOut::calendar_code(RefFMTNode _t,
 		_t = _t->getNextSibling();
 		
 				if( actPar == NULL) break;
-				SizeT tCount = actPar->OFmtCal( os, valIx, r, 0, 0, (char*)c19->getText().c_str(), 0, BaseGDL::STRING);
+				SizeT tCount = actPar->OFmtCal( os, valIx, r, 0, 0, c19->getText(), 0, BaseGDL::STRING);
 		
 		break;
 	}
@@ -1047,11 +1047,12 @@ const char* FMTOut::tokenNames[] = {
 	"RBRACE",
 	"SLASH",
 	"STRING",
-	"\"tl\"",
-	"\"tr\"",
 	"TERM",
 	"NONL",
 	"Q",
+	"CSTRING",
+	"TL",
+	"TR",
 	"T",
 	"X",
 	"A",
@@ -1086,7 +1087,7 @@ const char* FMTOut::tokenNames[] = {
 	"CSF",
 	"NUMBER",
 	"DOT",
-	"CSTRING",
+	"CSTYLE_STRING",
 	"H",
 	"L",
 	"R",
@@ -1097,12 +1098,16 @@ const char* FMTOut::tokenNames[] = {
 	0
 };
 
-const unsigned long FMTOut::_tokenSet_0_data_[] = { 0UL, 134152130UL, 0UL, 0UL };
-// FORMAT STRING "tl" "tr" TERM NONL Q T X A F E SE G SG I O B Z ZZ C 
+const unsigned long FMTOut::_tokenSet_0_data_[] = { 0UL, 268303298UL, 0UL, 0UL };
+// FORMAT STRING TERM NONL Q TL TR T X A F E SE G SG I O B Z ZZ C 
 const antlr::BitSet FMTOut::_tokenSet_0(_tokenSet_0_data_,4);
-const unsigned long FMTOut::_tokenSet_1_data_[] = { 0UL, 4160757824UL, 4095UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long FMTOut::_tokenSet_1_data_[] = { 8UL, 268303330UL, 0UL, 0UL };
+// NULL_TREE_LOOKAHEAD FORMAT SLASH STRING TERM NONL Q TL TR T X A F E 
+// SE G SG I O B Z ZZ C 
+const antlr::BitSet FMTOut::_tokenSet_1(_tokenSet_1_data_,4);
+const unsigned long FMTOut::_tokenSet_2_data_[] = { 0UL, 4026548288UL, 8191UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // STRING X CMOA CMoA CmoA CHI ChI CDWA CDwA CdwA CAPA CApA CapA CMOI CDI 
 // CYI CMI CSI CSF 
-const antlr::BitSet FMTOut::_tokenSet_1(_tokenSet_1_data_,8);
+const antlr::BitSet FMTOut::_tokenSet_2(_tokenSet_2_data_,8);
 
 

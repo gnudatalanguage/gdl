@@ -15,9 +15,6 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-#include "datatypes.hpp"
-#include "envt.hpp"
 #include "dinterpreter.hpp"
 
 static DStructGDL* GetOBJ( BaseGDL* Objptr, EnvUDT* e)
@@ -155,25 +152,22 @@ startElement(void *data, const XML_Char *name, const XML_Char **atts)
 
   s->depth += 1;
 
-  int natts = 0;
-  for (int i = 0; atts[i]; i += 2) natts++;
+  int n_name_value_pair = 0;
+  for (int i = 0; atts[i]; i += 2) n_name_value_pair++;
   //Pro->npar defined in object may be < number given in doc and in overload.cpp
   //Note: there should be a simpler way to change the values of the call variables...
   int par = 1;
   if (method->NPar() > par) curenv->GetPar(par++) = new DStringGDL(""); //URI
-  if (method->NPar() > par) curenv->GetPar(par++) = new DStringGDL(""); // LOCAL, empty if no URI
+  if (method->NPar() > par) curenv->GetPar(par++) = new DStringGDL(name); // LOCAL, empty if no URI
   if (method->NPar() > par) curenv->GetPar(par++) = new DStringGDL(name);
-  if (method->NPar() > par & natts > 0) {
-    DStringGDL* ret = new DStringGDL(dimension(natts));
-    int j = 0;
-    for (int i = 0; atts[i]; i += 2) (*ret)[j] = atts[i];
-    curenv->GetPar(par++) = ret;
-  }
-  if (method->NPar() > par & natts > 0) {
-    DStringGDL* ret = new DStringGDL(dimension(natts));
-    int j = 0;
-    for (int i = 0; atts[i]; i += 2) (*ret)[j] = atts[i + 1];
-    curenv->GetPar(par++) = ret;
+  if (method->NPar() > par && n_name_value_pair > 0) {
+    DStringGDL* ret1 = new DStringGDL(dimension(n_name_value_pair));
+    for (auto i = 0; i<n_name_value_pair; ++i) (*ret1)[i] = atts[2*i];
+    curenv->GetPar(par++) = ret1;
+    
+    DStringGDL* ret2 = new DStringGDL(dimension(n_name_value_pair));
+    for (auto i = 0;  i<n_name_value_pair; ++i) (*ret2)[i] = atts[2*i + 1];
+    curenv->GetPar(par++) = ret2;
   }
   curenv->Interpreter()->call_pro(method->GetTree());
 }
@@ -186,7 +180,7 @@ endElement(void *data, const XML_Char *name)
   s->depth -= 1;
   int par = 1;
   if (method->NPar() > par) curenv->GetPar(par++) = new DStringGDL(""); //URI
-  if (method->NPar() > par) curenv->GetPar(par++) = new DStringGDL(""); // LOCAL, empty if no URI
+  if (method->NPar() > par) curenv->GetPar(par++) = new DStringGDL(name); // LOCAL, empty if no URI
   if (method->NPar() > par) curenv->GetPar(par++) = new DStringGDL(name);
   curenv->Interpreter()->call_pro(method->GetTree());
 }
@@ -298,27 +292,17 @@ static void XMLCALL unparsedentityhandler(void *data, const XML_Char *entityName
   if (method->NPar() > par) curenv->GetPar(par++) = ret;
   e->Interpreter()->call_pro(method->GetTree());
 }
+static void handleStartDocument(XML_Parser parser, void *data){
+  gdlXMLSAXSTARTPROCEDURE("STARTDOCUMENT");
+  e->Interpreter()->call_pro(method->GetTree());
+}
+static void handleEndDocument(XML_Parser parser, void *data){
+  gdlXMLSAXSTARTPROCEDURE("ENDDOCUMENT");
+  e->Interpreter()->call_pro(method->GetTree());
+}
 
-static void handleStartDocument(EnvUDT* e) {
-  DObjGDL* myObj = static_cast<DObjGDL*> (e->GetParDefined(0)); 
-  DString meth="STARTDOCUMENT";
-  DPro* method = GetOBJ(myObj, e)->Desc()->GetPro(meth);
-  if (method == NULL) return; 
-  e->Interpreter()->call_pro(method->GetTree());
-}
-static void handleEndDocument(EnvUDT* e) {
-  DObjGDL* myObj = static_cast<DObjGDL*> (e->GetParDefined(0)); 
-  DString meth="ENDDOCUMENT";
-  DPro* method = GetOBJ(myObj, e)->Desc()->GetPro(meth);
-  if (method == NULL) return; 
-  e->Interpreter()->call_pro(method->GetTree());
-}
-static void handleFatalError(EnvUDT* e, XML_Parser parser) {
-  DObjGDL* myObj = static_cast<DObjGDL*> (e->GetParDefined(0)); 
-  DString meth="FATALERROR";
-  DPro* method = GetOBJ(myObj, e)->Desc()->GetPro(meth);
-  if (method == NULL) return; 
-  EnvT* curenv = (EnvT*) (e->Interpreter()->CallStackBack());
+static void handleFatalError(XML_Parser parser, void *data) {
+  gdlXMLSAXSTARTPROCEDURE("FATALERROR");
   int par = 1;
   DStringGDL* ret;
   ret=new DStringGDL("UnknownSystemID");
@@ -329,10 +313,9 @@ static void handleFatalError(EnvUDT* e, XML_Parser parser) {
   if (method->NPar() > par) curenv->GetPar(par++) = ret;
   ret=new DStringGDL(XML_ErrorString(XML_GetErrorCode(parser)));
   if (method->NPar() > par) curenv->GetPar(par++) = ret;
-        
-        
- e->Interpreter()->call_pro(method->GetTree());
+   e->Interpreter()->call_pro(method->GetTree());
 }
+
 gdlSaxXmlLocator *
 createGdlSaxXmlLocator(EnvUDT* e) {
   gdlSaxXmlLocator *ret;
@@ -367,7 +350,7 @@ namespace lib {
     //
     //if we are the IDLffXMLSAX container object, return immediately, as it is not supposed to do anything by itself.
     //it must be overloaded: saves time and the planet.
-    //   
+    //
     if (objStruct->Desc()->Name() == "IDLFFXMLSAX") return;
     //    
 
@@ -410,11 +393,12 @@ namespace lib {
     DIntGDL* halt_processing = static_cast<DIntGDL*> (objStruct->GetTag(objStruct->Desc()->TagIndex("HALT_PROCESSING")));
 
     int done;
-    handleStartDocument(e);
+    //create our own pseudo handler for StartDocument
+    handleStartDocument(parser,data);
     do {
       // stop parsing sent
       if ((*halt_processing)[0] == 1) {
-        handleEndDocument(e);
+        handleEndDocument(parser,data);
         XML_ParserFree(parser);
         return;
       }
@@ -422,66 +406,12 @@ namespace lib {
       size_t len = fread(buf, 1, sizeof (buf), f);
       done = len < sizeof (buf);
       if (XML_Parse(parser, buf, (int) len, done) == XML_STATUS_ERROR) {
-        handleFatalError(e,parser); //only fatal errors at the moment.
+        handleFatalError(parser,data); //only fatal errors at the moment.
       }
 
     } while (!done);
-    handleEndDocument(e);
+    handleEndDocument(parser,data);
     XML_ParserFree(parser);
-  }
-
-  void GDLffXmlSax__Characters(EnvUDT* e)
-  {
-  }
-
-  void GDLffXmlSax__AttributeDecl(EnvUDT* e)
-  {
-  }
-
-  void GDLffXmlSax__Cleanup(EnvUDT* e)
-  {
-  }
-
-  void GDLffXmlSax__Comment(EnvUDT* e)
-  {
-  }
-
-  void GDLffXmlSax__ElementDecl(EnvUDT* e)
-  {
-  }
-
-  void GDLffXmlSax__EndCDATA(EnvUDT* e)
-  {
-  }
-
-  void GDLffXmlSax__EndDocument(EnvUDT* e)
-  {
-  }
-
-  void GDLffXmlSax__EndDTD(EnvUDT* e)
-  {
-  }
-
-  void GDLffXmlSax__EndElement(EnvUDT* e)
-  {
-  }
-
-  void GDLffXmlSax__EndEntity(EnvUDT* e)
-  {
-    std::cerr << "GDLffXmlSax__EndEntity" << " unavailable with EXPAT. FIXME." << std::endl;
-  }
-
-  void GDLffXmlSax__EndPrefixMapping(EnvUDT* e)
-  {
-  }
-
-  void GDLffXmlSax__Error(EnvUDT* e)
-  {
-  }
-
-  void GDLffXmlSax__ExternalEntityDecl(EnvUDT* e)
-  {
-    std::cerr << "GDLffXmlSax__ExternalEntityDecl" << " unavailable with EXPAT. FIXME." << std::endl;
   }
 
   void GDLffXmlSax__FatalError(EnvUDT* e)
@@ -536,23 +466,11 @@ namespace lib {
 
   }
 
-  void GDLffXmlSax__IgnorableWhitespace(EnvUDT* e)
-  {
-    std::cerr << "GDLffXmlSax__IgnorableWhitespace"<<" unavailable with EXPAT. FIXME."<<std::endl;
-  }
-
-  void GDLffXmlSax__InternalEntityDecl(EnvUDT* e)
-  {
-    std::cerr << "GDLffXmlSax__InternalEntityDecl" << " unavailable with EXPAT. FIXME." << std::endl;
-  }
-
-  void GDLffXmlSax__NotationDecl(EnvUDT* e)
-  {
-  }
-
-  void GDLffXmlSax__ProcessingInstruction(EnvUDT* e)
-  {
-    std::cerr << "GDLffXmlSax__ProcessingInstruction" << " unavailable with EXPAT. FIXME." << std::endl;
+  void GDLffXmlSax__StopParsing(EnvUDT* e) {
+    //  std::cerr << "GDLffXmlSax__StopParsing" << " called." << std::endl;
+    DStructGDL* objStruct = GetOBJ(e->GetParDefined(0), e);
+    DIntGDL* halt_processing = static_cast<DIntGDL*> (objStruct->GetTag(objStruct->Desc()->TagIndex("HALT_PROCESSING")));
+    (*halt_processing)[0] = 1;
   }
 
   void GDLffXmlSax__SetProperty(EnvUDT* e)
@@ -565,13 +483,78 @@ namespace lib {
     static int SCHEMA_CHECKING = e->GetKeywordIx("SCHEMA_CHECKING");
     static int VALIDATION_MODE = e->GetKeywordIx("VALIDATION_MODE");
 
-    BaseGDL* dummy;
-    if (e->KeywordPresent(NAMESPACE_PREFIXES)) dummy=e->GetKW(NAMESPACE_PREFIXES);
-    if (e->KeywordPresent(SCHEMA_CHECKING)) e->GetKW(SCHEMA_CHECKING);
-    if (e->KeywordPresent(VALIDATION_MODE)) e->GetKW(VALIDATION_MODE);
+    BaseGDL* dummy_n;
+    BaseGDL* dummy_s;
+    BaseGDL* dummy_v;
+    if (e->KeywordPresent(NAMESPACE_PREFIXES)) dummy_n=e->GetKW(NAMESPACE_PREFIXES);
+    if (e->KeywordPresent(SCHEMA_CHECKING)) dummy_s=e->GetKW(SCHEMA_CHECKING);
+    if (e->KeywordPresent(VALIDATION_MODE)) dummy_v=e->GetKW(VALIDATION_MODE);
     XML_Parser parser = (XML_Parser) ((*gdlparser)[0]);
     if (parser) { //do something useful!
     } 
+  }
+//did not work on these -- FIXME 
+
+  void GDLffXmlSax__ExternalEntityDecl(EnvUDT* e) {
+  }
+
+  void GDLffXmlSax__IgnorableWhitespace(EnvUDT* e) {
+  }
+
+  void GDLffXmlSax__InternalEntityDecl(EnvUDT* e) {
+  }
+
+  void GDLffXmlSax__NotationDecl(EnvUDT* e) { }
+
+  void GDLffXmlSax__ProcessingInstruction(EnvUDT* e) {
+  }
+
+ void GDLffXmlSax__Characters(EnvUDT* e)
+  {
+  }
+
+  void GDLffXmlSax__AttributeDecl(EnvUDT* e)
+  {
+  }
+
+  void GDLffXmlSax__Cleanup(EnvUDT* e)
+  {
+  }
+
+  void GDLffXmlSax__Comment(EnvUDT* e)
+  {
+  }
+
+  void GDLffXmlSax__ElementDecl(EnvUDT* e)
+  {
+  }
+
+  void GDLffXmlSax__EndCDATA(EnvUDT* e)
+  {
+  }
+
+  void GDLffXmlSax__EndDocument(EnvUDT* e)
+  {
+  }
+
+  void GDLffXmlSax__EndDTD(EnvUDT* e)
+  {
+  }
+
+  void GDLffXmlSax__EndElement(EnvUDT* e)
+  {
+  }
+
+  void GDLffXmlSax__EndEntity(EnvUDT* e)
+  {
+  }
+
+  void GDLffXmlSax__EndPrefixMapping(EnvUDT* e)
+  {
+  }
+
+  void GDLffXmlSax__Error(EnvUDT* e)
+  {
   }
 
   void GDLffXmlSax__SkippedEntity(EnvUDT* e)
@@ -602,13 +585,6 @@ namespace lib {
   {
   }
 
-  void GDLffXmlSax__StopParsing(EnvUDT* e)
-  {
-  //  std::cerr << "GDLffXmlSax__StopParsing" << " called." << std::endl;
-    DStructGDL* objStruct=GetOBJ(e->GetParDefined(0), e);
-    DIntGDL* halt_processing=static_cast<DIntGDL*>(objStruct->GetTag(objStruct->Desc()->TagIndex("HALT_PROCESSING")));
-    (*halt_processing)[0]=1;
-  }
 
   void GDLffXmlSax__UnparsedEntityDecl(EnvUDT* e)
   {
@@ -616,7 +592,6 @@ namespace lib {
 
   void GDLffXmlSax__Warning(EnvUDT* e)
   {
-    std::cerr << "GDLffXmlSax__Warning" << " called." << std::endl;
   }
 
 }

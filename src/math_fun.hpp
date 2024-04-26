@@ -18,7 +18,6 @@
 #ifndef MATH_FUN_HPP_
 #define MATH_FUN_HPP_
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 
 namespace lib {
@@ -39,6 +38,7 @@ namespace lib {
 
   BaseGDL* alog_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
   BaseGDL* alog10_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
+  BaseGDL* alog2_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
 
   BaseGDL* sqrt_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
   BaseGDL* abs_fun( BaseGDL* p0, bool isReference);//( EnvT* e);

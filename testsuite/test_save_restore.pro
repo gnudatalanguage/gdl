@@ -247,6 +247,14 @@ endfor
 ;
 TEST_SR_COMPRESS, total_errors, test=test, verbose=verbose
 ;
+; these tests are only for maximize coverage report by codecov:
+; 1) save/restore with system
+defsysv,"!READONLY","ezcezcezcezc",1
+save,/sys
+restore
+; 2) save procedures & back
+save,/rout,/ignore_nosave
+restore,/verb
 ; ---- Final message ----
 ;
 BANNER_FOR_TESTSUITE, 'TEST_SAVE_RESTORE', total_errors, short=short

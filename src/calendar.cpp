@@ -22,7 +22,19 @@
 #include "calendar.hpp"
 #include "gdlexception.hpp"
 using namespace std;
-
+  DDouble Gregorian2Julian(struct tm *ts, DDouble tm_nsec)
+  {
+    DDouble jd;
+    DLong day=ts->tm_mday;
+    DLong mon=ts->tm_mon+1;
+    DLong year=ts->tm_year+1900;
+    DLong hour=ts->tm_hour;
+    DLong min=ts->tm_min;
+    DDouble sec=ts->tm_sec+tm_nsec/1e9;
+    if (!dateToJD(jd, day, mon, year, hour, min, sec))
+        throw GDLException("Invalid Julian date input.");
+    return jd;
+  }
   double Gregorian2Julian(struct tm *ts)
   {
     DDouble jd;
@@ -36,6 +48,7 @@ using namespace std;
         throw GDLException("Invalid Julian date input.");
     return jd;
   }
+
   bool dateToJD(DDouble &jd, DLong day, DLong month, DLong year, DLong hour, DLong minute, DDouble second) {
     if (year < -4716 || year > 5000000 || year == 0) return false;
 
@@ -46,7 +59,6 @@ using namespace std;
     // if (hour < 0 || hour > 24) return false;
     // if (minute < 0 || minute > 60) return false;
     // if (second < 0 || second > 60) return false;
-
     DDouble a, y, b;
     DLong m;
     y = (year > 0) ? year : year + 1; //we use here a calendar with no year 0 (not astronomical)
@@ -62,7 +74,7 @@ using namespace std;
         a = floor(y / 100.0);
         b = 2.0 - a + floor(a / 4.0);
       } else if (year == 1582 && month == 10 && day >= 5 && day <= 14) {
-        jd = 2299161; //date does not move
+        jd = 2299161.; //date does not move
         return true;
       }
     }
@@ -70,6 +82,7 @@ using namespace std;
       (second * 1.0) / 86400.0 + 1720994.50 + b;
     return true;
   }
+
 // C code ****************************************************
     bool j2ymdhms(DDouble jd, DLong &iMonth, DLong &iDay , DLong &iYear ,
                   DLong &iHour , DLong &iMinute, DDouble &Second, DLong &dow, DLong &icap)
@@ -83,6 +96,10 @@ using namespace std;
     // note that IDL dow is false before Sun dec 31 12:00:00 -4714, (type: a=[-2,-1]& PRINT, FORMAT='(C())',a)
     // ...and ... we are not!
     if ((DLong)Z > 0) dow = ((DLong)Z) % 7; else dow = ((DLong)Z+1099) % 7; //just translate axis...
+    // Changed by GD gdl-1.0.3git231020, see in comments of PR #1799
+    //    if ((DLong)Z+1 > 0) dow = ((DLong)Z+1) % 7; else dow = ((DLong)Z+1099) % 7;
+    // how to test : print,2.455555555D6,format='(c())' should give : Sat
+    //just translate axis...
     
     if (Z < 2299161) A = (DLong)Z;
     else {

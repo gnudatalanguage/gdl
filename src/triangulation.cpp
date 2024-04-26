@@ -15,8 +15,6 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-#include "datatypes.hpp"
 #include "envt.hpp"
 #include "dinterpreter.hpp"
 
@@ -40,8 +38,7 @@ namespace lib {
 
     DDoubleGDL *xVal, *yVal, *fvalue;
     DLong npts;
-    SizeT nParam = e->NParam();
-    if (nParam < 2) e->Throw("Incorrect number of arguments."); //actually IDL permits to *not* have the 3rd argument.
+    SizeT nParam = e->NParam(2);//actually IDL permits to *not* have the 3rd argument.
     bool wantsTriangles=(nParam > 2);
     bool wantsEdge=(nParam == 4);
     if (wantsTriangles)  e->AssureGlobalPar(2); //since we return values in it?  
@@ -406,8 +403,7 @@ namespace lib {
   BaseGDL* trigrid_fun_spherical(EnvT* e) {
     //NOT USED in this case: EXTRAPOLATE, MAX_VALUE, MIN_VALUE, QUINTIC, XOUT, YOUT
     static DDouble DToR=double(3.1415926535897932384626433832795)/180.0;
-    SizeT nParam = e->NParam();
-    if (nParam < 3) e->Throw("Incorrect number of arguments.");
+    SizeT nParam = e->NParam(3);
     //OK, trigrid does not care if more than 3 args in sphere mode. Limit at 6 is done at interpreter level.
 
     // Get NX, NY values if present
@@ -1118,8 +1114,7 @@ namespace lib {
   }
 
   BaseGDL* trigrid_fun_plane(EnvT* e) {
-    SizeT nParam = e->NParam();
-    if (nParam < 4) e->Throw("Incorrect number of arguments.");
+    SizeT nParam = e->NParam(4);
     //OK, trigrid does not care if more than 3 args in sphere mode. Limit at 6 is done at interpreter level.
 
 
@@ -1323,15 +1318,15 @@ namespace lib {
     }else{
       DDouble minVal=0;
       static int minvalueIx=e->KeywordIx( "MIN_VALUE");
-      bool dominvalue=(e->KeywordPresent(minvalueIx));
+      bool dominvalue=(e->KeywordPresentAndDefined(minvalueIx));
       if (dominvalue) e->AssureDoubleScalarKW(minvalueIx, minVal);
       DDouble maxVal=0;
       static int maxvalueIx=e->KeywordIx( "MAX_VALUE");
-      bool domaxvalue=(e->KeywordPresent(maxvalueIx));
+      bool domaxvalue=(e->KeywordPresentAndDefined(maxvalueIx));
       if (domaxvalue) e->AssureDoubleScalarKW(maxvalueIx, maxVal);
       DDoubleGDL* missVal=NULL;
       static int missvalueIx=e->KeywordIx( "MISSING");
-      bool doMiss=e->KeywordPresent(missvalueIx);
+      bool doMiss=e->KeywordPresentAndDefined(missvalueIx);
       if (doMiss) missVal=e->GetKWAs<DDoubleGDL>(missvalueIx);
       DDoubleGDL* zVal = static_cast<DDoubleGDL*>(p2->Convert2(GDL_DOUBLE, BaseGDL::COPY));
       DDoubleGDL* res;
@@ -1358,21 +1353,5 @@ namespace lib {
   void grid_input(EnvT* e) {
     e->Throw("Writing in progress.");
   }
-
-//to be written and do not forget to uncomment QHULL in CMakeLists and config.h.cmake  
-  // see http://www.geom.umn.edu/software/qhull/. Used also with plplot.
-#ifdef HAVE_QHULL
-  void qhull ( EnvT* e)
-  {
-    e->Throw("Please Write this function in GDL.");
-  }
-
-
-  BaseGDL* qgrid3_fun ( EnvT* e)
-  {
-    e->Throw("Please Write this function in GDL.");
-    return NULL;
-  }
-#endif  
-  }
+}
 

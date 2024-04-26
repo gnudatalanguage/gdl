@@ -24,15 +24,8 @@
 
 #include "dinterpreter.hpp"
 #include "prognodeexpr.hpp"
-#include "basegdl.hpp"
-#include "arrayindexlistt.hpp"
-#include "envt.hpp"
-#include "gdlexception.hpp"
-#include "nullgdl.hpp"
-#include "basic_fun.hpp"
-#include "basic_fun_jmg.hpp"
-
-#include "initsysvar.hpp"
+#include "basic_fun.hpp" //LIST_count, HASH_count, scope_varfetch_***
+#include "basic_fun_jmg.hpp"//routine_names_***
 
 using namespace std;
 
@@ -429,7 +422,7 @@ BaseGDL* SYSVARNode::Eval()
 BaseGDL* VARNode::EvalNC()
 {
 	EnvStackT& callStack=interpreter->CallStack();
-	BaseGDL* res=static_cast<EnvUDT*> ( callStack.back() )->GetKW ( this->varIx );
+	BaseGDL* res=static_cast<EnvUDT*> ( callStack.back() )->GetTheKW ( this->varIx );
 	if ( res == NULL )
 		throw GDLException ( this, "Variable is undefined: "+
 		                     callStack.back()->GetString ( this->varIx ),true,false );
@@ -438,7 +431,7 @@ BaseGDL* VARNode::EvalNC()
 BaseGDL* VARNode::EvalNCNull()
 {
 	EnvStackT& callStack=interpreter->CallStack();
-	BaseGDL* res=static_cast<EnvUDT*> ( callStack.back() )->GetKW ( this->varIx );
+	BaseGDL* res=static_cast<EnvUDT*> ( callStack.back() )->GetTheKW ( this->varIx );
 // 	if ( res == NULL )
 // 	  res = NullGDL::GetSingleInstance();
 	return res;
@@ -684,7 +677,10 @@ BaseGDL** DEREFNode::LEval()
 BaseGDL** QUESTIONNode::EvalRefCheck( BaseGDL*& rEval)
 {
   ProgNodeP branch = this->GetThisBranch();
-  return branch->EvalRefCheck( rEval);
+  rEval = branch->Eval();
+  return NULL;
+  //was:  //  return branch->EvalRefCheck( rEval);
+  // but crash as reported in  #1576 for "a=0 & b=0 & c=0 & z=cos( a ? b:c)" and other strange things.
 }  
 
 BaseGDL** QUESTIONNode::LEval()
@@ -1265,114 +1261,115 @@ BaseGDL* MOD_OPNode::Eval()
 
 BaseGDL* POWNode::Eval()
 { BaseGDL* res;
-  Guard<BaseGDL> e1( op1->Eval());
-  Guard<BaseGDL> e2( op2->Eval());
+  Guard<BaseGDL> e1(op1->Eval());
+  Guard<BaseGDL> e2(op2->Eval());
   // special handling for aTy == complex && bTy != complex
-  DType aTy=e1->Type();
-  DType bTy=e2->Type();
+  DType aTy = e1->Type();
+  DType bTy = e2->Type();
  if( aTy == GDL_STRING)
    {
-     e1.reset( e1->Convert2( GDL_FLOAT, BaseGDL::COPY));
-     aTy = GDL_FLOAT;
-   }
+    e1.reset(e1->Convert2(GDL_FLOAT, BaseGDL::COPY));
+    aTy = GDL_FLOAT;
+  }
  if( bTy == GDL_STRING)
    {
-     e2.reset( e2->Convert2( GDL_FLOAT, BaseGDL::COPY));
-     bTy = GDL_FLOAT;
-   }
+    e2.reset(e2->Convert2(GDL_FLOAT, BaseGDL::COPY));
+    bTy = GDL_FLOAT;
+  }
+  //powers of complex must use std::pow always, no "integer power" refinement possible.
   if( ComplexType( aTy))
     {
       if( IntType( bTy))
 	{
-	  e2.reset( e2.release()->Convert2( GDL_LONG));
-	  res = e1->Pow( e2.get());
-	  if( res == e1.get())
-	    e1.release();
-	  return res;
-	}
+      e2.reset(e2.release()->Convert2(GDL_LONG));
+      res = e1->Pow(e2.get());
+      if (res == e1.get())
+        e1.release();
+      return res;
+    }
       if( aTy == GDL_COMPLEX)
 	{
 	  if( bTy == GDL_DOUBLE)
 	    {
-	      e1.reset( e1.release()->Convert2( GDL_COMPLEXDBL));
-	      aTy = GDL_COMPLEXDBL;
+        e1.reset(e1.release()->Convert2(GDL_COMPLEXDBL));
+        aTy = GDL_COMPLEXDBL;
 	    }
 	  else if( bTy == GDL_FLOAT)
 	    {
-	      res = e1->Pow( e2.get());
-	      if( res == e1.get())
-		e1.release();
-	      return res;
-	    }
-	}
+        res = e1->Pow(e2.get());
+        if (res == e1.get())
+          e1.release();
+        return res;
+      }
+    }
       if( aTy == GDL_COMPLEXDBL)
 	{
 	  if( bTy == GDL_FLOAT)
 	    {
-	      e2.reset( e2.release()->Convert2( GDL_DOUBLE));
-	      bTy = GDL_DOUBLE;
-	    }
+        e2.reset(e2.release()->Convert2(GDL_DOUBLE));
+        bTy = GDL_DOUBLE;
+      }
 	  if( bTy == GDL_DOUBLE)
 	    {
-	      res = e1->Pow( e2.get());
-	      if( res == e1.get())
-		e1.release();
-	      return res;
-	    }
-	}
+        res = e1->Pow(e2.get());
+        if (res == e1.get())
+          e1.release();
+        return res;
+      }
     }
+  }
 
-  if( IntType( bTy) && FloatType( aTy))
-    {
-      e2.reset( e2.release()->Convert2( GDL_LONG));
+  // GD: simplify: force use of PowInt for all integer powers, not only integer powers of float types as previously
+  if (IntType(bTy))
+  {
+    e2.reset(e2.release()->Convert2(GDL_LONG));
 
-      res = e1->PowInt( e2.get());
-      if( res == e1.get())
-	e1.release();
+    res = e1->PowInt(e2.get());
+    if (res == e1.get())
+      e1.release();
 
-      return res;
-    }
-  
-  DType convertBackT; 
+    return res;
+  }
+
+  DType convertBackT;
 
   // convert back
-  if( IntType( bTy) && (DTypeOrder[ bTy] > DTypeOrder[ aTy]))
-//   if( IntType( bTy) && (DTypeOrder[ bTy] > DTypeOrder[ aTy]))
+  if (IntType(bTy) && (DTypeOrder[ bTy] > DTypeOrder[ aTy]))
+    //   if( IntType( bTy) && (DTypeOrder[ bTy] > DTypeOrder[ aTy]))
     convertBackT = aTy;
   else
     convertBackT = GDL_UNDEF;
-  
+
   //  first operand determines type JMG
   //  AdjustTypes(e2,e1); // order crucial here (for converting back)
-  AdjustTypes(e1,e2); // order crucial here (for converting back)
+  AdjustTypes(e1, e2); // order crucial here (for converting back)
 
   if( e1->StrictScalar())
     {
-      res= e2->PowInvS(e1.get()); // scalar+scalar or array+scalar
-      e2.release();
+    res = e2->PowInvS(e1.get()); // scalar+scalar or array+scalar
+    e2.release();
     }
   else
     if( e2->StrictScalar())
       {
-      res= e1->PowS(e2.get()); // array+scalar
-      e1.release();
+    res = e1->PowS(e2.get()); // array+scalar
+    e1.release();
       }
     else
       if( e1->N_Elements() <= e2->N_Elements())
 	{
-	res= e1->Pow(e2.get()); // smaller_array + larger_array or same size
-	e1.release();
+    res = e1->Pow(e2.get()); // smaller_array + larger_array or same size
+    e1.release();
 	}
       else
 	{
-	  res= e2->PowInv(e1.get()); // smaller + larger
-	  e2.release();
-	}
+    res = e2->PowInv(e1.get()); // smaller + larger
+    e2.release();
+  }
   if( convertBackT != GDL_UNDEF)
     {
-      res = res->Convert2( convertBackT, BaseGDL::CONVERT);
-    }
- endPOW:
+    res = res->Convert2(convertBackT, BaseGDL::CONVERT);
+  }
   return res;
 }
 // BaseGDL* DECNode::Eval()
@@ -2880,231 +2877,229 @@ BaseGDL* POWNCNode::Eval()
   BaseGDL *e1, *e2;
   if( op1NC)
     {
-      e1 = op1->EvalNC();
+    e1 = op1->EvalNC();
     }
   else
     {
-      e1 = op1->Eval();
-      g1.reset( e1);
-    }
+    e1 = op1->Eval();
+    g1.reset(e1);
+  }
   if( op2NC)
     {
-      e2 = op2->EvalNC();
+    e2 = op2->EvalNC();
     }
   else
     {
-      e2 = op2->Eval();
-      g2.reset( e2);
-    }
+    e2 = op2->Eval();
+    g2.reset(e2);
+  }
 
-  DType aTy=e1->Type();
-  DType bTy=e2->Type();
+  DType aTy = e1->Type();
+  DType bTy = e2->Type();
 
   if( aTy == GDL_STRING)
     {
-      e1 = e1->Convert2( GDL_FLOAT, BaseGDL::COPY);
-      g1.reset( e1); // deletes old e1
-      aTy = GDL_FLOAT;
-    }
+    e1 = e1->Convert2(GDL_FLOAT, BaseGDL::COPY);
+    g1.reset(e1); // deletes old e1
+    aTy = GDL_FLOAT;
+  }
   if( bTy == GDL_STRING)
     {
-      e2 = e2->Convert2( GDL_FLOAT, BaseGDL::COPY);
-      g2.reset( e2); // deletes old e2
-      bTy = GDL_FLOAT;
-    }
-
+    e2 = e2->Convert2(GDL_FLOAT, BaseGDL::COPY);
+    g2.reset(e2); // deletes old e2
+    bTy = GDL_FLOAT;
+  }
+  //powers of complex must use std::pow always, no "integer power" refinement possible.
   if( ComplexType(aTy))
     {
       if( IntType( bTy))
 	{
 	  if( bTy != GDL_LONG)
 	    {
-	      e2 = e2->Convert2( GDL_LONG, BaseGDL::COPY);
-	      g2.reset( e2);
-	    }
+        e2 = e2->Convert2(GDL_LONG, BaseGDL::COPY);
+        g2.reset(e2);
+      }
 	  if( g1.get() == NULL) 
 	    {
-	      return e1->PowNew( e2);
+        return e1->PowNew(e2);
 	    }
 	  else 
 	    {
-	      res = g1->Pow( e2);
-	      if( res == g1.get())
-		g1.release();
-	      return res;
-	    }
-	}
+        res = g1->Pow(e2);
+        if (res == g1.get())
+          g1.release();
+        return res;
+      }
+    }
       if( aTy == GDL_COMPLEX)
 	{
 	  if( bTy == GDL_DOUBLE)
 	    {
-	      e1 = e1->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY);
-	      g1.reset( e1); 
-	      aTy = GDL_COMPLEXDBL;
+        e1 = e1->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY);
+        g1.reset(e1);
+        aTy = GDL_COMPLEXDBL;
 	    }
 	  else if( bTy == GDL_FLOAT)
 	    {
 	      if( g1.get() == NULL) 
 		{
-		  return e1->PowNew( e2);
+          return e1->PowNew(e2);
 		}
 	      else 
 		{
-		  res = g1->Pow( e2);
-		  if( res == g1.get())
-		    g1.release();
-		  return res;
-		}
-	    }
-	}
+          res = g1->Pow(e2);
+          if (res == g1.get())
+            g1.release();
+          return res;
+        }
+      }
+    }
       if( aTy == GDL_COMPLEXDBL)
 	{
 	  if( bTy == GDL_FLOAT)
 	    {
-	      e2 = e2->Convert2( GDL_DOUBLE, BaseGDL::COPY);
-	      g2.reset( e2);
-	      bTy = GDL_DOUBLE;
-	    }
+        e2 = e2->Convert2(GDL_DOUBLE, BaseGDL::COPY);
+        g2.reset(e2);
+        bTy = GDL_DOUBLE;
+      }
 	  if( bTy == GDL_DOUBLE)
 	    {
 	      if( g1.get() == NULL) 
 		{
-		  return e1->PowNew( e2);
+          return e1->PowNew(e2);
 		}
 	      else
 		{
-		  res = g1->Pow( e2);
-		  if( res == g1.get())
-		    g1.release();
-		  return res;
-		}
-	    }
-	}
+          res = g1->Pow(e2);
+          if (res == g1.get())
+            g1.release();
+          return res;
+        }
+      }
     }
+  }
 
-  if( IntType( bTy) && FloatType( aTy))
-    {
-      if( bTy != GDL_LONG)
-	{
-	  e2 = e2->Convert2( GDL_LONG, BaseGDL::COPY);
-	  g2.reset( e2);
-	}
-      if( g1.get() == NULL)
-	res = e1->PowIntNew( e2);
-      else 
-	{
-	  res = g1->PowInt( e2);
-	  if( res == g1.get())
-		g1.release();
-	}
-      return res;
+  // GD: simplify: force use of PowInt for all integer powers, not only integer powers of float types as previously
+  if (IntType(bTy)) {
+    if (bTy != GDL_LONG) {
+      e2 = e2->Convert2(GDL_LONG, BaseGDL::COPY);
+      g2.reset(e2);
     }
+    if (g1.get() == NULL)
+      res = e1->PowIntNew(e2);
+    else {
+      res = g1->PowInt(e2);
+      if (res == g1.get())
+        g1.release();
+    }
+    return res;
+  }
 
-  DType convertBackT; 
- 
+  DType convertBackT;
+
   bool aTyGEbTy = DTypeOrder[aTy] >= DTypeOrder[bTy];
   // convert back
-  if( IntType( bTy) && !aTyGEbTy)
+  if (IntType(bTy) && !aTyGEbTy)
     convertBackT = aTy;
   else
     convertBackT = GDL_UNDEF;
 
   if( aTy != bTy) 
     {
-      if( aTyGEbTy) // crucial: '>' -> '>='
-	{
+    if (aTyGEbTy) // crucial: '>' -> '>='
+    {
 	  if( DTypeOrder[aTy] > 100)
 	    {
-	      throw GDLException( "Expressions of this type cannot be converted.");
-	    }
+        throw GDLException("Expressions of this type cannot be converted.");
+      }
 
-	  // convert e2 to e1
-	  e2 = e2->Convert2( aTy, BaseGDL::COPY);
-	  g2.reset( e2); // delete former e2
+      // convert e2 to e1
+      e2 = e2->Convert2(aTy, BaseGDL::COPY);
+      g2.reset(e2); // delete former e2
 	}
       else // bTy > aTy (order)
-	{
+    {
 	  if( DTypeOrder[bTy] > 100)
 	    {
-	      throw GDLException( "Expressions of this type cannot be converted.");
-	    }
+        throw GDLException("Expressions of this type cannot be converted.");
+      }
 
-	  // convert e1 to e2
-	  e1 = e1->Convert2( bTy, BaseGDL::COPY);
-	  g1.reset( e1); // delete former e1
-	}
+      // convert e1 to e2
+      e1 = e1->Convert2(bTy, BaseGDL::COPY);
+      g1.reset(e1); // delete former e1
     }
+  }
 
   // AdjustTypes(e2,e1); // order crucial here (for converting back)
   if( e1->StrictScalar())
     {
-	if( g2.get() == NULL)
-		res = e2->PowInvSNew( e1);
+    if (g2.get() == NULL)
+      res = e2->PowInvSNew(e1);
 	else
 	{
-		g2.release();
-		res = e2->PowInvS(e1); // scalar+scalar or array+scalar
-	}
+      g2.release();
+      res = e2->PowInvS(e1); // scalar+scalar or array+scalar
+    }
     }
   else if( e2->StrictScalar())
     {
       if( g1.get() == NULL) 
 	{
-	  res = e1->PowSNew( e2);
-// 	  res = e1->PowS(e2); // array+scalar
+      res = e1->PowSNew(e2);
+      // 	  res = e1->PowS(e2); // array+scalar
 	}
       else 
 	{
-	  g1.release();
-	  res= e1->PowS(e2); // array+scalar
-	}
+      g1.release();
+      res = e1->PowS(e2); // array+scalar
+    }
     }
   else if( e1->N_Elements() == e2->N_Elements())
     {
       if( g1.get() != NULL)
 	{
-	  g1.release();
-	  res = e1->Pow(e2);
+      g1.release();
+      res = e1->Pow(e2);
 	}
       else if( g2.get() != NULL) 
 	{
-	  g2.release();
-	  res = e2->PowInv(e1);
-	  res->SetDim( e1->Dim());
+      g2.release();
+      res = e2->PowInv(e1);
+      res->SetDim(e1->Dim());
 	}
       else
 	{
-	res = e1->PowNew( e2);
-// 	  res = e1->Pow(e2); 
-	}
+      res = e1->PowNew(e2);
+      // 	  res = e1->Pow(e2); 
+    }
     }
   else if( e1->N_Elements() < e2->N_Elements())
       {
 	if( g1.get() == NULL) 
 	  {
-	    res = e1->PowNew( e2);
-// 	    res= e1->Pow(e2); // smaller_array + larger_array or same size
+      res = e1->PowNew(e2);
+      // 	    res= e1->Pow(e2); // smaller_array + larger_array or same size
 	  }
 	else 
 	  {
-	    g1.release();
-	    res= e1->Pow(e2); // smaller_array + larger_array or same size
-	  }
+      g1.release();
+      res = e1->Pow(e2); // smaller_array + larger_array or same size
+    }
       }
     else
       {
-	if( g2.get() == NULL)
-		res = e2->PowInvNew( e1);
+    if (g2.get() == NULL)
+      res = e2->PowInvNew(e1);
 	else
 	{
-		g2.release();
-		res= e2->PowInv(e1); // smaller + larger
-	}	 
-      }
+      g2.release();
+      res = e2->PowInv(e1); // smaller + larger
+    }
+  }
   if( convertBackT != GDL_UNDEF)
     {
-      res = res->Convert2( convertBackT, BaseGDL::CONVERT);
-    }
+    res = res->Convert2(convertBackT, BaseGDL::CONVERT);
+  }
   return res;
 }
 
@@ -3927,7 +3922,7 @@ BaseGDL** VARNode::LEval()
 //     BaseGDL* v = ProgNode::interpreter->CallStackBack()->GetKW(this->varIx);
 //     BaseGDL** vv = &(ProgNode::interpreter->CallStackBack()->GetKW(this->varIx));
 //     cout << "vv = " << vv << "  *vv = " << *vv << "  v = " << v << endl;
-    return &(ProgNode::interpreter->CallStackBack()->GetKW(this->varIx));
+    return &(ProgNode::interpreter->CallStackBack()->GetTheKW(this->varIx));
 }
 BaseGDL** VARPTRNode::EvalRefCheck( BaseGDL*& rEval)
 {
@@ -4267,7 +4262,10 @@ BaseGDL* ARRAYEXPRNode::Eval()
         {
             s=_t->EvalNC();//indexable_expr(_t);
             assert(s != NULL);
-            assert( s->Type() != GDL_UNDEF);
+//            assert( s->Type() != GDL_UNDEF);
+            if ( s->Type() == GDL_UNDEF) {
+              return NullGDL::GetSingleInstance();
+            }
         }
         else
         {
@@ -4277,7 +4275,10 @@ BaseGDL* ARRAYEXPRNode::Eval()
             else
                 s = *ref;
             assert(s != NULL);
-            assert( s->Type() != GDL_UNDEF);
+//            assert( s->Type() != GDL_UNDEF);
+            if ( s->Type() == GDL_UNDEF) {
+              return NullGDL::GetSingleInstance();
+            }
         }
 
 

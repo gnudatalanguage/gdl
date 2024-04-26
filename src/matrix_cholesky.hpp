@@ -19,13 +19,9 @@
 #include <config.h>
 #endif
 
-// current versions are based on Eigen3
-// #if defined(HAVE_LIBGSL) && defined(HAVE_LIBGSLCBLAS)
+#ifndef CHOLSOL_FUN_HPP_
+#define CHOLSOL_FUN_HPP_
 
-//#ifndef GSL_FUN_HPP_
-//#define GSL_FUN_HPP_
-
-#include "datatypes.hpp"
 #include "envt.hpp"
 
 namespace lib {
@@ -38,6 +34,5 @@ namespace lib {
 
 } // namespace
 
-//#endif
-
+#endif
 

@@ -50,7 +50,7 @@ public:
 	FMTLexer(const antlr::LexerSharedInputState& state);
 	antlr::RefToken nextToken();
 	public: void mSTRING(bool _createToken);
-	public: void mCSTRING(bool _createToken);
+	public: void mCSTYLE_STRING(bool _createToken);
 	public: void mLBRACE(bool _createToken);
 	public: void mRBRACE(bool _createToken);
 	public: void mSLASH(bool _createToken);
@@ -72,6 +72,8 @@ public:
 	public: void mQ(bool _createToken);
 	public: void mH(bool _createToken);
 	public: void mT(bool _createToken);
+	public: void mTR(bool _createToken);
+	public: void mTL(bool _createToken);
 	public: void mL(bool _createToken);
 	public: void mR(bool _createToken);
 	public: void mX(bool _createToken);

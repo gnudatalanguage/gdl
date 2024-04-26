@@ -32,14 +32,14 @@ for ii=0,4 do begin
    res2=interpol(y, double(x), xinterp)
    res3=interpol(double(y), x, xinterp)
    ; With 2 args -- interpol(V,N)
-   res4=interpol(y,1)
+   res4=interpol(y,fix(1, type=type_value))
    ;
    if type_name eq 'DOUBLE' then exp = 'DOUBLE' else exp='FLOAT'
-   ;
-   if TYPENAME(res1) ne exp then ERRORS_ADD, errors, 'INTERPOL bad for type '+type_name
-   if TYPENAME(res2) ne 'DOUBLE' then ERRORS_ADD, errors, 'INTERPOL bad for type '+type_name+' with X as double'
-   if TYPENAME(res3) ne 'DOUBLE' then ERRORS_ADD, errors, 'INTERPOL bad for type '+type_name+' with Y as double'
-   if TYPENAME(res4) ne exp then ERRORS_ADD, errors, 'INTERPOL bad for type '+type_name+' with two arguments'
+                                ;
+   if TYPENAME(res1) ne exp then ERRORS_ADD, errors, 'INTERPOL bad for type '+type_name+' (returned '+ TYPENAME(res1)+' instead of '+exp+')'
+   if TYPENAME(res2) ne 'DOUBLE' then ERRORS_ADD, errors, 'INTERPOL bad for type '+type_name+' with X as double '+type_name+' (returned '+ TYPENAME(res2)+' instead of '+exp+')'
+   if TYPENAME(res3) ne 'DOUBLE' then ERRORS_ADD, errors, 'INTERPOL bad for type '+type_name+' with Y as double '+type_name+' (returned '+ TYPENAME(res3)+' instead of '+exp+')'
+   if TYPENAME(res4) ne exp then ERRORS_ADD, errors, 'INTERPOL bad for type '+type_name+' with two arguments '+type_name+' (returned '+ TYPENAME(res4)+' instead of '+exp+')'
 endfor
 ;
 BANNER_FOR_TESTSUITE, 'TEST_INTERPOL_TYPE', errors, /status

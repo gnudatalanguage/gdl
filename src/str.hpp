@@ -25,13 +25,14 @@
 #include "basegdl.hpp" // DLong
 
 //#define GDL_DEBUG
-#undef GDL_DEBUG
+//#undef GDL_DEBUG
 
 #ifdef GDL_DEBUG
 #include <iostream>
 #endif
 
 std::string GetEnvString(const char* env);
+std::string GetEnvPathString(const char* env);
 
 // check if path is given in filename f
 inline bool PathGiven(const std::string& f)
@@ -87,7 +88,7 @@ void StrLowCaseInplace(std::string&);
 std::string StrCompress(const std::string&,bool removeAll);
 void StrPut(std::string& s1, const std::string& s2, DLong pos);
 
-class String_abbref_eq: public std::unary_function< std::string, bool>
+class String_abbref_eq: public std::function<bool(std::string)>
 {
   std::string s;
 public:
@@ -99,7 +100,7 @@ public:
   }
 };
 
-class String_eq: public std::unary_function< std::string, bool>
+class String_eq: public std::function<bool(std::string)>
 {
   std::string s;
 public:

@@ -9,7 +9,7 @@
 ; calculation of the expected line number where the code will stop,
 ; beeing independant of the path as long as the file is in the GDL_PATH
 ;
-; In GDL, as is in September 2013, the full full to the procedure
+; In GDL, as is in September 2013, the full path to the procedure
 ; is not return when we are in the same directory (TBC)
 ;
 function GETTING_LINE_NUMBER, info
@@ -37,13 +37,13 @@ if KEYWORD_SET(help) then begin
     return
 endif
 if !version.os_family eq 'Windows' then begin
-    spawn,'ps',stdps
-    if n_elements(stdps) lt 4 then begin
-        message,/continue," Windows' invocation without a shell: fake result: immediate return"
-        return
-        endif
-    message,/continue," Windows' invocation: via shell? going for it"
-    endif
+   spawn,'ps',stdps
+   if n_elements(stdps) lt 4 then begin
+      message,/continue," Windows' invocation without a shell: fake result: immediate return"
+      return
+   endif
+   message,/continue," Windows' invocation: via shell? going for it"
+endif
 ;
 ; since the routine was compiled, we can know where it is !
 ;
@@ -63,10 +63,15 @@ cmd_suffixe=' -quiet 2>/dev/stdout'
 ; if not provide, if /IDL selected, verify it else verifying relative GDL
 ;
 if KEYWORD_SET(path2exe) then begin
-    gdl_exe=path2exe
+   gdl_exe=path2exe
+   if FILE_TEST(gdl_exe,/dir) then begin
+      print, 'You provided a PATH, not an EXE'
+      print, 'please provide a full path with exe for GDL/IDL using keyword PATH2EXE='
+      return
+   endif
     if ~FILE_TEST(gdl_exe) then begin
         print, 'No real file found in the path2exe'
-        print, 'please provide a full path with exe for GDL/IDL using keyword PATH2GDL='
+        print, 'please provide a full path with exe for GDL/IDL using keyword PATH2EXE='
         return
     endif
 endif else begin
@@ -77,7 +82,7 @@ endif else begin
         spawn, 'which '+gdl_exe, out
         if ((STRLEN(out) EQ 0) OR ~FILE_TEST(out)) then begin
             print, 'No IDL found in the path'
-            print, 'please provide a custom path to IDL (or GDL) using keyword PATH2GDL='
+            print, 'please provide a custom path to IDL (or GDL) using keyword PATH2EXE='
             return
         endif
     endif else begin
@@ -92,7 +97,7 @@ endif else begin
             spawn, 'which '+gdl_exe, out
             if ((STRLEN(out) EQ 0) OR ~FILE_TEST(out)) then begin
                 print, 'No GDL found in the path'
-                print, 'please provide a path to GDL using keyword PATH2GDL='
+                print, 'please provide a path to GDL using keyword PATH2EXE='
                 return
             endif
         endif

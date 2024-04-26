@@ -24,19 +24,25 @@
 #ifndef GSL_FUN_HPP_
 #define GSL_FUN_HPP_
 
-#include "datatypes.hpp"
-#include "envt.hpp"
+#include "dinterpreter.hpp"
+#include <vector>
+#include <cassert>
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_multifit_nlinear.h>
+#include <functional>
+
 
 namespace lib {
 
   //  BaseGDL* invert_fun( EnvT* e);
   BaseGDL* fft_fun( EnvT* e);
   BaseGDL* random_fun( EnvT* e);
-  BaseGDL* histogram_fun( EnvT* e);
-//  BaseGDL* interpolate_fun( EnvT* e);
 
+  //GD: replaced la_trired from gsl by la_trired from eigen (if eigen is present) as it gives the same results as IDL's LA_TRIRED and is 5 times faster.
+#if  !defined(USE_EIGEN)
   void la_trired_pro( EnvT* e);
-
+#endif
+  
 //  int fft_1d( BaseGDL*, void*, SizeT, SizeT, //SizeT, 
 //	      double, SizeT);
   int fft_1d( BaseGDL* p0, void* data, SizeT nEl, SizeT offset, SizeT stride, 
@@ -64,6 +70,8 @@ namespace lib {
   BaseGDL* wtn(EnvT* e);
   BaseGDL* zeropoly(EnvT* e);
   BaseGDL* spher_harm(EnvT* e);
+  BaseGDL* gaussfit(EnvT* e);
+  BaseGDL* random_fun_gsl(EnvT* e);
 
   template< typename T1, typename T2>
   int cp2data2_template( BaseGDL* p0, T2* data, SizeT nEl, 
@@ -71,9 +79,8 @@ namespace lib {
   template< typename T>
   int cp2data_template( BaseGDL* p0, T* data, SizeT nEl, 
 			SizeT offset, SizeT stride_in, SizeT stride_out);
+    
 
-  BaseGDL* random_fun_gsl(EnvT* e);
-//  BaseGDL* interpol_fun(EnvT* e);
 } // namespace
 
 #endif

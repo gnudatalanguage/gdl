@@ -16,6 +16,9 @@
 ; (A.B should be lower than A.B.C)
 ; * should work with IDL too (!version.release)
 ;
+; AC 2024-Mars-08 : hum, now GDL have a Git suffix,
+; and is prefixed by "v" ... We need also to remove the part after '-'
+;
 ; ---------------------------------------
 ;
 pro APRINT, tab3nbps
@@ -54,11 +57,22 @@ endelse
 ;
 if KEYWORD_SET(debug) then print, suite
 ;
+; extra processing for GDL :(
+if GDL_IDL_FL() EQ 'GDL' then begin
+   if (STRUPCASE(STRMID(suite,0,1)) EQ 'V') then suite=STRMID(suite,1)
+   if (STRPOS(suite, '-') GT 0) then suite=STRMID(suite,0,STRPOS(suite, '-'))
+endif
+;
+if KEYWORD_SET(debug) then print, suite
+;
 indices=STRSPLIT(suite,'.',/extract)
 if KEYWORD_SET(debug) then APRINT, indices
 ;
 if  N_ELEMENTS(indices) EQ 2 then indices=[indices,'0']
 int_indices=FIX(indices)
+for iii=0, N_ELEMENTS(int_indices)-1 do begin
+   if int_indices[iii] GT 99 then MESSAGE,/cont, 'Value greater than 99'
+endfor
 ;
 if KEYWORD_SET(debug) then APRINT, int_indices
 ;

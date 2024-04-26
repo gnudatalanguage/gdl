@@ -64,19 +64,10 @@
 
 pro READ_JPEG, filename, unit=unit, image, colortable, buffer=buffer, $
                colors=ncolors, dither=dither, grayscale=grayscale, order=order, $
-               true=true, two_pass_quantize=two_pass_quantize, $
-               help=help, test=test, debug=debug
-
+               true=true, two_pass_quantize=two_pass_quantize
+  
 compile_opt hidden, idl2
-
 ON_ERROR, 2
-if KEYWORD_SET(help) then begin
-    print, 'pro READ_JPEG, filename, unit=unit, image, colortable, buffer=buffer, $'
-    print, '               colors=ncolors, dither=dither, grayscale=grayscale, order=order, $'
-    print, '               true=true, two_pass_quantize=two_pass_quantize, $'
-    print, '               help=help, test=test, debug=debug'
-    return
-endif
 ;
 ; Do we have access to ImageMagick functionnalities ??
 ;
@@ -102,10 +93,12 @@ if (FILE_TEST(filename, /regular) EQ 0) then MESSAGE, "Not a regular File: "+fil
 if ( ~MAGICK_PING(filename, 'JPEG') and ~MAGICK_PING(filename, 'JNG') )then begin
    MESSAGE, "JPEG error: Not a JPEG file."
 endif
+; if colortable IS present, irrespective of the presence of colors,
+; will get a colormap, so will quantize the jpeg:
+if (arg_present(colortable) && ~keyword_set(ncolors)) then ncolors=keyword_set(grayscale)?256:252; IDL default
 READ_ANYGRAPHICSFILEWITHMAGICK, filename, image, colortable, colors=ncolors, $
                                 dither=dither, grayscale=grayscale, order=order, $
                                 true=true
-;
 end
 
 

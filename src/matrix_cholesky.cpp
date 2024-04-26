@@ -1,10 +1,12 @@
 /***************************************************************************
-                          gsl_fun.cpp  -  GDL GSL library function
+                   matrix_cholesky.cpp  -  GDL GSL library function
                              -------------------
     begin                : Jan 20 2004
     copyright            : (C) 2004 by Joel Gales
     email                : jomoga@users.sourceforge.net
 ***************************************************************************/
+
+// current versions of CHOLSOL/CHOLDC are based on Eigen3
 
 /***************************************************************************
  *                                                                         *
@@ -25,18 +27,33 @@
 #include <string>
 #include <complex>
 
-#include "datatypes.hpp"
-#include "envt.hpp"
-#include "basic_fun.hpp"
-#include "dinterpreter.hpp"
+#include "matrix_cholesky.hpp"
 
-#include "gsl_fun.hpp"
+#if !defined(USE_EIGEN)
 
-#if defined(USE_EIGEN)
+namespace lib {
+  BaseGDL* cholsol_fun( EnvT* e) {
+    Message("GDL compiled without Eigen3 : CHOLSOL not available");
+    return new DIntGDL(0);
+  }
+  BaseGDL* la_cholsol_fun( EnvT* e){
+    Message("GDL compiled without Eigen3 : LA_CHOLSOL not available");
+    return new DIntGDL(0);
+  }
+  void choldc_pro( EnvT* e) {
+    Message("GDL compiled without Eigen3 : CHOLDC not available");
+  }
+  void la_choldc_pro( EnvT* e) {
+    Message("GDL compiled without Eigen3 : LA_CHOLDC not available");
+  }
+}
+
+#else
+
+#include <Eigen/Core>
 #include <Eigen/LU>
 #include <Eigen/Eigenvalues>
-#include <Eigen/Core>
-#endif
+
 
 namespace lib {
 
@@ -48,7 +65,7 @@ namespace lib {
   //const int szdbl=sizeof(double);
   //const int szflt=sizeof(float);
 
-#if defined(USE_EIGEN)
+  //#if defined(USE_EIGEN)
   using namespace Eigen;
 
 
@@ -796,5 +813,6 @@ void la_choldc_pro( EnvT* e)
 //    return 0;
 //  }
 
-#endif
+
 } //namespace lib
+#endif

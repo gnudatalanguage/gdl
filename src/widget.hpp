@@ -17,8 +17,7 @@
 
 #ifndef WIDGET_HPP_
 #define WIDGET_HPP_
-
-#include "dstructgdl.hpp"
+#include "dinterpreter.hpp"
 
 namespace lib {
 

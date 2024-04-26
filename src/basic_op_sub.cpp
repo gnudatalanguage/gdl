@@ -4,7 +4,7 @@
     begin                : July 22 2002
     copyright            : (C) 2002 by Marc Schellens
     email                : m_schellens@users.sf.net
-***************************************************************************/
+ ***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -24,409 +24,374 @@
 #include <omp.h>
 #endif
 
-//#include "datatypes.hpp" // for friend declaration
-#include "nullgdl.hpp"
 #include "dinterpreter.hpp"
-
 // needed with gcc-3.3.2
 #include <cassert>
 
 // Sub
 // substraction: left=left-right
-template<class Sp>
-BaseGDL* Data_<Sp>::Sub( BaseGDL* r)
-{
-  Data_* right=static_cast<Data_*>(r);
 
-  ULong rEl=right->N_Elements();
-  ULong nEl=N_Elements();
-  assert( rEl);
-  assert( nEl);
-  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-  if( nEl == 1)
-    {
-      (*this)[0] -= (*right)[0];
-      return this;
-    }
+template<class Sp>
+BaseGDL* Data_<Sp>::Sub(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+  Data_* right = static_cast<Data_*> (r);
+
+  ULong rEl = right->N_Elements();
+  ULong nEl = N_Elements();
+  assert(rEl);
+  assert(nEl);
+  if (nEl == 1) {
+    (*this)[0] -= (*right)[0];
+    return this;
+  }
 #ifdef USE_EIGEN
 
-  Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
-  Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mRight(&(*right)[0], nEl);
+  Eigen::Map<Eigen::Array<Ty, Eigen::Dynamic, 1>, Eigen::Aligned> mThis(&(*this)[0], nEl);
+  Eigen::Map<Eigen::Array<Ty, Eigen::Dynamic, 1>, Eigen::Aligned> mRight(&(*right)[0], nEl);
   mThis -= mRight;
   return this;
 #else
 
-  if( nEl == rEl)
+  if (nEl == rEl)
     dd -= right->dd;
-  else
-    {
-      TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	{
-#pragma omp for
-	  for( OMPInt i=0; i < nEl; ++i)
-	    (*this)[i] -= (*right)[i];
-	}}  //C delete right;
+  else {
+
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
+      for (OMPInt i = 0; i < nEl; ++i) (*this)[i] -= (*right)[i];
+      } else {
+	TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+      for (OMPInt i = 0; i < nEl; ++i) (*this)[i] -= (*right)[i];
+    }
+  }
   return this;
 #endif
-  
+
 }
 // inverse substraction: left=right-left
-template<class Sp>
-BaseGDL* Data_<Sp>::SubInv( BaseGDL* r)
-{
-  Data_* right=static_cast<Data_*>(r);
 
-  ULong rEl=right->N_Elements();
-  ULong nEl=N_Elements();
-  assert( rEl);
-  assert( nEl);
-  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-  /*  if( nEl == rEl)
-      dd = right->dd - dd;
-      else*/
-  if( nEl == 1)
-    {
-      (*this)[0] = (*right)[0] - (*this)[0];
-      return this;
-    }
+template<class Sp>
+BaseGDL* Data_<Sp>::SubInv(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+  Data_* right = static_cast<Data_*> (r);
+
+  ULong rEl = right->N_Elements();
+  ULong nEl = N_Elements();
+  assert(rEl);
+  assert(nEl);
+  if (nEl == 1) {
+    (*this)[0] = (*right)[0] - (*this)[0];
+    return this;
+  }
 #ifdef USE_EIGEN
 
-  Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
-  Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mRight(&(*right)[0], nEl);
+  Eigen::Map<Eigen::Array<Ty, Eigen::Dynamic, 1>, Eigen::Aligned> mThis(&(*this)[0], nEl);
+  Eigen::Map<Eigen::Array<Ty, Eigen::Dynamic, 1>, Eigen::Aligned> mRight(&(*right)[0], nEl);
   mThis = mRight - mThis;
   return this;
 #else
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for
-      for( OMPInt i=0; i < nEl; ++i)
-	(*this)[i] = (*right)[i] - (*this)[i];
-    }  //C delete right;
+
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
+    for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = (*right)[i] - (*this)[i];
+    } else {
+      TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+    for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = (*right)[i] - (*this)[i];
+  }
   return this;
 #endif
-  
+
 }
 // invalid types
+
 template<>
-BaseGDL* Data_<SpDString>::Sub( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
+BaseGDL* Data_<SpDString>::Sub(BaseGDL* r) {
+  throw GDLException("Cannot apply operation to datatype STRING.", true, false);
   return this;
 }
+
 template<>
-BaseGDL* Data_<SpDString>::SubInv( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
+BaseGDL* Data_<SpDString>::SubInv(BaseGDL* r) {
+  throw GDLException("Cannot apply operation to datatype STRING.", true, false);
   return this;
 }
+
 template<>
-BaseGDL* Data_<SpDPtr>::Sub( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
+BaseGDL* Data_<SpDPtr>::Sub(BaseGDL* r) {
+  throw GDLException("Cannot apply operation to datatype PTR.", true, false);
   return this;
 }
+
 template<>
-BaseGDL* Data_<SpDPtr>::SubInv( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
+BaseGDL* Data_<SpDPtr>::SubInv(BaseGDL* r) {
+  throw GDLException("Cannot apply operation to datatype PTR.", true, false);
   return this;
 }
+
 template<>
-BaseGDL* Data_<SpDObj>::Sub( BaseGDL* r)
-{
+BaseGDL* Data_<SpDObj>::Sub(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   // overload here
   Data_* self;
   DSubUD* plusOverload;
-  
+
   ProgNodeP callingNode = interpreter->GetRetTree();
 
-  if( !Scalar())
-  {
-    if( r->Type() == GDL_OBJ && r->Scalar())
-    {
-      self = static_cast<Data_*>( r);
-      plusOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( (*self)[0], OOMinus));
-      if( plusOverload == NULL)
-      {
-	throw GDLException( callingNode, "Cannot apply not overloaded operator to datatype OBJECT.", true, false);
+  if (!Scalar()) {
+    if (r->Type() == GDL_OBJ && r->Scalar()) {
+      self = static_cast<Data_*> (r);
+      plusOverload = static_cast<DSubUD*> (GDLInterpreter::GetObjHeapOperator((*self)[0], OOMinus));
+      if (plusOverload == NULL) {
+        throw GDLException(callingNode, "Cannot apply not overloaded operator to datatype OBJECT.", true, false);
       }
+    } else {
+      throw GDLException(callingNode, "Cannot apply operation to non-scalar datatype OBJECT.", true, false);
     }
-    else
-      {
-	throw GDLException( callingNode, "Cannot apply operation to non-scalar datatype OBJECT.", true, false);
-      }
-  }
-  else
-  {
+  } else {
     // Scalar()
-    self = static_cast<Data_*>( this);
-    plusOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( (*self)[0], OOMinus));
-    if( plusOverload == NULL)
-    {
-      if( r->Type() == GDL_OBJ && r->Scalar())
-      {
-	self = static_cast<Data_*>( r);
-	plusOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( (*self)[0], OOMinus));
-	if( plusOverload == NULL)
-	{
-	  throw GDLException(callingNode,"Cannot apply not overloaded operator to datatype OBJECT.",true, false);  
-	} 
-      }
-      else
-      {
-	throw GDLException( callingNode, "Cannot apply not overloaded operator to datatype OBJECT.", true, false);
+    self = static_cast<Data_*> (this);
+    plusOverload = static_cast<DSubUD*> (GDLInterpreter::GetObjHeapOperator((*self)[0], OOMinus));
+    if (plusOverload == NULL) {
+      if (r->Type() == GDL_OBJ && r->Scalar()) {
+        self = static_cast<Data_*> (r);
+        plusOverload = static_cast<DSubUD*> (GDLInterpreter::GetObjHeapOperator((*self)[0], OOMinus));
+        if (plusOverload == NULL) {
+          throw GDLException(callingNode, "Cannot apply not overloaded operator to datatype OBJECT.", true, false);
+        }
+      } else {
+        throw GDLException(callingNode, "Cannot apply not overloaded operator to datatype OBJECT.", true, false);
       }
     }
   }
 
-  assert( self->Scalar());
-  assert( plusOverload != NULL);
+  assert(self->Scalar());
+  assert(plusOverload != NULL);
 
   // hidden SELF is counted as well
   int nParSub = plusOverload->NPar();
-  assert( nParSub >= 1); // SELF
-  if( nParSub < 3) // (SELF), LEFT, RIGHT
+  assert(nParSub >= 1); // SELF
+  if (nParSub < 3) // (SELF), LEFT, RIGHT
   {
-    throw GDLException( callingNode, plusOverload->ObjectName() +
-		    ": Incorrect number of arguments.",
-		    false, false);
+    throw GDLException(callingNode, plusOverload->ObjectName() +
+      ": Incorrect number of arguments.",
+      false, false);
   }
   EnvUDT* newEnv;
   Guard<BaseGDL> selfGuard;
   BaseGDL* thisP;
   // Dup() here is not optimal
   // avoid at least for internal overload routines (which do/must not change SELF or r)
-  bool internalDSubUD = plusOverload->GetTree()->IsWrappedNode();  
-  if( internalDSubUD)  
-  {
+  bool internalDSubUD = plusOverload->GetTree()->IsWrappedNode();
+  if (internalDSubUD) {
     thisP = this;
-    newEnv= new EnvUDT( callingNode, plusOverload, &self);
-    newEnv->SetNextParUnchecked( &thisP); // LEFT  parameter, as reference to prevent cleanup in newEnv
-    newEnv->SetNextParUnchecked( &r); // RVALUE  parameter, as reference to prevent cleanup in newEnv
-  }
-  else
-  {
+    newEnv = new EnvUDT(callingNode, plusOverload, &self);
+    newEnv->SetNextParUnchecked(&thisP); // LEFT  parameter, as reference to prevent cleanup in newEnv
+    newEnv->SetNextParUnchecked(&r); // RVALUE  parameter, as reference to prevent cleanup in newEnv
+  } else {
     self = self->Dup();
-    selfGuard.Init( self);
-    newEnv= new EnvUDT( callingNode, plusOverload, &self);
-    newEnv->SetNextParUnchecked( this->Dup()); // LEFT  parameter, as value
-    newEnv->SetNextParUnchecked( r->Dup()); // RIGHT parameter, as value
+    selfGuard.Init(self);
+    newEnv = new EnvUDT(callingNode, plusOverload, &self);
+    newEnv->SetNextParUnchecked(this->Dup()); // LEFT  parameter, as value
+    newEnv->SetNextParUnchecked(r->Dup()); // RIGHT parameter, as value
   }
 
-  
+
   // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
   StackGuard<EnvStackT> guard(interpreter->CallStack());
 
-  interpreter->CallStack().push_back( newEnv); 
-  
-  // make the call
-  BaseGDL* res=interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+  interpreter->CallStack().push_back(newEnv);
 
-  if( !internalDSubUD && self != selfGuard.Get())
-  {
+  // make the call
+  BaseGDL* res = interpreter->call_fun(static_cast<DSubUD*> (newEnv->GetPro())->GetTree());
+
+  if (!internalDSubUD && self != selfGuard.Get()) {
     // always put out warning first, in case of a later crash
-    Warning( "WARNING: " + plusOverload->ObjectName() + 
-	  ": Assignment to SELF detected (GDL session still ok).");
+    Warning("WARNING: " + plusOverload->ObjectName() +
+      ": Assignment to SELF detected (GDL session still ok).");
     // assignment to SELF -> self was deleted and points to new variable
     // which it owns
     selfGuard.Release();
-    if( static_cast<BaseGDL*>(self) != NullGDL::GetSingleInstance())
+    if (static_cast<BaseGDL*> (self) != NullGDL::GetSingleInstance())
       selfGuard.Reset(self);
   }
   return res;
 }
+
 template<>
-BaseGDL* Data_<SpDObj>::SubInv( BaseGDL* r)
-{
-  if( r->Type() == GDL_OBJ && r->Scalar())
-  {
-    return r->Sub( this); // for right order of parameters
+BaseGDL* Data_<SpDObj>::SubInv(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+  if (r->Type() == GDL_OBJ && r->Scalar()) {
+    return r->Sub(this); // for right order of parameters
   }
-    
+
   // overload here
   Data_* self;
   DSubUD* plusOverload;
-  
+
   ProgNodeP callingNode = interpreter->GetRetTree();
 
-  if( !Scalar())
-  {
-    throw GDLException( callingNode, "Cannot apply operation to non-scalar datatype OBJECT.", true, false);
-  }
-  else
-  {
+  if (!Scalar()) {
+    throw GDLException(callingNode, "Cannot apply operation to non-scalar datatype OBJECT.", true, false);
+  } else {
     // Scalar()
-    self = static_cast<Data_*>( this);
-    plusOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( (*self)[0], OOMinus));
-    if( plusOverload == NULL)
-    {
-	throw GDLException( callingNode, "Cannot apply not overloaded operator to datatype OBJECT.", true, false);
+    self = static_cast<Data_*> (this);
+    plusOverload = static_cast<DSubUD*> (GDLInterpreter::GetObjHeapOperator((*self)[0], OOMinus));
+    if (plusOverload == NULL) {
+      throw GDLException(callingNode, "Cannot apply not overloaded operator to datatype OBJECT.", true, false);
     }
   }
 
-  assert( self->Scalar());
-  assert( plusOverload != NULL);
+  assert(self->Scalar());
+  assert(plusOverload != NULL);
 
   // hidden SELF is counted as well
   int nParSub = plusOverload->NPar();
-  assert( nParSub >= 1); // SELF
-  if( nParSub < 3) // (SELF), LEFT, RIGHT
+  assert(nParSub >= 1); // SELF
+  if (nParSub < 3) // (SELF), LEFT, RIGHT
   {
-    throw GDLException( callingNode, plusOverload->ObjectName() +
-		    ": Incorrect number of arguments.",
-		    false, false);
+    throw GDLException(callingNode, plusOverload->ObjectName() +
+      ": Incorrect number of arguments.",
+      false, false);
   }
   EnvUDT* newEnv;
   Guard<BaseGDL> selfGuard;
   BaseGDL* thisP;
   // Dup() here is not optimal
   // avoid at least for internal overload routines (which do/must not change SELF or r)
-  bool internalDSubUD = plusOverload->GetTree()->IsWrappedNode();  
-  if( internalDSubUD)  
-  {
+  bool internalDSubUD = plusOverload->GetTree()->IsWrappedNode();
+  if (internalDSubUD) {
     thisP = this;
-    newEnv= new EnvUDT( callingNode, plusOverload, &self);
+    newEnv = new EnvUDT(callingNode, plusOverload, &self);
     // order different to Add
-    newEnv->SetNextParUnchecked( &r); // RVALUE  parameter, as reference to prevent cleanup in newEnv
-    newEnv->SetNextParUnchecked( &thisP); // LEFT  parameter, as reference to prevent cleanup in newEnv
-  }
-  else
-  {
+    newEnv->SetNextParUnchecked(&r); // RVALUE  parameter, as reference to prevent cleanup in newEnv
+    newEnv->SetNextParUnchecked(&thisP); // LEFT  parameter, as reference to prevent cleanup in newEnv
+  } else {
     self = self->Dup();
-    selfGuard.Init( self);
-    newEnv= new EnvUDT( callingNode, plusOverload, &self);
+    selfGuard.Init(self);
+    newEnv = new EnvUDT(callingNode, plusOverload, &self);
     // order different to Add
-    newEnv->SetNextParUnchecked( r->Dup()); // RIGHT parameter, as value
-    newEnv->SetNextParUnchecked( this->Dup()); // LEFT  parameter, as value
+    newEnv->SetNextParUnchecked(r->Dup()); // RIGHT parameter, as value
+    newEnv->SetNextParUnchecked(this->Dup()); // LEFT  parameter, as value
   }
 
-  
+
   // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
   StackGuard<EnvStackT> guard(interpreter->CallStack());
 
-  interpreter->CallStack().push_back( newEnv); 
-  
-  // make the call
-  BaseGDL* res=interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+  interpreter->CallStack().push_back(newEnv);
 
-  if( !internalDSubUD && self != selfGuard.Get())
-  {
+  // make the call
+  BaseGDL* res = interpreter->call_fun(static_cast<DSubUD*> (newEnv->GetPro())->GetTree());
+
+  if (!internalDSubUD && self != selfGuard.Get()) {
     // always put out warning first, in case of a later crash
-    Warning( "WARNING: " + plusOverload->ObjectName() + 
-	  ": Assignment to SELF detected (GDL session still ok).");
+    Warning("WARNING: " + plusOverload->ObjectName() +
+      ": Assignment to SELF detected (GDL session still ok).");
     // assignment to SELF -> self was deleted and points to new variable
     // which it owns
     selfGuard.Release();
-    if( static_cast<BaseGDL*>(self) != NullGDL::GetSingleInstance())
+    if (static_cast<BaseGDL*> (self) != NullGDL::GetSingleInstance())
       selfGuard.Reset(self);
   }
   return res;
 }
+
 template<class Sp>
-Data_<Sp>* Data_<Sp>::SubS( BaseGDL* r)
-{
-  Data_* right=static_cast<Data_*>(r);
+Data_<Sp>* Data_<Sp>::SubS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+  Data_* right = static_cast<Data_*> (r);
 
-  ULong nEl=N_Elements();
-  assert( nEl);
-  if( nEl == 1)
-    {
-      (*this)[0] -= (*right)[0];
-      return this;
-    }
-  
+  ULong nEl = N_Elements();
+  assert(nEl);
+  if (nEl == 1) {
+    (*this)[0] -= (*right)[0];
+    return this;
+  }
+
   Ty s = (*right)[0];
-  // right->Scalar(s); 
+  // right->Scalar(s);
   //  dd -= s;
 #ifdef USE_EIGEN
 
-        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
-	mThis -= s;
-	return this;
+  Eigen::Map<Eigen::Array<Ty, Eigen::Dynamic, 1>, Eigen::Aligned> mThis(&(*this)[0], nEl);
+  mThis -= s;
+  return this;
 #else
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for
-      for( OMPInt i=0; i < nEl; ++i)
-	(*this)[i] -= s;
-    }  //C delete right;
+
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
+    for (OMPInt i = 0; i < nEl; ++i) (*this)[i] -= s;
+    } else {
+      TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+    for (OMPInt i = 0; i < nEl; ++i) (*this)[i] -= s;
+  }
   return this;
 #endif
-  
+
 }
 // inverse substraction: left=right-left
+
 template<class Sp>
-Data_<Sp>* Data_<Sp>::SubInvS( BaseGDL* r)
-{
-  Data_* right=static_cast<Data_*>(r);
+Data_<Sp>* Data_<Sp>::SubInvS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+  Data_* right = static_cast<Data_*> (r);
 
-  ULong nEl=N_Elements();
-  assert( nEl);
+  ULong nEl = N_Elements();
+  assert(nEl);
 
-  if( nEl == 1)
-    {
-      (*this)[0] = (*right)[0] - (*this)[0];
-      return this;
-    }
-  
+  if (nEl == 1) {
+    (*this)[0] = (*right)[0] - (*this)[0];
+    return this;
+  }
+
   Ty s = (*right)[0];
-  // right->Scalar(s); 
-  //  dd = s - dd;
 #ifdef USE_EIGEN
 
-        Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
-	mThis = s - mThis;
-	return this;
+  Eigen::Map<Eigen::Array<Ty, Eigen::Dynamic, 1>, Eigen::Aligned> mThis(&(*this)[0], nEl);
+  mThis = s - mThis;
+  return this;
 #else
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for
-      for( OMPInt i=0; i < nEl; ++i)
-	(*this)[i] = s - (*this)[i];
-    }  //C delete right;
+
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
+    for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = s - (*this)[i];
+    } else {
+      TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+    for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = s - (*this)[i];
+  }
   return this;
 #endif
-  
+
 }
 // invalid types
+
 template<>
-Data_<SpDString>* Data_<SpDString>::SubS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
+Data_<SpDString>* Data_<SpDString>::SubS(BaseGDL* r) {
+  throw GDLException("Cannot apply operation to datatype STRING.", true, false);
   return this;
 }
+
 template<>
-Data_<SpDString>* Data_<SpDString>::SubInvS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype STRING.",true,false);  
+Data_<SpDString>* Data_<SpDString>::SubInvS(BaseGDL* r) {
+  throw GDLException("Cannot apply operation to datatype STRING.", true, false);
   return this;
 }
+
 template<>
-Data_<SpDPtr>* Data_<SpDPtr>::SubS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
+Data_<SpDPtr>* Data_<SpDPtr>::SubS(BaseGDL* r) {
+  throw GDLException("Cannot apply operation to datatype PTR.", true, false);
   return this;
 }
+
 template<>
-Data_<SpDPtr>* Data_<SpDPtr>::SubInvS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
+Data_<SpDPtr>* Data_<SpDPtr>::SubInvS(BaseGDL* r) {
+  throw GDLException("Cannot apply operation to datatype PTR.", true, false);
   return this;
 }
+
 template<>
-Data_<SpDObj>* Data_<SpDObj>::SubS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
+Data_<SpDObj>* Data_<SpDObj>::SubS(BaseGDL* r) {
+  throw GDLException("Cannot apply operation to datatype OBJECT.", true, false);
   return this;
 }
+
 template<>
-Data_<SpDObj>* Data_<SpDObj>::SubInvS( BaseGDL* r)
-{
-  throw GDLException("Cannot apply operation to datatype OBJECT.",true,false);  
+Data_<SpDObj>* Data_<SpDObj>::SubInvS(BaseGDL* r) {
+  throw GDLException("Cannot apply operation to datatype OBJECT.", true, false);
   return this;
 }
 

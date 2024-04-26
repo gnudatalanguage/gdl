@@ -1,7 +1,7 @@
 [![Build status](https://github.com/gnudatalanguage/gdl/workflows/build/badge.svg)](https://github.com/gnudatalanguage/gdl/actions)
 [![Coverage Status](https://img.shields.io/codecov/c/github/gnudatalanguage/gdl/master.svg)](https://codecov.io/github/gnudatalanguage/gdl?branch=master)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/e5de1c1571c649279dad18d5d8590789)](https://www.codacy.com/app/slayoo/gdl?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=gnudatalanguage/gdl&amp;utm_campaign=Badge_Grade)
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.04633/status.svg)](https://doi.org/10.21105/joss.04633)
 
 GDL - GNU Data Language
 =======================
@@ -47,10 +47,16 @@ Getting GDL
 -------------------------------------
 
 See:
+- [Cloning GDL](https://github.com/gnudatalanguage/gdl/wiki/Cloning-gnudatalanguage-gdl) (new!)
 - [GDL on Linux](https://github.com/gnudatalanguage/gdl/wiki/GDL-on-Linux)
 - [GDL on OSX](https://github.com/gnudatalanguage/gdl/wiki/GDL-on-OSX)
 - [GDL on BSD](https://github.com/gnudatalanguage/gdl/wiki/GDL-on-BSD)
 - [GDL on Windows](https://github.com/gnudatalanguage/gdl/wiki/GDL-on-Windows)
+
+Find specific information on GDL
+-------------------------------------
+- Browse the [WIKI](https://github.com/gnudatalanguage/gdl/wiki)
+- Be aware of current problems/limitations: Check the [issues](https://github.com/gnudatalanguage/gdl/wiki/Known-issues).
 
 Dependencies 
 -------------------------------------
@@ -79,16 +85,17 @@ GDL has numerous dependencies, most of the optional but highly recommended if yo
 - [Python](https://www.python.org/)/[NumPy](http://www.numpy.org/) optional but add python bridge and jupyter notebook.
 - [udunits](https://www.unidata.ucar.edu/software/udunits/) optional, units conversion
 - [Eigen](https://eigen.tuxfamily.org/) optional but provides inordinate speed enhancements...
-- [ecCodes](https://software.ecmwf.int/wiki/display/ECC/ecCodes+Home) optional, for GRIB support.
+- [ecCodes](https://confluence.ecmwf.int/display/ECC/ecCodes+Home) optional, for GRIB support.
 - [GLPK](https://www.gnu.org/software/glpk/) optional, provides the SIMPLEX command.
 
 Besides, for optimal use (speed mainly), GDL incorporates slightly edited code of
 - [dSFMT](http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/SFMT) as our parallel random Generator.
 - [delaunator](https://github.com/mapbox/delaunator) as our new hyperfast triangulation.
 - [ANTLR3](https://www.antlr3.org/) as interpretor.
-- [Median Filtering](http://nomis80.org/ctmf.html )
-- [Median Filtering](http://users.ics.aalto.fi/suomela)
+- [Median Filtering (S. Perreault)](http://nomis80.org/ctmf.html )
+- [Median Filtering (J. Suomela)](http://users.ics.aalto.fi/suomela)
 - [Radix Sorting](https://github.com/Pierre-Terdiman/RadixRedux) (we have written all variants up to doubles).
+- [whereami](https://github.com/gpakosz/whereami) 
 
 Build-time dependencies
 -----------------------
@@ -121,20 +128,21 @@ Help welcome!
 
 Information resources
 ---------------------
-
-As GDL is aimed as a drop-in replacement for IDL,
-resources for IDL constitute valuable sources of information for GDL users as well.
-These include:
+GDL does not maintain a proper documentation: as GDL is aimed as a drop-in replacement for IDL,
+resources for IDL constitute the valuable sources of information for GDL users as well. GDL MUST behave (at least) as IDL, and any discrepancy should be reported by opening an issue.
+Conversely, the GDL issues and discussion forum on GitHub are not the good place for beginners to ask for advice on how to use IDL (or GDL). Use the forum below.
+IDL freely available resources include:
 - the [official IDL documentation](https://www.harrisgeospatial.com/docs/)
 - the [idl-pvwave Google Group](https://groups.google.com/forum/#!forum/idl-pvwave)
 - the [comp.lang.idl-pvwave usenet group archives](http://www.idlcoyote.com/comp.lang.idl-pvwave/) (dating back to 1991!)
 - Wikipedia article on [IDL](https://en.wikipedia.org/wiki/IDL_\(programming_language\)) and references therein
 - websites of IDL gurus including [David Fanning](http://www.idlcoyote.com/) and [Michael Galloy](http://michaelgalloy.com/)
 - numerous [tutorials and lecture notes](https://www.google.com/search?q=interactive+data+language) introducing IDL
+- old, used, but still very valid IDL booklets can be found in various libraries, second-hand bookstores etc.
 
 There are several open source packages compatible or interoperable with GDL, including:
 - the [MPFIT](https://pages.physics.wisc.edu/~craigm/idl/cmpfit.html) curve fitting library written in IDL (also available as a [Debian package](https://packages.debian.org/gdl-mpfit))
-- the [IDL Astronomy User's Library](https://idlastro.gsfc.nasa.gov/) written in IDL (also available as a [Debian package](https://packages.debian.org/gdl-idlastro))
+- the [IDL Astronomy User's Library](https://github.com/wlandsman/IDLAstro) written in IDL (also available as a [Debian package](https://packages.debian.org/gdl-idlastro))
 - the [Coyote](https://www.idlcoyote.com) library of IDL-written utilities (also available as a [Debian package](https://packages.debian.org/gdl-coyote))
 - the [TeXtoIDL](http://physics.mnstate.edu/craig/textoidl/) package 
 - the [gdlde](https://github.com/gnudatalanguage/gdlde) IDE

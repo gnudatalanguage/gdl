@@ -9,6 +9,7 @@
 #   - readline, zlib, libpng, libpcre
 #
 # 2021-03-20: Script has been updated to support Linux and macOS
+
 LANG=C #script works only in english
 ME="build_gdl.sh"
 Configuration=${Configuration:-"Release"}
@@ -19,19 +20,66 @@ real_path() {
 export GDL_DIR=$(real_path "$(dirname $0)/..")
 export ROOT_DIR=${ROOT_DIR:-"${GDL_DIR}"}
 INSTALL_PREFIX=${INSTALL_PREFIX:-"${ROOT_DIR}/install"}
-PYTHONVERSION=${PYTHONVERSION:-"3"}
+PYTHONVERSION=${PYTHONVERSION:-"3.0.0"}
 GDLDE_VERSION=${GDLDE_VERSION:-"v1.0.0"} # needed by 'pack' (at the moment Windows only)
 NTHREADS=${NTHREADS:-$(getconf _NPROCESSORS_ONLN)} # find nthreads for make -j
 BUILD_OS=$(uname)
 DRY_RUN=false
-if [[ ${BUILD_OS} == *"MSYS"* ]]; then
-    BUILD_OS="Windows"
-elif [[ ${BUILD_OS} == *"MINGW"* ]]; then
+if [[ ${BUILD_OS} == *"MSYS"* ]] || [[ ${BUILD_OS} == *"MINGW"* ]]; then
     BUILD_OS="Windows"
 elif [[ ${BUILD_OS} == "Darwin" ]]; then
     BUILD_OS="macOS"
+    Platform=${Platform:-$(arch)}
 fi
 
+# Build flags
+if [[ ${DEPS} == "headless" ]]; then
+    WITH_WXWIDGETS=${WITH_WXWIDGETS:-OFF}
+    WITH_X11=${WITH_X11:-OFF}
+else
+    WITH_WXWIDGETS=${WITH_WXWIDGETS:-ON}
+    WITH_X11=${WITH_X11:-ON}
+fi
+WITH_OPENMP=${WITH_OPENMP:-ON}
+WITH_GRAPHICSMAGICK=${WITH_GRAPHICSMAGICK:-ON}
+WITH_NETCDF=${WITH_NETCDF:-ON}
+WITH_HDF=${WITH_HDF:-ON}
+WITH_HDF5=${WITH_HDF5:-ON}
+if [[ ${DEPS} != "headless" ]]; then
+    WITH_MPI=${WITH_MPI:-OFF}
+else
+    WITH_MPI=${WITH_MPI:-ON}
+fi
+WITH_TIFF=${WITH_TIFF:-ON}
+WITH_GEOTIFF=${WITH_GEOTIFF:-ON}
+WITH_LIBPROJ=${WITH_LIBPROJ:-ON}
+WITH_PYTHON=${WITH_PYTHON:-ON}
+WITH_PYTHONVERSION=${WITH_PYTHONVERSION:-ON}
+WITH_FFTW=${WITH_FFTW:-ON}
+WITH_UDUNITS2=${WITH_UDUNITS2:-ON}
+WITH_GLPK=${WITH_GLPK:-ON}
+if [[ ${BUILD_OS} == "macOS" ]]; then
+    WITH_HDF4=${WITH_HDF4:-OFF}
+    WITH_GRIB=${WITH_GRIB:-ON}
+    WITH_PYTHON="OFF"
+    WITH_PYTHONVERSION="OFF"
+else
+    zz=`grep -i opensuse /etc/*-release 2> /dev/null`
+    if [[ -n $zz ]]; then
+        # in case of openSUSE
+        WITH_HDF4=${WITH_HDF4:-OFF}
+        WITH_GRIB=${WITH_GRIB:-OFF}
+    else
+        # other distros
+        WITH_HDF4=${WITH_HDF4:-ON}
+        WITH_GRIB=${WITH_GRIB:-ON}
+    fi
+fi
+if [[ ${BUILD_OS} == "Windows" ]]; then
+    WITH_HDF4="OFF"
+    WITH_PYTHON="OFF"
+    WITH_PYTHONVERSION="OFF"
+fi
 function log {  # log is needded just below!
     echo "[${ME}] $@"
 }
@@ -42,8 +90,9 @@ if [ ${BUILD_OS} == "Windows" ]; then
         readline zlib libpng gsl wxWidgets plplot libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi udunits
         eigen3 eccodes glpk shapelib expat openssl
     )
+    #if you add something in MSYS2_PACKAGES_REBUILD you may have to add special lines in main.yml to push the product in /var/cache/pacman/pkg
     MSYS2_PACKAGES_REBUILD=(
-        graphicsmagick
+        graphicsmagick plplot
     )
 elif [ ${BUILD_OS} == "Linux" ]; then
     # JP: Note the seperator ',' between the package name candidates below. The leftmost one has the highest priority.
@@ -68,10 +117,13 @@ elif [ ${BUILD_OS} == "Linux" ]; then
     ) # JP 2021 Mar 21: SuSE lacks eccodes
 elif [ ${BUILD_OS} == "macOS" ]; then
     BREW_PACKAGES=(
-        llvm libomp ncurses readline zlib libpng gsl wxmac graphicsmagick libtiff libgeotiff netcdf hdf5 fftw proj open-mpi python numpy udunits eigen
-        eccodes glpk shapelib expat gcc@10
+        llvm libx11 libomp ncurses readline zlib libpng gsl wxwidgets graphicsmagick libtiff libgeotiff netcdf hdf5 fftw proj open-mpi python numpy udunits eigen
+        eccodes glpk shapelib expat gcc@11 qhull dylibbundler
     ) # JP 2021 Mar 21: HDF4 isn't available - not so critical I guess
       # JP 2021 May 25: Added GCC 10 which includes libgfortran, which the numpy tap relies on.
+      # J-KL 2022 July 30: GCC 10 didn't work with apple silicon mac. So I replaced it with GCC 11
+      # GD Feb 2023: brew cannot recompile plplot --- will install plplot ourselves
+      # GD added dylibbundler that simplify building correct apps.
 else
     log "Fatal error! Unknown OS: ${BUILD_OS}. This script only supports one of: Windows, Linux, macOS."
     exit 1
@@ -262,6 +314,15 @@ function prep_packages {
         for package_name in ${MSYS2_PACKAGES_REBUILD[@]}; do
             build_msys2_package $package_name
         done
+	
+	pushd ${ROOT_DIR}
+        download_file "https://github.com/qhull/qhull/archive/refs/tags/2020.2.zip"
+        decompress_file
+        log "Building qhull..."
+        pushd qhull-2020.2
+        make SO=dll || exit 1
+        popd
+	popd
 
         download_file ${BSDXDR_URL}
         decompress_file
@@ -274,11 +335,11 @@ function prep_packages {
         if [ ${DRY_RUN} == "true" ]; then
             log "Please run below command to install bsd-xdr prior to build GDL."
             echo cp -f mingw/*.dll /${mname}/bin/
-            echo cp -f mingw/libbsdxdr.dll.a /${mname}/lib/
+            echo cp -f mingw/*.a /${mname}/lib/
             echo cp -rf rpc /${mname}/include/
         else
             cp -f mingw/*.dll /${mname}/bin/
-            cp -f mingw/libbsdxdr.dll.a /${mname}/lib/
+            cp -f mingw/*.a /${mname}/lib/
             cp -rf rpc /${mname}/include/
         fi
         popd
@@ -297,9 +358,19 @@ function prep_packages {
                 fi
             done
         done
+
+	pushd ${ROOT_DIR}
+        download_file "https://github.com/qhull/qhull/archive/refs/tags/2020.2.zip"
+        decompress_file
+        log "Building qhull..."
+        pushd qhull-2020.2
+        make || exit 1
+        popd
+	popd
+
         if [[ -z ${INSTALL_PACKAGES} ]]; then
             log "All required packages are already installed on your system."
-	else
+	    else
             log "Installing packages:"
             log "${INSTALL_PACKAGES}"
             if [ ${DRY_RUN} == "true" ]; then
@@ -315,7 +386,6 @@ function prep_packages {
             exit 1
         fi
         brew update-reset
-        brew unlink python@2
         log "Installing packages: ${BREW_PACKAGES[@]}"
         if [ ${DRY_RUN} == "true" ]; then
             log "Please run below command to install required packages to build GDL."
@@ -323,9 +393,19 @@ function prep_packages {
         else
             eval "brew install ${BREW_PACKAGES[@]}"
         fi
-        log "Installing plplot..."
-        brew --cache plplot
-        bash $GDL_DIR/scripts/deps/macos/brew_enable_wxwidgets
+	    pushd ${ROOT_DIR}
+           git clone https://github.com/PLplot/PLplot.git
+           pushd ${ROOT_DIR}/PLplot
+             mkdir build
+             pushd ${ROOT_DIR}/PLplot/build
+             cmake .. -DCMAKE_INSTALL_PREFIX=$(brew --prefix) -DENABLE_octave=OFF -DENABLE_qt=OFF -DENABLE_lua=OFF \
+             -DENABLE_tk=OFF -DENABLE_python=OFF -DENABLE_tcl=OFF -DPLD_xcairo=OFF -DPLD_wxwidgets=ON -DENABLE_wxwidgets=ON \
+             -DENABLE_DYNDRIVERS=ON -DENABLE_java=OFF -DPLD_xwin=ON -DENABLE_fortran=OFF
+             make
+             make install
+             popd
+           popd
+        popd
     fi
 }
 
@@ -355,6 +435,7 @@ function configure_gdl {
 
     mkdir -p ${ROOT_DIR}/build
     cd ${ROOT_DIR}/build
+    rm -f CMakeCache.txt  #each 'build' resets cmake, which is safer!
 
     if [ ${BUILD_OS} == "Windows" ]; then
         GENERATOR="MSYS Makefiles"
@@ -363,52 +444,43 @@ function configure_gdl {
     fi
     
     if [[ ${BUILD_OS} == "macOS" ]]; then
-        export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/opt/llvm/lib
-        CMAKE_ADDITIONAL_ARGS=( "-DREADLINEDIR=/usr/local/opt/readline"
-                                "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++"
-                                "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang" )
-    fi
-    
-    WITH_MPI="ON"
-    if [[ ${DEPS} == "standard" ]]; then
-        WITH_MPI="OFF"
-    fi
-
-    WITH_WXWIDGETS="ON"
-    if [[ ${DEPS} == "headless" ]]; then
-        WITH_WXWIDGETS="OFF"
-    fi
-
-    if [[ ${BUILD_OS} == "macOS" ]]; then
-        WITH_HDF4="OFF"
-    else 
-        zz=`grep -i opensuse /etc/*-release 2> /dev/null`
-        if [[ -n $zz ]]; then
-            # in case of openSUSE
-            WITH_HDF4="OFF"
-            WITH_GRIB="OFF"
+        if [[ ${Platform} == "arm64" ]]; then
+            export LIBRARY_PATH=$LIBRARY_PATH:/opt/homebrew/opt/llvm/lib
+            CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF -DREADLINEDIR=/opt/homebrew/opt/readline"
+                                    "-DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++"
+                                    "-DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang" ) 
         else
-            # other distros
-            WITH_HDF4="ON"
-            WITH_GRIB="ON"
+            export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/opt/llvm/lib
+            CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF -DREADLINEDIR=/usr/local/opt/readline"
+                                    "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++"
+                                    "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang" )
         fi
+    fi
+
+    if [[ ${BUILD_OS} != "macOS" ]]; then
+        CMAKE_QHULLDIR_OPT="-DQHULLDIR="${ROOT_DIR}"/qhull-2020.2"
+    else
+        CMAKE_QHULLDIR_OPT=""
     fi
 
     if [ ${BUILD_OS} == "Windows" ]; then
         export WX_CONFIG=${GDL_DIR}/scripts/deps/windows/wx-config-wrapper
     fi
-    #interactive graphics added as we do not want the compilation to fail on systems where plplot is not correctly installed. The intent was to
-    #force distro packagers to include the plplot drivers in the dependency of the GDL package, not annoy the users of this script.
+    # The INTERACTIVE_GRAPHICS option is removed. 
+    # Now plplot drivers ARE shipped with GDL as we patched them to correct bugs and provide real 3D.
+    # In 'deps' we force plplot to be recompiled with DYNAMIC drivers for OSX --and test if not the case for unix.
+    # then it is a matter of depositing the drivers in the windows PATH as plplot uses lt_dlopenext() that search in the PATH.
     cmake ${GDL_DIR} -G"${GENERATOR}" \
         -DCMAKE_BUILD_TYPE=${Configuration} \
         -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
-        -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
-        -DWXWIDGETS=${WITH_WXWIDGETS} -DGRAPHICSMAGICK=ON \
-        -DNETCDF=ON -DHDF=${WITH_HDF4} -DHDF5=ON \
-        -DMPI=${WITH_MPI} -DTIFF=ON -DGEOTIFF=ON \
-        -DLIBPROJ=ON -DPYTHON=ON -DPYTHONVERSION=${PYTHONVERSION} -DFFTW=ON \
-        -DUDUNITS2=ON -DGLPK=ON -DGRIB=${WITH_GRIB} \
-        -DUSE_WINGDI_NOT_WINGCC=ON -DINTERACTIVE_GRAPHICS=OFF ${CMAKE_ADDITIONAL_ARGS[@]}
+        -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} -DOPENMP=${WITH_OPENMP} \
+        -DWXWIDGETS=${WITH_WXWIDGETS} -DX11={WITH_X11} -DGRAPHICSMAGICK=${WITH_GRAPHICSMAGICK} \
+        -DNETCDF=${WITH_NETCDF} -DHDF=${WITH_HDF4} -DHDF5=${WITH_HDF5} \
+        -DMPI=${WITH_MPI} -DTIFF=${WITH_TIFF} -DGEOTIFF=${WITH_GEOTIFF} \
+        -DLIBPROJ=${WITH_LIBPROJ} -DPYTHON=${WITH_PYTHON} -DPYTHONVERSION=${PYTHONVERSION} -DFFTW=${WITH_FFTW} \
+        -DUDUNITS2=${WITH_UDUNITS2} -DGLPK=${WITH_GLPK} -DGRIB=${WITH_GRIB} \
+         ${CMAKE_ADDITIONAL_ARGS[@]} ${CMAKE_QHULLDIR_OPT} \
+        -DMACHINE_ARCH=${Platform}
 }
 
 function build_gdl {
@@ -436,18 +508,46 @@ function install_gdl {
     make install || exit 1
 
     cd ${ROOT_DIR}/install
-
+    echo "ROOT_DIR="${ROOT_DIR} 
     if [ ${BUILD_OS} == "Windows" ]; then
         log "Copying DLLs to install directory..."
         found_dlls=()
         find_dlls ${ROOT_DIR}/build/src/gdl.exe
+        PYTHON_DLL=`ldd ${ROOT_DIR}/build/src/gdl.exe | tr '[:upper:]' '[:lower:]' | grep python | xargs | cut -d' ' -f3`
+        PLPLOT_DRV_DLL=`ls ${ROOT_DIR}/build/src/plplotdriver/*.dll`
+        if [[ -n "${PYTHON_DLL}" ]]; then
+            cp -f "${PYTHON_DLL}" bin/
+        fi
+
+        if [[ $WITH_UDUNITS2 == "ON" ]]; then
+            log "Copying udunits xml files to install directory..."
+            cp -rf /${mname}/share/udunits share/
+        fi
+
+#        #this ensures that we overcome the bug in plplot version for Windows that does not know about PLPLOT_DRV_DIR env. var.
+        log "Copying our drivers to same directory as gdl.."
+        if [[ -n "${PLPLOT_DRV_DLL}" ]]; then
+          for f in ${PLPLOT_DRV_DLL}; do
+            cp -f "$f" bin/
+          done
+        fi
         for f in ${found_dlls[@]}; do
             cp -f "$f" bin/
         done
         
-        log "Copying plplot drivers to install directory..."
+        log "Copying plplot stuff (not drivers) to install directory..."
         mkdir -p share
         cp -rf /${mname}/share/plplot* share/
+        rm -rf share/plplot*/examples
+        rm -rf share/plplot*/ss
+        rm -rf share/plplot*/tcl
+        rm -rf share/plplot*/*.shx
+        rm -rf share/plplot*/*.shp
+        rm -rf share/plplot*/*.tcl
+
+        #with PROJ7, needs proj.db, and serachs for it at '"where libproj.dll is"/../share/proj so we do the same
+        log "Copying PROJ database at correct location"
+        cp -rf /${mname}/share/proj share/
 
         log "Copying GraphicsMagick drivers to install directory..."
         mkdir -p lib
@@ -460,11 +560,25 @@ function test_gdl {
     log "Testing GDL..."
     cd ${ROOT_DIR}/build
     if [ -f ${GDL_DIR}/CMakeModules/CodeCoverage.cmake ]; then
-        make codecov
+        make codecov || exit 1
     else
-        make test
+        CTEST_OUTPUT_ON_FAILURE=1 make test || exit 1
     fi
 }
+
+#function copy_dylibs_recursive {
+#    install_name_tool -add_rpath $2 $1
+#    #copy libraries in the form /usr/local/lib/xxx ...
+#    for dylib in $(otool -L $1 | grep $(brew --prefix) | sed 's; \(.*\);;' | xargs); do
+#        install_name_tool -change $dylib @rpath/$(basename ${dylib}) $1
+#        if [[ ! ${found_dylibs[@]} =~ (^|[[:space:]])"$dylib"($|[[:space:]]) ]]; then
+#            found_dylibs+=("${dylib}")
+#            echo "Copying $(basename ${dylib})..."
+#            cp $dylib $3/
+#            copy_dylibs_recursive $3/$(basename ${dylib}) @executable_path/. $3
+#        fi
+#    done
+#}
 
 function pack_gdl {
     log "Packaging GDL..."
@@ -481,26 +595,94 @@ function pack_gdl {
         export GDL_INSTALL_DIR=`cygpath -w ${ROOT_DIR}/install`
         export GDL_VERSION=`grep -oP 'set\(VERSION "\K.+(?="\))' ${GDL_DIR}/CMakeLists.txt`
         makensis -V3 ${GDL_DIR}/scripts/deps/windows/gdlsetup.nsi
+    elif [ ${BUILD_OS} == "macOS" ]; then
+        mkdir -p "${ROOT_DIR}/package/GNU Data Language.app/Contents"
+        cd "${ROOT_DIR}/package/GNU Data Language.app/Contents"
+
+        mkdir MacOS
+        echo "#!/bin/sh" > MacOS/gdl
+        echo 'export ARCHPREFERENCE="arm64,x86_64" ' >> MacOS/gdl
+        echo 'SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"' >> MacOS/gdl
+        echo 'open -a Terminal "${SCRIPTPATH}/../Resources/bin/gdl"' >> MacOS/gdl
+        chmod +x MacOS/gdl
+
+        mkdir Resources
+        cp -R ${ROOT_DIR}/install/* Resources/
+        cp ${GDL_DIR}/resource/gdl.icns Resources/
+
+        mkdir Resources/libs
+        dylibbundler -od -b -s $(brew --prefix)/lib/ -x Resources/bin/gdl -d Resources/libs
+#        mkdir Frameworks
+#        #GD: found the need to have @rpath libs changed to their fixed paths to insure copy_dylibs_recursive find and copy them (to export via a DMG)
+#        # This seems more complicated to do inside copy_dylibs_recursive as it is, recursive.
+#        for dylib in $(otool -l Resources/bin/gdl | grep @rpath | sed -e "s%name %%g;s%(.*)%%g" | xargs); do install_name_tool -change $dylib $(brew --prefix)/lib/`basename $dylib` Resources/bin/gdl; done
+#        #add dependency of plplot.
+#        found_dylibs=()
+#        copy_dylibs_recursive Resources/bin/gdl @executable_path/../../Frameworks Frameworks
+#        cp -pa $(brew --prefix)/lib/libcsirocsa.*dylib Frameworks #copy link possible
+#        cp -pa $(brew --prefix)/lib/libqsastime.*dylib Frameworks #copy link possible
+#        cp  $(brew --prefix)/lib/libsz.*dylib Frameworks #copy link impossible
+#
+        echo '<?xml version="1.0" encoding="UTF-8"?>' > Info.plist
+        echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> Info.plist
+        echo '<plist version="1.0">' >> Info.plist
+        echo '  <dict>' >> Info.plist
+        echo '    <key>CFBundleExecutable</key>' >> Info.plist
+        echo '    <string>gdl</string>' >> Info.plist
+        echo '    <key>CFBundleIconFile</key>' >> Info.plist
+        echo '    <string>gdl</string>' >> Info.plist
+        echo '  </dict>' >> Info.plist
+        echo '</plist>' >> Info.plist
+
+        cd "${ROOT_DIR}/package"
+        download_file "https://github.com/gnudatalanguage/gdlde/releases/download/${GDLDE_VERSION}/gdlde.product-macosx.cocoa.x86_64.zip"
+        decompress_file
+        rm gdlde.product-macosx.cocoa.x86_64.zip
+        mv Eclipse.app "GDL Workbench.app" # TODO: this should not be necessary
     fi
 }
 
 function prep_deploy {
-    if [ ${BUILD_OS} == "Windows" ]; then
-        cd ${GDL_DIR}
-        mv gdlsetup.exe gdlsetup-${BUILD_OS}-${arch}-${DEPS}.exe
-    fi
-    cd ${ROOT_DIR}/install
-    zip -qr ${GDL_DIR}/gdl-${BUILD_OS}-${arch}-${DEPS}.zip *
     cd ${GDL_DIR}
+    if [ ${BUILD_OS} == "macOS" ]; then
+        hdiutil create "gdl-${BUILD_OS}-${arch}-${DEPS}.dmg" -ov -volname "GNU Data Language" -fs HFS+ -srcfolder "${ROOT_DIR}/package"
+    else
+        if [ ${BUILD_OS} == "Windows" ]; then
+            mv gdlsetup.exe gdlsetup-${BUILD_OS}-${arch}-${DEPS}.exe
+        fi
+        cd ${ROOT_DIR}/install
+        zip -qr ${GDL_DIR}/gdl-${BUILD_OS}-${arch}-${DEPS}.zip *
+    fi
 }
 
-AVAILABLE_OPTIONS="prep prep_dryrun configure build install check pack prep_deploy"
+function test_antlr {
+    if ! which runantlr &> /dev/null; then
+        log "ANTLR could not be found, try installing..."
+        find_pkgmgr
+        eval "sudo ${PKGMGR} ${PKGINSTALLARG} -y antlr"
+    fi
+    pushd ${GDL_DIR}/src
+        for i in *.g; do
+            runantlr $i
+        done
+        git diff -G -b '(^[ANTLR 2.7.7 (])' | tee diff.log
+        if [ `cat diff.log | wc -l` -gt 0 ]; then
+            log "Error: Compiled ANTLR files do not match!"
+            exit 1
+        fi
+        log "Compiled ANTLR files match!"
+    popd
+}
+
+AVAILABLE_OPTIONS="prep prep_dryrun configure build install check test antlr pack prep_deploy"
 AVAILABLE_OPTIONS_prep=prep_packages
 AVAILABLE_OPTIONS_prep_dryrun=prep_packages_dryrun
 AVAILABLE_OPTIONS_configure=configure_gdl
 AVAILABLE_OPTIONS_build=build_gdl
 AVAILABLE_OPTIONS_install=install_gdl
 AVAILABLE_OPTIONS_check=test_gdl
+AVAILABLE_OPTIONS_test=test_gdl
+AVAILABLE_OPTIONS_antlr=test_antlr
 AVAILABLE_OPTIONS_pack=pack_gdl
 AVAILABLE_OPTIONS_prep_deploy=prep_deploy
 
@@ -512,7 +694,7 @@ else
             if [ ${BUILD_OS} == "Windows" ]; then
                 find_architecture
             else
-                export arch="x86_64"
+                export arch=$(uname -m)
             fi
             cmd=AVAILABLE_OPTIONS_$optkey
             eval ${!cmd}

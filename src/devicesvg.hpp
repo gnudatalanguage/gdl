@@ -20,7 +20,7 @@
 
 #include "gdlsvgstream.hpp"
 
-static const float SVG_CM2IN = (1.0 / 2.54) ;
+static const float SVG_CM2IN = (1.0 / INCHToCM) ;
 static const float SVG_RESOL = 1000.0; // per cm
 static const PLFLT SVG_DPI = 72; 
 
@@ -47,7 +47,6 @@ class DeviceSVG : public GraphicsDevice
 
     if( nx <= 0) nx = 1;
     if( ny <= 0) ny = 1;
-
     actStream = new GDLSVGStream( nx, ny);
 
     actStream->sfnam( fileName.c_str());
@@ -67,20 +66,19 @@ class DeviceSVG : public GraphicsDevice
     actStream->scolbg(255,255,255); // start with a white background
 
     actStream->Init();
-    
+
     // need to be called initially. permit to fix things
-    actStream->ssub(1,1);
-    actStream->adv(0);
+    actStream->plstream::ssub(1, 1); // plstream below stays with ONLY ONE page
+    actStream->plstream::adv(0); //-->this one is the 1st and only pladv
     // load font
-    actStream->font( 1);
-    actStream->vpor(0,1,0,1);
-    actStream->wind(0,1,0,1);
+    actStream->plstream::font(1);
+    actStream->plstream::vpor(0, 1, 0, 1);
+    actStream->plstream::wind(0, 1, 0, 1);
+
+    actStream->ssub(1, 1);
+    actStream->SetPageDPMM();
     actStream->DefaultCharSize();
-//   //in case these are not initalized, here is a good place to do it.
-//    if (actStream->updatePageInfo()==true)
-//    {
-//        actStream->GetPlplotDefaultCharSize(); //initializes everything in fact..
-//    }
+    actStream->adv(0); //this is for us (counters) //needs DefaultCharSize
   }
 
 public:
@@ -110,7 +108,7 @@ public:
     dStruct->InitTag("FILL_DIST",  DLongGDL( 0)); 
     dStruct->InitTag("WINDOW",     DLongGDL( -1)); 
     dStruct->InitTag("UNIT",       DLongGDL( 0)); 
-    dStruct->InitTag("FLAGS",      DLongGDL( 266807)); 
+    dStruct->InitTag("FLAGS",      DLongGDL( 266807)); //if 266295 (i.e., not a "PRINTER") ERASE would work on it, but it is probably not what we want. 
     dStruct->InitTag("ORIGIN",     origin); 
     dStruct->InitTag("ZOOM",       zoom); 
     
@@ -200,10 +198,6 @@ public:
       DLong FLAG=(*static_cast<DLongGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("FLAGS"))))[0];
         (*static_cast<DLongGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("FLAGS"))))[0]=FLAG&(~16); //set monochrome device
       }
-      //trick, to be repeated in Decomposed()
-      DLong FLAG=(*static_cast<DLongGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("FLAGS"))))[0];
-      if (decomposed==1 && color==1) (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("FLAGS"), 0)))[0]= FLAG&(~512); //remove flag 'printer' since logic does not work with ps drive
-      else (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("FLAGS"), 0)))[0]= FLAG|(512); //set Flag printer
     return true;
   }
 
@@ -223,7 +217,6 @@ public:
 
   bool SetScale(float value)
   {
-      //no effect for postscript in IDL up to 8 (?)
     //    scale = value;
     return true;
   }

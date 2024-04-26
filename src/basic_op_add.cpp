@@ -22,8 +22,6 @@
 #include <omp.h>
 #endif
 
-//#include "datatypes.hpp" // for friend declaration
-#include "nullgdl.hpp"
 #include "dinterpreter.hpp"
 
 // needed with gcc-3.3.2
@@ -35,14 +33,12 @@
 // right must always have more or same number of elements
 template<class Sp>
 BaseGDL* Data_<Sp>::Add( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   
   
   Data_* right=static_cast<Data_*>(r);
 
-  // ULong rEl=right->N_Elements();
   ULong nEl=N_Elements();
-  // assert( rEl);
   assert( nEl);
   if( nEl == 1)
     {
@@ -57,57 +53,54 @@ BaseGDL* Data_<Sp>::Add( BaseGDL* r)
 	return this;
 #else
 
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for
-      for( OMPInt i=0; i < nEl; ++i)
-	(*this)[i] += (*right)[i];
-    }  //C delete right;
+	if ((GDL_NTHREADS=parallelize( nEl))==1) {
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] += (*right)[i];
+    } else {
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel for  num_threads(GDL_NTHREADS)
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] += (*right)[i];
+    }
   return this;
 #endif
   
 }
 template<class Sp>
 BaseGDL* Data_<Sp>::AddInv( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   assert( this->Type() != GDL_OBJ); // should never be called via this
   return Add( r); // this needs to be modified
 }
 template<>
 BaseGDL* Data_<SpDString>::AddInv( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right=static_cast<Data_*>(r);
 
-  // ULong rEl=right->N_Elements();
   ULong nEl=N_Elements();
-  // assert( rEl);
   assert( nEl);
   if( nEl == 1)
     {
       (*this)[0] = (*right)[0] + (*this)[0];
       return this;
     }
-  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for
-      for( OMPInt i=0; i < nEl; ++i)
-	(*this)[i] = (*right)[i] + (*this)[i];
-    }  //C delete right;
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] = (*right)[i] + (*this)[i];
+    } else {
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] = (*right)[i] + (*this)[i];
+    } 
   return this;
 }
 // invalid types
 template<>
 BaseGDL* Data_<SpDPtr>::Add( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 BaseGDL* Data_<SpDObj>::Add( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   // overload here
   Data_* self;
   DSubUD* plusOverload;
@@ -132,7 +125,6 @@ BaseGDL* Data_<SpDObj>::Add( BaseGDL* r)
   }
   else
   {
-    // Scalar()
     self = static_cast<Data_*>( this);
     plusOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( (*self)[0], OOPlus));
     if( plusOverload == NULL)
@@ -212,7 +204,7 @@ BaseGDL* Data_<SpDObj>::Add( BaseGDL* r)
 // difference from above: Order of parameters in call
 template<>
 BaseGDL* Data_<SpDObj>::AddInv( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( r->Type() == GDL_OBJ && r->Scalar())
   {
     return r->Add( this); // for right order of parameters
@@ -230,7 +222,6 @@ BaseGDL* Data_<SpDObj>::AddInv( BaseGDL* r)
   }
   else
   {
-    // Scalar()
     self = static_cast<Data_*>( this);
     plusOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( (*self)[0], OOPlus));
     if( plusOverload == NULL)
@@ -300,90 +291,82 @@ BaseGDL* Data_<SpDObj>::AddInv( BaseGDL* r)
 
 template<class Sp>
 BaseGDL* Data_<Sp>::AddS( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right=static_cast<Data_*>(r);
 
   ULong nEl=N_Elements();
   assert( nEl);
-  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   if( nEl == 1)
     {
       (*this)[0] += (*right)[0];
       return this;
     }
   Ty s = (*right)[0];
-  // right->Scalar(s);
-  //  dd += s;
 #ifdef USE_EIGEN
 
         Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
 	mThis += s;
 	return this;
 #else
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for
-      for( OMPInt i=0; i < nEl; ++i)
-	(*this)[i] += s;
-    }  //C delete right;
+	if ((GDL_NTHREADS=parallelize( nEl))==1) {
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] += s;
+    } else {
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] += s;
+    }
   return this;
 #endif
   
 }
 template<>
 BaseGDL* Data_<SpDString>::AddS( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right=static_cast<Data_*>(r);
 
   ULong nEl=N_Elements();
   assert( nEl);
-  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   if( nEl == 1)
     {
       (*this)[0] += (*right)[0];
       return this;
     }
   Ty s = (*right)[0];
-  // right->Scalar(s);
-  //  dd += s;
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for
-      for( OMPInt i=0; i < nEl; ++i)
-	(*this)[i] += s;
-    }  //C delete right;
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] += s;
+    } else {
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] += s;
+    }
   return this;
 }
 
 template<class Sp>
 BaseGDL* Data_<Sp>::AddInvS( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return AddS( r);
 }
 template<>
 BaseGDL* Data_<SpDString>::AddInvS( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right=static_cast<Data_*>(r);
 
   ULong nEl=N_Elements();
   assert( nEl);
-  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   if( nEl == 1)
     {
       (*this)[0] = (*right)[0] + (*this)[0] ;
       return this;
     }
   Ty s = (*right)[0];
-  // right->Scalar(s);
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for
-      for( OMPInt i=0; i < nEl; ++i)
-	(*this)[i] = s + (*this)[i];
-    }  //C delete right;
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] = s + (*this)[i];
+    } else {
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] = s + (*this)[i];
+    }
   return this;
   
 }
@@ -391,18 +374,18 @@ BaseGDL* Data_<SpDString>::AddInvS( BaseGDL* r)
 // invalid types
 template<>
 BaseGDL* Data_<SpDPtr>::AddS( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 BaseGDL* Data_<SpDObj>::AddS( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return Add( r);
 }
 template<>
 BaseGDL* Data_<SpDObj>::AddInvS( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return AddInv( r);
 }
 

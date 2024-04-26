@@ -16,7 +16,6 @@
  ***************************************************************************/
 
 /*
-
   using the Besel functions provided by GSL
 
   http://www.physics.ohio-state.edu/~ntg/780/gsl_examples/J0_test.cpp
@@ -65,7 +64,7 @@
   DType t0 = e->GetParDefined(0)->Type();				\
 
 //no "//" comments in macro !!!!
-//if (t0 == GDL_COMPLEX || t0 == GDL_COMPLEXDBL)		\
+//if (t0 == GDL_COMPLEX || t0 == GDL_COMPLEXDBL)		
 //  e->Throw("Complex not implemented (GSL limitation). ");
 
 #define AC_2P1()							\
@@ -76,8 +75,8 @@
 									\
   if  (e->NParam() == 1)						\
     {									\
-      p1 = new DIntGDL(1, BaseGDL::NOZERO);				\
-      (*p1)[0]=0;							\
+      p1 = new DIntGDL(BaseGDL::NOZERO);				\
+      (*p1)[0]=0;        						\
       nElp1=1;								\
       t1 = GDL_INT;							\
       p1_float = new DFloatGDL(1, BaseGDL::NOZERO);			\
@@ -92,9 +91,11 @@
     }									\
 									\
   const double dzero = 0.0000000000000000000 ;				\
-									\
-  //    throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(1)); \
-  									\
+
+  //  cout << "helo " << t1 << " " << (*p1_float)[0] << " " << nElp1 << endl; \
+  //									\
+  //    throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(1)); 
+  									
   //  DType t1 = e->GetParDefined(1)->Type();				\
   //  if (t1 == GDL_COMPLEX || t1 == GDL_COMPLEXDBL)			\
   // e->Throw("Complex not implemented (GSL limitation). ");
@@ -208,6 +209,7 @@ namespace lib {
 
   BaseGDL* beseli_fun(EnvT* e)
   {
+
     AC_HELP();
     GM_5P0(1);
     AC_2P1();
@@ -539,6 +541,9 @@ namespace lib {
   // what does not work like IDL : warning messages when Inf/Nan or Zero/Negative X steps, X and Y not same size
 #define SPL_INIT_BIG double(1.0E30) 
   BaseGDL* spl_init_fun(EnvT* e) {
+    
+    e->NParam(2);
+
     static DInt doubleKWIx = e->KeywordIx("DOUBLE");
     bool isDouble = (e->GetParDefined(0)->Type() == GDL_DOUBLE || e->GetParDefined(1)->Type() == GDL_DOUBLE);
     if (e->KeywordSet(doubleKWIx)) isDouble = true;
@@ -579,11 +584,11 @@ namespace lib {
       firstderiv = yp1Ix;
       Yderiv0 = e->GetKW(firstderiv);
     }
-    DDoubleGDL* YP0;
+    DDoubleGDL* YP0=NULL;
     bool Yderiv0ok=false;
     if (Yderiv0 != NULL ) {
       YP0 = e->GetKWAs<DDoubleGDL>(firstderiv);
-      Yderiv0ok=(fabs((*YP0)[0])<SPL_INIT_BIG || isnan((*YP0)[0])); //apparently IDL stops considering second derivative if > SPL_INIT_BIG, but lets NaN pass.
+      Yderiv0ok=(fabs((*YP0)[0])<SPL_INIT_BIG || std::isnan((*YP0)[0])); //apparently IDL stops considering second derivative if > SPL_INIT_BIG, but lets NaN pass.
     }
 
 // follow same template even if there is only 1 KW?    
@@ -598,7 +603,7 @@ namespace lib {
     bool YderivNok=false;
     if (YderivN != NULL) {
       YPN = e->GetKWAs<DDoubleGDL>(secondderiv);
-      YderivNok=(fabs((*YPN)[0])<SPL_INIT_BIG || isnan((*YPN)[0]) ); //apparently IDL stops considering second derivative if > SPL_INIT_BIG, but lets NaN pass.
+      YderivNok=(fabs((*YPN)[0])<SPL_INIT_BIG || std::isnan((*YPN)[0]) ); //apparently IDL stops considering second derivative if > SPL_INIT_BIG, but lets NaN pass.
     }
     
     // we only issue a message
@@ -702,6 +707,7 @@ namespace lib {
     for (count = nElpXpos - 2; count != -1; --count) {
       (*res)[count] = (*res)[count]*(*res)[count + 1] + U[count];
     }
+    free(U); // see issue 1428
   givebackres:
     GM_CV0();
 
@@ -709,6 +715,9 @@ namespace lib {
 
   BaseGDL* spl_interp_fun( EnvT* e)
   {
+    
+    e->NParam(4);
+
     static DInt doubleKWIx = e->KeywordIx("DOUBLE");
     bool isDouble = (e->GetParDefined(0)->Type() == GDL_DOUBLE || e->GetParDefined(1)->Type() == GDL_DOUBLE || 
         e->GetParDefined(2)->Type() == GDL_DOUBLE || e->GetParDefined(3)->Type() == GDL_DOUBLE);
@@ -860,38 +869,38 @@ namespace lib {
       e->Throw( "Array must have 2 dimensions: "+ e->GetParString(0));
 
     switch (p0->Type()) {
-    case GDL_BYTE:{ long int a;
+    case GDL_BYTE:{ long int a=0;
       return Sobel_Template<DIntGDL>(static_cast<DByteGDL*>(p0),a);
     }
-    case GDL_INT: {long int a;
+    case GDL_INT: {long int a=0;
 	return Sobel_Template<DIntGDL>(static_cast<DIntGDL*> (p0),a);
     }
-    case GDL_UINT:{long int a;
+    case GDL_UINT:{long int a=0;
 	return Sobel_Template<DUIntGDL>(static_cast<DUIntGDL*> (p0),a);
     }
-    case GDL_LONG:{long int a;
+    case GDL_LONG:{long int a=0;
 	return Sobel_Template<DLongGDL>(static_cast<DLongGDL*> (p0),a);
     }
-    case GDL_ULONG:{long int a;
+    case GDL_ULONG:{long int a=0;
 	return Sobel_Template<DULongGDL>(static_cast<DULongGDL*> (p0),a);
     }
-    case GDL_LONG64:{DLong64 a;
+    case GDL_LONG64:{DLong64 a=0;
 	return Sobel_Template<DLong64GDL>(static_cast<DLong64GDL*> (p0),a);
     }
-    case GDL_ULONG64:{DLong64 a;
+    case GDL_ULONG64:{DLong64 a=0;
 	return Sobel_Template<DULong64GDL>(static_cast<DULong64GDL*> (p0),a);
     }
-    case GDL_FLOAT:{long double a;
+    case GDL_FLOAT:{long double a=0;
 	return Sobel_Template_floatingpointTypes<DFloatGDL>(static_cast<DFloatGDL*> (p0),a);
     }
-    case GDL_DOUBLE: {long double a;
+    case GDL_DOUBLE: {long double a=0;
 	return Sobel_Template_floatingpointTypes<DDoubleGDL>(static_cast<DDoubleGDL*> (p0),a);
     }
-    case GDL_COMPLEX: { long double a;
+    case GDL_COMPLEX: { long double a=0;
 	DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
 	return Sobel_Template_floatingpointTypes<DComplexGDL>(static_cast<DDoubleGDL*> (p0),a);
     }
-    case GDL_COMPLEXDBL:{long double a;
+    case GDL_COMPLEXDBL:{long double a=0;
 	DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
 	return Sobel_Template_floatingpointTypes<DComplexDblGDL>(static_cast<DDoubleGDL*> (p0),a);
     }
@@ -1008,38 +1017,38 @@ namespace lib {
 
     switch (p0->Type()) {
     case GDL_BYTE:{
-      long int a;
+      long int a=0;
       return Prewitt_Template<DIntGDL>(static_cast<DByteGDL*>(p0),a);
     }
-    case GDL_INT: {long int a;
+    case GDL_INT: {long int a=0;
 	return Prewitt_Template<DIntGDL>(static_cast<DIntGDL*> (p0),a);
     }
-    case GDL_UINT:{long int a;
+    case GDL_UINT:{long int a=0;
 	return Prewitt_Template<DUIntGDL>(static_cast<DUIntGDL*> (p0),a);
     }
-    case GDL_LONG:{long int a;
+    case GDL_LONG:{long int a=0;
 	return Prewitt_Template<DLongGDL>(static_cast<DLongGDL*> (p0),a);
     }
-    case GDL_ULONG:{long int a;
+    case GDL_ULONG:{long int a=0;
 	return Prewitt_Template<DULongGDL>(static_cast<DULongGDL*> (p0),a);
     }
-    case GDL_LONG64:{long int a;
+    case GDL_LONG64:{long int a=0;
 	return Prewitt_Template<DLong64GDL>(static_cast<DLong64GDL*> (p0),a);
     }
-    case GDL_ULONG64:{long int a;
+    case GDL_ULONG64:{long int a=0;
 	return Prewitt_Template<DULong64GDL>(static_cast<DULong64GDL*> (p0),a);
     }
-    case GDL_FLOAT:{long int a;
+    case GDL_FLOAT:{long int a=0;
 	return Prewitt_Template<DFloatGDL>(static_cast<DFloatGDL*> (p0),a);
     }
-    case GDL_DOUBLE: {long int a;
+    case GDL_DOUBLE: {long int a=0;
 	return Prewitt_Template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0),a);
     }
-    case GDL_COMPLEX: { long int a;
+    case GDL_COMPLEX: { long int a=0;
 	DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
 	return Prewitt_Template<DComplexGDL>(static_cast<DDoubleGDL*> (p0),a);
     }
-    case GDL_COMPLEXDBL:{long int a;
+    case GDL_COMPLEXDBL:{long int a=0;
 	DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
 	return Prewitt_Template<DComplexDblGDL>(static_cast<DDoubleGDL*> (p0),a);
     }
@@ -1051,7 +1060,7 @@ namespace lib {
 
   BaseGDL* erode_fun( EnvT* e){
 
-    SizeT nParam = e->NParam(1);
+    SizeT nParam = e->NParam(2);
 
     DIntGDL* p0 = e->GetParAs<DIntGDL>(0);
     DIntGDL* p1 = e->GetParAs<DIntGDL>(1);
@@ -1213,7 +1222,7 @@ namespace lib {
 
   BaseGDL* dilate_fun( EnvT* e)
   {
-    SizeT nParam = e->NParam(1);
+    SizeT nParam = e->NParam(2);
 
     DIntGDL* p0 = e->GetParAs<DIntGDL>(0);
     DIntGDL* p1 = e->GetParAs<DIntGDL>(1);
@@ -1368,6 +1377,9 @@ namespace lib {
 
   BaseGDL* matrix_multiply( EnvT* e)
   {
+     
+    e->NParam(2);
+
     BaseGDL* a = e->GetParDefined(0);
     BaseGDL* b = e->GetParDefined(1);
 

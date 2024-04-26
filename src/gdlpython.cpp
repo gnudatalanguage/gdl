@@ -54,7 +54,15 @@ void PythonInit()
   static char* arg0 = (char*)"./py/python.exe";
   static char* argv[] = {arg0};
 #endif
+
+// use new python configuration (PEP 587), legacy initialisation is marked deprecated in Python 3.11
+#if PY_VERSION_HEX >= 0x030B0000
+  PyConfig config;
+  PyConfig_InitPythonConfig(&config);
+  PyConfig_SetArgv(&config, argc, argv);
+#else
   PySys_SetArgv(argc, argv);
+#endif
 
   // http://docs.scipy.org/doc/numpy/reference/c-api.array.html#miscellaneous
   import_array();
@@ -127,27 +135,27 @@ BaseGDL* FromPython( PyObject* pyObj)
   if( array == NULL)
     throw GDLException( "Error getting python array.") ;
   
-  int nDim = array->nd;
+  int nDim = PyArray_NDIM(array);
   SizeT dimArr[ MAXRANK];
   if( nDim > MAXRANK)
     {
     Warning( "Python array has more than "+MAXRANK_STR+
 	     " dimensions. Extending last one."); 
-    SizeT lastDim = array->dimensions[ MAXRANK-1];
-    for( SizeT i=MAXRANK; i<nDim; ++i) lastDim *= array->dimensions[ i];
+    SizeT lastDim = PyArray_DIM(array, MAXRANK-1);
+    for( SizeT i=MAXRANK; i<nDim; ++i) lastDim *= PyArray_DIM(array, i);
     for( SizeT i=0; i<MAXRANK-1; ++i)
-      dimArr[ i] = array->dimensions[ i];
+      dimArr[ i] = PyArray_DIM(array, i);
     dimArr[ MAXRANK-1] = lastDim;
     nDim = MAXRANK;
     }
   else
     {
       for( SizeT i=0; i<nDim; ++i)
-	dimArr[ i] = array->dimensions[ i];
+	dimArr[ i] = PyArray_DIM(array, i);
     }
   dimension dim( dimArr, nDim);
 
-  switch( array->descr->type_num) 
+  switch( PyArray_DTYPE(array)->type_num)
     {
     case NPY_UINT8:   //GDL_BYTE
       return NewFromPyArrayObject< DByteGDL>( dim, array);
@@ -212,7 +220,14 @@ namespace lib {
 	  argv[i] = const_cast<char*>((*argvS)[ i].c_str()); 
 #endif
 
+// use new python configuration (PEP 587), legacy initialisation is marked deprecated in Python 3.11
+#if PY_VERSION_HEX >= 0x030B0000
+      PyConfig config;
+      PyConfig_InitPythonConfig(&config);
+      PyConfig_SetArgv(&config, argc, argv);
+#else
 	PySys_SetArgv(argc, argv);
+#endif
 	delete[] argv;
       }
 

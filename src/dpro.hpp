@@ -18,11 +18,10 @@
 #ifndef DPRO_HPP_
 #define DPRO_HPP_
 
-// #include <deque>
 #include <string>
 #include <algorithm>
 #include <vector>
-//#include <stack>
+#include <map>
 
 #include "basegdl.hpp"
 #include "dcommon.hpp"
@@ -36,7 +35,34 @@
       extern bool posixpaths;
     }
 #endif
-template<typename T>  class Is_eq: public std::unary_function<T,bool>
+    
+#define MAX_LOOPS_NUMBER 32
+    
+  typedef struct _SCC_STRUCT_ { //semicompiled code, small memory imprint (instead of a copy of the DNodes)
+	u_int nodeType = 0;
+	u_int ligne = 0;
+	u_int flags = 0;
+	u_int node = 0;
+	u_int right = 0L;
+	u_int down = 0;
+  BaseGDL* var  = NULL;
+	std::string Text;
+  } sccstruct;
+
+class DSubUD;
+typedef std::vector<sccstruct> SCCStructV;
+typedef std::map<DSubUD*, SCCStructV> SCCodeListT;
+typedef std::map<DSubUD*, SCCStructV>::iterator SCCodeListIterator;
+extern SCCodeListT     sccList;
+
+typedef std::map<DNode*,int> SCCodeAddresses;
+typedef std::map<DNode*,int>::iterator SCCodeAddressesIterator;
+
+typedef std::map<DSubUD*, RefDNode> CodeListT;
+typedef std::map<DSubUD*, RefDNode>::iterator CodeListIterator;
+extern CodeListT     codeList;
+    
+template<typename T>  class Is_eq: public std::function<bool(T)>
 {
   std::string name;
 public:
@@ -123,7 +149,7 @@ protected:
   int                 nPar;   // number of parameters (-1 = infinite)
   int                 nParMin;  // minimum number of parameters (-1 = infinite)
 
-  ExtraType           extra;
+  ExtraType           extra_type;
   int                 extraIx; // index of extra keyword
 
   IDList              warnKey;    // keyword names to accept but warn
@@ -131,7 +157,7 @@ protected:
 
 public:
   DSub( const std::string& n, const std::string& o=""): 
-    name(n), object(o), key(), nPar(0), nParMin(0), extra(NONE), extraIx(-1), warnKey() 
+    name(n), object(o), key(), nPar(0), nParMin(0), extra_type(NONE), extraIx(-1), warnKey() 
   {}
 
   virtual ~DSub(); // polymorphism
@@ -149,12 +175,12 @@ public:
     return object+"__"+name;
   }
 
-  ExtraType Extra() 
+  ExtraType GetExtraType() 
   {
-    return extra;
+    return extra_type;
   }
 
-  int ExtraIx() 
+  int GetExtraIx() 
   {
     return extraIx;
   }
@@ -199,7 +225,7 @@ class DLib: public DSub
 public:
   DLib( const std::string& n, const std::string& o, const int nPar_,
 	const std::string keyNames[],
-	const std::string warnKeyNames[], const int nParMin_);
+	const std::string warnKeyNames[], const int nParMin_, const bool use_threadpool=false);
 
   virtual const std::string ToString() = 0;
   
@@ -208,7 +234,7 @@ public:
 
   // for sorting lists by name. Not used (lists too short to make a time gain. Long lists would, if existing,
   // benefit from sorting by hash number in a std::map instead of a std::list.
-  struct CompLibFunName: public std::binary_function< DLib*, DLib*, bool>
+  struct CompLibFunName: public std::function<bool(DLib*, DLib*)>
   {
     bool operator() ( DLib* f1, DLib* f2) const
     { return f1->ObjectName() < f2->ObjectName();}
@@ -229,7 +255,7 @@ public:
   // on which a value is returned.
   DLibPro( LibPro p, const std::string& n, const int nPar_=0, 
 	   const std::string keyNames[]=NULL,
-	   const std::string warnKeyNames[]=NULL, const int nParMin_=0);
+	   const std::string warnKeyNames[]=NULL, const int nParMin_=0, const bool use_threadpool=false);
 
   DLibPro( LibPro p, const std::string& n, const std::string& o, 
 	   const int nPar_=0, 
@@ -248,7 +274,7 @@ class DLibFun: public DLib
 public:
   DLibFun( LibFun f, const std::string& n, const int nPar_=0, 
 	   const std::string keyNames[]=NULL,
-	   const std::string warnKeyNames[]=NULL, const int nParMin_=0);
+	   const std::string warnKeyNames[]=NULL, const int nParMin_=0, const bool use_threadpool=false);
 
   DLibFun( LibFun f, const std::string& n, const std::string& o, 
 	   const int nPar_=0, 
@@ -273,7 +299,7 @@ public:
 		 const std::string keyNames[]=NULL,
 		 const std::string warnKeyNames[]=NULL, bool rConstant=false, const int nParMin_=0);
 
-
+  
   DLibFunRetNew( LibFun f, const std::string& n, const std::string& o, 
 		 const int nPar_=0, 
 		 const std::string keyNames[]=NULL,
@@ -283,6 +309,17 @@ public:
   bool RetConstant() { return this->retConstant;}
 };
 
+class DLibFunRetNewTP: public DLibFun
+{
+  bool   retConstant; // means: can be pre-evaluated with constant input 
+public:
+  DLibFunRetNewTP( LibFun f, const std::string& n, const int nPar_=0, 
+		 const std::string keyNames[]=NULL,
+		 const std::string warnKeyNames[]=NULL, bool rConstant=false, const int nParMin_=0);
+
+  bool RetNew() { return true;}
+  bool RetConstant() { return this->retConstant;}
+};
 // direct call functions must have:
 // ony one parameter, no keywords
 // these functions are called "direct", no environment is created
@@ -297,7 +334,20 @@ public:
 //   bool RetNew() { return true;}
   bool DirectCall() { return true;}
 };
+//The ThreadPool supplementary options (TPOOL_NOTHREAD, etc) have no effect on DLibFunDirectTP
+//as the otions are NEVER checked by a DLibFunDirect, one can type a=sin(dist(4),/ezcezc) without problem.
+//This is a bug, but not noticed by the community, so let it be, as the changes woudl imply removing the Direct functions.
+class DLibFunDirectTP: public DLibFunRetNewTP
+{
+  LibFunDirect funDirect;
+public:
+  DLibFunDirectTP( LibFunDirect f, const std::string& n, bool retConstant_=true);
 
+  LibFunDirect FunDirect() { return funDirect;}
+
+//   bool RetNew() { return true;}
+  bool DirectCall() { return true;}
+};
 // UD pro/fun ********************************************************
 // function/procedure (differ because they are in different lists)
 // User Defined
@@ -309,7 +359,7 @@ class DSubUD: public DSub
 
   CommonBaseListT     common;      // common blocks or references 
   ProgNodeP           tree;        // the 'code'
-  unsigned int                 compileOpt;  // e.g. hidden or obsolete
+  unsigned int        compileOpt;  // e.g. hidden or obsolete
 
   LabelListT          labelList;
 
@@ -325,6 +375,9 @@ public:
   void Reset();
   void DelTree();
   void SetTree( ProgNodeP t) { tree = t;}
+  
+  //converts a SemiCompiledCode (chained list of DNodes) to a 'flat' vector of sccstruct and insert the vector in the map pointed by "sccList"
+  void SetSCC( RefDNode n);
 
   void AddCommon(DCommonBase* c) { common.push_back(c);}
   void DeleteLastAddedCommon(bool kill=true)
@@ -519,11 +572,21 @@ void ReName( SizeT ix, const std::string& s)
     return tree;
   }
 
+  SCCStructV* GetSCC()
+  {
+    //find Semicompiled code saved in codeList
+    SCCodeListIterator i = sccList.find(this);
+    if (i!=sccList.end()) return &((*i).second);
+    return NULL;
+  }
   unsigned int GetCompileOpt() { return compileOpt; }
   void SetCompileOpt(const unsigned int n) { compileOpt = n; }
+  void AddHiddenToCompileOpt();
   bool isObsolete();
   bool isHidden();
+  bool isGdlHidden();
   bool isStatic();
+  bool isNoSave();
 
   friend class EnvUDT;
 };
@@ -532,8 +595,8 @@ class DPro: public DSubUD
 {
 public:
   // for main function, not inserted into proList
-  // should be fine (way too much): 32 NESTED loops in $MAIN$ (elswhere: unlimited)
-  DPro(): DSubUD("$MAIN$","","") { this->nForLoops = 32;}
+  // should be fine (way too much): MAX_LOOPS_NUMBER (32?) NESTED loops in $MAIN$ (elswhere: unlimited)
+  DPro(): DSubUD("$MAIN$","","") { this->nForLoops = MAX_LOOPS_NUMBER;}
 
   DPro(const std::string& n,const std::string& o="",const std::string& f=""): 
     DSubUD(n,o,f)

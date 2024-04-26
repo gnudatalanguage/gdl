@@ -27,6 +27,7 @@
 #include "basic_pro_jmg.hpp"
 
 #include "gsl_fun.hpp"
+#include "histogram.hpp"
 #include "interpolate.hpp"
 #include "interpol.hpp"
 #include "image.hpp"
@@ -43,13 +44,15 @@
 #include "fftw.hpp"
 #endif
 
-#if defined(USE_EIGEN)
 #include "matrix_cholesky.hpp"
 #include "least_squares.hpp"
-#endif
-
 #include "matrix_invert.hpp"
 #include "triangulation.hpp"
+#include "eigenvalues_solvers.hpp"
+
+#ifdef HAVE_QHULL
+#include "qhull.hpp"
+#endif
 
 using namespace std;
 
@@ -81,7 +84,7 @@ void LibInit_jmg()
   // Since we have a difference between the IDL way and the Eigen way
   // we (temporary) remove these 2 codes in the CVS of GDL
   // Help welcome. 
-#if defined(USE_EIGEN)
+  //#if defined(USE_EIGEN)
   const string cholKey[]={"DOUBLE",KLISTEND};
   new DLibPro(lib::choldc_pro,string("CHOLDC"),2,cholKey);
   new DLibFunRetNew(lib::cholsol_fun,string("CHOLSOL"),3,cholKey);
@@ -91,13 +94,38 @@ void LibInit_jmg()
   new DLibPro(lib::la_choldc_pro,string("LA_CHOLDC"),1,lacholdcKey);
   const string lacholsolKey[]={"DOUBLE","STATUS",KLISTEND};
   new DLibFunRetNew(lib::la_cholsol_fun,string("LA_CHOLSOL"),2,lacholsolKey);
+  //#endif
 
   // Ilia N. & Alain C., Summer 2015
   const string laleastsquaresKey[]={"DOUBLE","METHOD","RANK","RCONDITION","RESIDUAL","STATUS",KLISTEND};
   new DLibFunRetNew(lib::la_least_squares_fun,string("LA_LEAST_SQUARES"),2,laleastsquaresKey);
 
-#endif
+  // square matrices , eispack 'old' free code, by GD.
+  
+  const string elmhesKey[]={"COLUMN", "DOUBLE", "NO_BALANCE",KLISTEND};
+  new DLibFunRetNew(lib::elmhes_fun,string("ELMHES"),1,elmhesKey);
 
+  // AC will return unavailability when compiled without Eigen
+  const string la_elmhesKey[]={"DOUBLE",KLISTEND};
+  const string la_elmhesWarnKey[]={"BALANCE","NORM_BALANCE","PERMUTE_RESULT","SCALE_RESULT",KLISTEND};
+  new DLibFunRetNew(lib::la_elmhes_fun,string("LA_ELMHES"),2,la_elmhesKey,la_elmhesWarnKey);
+
+  const string hqrKey[]={"COLUMN","DOUBLE",KLISTEND};
+  new DLibFunRetNew(lib::hqr_fun,string("HQR"),1,hqrKey);
+  
+  //GD: replaced la_trired from gsl by la_trired from eigen (if eigen is present) as it gives the same results as IDL's LA_TRIRED and is 5 times faster.
+  // AC: but if GDL compiled without Eigen, GSL version still here (see below) 
+#if defined(USE_EIGEN)
+  const string la_trired1Key[]={"DOUBLE","DEBUG",KLISTEND};
+  const string la_trired1WarnKey[]={"UPPER",KLISTEND};
+  new DLibPro(lib::la_trired_pro,string("LA_TRIRED"),3,la_trired1Key,la_trired1WarnKey);
+#endif
+  
+  const string triredKey[]={"DOUBLE",KLISTEND};
+  new DLibPro(lib::trired_pro,string("TRIRED"),3,triredKey);
+  const string triqlKey[]={"DOUBLE",KLISTEND};
+  new DLibPro(lib::triql_pro,string("TRIQL"),3,triqlKey);
+    
 #if defined(HAVE_LIBGSL) && defined(HAVE_LIBGSLCBLAS)
   
   const string invertKey[]={"DOUBLE","GSL","EIGEN",KLISTEND};
@@ -106,9 +134,9 @@ void LibInit_jmg()
   // if FFTw not available, FFT in the GSL used (slower)
   const string fftKey[]={"DOUBLE","INVERSE","OVERWRITE","DIMENSION","CENTER",KLISTEND};
 #if defined(USE_FFTW)
-  new DLibFun(lib::fftw_fun,string("FFT"),2,fftKey);
+  new DLibFun(lib::fftw_fun,string("FFT"),2,fftKey,NULL,0,true);  //UsesThreadPOOL 
 #else
-  new DLibFun(lib::fft_fun,string("FFT"),2,fftKey);
+  new DLibFun(lib::fft_fun,string("FFT"),2,fftKey); 
 #endif
 
   const string randomKey[]={"DOUBLE","GAMMA","LONG","NORMAL",
@@ -126,13 +154,16 @@ void LibInit_jmg()
   new DLibFunRetNew(lib::histogram_fun,string("HISTOGRAM"),1,histogramKey,histogramWarnKey);
   
   const string interpolKey[]={ "LSQUADRATIC","NAN", "QUADRATIC", "SPLINE" ,KLISTEND};
-  new DLibFunRetNew(lib::interpol_fun,string("INTERPOL"),3,interpolKey);
+  new DLibFunRetNew(lib::interpol_fun,string("GDL_INTERPOL"),3,interpolKey); //internal function, we use interpol.pro to sort x and y in the 3 parameter case.
   
   const string interpolateKey[]={"CUBIC","DOUBLE","GRID","MISSING","NEAREST_NEIGHBOUR",KLISTEND};
-  new DLibFunRetNew(lib::interpolate_fun,string("INTERPOLATE"),4,interpolateKey);
+  new DLibFunRetNewTP(lib::interpolate_fun,string("INTERPOLATE"),4,interpolateKey);  //UsesThreadPOOL 
 
-  const string la_triredKey[]={"DOUBLE","UPPER",KLISTEND};
+  //GD: replaced la_trired from gsl by la_trired from eigen (if eigen is present) as it gives the same results as IDL's LA_TRIRED and is 5 times faster.
+#if  !defined(USE_EIGEN)
+  const string la_triredKey[]={"DOUBLE","UPPER","DEBUG",KLISTEND};
   new DLibPro(lib::la_trired_pro,string("LA_TRIRED"),3,la_triredKey);
+#endif
 #endif
 
   const string macharKey[]={"DOUBLE",KLISTEND};
@@ -140,12 +171,10 @@ void LibInit_jmg()
 
 #if defined(USE_LIBPROJ)
   const string map_proj_forwardKey[]={"MAP_STRUCTURE","RADIANS","POLYGONS","POLYLINES","CONNECTIVITY","FILL",KLISTEND};  //WARNING FIXED ORDER for GetMapAsMapStructureKeyword()
-  new DLibFunRetNew(lib::map_proj_forward_fun,
-	      string("MAP_PROJ_FORWARD"),2,map_proj_forwardKey,NULL);
+  new DLibFunRetNewTP(lib::map_proj_forward_fun,string("MAP_PROJ_FORWARD"),2,map_proj_forwardKey,NULL);  //UsesThreadPOOL 
 
   const string map_proj_inverseKey[]={"MAP_STRUCTURE","RADIANS",KLISTEND}; //WARNING FIXED ORDER for GetMapAsMapStructureKeyword()
-  new DLibFunRetNew(lib::map_proj_inverse_fun,
-	      string("MAP_PROJ_INVERSE"),2,map_proj_inverseKey);
+  new DLibFunRetNewTP(lib::map_proj_inverse_fun,string("MAP_PROJ_INVERSE"),2,map_proj_inverseKey);  //UsesThreadPOOL 
 //dummy functions for compatibility support of GCTP projections 
   new DLibPro(lib::map_proj_gctp_forinit,string("MAP_PROJ_GCTP_FORINIT"),4);
   new DLibPro(lib::map_proj_gctp_revinit,string("MAP_PROJ_GCTP_REVINIT"),4);
@@ -160,12 +189,12 @@ void LibInit_jmg()
 
 
   const string finiteKey[]={"INFINITY","NAN","SIGN",KLISTEND};
-  new DLibFunRetNew(lib::finite_fun,string("FINITE"),1,finiteKey);
+  new DLibFunRetNewTP(lib::finite_fun,string("FINITE"),1,finiteKey);  //UsesThreadPOOL 
 
   const string radonKey[]={"BACKPROJECT","DOUBLE","DRHO","DX","DY",
 			   "GRAY","LINEAR","NRHO","NTHETA","NX","NY",
 			   "RHO","RMIN","THETA","XMIN","YMIN",KLISTEND};
-  new DLibFunRetNew(lib::radon_fun,string("RADON"),1,radonKey);
+  new DLibFunRetNewTP(lib::radon_fun,string("RADON"),1,radonKey);
   
 
   const string grid_inputKey[]={"SPHERE", "POLAR", "DEGREES", "DUPLICATES", "EPSILON", "EXCLUDE", KLISTEND};
@@ -190,14 +219,14 @@ void LibInit_jmg()
   new DLibFunRetNew(lib::trigrid_fun,string("TRIGRID"),6,trigridKey,trigridWarnKey);
 
   const string poly_2dKey[]={"CUBIC","MISSING",KLISTEND};
-  new DLibFunRetNew(lib::poly_2d_fun,string("POLY_2D"),6,poly_2dKey);
+  new DLibFunRetNewTP(lib::poly_2d_fun,string("POLY_2D"),6,poly_2dKey);  //UsesThreadPOOL 
 
   const string make_arrayKey[]={"DIMENSION", "INCREMENT", "INDEX", "NOZERO",
                                  "SIZE", "START", "TYPE", "VALUE", "BOOLEAN",
                                  "BYTE", "COMPLEX", "DCOMPLEX", "DOUBLE",
                                  "FLOAT", "INTEGER", "L64", "LONG", "OBJ",
                                  "PTR", "STRING", "UINT", "UL64", "ULONG", KLISTEND};
-  new DLibFunRetNew(lib::make_array,string("MAKE_ARRAY"),MAXRANK,make_arrayKey);
+  new DLibFunRetNewTP(lib::make_array,string("MAKE_ARRAY"),MAXRANK,make_arrayKey);  //UsesThreadPOOL //not yet
 
   const string reformKey[]={"OVERWRITE",KLISTEND};
   new DLibFun(lib::reform,string("REFORM"),MAXRANK+1,reformKey);
@@ -304,7 +333,9 @@ void LibInit_jmg()
  
 #endif
 
-  const string tvKey[]={"TRUE","NORMAL","CHANNEL","XSIZE","YSIZE","ORDER","DEVICE","DATA","T3D","Z","CENTIMETERS","INCHES",KLISTEND};
+  const string tvKey[]={"TRUE","NORMAL","CHANNEL","XSIZE","YSIZE","ORDER","DEVICE","DATA","T3D","Z","CENTIMETERS","INCHES",
+  "NAN",  //byte conversion in tv_image apparently handle NaNs quite gracefully so the /NAN (hidden) option of TV will be ignored (TBC)
+  KLISTEND};
   const string tvWarnKey[]={"WORDS",KLISTEND};
   new DLibPro(lib::tv_image,string("TV"),4,tvKey,tvWarnKey);
 
@@ -317,10 +348,10 @@ void LibInit_jmg()
 
   // call_external (by Christoph Fuchs)
   const string call_externalKey[] = {"VALUE", "ALL_VALUE", "RETURN_TYPE",
-               "B_VALUE", "I_VALUE", "L_VALUE", "F_VALUE", "D_VALUE",
-               "UI_VALUE", "UL_VALUE", "L64_VALUE", "UL64_VALUE", "S_VALUE",
-               "UNLOAD", "ALL_GDL", "STRUCT_ALIGN_BYTES"
-    , "DEFAULT", "PORTABLE", "VAX_FLOAT" // obsoleted VMS
+    "B_VALUE", "I_VALUE", "L_VALUE", "F_VALUE", "D_VALUE",
+    "UI_VALUE", "UL_VALUE", "L64_VALUE", "UL64_VALUE", "S_VALUE",
+    "UNLOAD", "ALL_GDL", "STRUCT_ALIGN_BYTES","CDECL",
+    "DEFAULT", "PORTABLE", "VAX_FLOAT" // obsoleted VMS
     , KLISTEND };
   new DLibFunRetNew(lib::call_external, string("CALL_EXTERNAL"), -1, call_externalKey);
 }

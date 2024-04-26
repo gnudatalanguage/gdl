@@ -43,6 +43,7 @@ GDLInterpreter::GDLInterpreter()
 		}
 		_retTree = _t;
 		return retCode;
+		//NOTE: *** code below is not active ***
 	
 	
 	{ // ( ... )+
@@ -73,40 +74,47 @@ GDLInterpreter::GDLInterpreter()
 	 RetCode retCode;
 	ProgNodeP statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
-	//    ProgNodeP& actPos = statement_AST_in;
+	
 	assert( _t != NULL);
 	ProgNodeP last;
 	_retTree = _t;
-	//  if( callStack.back()->GetLineNumber() == 0) 
-	//  if( _t->getLine() != 0) 
-	//      callStack.back()->SetLineNumber( _t->getLine());
 	
 	
 	try {      // for error handling
 		
+		//optimize speed: differentiate inner loops to avoid one externally implicit comparison on controlc for each loop (if possible)
+		if (interruptEnable) { //will test for sigControlC
+		{
 		do {
-		//                 if( _t->getLine() != 0) 
-		//                     callStack.back()->SetLineNumber( _t->getLine());
-		
 		last = _retTree;
-		
-		// track actual line number
-		callStack.back()->SetLineNumber( last->getLine());
-		
+		callStack.back()->SetLineNumber(last->getLine()); // track actual line number
 		retCode = last->Run(); // Run() sets _retTree
-		
-		}
-		while( 
-		_retTree != NULL && 
-		retCode == RC_OK && 
-		!(sigControlC && interruptEnable) && 
-		(debugMode == DEBUG_CLEAR));
-		
-		// commented out, because we are only at the last statement
-		// if( _retTree != NULL) 
-		//     last = _retTree;
-		
+		} while (_retTree != NULL && retCode == RC_OK && !(sigControlC) && (debugMode <= DEBUG_RETURN)); //loops if debug_clear or debug_return
+		if (_retTree != NULL) last = _retTree; //this is OK see https://github.com/gnudatalanguage/gdl/issues/1403#issuecomment-1326490113
 		goto afterStatement;
+		}
+		} else { //will not test for sigControlC 
+		{
+		do {
+		last = _retTree;
+		callStack.back()->SetLineNumber(last->getLine()); // track actual line number
+		retCode = last->Run(); // Run() sets _retTree
+		} while (_retTree != NULL && retCode == RC_OK && (debugMode <= DEBUG_RETURN)); //loops if debug_clear or debug_return
+		if (_retTree != NULL) last = _retTree; //this is OK see https://github.com/gnudatalanguage/gdl/issues/1403#issuecomment-1326490113
+		goto afterStatement;
+		}
+		}
+		// original single loop with all checks    
+		//    {
+		//      do {
+		//        last = _retTree;
+		//        callStack.back()->SetLineNumber(last->getLine()); // track actual line number
+		//        retCode = last->Run(); // Run() sets _retTree
+		//      } while (_retTree != NULL && retCode == RC_OK && !(sigControlC && interruptEnable) && (debugMode <= DEBUG_RETURN)); //loops if debug_clear or debug_return
+		//      if (_retTree != NULL) last = _retTree; //this is OK see https://github.com/gnudatalanguage/gdl/issues/1403#issuecomment-1326490113
+		//      goto afterStatement;
+		//    }
+		
 		
 		{
 		if (_t == ProgNodeP(antlr::nullAST) )
@@ -350,71 +358,69 @@ GDLInterpreter::GDLInterpreter()
 		}
 		}
 		
-		afterStatement:;
-		
+		afterStatement:
 		// possible optimization: make sigControlC a debugMode 
-		if( interruptEnable && sigControlC)
-		{
-		DebugMsg( last, "Interrupted at: "); 
-		
+		if (interruptEnable && sigControlC) {
+		DebugMsg(last, "Interrupted at: ");
 		sigControlC = false;
-		
-		retCode = NewInterpreterInstance( last->getLine());//-1);
+		retCode = NewInterpreterInstance(last->getLine()); //-1);
+			} else if (interruptEnable && _retTree == NULL && (debugMode == DEBUG_RETURN || debugMode == DEBUG_OUT)) {
+		if (debugMode == DEBUG_RETURN) {
+		if (callStack.back()->GetProName() == MyProName) {
+		DebugMsg(last, "Return encountered: ");
+		debugMode = DEBUG_CLEAR;
+		return NewInterpreterInstance(last->getLine()); //-1);
 		}
-		else if( debugMode != DEBUG_CLEAR)
-		{
-		if( debugMode == DEBUG_STOP)
-		{
-		DebugMsg( last, "Stop encountered: ");
-		if( !interruptEnable)
-		debugMode = DEBUG_PROCESS_STOP;
+		} else { //DEBUG_OUT --> just do an additional .step if we are at MyProName
+		if (callStack.back()->GetProName() == MyProName) {
+		debugMode = DEBUG_STEP;
+		stepCount=1;
+		return retCode; //continue 
+		}
+		} 
+		} else if (debugMode != DEBUG_CLEAR) {
+		if (debugMode == DEBUG_STOP) {
+		DebugMsg(last, "Stop encountered: ");
+		if (!interruptEnable) debugMode = DEBUG_PROCESS_STOP;
+		} else if (debugMode == DEBUG_STOP_SILENT) {
+		if (!interruptEnable) debugMode = DEBUG_PROCESS_STOP;
 		}
 		
-		if( debugMode == DEBUG_STEP)
-		{
-		if( stepCount == 1)
-		{
+		if (debugMode == DEBUG_STEP) {
+		if (stepCount == 1) {
 		stepCount = 0;
-		DebugMsg( last, "Stepped to: ");
+		DebugMsg(last, "Stepped to: ");
 		
 		debugMode = DEBUG_CLEAR;
 		
-		retCode = NewInterpreterInstance( last->getLine());//-1);
+		retCode = NewInterpreterInstance(last->getLine()); //-1);
+		} else {
+		--stepCount;
+		#ifdef GDL_DEBUG
+		std::cout << "stepCount-- = " << stepCount << std::endl;
+		#endif
 		}
-		else
-		{
+		} else if (debugMode == DEBUG_STEPOVER) {
+		if (callStack.back()->GetProName() == MyProName) { //we count only in current level
+		if (stepCount == 1) {
+		stepCount = 0;
+		DebugMsg(last, "Stepped to: ");
+		
+		debugMode = DEBUG_CLEAR;
+		MyProName="";
+		retCode = NewInterpreterInstance(last->getLine()); //-1);
+		} else {
 		--stepCount;
 		#ifdef GDL_DEBUG
 		std::cout << "stepCount-- = " << stepCount << std::endl;
 		#endif
 		}
 		}
-		// else if( debugMode == DEBUG_SKIP)
-		//     {
-		//         if( last != NULL)
-		//             {
-		//                 last = last->getNextSibling();
-		//                 DebugMsg( last, "Skipped to: ");
-		//             }
-		//         else
-		//             DebugMsg( last, "Cannot SKIP fro here");
-		
-		//         debugMode = DEBUG_CLEAR;
-		//         retCode = RC_OK;
-		//     }
-		else if( interruptEnable)
-		{
-		if( debugMode == DEBUG_PROCESS_STOP)
-		{
-		DebugMsg( last, "Stepped to: ");
-		}
-		
+		} else if (interruptEnable) {
+		if (debugMode == DEBUG_PROCESS_STOP) DebugMsg(last, "Stepped to: ");
 		debugMode = DEBUG_CLEAR;
-		
-		retCode = NewInterpreterInstance( last->getLine());//-1);
-		}   
-		else
-		{
+		retCode = NewInterpreterInstance(last->getLine()); //-1);
+		} else {
 		retCode = RC_ABORT;
 		}
 		}
@@ -439,7 +445,7 @@ GDLInterpreter::GDLInterpreter()
 		
 		if( e.IsIOException())
 		{
-		assert( dynamic_cast< GDLIOException*>( &e) != NULL);
+		//		assert( dynamic_cast< GDLIOException*>( &e) != NULL);  //removed. for some reason dynamic_cast returns NULL on bona fide GDLIOException objects.
 		// set the jump target - also logs the jump
 		ProgNodeP onIOErr = 
 		static_cast<EnvUDT*>(callStack.back())->GetIOError();
@@ -562,7 +568,7 @@ GDLInterpreter::GDLInterpreter()
 		//                     if( e.getLine() == 0 && _retTree != NULL)
 		//                         e.SetLine( _retTree->getLine());
 		if( e.getLine() == 0 && last != NULL)
-		e.SetLine( last->getLine());
+		e.SetLine( last->getLine()); //probably false -- see ReportError, was obliged to replace e.getLine() by callStack.back()->GetLineNumber()
 		
 		if( interruptEnable)
 		ReportError(e, "Error occurred at:");
@@ -640,7 +646,7 @@ GDLInterpreter::GDLInterpreter()
 	ValueGuard<bool> guard( interruptEnable);
 	interruptEnable = false;
 	
-//		return statement_list(_t);
+	//	return statement_list(_t);
 	
 	
 	retCode=statement_list(_t);
@@ -662,6 +668,7 @@ GDLInterpreter::GDLInterpreter()
 		}
 		_retTree = _t;
 		return retCode;
+		//NOTE: *** code below is not active ***
 	
 	
 	{ // ( ... )+
@@ -719,6 +726,7 @@ GDLInterpreter::GDLInterpreter()
 		
 		_retTree = _t;
 		return res;
+		//NOTE: *** code below is not active ***
 	
 	
 	{ // ( ... )*
@@ -770,6 +778,7 @@ GDLInterpreter::GDLInterpreter()
 	false,false);
 		_retTree = _t;
 		return res;
+		//NOTE: *** code below is not active ***
 	
 	
 	{ // ( ... )*
@@ -805,6 +814,7 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 		}
 		_retTree = _t;
 	return;
+		//NOTE: *** code below is not active ***
 	
 	
 	{ // ( ... )*
@@ -876,6 +886,7 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 	
 		_retTree = retTree;
 		return res;
+		//NOTE: *** code below is not active ***
 	
 	
 	ProgNodeP tmp34_AST_in = _t;
@@ -896,6 +907,7 @@ BaseGDL**  GDLInterpreter::l_decinc_indexable_expr(ProgNodeP _t,
 	if( res == NULL)
 	throw GDLException( _t, "Variable is undefined: "+Name(e),true,false);
 	return e;
+		//NOTE: *** code below is not active ***
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -945,6 +957,7 @@ BaseGDL**  GDLInterpreter::l_decinc_indexable_expr(ProgNodeP _t,
 	res = _t->LEval();
 	_retTree = _t->getNextSibling();
 	return res;
+		//NOTE: *** code below is not active ***
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -1004,6 +1017,7 @@ BaseGDL**  GDLInterpreter::l_defined_simple_var(ProgNodeP _t) {
 	callStack.back()->GetString( *res),true,false);
 	}
 	return res;
+		//NOTE: *** code below is not active ***
 	
 	
 	
@@ -1042,6 +1056,7 @@ BaseGDL**  GDLInterpreter::l_sys_var(ProgNodeP _t) {
 		res=sysVar->LEval();
 		_retTree = sysVar->getNextSibling();
 		return res;
+		//NOTE: *** code below is not active ***
 	
 	
 	
@@ -1144,6 +1159,7 @@ BaseGDL**  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
 	
 	// not used _______________________________________
 	// ------------------------------------------------
+		//NOTE: *** code below is not active ***
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -1225,6 +1241,7 @@ BaseGDL*  GDLInterpreter::l_decinc_dot_expr(ProgNodeP _t,
 		else if( dec_inc == POSTINC) aD.Get()->Inc();
 	
 		return res;
+		//NOTE: *** code below is not active ***
 	
 	
 	ProgNodeP tmp43_AST_in = _t;
@@ -1738,6 +1755,7 @@ BaseGDL*  GDLInterpreter::expr(ProgNodeP _t) {
 	res = _t->Eval();
 	_retTree = _t->getNextSibling();
 	return res; //tmp_expr(_t);
+		//NOTE: *** code below is not active ***
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -1796,6 +1814,7 @@ BaseGDL*  GDLInterpreter::indexable_expr(ProgNodeP _t) {
 	res = _t->EvalNC();
 	_retTree = _t->getNextSibling();
 	return res;
+		//NOTE: *** code below is not active ***
 	
 	BaseGDL** e2;
 	
@@ -1846,6 +1865,7 @@ BaseGDL*  GDLInterpreter::indexable_tmp_expr(ProgNodeP _t) {
 	res = _t->Eval(); //lib_function_call_retnew_internal(_t);
 		_retTree = _t->getNextSibling();
 	return res;
+		//NOTE: *** code below is not active ***
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -1934,6 +1954,7 @@ BaseGDL*  GDLInterpreter::indexable_tmp_expr(ProgNodeP _t) {
 	
 	callStack.back()->SetPtrToReturnValue( retValPtr); 
 	return res;
+		//NOTE: *** code below is not active ***
 	
 	
 	ProgNodeP tmp55_AST_in = _t;
@@ -1952,6 +1973,7 @@ BaseGDL**  GDLInterpreter::l_expr_internal(ProgNodeP _t,
 	res = _t->LExpr( right);
 	_retTree = _t->getNextSibling();
 	return res;
+		//NOTE: *** code below is not active ***
 	
 	BaseGDL* e1; 
 	
@@ -2072,6 +2094,7 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 		res = _t->Eval();
 		_retTree = _t->getNextSibling();
 	return res;
+		//NOTE: *** code below is not active ***
 	
 	BaseGDL** e2;
 	
@@ -2185,6 +2208,7 @@ BaseGDL**  GDLInterpreter::l_simple_var(ProgNodeP _t) {
 	res = _t->LEval();    
 	_retTree = _t->getNextSibling();
 	return res;
+		//NOTE: *** code below is not active ***
 	
 	
 	
@@ -2275,6 +2299,7 @@ void GDLInterpreter::parameter_def(ProgNodeP _t,
 		guard.release();
 		
 	return;
+		//NOTE: *** code below is not active ***
 	
 	
 	ProgNodeP tmp68_AST_in = _t;
@@ -2293,6 +2318,7 @@ BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 	res=_t->Eval();
 		_retTree = _t->getNextSibling();
 		return res;
+		//NOTE: *** code below is not active ***
 	
 	BaseGDL** refRet; // not used
 	
@@ -2418,6 +2444,7 @@ BaseGDL**  GDLInterpreter::l_indexable_expr(ProgNodeP _t) {
 	}
 	_retTree = _t->getNextSibling();
 		return res;
+		//NOTE: *** code below is not active ***
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -2590,6 +2617,12 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t,
 	}
 				
 	assert( s != NULL);
+	if (s == NullGDL::GetSingleInstance()) { //return an empty arraylist, to be checked further as to not apply any posterior 'AssignAt' function.
+		     aL->Init();                            //as an array assigment containing '!NULL' is to be ignored.
+	aL->SetIgnore();
+		     _retTree = ax->getNextSibling();//retTree;
+		     return aL;
+		   }
 	ixExprList.push_back( s);
 	if( ixExprList.size() == nExpr)
 	break; // allows some manual tuning
@@ -2601,6 +2634,7 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t,
 		
 		_retTree = ax->getNextSibling();//retTree;
 		return aL;
+		//NOTE: *** code below is not active ***
 	
 	
 	ProgNodeP tmp83_AST_in = _t;
@@ -2646,6 +2680,7 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 		}
 	return;
 	//	_retTree = _t;
+		//NOTE: *** code below is not active ***
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -2827,6 +2862,7 @@ void GDLInterpreter::tag_expr(ProgNodeP _t,
 			_retTree = _t->getNextSibling();		
 		}
 	return;
+		//NOTE: *** code below is not active ***
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -2883,6 +2919,7 @@ void GDLInterpreter::tag_array_expr(ProgNodeP _t,
 		}
 		//_retTree = _t;
 	return;
+		//NOTE: *** code below is not active ***
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -2935,6 +2972,14 @@ BaseGDL*  GDLInterpreter::r_dot_indexable_expr(ProgNodeP _t,
 			_retTree = tIn->getNextSibling();
 			break;
 		}
+		// DEREF was forgotten: cause of #812 and #26
+	case DEREF:
+	{
+			BaseGDL** v=l_deref(_t);
+				//_t = _retTree;
+				res = *v;
+				break;
+		} 
 		case VAR:
 		case VARPTR:
 		{
@@ -2954,6 +2999,7 @@ BaseGDL*  GDLInterpreter::r_dot_indexable_expr(ProgNodeP _t,
 		}
 		//_retTree = _t;
 		return res;
+		//NOTE: *** code below is not active ***
 	
 	BaseGDL** e;
 	
@@ -3025,6 +3071,7 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 			SetRootR( _t, aD, r, NULL); 
 		}
 	return;
+		//NOTE: *** code below is not active ***
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -3068,6 +3115,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	res = _t->Eval();
 		_retTree = _t->getNextSibling();
 	return res;
+		//NOTE: *** code below is not active ***
 	
 	BaseGDL** l;
 	
@@ -3157,6 +3205,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	res = _t->Eval();
 		_retTree = _t->getNextSibling();
 		return res; //_t->cData->Dup(); 
+		//NOTE: *** code below is not active ***
 	
 	
 	ProgNodeP tmp99_AST_in = _t;
@@ -3181,6 +3230,7 @@ BaseGDL*  GDLInterpreter::simple_var(ProgNodeP _t) {
 	}
 		_retTree = _t->getNextSibling();
 		return vData->Dup();
+		//NOTE: *** code below is not active ***
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -3216,6 +3266,7 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 	res = _t->Eval();
 		_retTree = _t->getNextSibling();
 		return res; // no ->Dup()
+		//NOTE: *** code below is not active ***
 	
 	
 	ProgNodeP tmp102_AST_in = _t;
@@ -3348,6 +3399,7 @@ void GDLInterpreter::parameter_def_n_elements(ProgNodeP _t,
 		guard.release();
 		
 	return;
+		//NOTE: *** code below is not active ***
 	
 	
 	ProgNodeP tmp104_AST_in = _t;
@@ -3400,6 +3452,7 @@ void GDLInterpreter::parameter_def_nocheck(ProgNodeP _t,
 		guard.release();
 		
 	return;
+		//NOTE: *** code below is not active ***
 	
 	
 	ProgNodeP tmp106_AST_in = _t;
@@ -3469,6 +3522,7 @@ void GDLInterpreter::arrayindex_list_overload(ProgNodeP _t,
 		_retTree = ax->getNextSibling();//retTree;
 		return;
 	
+		//NOTE: *** code below is not active ***
 	
 	
 	ProgNodeP tmp108_AST_in = _t;

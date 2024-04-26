@@ -25,17 +25,9 @@
 
 #include "includefirst.hpp"
 
-#include <string>
-#include <fstream>
-#include <memory>
-
-#include "initsysvar.hpp"
-#include "datatypes.hpp"
+#include "objects.hpp"
 #include "envt.hpp"
-//#include "dpro.hpp"
-//#include "dinterpreter.hpp"
 #include "basic_fun_cl.hpp"
-//#include "terminfo.hpp"
 
 #define MAX_DATE_STRING_LENGTH 80
 
@@ -235,6 +227,15 @@ namespace lib {
   BaseGDL* mpi_exists(EnvT* e)
   {
 #ifdef USE_MPI
+    return new DIntGDL(1);
+#else
+    return new DIntGDL(0);
+#endif
+  }
+  
+  BaseGDL* qhull_exists(EnvT* e)
+  {
+#ifdef USE_QHULL
     return new DIntGDL(1);
 #else
     return new DIntGDL(0);

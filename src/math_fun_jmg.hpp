@@ -18,9 +18,7 @@
 #ifndef MATH_FUN_HPP_
 #define MATH_FUN_HPP_
 
-#include "datatypes.hpp"
 #include "envt.hpp"
-#include "math_utl.hpp"
 
 typedef struct _2D_POLY_ {
         DLong  nc;            /* number of coefficients in px, py, c */

@@ -15,18 +15,12 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-
 #include <iostream>
 
-#include "datatypes.hpp"
-#include "envt.hpp"
 #include "getfmtast.hpp"
 #include "basic_pro.hpp"
-#include "objects.hpp"
 #include "FMTOut.hpp"
 #include "terminfo.hpp" 
-#include "gdljournal.hpp"
 #include "dinterpreter.hpp"
 #include <sys/stat.h>
 #include <errno.h>
@@ -57,128 +51,145 @@ namespace lib {
     }
   }
 
-  void printf( EnvT* e)
-  {
-    SizeT nParam=e->NParam();
-    if( nParam < 1)
-      e->Throw( "Incorrect number of arguments.");
+  void printf(EnvT* e) {
+    SizeT nParam = e->NParam();
+    if (nParam < 1)
+      e->Throw("Incorrect number of arguments.");
 
     DLong lun;
-    e->AssureLongScalarPar( 0, lun);
+    e->AssureLongScalarPar(0, lun);
 
     ostream* os;
     ostringstream oss;
 
-    bool stdLun = check_lun( e, lun);
-    
+    bool stdLun = check_lun(e, lun);
+
     // the following (isatty=> os = stdout) should probably be changed to something more clever when the /MORE option of OPENW  is supported .
-    bool isatty=stdLun;
+    bool isatty = stdLun;
     if (!isatty) {
       //check lun is disguized tty as in scrn = filepath(/TERMINAL) & openw,lun,scrn,/more,/get_lun
       struct stat buffer;
-      int status = stat((fileUnits[ lun-1].Name()).c_str(), &buffer);
-      if (status==0) isatty=((buffer.st_mode & S_IFMT) == S_IFCHR);
-      }
-    
+      int status = stat((fileUnits[ lun - 1].Name()).c_str(), &buffer);
+      if (status == 0) isatty = ((buffer.st_mode & S_IFMT) == S_IFCHR);
+    }
+
     SizeT width;
 
-    int sockNum = -1; 
+    int sockNum = -1;
 
-    if( stdLun)
-      {
-	if( lun == 0)
-	  e->Throw( "Cannot write to stdin. Unit: "+i2s( lun));
-	
-	os = (lun == -1)? &cout : &cerr;
-	
-	width = TermWidth();
-      }
-    else if (isatty) {	
-        os = &cout;
-	width = TermWidth();
-      }
-    else 
-      {
-	if( fileUnits[ lun-1].F77())
-	  e->Throw( "Formatted IO not allowed with F77_UNFORMATTED "
-		    "files. Unit: "+i2s( lun));
+    if (stdLun) {
+      if (lun == 0)
+        e->Throw("Cannot write to stdin. Unit: " + i2s(lun));
 
-	if( fileUnits[ lun-1].Xdr() != NULL)
-	  e->Throw( "Formatted IO not allowed with XDR "
-		    "files. Unit: "+i2s( lun));
-	
-	sockNum = fileUnits[ lun-1].SockNum();
+      os = (lun == -1) ? &cout : &cerr;
 
-	if (sockNum == -1) 
-	{
-	  if( fileUnits[ lun-1].Compress())
-		os = &fileUnits[ lun-1].OgzStream();
-	  else
-		os = &fileUnits[ lun-1].OStream();
-	}
-	else
-	  os = &oss;
+      width = TermWidth();
+    } else if (isatty) {
+      os = &cout;
+      width = TermWidth();
+    } else {
+      if (fileUnits[ lun - 1].F77())
+        e->Throw("Formatted IO not allowed with F77_UNFORMATTED "
+        "files. Unit: " + i2s(lun));
 
-	width = fileUnits[ lun-1].Width();
-      }
-    
+      if (fileUnits[ lun - 1].Xdr() != NULL)
+        e->Throw("Formatted IO not allowed with XDR "
+        "files. Unit: " + i2s(lun));
+
+      sockNum = fileUnits[ lun - 1].SockNum();
+
+      if (sockNum == -1) {
+        if (fileUnits[ lun - 1].Compress())
+          os = &fileUnits[ lun - 1].OgzStream();
+        else
+          os = &fileUnits[ lun - 1].OStream();
+      } else
+        os = &oss;
+
+      width = fileUnits[ lun - 1].Width();
+    }
+
     int parOffset = 1;
     print_vmsCompat(e, &parOffset);
-    print_os( os, e, parOffset, width);
-
+    //IMPLIED_PRINT
+    static int IMPLIEDix = e->KeywordIx("IMPLIED_PRINT");
+    if (e->KeywordSet(IMPLIEDix)) {
+      SizeT proIx = GDLInterpreter::GetProIx("GDL_IMPLIED_PRINT");
+      if (proIx < 0) goto no_implied; //bad practice, but I'm on a hurry
+      int nParam = e->NParam();
+      for (SizeT i = 0; i < nParam; ++i) {
+        BaseGDL* par;
+        par = e->GetPar(i);
+        if (par == NULL) // allowed here: NullGDL::GetSingleInstance())
+          e->Throw("Variable is undefined: " + e->GetParString(i));
+        EnvUDT* newEnv = new EnvUDT(e->CallingNode(), proList[ proIx], (DObjGDL**) NULL);
+        Guard< EnvUDT> guard(newEnv);
+        // add parameters
+        newEnv->SetNextPar(new DLongGDL(lun));
+        newEnv->SetNextPar(par->Dup());
+        // guard *before* pushing new env
+        StackGuard<EnvStackT> guard1(e->Interpreter()->CallStack());
+        e->Interpreter()->CallStack().push_back(newEnv);
+        guard.release();
+        e->Interpreter()->call_pro(static_cast<DSubUD*> (newEnv->GetPro())->GetTree());
+      }
+    } else {
+no_implied:
+        print_os(os, e, parOffset, width);
+    }
     // Socket send
     if (sockNum != -1) {
-      int status = send(sockNum, oss.rdbuf()->str().c_str(), 
-			oss.rdbuf()->str().size(), MSG_NOSIGNAL);
+      int status = send(sockNum, oss.rdbuf()->str().c_str(),
+        oss.rdbuf()->str().size(), MSG_NOSIGNAL);
 
       if (status != oss.rdbuf()->str().size())
-	e->Throw( "SEND error Unit: "+i2s( lun)+":"+oss.rdbuf()->str());
+        e->Throw("SEND error Unit: " + i2s(lun) + ":" + oss.rdbuf()->str());
     }
-    
-    if( stdLun)
-      {
-	GDLInterpreter* ip = e->Interpreter();
-	write_journal( ip->GetClearActualLine());
-	write_journal_comment( e, parOffset, width);
-      }
+
+    if (stdLun) {
+      GDLInterpreter* ip = e->Interpreter();
+      write_journal(ip->GetClearActualLine());
+      write_journal_comment(e, parOffset, width);
+    }
   }
-  
-  void print( EnvT* e)
-  {
+
+  void print(EnvT* e) {
     SizeT width = TermWidth();
 
     int parOffset = 0;
     print_vmsCompat(e, &parOffset);
-    print_os( &cout, e, parOffset, width);
-    GDLInterpreter* ip = e->Interpreter();
-    write_journal( ip->GetClearActualLine());
-    write_journal_comment( e, parOffset, width);
-  }
-
-  void print_os(ostream* os, EnvT* e, int parOffset, SizeT width) {
     //IMPLIED_PRINT
-    static int IMPLIEDix= e->KeywordIx("IMPLIED_PRINT");
+    static int IMPLIEDix = e->KeywordIx("IMPLIED_PRINT");
     if (e->KeywordSet(IMPLIEDix)) {
       SizeT proIx = GDLInterpreter::GetProIx("GDL_IMPLIED_PRINT");
       if (proIx < 0) goto no_implied; //bad practice, but I'm on a hurry
-        int nParam = e->NParam();
+      int nParam = e->NParam();
       for (SizeT i = 0; i < nParam; ++i) {
-          BaseGDL* par;
-          par = e->GetPar(i);
-          if (par == NULL) // allowed here: NullGDL::GetSingleInstance())
+        BaseGDL* par;
+        par = e->GetPar(i);
+        if (par == NULL) // allowed here: NullGDL::GetSingleInstance())
           e->Throw("Variable is undefined: " + e->GetParString(i));
-          EnvUDT* newEnv = new EnvUDT( e->CallingNode(), proList[ proIx], (DObjGDL**)NULL);
-          Guard< EnvUDT> guard( newEnv);
-          // add parameters
-          newEnv->SetNextPar(par->Dup());
-          // guard *before* pushing new env
-          StackGuard<EnvStackT> guard1 ( e->Interpreter()->CallStack());
-          e->Interpreter()->CallStack().push_back(newEnv);
-          guard.release();
-          e->Interpreter()->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+        EnvUDT* newEnv = new EnvUDT(e->CallingNode(), proList[ proIx], (DObjGDL**) NULL);
+        Guard< EnvUDT> guard(newEnv);
+        // add parameters
+        newEnv->SetNextPar(new DLongGDL(-1));
+        newEnv->SetNextPar(par->Dup());
+        // guard *before* pushing new env
+        StackGuard<EnvStackT> guard1(e->Interpreter()->CallStack());
+        e->Interpreter()->CallStack().push_back(newEnv);
+        guard.release();
+        e->Interpreter()->call_pro(static_cast<DSubUD*> (newEnv->GetPro())->GetTree());
       }
-        return;
-    } 
+    } else {
+no_implied:
+      print_os(&cout, e, parOffset, width);
+    }
+    GDLInterpreter* ip = e->Interpreter();
+    write_journal(ip->GetClearActualLine());
+    write_journal_comment(e, parOffset, width);
+  }
+
+  void print_os(ostream* os, EnvT* e, int parOffset, SizeT width) {
     // FORMAT keyword
 no_implied:    
     if (e->GetKW(0) != NULL) {
@@ -197,6 +208,7 @@ no_implied:
 
           // formatted output ignores WIDTH
           FMTOut Formatter(fmtAST, os, e, parOffset);
+          os->flush();
           return;
         } catch (antlr::ANTLRException& ex) {
           //Authorize the format to be "new" C format. Should better be handled in the parser, FIXME!
@@ -204,6 +216,7 @@ no_implied:
             DString fmtSTring2 = "(%\"" + fmtString + "\")";
             RefFMTNode fmtAST = GetFMTAST(fmtSTring2);
             FMTOut Formatter(fmtAST, os, e, parOffset);
+            os->flush();
             return;
           } catch (antlr::ANTLRException& ex) {
             e->Throw(ex.getMessage());
@@ -217,6 +230,7 @@ no_implied:
 
       if (nParam == parOffset) {
         (*os) << '\n';
+        os->flush();
         return;
       }
 
@@ -236,6 +250,7 @@ no_implied:
         if (lastParScalar && anyArrayBefore && par->Rank() != 0) (*os) << '\n'; // e.g. print,[1],1,[1] 
         anyArrayBefore |= par->Rank() != 0;
         par->ToStream(*os, width, &actPos);
+        os->flush();
         // debug	  
         // 		(*os) << flush;
       }
@@ -246,12 +261,13 @@ no_implied:
       // 	}
       if ((par->Dim().Rank() == 0 && !singleNullChar) || par->Type() == GDL_STRUCT) {
         (*os) << '\n';
+        os->flush();
       }
     }
   }
 
   // SA: we're better than IDL! - we accept more than 20 parameters ;)
-  void pm(EnvT* e)
+  void pm_pro(EnvT* e)
   {
     int nParam = e->NParam();
     if (nParam == 0) return;
@@ -263,7 +279,9 @@ no_implied:
     BaseGDL* par;
     env->SetNextPar(&par);
 
-    // printing first the title if TITLE keyword present
+// The following are notpart of standard    
+// printing first the title if TITLE keyword present
+
     static int titleIx = e->KeywordIx("TITLE");
     if (e->GetKW(titleIx) != NULL)
     {
@@ -271,13 +289,13 @@ no_implied:
       static_cast<DLibPro*>(env->GetPro())->Pro()( env);
     }
 
-    // passing on the FORMAT keyword
+//    // passing on the FORMAT keyword
     static int formatIx = e->KeywordIx("FORMAT");
     if (e->GetKW(formatIx) != NULL) 
     {
       if (e->GetKW(formatIx)->Rank() != 0)
         e->Throw("FORMAT keyword must be a scalar");
-      env->SetKeyword("FORMAT", &e->GetKW(formatIx));
+      env->SetKeyword("FORMAT", &e->GetTheKW(formatIx));
     }
 
 //     // is it needed here? MS: not anymore :-)
@@ -289,15 +307,14 @@ no_implied:
     // looping over the parameters
     for (SizeT i = 0; i < nParam; ++i)
     {
-      if (e->GetParDefined(i)->N_Elements() <= 1)
+      if (e->GetParDefined(i, false)->N_Elements() <= 1) //accept !NULL
       {
-        par = e->GetParDefined(i);
+        par = e->GetParDefined(i, false);
         static_cast<DLibPro*>(env->GetPro())->Pro()(static_cast<EnvT*>(env));
       } 
       else 
       {
-        if (e->GetParDefined(i)->Type() == GDL_STRUCT)
-          e->Throw("Transposing arrays of structures is undefined");
+        if (e->GetParDefined(i)->Type() == GDL_STRUCT)  e->Throw("Transposing arrays of structures is undefined");
         par = e->GetParDefined(i)->Transpose(NULL);
         static_cast<DLibPro*>(env->GetPro())->Pro()(static_cast<EnvT*>(env));
         delete par;

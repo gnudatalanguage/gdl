@@ -84,6 +84,9 @@ namespace SysVar
 
   // returns !WARN
   DStructGDL* Warn();
+  
+  // returns !EXCEPT
+  DIntGDL* Except();
 
   const std::string& Prompt();
   int   Edit_Input();

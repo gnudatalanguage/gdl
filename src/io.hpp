@@ -64,7 +64,6 @@ public:
   std::fstream* fStream;
   igzstream* igzStream; // for gzip compressed input
   ogzstream* ogzStream; // for gzip compressed output
-
 //public:
   AnyStream()
     : fStream(NULL) 

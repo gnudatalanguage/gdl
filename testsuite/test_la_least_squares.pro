@@ -6,6 +6,13 @@
 ; We do have poor quality results with method 0
 ; in some cases, help welcome
 ;
+; ----------------------------------------------------
+; Modifications history :
+;
+; 2024-Jan-29 : AC. Cleaning. Return 77 is no Eigen3 around ...
+;
+; ----------------------------------------------------
+;
 pro TEST_LLS_FROM_MKL, external_errors, test=test, verbose=verbose
 ;
 ; test case from MKL
@@ -48,10 +55,11 @@ for input=0, 1 do begin
     endfor
 endfor
 ;
-if KEYWORD_SET(test) then STOP
+; ----- final ----
 ;
-if ISA(external_errors) then external_errors=nb_errors+external_errors else $
-  external_errors=nb_errors
+BANNER_FOR_TESTSUITE, 'TEST_LLS_FROM_MKL', nb_errors, /short
+ERRORS_CUMUL, external_errors, nb_errors
+if KEYWORD_set(test) then STOP
 ;
 end
 ;
@@ -60,12 +68,23 @@ end
 pro TEST_LA_LEAST_SQUARES, help=help, test=test, no_exit=no_exit, $
                            verbose=verbose
 ;
+FORWARD_FUNCTION EIGEN_EXISTS
+;
 if KEYWORD_SET(help) then begin
     print, 'TEST_LA_LEAST_SQUARES, help=help, test=test, no_exit=no_exit, $'
     print, '                       verbose=verbose'
     print, ''
     print, 'few tests related to LA_LEAST_SQUARES ... idea welcome !'
     return
+endif
+;
+DEFSYSV, '!gdl', exists=is_it_gdl
+if (is_it_gdl) then begin 
+   if ~EIGEN_EXISTS() then begin
+      MESSAGE, /continue, 'This test cannot be run because'
+      MESSAGE, /continue, 'GDL was compiled without EIGEN3 support'
+      EXIT, status=77
+   endif
 endif
 ;
 cumul_errors=0
@@ -83,4 +102,3 @@ endif
 if KEYWORD_SET(test) then STOP
 ;
 end
-

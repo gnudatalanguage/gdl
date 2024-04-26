@@ -18,7 +18,10 @@
 #include "includefirst.hpp"
 
 #include "basegdl.hpp"
-#include "nullgdl.hpp"
+#include "objects.hpp" //for UseSmartTpool
+#ifndef _WIN32
+#include "shm_utils.hpp"
+#endif
 
 using namespace std;
 
@@ -120,6 +123,10 @@ void BaseGDL::Assign( BaseGDL* src, SizeT nEl)
   throw GDLException("BaseGDL::Assign(...) called.");
 }
 
+void BaseGDL::AssignIndexedValue( BaseGDL* src, SizeT index)
+{
+  throw GDLException("BaseGDL::AssignIndexedValue(...) called.");
+}
 std::ostream& BaseGDL::Write( std::ostream& os, bool swapEndian, 
 			      bool compress, XDR *xdrs)
 {
@@ -523,7 +530,7 @@ SizeT BaseGDL::OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, int mi
 SizeT BaseGDL::IFmtCal( std::istream* is, SizeT offs, SizeT r, int width, BaseGDL::Cal_IOMode cMode)
 {throw GDLException("BaseGDL::IFmtCal(...) called.");}
 
-SizeT BaseGDL::OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, int minN, char *f, int code, BaseGDL::Cal_IOMode oM)
+SizeT BaseGDL::OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, int minN, const std::string &s, int code, BaseGDL::Cal_IOMode oM)
 {throw GDLException("BaseGDL::OFmtCal(...) called.");}
 
 SizeT BaseGDL::IFmtA( std::istream* is, SizeT offset, SizeT num, int width)
@@ -539,7 +546,7 @@ SizeT BaseGDL::IFmtI( std::istream* is, SizeT offs, SizeT num, int width,
 BaseGDL* BaseGDL::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
 		          bool center, bool normalize, int edgeMode,
                           bool doNan, BaseGDL* missing, bool doMissing,
-                          BaseGDL* invalid, bool doInvalid)
+                          BaseGDL* invalid, bool doInvalid, DDouble edgeVal)
 {
   throw GDLException("BaseGDL::Convol(...) called.");
 }
@@ -833,7 +840,38 @@ char* MemStats::StartOfMemory = reinterpret_cast<char*>(::sbrk(0));
 
 void GDLDelete( BaseGDL* toDelete)
 {
-  if( toDelete != NullGDL::GetSingleInstance())
-    delete toDelete;
+  if( toDelete ==NULL) return;
+  if( toDelete == NullGDL::GetSingleInstance()) return;
+  if (!toDelete->IsShared())  delete toDelete; 
+#ifndef _WIN32
+  else lib::shm_unreference(toDelete);
+#endif
 }
+int GDL_NTHREADS=1;
 
+int parallelize(SizeT nEl, int modifier) {
+  int nThreads = (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl)) ? CpuTPOOL_NTHREADS : 1;
+  if (useSmartTpool) {
+	//below, please modify if you find a way to persuade behaviour of those different cases to be better if they return different number of threads.
+	switch (modifier) {
+	case TP_DEFAULT: //the same as IDL, reserved for routines that use the thread pool, ideally check the special thread pool keywords.
+	case TP_ARRAY_INITIALISATION: // used by GDL array initialisation (new, convert, gdlarray): need to concern only 1 thread/code whicj is not possible AFAIK.
+	case TP_MEMORY_ACCESS: // concurrent memory access, probably needs to be capped to preserve bandwidth 
+	{
+	  if (nThreads == 1) return nThreads;
+	  // here we have more than 1 thread, so n operations will be divided between nt threads. It becomes inefficient if nt is large, to start so many threads for diminishing returns.
+	  // I propose to enable as many threads as necessary so that each thread will compute at least CpuTPOOL_MIN_ELTS:
+	  if (CpuTPOOL_MIN_ELTS < 1) return CpuTPOOL_NTHREADS; // the user did not understand IDL's doc about threadpools?.
+	  int nchunk = nEl / CpuTPOOL_MIN_ELTS;
+	  nchunk++; //to be sure
+	  if (nThreads > nchunk) nThreads = nchunk;
+	  //	std::cerr << nThreads;
+	  return nThreads;
+	}
+	case TP_CPU_INTENSIVE: // benefit from max number of threads if possible given MIN and MAX elts etc
+	  return nThreads;
+	default:
+	  return 1;
+	}
+  } else return nThreads;
+}

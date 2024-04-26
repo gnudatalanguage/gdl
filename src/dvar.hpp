@@ -57,7 +57,7 @@ public:
 
 typedef std::vector<DVar*>        VarListT;
 
-class DVar_eq: public std::unary_function<DVar,bool>
+class DVar_eq: public std::function<bool(DVar)>
 {
   std::string name;
   BaseGDL*  pp;

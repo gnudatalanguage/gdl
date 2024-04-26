@@ -54,7 +54,8 @@ namespace lib {
     }
 
     DString title;
-    if (e->KeywordPresent(TITLEIx)) {
+    if (e->KeywordPresentAndDefined(TITLEIx)) {
+      //    if (e->KeywordPresent(TITLEIx)) {
       e->AssureStringScalarKWIfPresent(TITLEIx, title);
     } else {
       title = "GDL " + i2s(wIx);
@@ -80,7 +81,9 @@ namespace lib {
 
     if (xSize < 0) xSize = 10000;
     if (ySize < 0) ySize = 10000;
-
+    //Limit size to max size permitted by wxWidgets : 32767 see #1399
+    xSize = (xSize > 32767)? 32767:xSize; 
+    ySize = (ySize > 32767)? 32767:ySize;
 
     //NOTE: xPos=-1 and yPos=-1 are when XPOS and YPOS options were not used!   
 
@@ -100,9 +103,7 @@ namespace lib {
     success = actDevice->WOpen(wIx, title, xSize, ySize, xPos, yPos, hide);
     if (!success)
       e->Throw("Unable to create window.");
-    if (e->KeywordSet(PIXMAPIx)) {
-      success = actDevice->Hide();
-    } else success = actDevice->UnsetFocus();
+    if (!hide)  success = actDevice->UnsetFocus();
     actDevice->GetStream()->DefaultBackground();
     actDevice->GetStream()->Clear();
 

@@ -42,13 +42,8 @@
 #endif
 
 #include "dinterpreter.hpp"
-#include "datatypes.hpp"
-#include "envt.hpp"
-#include "dpro.hpp"
-#include "io.hpp"
 #include "basic_pro.hpp"
 #include "semshm.hpp"
-#include "graphicsdevice.hpp"
 
 #ifdef HAVE_EXT_STDIO_FILEBUF_H
 #include <ext/stdio_filebuf.h> // TODO: is it portable across compilers?
@@ -95,7 +90,7 @@ namespace lib {
       locCpuTPOOL_NTHREADS = NbCOREs;
       locCpuTPOOL_MIN_ELTS = DefaultTPOOL_MIN_ELTS;
       locCpuTPOOL_MAX_ELTS = DefaultTPOOL_MAX_ELTS;
-    } else if (e->KeywordPresent(restoreIx)) {
+    } else if (e->KeywordPresentAndDefined(restoreIx)) {
       DStructGDL* restoreCpu = e->GetKWAs<DStructGDL>(restoreIx);
 
       if (restoreCpu->Desc() != cpu->Desc())
@@ -105,13 +100,13 @@ namespace lib {
       locCpuTPOOL_MIN_ELTS = (*(static_cast<DLong64GDL*> (restoreCpu->GetTag(TPOOL_MIN_ELTSTag, 0))))[0];
       locCpuTPOOL_MAX_ELTS = (*(static_cast<DLong64GDL*> (restoreCpu->GetTag(TPOOL_MAX_ELTSTag, 0))))[0];
     } else {
-      if (e->KeywordPresent(nThreadsIx)) {
+      if (e->KeywordPresentAndDefined(nThreadsIx)) {
         e->AssureLongScalarKW(nThreadsIx, locCpuTPOOL_NTHREADS);
       }
-      if (e->KeywordPresent(min_eltsIx)) {
+      if (e->KeywordPresentAndDefined(min_eltsIx)) {
         e->AssureLongScalarKW(min_eltsIx, locCpuTPOOL_MIN_ELTS);
       }
-      if (e->KeywordPresent(max_eltsIx)) {
+      if (e->KeywordPresentAndDefined(max_eltsIx)) {
         e->AssureLongScalarKW(max_eltsIx, locCpuTPOOL_MAX_ELTS);
       }
     }
@@ -173,7 +168,10 @@ namespace lib {
     // we manage the ASCII "history" file (located in ~/.gdl/)
     // we do not manage NOW the number of lines we save,
     // this should be limited by "history/readline" itself
-
+	
+	// clear all exceptions
+	std::feclearexcept(FE_ALL_EXCEPT);
+	
     if (historyIntialized) {
       // Create eventually the ".gdl" path in user $HOME
       int result, debug = 0;
@@ -211,9 +209,9 @@ namespace lib {
 
     sem_onexit();
 
-    //flush still opened files.
+    //flush & close still opened files.
     
-    for (int p = 0; p < maxUserLun; ++p) {
+    for (int p = 0; p < maxLun; ++p) { //and NOT userlun!
       fileUnits[p].Flush();
     }
     
@@ -543,8 +541,7 @@ namespace lib {
     bool deleteKey = e->KeywordSet(delIx);
 
     static int errorIx = e->KeywordIx("ERROR");
-    bool errorKeyword = e->KeywordPresent(errorIx);
-    if (errorKeyword) e->AssureGlobalKW(errorIx);
+    bool errorKeyword = e->WriteableKeywordPresent(errorIx);
 
     DLong width = defaultStreamWidth;
     static int widthIx = e->KeywordIx("WIDTH");
@@ -606,7 +603,7 @@ namespace lib {
         throw GDLIOException(ex.ErrorCode(), e->CallingNode(), errorMsg); //go above and be catched
       }
 
-      BaseGDL** err = &e->GetKW(errorIx);
+      BaseGDL** err = &e->GetTheKW(errorIx);
 
       GDLDelete(*err);
       //    if( *err != e->Caller()->Object()) delete (*err);
@@ -624,7 +621,7 @@ namespace lib {
       if (!errorKeyword) e->Throw(errorMsg);
       //				throw GDLIOException(ex.ErrorCode(), e->CallingNode(), errorMsg);
 
-      BaseGDL** err = &e->GetKW(errorIx);
+      BaseGDL** err = &e->GetTheKW(errorIx);
 
       GDLDelete(*err);
       //    if( *err != e->Caller()->Object()) delete (*err);
@@ -634,7 +631,7 @@ namespace lib {
     }
 
     if (errorKeyword) {
-      BaseGDL** err = &e->GetKW(errorIx);
+      BaseGDL** err = &e->GetTheKW(errorIx);
 
       // 	if( *err != e->Caller()->Object()) delete (*err);
       GDLDelete((*err));
@@ -718,8 +715,7 @@ namespace lib {
     e->AssureDoubleScalarKWIfPresent(write_timeoutIx, w_timeout);
 
     static int errorIx = e->KeywordIx("ERROR");
-    bool errorKeyword = e->KeywordPresent(errorIx);
-    if (errorKeyword) e->AssureGlobalKW(errorIx);
+    bool errorKeyword = e->WriteableKeywordPresent(errorIx);
 
     DLong width = defaultStreamWidth;
     static int widthIx = e->KeywordIx("WIDTH");
@@ -738,7 +734,7 @@ namespace lib {
       if (!errorKeyword)
         e->Throw(errorMsg);
 
-      BaseGDL** err = &e->GetKW(errorIx);
+      BaseGDL** err = &e->GetTheKW(errorIx);
 
       GDLDelete((*err));
       //    if( *err != e->Caller()->Object()) delete (*err);
@@ -748,7 +744,7 @@ namespace lib {
     }
 
     if (errorKeyword) {
-      BaseGDL** err = &e->GetKW(errorIx);
+      BaseGDL** err = &e->GetTheKW(errorIx);
 
       // 	if( *err != e->Caller()->Object()) delete (*err);
       GDLDelete((*err));
@@ -957,9 +953,9 @@ namespace lib {
     SizeT cc = p->Dim(0);
     BaseGDL** tcKW = NULL;
     static int tcIx = e->KeywordIx("TRANSFER_COUNT");
-    if (e->KeywordPresent(tcIx)) {
+    if (e->WriteableKeywordPresent(tcIx)) {
       BaseGDL* p = e->GetParDefined(nParam - 1);
-      tcKW = &e->GetKW(tcIx);
+      tcKW = &e->GetTheKW(tcIx);
       GDLDelete((*tcKW));
       *tcKW = new DLongGDL(p->N_Elements());
     }
@@ -969,8 +965,10 @@ namespace lib {
     SizeT nParam = e->NParam(1);
 
     DLong lun;
-    e->AssureLongScalarPar(0, lun);
-
+    e->AssureLongScalarPar(0, lun, true); //throw on an input conversion error when defining lun see #78. IDL catches this too and sets !ERR
+    
+	if (lun==0) return; //see #78 . 0 is open and ready, but only for READ, READF. READU just returns without setting !ERR
+	
     istream* is = NULL;
     igzstream* igzs = NULL;
     bool f77 = false;
@@ -1120,9 +1118,9 @@ namespace lib {
     SizeT cc = p->Dim(0);
     BaseGDL** tcKW = NULL;
     static int tcIx = e->KeywordIx("TRANSFER_COUNT");
-    if (e->KeywordPresent(tcIx)) {
+    if (e->WriteableKeywordPresent(tcIx)) {
       BaseGDL* p = e->GetParDefined(nParam - 1);
-      tcKW = &e->GetKW(tcIx);
+      tcKW = &e->GetTheKW(tcIx);
       GDLDelete((*tcKW));
       *tcKW = new DLongGDL(p->N_Elements());
     }
@@ -1161,11 +1159,7 @@ namespace lib {
 
     SizeT nEl = dest->N_Elements();
 //too much overhead for parallelizing a complicated function, IDL does not attempt it neither.    
-//#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-//    {
-//#pragma omp for
-      for (OMPInt i = 0; i < nEl; ++i) StrPut((*dest)[i], source, pos);
-//    }
+      for (SizeT i = 0; i < nEl; ++i) StrPut((*dest)[i], source, pos);
   }
 
   void retall(EnvT* e) {
@@ -1173,8 +1167,15 @@ namespace lib {
   }
 
   void stop(EnvT* e) {
-    if (e->NParam() > 0) print(e);
-    debugMode = DEBUG_STOP;
+    if ( e->Interpreter()->IsInBatchProcedureAtMain() ) {
+      debugMode = DEBUG_STOP;
+      e->Throw("Prematurely closing batch file:");
+      return;
+    }
+    if (e->NParam() > 0) {
+      print(e);
+      debugMode = DEBUG_STOP_SILENT;
+    } else debugMode = DEBUG_STOP;
   }
 
   void defsysv(EnvT* e) {
@@ -1836,7 +1837,8 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     DStringGDL* command = e->GetParAs<DStringGDL>(0);
     DString cmd = (*command)[0];
 
-    std::replace(cmd.begin(), cmd.end(), '/', '\\');
+    // SPAWN should NOT change this --- it is the SPAWNed command that should adpat to Windows.
+    //    std::replace(cmd.begin(), cmd.end(), '/', '\\');
 
     const int bufSize = 1024;
     char buf[bufSize];
@@ -1968,13 +1970,17 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
 
     DStringGDL* command = e->GetParAs<DStringGDL>(0);
     DString cmd = (*command)[0];
-// Analyze command, if it ends by a "&" do not remove it but apply the same code as unitkeyword.
-// As  the user probably know what he/she wants, do not mess with stderrkeyword.
-// The stderr and stdout outputs shall be returned as empty strings.
-//find the last non-blank character in string and check.
-    bool IS_A_Spawn=false;
-    std::size_t found= cmd.find_last_not_of(" \t");
-    if (found!=std::string::npos && cmd.substr(found,1)=="&") IS_A_Spawn=true;
+// As reported by brandy125 in https://github.com/gnudatalanguage/gdl/issues/1066 , the following is inexact.
+// IDL does not behave the same when UNIT is given and when "&" is at the end of the command.
+// So I remove the use of IS_A_Spawn but leave the code in case of.
+    
+//// Analyze command, if it ends by a "&" do not remove it but apply the same code as unitkeyword.
+//// As  the user probably know what he/she wants, do not mess with stderr keyword.
+//// The stderr and stdout outputs shall be returned as empty strings.
+////find the last non-blank character in string and check.
+//    bool IS_A_Spawn=false;
+//    std::size_t found= cmd.find_last_not_of(" \t");
+////    if (found!=std::string::npos && cmd.substr(found,1)=="&") IS_A_Spawn=true;
     const int bufSize = 1024;
     char buf[bufSize];
 
@@ -1989,7 +1995,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     int cerrP[2];
     if (nParam > 2 && stderrKeyword) e->Throw("STDERR option conflicts with "+e->GetParString(2));
     if (nParam > 2 && !unitKeyword && pipe(cerrP)) return;
-    if (stderrKeyword && !IS_A_Spawn) cmd+=" 2>&1";
+    if (stderrKeyword /*&& !IS_A_Spawn*/) cmd+=" 2>&1";
     
     pid_t pid = fork(); // *** fork
     if (pid == -1) // error in fork
@@ -2048,7 +2054,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
       if (nParam > 1 || unitKeyword) close(coutP[1]);
       if (nParam > 2 && !unitKeyword) close(cerrP[1]);
 
-      if (unitKeyword || IS_A_Spawn ) {
+      if (unitKeyword /*|| IS_A_Spawn */) {
 #ifdef HAVE_EXT_STDIO_FILEBUF_H
         // UNIT kw code based on the patch by Greg Huey:
 
@@ -2086,8 +2092,8 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
         fileUnits[unit_lun - 1].set_readbuf_frb_destroy_on_close(frb_p);
         fileUnits[unit_lun - 1].set_readbuf_bsrb_destroy_on_close(bsrb_old_p);
         fileUnits[unit_lun - 1].set_fd_close_on_close(coutP[0]);
-        if (IS_A_Spawn && nParam > 1 ) e->SetPar(1, new DStringGDL(""));
-        if (IS_A_Spawn && nParam > 2 ) e->SetPar(2, new DStringGDL(""));
+        if (/*IS_A_Spawn && */ nParam > 1 ) e->SetPar(1, new DStringGDL(""));
+        if (/*IS_A_Spawn && */ nParam > 2 ) e->SetPar(2, new DStringGDL(""));
 #else
         e->Throw("UNIT kw. relies on GNU extensions to the std C++ library (that were not available during compilation?)");
 #endif
@@ -2269,8 +2275,6 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
       e->GetParString(0));
     DStringGDL* p0S = static_cast<DStringGDL*> (p0);
 
-    static StrArr openFiles;
-
     SizeT nEl = p0S->N_Elements();
     for (int i = 0; i < nEl; ++i) {
       DString pro = (*p0S)[i];
@@ -2285,34 +2289,34 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
         else return;
       }
 
-      // file already opened?
-      bool open = false;
-      for (StrArr::iterator j = openFiles.begin(); j != openFiles.end(); ++j) {
-        if (proFile == *j) {
-          open = true;
-          break;
-        }
-      }
-      if (open)
-        continue;
       //routine already compiled? NATCHKEBIA Ilia 24.06.2015
       bool exists = false;
       for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
         if (StrUpCase(proFile).find((*i)->ObjectName()) != std::string::npos) {
-          //cout << "Routine is compiled,so won't recompile " << (*i)->ObjectName() <<endl;
           exists = true;
           break;
         }
       }
-      if (exists && norecompileKeyword)
-        continue;
+	  if (!exists && (isfunctionKeyword || eitherKeyword)) { //give a chance that the FUNC is already compiled. GD.
+		for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
+		  if (StrUpCase(proFile).find((*i)->ObjectName()) != std::string::npos) {
+			exists = true;
+			break;
+		  }
+		}		
+	  }
+      if (exists && norecompileKeyword) continue;
 
-      StackSizeGuard<StrArr> guard(openFiles);
-
-      // append file to list
-      openFiles.push_back(proFile);
       bool success = GDLInterpreter::CompileFile(proFile,cff?StrUpCase(pro):""); // this might trigger recursion
-
+	  //here the compilation may have produced BOTH a PRO and a FUNC (e.g;: TIC and TOC. Check:
+      bool isPro = false; //is pro (GD).
+      for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+        if (StrUpCase(proFile).find((*i)->ObjectName()) != std::string::npos) {
+          //cout << "exists function " << (*i)->ObjectName() <<endl;
+          isPro = true;
+          break;
+        }
+      }
       //is func NATCHKEBIA Ilia 25.06.2015
       bool isFunc = false;
       for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
@@ -2322,9 +2326,11 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
           break;
         }
       }
-      if ((!isFunc && isfunctionKeyword && !eitherKeyword) ||
-        (isFunc && !isfunctionKeyword && !eitherKeyword && !exists))
-        if (!quiet) e->Throw("Attempt to call undefined : " + proFile);
+	  bool both=(isFunc && isPro);
+	  if (!quiet && !both) {
+		if (!isFunc && isfunctionKeyword && !eitherKeyword) e->Throw("Attempt to call undefined : " + proFile);
+		if (isFunc && !isfunctionKeyword && !eitherKeyword && !exists) e->Throw("Attempt to call undefined : " + proFile);
+	  }
 
       if (success) {
         // Message("RESOLVE_ROUTINE: Compiled file: " + proFile);
@@ -2347,7 +2353,12 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     SizeT nParam = e->NParam(1);
     if (nParam == 1) return;
     DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
-
+    
+	static int GDL_DOW = e->KeywordIx("GDL_DOW");
+	bool hasDow = e->WriteableKeywordPresent(GDL_DOW); //insure the output variable exist and is of 'good' type
+    static int GDL_ICAP = e->KeywordIx("GDL_ICAP");
+	bool hasIcap = e->WriteableKeywordPresent(GDL_ICAP); //insure the output variable exist and is of 'good' type
+	
     // checking output (if present and global); exiting if nothing to do
     bool global[6];
     {
@@ -2366,6 +2377,11 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     BaseGDL*** ret;
     ret = (BaseGDL***) malloc((nParam - 1) * sizeof (BaseGDL**));
     GDLGuard<BaseGDL**, void, void> retGuard(ret, free);
+	
+	DLongGDL* retdow;
+	DLongGDL* reticap;
+	if (hasDow) retdow=new DLongGDL(dimension(nEl));
+	if (hasIcap) reticap=new DLongGDL(dimension(nEl));
 
     for (int i = nParam - 2; i >= 0; i--) {
       if (global[i]) {
@@ -2408,7 +2424,12 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
 
       // seconds
       if (global[6 - 1]) (*static_cast<DDoubleGDL*> (*ret[6 - 1]))[i] = Second;
+	  
+	  if (hasDow) (*retdow)[i]= dow;
+	  if (hasIcap) (*reticap)[i]= icap;
     }
+	if (hasDow) e->SetKW(GDL_DOW,retdow);
+	if (hasIcap) e->SetKW(GDL_ICAP,reticap);
     // now guarded. s. a.
     //     free((void *)ret);
   }
@@ -2507,14 +2528,19 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     assert(false);
     return NULL;
   }
+  
   //dummy stub preventing !err and other !errore_state to be set!
-
   void pref_set_pro(EnvT* e) {
     SizeT nParam = e->NParam(1);
     if (nParam == 0) return;
     DStringGDL* p0 = e->GetParAs<DStringGDL>(0);
     cerr << "% PREF_SET: Unknown preference: " + (*p0)[0] << endl;
   }
+  //dummy stub preventing !err and other !errore_state to be set!
+  void pref_commit_pro(EnvT* e) {
+//    cerr << "% PREF_COMMIT: not implemented, FIXME."<< endl;
+  }
+  
 // delvar_pro used to live in gdlhelp.cpp
 
 void delvar_pro( EnvT* e)

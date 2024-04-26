@@ -29,15 +29,9 @@
 #include <fstream>
 #include <iostream>
 
-#include "datatypes.hpp"
-#include "envt.hpp"
-#include "dpro.hpp"
 #include "dinterpreter.hpp"
 
 #include "ncdf_cl.hpp"
-
-#define GDL_DEBUG
-//#undef GDL_DEBUG
 
 namespace lib {
 
@@ -476,12 +470,11 @@ namespace lib {
     else
       ncdf_handle_error(e, status, "NCDF_CONTROL");
 
-    if((e->KeywordSet(2) || e->KeywordSet(3)) &&e->KeywordPresent(6))
-      {
-	e->AssureGlobalKW(6);
-	GDLDelete(e->GetKW(6));
-	e->GetKW(6)=new DLongGDL(omode);
-      }
+    if((e->KeywordSet(2) || e->KeywordSet(3)) &&e->WriteableKeywordPresent(6)) {
+      e->AssureGlobalKW(6);
+      GDLDelete(e->GetTheKW(6));
+      e->GetTheKW(6) = new DLongGDL(omode);
+    }
 
   }
 

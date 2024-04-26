@@ -15,21 +15,35 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#ifndef LEAST_SQUARES_HPP_
+#define LEAST_SQUARES_HPP_
+
+//#ifdef HAVE_CONFIG_H
+//#include <config.h>
+//#endif
 
 // this code needs Eigen3
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 
 namespace lib {
 
+  //#if defined(USE_EIGEN)
+  
   BaseGDL* la_least_squares_fun( EnvT* e);
+
+  /*
+#else
+
+  BaseGDL* la_least_squares_fun( EnvT* e) {
+    Message("GDL compiled without Eigen3 :  LA_LEAST_SQUARES not available");
+    return new DIntGDL(0);
+  }
+  
+#endif 
+  */
 
 } // namespace
 
-//#endif
-
+#endif 
 

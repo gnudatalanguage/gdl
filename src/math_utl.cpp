@@ -26,7 +26,7 @@
 #include "initsysvar.hpp"
 
 //#define GDL_DEBUG
-#undef GDL_DEBUG
+//#undef GDL_DEBUG
 
 namespace lib {
 

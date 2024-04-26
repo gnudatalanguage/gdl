@@ -19,11 +19,9 @@
 
 #include <iomanip>
 
-#include "envt.hpp"
-#include "objects.hpp"
-#include "dinterpreter.hpp"
-#include "basic_pro.hpp"
-#include "nullgdl.hpp"
+//#include "envt.hpp"
+#include "dinterpreter.hpp" //calls envt
+#include "basic_pro.hpp" //for help_item
 
 #include <cassert> // always as last
 
@@ -116,7 +114,7 @@ EnvBaseT::EnvBaseT( ProgNodeP cN, DSub* pro_):
   ,extra(NULL)
   ,newEnvOff(NULL)
   ,ptrToReturnValue(NULL)
-		  //, toDestroyInitialIndex( toDestroy.size())
+  //, toDestroyInitialIndex( toDestroy.size())
 {}
 
 EnvUDT::EnvUDT( ProgNodeP cN, DSubUD* pro_, CallContext lF): 
@@ -210,7 +208,7 @@ EnvUDT::EnvUDT( ProgNodeP cN, BaseGDL* self,
 
   DSubUD* proUD=static_cast<DSubUD*>(pro);
 
-  forLoopInfo.InitSize( proUD->NForLoops());
+  forLoopInfo.InitSize(proUD->NForLoops());
 
   SizeT envSize;
   //   SizeT keySize;
@@ -266,7 +264,7 @@ EnvUDT::EnvUDT( BaseGDL* self, ProgNodeP cN, const string& parent, CallContext l
 
   DSubUD* proUD=static_cast<DSubUD*>(pro);
 
-  forLoopInfo.InitSize( proUD->NForLoops());
+  forLoopInfo.InitSize(proUD->NForLoops());
 
   SizeT envSize=proUD->var.size();
   parIx=proUD->key.size();
@@ -320,7 +318,7 @@ EnvUDT::EnvUDT( ProgNodeP callingNode_, DSubUD* newPro, DObjGDL** self):
 
   DSubUD* proUD= newPro; //static_cast<DSubUD*>(pro);
   
-  forLoopInfo.InitSize( proUD->NForLoops());
+  forLoopInfo.InitSize(proUD->NForLoops());
 
   SizeT envSize;
   //   SizeT keySize;
@@ -731,7 +729,7 @@ BaseGDL* EnvBaseT::GetHeap( DPtr ID)
 // returns name of BaseGDL*&
 const string EnvBaseT::GetString( BaseGDL*& p, bool calledFromHELP)
 {
-  DSubUD* subUD=dynamic_cast<DSubUD*>(pro);
+   DSubUD* subUD=dynamic_cast<DSubUD*>(pro);
   
   SizeT nVar=env.size();
   const string Default = "<Expression>";
@@ -743,7 +741,7 @@ const string EnvBaseT::GetString( BaseGDL*& p, bool calledFromHELP)
 	  (p != NULL && env.Loc( ix) == p) 
 	  )
 	{
-          if (p == NullGDL::GetSingleInstance()) std::cerr<<"NULL pointer: uncertain name"<<std::endl;
+//          if (p == NullGDL::GetSingleInstance()) std::cerr<<"NULL pointer: uncertain name"<<std::endl;
 	  if( subUD != NULL) {return subUD->GetVarName(ix);}
 
 	  string callerName = Default;
@@ -798,9 +796,9 @@ const string EnvBaseT::GetString( BaseGDL*& p, bool calledFromHELP)
       if( p->Type() == GDL_STRUCT)
 	{
 	  /*		DStructGDL* s = static_cast<DStructGDL*>( p);
-	    os << "-> ";
-	    os << (s->Desc()->IsUnnamed()? "<Anonymous>" : s->Desc()->Name());
-	    os << " ";*/
+			os << "-> ";
+			os << (s->Desc()->IsUnnamed()? "<Anonymous>" : s->Desc()->Name());
+			os << " ";*/
 	}
       else if( p->Dim( 0) == 0)
 	{
@@ -987,7 +985,17 @@ void EnvBaseT::ResolveExtra()
 {
   if( extra != NULL) extra->ResolveExtra( NULL);
 }
-
+// returns the variable whose KW is listed in _REF_EXTRA array of Kws. Or null if KW is not present (was not passed).
+BaseGDL* EnvBaseT::GetRefExtraList(DString &s)
+{
+  if( extra != NULL) return extra->GetRefExtraList(s);
+  return NULL;
+}
+BaseGDL** EnvBaseT::GetRefExtraListPtr(DString &s)
+{
+  if( extra != NULL) return extra->GetRefExtraListPtr(s);
+  return NULL;
+}
 // // for internal non-library routines (e.g. operator overloads) ('this' is on the stack)
 // EnvUDT* EnvUDT::CallingEnv()
 // {
@@ -1097,7 +1105,10 @@ void EnvT::AssureGlobalPar( SizeT pIx)
   SizeT ix= pIx + pro->key.size();
   AssureGlobalKW( ix);
 }
-  
+/**
+ * @brief Insures the Keyword points to a variable (even a !NULL one) and not somenthing undefined or an expression
+ * @param ix index
+ */
 void EnvBaseT::AssureGlobalKW( SizeT ix)
 {
   if( env.Env( ix) == NULL) {
@@ -1116,27 +1127,27 @@ DStructGDL* EnvT::GetObjectPar( SizeT pIx)
     {
       Throw( "Parameter must be an object reference"
 	     " in this context: "+
-      GetParString(pIx));
+	     GetParString(pIx));
     }
   else
     {
-    DObjGDL* oRef = static_cast<DObjGDL*> (p1);
-    DObj objIx;
-    if (!oRef->Scalar(objIx))
-      Throw("Parameter must be a scalar or 1 element array in this context: " +
-      GetParString(pIx));
-    if (objIx == 0)
-      Throw("Unable to invoke method"
-      " on NULL object reference: " + GetParString(pIx));
+      DObjGDL* oRef = static_cast<DObjGDL*> (p1);
+      DObj objIx;
+      if (!oRef->Scalar(objIx))
+	Throw("Parameter must be a scalar or 1 element array in this context: " +
+	      GetParString(pIx));
+      if (objIx == 0)
+	Throw("Unable to invoke method"
+	      " on NULL object reference: " + GetParString(pIx));
 
-    try {
-      return GetObjHeap(objIx);
+      try {
+	return GetObjHeap(objIx);
       }
       catch ( GDLInterpreter::HeapException)
 	{
-      Throw("Object not valid: " + GetParString(pIx));
+	  Throw("Object not valid: " + GetParString(pIx));
+	}
     }
-  }
   return NULL; //keep clang happy.
 }
 
@@ -1148,7 +1159,7 @@ void EnvT::Catch()
   SizeT nParam = NParam();
   if( nParam == 0)
     {
-      if( KeywordSet( 0)) // CANCEL
+      if( KeywordSet("CANCEL"))
 	{
 	  caller->catchVar = NULL;
 	  caller->catchNode = NULL;
@@ -1186,12 +1197,12 @@ int EnvT::KeywordIx( const std::string& k)
   if( val == -1) {		//  assert( val != -1);
 
     cout << "Invalid Keyword lookup (EnvT::KeywordIx) ! "
-				" from "+pro->ObjectName() + "  Key: " + k << endl;
-//    cout << pro->ObjectName() << "  Key: " << k << endl;
-//		<< " Returning the wrong (but a valid) key index of zero" << endl;
-//		val = 0; // too lax - may allow most tests to pass
-  	assert( val != -1);
-	}
+      " from "+pro->ObjectName() + "  Key: " + k << endl;
+    //    cout << pro->ObjectName() << "  Key: " << k << endl;
+    //		<< " Returning the wrong (but a valid) key index of zero" << endl;
+    //		val = 0; // too lax - may allow most tests to pass
+    assert( val != -1);
+  }
   return val;
 }
 
@@ -1199,6 +1210,13 @@ bool EnvT::KeywordPresent( const std::string& kw)
 {
   int ix = KeywordIx( kw);
   return EnvBaseT::KeywordPresent( ix);
+}
+
+bool EnvT::WriteableKeywordPresent( const std::string& kw)
+{
+  int ix = KeywordIx( kw);
+  
+  return EnvBaseT::WriteableKeywordPresent( ix);
 }
 
 const string EnvBaseT::GetString( SizeT ix)
@@ -1247,20 +1265,20 @@ void EnvT::ShiftParNumbering(int n)
     }
 }
 
-BaseGDL*& EnvBaseT::GetParDefined(SizeT i)
+BaseGDL*& EnvBaseT::GetParDefined(SizeT i, bool rejectNulls)
 {
   SizeT ix = i + pro->key.size();
 
   // cout << i << " -> " << ix << "  " << env.size() << "  env[ix] " << env[ix] << endl;
   if( ix >= env.size())
     Throw("Incorrect number of arguments.");
-  if( env[ ix] == NULL || env[ ix] == NullGDL::GetSingleInstance())
-    Throw("Variable is undefined: "+GetString( ix));
+  if (env[ ix] == NULL )  Throw("Variable is undefined: " + GetString(ix));
+  if ( rejectNulls && env[ ix] == NullGDL::GetSingleInstance()) Throw("Variable is undefined: " + GetString(ix));
   return env[ ix];
 }
-BaseGDL*& EnvT::GetParDefined(SizeT i)
+BaseGDL*& EnvT::GetParDefined(SizeT i, bool rejectNulls)
 {
-  return EnvBaseT::GetParDefined( i);
+  return EnvBaseT::GetParDefined( i, rejectNulls);
 }
 
 BaseGDL*& EnvT::GetParGlobal(SizeT pIx)
@@ -1304,79 +1322,137 @@ SizeT EnvT::NParam( SizeT minPar)
 
 bool EnvBaseT::Removeall() 
 {
-DSubUD* proD=dynamic_cast<DSubUD*>(pro);
-	int osz = env.size();
-	for( ssize_t ix=osz-1; ix >= 0; ix--) {
-		if( env[ix] != NULL) GDLDelete( env[ix]);
-		env.pop_back();
-	}
-	proD->Resize(0);
-	return true;
+  DSubUD* proD=dynamic_cast<DSubUD*>(pro);
+  int osz = env.size();
+  for( ssize_t ix=osz-1; ix >= 0; ix--) {
+    if( env[ix] != NULL) GDLDelete( env[ix]);
+    env.pop_back();
+  }
+  proD->Resize(0);
+  return true;
 }
 	
 bool EnvBaseT::Remove(int* rindx)
 {
-	DSubUD* proD=dynamic_cast<DSubUD*>(pro);
+  DSubUD* proD=dynamic_cast<DSubUD*>(pro);
 
-	static volatile bool debug( false);  // switch off/on
-	static int ix, osz, inrem;
+  static volatile bool debug( false);  // switch off/on
+  static int ix, osz, inrem;
 
-	osz = env.size();
-	inrem = 0;
-	int itrg = rindx[0];
-	ix=itrg;
-		if(debug)	printf(" env.size() = %d", osz);	
-	while( ix >= 0)
-	{
-		inrem++;
-		if(debug)	printf(" env.now.size() = %d  env[%d] = %p ",
-				osz - inrem,
-				ix,static_cast <const void *>(env[ix]) );
-		if ( env[ix] != NULL) GDLDelete( env[ix]);
-		int esrc = rindx[inrem];
-		if(esrc < 0) esrc = osz;
-		if(debug) cout << " limit:"<< esrc ;
-		while( ++ix < esrc) {
-			if(debug) cout << ", @:"<<itrg<<"<"<<ix;
-				env.Set( itrg, env.Loc(ix));
-				proD->ReName(itrg++, proD->GetVarName(ix));
-			}
-		ix=rindx[inrem];
-		if(debug) cout << " inrem:"<<inrem <<" ix:" << ix << endl; 
-		}				 // zero all with GDLDelete
-	if(inrem <= 0) return false;
+  osz = env.size();
+  inrem = 0;
+  int itrg = rindx[0];
+  ix=itrg;
+  if(debug)	printf(" env.size() = %d", osz);	
+  while( ix >= 0)
+    {
+      inrem++;
+      if(debug)	printf(" env.now.size() = %d  env[%d] = %p ",
+		       osz - inrem,
+		       ix,static_cast <const void *>(env[ix]) );
+      if ( env[ix] != NULL) GDLDelete( env[ix]);
+      int esrc = rindx[inrem];
+      if(esrc < 0) esrc = osz;
+      if(debug) cout << " limit:"<< esrc ;
+      while( ++ix < esrc) {
+	if(debug) cout << ", @:"<<itrg<<"<"<<ix;
+	env.Set( itrg, env.Loc(ix));
+	proD->ReName(itrg++, proD->GetVarName(ix));
+      }
+      ix=rindx[inrem];
+      if(debug) cout << " inrem:"<<inrem <<" ix:" << ix << endl; 
+    }				 // zero all with GDLDelete
+  if(inrem <= 0) return false;
 	
-	osz = osz - inrem;
-    while(inrem-- > 0) env.pop_back();
+  osz = osz - inrem;
+  while(inrem-- > 0) env.pop_back();
 
-	env.resize(osz);
-	proD->Resize(osz);
-	return true;
- }
+  env.resize(osz);
+  proD->Resize(osz);
+  return true;
+}
  
 int EnvBaseT::findvar(const std::string& s)
 {
-	DSubUD* proD=dynamic_cast<DSubUD*>(pro);
-	int kIx = proD->FindVar(s);
-	return kIx;
+  DSubUD* proD=dynamic_cast<DSubUD*>(pro);
+  int kIx = proD->FindVar(s);
+  return kIx;
 }
 
 int EnvBaseT::findvar(BaseGDL* delP)
 {
-//  static BaseGDL* null=NULL;
-	for(int Ix=0; Ix < env.size(); Ix++) {
-		if(delP != env[ Ix] ) continue;
-	return Ix;
-	}
-	return -1;
+  //  static BaseGDL* null=NULL;
+  for(int Ix=0; Ix < env.size(); Ix++) {
+    if(delP != env[ Ix] ) continue;
+    return Ix;
+  }
+  return -1;
 }
+/**
+ * @brief A Keyword is present but only 'by name'. It can be (yet) undefined.
+ * <p> - Normally it is to be written (but no way to enforce that!)
+ * <p> - It could be a local expression, so AssureGlobalKW() should be tested on it.
+ * <p> - It can be a !NULL value
+ * <p> - --> IT IS BETTER TO USE WriteableKeywordPresent() that throws directly on a local expression.
+ * @param ix index of keyword in list.
+ * @return 
+ */
+bool EnvBaseT::KeywordPresent( SizeT ix)
+{ return (env.Loc(ix)!=NULL)||(env.Env(ix)!=NULL);}
+
+/**
+ * @brief A Keyword is present, so it cannot be a local expression (is Global)
+ * <p> -> It can be a !NULL value 
+ * <p> Normally it is to be written (but no way to enforce that!)
+ * @param ix index of keyword in list.
+ * @return 
+ */
+bool EnvBaseT::WriteableKeywordPresent(SizeT ix) {
+  bool exist= (env.Loc(ix) != NULL) || (env.Env(ix) != NULL);
+  if (exist) EnvBaseT::AssureGlobalKW(ix); //must exist sufficently as to be writeable
+  return exist;
+}
+
+
+// AC 2021/09/19 : keyword might be present but undefined :
+/**
+ * @brief A DEFINED Keyword is present, so it cannot be:
+ * <p> - an undefined variable
+ * <p> - a local expression (is Global)
+ * <p> - a !NULL value 
+ * @param ix index of keyword in list.
+ * @return 
+ */
+bool EnvBaseT::KeywordPresentAndDefined( SizeT ix)
+{
+  // if KW is not present
+  if (!( (env.Loc(ix)!=NULL)||(env.Env(ix)!=NULL)))
+    return false; 
+  else {
+    BaseGDL* p = GetKW(ix);
+    if( p == NULL) return false;
+    if ( p->Type() == GDL_UNDEF) return false; else return true;
+  }
+}
+/**
+ * @brief pointer to a DEFINED Keyword, returning NULL if index points to:
+ * - an undefined variable
+ * - a local expression (is Global)
+ * - a !NULL value 
+ * @param ix index of keyword in list.
+ * @return 
+ */
+BaseGDL* EnvBaseT::GetDefinedKW(SizeT ix){
+    if( env[ix] == NULL || env[ix] == NullGDL::GetSingleInstance()) return NULL;
+    return env[ix];
+  }
 
 void EnvBaseT::SetNextParUnchecked( BaseGDL* const nextP) // by value (reset loc)
 {
   if(!( static_cast<int>(parIx - pro->key.size()) < pro->nPar)){
-	  throw GDLException(callingNode,
-			     pro->Name()+": Incorrect number of arguments.",false,false);
-	}
+    throw GDLException(callingNode,
+		       pro->Name()+": Incorrect number of arguments.",false,false);
+  }
   env.Set(parIx++,nextP); // check done in parameter_def
 }
 void EnvBaseT::SetNextParUncheckedVarNum( BaseGDL* const nextP) // by reference (reset env)
@@ -1388,9 +1464,9 @@ void EnvBaseT::SetNextParUncheckedVarNum( BaseGDL* const nextP) // by reference 
 void EnvBaseT::SetNextParUnchecked( BaseGDL** const nextP) // by reference (reset env)
 {
   if(!( static_cast<int>(parIx - pro->key.size()) < pro->nPar)){
-	  throw GDLException(callingNode,
-			     pro->Name()+": Incorrect number of arguments.",false,false);
-	}
+    throw GDLException(callingNode,
+		       pro->Name()+": Incorrect number of arguments.",false,false);
+  }
   env.Set(parIx++,nextP);
 }
 void EnvBaseT::SetNextParUncheckedVarNum( BaseGDL** const nextP) // by reference (reset env)
@@ -1435,93 +1511,83 @@ void EnvBaseT::SetNextPar( BaseGDL** const nextP) // by reference (reset env)
 
 
 // returns the keyword index, used for UD functions
-int EnvBaseT::GetKeywordIx( const std::string& k)
-{
+int EnvBaseT::GetKeywordIx( const std::string& k) {
   String_abbref_eq strAbbrefEq_k(k);
+//GD: no, _EXTRA is possible even when no keywords (will pass if _EXTRA=!NULL or undefined) 
+//  // if there are no keywords, even _EXTRA isn't allowed
+//  if (pro->key.size() == 0) {
+//    if (pro->warnKey.size() == 0)
+//      Throw("Keyword parameters not allowed in call.");
+//
+//    // look if warnKeyword
+//    IDList::iterator wf = std::find_if(pro->warnKey.begin(),
+//      pro->warnKey.end(),
+//      strAbbrefEq_k);
+//    if (wf == pro->warnKey.end())
+//      Throw("Keyword parameter -" + k + "- not allowed in call "
+//      "to: " + pro->Name());
+//    // 	throw GDLException(callingNode,
+//    // 			   "Keyword parameter "+k+" not allowed in call "
+//    // 			   "to: "+pro->Name());
+//
+//    Warning("Warning: Keyword parameter " + k + " not supported in call "
+//      "to: " + pro->Name() + ". Ignored.");
+//
+//    return -4;
+//  }
 
-  // if there are no keywords, even _EXTRA isn't allowed
-  if( pro->key.size() == 0)
-    {
-      if( pro->warnKey.size() == 0)
-	Throw( "Keyword parameters not allowed in call.");
+  // search keyword
+  KeyVarListT::iterator f = std::find_if(pro->key.begin(),
+    pro->key.end(),
+    strAbbrefEq_k);
+  if (f == pro->key.end()) {
+    // every routine (which accepts keywords), also accepts (_STRICT)_EXTRA
+    if (strAbbrefEq_k("_EXTRA")) return -2;
+    if (strAbbrefEq_k("_STRICT_EXTRA")) return -3;
 
+    if (pro->GetExtraType() == DSub::NONE) {
       // look if warnKeyword
-      IDList::iterator wf=std::find_if(pro->warnKey.begin(),
-				       pro->warnKey.end(),
-				       strAbbrefEq_k);
-      if( wf == pro->warnKey.end()) 
-	Throw(  "Keyword parameter -"+k+"- not allowed in call "
-		"to: "+pro->Name());
-      // 	throw GDLException(callingNode,
-      // 			   "Keyword parameter "+k+" not allowed in call "
-      // 			   "to: "+pro->Name());
-
-      Warning("Warning: Keyword parameter "+k+" not supported in call "
-	      "to: "+pro->Name() + ". Ignored.");
-      
+      IDList::iterator wf = std::find_if(pro->warnKey.begin(),
+        pro->warnKey.end(),
+        strAbbrefEq_k);
+      if (wf == pro->warnKey.end()) Throw("Keyword parameter <" + k + "> not allowed in call to: " + pro->Name());
+      Warning("Warning: Keyword parameter " + k + " not supported in call to: " + pro->Name() + ". Ignored.");
       return -4;
     }
-  
-  // search keyword
-  KeyVarListT::iterator f=std::find_if(pro->key.begin(),
-				       pro->key.end(),
-				       strAbbrefEq_k);
-  if( f == pro->key.end()) 
-    {
-      // every routine (which accepts keywords), also accepts (_STRICT)_EXTRA
-      if( strAbbrefEq_k("_EXTRA")) return -2;
-      if( strAbbrefEq_k("_STRICT_EXTRA")) return -3;
-      
-      if( pro->Extra() == DSub::NONE)
-	{
-	  // look if warnKeyword
-	  IDList::iterator wf=std::find_if(pro->warnKey.begin(),
-					   pro->warnKey.end(),
-					   strAbbrefEq_k);
-	  if( wf == pro->warnKey.end()) 
-	    Throw( "Keyword parameter <"+k+"> not allowed in call "
-		   "to: "+pro->Name());
-	  /*	    throw GDLException(callingNode,
-	    "Keyword parameter "+k+" not allowed in call "
-	    "to: "+pro->Name());*/
-	  
-	  Warning("Warning: Keyword parameter "+k+" not supported in call "
-		  "to: "+pro->Name() + ". Ignored.");
-	  
-	  return -4;
-	}
-      
-      // extra keyword
-      return -1;
-    }
+    // extra keyword
+    return -1;
+  }
   // continue search (for ambiguity)
-  KeyVarListT::iterator ff=std::find_if(f+1,
-					pro->key.end(),
-					strAbbrefEq_k);
-  if( ff != pro->key.end())
-    {
-      Throw("Ambiguous keyword abbreviation: "+k);
-    }
-    
+  KeyVarListT::iterator ff = std::find_if(f + 1,
+    pro->key.end(),
+    strAbbrefEq_k);
+  if (ff != pro->key.end()) {
+    Throw("Ambiguous keyword abbreviation: " + k);
+  }
+
   // every routine (which accepts keywords), also accepts (_STRICT)_EXTRA
-  if( strAbbrefEq_k("_EXTRA")) return -2;
-  if( strAbbrefEq_k("_STRICT_EXTRA")) return -3;
-    
-  SizeT varIx=std::distance(pro->key.begin(),f);
+  if (strAbbrefEq_k("_EXTRA")) return -2;
+  if (strAbbrefEq_k("_STRICT_EXTRA")) return -3;
+
+  SizeT varIx = std::distance(pro->key.begin(), f);
 
   // already set? -> Warning 
   // (move to Throw by AC on June 25, 2014, bug found by Levan.)
-// Removed G. Jung 2016:
-// mungs things up.  Could not determine 2014 bug.
-//  if( KeywordPresent(varIx)) // just a message in the original
-//    {
-//      Throw( "Duplicate keyword "+k+" in call to: "+pro->Name());
-//    }
+  // Removed G. Jung 2016:
+  // mungs things up.  Could not determine 2014 bug.
+  //  if( KeywordPresent(varIx)) // just a message in the original
+  //    {
+  //      Throw( "Duplicate keyword "+k+" in call to: "+pro->Name());
+  //    }
 
   return varIx;
 }
   
 // for use within library functions
+
+/**
+ * @brief NULL, !NULL are ignored
+ */
 bool EnvT::KeywordSet( const std::string& kw)
 {
   assert( pro != NULL);
@@ -1531,20 +1597,51 @@ bool EnvT::KeywordSet( const std::string& kw)
   return KeywordSet( static_cast<SizeT>(ix));
 }
 
+/**
+ * @brief NULL, !NULL are ignored
+ */
 bool EnvT::KeywordSet( SizeT ix)
 {
   return EnvBaseT::KeywordSet( ix);
 }
+
+/**
+ * @brief NULL, !NULL are ignored
+ */
 bool EnvBaseT::KeywordSet( SizeT ix)
 {
   BaseGDL* keyword=env[ix];
   if( keyword == NULL) return false;
-  if( !keyword->Scalar()) return true;
-  if( keyword->Type() == GDL_STRUCT) return true;
+  if (keyword==NullGDL::GetSingleInstance()) return false;
+  if( !keyword->Scalar()) return true; //IDL would Throw("Expression must be a scalar or 1 element array in this context.");
+  if( keyword->Type() == GDL_STRUCT)  return true; //IDL would Throw("Unable to convert variable from type struct.");
   return keyword->LogTrue();
 }
-
-// returns the ix'th parameter (for library function API only)
+/**
+ * @brief NULL, !NULL are implictly 'set'. this version is for testing boolean KWs when the default is 'set' = true when they are not defined/present etc (see code)
+ */
+bool EnvBaseT::BooleanKeywordAbsentOrSet( SizeT ix)
+{
+  BaseGDL* keyword=env[ix];
+  if( keyword == NULL) return true;
+  if( !keyword->Scalar()) return true; // Throw("Expression must be a scalar or 1 element array in this context.");
+  if( keyword->Type() == GDL_STRUCT) return true; // Throw("Unable to convert variable from type struct.");
+  return keyword->LogTrue();
+}
+/**
+ * @brief this version is for testing boolean KWs: test if set (!null are ignored) but throws if not scalar
+ */
+bool EnvBaseT::BooleanKeywordSet( SizeT ix)
+{
+  BaseGDL* keyword=env[ix];
+  if( keyword == NULL) return false;
+  if( !keyword->Scalar()) Throw("Expression must be a scalar or 1 element array in this context.");
+  if( keyword->Type() == GDL_STRUCT) return false; // Throw("Unable to convert variable from type struct.");
+  return keyword->LogTrue();
+}
+/**
+ * @brief returns the ix'th parameter (for library function API only)
+ */
 BaseGDL*& EnvT::GetPar(SizeT i)
 {
   static BaseGDL* null=NULL;
@@ -1562,61 +1659,82 @@ BaseGDL*& EnvT::GetPar(SizeT i)
 //   return env[ ix];
 // }
 
-void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong64& scalar)
+/**
+ * @brief converts par if necessary and sets 'scalar' to Long . Chokes on !NULL, NULL and non-scalar
+ */
+void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong64& scalar, bool throwIfConversionErrorOccured)
 {
   BaseGDL* p = GetParDefined( pIx);
-  DLong64GDL* lp = static_cast<DLong64GDL*>(p->Convert2( GDL_LONG64, BaseGDL::COPY));
+  DLong64GDL* lp = static_cast<DLong64GDL*>(p->Convert2( GDL_LONG64, throwIfConversionErrorOccured?BaseGDL::COPY_THROWIOERROR:BaseGDL::COPY));
   Guard<DLong64GDL> guard_lp( lp);
   if( !lp->Scalar( scalar))
     Throw("Parameter must be a scalar or 1 element array in this context: "+
 	  GetParString(pIx));
 }
-void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong& scalar)
+/**
+ * @brief converts par if necessary and sets 'scalar' to Long . Chokes on !NULL, NULL and non-scalar
+ */
+void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong& scalar, bool throwIfConversionErrorOccured)
 {
   BaseGDL* p = GetParDefined( pIx);
-  DLongGDL* lp = static_cast<DLongGDL*>(p->Convert2( GDL_LONG, BaseGDL::COPY));
+  DLongGDL* lp = static_cast<DLongGDL*>(p->Convert2( GDL_LONG, throwIfConversionErrorOccured?BaseGDL::COPY_THROWIOERROR:BaseGDL::COPY));
   Guard<DLongGDL> guard_lp( lp);
   if( !lp->Scalar( scalar))
     Throw("Parameter must be a scalar or 1 element array in this context: "+
 	  GetParString(pIx));
 }
-void EnvT::AssureLongScalarPar( SizeT pIx, DLong64& scalar)
+/**
+ * @brief converts par if necessary and sets 'scalar' to Long . Chokes on !NULL, NULL and non-scalar
+ */
+void EnvT::AssureLongScalarPar( SizeT pIx, DLong64& scalar, bool throwIfConversionErrorOccured)
 {
-  EnvBaseT::AssureLongScalarPar( pIx, scalar);
+  EnvBaseT::AssureLongScalarPar( pIx, scalar, throwIfConversionErrorOccured);
 }
-void EnvT::AssureLongScalarPar( SizeT pIx, DLong& scalar)
+/**
+ * @brief converts par if necessary and sets 'scalar' to Long . Chokes on !NULL, NULL and non-scalar
+ */
+void EnvT::AssureLongScalarPar( SizeT pIx, DLong& scalar, bool throwIfConversionErrorOccured)
 {
-  EnvBaseT::AssureLongScalarPar( pIx, scalar);
+  EnvBaseT::AssureLongScalarPar( pIx, scalar, throwIfConversionErrorOccured);
 }
-// if keyword 'kw' is not set, 'scalar' is left unchanged
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Long . scalar unchanged if !NULL, NULL. Chokes on non-scalar
+ */
 void EnvT::AssureLongScalarKWIfPresent( const std::string& kw, DLong& scalar)
 {
   int ix = KeywordIx( kw);
-  if( env[ix] == NULL) return;
-  //  if( !KeywordPresent( ix)) return;
-  AssureLongScalarKW( ix, scalar);
+  AssureLongScalarKWIfPresent( ix, scalar);
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Long . scalar unchanged if !NULL, NULL. Chokes on non-scalar
+ */
 void EnvT::AssureLongScalarKWIfPresent( SizeT ix, DLong& scalar)
 {
-  if( env[ix] == NULL) return;
-  //  if( !KeywordPresent( ix)) return;
+  if( env[ix] == NULL || env[ix] == NullGDL::GetSingleInstance()) return;
   AssureLongScalarKW( ix, scalar);
 }
-// converts keyword 'kw' if necessary and sets 'scalar' 
+/**
+ * @brief converts keyword 'kw' if necessary and sets 'scalar' to DLong . Chokes on !NULL, NULL and non-scalar
+ */
 void EnvT::AssureLongScalarKW( const std::string& kw, DLong& scalar)
 {
   AssureLongScalarKW( KeywordIx( kw), scalar);
 }
+/**
+ * @brief converts keyword 'kw' if necessary and sets 'scalar' to DLong64 . Chokes on !NULL, NULL and non-scalar
+ */
 void EnvT::AssureLongScalarKW( const std::string& kw, DLong64& scalar)
 {
   AssureLongScalarKW( KeywordIx( kw), scalar);
 }
-
+/**
+ * @brief converts ix if necessary and sets 'scalar' to DLong64 . Chokes on !NULL, NULL and non-scalar
+ */
 void EnvT::AssureLongScalarKW( SizeT eIx, DLong64& scalar)
 {
   BaseGDL* p = GetKW( eIx);
   
-  if( p == NULL)
+  if( p == NULL || p == NullGDL::GetSingleInstance())
     Throw("Expression undefined: "+GetString(eIx));
   
   DLong64GDL* lp= static_cast<DLong64GDL*>(p->Convert2( GDL_LONG64, BaseGDL::COPY));
@@ -1627,11 +1745,14 @@ void EnvT::AssureLongScalarKW( SizeT eIx, DLong64& scalar)
     Throw("Expression must be a scalar or 1 element array in this context: "+
 	  GetString(eIx));
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to DLong . Chokes on !NULL, NULL and non-scalar
+ */
 void EnvT::AssureLongScalarKW( SizeT eIx, DLong& scalar)
 {
   BaseGDL* p = GetKW( eIx);
   
-  if( p == NULL)
+  if( p == NULL || p == NullGDL::GetSingleInstance())
     Throw("Expression undefined: "+GetString(eIx));
   
   DLongGDL* lp= static_cast<DLongGDL*>(p->Convert2( GDL_LONG, BaseGDL::COPY));
@@ -1643,6 +1764,9 @@ void EnvT::AssureLongScalarKW( SizeT eIx, DLong& scalar)
 	  GetString(eIx));
 }
 
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Double . Chokes on !NULL, NULL and non-scalar
+ */
 void EnvT::AssureDoubleScalarPar( SizeT pIx, DDouble& scalar)
 {
   BaseGDL* p = GetParDefined( pIx);
@@ -1652,30 +1776,37 @@ void EnvT::AssureDoubleScalarPar( SizeT pIx, DDouble& scalar)
     Throw("Parameter must be a scalar or 1 element array in this context: "+
 	  GetParString(pIx));
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Double . scalar unchanged if !NULL, NULL. Chokes on non-scalar
+ */
 void EnvT::AssureDoubleScalarKWIfPresent( const std::string& kw, DDouble& scalar)
 {
   int ix = KeywordIx( kw);
-  if( env[ix] == NULL) return;
-  //  if( !KeywordPresent( ix)) return;
-  AssureDoubleScalarKW( ix, scalar);
+  AssureDoubleScalarKWIfPresent( ix, scalar);
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Double . scalar unchanged if !NULL, NULL. Chokes on non-scalar
+ */
 void EnvT::AssureDoubleScalarKWIfPresent( SizeT ix, DDouble& scalar)
 {
-  if( env[ix] == NULL) return;
-  //  if( !KeywordPresent( ix)) return;
+  if( env[ix] == NULL || env[ ix] == NullGDL::GetSingleInstance() ) return;
   AssureDoubleScalarKW( ix, scalar);
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Double . Will choke on NULL, !NULL  and non-scalars
+ */
 void EnvT::AssureDoubleScalarKW( const std::string& kw, DDouble& scalar)
 {
   AssureDoubleScalarKW( KeywordIx( kw), scalar);
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Double . Will choke on NULL, !NULL  and non-scalars
+ */
 void EnvT::AssureDoubleScalarKW( SizeT eIx, DDouble& scalar)
 {
   BaseGDL* p = GetKW( eIx);
   
-  if( p == NULL)
-    Throw("Expression undefined: "+GetString(eIx));
-  
+  if( p == NULL || p == NullGDL::GetSingleInstance()) Throw("Expression undefined: "+GetString(eIx));
   DDoubleGDL* lp= static_cast<DDoubleGDL*>(p->Convert2( GDL_DOUBLE, BaseGDL::COPY));
   
   Guard<DDoubleGDL> guard_lp( lp);
@@ -1685,7 +1816,9 @@ void EnvT::AssureDoubleScalarKW( SizeT eIx, DDouble& scalar)
 	  GetString(eIx));
 }
 
-
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Float . Will choke on NULL, !NULL  and non-scalars
+ */
 void EnvT::AssureFloatScalarPar( SizeT pIx, DFloat& scalar)
 {
   BaseGDL* p = GetParDefined( pIx);
@@ -1695,6 +1828,9 @@ void EnvT::AssureFloatScalarPar( SizeT pIx, DFloat& scalar)
     Throw("Parameter must be a scalar or 1 element array in this context: "+
 	  GetParString(pIx));
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Float . scalar unchanged if !NULL, NULL. Chokes on non-scalar
+ */
 void EnvT::AssureFloatScalarKWIfPresent( const std::string& kw, DFloat& scalar)
 {
   int ix = KeywordIx( kw);
@@ -1702,21 +1838,29 @@ void EnvT::AssureFloatScalarKWIfPresent( const std::string& kw, DFloat& scalar)
   //  if( !KeywordPresent( ix)) return;
   AssureFloatScalarKW( ix, scalar);
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Float . scalar unchanged if !NULL, NULL. Chokes on non-scalar
+ */
 void EnvT::AssureFloatScalarKWIfPresent( SizeT ix, DFloat& scalar)
 {
-  if( env[ix] == NULL) return;
-  //  if( !KeywordPresent( ix)) return;
+  if( env[ix] == NULL || env[ ix] == NullGDL::GetSingleInstance() ) return;
   AssureFloatScalarKW( ix, scalar);
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Float . Will choke on NULL, !NULL  and non-scalars
+ */
 void EnvT::AssureFloatScalarKW( const std::string& kw, DFloat& scalar)
 {
   AssureFloatScalarKW( KeywordIx( kw), scalar);
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Float . Will choke on NULL, !NULL  and non-scalars
+ */
 void EnvT::AssureFloatScalarKW( SizeT eIx, DFloat& scalar)
 {
   BaseGDL* p = GetKW( eIx);
   
-  if( p == NULL)
+  if( p == NULL || p == NullGDL::GetSingleInstance())
     Throw("Expression undefined: "+GetString(eIx));
   
   DFloatGDL* lp= static_cast<DFloatGDL*>(p->Convert2( GDL_FLOAT, BaseGDL::COPY));
@@ -1729,6 +1873,9 @@ void EnvT::AssureFloatScalarKW( SizeT eIx, DFloat& scalar)
 }
 
 
+/**
+ * @brief converts parIx if necessary and sets 'scalar' to String . Will choke on NULL, !NULL  and non-scalars
+ */
 void EnvT::AssureStringScalarPar( SizeT pIx, DString& scalar)
 {
   BaseGDL* p = GetParDefined( pIx);
@@ -1738,27 +1885,36 @@ void EnvT::AssureStringScalarPar( SizeT pIx, DString& scalar)
     Throw("Parameter must be a scalar or 1 element array in this context: "+
 	  GetParString(pIx));
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to string . scalar unchanged if !NULL, NULL. Chokes on non-scalar
+ */
 void EnvT::AssureStringScalarKWIfPresent( const std::string& kw, DString& scalar)
 {
   int ix = KeywordIx( kw);
-  if( env[ix] == NULL) return;
-  //  if( !KeywordPresent( ix)) return;
-  AssureStringScalarKW( ix, scalar);
+  AssureStringScalarKWIfPresent( ix, scalar);
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to string . scalar unchanged if !NULL, NULL. Chokes on non-scalar
+ */
 void EnvT::AssureStringScalarKWIfPresent( SizeT ix, DString& scalar)
 {
-  if( env[ix] == NULL) return;
-  //  if( !KeywordPresent( ix)) return;
+  if( env[ix] == NULL || env[ix] == NullGDL::GetSingleInstance()) return;
   AssureStringScalarKW( ix, scalar);
 }
+/**
+ * @brief converts  if necessary and sets 'scalar' to String . Will choke on NULL, !NULL  and non-scalars
+ */
 void EnvT::AssureStringScalarKW( const std::string& kw, DString& scalar)
 {
   AssureStringScalarKW( KeywordIx( kw), scalar);
 }
+/**
+ * @brief converts if necessary and sets 'scalar' to String . Will choke on NULL, !NULL  and non-scalars
+ */
 void EnvT::AssureStringScalarKW( SizeT eIx, DString& scalar)
 {
   BaseGDL* p = GetKW( eIx);
-  if( p == NULL)
+  if( p == NULL || p == NullGDL::GetSingleInstance())
     Throw("Expression undefined: "+GetString(eIx));
   
   DStringGDL* lp= static_cast<DStringGDL*>(p->Convert2( GDL_STRING, BaseGDL::COPY));
@@ -1768,15 +1924,20 @@ void EnvT::AssureStringScalarKW( SizeT eIx, DString& scalar)
     Throw("Expression must be a scalar or 1 element array in this context: "+
 	  GetString(eIx));
 }
-
+/**
+ * @brief Insure it is a global Keyword. Will choke on NULL but not !NULL.
+ */
 void EnvBaseT::SetKW( SizeT ix, BaseGDL* newVal)
 {
   // can't use Guard here as data has to be released
   Guard<BaseGDL> guard( newVal);
   AssureGlobalKW( ix);
   GDLDelete(GetKW( ix));
-  GetKW( ix) = guard.release();
+  GetTheKW( ix) = guard.release();
 }
+/**
+ * @brief Insure it is a global parameter. Will choke on NULL but not !NULL.
+ */
 void EnvT::SetPar( SizeT ix, BaseGDL* newVal)
 {
   // can't use Guard here as data has to be released

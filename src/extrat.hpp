@@ -23,8 +23,7 @@
 #include <string>
 #include <vector>
 
-#include "datatypes.hpp"
-#include "datalistt.hpp"
+//#include "datalistt.hpp"
 
 class EnvBaseT;
 
@@ -60,8 +59,7 @@ public:
 
   void Set( BaseGDL* const val)
   {
-    if( val->Type() != GDL_STRUCT && 
-	val->Type() != GDL_STRING)
+    if( val->Type() != GDL_STRUCT && val->Type() != GDL_STRING && val->Type() != GDL_UNDEF) //May be !NULL now that !NULL exist
       throw GDLException("Invalid value for _EXTRA keyword.");
     
     GDLDelete(locExtraVal);
@@ -71,8 +69,7 @@ public:
   void Set( BaseGDL** const val)
   {
     if( *val != NULL && 
-	(*val)->Type() != GDL_STRUCT && 
-	(*val)->Type() != GDL_STRING)
+	(*val)->Type() != GDL_STRUCT && (*val)->Type() != GDL_STRING && (*val)->Type() != GDL_UNDEF) //May be !NULL now that !NULL exist
       throw GDLException("Invalid value for _EXTRA keyword.");
     
     envExtraVal=val;
@@ -120,6 +117,8 @@ public:
   // combine additional keywords and the (remaining) _EXTRA data to pro's 
   // (_REF)_EXTRA value
   void ResolveExtra(EnvBaseT* caller);
+  BaseGDL* GetRefExtraList(DString &s);
+  BaseGDL** GetRefExtraListPtr(DString &s);
 };
 
 #endif

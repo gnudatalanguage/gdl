@@ -84,12 +84,17 @@ if (N_ELEMENTS(table) eq 0) or not KEYWORD_SET(silent) then begin
       READ, table, PROMPT='Enter table number: '
    endif
 endif
+; If table number is gt 41, at the moment make it 13:
+if table gt 41 then begin
+   table = 13
+   message,/inf," GDL Supports only 42 tables, defaulting to table 13 (Rainbow)"
+endif
 ;
 if ARG_PRESENT(RGB_TABLE) then begin
    LOADCT_INTERNALGDL, table, RGB_TABLE=rgb_table
    return
 endif
-;
+
 LOADCT_INTERNALGDL, table
 ;
 if not KEYWORD_SET( silent) then begin

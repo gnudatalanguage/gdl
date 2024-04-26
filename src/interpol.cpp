@@ -18,7 +18,6 @@
 
 #include "includefirst.hpp"
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 #include "dinterpreter.hpp"
 
@@ -101,13 +100,16 @@ gdl_interpol* gdl_interpol_alloc(const gdl_interpol_type* T, ssize_t xsize) {
     if (xsize != interp->xsize) {
       GSL_ERROR("data must match size of interpolation object", GSL_EINVAL);
     }
-    for (i = 1; i < xsize; i++) {
-      if (xarr[i - 1] >= xarr[i]) {
-//        GSL_ERROR("x values must be strictly increasing", GSL_EINVAL);
-        Message ("X values are not strictly increasing, INTERPOL may give incorrect results");
-        break;
-      }
-    }
+    //not useful as long as sorting of xarr is done in procedue interpol.pro [GD]
+//    for (i = 1; i < xsize; i++) {
+//      if (xarr[i - 1] >= xarr[i]) {
+////        GSL_ERROR("x values must be strictly increasing", GSL_EINVAL);
+//        Message ("X values are not strictly increasing, INTERPOL may give incorrect results");
+//        std::cerr<<xarr[i-1]<<">="<<xarr[i]<<std::endl;
+////        return 1;
+//        break;
+//      }
+//    }
     interp->xmin = xarr[0];
     interp->xmax = xarr[xsize - 1];
     int status = interp->type->init(interp->state, xarr, tarr, xsize);
@@ -317,14 +319,14 @@ const gdl_interpol_type* gdl_interpol_cspline = &cspline_type;
       X=new DDoubleGDL(dimension(4),BaseGDL::NOZERO); for(int i=0; i<4; ++i) (*X)[i]=C[i];
       Y=new DDoubleGDL(dimension(4),BaseGDL::NOZERO); for(int i=0; i<4; ++i) (*Y)[i]=C[i+4]; 
 
-      static int splinitIx = LibFunIx( "SPL_INIT" );
+      int splinitIx = LibFunIx( "SPL_INIT" );
       EnvT* newEnv = new EnvT(NULL, libFunList[ splinitIx]);
       newEnv->SetNextPar( X ); // pass as local
       newEnv->SetNextPar( Y ); // pass as local
       newEnv->SetKeyword("DOUBLE",&One);
       DDoubleGDL* Q = static_cast<DDoubleGDL*>(static_cast<DLibFun*>(newEnv->GetPro())->Fun()(static_cast<EnvT*>(newEnv)));
 
-      static int splinterpIx = LibFunIx( "SPL_INTERP" );
+      int splinterpIx = LibFunIx( "SPL_INTERP" );
       EnvT* newEnv1 = new EnvT(NULL, libFunList[ splinterpIx]);
       newEnv1->SetNextPar( X ); // pass as local
       newEnv1->SetNextPar( Y ); // pass as local
@@ -347,8 +349,7 @@ const gdl_interpol_type* gdl_interpol_cspline = &cspline_type;
 namespace lib {
   
   BaseGDL* interpol_fun(EnvT* e){
-    SizeT nParam = e->NParam();
-    if (nParam < 2 || nParam > 3) e->Throw("Incorrect number of arguments.");
+    SizeT nParam = e->NParam(2);
 
     const gdl_interpol_type* interpol=gdl_interpol_linear;
     // options

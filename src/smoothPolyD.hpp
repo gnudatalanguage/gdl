@@ -50,16 +50,8 @@ for (int r = 0; r < rank; ++r) {
  SizeT dimy = nEl / dimx;
  SizeT w = width[r] / 2;
  if (w == 0) {//fast transpose
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  {
-#pragma omp for nowait
    for (SizeT i = 0; i < nEl; ++i) dest[transposed1Index(i, srcDim, destStride, rank)] = src[i];
-  }
  } else { //smooth & transpose
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  {
-#pragma omp for nowait
-
    for (SizeT j = 0; j < dimy; ++j) {
     //initiate mean of Width first values:
     DDouble z;
@@ -71,7 +63,6 @@ for (int r = 0; r < rank; ++r) {
      z = 1. / n;
      mean = (1. - z) * mean + z * v;
     }
-
 #if defined(USE_EDGE)  
     //start: use mean1
     DDouble mean1 = mean;
@@ -131,7 +122,6 @@ for (int r = 0; r < rank; ++r) {
 #endif   
    }
   }
- }
  //pseudo-dim of src is now rotated by 1
  SizeT tempSize[MAXRANK];
  for (int i = 0; i < rank; ++i) tempSize[i] = srcDim[i];

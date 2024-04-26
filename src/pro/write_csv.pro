@@ -174,7 +174,7 @@ ON_ERROR, 2
         5: if (n_elements(input5) ne nrows) then message,mess else ptr[4]=ptr_new(input5)
         4: if (n_elements(input4) ne nrows) then message,mess else ptr[3]=ptr_new(input4)
         3: if (n_elements(input3) ne nrows) then message,mess else ptr[2]=ptr_new(input3)
-        2: if (n_elements(input3) ne nrows) then message,mess else ptr[1]=ptr_new(input2)
+        2: if (n_elements(input2) ne nrows) then message,mess else ptr[1]=ptr_new(input2)
         1: ptr[0]=ptr_new(input1)
      endswitch
 

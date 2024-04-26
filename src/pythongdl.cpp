@@ -31,7 +31,6 @@
 
 #include "datatypes.hpp"
 #include "envt.hpp"
-#include "sigfpehandler.hpp"
 #include "terminfo.hpp"
 #include "dinterpreter.hpp"
 
@@ -285,7 +284,7 @@ PyObject *GDLSub( PyObject *self, PyObject *argTuple, PyObject *kwDict,
   feclearexcept(FE_ALL_EXCEPT);
 
   PyOS_sighandler_t oldControlCHandler = PyOS_setsig(SIGINT,ControlCHandler);
-  PyOS_sighandler_t oldSigFPEHandler   = PyOS_setsig(SIGFPE,SigFPEHandler);
+  //PyOS_sighandler_t oldSigFPEHandler   = PyOS_setsig(SIGFPE,SigFPEHandler);
 
   PyObject *retVal = NULL; // init to error indicator
 
@@ -453,7 +452,7 @@ PyObject *GDLSub( PyObject *self, PyObject *argTuple, PyObject *kwDict,
 
   // restore old signal handlers
   PyOS_setsig(SIGINT,oldControlCHandler);
-  PyOS_setsig(SIGFPE,oldSigFPEHandler);
+  //PyOS_setsig(SIGFPE,oldSigFPEHandler);
     
   return retVal;
 }
@@ -465,7 +464,7 @@ extern "C" {
   PyObject *GDL_script(PyObject *self, PyObject *argTuple, PyObject *kwDict)
   {
     PyOS_sighandler_t oldControlCHandler = PyOS_setsig(SIGINT,ControlCHandler);
-    PyOS_sighandler_t oldSigFPEHandler   = PyOS_setsig(SIGFPE,SigFPEHandler);
+    //PyOS_sighandler_t oldSigFPEHandler   = PyOS_setsig(SIGFPE,SigFPEHandler);
 
     PyObject *retVal = NULL; // init to error indicator
 
@@ -499,7 +498,7 @@ extern "C" {
     ret:
       // restore old signal handlers
       PyOS_setsig(SIGINT,oldControlCHandler);
-      PyOS_setsig(SIGFPE,oldSigFPEHandler);
+      //PyOS_setsig(SIGFPE,oldSigFPEHandler);
       
       return retVal;
   }
@@ -580,14 +579,15 @@ extern "C" {
     // instantiate the interpreter (creates $MAIN$ environment)
     interpreter = new DInterpreter();
 
-    // Ole: enable GDL PATH!
-    string gdlPath=GetEnvString("GDL_PATH");
-    if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH");
-    if( gdlPath == "")
-      {
-        gdlPath = "+" GDLDATADIR "/lib";
-      }
-    SysVar::SetGDLPath( gdlPath);
+// This is done above in InitObjects(), why duplicate?
+//    // Ole: enable GDL PATH!
+//    string gdlPath=GetEnvString("GDL_PATH");
+//    if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH");
+//    if( gdlPath == "")
+//      {
+//        gdlPath = "+" GDLDATADIR "/lib";
+//      }
+//    SysVar::SetGDLPath( gdlPath);
     
 #if PY_MAJOR_VERSION >= 3
     PyObject* m = PyModule_Create(&moduledef);

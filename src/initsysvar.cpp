@@ -16,6 +16,7 @@
  ***************************************************************************/
 
 #include "includefirst.hpp"
+#include "version.hpp"
 
 #ifndef _WIN32
 #include <sys/utsname.h>
@@ -28,13 +29,13 @@
 #include <omp.h> // for !CPU
 #endif
 
-#include "nullgdl.hpp"
+//#include "nullgdl.hpp"
 
 #include "objects.hpp"
 #include "dstructgdl.hpp"
 #include "graphicsdevice.hpp"
 
-#include "file.hpp"
+#include "file.hpp" //for ExpandPath
 
 #ifdef _MSC_VER
 #include "gtdhelper.hpp"
@@ -256,10 +257,18 @@ namespace SysVar
     return static_cast<DStructGDL*>(pSysVar.Data());
   }
   void PFancyCallBack(){
+    //1) adjust FANCY (initial motive)
     DIntGDL* fancy=GetFancy();
     DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset
     DFloat charsizePos=(*static_cast<DFloatGDL*>(pStruct->GetTag(pStruct->Desc()->TagIndex("CHARSIZE"), 0)))[0];
     (*fancy)[0]=charsizePos*5-4;
+    //2) call change of font for interested drivers.
+    static DLong opfont=-1;
+    DLong pfont=(*static_cast<DLongGDL*>(pStruct->GetTag(pStruct->Desc()->TagIndex("FONT"), 0)))[0];
+    if (opfont != pfont) { //optimize number of calls
+      opfont=pfont;
+      GraphicsDevice::GetDevice()->FontChanged();
+    }
   }
   DLongGDL* GetPMulti()
   {
@@ -390,7 +399,11 @@ namespace SysVar
     DVar* sysVarList_warnIx = sysVarList[ warnIx];
     return static_cast<DStructGDL*>(sysVarList_warnIx->Data());
   }
-
+  DIntGDL* Except()
+  {
+    DVar* sysVarList_exceptIx = sysVarList[ exceptIx];
+    return static_cast<DIntGDL*>(sysVarList_exceptIx->Data());
+  }
   DString MsgPrefix()
   {
     DStructGDL* errorState = Error_State();
@@ -643,7 +656,7 @@ namespace SysVar
 
     // !GDL (to allow distinguish IDL/GDL with DEFSYSV, '!gdl', exists=exists )
     DStructGDL*  gdlStruct = new DStructGDL( "!GNUDATALANGUAGE");
-    gdlStruct->NewTag("RELEASE", new DStringGDL( VERSION));
+    gdlStruct->NewTag("RELEASE", new DStringGDL( VERSION + (VERSION[0] == 'v' ? 1 : 0)));
 
     // creating an explicit build date in !GDL (also exist in !version)
     gdlStruct->NewTag("BUILD_DATE", new DStringGDL(BUILD_DATE));
@@ -709,24 +722,28 @@ namespace SysVar
     DVar *dpi = new DVar( "DPI", dpiData);
     sysVarList.push_back( dpi);
     sysVarRdOnlyList.push_back( dpi); // make it read only
+	sysVarNoSaveList.push_back( dpi); //Is not saveable as system-defined var
 
     // !PI
     DFloatGDL *piData = new DFloatGDL( (float)(4*atan(1.0)) );
     DVar *pi = new DVar( "PI", piData);
     sysVarList.push_back( pi);
     sysVarRdOnlyList.push_back( pi); // make it read only
+	sysVarNoSaveList.push_back( pi); //Is not saveable as system-defined var
 
     // !DTOR
     DFloatGDL *dtorData = new DFloatGDL((*piData)[0] / 180.);// 0.0174533);
     DVar *dtor = new DVar( "DTOR", dtorData);
     sysVarList.push_back( dtor);
     sysVarRdOnlyList.push_back( dtor); // make it read only
+	sysVarNoSaveList.push_back( dtor); //Is not saveable as system-defined var
 
     // !RADEG
     DFloatGDL *radegData = new DFloatGDL(180. / (*piData)[0]);// 57.2957764);
     DVar *radeg = new DVar( "RADEG", radegData);
     sysVarList.push_back( radeg);
     sysVarRdOnlyList.push_back( radeg); // make it read only
+	sysVarNoSaveList.push_back( radeg); //Is not saveable as system-defined var
 
     // !CONST
     // source : http://physics.nist.gov/cgi-bin/cuu/Results?category=abbr_in
@@ -808,6 +825,7 @@ namespace SysVar
     DVar *constant = new DVar("CONST",constantList);
     sysVarList.push_back(constant);
     sysVarRdOnlyList.push_back(constant); // make it read only
+	sysVarNoSaveList.push_back(constant); //Is not saveable as system-defined var
 
 
     // ![XYZ]
@@ -997,6 +1015,7 @@ namespace SysVar
     vIx                = sysVarList.size();
     sysVarList.push_back(v);
     sysVarRdOnlyList.push_back(v);
+	sysVarNoSaveList.push_back(v); //Is not saveable as system-defined var
 
     // !Mouse
     DStructGDL*  MouseData = new DStructGDL( "!MOUSE");
@@ -1076,6 +1095,7 @@ namespace SysVar
     err_stringIx        = sysVarList.size();
     sysVarList.push_back( err_stringVar );
     sysVarRdOnlyList.push_back( err_stringVar); //!err_string IS a readonly variable!
+	sysVarNoSaveList.push_back( err_stringVar); //Is not saveable as system-defined var
 
     // !VALUES
     DStructGDL*  valuesData = new DStructGDL( "!VALUES");
@@ -1117,6 +1137,7 @@ namespace SysVar
     valuesIx           = sysVarList.size();
     sysVarList.push_back(values);
     sysVarRdOnlyList.push_back( values);
+	sysVarNoSaveList.push_back( values); //Is not saveable as system-defined var
 
     // !JOURNAL hold journal file lun
     DLongGDL *journalData = new DLongGDL( 0);
@@ -1124,6 +1145,7 @@ namespace SysVar
     journalIx     = sysVarList.size();
     sysVarList.push_back( journal);
     sysVarRdOnlyList.push_back( journal);
+	sysVarNoSaveList.push_back( journal); //Is not saveable as system-defined var
 
     // !EXCEPT
     DIntGDL *exceptData = new DIntGDL( 1);
@@ -1192,6 +1214,7 @@ namespace SysVar
     cpuIx=sysVarList.size();
     sysVarList.push_back( cpu);
     sysVarRdOnlyList.push_back( cpu);
+	sysVarNoSaveList.push_back( cpu); //Is not saveable as system-defined var
 
 #ifdef _OPENMP
     if( omp_get_dynamic())
@@ -1202,40 +1225,22 @@ namespace SysVar
 #define realpath(N,R) _fullpath((R),(N),_MAX_PATH) 
 // ref:http://sourceforge.net/p/mingw/patches/256/ Keith Marshall 2005-12-02
 #endif
-
-    // !DIR
-#ifndef EXEC_PREFIX
-#define EXEC_PREFIX ""
-#endif
-    DStringGDL *dirData = new DStringGDL( EXEC_PREFIX);
-    string gdlDir=GetEnvString("GDL_DIR");
-    if( gdlDir == "") gdlDir=GetEnvString("IDL_DIR");
-    if( gdlDir != "") 
-	{
-	delete dirData;
-	dirData = new DStringGDL( gdlDir);
-	}
+    DStringGDL *dirData = new DStringGDL(gdlDataDir) ;
+    std::string gdlDir=GetEnvPathString("GDL_DIR");
+    if( gdlDir == "") gdlDir=GetEnvPathString("IDL_DIR");
+    if (gdlDir != "") {
+      delete dirData;
+      dirData = new DStringGDL(gdlDir);
+    }
     DVar *dir = new DVar( "DIR", dirData);
     dirIx=sysVarList.size();
     sysVarList.push_back( dir);
 
-    // !GDL_MAPS_DIR 
-    string tmpDir=GetEnvString("GDL_MAPS_DIR");
-    if( tmpDir == "") tmpDir = string(GDLDATADIR) + "/resource/maps";
-    char *symlinkpath =const_cast<char*> (tmpDir.c_str());// is the path a true path ?
+    // !GDL_MAPS_DIR cannot be found in $IDL_DIR natively. It is only where we put it.
+    string gdlmapsdir=GetEnvPathString("GDL_MAPS_DIR");
+    if( gdlmapsdir == "") gdlmapsdir = gdlDataDir +lib::PathSeparator() +"resource"+lib::PathSeparator()+"maps";
 
-#ifdef _MSC_VER
-	#define PATH_MAX MAX_PATH
-#endif
-//patch #90
-#ifndef PATH_MAX
-#define PATH_MAX 4096
-#endif
-    char actualpath [PATH_MAX+1];
-    char *ptr;
-    ptr = realpath(symlinkpath, actualpath);
-    if( ptr != NULL ) tmpDir=string(ptr)+lib::PathSeparator(); else tmpDir="";
-    DStringGDL *GdlMapsDataDir =  new DStringGDL( tmpDir);
+    DStringGDL *GdlMapsDataDir =  new DStringGDL( gdlmapsdir);
     DVar *GdlMapsDir = new DVar("GDL_MAPS_DIR", GdlMapsDataDir);
     sysVarList.push_back(GdlMapsDir);
    
@@ -1245,6 +1250,7 @@ namespace SysVar
     stimeIx=sysVarList.size();
     sysVarList.push_back( stime);
     sysVarRdOnlyList.push_back( stime); // make it read only
+	sysVarNoSaveList.push_back( stime); //Is not saveable as system-defined var
 
     // !WARN
     DStructGDL*  warnData = new DStructGDL( "!WARN");
@@ -1296,7 +1302,8 @@ namespace SysVar
     DVar *color = new DVar( "COLOR", colorData);
     colorIx     = sysVarList.size();
     sysVarList.push_back(color);
-    sysVarRdOnlyList.push_back( color); //Is Readonly.  
+    sysVarRdOnlyList.push_back( color); //Is Readonly. 
+	sysVarNoSaveList.push_back( color); //Is not saveable as system-defined var
   }
 
 }

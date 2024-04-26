@@ -7,21 +7,11 @@
 ; CATEGORY: Images (IO)
 ;
 ; CALLING SEQUENCE: 
-;      READ_JPEG, filename, red, green, blue, image_index=image_index, $
+;      READ_IMAGE, filename, [red, green, blue], image_index=image_index, $
 ;                 help=help, test=test
 ;
-; KEYWORD PARAMETERS: 
-;        UNIT: not supported yet
-;        BUFFER: not supported yet
-;        COLORS: Number of colors to dither to (8->256)
-;        DITHER: Method of dithering to use
-;        GRAYSCALE: Return a grayscale image
-;        ORDER: flip the image in the vertical 
-;        TRUE: Interleaving (1:pixel, 2:line, 3:band)
-;        TWO_PASS_QUANTIZE: Not supported yet
-;
-; OUTPUTS: [n,m], [2,n,m], [3,n,m], [4,n,m] following image properties
-;          (transparency adds one extra Dim)
+; OUTPUTS: [n,m], [3,n,m] with optional r,g,b if the image format is
+; indexed color (has a palette)
 ;
 ; OPTIONAL OUTPUTS: For pseudocolor only: Red, Green, Blue
 ;
@@ -43,6 +33,7 @@
 ; MODIFICATION HISTORY:
 ;  Initial version written by: Alain Coulais, 2012-02-15
 ;  2012-Feb-12, Alain Coulais :
+;  2022-Jul-11, GD
 ;
 ;-
 ; LICENCE:
@@ -73,25 +64,22 @@ if ((N_PARAMS() EQ 0) OR (N_PARAMS() GT 4)) then $
    MESSAGE, "Incorrect number of arguments."
 ;
 if (N_ELEMENTS(filename) GT 1) then MESSAGE, "Only one file at once !"
-if (STRLEN(filename) EQ 0) then MESSAGE, "Null filename not allowed."
-if ((FILE_INFO(filename)).exists EQ 0) then MESSAGE, "Error opening file. File: "+filename
-if (FILE_TEST(filename, /regular) EQ 0) then MESSAGE, "Not a regular File: "+filename
 ;
 ; First, we have to test whether the file is here
 ;
 status=QUERY_IMAGE(filename, info)
 ;
 if (status EQ 0) then begin
-   MESSAGE, 'Not a valid image file: '+filename
+   MESSAGE, /INFO, 'Not a valid image file: '+filename
+   return, -1
 endif
 ; if query_image said it's OK, just use read_anything:
-READ_ANYGRAPHICSFILEWITHMAGICK, filename, image, colortable, /order
+READ_ANYGRAPHICSFILEWITHMAGICK, filename, image, colortable
 if n_elements(colortable) gt 0 then begin
   red=colortable[*,0]
   green=colortable[*,1]
   blue=colortable[*,2]
 endif
-
 ;
 return, image
 ;

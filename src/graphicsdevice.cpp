@@ -23,16 +23,12 @@
 #include "objects.hpp"
 #include "graphicsdevice.hpp"
 
-#if _WIN32
-#include "otherdevices/devicewin.hpp"
-#endif
-  
 #ifdef HAVE_LIBWXWIDGETS 
 #include "devicewx.hpp"
 #endif
   
 #ifdef HAVE_X
-#include "otherdevices/devicex.hpp"
+#include "devicex.hpp"
 #endif
   
 #include "deviceps.hpp"
@@ -500,12 +496,13 @@ int GraphicsMultiDevice::WAddFree() {
   TidyWindowsList();
 
   int wLSize = winList.size();
-  // plplot allows only 101 windows
-  if (wLSize == 101) return -1;
-
+//test if handle available
   for (int i = max_win; i < wLSize; i++)
     if (winList[i] == NULL) return i;
-
+  
+  // plplot allows only 101 windows [0 to 100], do not allocate more
+  if (wLSize == 101) return -1;
+  //else allocate new
   winList.push_back(NULL);
   oList.push_back(0);
   return wLSize;
@@ -599,6 +596,10 @@ bool GraphicsMultiDevice::CopyRegion(DLongGDL* me) {
   yd = (*me)[5];
   if (me->N_Elements() == 7) source = (*me)[6];
   else source = actWin;
-  if (!winList[ source]->GetRegion(xs, ys, nx, ny)) return false;
+  int ret=winList[ source]->GetRegion(xs, ys, nx, ny);
+  if (ret!=0){
+	if (ret=1) return true; //region is ot of view. not a problem.
+	return false; //CopyRegion is not allowed for this device
+  }
   return winList[ actWin ]->SetRegion(xd, yd, nx, ny);
 }

@@ -18,554 +18,346 @@
 #include "includefirst.hpp"
 #include "plotting.hpp"
 
-#ifdef _MSC_VER
-#define isnan _isnan
-#endif
+PLFLT clipBoxInMemory[4] = {0,0,0,0};
+COORDSYS coordinateSystemInMemory = NONE;
 
 namespace lib {
 
   using namespace std;
-//  using std::isinf;
-#ifndef _MSC_VER
-  using std::isnan;
-#endif
 
-  class plot_call : public plotting_routine_call 
-  {
+  class plot_call : public plotting_routine_call {
     DDoubleGDL *yVal, *xVal, *xTemp, *yTemp;
-    SizeT xEl, yEl, zEl;
+    SizeT nEl;
     DDouble minVal, maxVal, xStart, xEnd, yStart, yEnd, zValue;
     bool doMinMax;
-    bool xLog, yLog, wasBadxLog, wasBadyLog;
+    bool xLog, yLog, zLog;
     Guard<BaseGDL> xval_guard, yval_guard, xtemp_guard;
-    DLong iso;
+    bool iso;
     bool doT3d;
-    DFloat  UsymConvX, UsymConvY;
-    int calendar_codex;
-    int calendar_codey;
-private:
+    DLongGDL *color;
+    DLong psym;
 
-  bool handle_args(EnvT* e) 
-  {
+  private:
 
-    //T3D ?
-    static int t3dIx = e->KeywordIx( "T3D");
-    doT3d=(e->KeywordSet(t3dIx)|| T3Denabled());
+    bool handle_args(EnvT* e) {
+      SizeT xEl, yEl;
+      //T3D ?
+      static int t3dIx = e->KeywordIx("T3D");
+      doT3d = (e->BooleanKeywordSet(t3dIx) || T3Denabled());
 
-    //note: Z (VALUE) will be used uniquely if Z is not effectively defined.
-    static int zvIx = e->KeywordIx( "ZVALUE");
-    zValue=0.0;
-    e->AssureDoubleScalarKWIfPresent ( zvIx, zValue );
-    zValue=min(zValue,0.999999); //to avoid problems with plplot
-    zValue=max(zValue,0.0);
+      zValue = std::numeric_limits<DDouble>::quiet_NaN(); //NAN = no zValue?
+      static int zvIx = e->KeywordIx("ZVALUE");
+      if (e->KeywordPresent(zvIx)){
+      e->AssureDoubleScalarKWIfPresent(zvIx, zValue);
+      zValue = min(zValue, ZVALUEMAX); //to avoid problems with plplot
+      zValue = max(zValue, 0.0);
+      }
 
-    // system variable !P.NSUM first
-    DLong nsum=(*static_cast<DLongGDL*>(SysVar::P()-> GetTag(SysVar::P()->Desc()->TagIndex("NSUM"), 0)))[0];
-      static int NSUMIx = e->KeywordIx( "NSUM");
-      e->AssureLongScalarKWIfPresent( NSUMIx, nsum);
+      // system variable !P.NSUM first
+      DLong nsum = (*static_cast<DLongGDL*> (SysVar::P()-> GetTag(SysVar::P()->Desc()->TagIndex("NSUM"), 0)))[0];
+      static int NSUMIx = e->KeywordIx("NSUM");
+      e->AssureLongScalarKWIfPresent(NSUMIx, nsum);
 
-      static int polarIx = e->KeywordIx( "POLAR");
+      static int polarIx = e->KeywordIx("POLAR");
       bool polar = (e->KeywordSet(polarIx));
 
-    DDoubleGDL *yValBis, *xValBis;
-    Guard<BaseGDL> xvalBis_guard, yvalBis_guard;
-    //test and transform eventually if POLAR and/or NSUM!
-    if (nParam() == 1)
-    {
-      yTemp = e->GetParAs< DDoubleGDL > (0);
-      if (yTemp->Rank() == 0)
-        e->Throw("Expression must be an array in this context: " + e->GetParString(0));
-      yEl=yTemp->N_Elements();
-      xEl=yEl;
-      xTemp = new DDoubleGDL(dimension(xEl), BaseGDL::INDGEN);
-      xtemp_guard.Reset(xTemp); // delete upon exit
-    }
-    else
-    {
-      xTemp = e->GetParAs< DDoubleGDL > (0);
-      if (xTemp->Rank() == 0)
-        e->Throw("Expression must be an array in this context: " + e->GetParString(0));
-      xEl=xTemp->N_Elements();
-      yTemp = e->GetParAs< DDoubleGDL > (1);
-      if (yTemp->Rank() == 0)
-        e->Throw("Expression must be an array in this context: " + e->GetParString(1));
-      yEl=yTemp->N_Elements();
-      //silently drop unmatched values
-      if (yEl!= xEl)
-      {
-        SizeT size;
-        size = min(xEl, yEl);
-        xEl = size;
-        yEl = size;
+      //test and transform eventually if POLAR and/or NSUM!
+      if (nParam() == 1) {
+        yTemp = e->GetWriteableParAs< DDoubleGDL > (0);
+        if (yTemp->Rank() == 0)
+          e->Throw("Expression must be an array in this context: " + e->GetParString(0));
+        yEl = yTemp->N_Elements();
+        xEl = yEl;
+        xTemp = new DDoubleGDL(dimension(xEl), BaseGDL::INDGEN);
+        xtemp_guard.Reset(xTemp); // delete upon exit
+        nEl=yEl;
+      } else {
+        xTemp = e->GetWriteableParAs< DDoubleGDL > (0);
+        if (xTemp->Rank() == 0)
+          e->Throw("Expression must be an array in this context: " + e->GetParString(0));
+        xEl = xTemp->N_Elements();
+        yTemp = e->GetWriteableParAs< DDoubleGDL > (1);
+        if (yTemp->Rank() == 0)
+          e->Throw("Expression must be an array in this context: " + e->GetParString(1));
+        yEl = yTemp->N_Elements();
+        
+        // we need to drop unmatched values, checking nEl. This will cause a discrepancy with IDL, as 
+        // x= findgen(32)*1d-24 & plot,[x], [1]
+        // will NOT plot a x axis from 0 to 4e-23 but from 0 to 1 (since there will be only 1 value left
+        // in xVal at the end: 0 and this will be rescaled between 0 and 0+1 before plotting. TBC.
+        nEl=min(xEl, yEl);
       }
-    }
-    //check nsum validity
-    nsum = max(1, nsum);
-    nsum = min(nsum, (DLong)xEl);
 
-    if (nsum == 1)
-    {
-      if (polar)
-      {
-        xVal = new DDoubleGDL(dimension(xEl), BaseGDL::NOZERO);
+      //check nsum validity
+      nsum = max(1, nsum);
+      nsum = min(nsum, (DLong) nEl);
+
+      if (nsum == 1) {
+        if (polar) {
+          xVal = new DDoubleGDL(dimension(nEl), BaseGDL::NOZERO);
+          xval_guard.Reset(xVal); // delete upon exit
+          yVal = new DDoubleGDL(dimension(nEl), BaseGDL::NOZERO);
+          yval_guard.Reset(yVal); // delete upon exit
+          for (int i = 0; i < nEl; ++i) (*xVal)[i] = (*xTemp)[i] * cos((*yTemp)[i]);
+          for (int i = 0; i < nEl; ++i) (*yVal)[i] = (*xTemp)[i] * sin((*yTemp)[i]);
+        } else { //careful about previously set autopointers!
+          //if (nParam() == 1) xval_guard.Init(xtemp_guard.release());
+          if (nEl != xEl) {
+            xVal = new DDoubleGDL(dimension(nEl), BaseGDL::NOZERO);
+            xval_guard.Reset(xVal); // delete upon exit
+            for (int i = 0; i < nEl; ++i) (*xVal)[i] = (*xTemp)[i];
+          } else xVal = xTemp;
+          if (nEl != yEl) {
+            yVal = new DDoubleGDL(dimension(nEl), BaseGDL::NOZERO);
+            yval_guard.Reset(yVal); // delete upon exit
+            for (int i = 0; i < nEl; ++i) (*yVal)[i] = (*yTemp)[i];
+          } else yVal = yTemp;
+        }
+      } else {
+        int i, j, k;
+        DLong size = (DLong) nEl / nsum;
+        xVal = new DDoubleGDL(size, BaseGDL::ZERO); //SHOULD BE ZERO, IS NOT!
         xval_guard.Reset(xVal); // delete upon exit
-        yVal = new DDoubleGDL(dimension(yEl), BaseGDL::NOZERO);
+        yVal = new DDoubleGDL(size, BaseGDL::ZERO); //IDEM
         yval_guard.Reset(yVal); // delete upon exit
-        for (int i = 0; i < xEl; i++) (*xVal)[i] = (*xTemp)[i] * cos((*yTemp)[i]);
-        for (int i = 0; i < yEl; i++) (*yVal)[i] = (*xTemp)[i] * sin((*yTemp)[i]);
-      }
-      else
-      { //careful about previously set autopointers!
-        if (nParam() == 1) xval_guard.Init( xtemp_guard.release());
-        xVal = xTemp;
-        yVal = yTemp;
-      }
-    }
-    else
-    {
-      int i, j, k;
-      DLong size = (DLong)xEl / nsum;
-      xVal = new DDoubleGDL(size, BaseGDL::ZERO); //SHOULD BE ZERO, IS NOT!
-      xval_guard.Reset(xVal); // delete upon exit
-      yVal = new DDoubleGDL(size, BaseGDL::ZERO); //IDEM
-      yval_guard.Reset(yVal); // delete upon exit
-      for (i = 0, k = 0; i < size; i++)
-      {
-        (*xVal)[i] = 0.0;
-        (*yVal)[i] = 0.0;
-        for (j = 0; j < nsum; j++, k++)
-        {
-          (*xVal)[i] += (*xTemp)[k];
-          (*yVal)[i] += (*yTemp)[k];
+        for (i = 0, k = 0; i < size; ++i) {
+          (*xVal)[i] = 0.0;
+          (*yVal)[i] = 0.0;
+          for (j = 0; j < nsum; j++, k++) {
+            (*xVal)[i] += (*xTemp)[k];
+            (*yVal)[i] += (*yTemp)[k];
+          }
+        }
+        for (i = 0; i < size; ++i) (*xVal)[i] /= nsum;
+        for (i = 0; i < size; ++i) (*yVal)[i] /= nsum;
+
+        if (polar) {
+          DDouble x, y;
+          for (i = 0; i < size; ++i) {
+            x = (*xVal)[i] * cos((*yVal)[i]);
+            y = (*xVal)[i] * sin((*yVal)[i]);
+            (*xVal)[i] = x;
+            (*yVal)[i] = y;
+          }
         }
       }
-      for (i = 0; i < size; i++) (*xVal)[i] /= nsum;
-      for (i = 0; i < size; i++) (*yVal)[i] /= nsum;
 
-      if (polar)
-      {
-        DDouble x, y;
-        for (i = 0; i < size; i++)
-        {
-          x = (*xVal)[i] * cos((*yVal)[i]);
-          y = (*xVal)[i] * sin((*yVal)[i]);
-          (*xVal)[i] = x;
-          (*yVal)[i] = y;
+      xLog = false;
+      yLog = false;
+      zLog = false;
+
+      // handle Log options passing via Functions names PLOT_IO/OO/OI
+      // the behavior can be superseed by [xy]log or [xy]type
+      string ProName = e->GetProName();
+      if (ProName != "PLOT") {
+        if (ProName == "PLOT_IO") yLog = true;
+        if (ProName == "PLOT_OI") xLog = true;
+        if (ProName == "PLOT_OO") {
+          xLog = true;
+          yLog = true;
         }
       }
-    }
 
-    xLog=FALSE;
-    yLog=FALSE;
+      // handle Log options passing via Keywords
+      // note: undocumented keywords [xyz]type still exist and
+      // have priority on [xyz]log !
+      static int xLogIx = e->KeywordIx("XLOG");
+      static int yLogIx = e->KeywordIx("YLOG");
+      static int zLogIx = e->KeywordIx("ZLOG");
+      if (e->KeywordPresent(xLogIx)) xLog = e->KeywordSet(xLogIx);
+      if (e->KeywordPresent(yLogIx)) yLog = e->KeywordSet(yLogIx);
+      if (e->KeywordPresent(yLogIx)) zLog = e->KeywordSet(zLogIx);
 
-    // handle Log options passing via Functions names PLOT_IO/OO/OI
-    // the behavior can be superseed by [xy]log or [xy]type
-    string ProName = e->GetProName( );
-    if ( ProName != "PLOT" ) {
-      if ( ProName == "PLOT_IO" ) yLog = TRUE;
-      if ( ProName == "PLOT_OI" ) xLog = TRUE;
-      if ( ProName == "PLOT_OO" ) {
-        xLog = TRUE;
-        yLog = TRUE;
+      // note: undocumented keywords [xyz]type still exist and
+      // have priority on [xyz]log ! In fact, it is the modulo (1, 3, 5 ... --> /log)   
+      static int xTypeIx = e->KeywordIx("XTYPE");
+      static int yTypeIx = e->KeywordIx("YTYPE");
+      static int xType, yType;
+      if (e->KeywordPresent(xTypeIx)) {
+        e->AssureLongScalarKWIfPresent(xTypeIx, xType);
+        if ((xType % 2) == 1) xLog = true;
+        else xLog = false;
       }
-    }
+      if (e->KeywordPresent(yTypeIx)) {
+        e->AssureLongScalarKWIfPresent(yTypeIx, yType);
+        if ((yType % 2) == 1) yLog = true;
+        else yLog = false;
+      }
 
-    // handle Log options passing via Keywords
-    // note: undocumented keywords [xyz]type still exist and
-    // have priority on [xyz]log !
-    static int xLogIx = e->KeywordIx( "XLOG" );
-    static int yLogIx = e->KeywordIx( "YLOG" );
-    if (e->KeywordPresent(xLogIx)) xLog = e->KeywordSet(xLogIx);
-    if (e->KeywordPresent(yLogIx)) yLog = e->KeywordSet(yLogIx);
-
-    // note: undocumented keywords [xyz]type still exist and
-    // have priority on [xyz]log ! In fact, it is the modulo (1, 3, 5 ... --> /log)   
-    static int xTypeIx = e->KeywordIx( "XTYPE" );
-    static int yTypeIx = e->KeywordIx( "YTYPE" );
-    static int xType, yType;
-    if (e->KeywordPresent(xTypeIx)) {
-      e->AssureLongScalarKWIfPresent(xTypeIx, xType);
-      if ((xType % 2) == 1) xLog= TRUE; else xLog= FALSE;
-    }
-    if (e->KeywordPresent(yTypeIx)) {
-      e->AssureLongScalarKWIfPresent( yTypeIx, yType);
-      if ((yType % 2) == 1) yLog= TRUE; else yLog= FALSE;
-    }
-    
-    //  cout << xType<< " " <<xLog << " "<<yType <<" " << yLog << endl;
-
-    static int xTickunitsIx = e->KeywordIx( "XTICKUNITS" );
-    static int yTickunitsIx = e->KeywordIx( "YTICKUNITS" );
-
-    calendar_codex = gdlGetCalendarCode(e,XAXIS);
-    calendar_codey = gdlGetCalendarCode(e,YAXIS);
-    if ( e->KeywordSet( xTickunitsIx ) && xLog) {
-      Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
-      xLog = FALSE;
-    }
-    if ( e->KeywordSet( yTickunitsIx ) && yLog) {
-      Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
-      yLog = FALSE;
-    }
-
-
-    //    cout << xLog << " " << yLog << endl;
-
-    // compute adequate values for log scale, warn adequately...
-    wasBadxLog = FALSE;
-    wasBadyLog = FALSE;
-    if (xLog)
-    {
       DLong minEl, maxEl;
-      xVal->MinMax(&minEl, &maxEl, NULL, NULL, true,0,xEl); //restrict minmax to xEl fist elements!!!!
-      if ((*xVal)[minEl] <= 0.0) wasBadxLog = TRUE;
-      xValBis = new DDoubleGDL(dimension(xEl), BaseGDL::NOZERO);
-      xvalBis_guard.Reset(xValBis); // delete upon exit
-      for (int i = 0; i < xEl; i++) (*xValBis)[i] = log10((*xVal)[i]);
-    }
-    else xValBis = xVal;
-    if (yLog)
-    {
-      DLong minEl, maxEl;
-      yVal->MinMax(&minEl, &maxEl, NULL, NULL, true,0,yEl);
-      if ((*yVal)[minEl] <= 0.0) wasBadyLog = TRUE;
-      yValBis = new DDoubleGDL(dimension(yEl), BaseGDL::NOZERO);
-      yvalBis_guard.Reset(yValBis); // delete upon exit
-      for (int i = 0; i < yEl; i++) (*yValBis)[i] = log10((*yVal)[i]);
-    }
-    else yValBis = yVal;
-
-#define UNDEF_RANGE_VALUE 1E-12
-    {
-      DLong minEl, maxEl;
-      xValBis->MinMax(&minEl, &maxEl, NULL, NULL, true, 0, xEl); //restrict minmax to xEl fist elements!!!!
+      xVal->MinMax(&minEl, &maxEl, NULL, NULL, true); //restrict minmax to xEl fist elements!!!!
       xStart = (*xVal)[minEl];
       xEnd = (*xVal)[maxEl];
-      if (isnan(xStart)) xStart = UNDEF_RANGE_VALUE;
-      if (isnan(xEnd)) xEnd = 1.0;
-      if (xStart==xEnd) xStart=xEnd-UNDEF_RANGE_VALUE;
 
-      yValBis->MinMax(&minEl, &maxEl, NULL, NULL, true, 0, yEl);
+      yVal->MinMax(&minEl, &maxEl, NULL, NULL, true);
       yStart = (*yVal)[minEl];
       yEnd = (*yVal)[maxEl];
-      if (isnan(yStart)) yStart = UNDEF_RANGE_VALUE;
-      if (isnan(yEnd)) yEnd = 1.0;
-      if (yStart==yEnd) yStart=yEnd-UNDEF_RANGE_VALUE;
-    }
-    //MIN_VALUE and MAX_VALUE overwrite yStart/yEnd eventually (note: the points will not be "seen" at all in plots)
-    minVal = yStart; //to give a reasonable value...
-    maxVal = yEnd;   //idem
-    doMinMax = false; //although we will not use it...
-    static int MIN_VALUEIx = e->KeywordIx("MIN_VALUE");
-    static int MAX_VALUEIx = e->KeywordIx("MAX_VALUE");
-    if( e->KeywordSet(MIN_VALUEIx) || e->KeywordSet(MAX_VALUEIx))
-      doMinMax = true; //...unless explicitely required
-    e->AssureDoubleScalarKWIfPresent( MIN_VALUEIx, minVal);
-    e->AssureDoubleScalarKWIfPresent( MAX_VALUEIx, maxVal);
-    yStart=gdlPlot_Max(yStart,minVal);
-    yEnd=gdlPlot_Min(yEnd,maxVal);
-    if (yEnd <= yStart) yEnd=yStart+1;
-    //XRANGE and YRANGE overrides all that, but  Start/End should be recomputed accordingly
-    DDouble xAxisStart, xAxisEnd, yAxisStart, yAxisEnd;
-    bool setx=gdlGetDesiredAxisRange(e, XAXIS, xAxisStart, xAxisEnd);
-    bool sety=gdlGetDesiredAxisRange(e, YAXIS, yAxisStart, yAxisEnd);
-    if(setx && sety)
-    {
-      xStart=xAxisStart;
-      xEnd=xAxisEnd;
-      yStart=yAxisStart;
-      yEnd=yAxisEnd;
-    }
-    else if (sety)
-    {
-      yStart=yAxisStart;
-      yEnd=yAxisEnd;
-    }
-    else if (setx)
-    {
-      xStart=xAxisStart;
-      xEnd=xAxisEnd;
-      //must compute min-max for other axis!
-      {
-        gdlDoRangeExtrema(xVal,yVal,yStart,yEnd,xStart,xEnd,doMinMax,minVal,maxVal);
-      }
-    }
-    //handle Nozero option after all that! (gdlAxisNoZero test if /ynozero option is valid (ex: no YRANGE)
-    if(!gdlYaxisNoZero(e) && yStart >0 && !yLog ) yStart=0.0;
-#undef UNDEF_RANGE_VALUE
 
-     //ISOTROPIC
-    iso=0;
-    static int ISOTROPICIx = e->KeywordIx("ISOTROPIC");
-    e->AssureLongScalarKWIfPresent( ISOTROPICIx, iso);
-
-    return false;
-  }
-
-  private: void old_body( EnvT* e, GDLGStream* actStream) 
-  {
-    // background BEFORE next plot since it is the only place plplot may redraw the background...
-    gdlSetGraphicsBackgroundColorFromKw(e, actStream);
-   //start a plot
-    gdlNextPlotHandlingNoEraseOption(e, actStream);     //NOERASE
-
-
-    // [XY]STYLE
-    DLong xStyle=0, yStyle=0;
-    gdlGetDesiredAxisStyle(e, XAXIS, xStyle);
-    gdlGetDesiredAxisStyle(e, YAXIS, yStyle);
-
-     //xStyle and yStyle apply on range values
-    if ((xStyle & 1) != 1) {
-      PLFLT intv = gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog, calendar_codex);
-    }
-    if ((yStyle & 1) != 1) {
-      PLFLT intv = gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog, calendar_codey);
-    }
-
-    // MARGIN
-    DFloat xMarginL, xMarginR, yMarginB, yMarginT;
-    gdlGetDesiredAxisMargin(e, XAXIS, xMarginL, xMarginR);
-    gdlGetDesiredAxisMargin(e, YAXIS, yMarginB, yMarginT);
-
-    // viewport and world coordinates
-    // set the PLOT charsize before setting viewport (margin depend on charsize)
-    gdlSetPlotCharsize(e, actStream);
-    
-    if (doT3d)
-    {
-
-      static DDouble x0,y0,xs,ys; //conversion to normalized coords
-      x0=(xLog)?-log10(xStart):-xStart;
-      y0=(yLog)?-log10(yStart):-yStart;
-      xs=(xLog)?(log10(xEnd)-log10(xStart)):xEnd-xStart;xs=1.0/xs;
-      ys=(yLog)?(log10(yEnd)-log10(yStart)):yEnd-yStart;ys=1.0/ys;
-    
-      DDoubleGDL* plplot3d;
-      DDouble az, alt, ay, scale;
-      ORIENTATION3D axisExchangeCode;
-
-      plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
-      if (plplot3d == NULL)
-      {
-        e->Throw("Illegal 3D transformation. (FIXME)");
-      }
-      if (gdlSet3DViewPortAndWorldCoordinates(e, actStream, plplot3d, xLog, yLog,
-        xStart, xEnd, yStart, yEnd) == FALSE) return;
-      gdlSetGraphicsForegroundColorFromKw(e, actStream);
-
-      DDouble  t3xStart, t3xEnd, t3yStart, t3yEnd, t3zStart, t3zEnd;
-      switch (axisExchangeCode) {
-        case NORMAL3D: //X->X Y->Y plane XY
-          t3xStart=(xLog)?log10(xStart):xStart,
-          t3xEnd=(xLog)?log10(xEnd):xEnd,
-          t3yStart=(yLog)?log10(yStart):yStart,
-          t3yEnd=(yLog)?log10(yEnd):yEnd,
-          t3zStart=0;
-          t3zEnd=1.0;
-          actStream->w3d(scale, scale, scale*(1.0 - zValue),
-          t3xStart,t3xEnd,t3yStart,t3yEnd,t3zStart,t3zEnd,
-          alt, az);
-          gdlAxis3(e, actStream, XAXIS, xStart, xEnd, xLog);
-          gdlAxis3(e, actStream, YAXIS, yStart, yEnd, yLog);
-          break;
-        case XY: // X->Y Y->X plane XY
-          t3yStart=(xLog)?log10(xStart):xStart,
-          t3yEnd=(xLog)?log10(xEnd):xEnd,
-          t3xStart=(yLog)?log10(yStart):yStart,
-          t3xEnd=(yLog)?log10(yEnd):yEnd,
-          t3zStart=0;
-          t3zEnd=1.0;
-          actStream->w3d(scale, scale, scale*(1.0 - zValue),
-          t3xStart,t3xEnd,t3yStart,t3yEnd,t3zStart,t3zEnd,
-          alt, az);
-          gdlAxis3(e, actStream, YAXIS, xStart, xEnd, xLog);
-          gdlAxis3(e, actStream, XAXIS, yStart, yEnd, yLog);
-          break;
-        case XZ: // Y->Y X->Z plane YZ
-          t3zStart=(xLog)?log10(xStart):xStart,
-          t3zEnd=(xLog)?log10(xEnd):xEnd,
-          t3yStart=(yLog)?log10(yStart):yStart,
-          t3yEnd=(yLog)?log10(yEnd):yEnd,
-          t3xStart=0;
-          t3xEnd=1.0;
-          actStream->w3d(scale, scale, scale,
-          t3xStart,t3xEnd,t3yStart,t3yEnd,t3zStart,t3zEnd,
-          alt, az);
-          gdlAxis3(e, actStream, ZAXIS, xStart, xEnd, xLog,0);
-          gdlAxis3(e, actStream, YAXIS, yStart, yEnd, yLog);
-          break;
-        case YZ: // X->X Y->Z plane XZ
-          t3xStart=(xLog)?log10(xStart):xStart,
-          t3xEnd=(xLog)?log10(xEnd):xEnd,
-          t3zStart=(yLog)?log10(yStart):yStart,
-          t3zEnd=(yLog)?log10(yEnd):yEnd,
-          t3yStart=0;
-          t3yEnd=1.0;
-          actStream->w3d(scale, scale, scale,
-          t3xStart,t3xEnd,t3yStart,t3yEnd,t3zStart,t3zEnd,
-          alt, az);
-          gdlAxis3(e, actStream, XAXIS, xStart, xEnd, xLog);
-          gdlAxis3(e, actStream, ZAXIS, yStart, yEnd, yLog,1);
-          break;
-        case XZXY: //X->Y Y->Z plane YZ
-          t3yStart=(xLog)?log10(xStart):xStart,
-          t3yEnd=(xLog)?log10(xEnd):xEnd,
-          t3zStart=(yLog)?log10(yStart):yStart,
-          t3zEnd=(yLog)?log10(yEnd):yEnd,
-          t3xStart=0;
-          t3xEnd=1.0;
-          actStream->w3d(scale, scale, scale,
-          t3xStart,t3xEnd,t3yStart,t3yEnd,t3zStart,t3zEnd,
-          alt, az);
-          gdlAxis3(e, actStream, YAXIS, xStart, xEnd, xLog);
-          gdlAxis3(e, actStream, ZAXIS, yStart, yEnd, yLog);
-          break;
-        case XZYZ: //X->Z Y->X plane XZ
-          t3zStart=(xLog)?log10(xStart):xStart,
-          t3zEnd=(xLog)?log10(xEnd):xEnd,
-          t3xStart=(yLog)?log10(yStart):yStart,
-          t3xEnd=(yLog)?log10(yEnd):yEnd,
-          t3yStart=0;
-          t3yEnd=1.0;
-          actStream->w3d(scale, scale, scale,
-          t3xStart,t3xEnd,t3yStart,t3yEnd,t3zStart,t3zEnd,
-          alt, az);
-          gdlAxis3(e, actStream, ZAXIS, xStart, xEnd, xLog,1);
-          gdlAxis3(e, actStream, XAXIS, yStart, yEnd, yLog);
-          break;
-      }
-      //finish box: since there is no option in plplot for upper box 3d axes, do it ourselve:
-      Data3d.zValue = 0;
-      Data3d.Matrix = plplot3d; //try to change for !P.T in future?
-            Data3d.x0=x0;
-            Data3d.y0=y0;
-            Data3d.xs=xs;
-            Data3d.ys=ys;
-      switch (axisExchangeCode) {
-          case NORMAL3D: //X->X Y->Y plane XY
-            Data3d.code = code012;
-            actStream->stransform(gdl3dTo2dTransform, &Data3d);      
-            actStream->join(t3xStart,t3yEnd,t3xEnd,t3yEnd);
-            actStream->join(t3xEnd,t3yStart,t3xEnd,t3yEnd);
-            break;
-          case XY: // X->Y Y->X plane XY
-            Data3d.code = code012;
-            actStream->stransform(gdl3dTo2dTransform, &Data3d);      
-            actStream->join(t3yStart,t3xEnd,t3yEnd,t3xEnd);
-            actStream->join(t3yEnd,t3xStart,t3yEnd,t3xEnd);
-            break;
-          case XZ: // Y->Y X->Z plane YZ
-            Data3d.code = code210;
-            actStream->stransform(gdl3dTo2dTransform, &Data3d);      
-            actStream->join(t3zStart,t3yStart,t3zEnd,t3yStart);
-            actStream->join(t3zEnd,t3yStart,t3zEnd,t3yEnd);
-          default:
-            break;
-//          case YZ: // X->X Y->Z plane XZ
-//            cerr<<"yz"<<endl;
-//            Data3d.code = code021;
-//            actStream->stransform(gdl3dTo2dTransform, &Data3d);      
-//            break;
-//          case XZXY: //X->Y Y->Z plane YZ
-//            cerr<<"xzxy"<<endl;
-//            Data3d.code = code120;
-//            actStream->stransform(gdl3dTo2dTransform, &Data3d);      
-//            break;
-//          case XZYZ: //X->Z Y->X plane XZ
-//            cerr<<"xzyz"<<endl;
-//            Data3d.code = code201;
-//            actStream->stransform(gdl3dTo2dTransform, &Data3d);      
-//            break;
+      //MIN_VALUE and MAX_VALUE overwrite yStart/yEnd eventually (note: the points will not be "seen" at all in plots)
+      minVal = yStart; //to give a reasonable value...
+      maxVal = yEnd; //idem
+      doMinMax = false; //although we will not use it...
+      static int MIN_VALUEIx = e->KeywordIx("MIN_VALUE");
+      static int MAX_VALUEIx = e->KeywordIx("MAX_VALUE");
+      if (e->KeywordSet(MIN_VALUEIx) || e->KeywordSet(MAX_VALUEIx))
+        doMinMax = true; //...unless explicitely required
+      e->AssureDoubleScalarKWIfPresent(MIN_VALUEIx, minVal);
+      e->AssureDoubleScalarKWIfPresent(MAX_VALUEIx, maxVal);
+      yStart = MAX(yStart, minVal);
+      yEnd = MIN(yEnd, maxVal);
+      if (yEnd <= yStart) yEnd = yStart + 1;
+      //XRANGE and YRANGE overrides all that, but  Start/End should be recomputed accordingly
+      DDouble xAxisStart, xAxisEnd, yAxisStart, yAxisEnd;
+      bool setx = gdlGetDesiredAxisRange(e, XAXIS, xAxisStart, xAxisEnd);
+      bool sety = gdlGetDesiredAxisRange(e, YAXIS, yAxisStart, yAxisEnd);
+      if (setx && sety) {
+        xStart = xAxisStart;
+        xEnd = xAxisEnd;
+        yStart = yAxisStart;
+        yEnd = yAxisEnd;
+      } else if (sety) {
+        yStart = yAxisStart;
+        yEnd = yAxisEnd;
+      } else if (setx) {
+        xStart = xAxisStart;
+        xEnd = xAxisEnd;
+        //must compute min-max for other axis!
+        {
+          gdlDoRangeExtrema(xVal, yVal, yStart, yEnd, xStart, xEnd, doMinMax, minVal, maxVal);
         }
-      
-      //data: will plot using coordinates transform.
-      //TODO: unless PSYM=0 (optimize)
-      
-      Data3d.zValue = zValue;
-      Data3d.Matrix = plplot3d; //try to change for !P.T in future?
-            Data3d.x0=x0;
-            Data3d.y0=y0;
-            Data3d.xs=xs;
-            Data3d.ys=ys;
-      switch (axisExchangeCode) {
-          case NORMAL3D: //X->X Y->Y plane XY
-            Data3d.code = code012;
-            break;
-          case XY: // X->Y Y->X plane XY
-            Data3d.code = code102;
-            break;
-          case XZ: // Y->Y X->Z plane YZ
-            Data3d.code = code210;
-            break;
-          case YZ: // X->X Y->Z plane XZ
-            Data3d.code = code021;
-            break;
-          case XZXY: //X->Y Y->Z plane YZ
-            Data3d.code = code120;
-            break;
-          case XZYZ: //X->Z Y->X plane XZ
-            Data3d.code = code201;
-            break;
-        }
-
-      actStream->stransform(gdl3dTo2dTransform, &Data3d);
-      // title and sub title
-      gdlWriteTitleAndSubtitle(e, actStream);
-
-    } else
-    {
-    //fix viewport and coordinates for non-3D box. this permits to have correct UsymConv values.
-    // it is important to fix simsize before!
-    gdlSetSymsize(e, actStream);
-    if (gdlSetViewPortAndWorldCoordinates(e, actStream,
-        xLog, yLog,
-        xMarginL, xMarginR, yMarginB, yMarginT,
-        xStart, xEnd, yStart, yEnd, iso)==FALSE) return; //no good: should catch an exception to get out of this mess.
-    actStream->setSymbolSizeConversionFactors();
-    //current pen color...
-      gdlSetGraphicsForegroundColorFromKw(e, actStream);
-      gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
-    }
-  } 
-  
-    private: void call_plplot(EnvT* e, GDLGStream* actStream) 
-    {
-      DLong psym;
-      // plot the data
-      static int nodataIx = e->KeywordIx( "NODATA"); 
-      if ( !e->KeywordSet(nodataIx) )
-      {
-        bool stopClip=false;
-        if ( startClipping(e, actStream, false)==TRUE ) stopClip=true;
-        // here graphic properties
-        gdlSetPenThickness(e, actStream);
-        gdlSetLineStyle(e, actStream);
-        gdlGetPsym(e, psym); //PSYM
-        draw_polyline(actStream, xVal, yVal, minVal, maxVal, doMinMax, xLog, yLog, psym);
-        if (stopClip) stopClipping(actStream);
       }
-    } 
+      //handle Nozero option after all that! (gdlAxisNoZero test if /ynozero option is valid (ex: no YRANGE)
+      if (!gdlYaxisNoZero(e) && yStart > 0 && !yLog) yStart = 0.0;
 
-    private: void post_call(EnvT* e, GDLGStream* actStream) 
-    {
-//      gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
-      if (doT3d) actStream->stransform(NULL,NULL);
-      actStream->lsty(1);//reset linestyle
+
+      return false; //do not abort
+    }
+
+    bool prepareDrawArea(EnvT* e, GDLGStream* actStream) {
+
+      //ISOTROPIC
+      static int ISOTROPIC = e->KeywordIx("ISOTROPIC");
+      iso = e->KeywordSet(ISOTROPIC);
+
+      //Box adjustement:
+      gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog);
+      gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog);
+      
+     // background BEFORE next plot since it is the only place plplot may redraw the background...
+      gdlSetGraphicsBackgroundColorFromKw(e, actStream);
+      //start a plot
+      gdlNextPlotHandlingNoEraseOption(e, actStream); //NOERASE
+
+      // viewport and world coordinates
+      // set the PLOT charsize before setting viewport (margin depend on charsize)
+      gdlSetPlotCharsize(e, actStream);
+      zValue=gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, 0, 0, false, zValue, iso); 
+      if (doT3d) gdlStartT3DMatrixDriverTransform(actStream, zValue); //call for driver to perform special transform for all further drawing
+      gdlSetSymsize(e, actStream);
+      actStream->setSymbolSizeConversionFactors();
+      //current pen color...
+      gdlSetGraphicsForegroundColorFromKw(e, actStream);
+      gdlBox(e, actStream, xStart, xEnd, xLog, yStart, yEnd,  yLog);
+      
+      //box plotted, we pass in normalized coordinates w/clipping if needed 
+      gdlSetSymsize(e, actStream); //set symsize BEFORE switching (TBC)
+      if (gdlSwitchToClippedNormalizedCoordinates(e, actStream)) return true;
+
+      return false;
+    }
+
+    void applyGraphics(EnvT* e, GDLGStream* actStream) {
+      static int nodataIx = e->KeywordIx("NODATA");
+      if (e->KeywordSet(nodataIx) || zLog) return; //will perform post_call //IDL does not plot anything when zlog is present (normal, z=0)
+
+      static int colorIx = e->KeywordIx("COLOR");
+      bool doColor = false;
+      if (e->GetKW(colorIx) != NULL) {
+        color = e->GetKWAs<DLongGDL>(colorIx);
+        doColor = true;
+      }
+
+      //properties
+      if (!doColor || color->N_Elements() == 1) {
+        //if no KW or only 1 color, no need to complicate things
+        //at draw_polyline level!
+        gdlSetGraphicsForegroundColorFromKw(e, actStream); //COLOR
+        doColor = false;
+      } else if (color->N_Elements() > 1) e->Throw("Expression must be a scalar or 1 element array in this context:"+ e->GetString(colorIx));
+      gdlSetPenThickness(e, actStream); //THICK
+      gdlSetLineStyle(e, actStream); //LINESTYLE
+      gdlGetPsym(e, psym); //PSYM
+
+
+      //Take care of projections: 
+      //projections: X & Y to be converted to u,v BEFORE plotting in NORM coordinates
+      bool mapSet = false;
+      get_mapset(mapSet);
+
+      if (mapSet) {
+#ifdef USE_LIBPROJ
+        ref = map_init();
+        if (ref == NULL) e->Throw("Projection initialization failed.");
+
+        DLongGDL *conn = NULL; //tricky as xVal and yVal will be probably replaced by connectivity
+        bool doFill = false;
+        bool doLines = (psym < 1);
+        bool isRadians = false;
+        //if doT3d and !flat3d, the projected polygon needs to keep track of Z.
+        DDoubleGDL *lonlat = GDLgrGetProjectPolygon(actStream, ref, NULL, xVal, yVal, NULL, isRadians, doFill, doLines, conn);
+
+        if (lonlat != NULL) {
+          SelfNormLonLat(lonlat); //lonlat is now converted to norm
+          if (psym < 1) { //lines must be specially explored
+            GDLgrPlotProjectedPolygon(actStream, lonlat, doFill, conn);
+            psym = -psym;
+          } //now that lines are plotted, do the points:
+          if (psym > 0) {
+            SizeT npts = lonlat->Dim(0); //lonlat is [npts,2]
+            //temporary create x and y to pass to draw_polyline. Not very efficient!
+            DDoubleGDL* x = new DDoubleGDL(dimension(npts), BaseGDL::NOZERO);
+            for (auto i = 0; i < npts; ++i) (*x)[i] = (*lonlat)[i];
+            DDoubleGDL* y = new DDoubleGDL(dimension(npts), BaseGDL::NOZERO);
+            for (auto i = 0; i < npts; ++i) (*y)[i] = (*lonlat)[i + npts];
+            draw_polyline(actStream, x, y, psym, false, doColor ? color : NULL); //x and y are normed values.
+            GDLDelete(x);
+            GDLDelete(y);
+          }
+          GDLDelete(lonlat);
+          if (doLines || doFill) GDLDelete(conn); //conn may be null if no line-drawing or fill was requested.
+        }
+#endif 
+      } else { //just as if LIBPROJ WAS NOT present
+        COORDSYS coordinateSystem = DATA;
+        SelfConvertToNormXY(xVal, xLog, yVal, yLog, coordinateSystem); //always DATA for PLOT X,Y values
+        draw_polyline(actStream, xVal, yVal, psym, false, doColor ? color : NULL); //x and y are normed values.
+      }
+
+    }
+
+    void post_call(EnvT* e, GDLGStream* actStream) {
+      gdlStop3DDriverTransform(actStream);
+      actStream->lsty(1); //reset linestyle
       actStream->sizeChar(1.0);
-    } 
+    }
 
   };
 
-  void plot(EnvT* e)
-  {
+  void plot(EnvT* e) {
     plot_call plot;
     plot.call(e, 1);
   }
 
-  void plot_io(EnvT* e) {plot(e);}
-  void plot_oo(EnvT* e) {plot(e);}
-  void plot_oi(EnvT* e) {plot(e);}
+  void plot_io(EnvT* e) {
+    plot(e);
+  }
+
+  void plot_oo(EnvT* e) {
+    plot(e);
+  }
+
+  void plot_oi(EnvT* e) {
+    plot(e);
+  }
 
 } // namespace
-

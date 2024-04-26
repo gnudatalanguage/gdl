@@ -15,21 +15,12 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-
 #include <memory>
-
-#include <antlr/ASTFactory.hpp>
-
 #include "dinterpreter.hpp"
 #include "prognodeexpr.hpp"
-#include "basegdl.hpp"
-#include "arrayindexlistt.hpp"
-#include "envt.hpp"
-#include "gdlexception.hpp"
 
 // print out AST tree
-#define GDL_DEBUG
+//#define GDL_DEBUG
 //#undef GDL_DEBUG
 
 #ifdef GDL_DEBUG

@@ -244,7 +244,7 @@ void GDLTreeParser::procedure_def(RefDNode _t) {
 		match(antlr::RefAST(_t),IDENTIFIER);
 		_t = _t->getNextSibling();
 		
-		comp.StartPro(name->getText(),p_AST->GetCompileOpt(),obj->getText());
+		comp.StartPro(name->getText(),p_AST->GetCompileOpt(),obj->getText(), RefDNode(procedure_def_AST_in));
 		
 		break;
 	}
@@ -294,7 +294,7 @@ void GDLTreeParser::procedure_def(RefDNode _t) {
 	case XOR_OP_EQ:
 	{
 		
-		comp.StartPro(name->getText(),p_AST->GetCompileOpt());
+		comp.StartPro(name->getText(),p_AST->GetCompileOpt(),"", RefDNode(procedure_def_AST_in));
 		
 		break;
 	}
@@ -487,7 +487,7 @@ void GDLTreeParser::function_def(RefDNode _t) {
 		match(antlr::RefAST(_t),IDENTIFIER);
 		_t = _t->getNextSibling();
 		
-		comp.StartFun(name->getText(),f_AST->GetCompileOpt(),obj->getText());
+		comp.StartFun(name->getText(),f_AST->GetCompileOpt(),obj->getText(),RefDNode(function_def_AST_in));
 		
 		break;
 	}
@@ -537,7 +537,7 @@ void GDLTreeParser::function_def(RefDNode _t) {
 	case XOR_OP_EQ:
 	{
 		
-		comp.StartFun(name->getText(),f_AST->GetCompileOpt());
+		comp.StartFun(name->getText(),f_AST->GetCompileOpt(),"", RefDNode(function_def_AST_in));
 		
 		break;
 	}

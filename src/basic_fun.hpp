@@ -81,6 +81,7 @@ namespace lib {
   BaseGDL* float_fun( EnvT* e);
   BaseGDL* double_fun( EnvT* e);
   BaseGDL* string_fun( EnvT* e);
+  BaseGDL* gdl_tostring_fun( EnvT* e);
   BaseGDL* complex_fun( EnvT* e);
   BaseGDL* dcomplex_fun( EnvT* e);
 

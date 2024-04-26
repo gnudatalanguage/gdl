@@ -15,19 +15,12 @@ email                : m_schellens@users.sf.net
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-
 // from GDLInterpreter::l_expr
 #include <cassert>
 #include <string>
 
 #include "dinterpreter.hpp"
 #include "prognodeexpr.hpp"
-#include "basegdl.hpp"
-#include "arrayindexlistt.hpp"
-//#include "envt.hpp"
-#include "gdlexception.hpp"
-#include "nullgdl.hpp"
 
 // illegal
 BaseGDL** ProgNode::LExpr( BaseGDL* right)
@@ -216,6 +209,7 @@ BaseGDL** SYSVARNode::LExpr( BaseGDL* right)
 		true,false);
 
 	BaseGDL** res=this->LEval(); //l_sys_var(this);
+	if (*res == NullGDL::GetSingleInstance()) return NULL;  //!NULL is a SYSVAR so this is the only place for !NULL=something.
 	Guard<BaseGDL> conv_guard; //( rConv);
 	BaseGDL* rConv = right;
 	if( !(*res)->EqType( right))

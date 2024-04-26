@@ -36,20 +36,21 @@ for i=0L,(m*n)-1 do begin &$
 end
 z=reform(z,m,n,/over)
 scale3
-contour,z,/xs,/ys,nlev=20,/T3D,/FILL,ZV=0,CLIP=0
-contour,z,/xs,/ys,nlev=20,/T3D,/OVER,ZV=0,CLIP=0
+contour,z,/xs,/ys,nlev=20,/T3D,/FILL,ZV=0
+contour,z,/xs,/ys,nlev=20,/T3D,/OVER,ZV=0
 T3D,/XZ
-contour,z,/xs,/ys,nlev=20,/T3D,/FILL,ZV=1,/OVER,CLIP=0
+contour,z,/xs,/ys,nlev=20,/T3D,/FILL,ZV=1,/OVER
 T3D,/YZ
-contour,z,/xs,/ys,nlev=20,/T3D,/FILL,ZV=1,/OVER,CLIP=0
+contour,z,/xs,/ys,nlev=20,/T3D,/FILL,ZV=1,/OVER
 T3D,/YZ&T3D,/XZ
 
-surface,z,/xs,/ys,/T3D,SHADES=[findgen(m*n)]*10,CLIP=0
+surface,z,/xs,/ys,/T3D
 
-contour,z,/xs,/ys,nlev=20,/T3D,/FILL,CLIP=0
+contour,z,/xs,/ys,nlev=20,/T3D,/FILL
 
-set_shading,light=[500,0,1]
-shade_surf,z,/xs,/ys,/T3D,CLIP=0
+set_shading,light=[1,0,1]
+shade_surf,z,/xs,/ys,/T3D
+stop
 !P.MULTI=0
 end
 

@@ -31,6 +31,8 @@
 #include "dcommon.hpp"
 #include "dnode.hpp"
 
+extern volatile bool iAmSilent;
+
 class GDLInterpreter;
 
 class DCompiler: public GDLTokenTypes
@@ -66,12 +68,12 @@ public:
   void ForwardFunction(const std::string&);        // add to function list
   void AddPar(const std::string&);                 // add parameter
   void AddKey(const std::string&,const std::string&);   // add keyword,varName
-  void StartPro(const std::string&, const int compileOpt = 0, const std::string& o = "");     
+  void StartPro(const std::string&, const int compileOpt = 0, const std::string& o = "", const RefDNode semiCompiledTree=NULL);     
   void ContinueMainPro();
   void EndFunPro();       
   void EndInteractiveStatement();
   void EndPro();       
-  void StartFun(const std::string&, const int compileOpt, const std::string& o = "");
+  void StartFun(const std::string&, const int compileOpt, const std::string& o = "", const RefDNode semiCompiledTree=NULL);
   void EndFun();  
   void SetClass(const std::string&);      // set procedure to member (also add 'self')
   DCommonBase* CommonDef(const std::string&); // Common block (re)definition
@@ -83,7 +85,7 @@ public:
   bool IsVar(const std::string&); // variable already defined in actual context?
   void Var(RefDNode);    // sets var in node
   void SysVar(RefDNode); // sets var in node
-  void SetTree(RefDNode);    
+  void SetTree(RefDNode);
   void Label(RefDNode);
   void Goto(RefDNode);
   bool IsFun() const;
@@ -94,7 +96,7 @@ public:
   EnvBaseT* GetEnv() const { return env;}
   void SetEnv( EnvBaseT* e) { env = e;}
   // for sorting lists by name
-  struct CompLibFunName: public std::binary_function< DLibFun*, DLibFun*, bool>
+  struct CompLibFunName: public std::function<bool(DLibFun*, DLibFun*)>
   {
     bool operator() ( DLibFun* f1, DLibFun* f2) const
     { return f1->ObjectName() < f2->ObjectName();}

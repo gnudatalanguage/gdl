@@ -26,12 +26,6 @@
 
 #include <string>
 
-#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
-// by default intel C++ defines __GNUC__
-#pragma interface
-#endif
-
-
 // for each group we need one definition
 // usage: GDL_DEFINE_INTEGER_FUNCTION(retType) fName( arg list) { definition}
 #define GDL_DEFINE_INTEGER_FUNCTION( retType ) template<typename Sp>template< typename U> typename U::template IfInteger< retType >::type Data_<Sp>::
@@ -294,12 +288,13 @@ static	void operator delete( void *ptr);
   BaseGDL* Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias, 
 		   bool center, bool normalize, int edgeMode,
                    bool doNan, BaseGDL* missing, bool doMissing,
-                   BaseGDL* invalid, bool doInvalid);
+                   BaseGDL* invalid, bool doInvalid, DDouble edgeVal);
   BaseGDL* Smooth(DLong* width, int edgeMode,
                    bool doNan, BaseGDL* missing);
   BaseGDL* Rebin( const dimension& newDim, bool sample);
 
   void Assign( BaseGDL* src, SizeT nEl);
+  void AssignIndexedValue( BaseGDL* src, SizeT index);
 
   template< typename To> typename Data_<To>::Ty GetAs( SizeT i);
 //   {
@@ -463,13 +458,13 @@ static	void operator delete( void *ptr);
   // binary input/output
   std::ostream& Write( std::ostream& os, bool swapEndian, bool compress,
 		       XDR *xdrs);
-  std::istream& Read( std::istream& os, bool swapEndian, bool compress,
+  std::istream& Read( std::istream& is, bool swapEndian, bool compress,
 		      XDR *xdrs);
   
   SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width, const int code=0);
   SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, int prec, const int code=0, const BaseGDL::IOMode oM = BaseGDL::FIXED);
   SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, int minN, int code=0, BaseGDL::IOMode oM = BaseGDL::DEC);
-  SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, int minN, char *f, int code=0, BaseGDL::Cal_IOMode oM = BaseGDL::DEFAULT);
+  SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, int minN, const std::string &s, int code=0, BaseGDL::Cal_IOMode oM = BaseGDL::DEFAULT);
   // formatting input functions
   SizeT IFmtA( std::istream* is, SizeT offset, SizeT num, int width); 
   SizeT IFmtF( std::istream* is, SizeT offs, SizeT num, int width); 
@@ -494,10 +489,10 @@ private:
 
 };
 
-// template<> Data_<SpDPtr>::Data_(const Ty& d_);
-// template<> Data_<SpDObj>::Data_(const Ty& d_);
+template<> Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble, DDouble);
+template<> Data_<SpDPtr>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble, DDouble);
+template<> SizeT Data_<SpDObj>::N_Elements() const;
 
-#include "specializations.hpp"
 
 typedef Data_<SpDByte>       DByteGDL;
 typedef Data_<SpDInt>        DIntGDL;

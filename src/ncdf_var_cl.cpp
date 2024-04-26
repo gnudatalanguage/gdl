@@ -31,19 +31,9 @@
 
 #include <netcdf.h>
 
-#include "datatypes.hpp"
 #include "envt.hpp"
-#include "dpro.hpp"
-#include "dinterpreter.hpp"
 
 #include "ncdf_cl.hpp"
-//#include "terminfo.hpp"
-//#include "typedefs.hpp"
-
-
-
-#define GDL_DEBUG
-//#undef GDL_DEBUG
 
 namespace lib {
 

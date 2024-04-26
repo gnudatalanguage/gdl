@@ -107,7 +107,7 @@ std::unique_ptr<std::ostream> osLocalGuard;
             format_reversion( reversionAnker);            
  
            if( (nextParIx == nextParIxComp) && (valIx == valIxComp))   
-                throw GDLException("Infinite format loop detected.");
+                throw GDLException("Format syntax Error.");//"Infinite format loop detected.");
          }
         
         os->seekp( 0, std::ios_base::end);
@@ -194,7 +194,7 @@ format
                         case TL:
                         case TR:
                         case TERM:
-                        case NONL:
+                        //case NONL:
                         case Q: case T: case X: case A:
                         case F: case D: case E: case SE: case G: case SG:
                         case I: case O: case B: case Z: case ZZ: case C:
@@ -203,7 +203,7 @@ format
                                 // no break
                             }
                         case STRING:
-                        case CSTRING:
+                        case CSTYLE_STRING:
                             {
                                 f(_t);
 //                                if( actPar == NULL && termFlag) goto endFMT;
@@ -242,11 +242,11 @@ format_reversion
                 switch ( _t->getType()) {
                 case FORMAT:
                 case STRING:
-                case CSTRING:
+                case CSTYLE_STRING:
                 case TL:
                 case TR:
                 case TERM:
-                case NONL:
+               // case NONL:
                 case Q: case T: case X: case A:
                 case F: case D: case E: case SE: case G: case SG:
                 case I: case O: case B: case Z: case ZZ: case C:
@@ -267,7 +267,8 @@ format_reversion
     ;
 
 q
-    : (s:SLASH 
+    : NONL { nonlFlag = true; }
+      | (s:SLASH 
             {
                 // only one newline to journal file
                 GDLStream* j = lib::get_journal();
@@ -281,9 +282,16 @@ q
 
 f_csubcode // note: IDL doesn't allow hollerith strings inside C()
     : s:STRING { (*os) << s->getText(); }
-//    | CSTRING // *** requires special handling
+//    | CSTYLE_STRING // *** requires special handling
+
+    ;
+
+f
+    : TERM { termFlag = true; }
+    | NONL { nonlFlag = true; }
+    | Q // ignored on output
     | tl:TL 
-        { 
+        { //relative position left
             SizeT actP  = os->tellp(); 
             int    tlVal = tl->getW();
             if( tlVal > actP)
@@ -292,23 +300,18 @@ f_csubcode // note: IDL doesn't allow hollerith strings inside C()
                 os->seekp( actP - tlVal);
         }
     | tr:TR 
-        { 
-            int    tlVal = tl->getW();
-            for( int i=tlVal; i>0; --i)
-            (*os) << " ";
-//            os->seekp( tlVal, std::ios_base::cur);
+        { //relative position right
+            int    trVal = tr->getW();
+            for( int i=trVal; i>0; --i) (*os) << " "; //just add blanks.
+//            os->seekp( trVal, std::ios_base::cur);
         }
-    ;
-
-f
-    : TERM { termFlag = true; }
-    | NONL { nonlFlag = true; }
-    | Q // ignored on output
     | t:T
-        { 
+        {  //absolute position
             int    tVal = t->getW();
-            assert( tVal >= 1);
-            os->seekp( tVal-1, std::ios_base::beg);
+            if (tVal < 1) throw GDLException("Value must be greater or equal to 1.");
+            SizeT actP  = os->tellp(); 
+            if( tVal > actP) for( int i=0; i<tVal-actP-1; ++i) (*os) << " "; //just add blanks.
+            else os->seekp( tVal-1); //like IDL
         }
     | f_csubcode
     | x
@@ -324,7 +327,7 @@ f
                 SizeT tCount = actPar->OFmtA( os, valIx, r, w, c);
                 r -= tCount;
                 NextVal( tCount);
-                if( actPar == NULL) break;
+                if( actPar == NULL) {termFlag=true; break;};
             } while( r>0);
         }
 //  | d:D // D is transformed to F below:
@@ -340,7 +343,7 @@ f
                 SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, c, BaseGDL::FIXED);
                 r -= tCount;
                 NextVal( tCount);
-                if( actPar == NULL) break;
+                if( actPar == NULL) {termFlag=true; break;};
             } while( r>0);
         }
     | se:SE
@@ -355,7 +358,7 @@ f
                 SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, c, BaseGDL::SCIENTIFIC);
                 r -= tCount;
                 NextVal( tCount);
-                if( actPar == NULL) break;
+                if( actPar == NULL) {termFlag=true; break;};
             } while( r>0);
         }
     | ee:E
@@ -371,7 +374,7 @@ f
                 SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, c, BaseGDL::SCIENTIFIC);
                 r -= tCount;
                 NextVal( tCount);
-                if( actPar == NULL) break;
+                if( actPar == NULL) {termFlag=true; break;};
             } while( r>0);
         }
     | sg:SG
@@ -386,7 +389,7 @@ f
                 SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, c, BaseGDL::AUTO);
                 r -= tCount;
                 NextVal( tCount);
-                if( actPar == NULL) break;
+                if( actPar == NULL) {termFlag=true; break;};
             } while( r>0);
         }
     | g:G
@@ -402,7 +405,7 @@ f
                 SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, c, BaseGDL::AUTO);
                 r -= tCount;
                 NextVal( tCount);
-                if( actPar == NULL) break;
+                if( actPar == NULL) {termFlag=true; break;};
             } while( r>0);
         }
     | i:I
@@ -417,7 +420,7 @@ f
                 SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, c, BaseGDL::DEC);
                 r -= tCount;
                 NextVal( tCount);
-                if( actPar == NULL) break;
+                if( actPar == NULL) {termFlag=true; break;};
             } while( r>0);
         }
     | o:O
@@ -432,7 +435,7 @@ f
                 SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, c, BaseGDL::OCT);
                 r -= tCount;
                 NextVal( tCount);
-                if( actPar == NULL) break;
+                if( actPar == NULL) {termFlag=true; break;};
             } while( r>0);
         }
     | b:B
@@ -447,7 +450,7 @@ f
                 SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, c, BaseGDL::BIN);
                 r -= tCount;
                 NextVal( tCount);
-                if( actPar == NULL) break;
+                if( actPar == NULL) {termFlag=true; break;};
             } while( r>0);
         }
     | z:Z
@@ -462,7 +465,7 @@ f
                 SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, c, BaseGDL::HEX);
                 r -= tCount;
                 NextVal( tCount);
-                if( actPar == NULL) break;
+                if( actPar == NULL) {termFlag=true; break;};
             } while( r>0);
         }
     | zz:ZZ
@@ -477,7 +480,7 @@ f
                 SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, c, BaseGDL::HEXL);
                 r -= tCount;
                 NextVal( tCount);
-                if( actPar == NULL) break;
+                if( actPar == NULL) {termFlag=true; break;};
             } while( r>0);
         }
     | 
@@ -489,7 +492,7 @@ f
           if( actPar == NULL) break;
           SizeT nTrans = actPar->ToTransfer();
           if (r > nTrans) r=nTrans;
-          actPar->OFmtCal( os, valIx, r, 0, 0, NULL, 0, BaseGDL::COMPUTE); //convert to hour, min, etc
+          actPar->OFmtCal( os, valIx, r, 0, 0, "", 0, BaseGDL::COMPUTE); //convert to hour, min, etc
         }
 
 
@@ -497,13 +500,13 @@ f
 (calendar_code[r])+ |
              {
                 if( actPar == NULL) break;
-                actPar->OFmtCal( os, valIx, r, 0, 0, NULL, 0, BaseGDL::DEFAULT);
+                actPar->OFmtCal( os, valIx, r, 0, 0, "", 0, BaseGDL::DEFAULT);
              }
 )
 
         {
            if( actPar == NULL) break;
-           SizeT tCount = actPar->OFmtCal( os, valIx, r, 0, 0, NULL, 0, BaseGDL::WRITE); //Write the complete formatted string to os.
+           SizeT tCount = actPar->OFmtCal( os, valIx, r, 0, 0, "", 0, BaseGDL::WRITE); //Write the complete formatted string to os.
            NextVal( tCount);
            if( actPar == NULL) break;
         }
@@ -525,7 +528,7 @@ calendar_code
             int w = c1->getW();
             int d = c1->getD();
             int c = c1->getCode();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CMOA);
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CMOA);
         }
 
     | c2:CMoA
@@ -535,7 +538,7 @@ calendar_code
             int w = c2->getW();
             int d = c2->getD();
             int c = c2->getCode();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CMoA);
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CMoA);
         }
     | c3:CmoA
         {
@@ -544,7 +547,7 @@ calendar_code
             int w = c3->getW();
             int d = c3->getD();
             int c = c3->getCode();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CmoA);
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CmoA);
         }
     | c4:CHI
         {
@@ -553,7 +556,7 @@ calendar_code
             int w = c4->getW();
             int d = c4->getD();
             int c = c4->getCode();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CHI);
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CHI);
         }
     | c5:ChI
         {
@@ -562,7 +565,7 @@ calendar_code
             int w = c5->getW();
             int d = c5->getD();
             int c = c5->getCode();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::ChI);
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::ChI);
         }
     | c6:CDWA
         {
@@ -571,7 +574,7 @@ calendar_code
             int w = c6->getW();
             int d = c6->getD();
             int c = c6->getCode();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CDWA);
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CDWA);
         }
     | c7:CDwA
         {
@@ -580,7 +583,7 @@ calendar_code
             int w = c7->getW();
             int d = c7->getD();
             int c = c7->getCode();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CDwA);
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CDwA);
         }
     | c8:CdwA
         {
@@ -589,7 +592,7 @@ calendar_code
             int w = c8->getW();
             int d = c8->getD();
             int c = c8->getCode();
-                SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CdwA);
+                SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CdwA);
         }
     | c9:CAPA
         {
@@ -598,7 +601,7 @@ calendar_code
             int w = c9->getW();
             int d = c9->getD();
             int c = c9->getCode();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CAPA);
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CAPA);
         }
     | c10:CApA
         {
@@ -607,7 +610,7 @@ calendar_code
             int w = c10->getW();
             int d = c10->getD();
             int c = c10->getCode();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CApA);
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CApA);
         }
     | c11:CapA
         {
@@ -616,7 +619,7 @@ calendar_code
             int w = c11->getW();
             int d = c11->getD();
             int c = c11->getCode();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CapA);
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CapA);
         }
     | c12:CMOI
         {
@@ -625,7 +628,7 @@ calendar_code
             int w = c12->getW();
             int d = c12->getD();
             int c = c12->getCode();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CMOI);
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CMOI);
         }
     | c13:CDI 
         {
@@ -634,7 +637,7 @@ calendar_code
             int w = c13->getW();
             int d = c13->getD();
             int c = c13->getCode();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CDI);
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CDI);
         }
     | c14:CYI
         {
@@ -643,7 +646,7 @@ calendar_code
             int w = c14->getW();
             int d = c14->getD();
             int c = c14->getCode();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CYI);
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CYI);
         }
     | c15:CMI
         {
@@ -652,7 +655,7 @@ calendar_code
             int w = c15->getW();
             int d = c15->getD();
             int c = c15->getCode();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CMI);
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CMI);
         }
     | c16:CSI
         {
@@ -661,7 +664,7 @@ calendar_code
             int w = c16->getW();
             int d = c16->getD();
             int c = c16->getCode();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CSI);
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CSI);
         }
     | c17:CSF
         {
@@ -669,20 +672,19 @@ calendar_code
             int w = c17->getW();
             int d = c17->getD();
             int c = c17->getCode();
-            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, NULL, c, BaseGDL::CSF);
+            SizeT tCount = actPar->OFmtCal( os, valIx, r, w, d, "", c, BaseGDL::CSF);
         }
     | c18:X
         {
 		if( actPar == NULL) break;
-		int    tlVal = c18->getW(); if (tlVal < 1) tlVal=1;
-		std::string *s=new std::string(tlVal,' ');
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, 0, 0, (char*)s->c_str(), BaseGDL::STRING);
-                delete s;
+		int    tlVal = c18->getW(); if (tlVal <= 1) tlVal=1;
+		std::string s(tlVal,' ');
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, 0, 0, s, 0, BaseGDL::STRING);
         }
     | c19:STRING
         {
 		if( actPar == NULL) break;
-		SizeT tCount = actPar->OFmtCal( os, valIx, r, 0, 0, (char*)c19->getText().c_str(), 0, BaseGDL::STRING);
+		SizeT tCount = actPar->OFmtCal( os, valIx, r, 0, 0, c19->getText(), 0, BaseGDL::STRING);
         }
     ; //AND NOTHING ELSE PERMITTED!
 

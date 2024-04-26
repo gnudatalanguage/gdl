@@ -70,7 +70,7 @@ std::unique_ptr<std::ostream> osLocalGuard;
             format_reversion( reversionAnker);            
  
            if( (nextParIx == nextParIxComp) && (valIx == valIxComp))   
-                throw GDLException("Infinite format loop detected.");
+                throw GDLException("Format syntax Error.");//"Infinite format loop detected.");
          }
         
         os->seekp( 0, std::ios_base::end);
@@ -166,10 +166,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 86;
+	static const int NUM_TOKENS = 87;
 #else
 	enum {
-		NUM_TOKENS = 86
+		NUM_TOKENS = 87
 	};
 #endif
 	
@@ -177,6 +177,8 @@ private:
 	static const antlr::BitSet _tokenSet_0;
 	static const unsigned long _tokenSet_1_data_[];
 	static const antlr::BitSet _tokenSet_1;
+	static const unsigned long _tokenSet_2_data_[];
+	static const antlr::BitSet _tokenSet_2;
 };
 
 #endif /*INC_FMTOut_hpp_*/

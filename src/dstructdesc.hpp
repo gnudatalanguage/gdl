@@ -362,7 +362,7 @@ public:
 };
 
 
-class DStruct_eq: public std::unary_function<DStructDesc,bool>
+class DStruct_eq: public std::function<bool(DStructDesc)>
 {
   std::string name;
 

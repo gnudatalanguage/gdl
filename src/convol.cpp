@@ -16,11 +16,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-
-#include "nullgdl.hpp"
-#include "dstructgdl.hpp"
-#include "dinterpreter.hpp"
+#include "envt.hpp"
 
 template<typename T>
 inline bool gdlValid( const T &value )
@@ -48,7 +44,7 @@ template<>
 BaseGDL* Data_<SpDString>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
  				   bool center, bool normalize, int edgeMode,
                                    bool doNan, BaseGDL* missing, bool doMissing,
-                                   BaseGDL* invalid, bool doInvalid)
+                                   BaseGDL* invalid, bool doInvalid, DDouble edgeVal)
 {
   throw GDLException("String expression not allowed in this context.");
 }
@@ -56,7 +52,7 @@ template<>
 BaseGDL* Data_<SpDObj>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
  				bool center, bool normalize, int edgeMode,
                                 bool doNan, BaseGDL* missing, bool doMissing,
-                                BaseGDL* invalid, bool doInvalid)
+                                BaseGDL* invalid, bool doInvalid, DDouble edgeVal)
 {
   throw GDLException("Object expression not allowed in this context.");
 }
@@ -64,7 +60,7 @@ template<>
 BaseGDL* Data_<SpDPtr>::Convol( BaseGDL* kIn, BaseGDL* scaleIn,BaseGDL* bias,
  				bool center, bool normalize, int edgeMode,
                                 bool doNan, BaseGDL* missing, bool doMissing,
-                                BaseGDL* invalid, bool doInvalid)
+                                BaseGDL* invalid, bool doInvalid, DDouble edgeVal)
 {
   throw GDLException("Pointer expression not allowed in this context.");
 }
@@ -219,24 +215,26 @@ namespace lib {
         mrep[maxpos]=0;
     }
     /***************************************Preparing_matrices*************************************************/
-     
-    //Computations for REAL and COMPLEX are better made in double precision if we do not want to lose precision
-    //Apparently IDL has severe problems regarding this loss of precision.
-    // try for example the following, which should give exactly ZERO:
-    // C=32*32*0.34564 & a=findgen(100,100)*0.0+1 & b=convol(a,fltarr(32,32)+0.34564) & print,(b-c)[20:80,50],format='(4(F20.12))' 
-    //So, we convert p0 to Double precision if necessary and convert back result.
-    //Do it here since all other parameters are converted to  p0's type.
-    Guard<BaseGDL> p0Guard;
-    bool deprecise=false;
-    if (p0->Type() == GDL_FLOAT) {
-        p0 = p0->Convert2(GDL_DOUBLE, BaseGDL::COPY);
-        p0Guard.Reset(p0);
-        deprecise=true;
-    } else if (p0->Type() == GDL_COMPLEX) {
-        p0 = p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY);
-        p0Guard.Reset(p0);
-        deprecise=true;
-    }
+
+    // gain of precision removed: was contradictory twith the necessity to stick to IDL's results.
+    
+//    //Computations for REAL and COMPLEX are better made in double precision if we do not want to lose precision
+//    //Apparently IDL has severe problems regarding this loss of precision.
+//    // try for example the following, which should give exactly ZERO:
+//    // C=32*32*0.34564 & a=findgen(100,100)*0.0+1 & b=convol(a,fltarr(32,32)+0.34564) & print,(b-c)[20:80,50],format='(4(F20.12))' 
+//    //So, we convert p0 to Double precision if necessary and convert back result.
+//    //Do it here since all other parameters are converted to  p0's type.
+//    Guard<BaseGDL> p0Guard;
+//    bool deprecise=false;
+//    if (p0->Type() == GDL_FLOAT) {
+//        p0 = p0->Convert2(GDL_DOUBLE, BaseGDL::COPY);
+//        p0Guard.Reset(p0);
+//        deprecise=true;
+//    } else if (p0->Type() == GDL_COMPLEX) {
+//        p0 = p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY);
+//        p0Guard.Reset(p0);
+//        deprecise=true;
+//    }
  
     // convert kernel to array type
     Guard<BaseGDL> p1Guard;
@@ -283,6 +281,12 @@ namespace lib {
     bool edge_truncate = e->KeywordSet( edge_truncateIx);
     static int edge_zeroIx = e->KeywordIx( "EDGE_ZERO");
     bool edge_zero = e->KeywordSet( edge_zeroIx);
+    DDouble edgeVal=0;
+
+    static int edge_constantIx = e->KeywordIx( "EDGE_CONSTANT");
+    bool edge_constant = e->KeywordSet( edge_constantIx);
+    if (edge_constant) e->AssureDoubleScalarKW( edge_constantIx, edgeVal);
+    
     static int edge_mirrorIx = e->KeywordIx( "EDGE_MIRROR");
     bool edge_mirror = e->KeywordSet( edge_mirrorIx);
     int edgeMode = 0; 
@@ -290,7 +294,7 @@ namespace lib {
       edgeMode = 1;
     else if( edge_truncate)
       edgeMode = 2;
-    else if( edge_zero)
+    else if( edge_zero || edge_constant)
       edgeMode = 3;
     else if(edge_mirror)
       edgeMode = 4;
@@ -367,7 +371,7 @@ namespace lib {
       DComplexDbl tmp=std::complex<DDouble>(std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::quiet_NaN());
       memcpy((*missing).DataAddr(), &tmp, sizeof(tmp));
     }
-    BaseGDL* result;
+    BaseGDL* result;   
     //handle transpositions
     if (doTranspose) {
       BaseGDL* input;
@@ -378,16 +382,16 @@ namespace lib {
       Guard<BaseGDL> transpP1Guard;
       transpP1=p1->Transpose(perm);
       transpP1Guard.Reset(transpP1);
-      result=input->Convol(transpP1, scale, bias, center, normalize, edgeMode, doNan, missing, doMissing, invalid, doInvalid)->Transpose(mrep);
-    } else result=p0->Convol( p1, scale, bias, center, normalize, edgeMode, doNan, missing, doMissing, invalid, doInvalid);
+      result=input->Convol(transpP1, scale, bias, center, normalize, edgeMode, doNan, missing, doMissing, invalid, doInvalid, edgeVal)->Transpose(mrep);
+    } else result=p0->Convol( p1, scale, bias, center, normalize, edgeMode, doNan, missing, doMissing, invalid, doInvalid, edgeVal);
     
-    if (deprecise) {
-      Guard<BaseGDL> resultGuard;
-      resultGuard.reset(result);
-      if (p0->Type() == GDL_DOUBLE) return result->Convert2(GDL_FLOAT, BaseGDL::COPY);
-      else if (p0->Type() == GDL_COMPLEXDBL) return result->Convert2(GDL_COMPLEX, BaseGDL::COPY);
-      else return result; //should not happen!
-    } else 
+//    if (deprecise) {
+//      Guard<BaseGDL> resultGuard;
+//      resultGuard.reset(result);
+//      if (p0->Type() == GDL_DOUBLE) return result->Convert2(GDL_FLOAT, BaseGDL::COPY);
+//      else if (p0->Type() == GDL_COMPLEXDBL) return result->Convert2(GDL_COMPLEX, BaseGDL::COPY);
+//      else return result; //should not happen!
+//    } else 
       
       return result; 
     
