@@ -44,9 +44,9 @@ jobs:
       id: set-matrix-others
       run: |
         if [[ '${{ github.event_name }}' == "schedule" || '${{ github.event.inputs.type }}' == "release" || '${{ github.ref }}' == "refs/tags/v"* ]]; then 
-            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['standard', 'headless'], configuration: ['Release']}"
+            matrix="{os: ['ubuntu-latest', 'macos-12'], deps: ['standard', 'headless'], configuration: ['Release']}"
         else
-            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['debug'], configuration: ['Debug']}"
+            matrix="{os: ['ubuntu-latest', 'macos-12'], deps: ['debug'], configuration: ['Debug']}"
         fi
         echo "matrix_others=$matrix" >> $GITHUB_OUTPUT
     - name: Remove Release (scheduled build only)
@@ -62,7 +62,7 @@ jobs:
     needs: prelude
     steps:
       - name: Checkout GDL
-        uses: actions/checkout@v3.2.0
+        uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
@@ -120,7 +120,7 @@ jobs:
       ROOT_DIR: ${{ github.workspace }}/..
     steps:
       - name: Checkout GDL
-        uses: actions/checkout@v3.2.0
+        uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
@@ -138,18 +138,18 @@ jobs:
           scripts/build_gdl.sh prep_deploy
       - name: Upload Build Artifacts
         if: contains(matrix.os, 'macos')
-        uses: actions/upload-artifact@v3.1.1
+        uses: actions/upload-artifact@v4
         with:
           path: gdl-*-${{ matrix.deps }}.dmg
           name: GDL (${{ matrix.os }}, ${{ matrix.deps }}, ${{ matrix.configuration }})
       - name: Upload Build Artifacts
         if: "!contains(matrix.os, 'macos')"
-        uses: actions/upload-artifact@v3.1.1
+        uses: actions/upload-artifact@v4
         with:
           path: gdl-*-${{ matrix.deps }}.zip
           name: GDL (${{ matrix.os }}, ${{ matrix.deps }}, ${{ matrix.configuration }})
       - name: Upload Release Assets (unstable)
-        if: (github.event_name == 'schedule' || github.event.inputs.type == 'release') && matrix.os == 'macos-latest'
+        if: (github.event_name == 'schedule' || github.event.inputs.type == 'release') && matrix.os == 'macos-12'
         uses: ncipollo/release-action@v1
         with:
           artifacts: "gdl-*-${{ matrix.deps }}.dmg"
@@ -188,7 +188,7 @@ jobs:
       Configuration: ${{ matrix.configuration }}
     steps:
       - name: Setup MSYS2
-        uses: msys2/setup-msys2@v2
+        uses: msys2/setup-msys2@v2.22.0
         with:
           msystem: MSYS
           update: false
@@ -207,14 +207,14 @@ jobs:
             rsync
             patch
       - name: Checkout GDL
-        uses: actions/checkout@v3.2.0
+        uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
       - name: Cache Dependencies
         if: matrix.arch == 'x86_64'
         id: cache
-        uses: actions/cache@v3.2.1
+        uses: actions/cache@v4
         with:
           path: |
             C:\msys64\cache
@@ -290,14 +290,14 @@ jobs:
           scripts/build_gdl.sh pack
           scripts/build_gdl.sh prep_deploy
       - name: Upload GDL Installer
-        uses: actions/upload-artifact@v3.1.1
+        uses: actions/upload-artifact@v4
         with:
           name: GDL Installer (${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
           path: gdlsetup-*-${{ matrix.deps }}.exe
 # DO NOT export .zip as artifact: due to necessary use of a precise location for our customized plplot drivers,
 # only an installer can be used (sets the correct environment variables) 
 #      - name: Upload Build Artifacts
-#        uses: actions/upload-artifact@v3.1.1
+#        uses: actions/upload-artifact@v4
 #        with:
 #          name: GDL (windows-latest, ${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
 #          path: gdl-*-${{ matrix.deps }}.zip
