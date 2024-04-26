@@ -55,8 +55,10 @@ namespace lib {
     long int ibeta, it, irnd, ngrd, machep, negep, iexp, minexp, maxexp;
     float  eps, epsneg, xmin, xmax;
     double epsD, epsnegD, xminD, xmaxD;
-    
-    if( e->KeywordSet(0)) //DOUBLE
+
+    static int doubleIx=e->KeywordIx("DOUBLE");
+
+    if (e->KeywordSet(doubleIx))
       {
 	machar_d(&ibeta, &it, &irnd, &ngrd, &machep, 
 		 &negep, &iexp, &minexp, &maxexp, 

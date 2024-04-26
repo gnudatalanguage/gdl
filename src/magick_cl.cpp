@@ -847,11 +847,11 @@ namespace lib {
       //LineInterlace.....Use scanline interlacing (RRR...GGG...BBB...RRR...GGG...BBB...)
       //PlaneInterlace....Use plane interlacing (RRRRRR...GGGGGG...BBBBBB...)
 
-      if (e->KeywordSet(0))//NoInterlace
+      if (e->KeywordSet("NOINTERLACE"))
         image->interlaceType(NoInterlace);
-      else if (e->KeywordSet(1))//LineInterlace
+      else if (e->KeywordSet("LineInterlace"))
         image->interlaceType(LineInterlace);
-      else if (e->KeywordSet(2))//PlaneInterlace
+      else if (e->KeywordSet("PlaneInterlace"))
         image->interlaceType(PlaneInterlace);
 
       //magick_replace(e, mid, image);
@@ -868,17 +868,17 @@ namespace lib {
       e->AssureScalarPar<DUIntGDL>(0, mid);
       Image* image = magick_image(e, mid);
 
-      if (e->KeywordSet(0))//Uniform noise
+      if (e->KeywordSet("UNIFORMNOISE"))
         image->addNoise(UniformNoise);
-      else if (e->KeywordSet(1))//Gaussian noise
+      else if (e->KeywordSet("GAUSSIANNOISE"))
         image->addNoise(GaussianNoise);
-      else if (e->KeywordSet(2))//Multiplicative Gaussian noise
+      else if (e->KeywordSet("MULTIPLICATIVEGAUSSIANNOISE"))
         image->addNoise(MultiplicativeGaussianNoise);
-      else if (e->KeywordSet(3))//Impulse noise
+      else if (e->KeywordSet("IMPULSENOISE"))
         image->addNoise(ImpulseNoise);
-      else if (e->KeywordSet(4))//Laplacian noise
+      else if (e->KeywordSet("LAPLACIANNOISE"))
         image->addNoise(LaplacianNoise);
-      else if (e->KeywordSet(5))//Poisson noise
+      else if (e->KeywordSet("POISSONNOISE"))
         image->addNoise(PoissonNoise);
       else if (e->GetKW(6) != NULL) {
         DInt noise;

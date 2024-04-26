@@ -101,21 +101,26 @@ void LibInit_jmg()
   new DLibFunRetNew(lib::la_least_squares_fun,string("LA_LEAST_SQUARES"),2,laleastsquaresKey);
 
   // square matrices , eispack 'old' free code, by GD.
+  
   const string elmhesKey[]={"COLUMN", "DOUBLE", "NO_BALANCE",KLISTEND};
   new DLibFunRetNew(lib::elmhes_fun,string("ELMHES"),1,elmhesKey);
- #if defined(USE_EIGEN)
+
+  // AC will return unavailability when compiled without Eigen
   const string la_elmhesKey[]={"DOUBLE",KLISTEND};
-  const string la_elmhesWarnKey[]={"BALANCE","NORM_BALANCE", "PERMUTE_RESULT", "SCALE_RESULT",KLISTEND};
+  const string la_elmhesWarnKey[]={"BALANCE","NORM_BALANCE","PERMUTE_RESULT","SCALE_RESULT",KLISTEND};
   new DLibFunRetNew(lib::la_elmhes_fun,string("LA_ELMHES"),2,la_elmhesKey,la_elmhesWarnKey);
- #endif
-  const string hqrKey[]={"COLUMN", "DOUBLE",KLISTEND};
+
+  const string hqrKey[]={"COLUMN","DOUBLE",KLISTEND};
   new DLibFunRetNew(lib::hqr_fun,string("HQR"),1,hqrKey);
+  
   //GD: replaced la_trired from gsl by la_trired from eigen (if eigen is present) as it gives the same results as IDL's LA_TRIRED and is 5 times faster.
+  // AC: but if GDL compiled without Eigen, GSL version still here (see below) 
 #if defined(USE_EIGEN)
-  const string la_triredKey[]={"DOUBLE",KLISTEND};
-  const string la_triredWarnKey[]={"UPPER",KLISTEND};
-  new DLibPro(lib::la_trired_pro,string("LA_TRIRED"),3,la_triredKey,la_triredWarnKey);
+  const string la_trired1Key[]={"DOUBLE","DEBUG",KLISTEND};
+  const string la_trired1WarnKey[]={"UPPER",KLISTEND};
+  new DLibPro(lib::la_trired_pro,string("LA_TRIRED"),3,la_trired1Key,la_trired1WarnKey);
 #endif
+  
   const string triredKey[]={"DOUBLE",KLISTEND};
   new DLibPro(lib::trired_pro,string("TRIRED"),3,triredKey);
   const string triqlKey[]={"DOUBLE",KLISTEND};
@@ -156,7 +161,7 @@ void LibInit_jmg()
 
   //GD: replaced la_trired from gsl by la_trired from eigen (if eigen is present) as it gives the same results as IDL's LA_TRIRED and is 5 times faster.
 #if  !defined(USE_EIGEN)
-  const string la_triredKey[]={"DOUBLE","UPPER",KLISTEND};
+  const string la_triredKey[]={"DOUBLE","UPPER","DEBUG",KLISTEND};
   new DLibPro(lib::la_trired_pro,string("LA_TRIRED"),3,la_triredKey);
 #endif
 #endif

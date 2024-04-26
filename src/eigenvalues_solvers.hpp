@@ -1,9 +1,9 @@
 /***************************************************************************
-                          |FILENAME|  -  description
+            eigenvalues_solvers.hpp  -  interface to ELMHES/TRIRED/HQR
                              -------------------
-    begin                : |DATE|
-    copyright            : (C) |YEAR| by |AUTHOR|
-    email                : |EMAIL|
+    begin                : 2024
+    copyright            : (C) 2024 by G. Duvert
+    email                : gilles.duvert@free.fr
  ***************************************************************************/
 
 /***************************************************************************
@@ -19,12 +19,11 @@
 
 #include "envt.hpp"
 namespace lib {
-#if defined(USE_EIGEN)
+
+  // AC 2024/04/22 all tests to Eigen3/GSL now in "eigenvalues_solvers.cpp" 
+  
   BaseGDL* la_elmhes_fun(EnvT* e);
   void la_trired_pro(EnvT* e);
-#else
-  BaseGDL* elmhes_fun(EnvT* e);
-#endif
   BaseGDL* elmhes_fun(EnvT* e);
   BaseGDL* hqr_fun(EnvT* e);
   void trired_pro(EnvT* e);

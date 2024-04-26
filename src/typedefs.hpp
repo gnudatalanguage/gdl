@@ -78,6 +78,9 @@
 #include <cassert>
 #include <iostream>
 
+//AC24/04/20
+#include <limits>
+
 #undef USE_MPFR
 
 #ifdef USE_MPFR
