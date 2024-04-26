@@ -901,12 +901,101 @@ namespace lib {
     return 0;
   }
 
-  template<typename T1, typename T2>
-  int random_poisson(T1 *res, gsl_rng *gsl_rng_mem, dimension dim, DDoubleGDL *poissonKey) {
+  /*
+  Note: gsl_ran_gamma_long and gsl_ran_poisson_long are replacements for
+  gsl functions gsl_ran_gamma_int and gsl_ran_poisson, necessary because the
+  max. range of these functions (which used int type variables) was insufficient
+  for large poisson seeds in RANDOMU (crashed with POISSON > 49*1e8)
+  */
+
+  static double
+  gamma_large(const gsl_rng * r, const double a)
+  {
+    /* Works only if a > 1, and is most efficient if a is large
+      This algorithm, reported in Knuth, is attributed to Ahrens.  A
+      faster one, we are told, can be found in: J. H. Ahrens and
+      U. Dieter, Computing 12 (1974) 223-246.  */
+
+    double sqa, x, y, v;
+    sqa = sqrt (2 * a - 1);
+    do
+      {
+        do
+          {
+            y = tan (M_PI * gsl_rng_uniform (r));
+            x = sqa * y + a - 1;
+          }
+        while (x <= 0);
+        v = gsl_rng_uniform (r);
+      }
+    while (v > (1 + y * y) * exp ((a - 1) * log (x / (a - 1)) - sqa * y));
+
+    return x;
+  }
+
+  double
+  gsl_ran_gamma_long(const gsl_rng * r, const unsigned long a)
+  {
+    if (a < 12)
+      {
+        unsigned long i;
+        double prod = 1;
+
+        for (i = 0; i < a; i++)
+          {
+            prod *= gsl_rng_uniform_pos (r);
+          }
+
+        /* Note: for 12 iterations we are safe against underflow, since
+          the smallest positive random number is O(2^-32). This means
+          the smallest possible product is 2^(-12*32) = 10^-116 which
+          is within the range of double precision. */
+
+        return -log (prod);
+      }
+    else
+      {
+        return gamma_large (r, (double) a);
+      }
+  }
+
+  unsigned long
+  gsl_ran_poisson_long(const gsl_rng * r, double mu)
+  {
+    double emu;
+    double prod = 1.0;
+    unsigned long k = 0;
+
+    while (mu > 10)
+      {
+        unsigned long m = mu * (7.0 / 8.0);
+        double X = gsl_ran_gamma_long (r, m);
+
+        if (X >= mu)
+            return k + gsl_ran_binomial (r, mu / X, m - 1);
+        else {
+            k += m;
+            mu -= X; 
+        }
+      }
+    /* This following method works well when mu is small */
+    emu = exp (-mu);
+    do
+      {
+        prod *= gsl_rng_uniform (r);
+        k++;
+      }
+    while (prod > emu);
+    return k - 1;
+  }
+
+  template< typename T1, typename T2>
+  int random_poisson(T1* res, gsl_rng *gsl_rng_mem, dimension dim, DDoubleGDL* poissonKey)
+  {
     SizeT nEl = res->N_Elements();
     //Removed old code that would return non-integer values for high mu values.
     DDouble mu = (DDouble) (*poissonKey)[0];
-    for (SizeT i = 0; i < nEl; ++i) (*res)[i] = (T2) gsl_ran_poisson(gsl_rng_mem, mu);
+    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = (T2) gsl_ran_poisson_long(gsl_rng_mem, mu);
     return 0;
   }
 
