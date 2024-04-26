@@ -63,7 +63,6 @@ if [[ ${BUILD_OS} == "macOS" ]]; then
     WITH_GRIB=${WITH_GRIB:-ON}
     WITH_PYTHON="OFF"
     WITH_PYTHONVERSION="OFF"
-    WITH_OPENMP="OFF"
 else
     zz=`grep -i opensuse /etc/*-release 2> /dev/null`
     if [[ -n $zz ]]; then
