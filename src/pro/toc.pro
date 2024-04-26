@@ -29,7 +29,7 @@ pro toc, listOfClocks, lun=lun, report=profilerReport  ; report ignored.
   if ~isa(tt) then return
   if ~isa(lun) then lun=-1
   
-  header = '% Time elapsed '
+  header = '% Time elapsed'
   semi=': '
   for iClock=0,N_ELEMENTS(tt)-1 do begin
     if (isa(listOfClocks) && listOfClocks[iClock].name ne '') then begin

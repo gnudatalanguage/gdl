@@ -284,7 +284,7 @@ PyObject *GDLSub( PyObject *self, PyObject *argTuple, PyObject *kwDict,
   feclearexcept(FE_ALL_EXCEPT);
 
   PyOS_sighandler_t oldControlCHandler = PyOS_setsig(SIGINT,ControlCHandler);
-  PyOS_sighandler_t oldSigFPEHandler   = PyOS_setsig(SIGFPE,SigFPEHandler);
+  //PyOS_sighandler_t oldSigFPEHandler   = PyOS_setsig(SIGFPE,SigFPEHandler);
 
   PyObject *retVal = NULL; // init to error indicator
 
@@ -452,7 +452,7 @@ PyObject *GDLSub( PyObject *self, PyObject *argTuple, PyObject *kwDict,
 
   // restore old signal handlers
   PyOS_setsig(SIGINT,oldControlCHandler);
-  PyOS_setsig(SIGFPE,oldSigFPEHandler);
+  //PyOS_setsig(SIGFPE,oldSigFPEHandler);
     
   return retVal;
 }
@@ -464,7 +464,7 @@ extern "C" {
   PyObject *GDL_script(PyObject *self, PyObject *argTuple, PyObject *kwDict)
   {
     PyOS_sighandler_t oldControlCHandler = PyOS_setsig(SIGINT,ControlCHandler);
-    PyOS_sighandler_t oldSigFPEHandler   = PyOS_setsig(SIGFPE,SigFPEHandler);
+    //PyOS_sighandler_t oldSigFPEHandler   = PyOS_setsig(SIGFPE,SigFPEHandler);
 
     PyObject *retVal = NULL; // init to error indicator
 
@@ -498,7 +498,7 @@ extern "C" {
     ret:
       // restore old signal handlers
       PyOS_setsig(SIGINT,oldControlCHandler);
-      PyOS_setsig(SIGFPE,oldSigFPEHandler);
+      //PyOS_setsig(SIGFPE,oldSigFPEHandler);
       
       return retVal;
   }

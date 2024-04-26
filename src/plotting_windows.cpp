@@ -103,9 +103,7 @@ namespace lib {
     success = actDevice->WOpen(wIx, title, xSize, ySize, xPos, yPos, hide);
     if (!success)
       e->Throw("Unable to create window.");
-    if (e->KeywordSet(PIXMAPIx)) {
-      success = actDevice->Hide();
-    } else success = actDevice->UnsetFocus();
+    if (!hide)  success = actDevice->UnsetFocus();
     actDevice->GetStream()->DefaultBackground();
     actDevice->GetStream()->Clear();
 

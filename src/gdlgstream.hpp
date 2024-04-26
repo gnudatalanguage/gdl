@@ -224,11 +224,11 @@ public:
   virtual ~GDLGStream()
   {
 	  if (GDL_DEBUG_PLSTREAM) printf(" retire GDLGstream:pls=%p \n", (void *)pls);
-//    plend1(); //strange. Was expected to solve #1342 but 1) I cannot reproduce now and 2) this crashes GDL in the following manner:
+    plend1(); //strange. Was expected to solve #1342 but 1) I cannot reproduce now and 2) this crashes GDL in the following manner:
 //    plot,dist(10) ; using X11 not wxWidgets
 //    set_plot,'z'
 //    plot,dist(10)
-//    device, resolution=[1200,800] ; destroys and recretates the 'z' pls, but this plend1() above destroys the X11 window!!
+//    device, set_resolution=[1200,800] ; destroys and recretates the 'z' pls, but this plend1() above destroys the X11 window!!
 //      
   }
 
@@ -296,7 +296,7 @@ public:
   virtual bool IsPlot() {return true;} //except some wxWidgets
   virtual BaseGDL* GetBitmapData(int xoff, int yoff, int nx, int ny){return NULL;}
   virtual void SetCurrentFont(std::string fontname){}//do nothing
-  bool GetRegion(DLong& xs, DLong& ys, DLong& nx, DLong& ny);//{return false;}
+  int GetRegion(DLong& xs, DLong& ys, DLong& nx, DLong& ny);//{return false;}
   bool SetRegion(DLong& xd, DLong& yd, DLong& nx, DLong& ny);//{return false;}
 
   virtual void CheckValid() {}
@@ -640,6 +640,7 @@ public:
   void ssub( PLINT nx, PLINT ny, PLINT nz=1);
   void adv(PLINT page);
   void getSubpageRegion(PLFLT *sxmin, PLFLT *symin, PLFLT *sxmax, PLFLT *symax, PLFLT *zmin=NULL, PLFLT *zmax=NULL);
+  void getCurrentSubpageInfo(PLFLT &xratio, PLFLT &yratio, PLFLT &zratio, PLFLT* displacement);
   void SetPageDPMM(float setPsCharFudge=1.0, float setPsSymFudge=1.0);
   void syncPageInfo();
   void updateBoxDeviceCoords();

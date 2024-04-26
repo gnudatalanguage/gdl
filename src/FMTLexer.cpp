@@ -31,8 +31,6 @@ FMTLexer::FMTLexer(const antlr::LexerSharedInputState& state)
 
 void FMTLexer::initLiterals()
 {
-	literals["tl"] = 39;
-	literals["tr"] = 40;
 }
 
 antlr::RefToken FMTLexer::nextToken()
@@ -179,13 +177,6 @@ antlr::RefToken FMTLexer::nextToken()
 				theRetToken=_returnToken;
 				break;
 			}
-			case 0x54 /* 'T' */ :
-			case 0x74 /* 't' */ :
-			{
-				mT(true);
-				theRetToken=_returnToken;
-				break;
-			}
 			case 0x4c /* 'L' */ :
 			case 0x6c /* 'l' */ :
 			{
@@ -269,6 +260,14 @@ antlr::RefToken FMTLexer::nextToken()
 					mCSTYLE_STRING(true);
 					theRetToken=_returnToken;
 				}
+				else if ((LA(1) == 0x54 /* 'T' */  || LA(1) == 0x74 /* 't' */ ) && (LA(2) == 0x52 /* 'R' */  || LA(2) == 0x72 /* 'r' */ )) {
+					mTR(true);
+					theRetToken=_returnToken;
+				}
+				else if ((LA(1) == 0x54 /* 'T' */  || LA(1) == 0x74 /* 't' */ ) && (LA(2) == 0x4c /* 'L' */  || LA(2) == 0x6c /* 'l' */ )) {
+					mTL(true);
+					theRetToken=_returnToken;
+				}
 				else if ((LA(1) == 0x43 /* 'C' */ ) && (LA(2) == 0x6d /* 'm' */ )) {
 					mCmoA(true);
 					theRetToken=_returnToken;
@@ -299,6 +298,10 @@ antlr::RefToken FMTLexer::nextToken()
 				}
 				else if ((LA(1) == 0x2d /* '-' */ ) && (LA(2) == 0x2b /* '+' */ )) {
 					mMP(true);
+					theRetToken=_returnToken;
+				}
+				else if ((LA(1) == 0x54 /* 'T' */  || LA(1) == 0x74 /* 't' */ ) && (true)) {
+					mT(true);
 					theRetToken=_returnToken;
 				}
 				else if ((LA(1) == 0x43 /* 'C' */  || LA(1) == 0x63 /* 'c' */ ) && (true)) {
@@ -368,11 +371,11 @@ void FMTLexer::mSTRING(bool _createToken) {
 				}
 			}
 			else {
-				goto _loop60;
+				goto _loop59;
 			}
 			
 		}
-		_loop60:;
+		_loop59:;
 		} // ( ... )*
 		_saveIndex = text.length();
 		match('\"' /* charlit */ );
@@ -398,11 +401,11 @@ void FMTLexer::mSTRING(bool _createToken) {
 				}
 			}
 			else {
-				goto _loop63;
+				goto _loop62;
 			}
 			
 		}
-		_loop63:;
+		_loop62:;
 		} // ( ... )*
 		_saveIndex = text.length();
 		match('\'' /* charlit */ );
@@ -900,6 +903,72 @@ void FMTLexer::mT(bool _createToken) {
 	case 0x54 /* 'T' */ :
 	{
 		match('T' /* charlit */ );
+		break;
+	}
+	default:
+	{
+		throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());
+	}
+	}
+	}
+	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
+	   _token = makeToken(_ttype);
+	   _token->setText(text.substr(_begin, text.length()-_begin));
+	}
+	_returnToken = _token;
+	_saveIndex=0;
+}
+
+void FMTLexer::mTR(bool _createToken) {
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
+	_ttype = TR;
+	std::string::size_type _saveIndex;
+	
+	{
+	switch ( LA(1)) {
+	case 0x74 /* 't' */ :
+	{
+		match('t' /* charlit */ );
+		match('r' /* charlit */ );
+		break;
+	}
+	case 0x54 /* 'T' */ :
+	{
+		match('T' /* charlit */ );
+		match('R' /* charlit */ );
+		break;
+	}
+	default:
+	{
+		throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());
+	}
+	}
+	}
+	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
+	   _token = makeToken(_ttype);
+	   _token->setText(text.substr(_begin, text.length()-_begin));
+	}
+	_returnToken = _token;
+	_saveIndex=0;
+}
+
+void FMTLexer::mTL(bool _createToken) {
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
+	_ttype = TL;
+	std::string::size_type _saveIndex;
+	
+	{
+	switch ( LA(1)) {
+	case 0x74 /* 't' */ :
+	{
+		match('t' /* charlit */ );
+		match('l' /* charlit */ );
+		break;
+	}
+	case 0x54 /* 'T' */ :
+	{
+		match('T' /* charlit */ );
+		match('L' /* charlit */ );
 		break;
 	}
 	default:
@@ -1483,18 +1552,18 @@ void FMTLexer::mWHITESPACE(bool _createToken) {
 	std::string::size_type _saveIndex;
 	
 	{ // ( ... )+
-	int _cnt155=0;
+	int _cnt158=0;
 	for (;;) {
 		if ((LA(1) == 0x9 /* '\t' */  || LA(1) == 0x20 /* ' ' */ )) {
 			mW(false);
 		}
 		else {
-			if ( _cnt155>=1 ) { goto _loop155; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+			if ( _cnt158>=1 ) { goto _loop158; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 		}
 		
-		_cnt155++;
+		_cnt158++;
 	}
-	_loop155:;
+	_loop158:;
 	}  // ( ... )+
 	_ttype=antlr::Token::SKIP;
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
@@ -1511,18 +1580,18 @@ void FMTLexer::mDIGITS(bool _createToken) {
 	std::string::size_type _saveIndex;
 	
 	{ // ( ... )+
-	int _cnt158=0;
+	int _cnt161=0;
 	for (;;) {
 		if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x39 /* '9' */ ))) {
 			matchRange('0','9');
 		}
 		else {
-			if ( _cnt158>=1 ) { goto _loop158; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+			if ( _cnt161>=1 ) { goto _loop161; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 		}
 		
-		_cnt158++;
+		_cnt161++;
 	}
-	_loop158:;
+	_loop161:;
 	}  // ( ... )+
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1574,7 +1643,7 @@ void FMTLexer::mNUMBER(bool _createToken) {
 			mH(false);
 			text.erase(_saveIndex);
 			{ // ( ... )+
-			int _cnt165=0;
+			int _cnt168=0;
 			for (;;) {
 				// init action gets executed even in guessing mode
 				if( i == n )
@@ -1585,12 +1654,12 @@ void FMTLexer::mNUMBER(bool _createToken) {
 					mCHAR(false);
 				}
 				else {
-					if ( _cnt165>=1 ) { goto _loop165; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+					if ( _cnt168>=1 ) { goto _loop168; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 				}
 				
-				_cnt165++;
+				_cnt168++;
 			}
-			_loop165:;
+			_loop168:;
 			}  // ( ... )+
 		}
 		else {

@@ -133,7 +133,7 @@ for i=0, n-1 do begin           ;Each format character...
           end
          
          
-         'W' : if n_elements(dow_chr) eq 7 then out+=dow_chr(dow-1) else out+=defdow(dow-1) 
+         'W' : if n_elements(dow_chr) eq 7 then out+=dow_chr(dow) else out+=defdow(dow) 
          'A' : if n_elements(ampm_chr) eq 2 then out+=ampm_chr(icap) else out+=defampm(icap)
          '%' : out = out + '%'
       endcase

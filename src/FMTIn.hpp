@@ -45,7 +45,7 @@ public:
             format_reversion( reversionAnker);
             
             if( (nextParIx == nextParIxComp) && (valIx == valIxComp))   
-                throw GDLException("Infinite format loop detected.");
+                throw GDLException("Format in Error."); //Infinite format loop detected.");
         }
     }
     

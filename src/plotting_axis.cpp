@@ -288,7 +288,7 @@ namespace lib {
         gdlAxis(e, actStream, YAXIS, yStart, yEnd, yLog, yaxis_value+1);
       }
       
-      if (doT3d && zAxis) { //no use drawing something unseen
+      if (zAxis) { //no use drawing something unseen, but IDL does, and wee need values if ztick_get is asked for!!!
         DLong modifierCode=0;
         switch (zaxis_value) {
         case 0:

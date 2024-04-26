@@ -21,7 +21,7 @@
 #define __WXWIDGETS_H__
 
 ////with graphic_context GDL can erase drawings by writing with !P.BACKGROUND since antialiasing can be removed.
-//
+// So we force no antialiasing (way faster plots) and thus prefer GC.
 //#undef wxUSE_GRAPHICS_CONTEXT
 //
 

@@ -40,11 +40,12 @@ else
     WITH_WXWIDGETS=${WITH_WXWIDGETS:-ON}
     WITH_X11=${WITH_X11:-ON}
 fi
+WITH_OPENMP=${WITH_OPENMP:-ON}
 WITH_GRAPHICSMAGICK=${WITH_GRAPHICSMAGICK:-ON}
 WITH_NETCDF=${WITH_NETCDF:-ON}
 WITH_HDF=${WITH_HDF:-ON}
 WITH_HDF5=${WITH_HDF5:-ON}
-if [[ ${DEPS} == "standard" ]]; then
+if [[ ${DEPS} != "headless" ]]; then
     WITH_MPI=${WITH_MPI:-OFF}
 else
     WITH_MPI=${WITH_MPI:-ON}
@@ -63,6 +64,7 @@ if [[ ${BUILD_OS} == "macOS" ]]; then
     WITH_GRIB=${WITH_GRIB:-ON}
     WITH_PYTHON="OFF"
     WITH_PYTHONVERSION="OFF"
+    WITH_OPENMP="OFF"
 else
     zz=`grep -i opensuse /etc/*-release 2> /dev/null`
     if [[ -n $zz ]]; then
@@ -75,7 +77,11 @@ else
         WITH_GRIB=${WITH_GRIB:-ON}
     fi
 fi
-
+if [[ ${BUILD_OS} == "Windows" ]]; then
+    WITH_HDF4="OFF"
+    WITH_PYTHON="OFF"
+    WITH_PYTHONVERSION="OFF"
+fi
 function log {  # log is needded just below!
     echo "[${ME}] $@"
 }
@@ -442,12 +448,12 @@ function configure_gdl {
     if [[ ${BUILD_OS} == "macOS" ]]; then
         if [[ ${Platform} == "arm64" ]]; then
             export LIBRARY_PATH=$LIBRARY_PATH:/opt/homebrew/opt/llvm/lib
-            CMAKE_ADDITIONAL_ARGS=( "-DREADLINEDIR=/opt/homebrew/opt/readline"
+            CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF -DREADLINEDIR=/opt/homebrew/opt/readline"
                                     "-DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++"
                                     "-DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang" ) 
         else
             export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/opt/llvm/lib
-            CMAKE_ADDITIONAL_ARGS=( "-DREADLINEDIR=/usr/local/opt/readline"
+            CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF -DREADLINEDIR=/usr/local/opt/readline"
                                     "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++"
                                     "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang" )
         fi
@@ -469,7 +475,7 @@ function configure_gdl {
     cmake ${GDL_DIR} -G"${GENERATOR}" \
         -DCMAKE_BUILD_TYPE=${Configuration} \
         -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
-        -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
+        -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} -DOPENMP=${WITH_OPENMP} \
         -DWXWIDGETS=${WITH_WXWIDGETS} -DX11={WITH_X11} -DGRAPHICSMAGICK=${WITH_GRAPHICSMAGICK} \
         -DNETCDF=${WITH_NETCDF} -DHDF=${WITH_HDF4} -DHDF5=${WITH_HDF5} \
         -DMPI=${WITH_MPI} -DTIFF=${WITH_TIFF} -DGEOTIFF=${WITH_GEOTIFF} \

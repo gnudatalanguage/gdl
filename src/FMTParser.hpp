@@ -57,12 +57,12 @@ public:
 	public: void f();
 	public: void f_csubcode();
 	public: void cstring();
-	public:  int  nn();
 	public: void cformat();
 	public: void cnnf(
 		int *infos
 	);
 	public:  int  cnn();
+	public:  int  nn();
 	public: void rep_fmt(
 		 int repeat
 	);
@@ -101,8 +101,6 @@ private:
 	static const antlr::BitSet _tokenSet_1;
 	static const unsigned long _tokenSet_2_data_[];
 	static const antlr::BitSet _tokenSet_2;
-	static const unsigned long _tokenSet_3_data_[];
-	static const antlr::BitSet _tokenSet_3;
 };
 
 #endif /*INC_FMTParser_hpp_*/

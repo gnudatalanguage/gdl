@@ -95,7 +95,11 @@ using namespace std;
     F = JD - Z;
     // note that IDL dow is false before Sun dec 31 12:00:00 -4714, (type: a=[-2,-1]& PRINT, FORMAT='(C())',a)
     // ...and ... we are not!
-    if ((DLong)Z+1 > 0) dow = ((DLong)Z+1) % 7; else dow = ((DLong)Z+1099) % 7; //just translate axis...
+    if ((DLong)Z > 0) dow = ((DLong)Z) % 7; else dow = ((DLong)Z+1099) % 7; //just translate axis...
+    // Changed by GD gdl-1.0.3git231020, see in comments of PR #1799
+    //    if ((DLong)Z+1 > 0) dow = ((DLong)Z+1) % 7; else dow = ((DLong)Z+1099) % 7;
+    // how to test : print,2.455555555D6,format='(c())' should give : Sat
+    //just translate axis...
     
     if (Z < 2299161) A = (DLong)Z;
     else {

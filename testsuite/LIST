@@ -38,7 +38,6 @@ test_bug_3189072.pro
 test_bug_3199465.pro
 test_bug_3285659.pro
 test_bug_3286031.pro
-test_bug_3288652.pro
 test_bug_3290532.pro
 test_bug_3296360.pro
 test_bug_3298378.pro
@@ -81,6 +80,7 @@ test_delvarrnew.pro
 test_diag_matrix.pro
 test_dilate.pro
 test_dynamic_drivers.pro
+test_elmhes.pro
 test_erfinv.pro
 test_erode.pro
 test_execute.pro
@@ -96,6 +96,9 @@ test_file_readlink.pro
 test_file_which.pro
 test_finite.pro
 test_fixprint.pro
+test_foreach.pro
+test_format.pro
+test_formats.pro
 test_fx_root.pro
 test_fz_roots.pro
 test_gaussfit.pro
@@ -142,8 +145,11 @@ test_netcdf.pro
 test_norm.pro
 test_null.pro
 test_numeric_limits.pro
+test_obj_destroy.pro
 test_obj_hasmethod.pro
+test_obj_isa.pro
 test_obj_valid.pro
+test_operators.pro
 test_parse_url.pro
 test_plot_ranges.pro
 test_plot_usersym.pro

@@ -207,8 +207,8 @@ namespace lib {
     }
 
     if(type == "OBJREF"){
-      rank=1; // alway array following ISA() doc.
-      //cout << "OBJREF" << endl;
+      // AC 2024/03/21 wrong here rank=1; // alway array following ISA() doc.
+      // cout << "OBJREF" << endl;
       DObjGDL* obj = static_cast<DObjGDL*>(p0);
       DObj objID = (*obj)[0];
       if(objID == 0) res = false; else res = true;
@@ -224,7 +224,11 @@ namespace lib {
 	else {
 	  objectName = str->Desc()->Name();
 	}
-	// cout << objectName << endl;
+	SizeT nEl;
+	if (str->Desc()->IsParent("LIST")) nEl=LIST_count(str);
+	if (str->Desc()->IsParent("HASH")) nEl=HASH_count(str);
+	if (debug) cout << objectName << " " << nEl<< endl;
+	if (nEl > 0) rank=1;
       }
     }
 
@@ -456,14 +460,13 @@ namespace lib {
 	    if( oStructGDL != NULL) // if object not valid -> default behaviour
 	      {  
 		DStructDesc* desc = oStructGDL->Desc();
-
 		if( desc->IsParent("LIST"))
 		  {
-				isObjectContainer = true; nEl = LIST_count(oStructGDL);
+		    isObjectContainer = true; nEl = LIST_count(oStructGDL);
 		  }
 		if( desc->IsParent("HASH"))
 		  {
-				isObjectContainer = true; nEl = HASH_count(oStructGDL);
+		    isObjectContainer = true; nEl = HASH_count(oStructGDL);
 		  }
 	      }
 	  }
@@ -471,7 +474,7 @@ namespace lib {
 
     if( isObjectContainer)
       {
-	LogicalRank = 1;
+	if (nEl > 0) LogicalRank = 1; // AC2024/03/21 bug  #1725
       }
     
     // DIMENSIONS
@@ -564,23 +567,33 @@ namespace lib {
 	res->InitTag("FILE_OFFSET", DLongGDL(0));
 	res->InitTag("N_ELEMENTS",  DLongGDL(nEl));
       }
-      res->InitTag("N_DIMENSIONS",  DLongGDL(Rank));
+      
+      // AC2024/03/21 bug  #1810
+      //res->InitTag("N_DIMENSIONS",  DLongGDL(Rank));
+      res->InitTag("N_DIMENSIONS",  DLongGDL(LogicalRank));
 
       // Initialize dimension values to 0
       if (e->KeywordSet(L64Ix) || forceL64 ) {
 	DLong64GDL *dims_res = new DLong64GDL(dimension(MAXRANK), BaseGDL::ZERO);
-	for( SizeT i=Rank; i<MAXRANK; ++i) (*dims_res)[ i] = 0;
-	for( SizeT i=0; i<Rank; ++i) (*dims_res)[ i] = p0->Dim(i);
+	for( SizeT i=LogicalRank; i<MAXRANK; ++i) (*dims_res)[ i] = 0;
+	if (isObjectContainer) {
+	  (*dims_res)[0]=nEl;
+	} else {
+	  for( SizeT i=0; i<LogicalRank; ++i) (*dims_res)[ i] = p0->Dim(i);
+	}
 	res->InitTag("DIMENSIONS",  *dims_res);
       } else {
 	DLongGDL *dims_res = new DLongGDL(dimension(MAXRANK), BaseGDL::ZERO);	
-	for( SizeT i=Rank; i<MAXRANK; ++i) (*dims_res)[ i] = 0;
-	for( SizeT i=0; i<Rank; ++i) (*dims_res)[ i] = p0->Dim(i);
+	for( SizeT i=LogicalRank; i<MAXRANK; ++i) (*dims_res)[ i] = 0;
+	if (isObjectContainer) {
+	  (*dims_res)[0]=nEl;
+	} else {
+	  for( SizeT i=0; i<LogicalRank; ++i) (*dims_res)[ i] = p0->Dim(i);
+	}
 	res->InitTag("DIMENSIONS",  *dims_res);
       }
 
       return res;
-      //e->Throw( "STRUCTURE not supported yet.");
     }
     
     // SNAME

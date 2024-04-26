@@ -54,7 +54,15 @@ void PythonInit()
   static char* arg0 = (char*)"./py/python.exe";
   static char* argv[] = {arg0};
 #endif
+
+// use new python configuration (PEP 587), legacy initialisation is marked deprecated in Python 3.11
+#if PY_VERSION_HEX >= 0x030B0000
+  PyConfig config;
+  PyConfig_InitPythonConfig(&config);
+  PyConfig_SetArgv(&config, argc, argv);
+#else
   PySys_SetArgv(argc, argv);
+#endif
 
   // http://docs.scipy.org/doc/numpy/reference/c-api.array.html#miscellaneous
   import_array();
@@ -212,7 +220,14 @@ namespace lib {
 	  argv[i] = const_cast<char*>((*argvS)[ i].c_str()); 
 #endif
 
+// use new python configuration (PEP 587), legacy initialisation is marked deprecated in Python 3.11
+#if PY_VERSION_HEX >= 0x030B0000
+      PyConfig config;
+      PyConfig_InitPythonConfig(&config);
+      PyConfig_SetArgv(&config, argc, argv);
+#else
 	PySys_SetArgv(argc, argv);
+#endif
 	delete[] argv;
       }
 
