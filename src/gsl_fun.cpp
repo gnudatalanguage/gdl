@@ -1224,7 +1224,7 @@ namespace lib {
 
   void la_trired_pro(EnvT *e) {
 
-    static int debugIx=KeywordIx("DEBUG");
+    static int debugIx=e->KeywordIx("DEBUG");
     if (e->KeywordSet(debugIx)) cout << "GSL version of LA_TRIRED" << endl;
 
     SizeT nParam = e->NParam(3);
