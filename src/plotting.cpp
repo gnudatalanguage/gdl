@@ -1270,7 +1270,30 @@ namespace lib
     return position;
 }
 
-  //Stores [XYZ].WINDOW, .REGION and .S
+	//Stores Axis Region
+  void gdlStoreXAxisRegion(GDLGStream* actStream, PLFLT* p)
+  {
+    DStructGDL* Struct=SysVar::X(); 
+    static unsigned windowTag=Struct->Desc()->TagIndex("REGION");
+    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0]=p[0];
+    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1]=p[2];
+  }  
+ void gdlStoreYAxisRegion(GDLGStream* actStream, PLFLT* p)
+  {
+    DStructGDL* Struct=SysVar::Y(); 
+    static unsigned windowTag=Struct->Desc()->TagIndex("REGION");
+    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0]=p[1];
+    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1]=p[3];
+  }
+ void gdlStoreZAxisRegion(GDLGStream* actStream, PLFLT* p)
+  {
+   // ??? will see when needed.
+//    DStructGDL* Struct=SysVar::Z(); 
+//    static unsigned windowTag=Struct->Desc()->TagIndex("REGION");
+//    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0]=p[1];
+//    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1]=p[3];
+  }
+ //Stores [XYZ].WINDOW, TYPE, CRANGE and .S
   void gdlStoreXAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log)
   {
     // !X etc parameters relative to the VIEWPORT:
@@ -3300,6 +3323,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     static PLFLT P_position_normed[4] = {0, 0, 0, 0};
     static PLFLT P_region_normed[4] = {0, 0, 0, 0};
     static PLFLT position[4];
+    static PLFLT axis_region[4];
     // Set to default values:
 
     //compute position removing margins
@@ -3381,6 +3405,14 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 
     actStream->wind(xStart, xEnd, yStart, yEnd);
 
+      //compute axis_region adding margins (information in !X.REGION etc)
+      axis_region[0] = position[0] - xMarginL * actStream->nCharLength();
+      axis_region[1] = position[1] - yMarginB * actStream->nLineSpacing();
+      axis_region[2] = position[2] + xMarginR * actStream->nCharLength();
+      axis_region[3] = position[3] + yMarginT * actStream->nLineSpacing();
+	  gdlStoreXAxisRegion(actStream, axis_region);
+	  gdlStoreYAxisRegion(actStream, axis_region);
+	  gdlStoreZAxisRegion(actStream, axis_region);
     //set ![XYZ].CRANGE ![XYZ].type ![XYZ].WINDOW and ![XYZ].S
     gdlStoreXAxisParameters(actStream, xStart, xEnd, xLog); //already in log here if relevant!
     gdlStoreYAxisParameters(actStream, yStart, yEnd, yLog);

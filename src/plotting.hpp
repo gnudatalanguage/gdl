@@ -255,6 +255,9 @@ namespace lib {
   void gdlSetGraphicsPenColorToBackground(GDLGStream *a);
   void gdlLineStyle(GDLGStream *a, DLong style);
   DFloat* gdlGetRegion();
+  void gdlStoreXAxisRegion(GDLGStream* actStream, PLFLT* r);
+  void gdlStoreYAxisRegion(GDLGStream* actStream, PLFLT* r);
+  void gdlStoreZAxisRegion(GDLGStream* actStream, PLFLT* r);
   void gdlStoreXAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log);
   void gdlStoreYAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log);
   void gdlStoreZAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log, DDouble zposStart, DDouble zposEnd);
