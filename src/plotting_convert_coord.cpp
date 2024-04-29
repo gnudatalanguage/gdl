@@ -1161,4 +1161,18 @@ bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &alt, DDouble &az, DDoubl
       GDLDelete(mat);
     }
   }
+  
+void get3DMatrixParametersFor2DPosition(PLFLT &xratio, PLFLT &yratio, PLFLT &zratio, PLFLT* displacement) {
+  DFloat* position=gdlGetRegion();
+  DFloat xrange=position[1]-position[0];
+  DFloat yrange=position[3]-position[2];
+  DFloat zrange=position[5]-position[4];
+  xratio=1.0*xrange;
+  yratio=1.0*yrange;
+  zratio=1.0*zrange;
+ displacement[0]=position[0];
+ displacement[1]=position[2];
+ displacement[2]=position[4];
+ std::cerr<<xratio<<","<<yratio<<","<<zratio<<","<<displacement[0]<<","<<displacement[1]<<","<<displacement[2]<<","<<std::endl;
+}
 } // namespace

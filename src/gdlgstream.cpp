@@ -1399,7 +1399,7 @@ void GDLGStream::getSubpageRegion(PLFLT *sxmin, PLFLT *symin, PLFLT *sxmax, PLFL
  }
 }
 
-void GDLGStream::getCurrentSubpageInfo(PLFLT &xratio, PLFLT &yratio, PLFLT &zratio, PLFLT* displacement) {
+void GDLGStream::compute3DCubeLimits(PLFLT &xratio, PLFLT &yratio, PLFLT &zratio, PLFLT* displacement) {
   int p=thePage.curPage-1;
   int nx = thePage.nx;
   int ny = thePage.ny;

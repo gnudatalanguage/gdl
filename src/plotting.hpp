@@ -238,6 +238,7 @@ namespace lib {
   void gdlMakeSubpageRotationMatrix2d(DDoubleGDL* me, PLFLT xratio, PLFLT yratio, PLFLT zratio, PLFLT* trans);
   bool gdlInterpretT3DMatrixAsPlplotRotationMatrix(DDouble &az, DDouble &alt, DDouble &ay, DDouble *scale, /* DDouble *trans,*/  T3DEXCHANGECODE &axisExchangeCode, bool &below);
   DDoubleGDL* gdlGetT3DMatrix();
+  void get3DMatrixParametersFor2DPosition(PLFLT &xratio, PLFLT &yratio, PLFLT &zratio, PLFLT* displacement);
   void gdlStartT3DMatrixDriverTransform(GDLGStream *a, DDouble zValue);
   void gdlStartSpecial3DDriverTransform( GDLGStream *a, GDL_3DTRANSFORMDEVICE &PlotDevice3D);
   void gdlExchange3DDriverTransform( GDLGStream *a);
@@ -255,6 +256,7 @@ namespace lib {
   void gdlSetGraphicsPenColorToBackground(GDLGStream *a);
   void gdlLineStyle(GDLGStream *a, DLong style);
   DFloat* gdlGetRegion();
+  DFloat* gdlGetWindow();
   void gdlStoreXAxisRegion(GDLGStream* actStream, PLFLT* r);
   void gdlStoreYAxisRegion(GDLGStream* actStream, PLFLT* r);
   void gdlStoreZAxisRegion(GDLGStream* actStream, PLFLT* r);

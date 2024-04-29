@@ -1258,6 +1258,18 @@ namespace lib
   }
 
   //Get [XYZ].WINDOW
+  DFloat* gdlGetWindow() {
+    static const SizeT WINDOWTAG=11;
+    static DFloat position[6];
+    position[0]=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(WINDOWTAG, 0)))[0];
+    position[1]=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(WINDOWTAG, 0)))[1];
+    position[2]=(*static_cast<DFloatGDL*>(SysVar::Y()->GetTag(WINDOWTAG, 0)))[0];
+    position[3]=(*static_cast<DFloatGDL*>(SysVar::Y()->GetTag(WINDOWTAG, 0)))[1];
+    position[4]=(*static_cast<DFloatGDL*>(SysVar::Z()->GetTag(WINDOWTAG, 0)))[0];
+    position[5]=(*static_cast<DFloatGDL*>(SysVar::Z()->GetTag(WINDOWTAG, 0)))[1];
+    return position;
+}
+ //Get [XYZ].REGION
   DFloat* gdlGetRegion() {
     static const SizeT REGIONTAG=12;
     static DFloat position[6];
@@ -1269,7 +1281,6 @@ namespace lib
     position[5]=(*static_cast<DFloatGDL*>(SysVar::Z()->GetTag(REGIONTAG, 0)))[1];
     return position;
 }
-
 	//Stores Axis Region
   void gdlStoreXAxisRegion(GDLGStream* actStream, PLFLT* p)
   {
@@ -3266,9 +3277,17 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     DDouble zValue_input, //input
     bool iso) {
 
-    COORDSYS coordinateSystem = DATA;
     DDouble xStart, yStart, xEnd, yEnd, zStart, zEnd;
 
+	static PLFLT aspect = 0.0;
+
+	static PLFLT P_position_normed[4] = {0, 0, 0, 0};
+	static PLFLT P_region_normed[4] = {0, 0, 0, 0};
+	static PLFLT position[4];
+	static PLFLT axis_region[4];
+	// Set to default values:
+
+	
     //work on local values, taking account loginess
     xStart = x0;
     xEnd = x1;
@@ -3288,113 +3307,99 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     if (zLog) {
       zStart = log10(zStart);
       zEnd = log10(zEnd);
-    }
-
-    // MARGIN
-    DFloat xMarginL, xMarginR, yMarginB, yMarginT, zMarginB, zMarginT; //, zMarginB, zMarginT;
-    gdlGetDesiredAxisMargin(e, XAXIS, xMarginL, xMarginR);
-    gdlGetDesiredAxisMargin(e, YAXIS, yMarginB, yMarginT);
-    gdlGetDesiredAxisMargin(e, ZAXIS, zMarginB, zMarginT);
-
+	}
+	
     PLFLT sxmin, symin, sxmax, symax, szmin, szmax;
     actStream->getSubpageRegion(&sxmin, &symin, &sxmax, &symax, &szmin, &szmax);
     //Special for Z: for Z.S, Z.WINDOW and Z.REGION, in case of POSITION having 6 elements
 
-    DDouble zposStart, zposEnd;
-    if (std::isfinite(zValue_input)) {
-      zposStart = zValue_input;
-      zposEnd = ZVALUEMAX;
-    } else {
-      zposStart = szmin;
-      zposEnd = szmax;
-    }
+	DDouble zposStart, zposEnd;
+	if (std::isfinite(zValue_input)) {
+	  zposStart = zValue_input;
+	  zposEnd = ZVALUEMAX;
+	} else {
+	  zposStart = szmin;
+	  zposEnd = szmax;
+	}
+	
+    // GET MARGIN
+    DFloat xMarginL, xMarginR, yMarginB, yMarginT, zMarginB, zMarginT; //, zMarginB, zMarginT;
+    gdlGetDesiredAxisMargin(e, XAXIS, xMarginL, xMarginR);
+    gdlGetDesiredAxisMargin(e, YAXIS, yMarginB, yMarginT);
+    gdlGetDesiredAxisMargin(e, ZAXIS, zMarginB, zMarginT);
+  
+	// Compute BOX position
 
-    PLFLT xMR, xML, yMB, yMT, zMB, zMT;
-    CheckMargin(actStream,
-      xMarginL,
-      xMarginR,
-      yMarginB,
-      yMarginT,
-      xMR, xML, yMB, yMT);
+	// if position given, take it
+	int positionIx = e->KeywordIx("POSITION");
+	DFloatGDL* boxPosition = e->IfDefGetKWAs<DFloatGDL>(positionIx);
+	if (boxPosition != NULL) {
+	  for (SizeT i = 0; i < 4 && i < boxPosition->N_Elements(); ++i) position[i] = (*boxPosition)[i];
+	  if (boxPosition->N_Elements() > 4) {
+		zposStart = fmin((*boxPosition)[4], ZVALUEMAX);
+		zposStart = fmax(zposStart, 0);
+		if (boxPosition->N_Elements() > 5) {
+		  zposEnd = fmin((*boxPosition)[5], ZVALUEMAX);
+		  zposEnd = fmax(zposEnd, 0);
+		}
+	  }
+	  //check presence of DEVICE  options
+	  int DEVICEIx = e->KeywordIx("DEVICE");
+	  if (e->KeywordSet(DEVICEIx)) {
+		// modify position to NORMAL if DEVICE is present
+		actStream->DeviceToNormedDevice(position[0], position[1], position[0], position[1]);
+		actStream->DeviceToNormedDevice(position[2], position[3], position[2], position[3]);
+	  }
+	  //compatibility again: Position NEVER outside [0,1]:
+	  position[0] = max(0.0, position[0]);
+	  position[1] = max(0.0, position[1]);
+	  position[2] = min(1.0, position[2]);
+	  position[3] = min(1.0, position[3]);
+	} else {
+    //POSITION not Ggiven, compute best position
+	  PLFLT xMR, xML, yMB, yMT, zMB, zMT;
+	  CheckMargin(actStream,
+		xMarginL,
+		xMarginR,
+		yMarginB,
+		yMarginT,
+		xMR, xML, yMB, yMT);
 
-    // viewport - POSITION overrides
-    static PLFLT aspect = 0.0;
+	  //compute position removing margins
+	  position[0] = sxmin + xMarginL * actStream->nCharLength();
+	  position[1] = symin + yMarginB * actStream->nLineSpacing();
+	  position[2] = sxmax - xMarginR * actStream->nCharLength();
+	  position[3] = symax - yMarginT * actStream->nLineSpacing();
+	  DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
+	  // Get !P.position values. !P.REGION is superseded by !P.POSITION
+	  if (pStruct != NULL) {
+		unsigned regionTag = pStruct->Desc()->TagIndex("REGION");
+		for (SizeT i = 0; i < 4; ++i) P_region_normed[i] = (PLFLT) (*static_cast<DFloatGDL*> (pStruct->GetTag(regionTag, 0)))[i];
+		unsigned positionTag = pStruct->Desc()->TagIndex("POSITION");
+		for (SizeT i = 0; i < 4; ++i) P_position_normed[i] = (PLFLT) (*static_cast<DFloatGDL*> (pStruct->GetTag(positionTag, 0)))[i];
+	  }
+	  if (P_region_normed[0] != P_region_normed[2]) //exist, so it is a first approx to position: 
+	  {
+		//compute position removing margins
+		position[0] = P_region_normed[0] + xMarginL * actStream->nCharLength();
+		position[1] = P_region_normed[1] + yMarginB * actStream->nLineSpacing();
+		position[2] = P_region_normed[2] - xMarginR * actStream->nCharLength();
+		position[3] = P_region_normed[3] - yMarginT * actStream->nLineSpacing();
+	  }
+	  if (P_position_normed[0] != P_position_normed[2]) //exist, so it is a second approx to position, this one dos not include margins:
+	  {
+		position[0] = P_position_normed[0];
+		position[1] = P_position_normed[1];
+		position[2] = P_position_normed[2];
+		position[3] = P_position_normed[3];
+	  }
+	  //compatibility: Position NEVER outside [0,1]:
+	  position[0] = max(0.0, position[0]);
+	  position[1] = max(0.0, position[1]);
+	  position[2] = min(1.0, position[2]);
+	  position[3] = min(1.0, position[3]);
 
-    static PLFLT P_position_normed[4] = {0, 0, 0, 0};
-    static PLFLT P_region_normed[4] = {0, 0, 0, 0};
-    static PLFLT position[4];
-    static PLFLT axis_region[4];
-    // Set to default values:
-
-    //compute position removing margins
-    position[0] = sxmin + xMarginL * actStream->nCharLength();
-    position[1] = symin + yMarginB * actStream->nLineSpacing();
-    position[2] = sxmax - xMarginR * actStream->nCharLength();
-    position[3] = symax - yMarginT * actStream->nLineSpacing();
-    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
-    // Get !P.position values. !P.REGION is superseded by !P.POSITION
-    if (pStruct != NULL) {
-      unsigned regionTag = pStruct->Desc()->TagIndex("REGION");
-      for (SizeT i = 0; i < 4; ++i) P_region_normed[i] = (PLFLT) (*static_cast<DFloatGDL*> (pStruct->GetTag(regionTag, 0)))[i];
-      unsigned positionTag = pStruct->Desc()->TagIndex("POSITION");
-      for (SizeT i = 0; i < 4; ++i) P_position_normed[i] = (PLFLT) (*static_cast<DFloatGDL*> (pStruct->GetTag(positionTag, 0)))[i];
-    }
-    if (P_region_normed[0] != P_region_normed[2]) //exist, so it is a first approx to position: 
-    {
-      //compute position removing margins
-      position[0] = P_region_normed[0] + xMarginL * actStream->nCharLength();
-      position[1] = P_region_normed[1] + yMarginB * actStream->nLineSpacing();
-      position[2] = P_region_normed[2] - xMarginR * actStream->nCharLength();
-      position[3] = P_region_normed[3] - yMarginT * actStream->nLineSpacing();
-    }
-    if (P_position_normed[0] != P_position_normed[2]) //exist, so it is a second approx to position, this one dos not include margins:
-    {
-      position[0] = P_position_normed[0];
-      position[1] = P_position_normed[1];
-      position[2] = P_position_normed[2];
-      position[3] = P_position_normed[3];
-    }
-    //compatibility: Position NEVER outside [0,1]:
-    position[0] = max(0.0, position[0]);
-    position[1] = max(0.0, position[1]);
-    position[2] = min(1.0, position[2]);
-    position[3] = min(1.0, position[3]);
-
-    //check presence of DATA,DEVICE and NORMAL options
-    int DATAIx = e->KeywordIx("DATA");
-    int DEVICEIx = e->KeywordIx("DEVICE");
-    int NORMALIx = e->KeywordIx("NORMAL");
-
-    if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
-    if (e->KeywordSet(DEVICEIx)) coordinateSystem = DEVICE;
-    if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
-
-    // read boxPosition if needed
-    int positionIx = e->KeywordIx("POSITION");
-    DFloatGDL* boxPosition = e->IfDefGetKWAs<DFloatGDL>(positionIx);
-    if (boxPosition != NULL) {
-      for (SizeT i = 0; i < 4 && i < boxPosition->N_Elements(); ++i) position[i] = (*boxPosition)[i];
-      if (boxPosition->N_Elements() > 4) {
-        zposStart = fmin((*boxPosition)[4], ZVALUEMAX);
-        zposStart = fmax(zposStart, 0);
-        if (boxPosition->N_Elements() > 5) {
-          zposEnd = fmin((*boxPosition)[5], ZVALUEMAX);
-          zposEnd = fmax(zposEnd, 0);
-        }
-      }
-    }
-    if (boxPosition != NULL) { //use passed values
-      if (coordinateSystem == DEVICE) {
-        // modify position to NORMAL if DEVICE is present
-        actStream->DeviceToNormedDevice(position[0], position[1], position[0], position[1]);
-        actStream->DeviceToNormedDevice(position[2], position[3], position[2], position[3]);
-      }
-      //compatibility again: Position NEVER outside [0,1]:
-      position[0] = max(0.0, position[0]);
-      position[1] = max(0.0, position[1]);
-      position[2] = min(1.0, position[2]);
-      position[3] = min(1.0, position[3]);
-    }
+	}
 
     aspect = 0.0; // vpas with aspect=0.0 equals vpor.
     if (iso) aspect = abs((yEnd - yStart) / (xEnd - xStart)); //log-log or lin-log
@@ -3406,10 +3411,10 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     actStream->wind(xStart, xEnd, yStart, yEnd);
 
       //compute axis_region adding margins (information in !X.REGION etc)
-      axis_region[0] = position[0] - xMarginL * actStream->nCharLength();
-      axis_region[1] = position[1] - yMarginB * actStream->nLineSpacing();
-      axis_region[2] = position[2] + xMarginR * actStream->nCharLength();
-      axis_region[3] = position[3] + yMarginT * actStream->nLineSpacing();
+      axis_region[0] = max(0.0,position[0] - xMarginL * actStream->nCharLength());
+      axis_region[1] = max(0.0,position[1] - yMarginB * actStream->nLineSpacing());
+      axis_region[2] = min(1.0,position[2] + xMarginR * actStream->nCharLength());
+      axis_region[3] = min(1.0,position[3] + yMarginT * actStream->nLineSpacing());
 	  gdlStoreXAxisRegion(actStream, axis_region);
 	  gdlStoreYAxisRegion(actStream, axis_region);
 	  gdlStoreZAxisRegion(actStream, axis_region);
