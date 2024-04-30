@@ -385,7 +385,7 @@ void GDLGStream::SetCharSize(DLong ichx, DLong chy) {
 
 void GDLGStream::NextPlot( bool erase ) {
   // restore charsize to default for newpage at beginning since adv() uses charsize to get box position.
-  if (!erase) sizeChar(1.0);
+//  if (!erase) sizeChar(1.0);
   DLongGDL* pMulti = SysVar::GetPMulti();
 
   DLong nx = (*pMulti)[ 1];
@@ -433,22 +433,18 @@ void GDLGStream::NextPlot( bool erase ) {
   }
   else
   {
-    if( dir == 0 )
-    {
-//      plstream::adv(nx*ny - pMod + 1);
-      adv(nsub - pMod + 1);
-    }
-    else
-    {
-      int p = nsub - pMod;
-      int pp = p*nx % (nx*ny) + p/ny + 1;
-//      plstream::adv(pp);
-      adv(pp);
-    }
-    if( erase )
-    {
-      --(*pMulti)[0];
-    }
+    if( erase) {
+	  if (dir == 0) {
+		//      plstream::adv(nx*ny - pMod + 1);
+		adv(nsub - pMod + 1);
+	  } else {
+		int p = nsub - pMod;
+		int pp = p * nx % (nx * ny) + p / ny + 1;
+		//      plstream::adv(pp);
+		adv(pp);
+	  }
+	  --(*pMulti)[0];
+	}
   }
 
 }

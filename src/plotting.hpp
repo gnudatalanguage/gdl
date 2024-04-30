@@ -406,7 +406,7 @@ namespace lib {
   //advance to next plot unless the noerase flag is set
   // function declared static (local to each function using it) to avoid messing the NOERASEIx index which is not the same.
 
-  void gdlNextPlotHandlingNoEraseOption(EnvT *e, GDLGStream *a, bool noe = false);
+  void gdlNextPlotHandlingNoEraseOption(EnvT *e, GDLGStream *a);
 
   //handling of Z bounds is not complete IMHO.
 

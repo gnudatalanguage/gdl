@@ -565,7 +565,7 @@ namespace lib
 
       applyGraphics(e, actStream);
 
-      restoreDrawArea(actStream);
+//      restoreDrawArea(actStream); //doing this would mess the /NOERASE logic when MULTI
 
       post_call(e, actStream);
       // IDEM: SLOW
@@ -3190,11 +3190,9 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 
   //advance to next plot unless the noerase flag is set
 
-  void gdlNextPlotHandlingNoEraseOption(EnvT *e, GDLGStream *a, bool noe) {
+  void gdlNextPlotHandlingNoEraseOption(EnvT *e, GDLGStream *a) {
     bool noErase = false;
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
-
-    if (!noe) {
       DLong LnoErase = (*static_cast<DLongGDL*>
         (pStruct->
         GetTag(pStruct->Desc()->TagIndex("NOERASE"), 0)))[0];
@@ -3204,9 +3202,6 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       if (e->KeywordSet(NOERASEIx)) {
         noErase = true;
       }
-    } else {
-      noErase = true;
-    }
 
     a->NextPlot(!noErase);
     // all but the first element of !P.MULTI are ignored if POSITION kw or !P.POSITION or !P.REGION is specified
