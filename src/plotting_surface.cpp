@@ -248,16 +248,16 @@ namespace lib
       //start a plot
       gdlNextPlotHandlingNoEraseOption(e, actStream);     //NOERASE
 
-	  //save region info
-	  PLFLT* save_region = gdlGetRegion();
+
 	  bool nosub=false;
 	  
       // viewport and world coordinates
       // set the PLOT charsize before setting viewport (margin depend on charsize)
       gdlSetPlotCharsize(e, actStream);
       zValue=gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue);
-      
 
+	  //save region info
+	  PLFLT* save_region = gdlGetRegion();
 		
       // Deal with T3D options -- either present and we have to deduce az and alt contained in it,
       // or absent and we have to compute !P.T from az and alt.

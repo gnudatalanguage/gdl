@@ -1259,7 +1259,8 @@ namespace lib
 
   //Get [XYZ].WINDOW
   DFloat* gdlGetWindow() {
-    static const SizeT WINDOWTAG=11;
+    DStructGDL* Struct=SysVar::X(); //same for all
+    static unsigned WINDOWTAG=Struct->Desc()->TagIndex("WINDOW");
     static DFloat position[6];
     position[0]=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(WINDOWTAG, 0)))[0];
     position[1]=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(WINDOWTAG, 0)))[1];
@@ -1271,11 +1272,12 @@ namespace lib
 }
  //Get [XYZ].REGION
   PLFLT* gdlGetRegion() {
-    static const SizeT REGIONTAG=12;
+    DStructGDL* Struct=SysVar::X(); //same for all
+    static unsigned REGIONTAG=Struct->Desc()->TagIndex("REGION");
     static PLFLT position[6];
     position[0]=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(REGIONTAG, 0)))[0];
-    position[1]=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(REGIONTAG, 0)))[1];
-    position[2]=(*static_cast<DFloatGDL*>(SysVar::Y()->GetTag(REGIONTAG, 0)))[0];
+    position[2]=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(REGIONTAG, 0)))[1];
+    position[1]=(*static_cast<DFloatGDL*>(SysVar::Y()->GetTag(REGIONTAG, 0)))[0];
     position[3]=(*static_cast<DFloatGDL*>(SysVar::Y()->GetTag(REGIONTAG, 0)))[1];
     position[4]=(*static_cast<DFloatGDL*>(SysVar::Z()->GetTag(REGIONTAG, 0)))[0];
     position[5]=(*static_cast<DFloatGDL*>(SysVar::Z()->GetTag(REGIONTAG, 0)))[1];
@@ -1285,24 +1287,20 @@ namespace lib
   void gdlStoreXAxisRegion(GDLGStream* actStream, PLFLT* p)
   {
     DStructGDL* Struct=SysVar::X(); 
-    static unsigned windowTag=Struct->Desc()->TagIndex("REGION");
-    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0]=p[0];
-    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1]=p[2];
+    static unsigned regionTag=Struct->Desc()->TagIndex("REGION");
+    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[0]=p[0];
+    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[1]=p[2];
   }  
  void gdlStoreYAxisRegion(GDLGStream* actStream, PLFLT* p)
   {
     DStructGDL* Struct=SysVar::Y(); 
-    static unsigned windowTag=Struct->Desc()->TagIndex("REGION");
-    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0]=p[1];
-    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1]=p[3];
+    static unsigned regionTag=Struct->Desc()->TagIndex("REGION");
+    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[0]=p[1];
+    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[1]=p[3];
   }
  void gdlStoreZAxisRegion(GDLGStream* actStream, PLFLT* p)
   {
    // ??? will see when needed.
-//    DStructGDL* Struct=SysVar::Z(); 
-//    static unsigned windowTag=Struct->Desc()->TagIndex("REGION");
-//    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0]=p[1];
-//    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1]=p[3];
   }
  //Stores [XYZ].WINDOW, TYPE, CRANGE and .S
   void gdlStoreXAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log)
