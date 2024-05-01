@@ -724,16 +724,26 @@ DDoubleGDL* gdlDoAsScale3(DDouble az, DDouble alt, DDouble *scalex, DDouble *sca
   void gdlMakeSubpageRotationMatrix3d(DDoubleGDL* me, PLFLT xratio, PLFLT yratio, PLFLT zratio, PLFLT* trans) {
 	DDouble newscale[3]={ xratio, yratio, zratio};
     SelfTranspose3d(me);
+    DDouble mytrans1[3] = {-0.5, -0.5, -0.5};
+    DDouble mytrans2[3] = {0.5, 0.5, 0.5};
+    SelfTranslate3d(me, mytrans1);
 	SelfScale3d(me,newscale);
 	SelfTranslate3d(me,trans);
+    SelfTranslate3d(me, mytrans2);
     SelfTranspose3d(me);
   }
   //this displaces 2D elements (images, already reprojected 3d) made in NoSubpage mode to a particluar subpage
-  void gdlMakeSubpageRotationMatrix2d(DDoubleGDL* me, PLFLT xratio, PLFLT yratio, PLFLT zratio, PLFLT* trans) {
+  void gdlMakeSubpageRotationMatrix2d(DDoubleGDL* me, PLFLT xratio, PLFLT yratio, PLFLT zratio, PLFLT* trans, PLFLT shift, bool invert) {
 	DDouble newscale[3]={ xratio, yratio, zratio};
 	SelfReset3d(me);
+    (*me)[5] = invert?-1:1; //see gdlFlipYPlotDirection() above 
+    DDouble mytrans1[3] = {-0.5, -0.5, -0.5};
+    DDouble mytrans2[3] = {0.5, 0.5, 0.5};
+	mytrans2[1]+=shift; //additional 2D shift in Y for compensate plplot 'bug' for shade_surf
+    SelfTranslate3d(me, mytrans1);
 	SelfScale3d(me,newscale);
 	SelfTranslate3d(me,trans);
+    SelfTranslate3d(me, mytrans2);
     SelfTranspose3d(me);
   } 
  //converts 3D values according to COORDSYS towards NORMAL coordinates and , logically, unset xLog,yLo,zLog and define code as NORMAL.
@@ -1163,16 +1173,15 @@ bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &alt, DDouble &az, DDoubl
   }
   
 void get3DMatrixParametersFor2DPosition(PLFLT &xratio, PLFLT &yratio, PLFLT &zratio, PLFLT* displacement) {
-  DFloat* position=gdlGetRegion();
-  DFloat xrange=position[1]-position[0];
-  DFloat yrange=position[3]-position[2];
-  DFloat zrange=position[5]-position[4];
-  xratio=1.0*xrange;
-  yratio=1.0*yrange;
-  zratio=1.0*zrange;
- displacement[0]=position[0];
- displacement[1]=position[2];
- displacement[2]=position[4];
- std::cerr<<xratio<<","<<yratio<<","<<zratio<<","<<displacement[0]<<","<<displacement[1]<<","<<displacement[2]<<","<<std::endl;
+  PLFLT* position=gdlGetRegion();
+  PLFLT xrange=position[1]-position[0];
+  PLFLT yrange=position[3]-position[2];
+  PLFLT zrange=position[5]-position[4];
+  xratio=xrange;
+  yratio=yrange;
+  zratio=zrange;
+ displacement[0]=position[0]-0.5+xrange/2;
+ displacement[1]=position[2]-0.5+yrange/2;
+ displacement[2]=position[4]-0.5+zrange/2;
 }
 } // namespace

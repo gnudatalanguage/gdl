@@ -1270,9 +1270,9 @@ namespace lib
     return position;
 }
  //Get [XYZ].REGION
-  DFloat* gdlGetRegion() {
+  PLFLT* gdlGetRegion() {
     static const SizeT REGIONTAG=12;
-    static DFloat position[6];
+    static PLFLT position[6];
     position[0]=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(REGIONTAG, 0)))[0];
     position[1]=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(REGIONTAG, 0)))[1];
     position[2]=(*static_cast<DFloatGDL*>(SysVar::Y()->GetTag(REGIONTAG, 0)))[0];
