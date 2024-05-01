@@ -381,70 +381,71 @@ void GDLGStream::SetCharSize(DLong ichx, DLong chy) {
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"             %fx%f,%f (dev)\n",theDefaultChar.dsx   ,theDefaultChar.dsy  ,theDefaultChar.dspacing);
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"             %fx%f,%f (world)\n",theDefaultChar.wsx ,theDefaultChar.wsy  ,theDefaultChar.wspacing);
     gdlDefaultCharInitialized=1;
-  }
+}
 
-void GDLGStream::NextPlot( bool erase ) {
-  // restore charsize to default for newpage at beginning since adv() uses charsize to get box position.
-//  if (!erase) sizeChar(1.0);
+void GDLGStream::NextPlot(bool erase) {
+
   DLongGDL* pMulti = SysVar::GetPMulti();
 
   DLong nx = (*pMulti)[ 1];
   DLong ny = (*pMulti)[ 2];
   DLong nz = (*pMulti)[ 3];
-
   DLong dir = (*pMulti)[ 4];
 
-  nx = (nx>0)?nx:1;
-  ny = (ny>0)?ny:1;
-  nz = (nz>0)?nz:1;
-  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"NextPlot(erase=%d)\n",erase);
-  // set subpage numbers in X and Y
-//  plstream::ssub( nx, ny ); // ssub does not change charsize it seems
-  ssub( nx, ny, nz ); 
-  DLong nsub=nx*ny*nz;
+  nx = (nx > 0) ? nx : 1;
+  ny = (ny > 0) ? ny : 1;
+  nz = (nz > 0) ? nz : 1;
+  DLong nsub = nx * ny * nz;
+
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "NextPlot(erase=%d)\n", erase);
+  //this code reproduces the behaviour of IDL seen in:
+  // !P.MULTI=[0,3,2] & data=dist(10) & (repeat many times: plot,data & plot,data,col='ff'x,/noe )
+  // the previous code would not erase the screen correctly after 6 commands.
   DLong pMod = (*pMulti)[0] % (nsub);
-
-//  if( (*pMulti)[0] <= 0 || (*pMulti)[0] == nx*ny) // clear and restart to first subpage
-  if( pMod == 0 ) // clear and restart to first subpage
-  {
-    if( erase )
-    {
-      eop();           // overridden (for Z-buffer)
-      //get background value (*not pen 0*, we try to avoid plplot's silly behaviour).
-      //use it for bop(), then reset the pen 0 to correct value.
-
-      PLINT red,green,blue;
-      DByte r,g,b;
-      PLINT red0,green0,blue0;
-      
-      GraphicsDevice::GetCT()->Get(0,r,g,b);red=r;green=g;blue=b;
-      
-      red0=GraphicsDevice::GetDevice()->BackgroundR();
-      green0=GraphicsDevice::GetDevice()->BackgroundG();
-      blue0=GraphicsDevice::GetDevice()->BackgroundB();
-      plstream::scolbg(red0,green0,blue0); //overwrites col[0]
-      plstream::bop(); // note: changes charsize
-      plstream::scolbg(red,green,blue); //resets col[0]
-    }
-
-//    plstream::adv(1); //advance to first subpage
-    adv(1); //advance to first subpage
-    (*pMulti)[0] = nsub-1; //set PMULTI[0] to this page
+  ssub(nx, ny, nz);
+  if (dir == 0) {
+	adv(nsub - pMod + 1);
+  } else {
+	int p = nsub - pMod;
+	int pp = p * nx % (nx * ny) + p / ny + 1;
+	adv(pp);
   }
-  else
+  if (!erase) return;
+
+  if (pMod == 0) // clear and restart to first subpage
   {
-    if( erase) {
-	  if (dir == 0) {
-		//      plstream::adv(nx*ny - pMod + 1);
-		adv(nsub - pMod + 1);
-	  } else {
-		int p = nsub - pMod;
-		int pp = p * nx % (nx * ny) + p / ny + 1;
-		//      plstream::adv(pp);
-		adv(pp);
-	  }
-	  --(*pMulti)[0];
+	eop(); // overridden (for Z-buffer)
+	//get background value (*not pen 0*, we try to avoid plplot's silly behaviour).
+	//use it for bop(), then reset the pen 0 to correct value.
+
+	PLINT red, green, blue;
+	DByte r, g, b;
+	PLINT red0, green0, blue0;
+
+	GraphicsDevice::GetCT()->Get(0, r, g, b);
+	red = r;
+	green = g;
+	blue = b;
+
+	red0 = GraphicsDevice::GetDevice()->BackgroundR();
+	green0 = GraphicsDevice::GetDevice()->BackgroundG();
+	blue0 = GraphicsDevice::GetDevice()->BackgroundB();
+	plstream::scolbg(red0, green0, blue0); //overwrites col[0]
+	plstream::bop(); // note: changes charsize
+	plstream::scolbg(red, green, blue); //resets col[0]
+	adv(1); //advance to first subpage
+	(*pMulti)[0] = nsub - 1; //set PMULTI[0] to this page
+  } else {
+	if (dir == 0) {
+	  //      plstream::adv(nx*ny - pMod + 1);
+	  adv(nsub - pMod + 1);
+	} else {
+	  int p = nsub - pMod;
+	  int pp = p * nx % (nx * ny) + p / ny + 1;
+	  //      plstream::adv(pp);
+	  adv(pp);
 	}
+	--(*pMulti)[0];
   }
 
 }
