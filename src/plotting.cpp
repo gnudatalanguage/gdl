@@ -179,7 +179,7 @@ namespace lib
   PLFLT AutoLogTickIntv(DDouble min, DDouble max)
   {
     DDouble x=abs(log10(max)-log10(min));
-    if (!isfinite(x)) return 0; //trouble ahead...
+    if (!isfinite(x)) return 1; //trouble ahead...
     if ( x==0.0 ) return 1.0;
     if (x < 8) return 1;
     if (x < 15) return 2;
@@ -3624,7 +3624,9 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	  if (SUBTITLEIx >= 0) {
 		e->AssureStringScalarKWIfPresent(SUBTITLEIx, subTitle);
 	  } else goto NoTitlesAccepted;
-
+	  
+      if (subTitle.empty() && title.empty()) goto NoTitlesAccepted; //escape early, saves code
+	  
 	  a->plstream::vpor(refboxxmin, refboxxmax, refboxymin, refboxymax);
 	  a->wind(owboxxmin, owboxxmax, owboxymin, owboxymax); //restore old values
 	  gdlSetPlotCharthick(e, a);
@@ -3798,7 +3800,7 @@ NoTitlesAccepted:
 	gdlLineStyle(a, GridStyle);
 	// ticklayout2 has no log and no subticks
 	if (Log) {
-	  if (TickInterval < 1) { //if log and tickinterval was >1 then we pass in 'linear, no subticks' mode (see issue #1112)
+	  if (TickInterval <= 1) { //if log and tickinterval was >1 then we pass in 'linear, no subticks' mode (see issue #1112)
 		tickOpt += SUBTICKS LOG;
 		Minor = 0;
 	  } else if (TickInterval < 2) {
@@ -3908,7 +3910,9 @@ NoTitlesAccepted:
 	  defineLabeling(a, axisId, gdlNoLabelTickFunc, &tickdata); //prevent plplot to write labels (but writes something, so that label positions are reported in getLabelingValues())
 	  if (axisId == XAXIS) {
 		a->plstream::vpor(boxxmin, boxxmax, (otheraxis)?boxymin:boxymin - xdisplacement, (otheraxis)?boxymax + xdisplacement:boxymax);
-		a->plstream::wind(wboxxmin, wboxxmax, wboxymin, wboxymax);
+	  if (Log) a->plstream::wind(log10(Start), log10(End), owboxymin, owboxymax);
+	  else a->plstream::wind(Start, End, owboxymin, owboxymax);
+//		a->plstream::wind(wboxxmin, wboxxmax, wboxymin, wboxymax);
 		if (doplot) {
 		  bool isTickv = (hasTickv && i == 0);
 		  if (isTickv) {
@@ -3926,7 +3930,9 @@ NoTitlesAccepted:
 		if (!inverted_ticks && TickLayout != 2) xdisplacement += ticklen_as_norm; //every axis after the first will be separated by this
 	  } else {
 		a->plstream::vpor((otheraxis)?boxxmin:boxxmin - ydisplacement, (otheraxis)?boxxmax+ydisplacement:boxxmax, boxymin, boxymax);
-		a->plstream::wind(wboxxmin, wboxxmax, wboxymin, wboxymax);
+	  if (Log) a->plstream::wind(owboxxmin, owboxxmax, log10(Start), log10(End));
+	  else a->plstream::wind(owboxxmin, owboxxmax, Start, End);
+//		a->plstream::wind(wboxxmin, wboxxmax, wboxymin, wboxymax);
 		if (doplot) {
 		  bool isTickv = (hasTickv && i == 0);
 		  if (isTickv) {
