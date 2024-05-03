@@ -235,9 +235,10 @@ namespace lib {
   void PDotTTransformXYZval(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
   DDoubleGDL* gdlDefinePlplotRotationMatrix(DDouble az, DDouble alt, DDouble *scale, bool save);
   void gdlMakeSubpageRotationMatrix3d(DDoubleGDL* me, PLFLT xratio, PLFLT yratio, PLFLT zratio, PLFLT* trans);
-  void gdlMakeSubpageRotationMatrix2d(DDoubleGDL* me, PLFLT xratio, PLFLT yratio, PLFLT zratio, PLFLT* trans);
+  void gdlMakeSubpageRotationMatrix2d(DDoubleGDL* me, PLFLT xratio, PLFLT yratio, PLFLT zratio, PLFLT* trans, PLFLT shift=0, bool invert=false);
   bool gdlInterpretT3DMatrixAsPlplotRotationMatrix(DDouble &az, DDouble &alt, DDouble &ay, DDouble *scale, /* DDouble *trans,*/  T3DEXCHANGECODE &axisExchangeCode, bool &below);
   DDoubleGDL* gdlGetT3DMatrix();
+  void get3DMatrixParametersFor2DPosition(PLFLT &xratio, PLFLT &yratio, PLFLT &zratio, PLFLT* displacement);
   void gdlStartT3DMatrixDriverTransform(GDLGStream *a, DDouble zValue);
   void gdlStartSpecial3DDriverTransform( GDLGStream *a, GDL_3DTRANSFORMDEVICE &PlotDevice3D);
   void gdlExchange3DDriverTransform( GDLGStream *a);
@@ -254,7 +255,11 @@ namespace lib {
   void GDLgrPlotProjectedPolygon(GDLGStream * a, DDoubleGDL *lonlat, bool const doFill, DLongGDL *conn);
   void gdlSetGraphicsPenColorToBackground(GDLGStream *a);
   void gdlLineStyle(GDLGStream *a, DLong style);
-  DFloat* gdlGetRegion();
+  PLFLT* gdlGetRegion();
+  DFloat* gdlGetWindow();
+  void gdlStoreXAxisRegion(GDLGStream* actStream, PLFLT* r);
+  void gdlStoreYAxisRegion(GDLGStream* actStream, PLFLT* r);
+  void gdlStoreZAxisRegion(GDLGStream* actStream, PLFLT* r);
   void gdlStoreXAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log);
   void gdlStoreYAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log);
   void gdlStoreZAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log, DDouble zposStart, DDouble zposEnd);
@@ -401,7 +406,7 @@ namespace lib {
   //advance to next plot unless the noerase flag is set
   // function declared static (local to each function using it) to avoid messing the NOERASEIx index which is not the same.
 
-  void gdlNextPlotHandlingNoEraseOption(EnvT *e, GDLGStream *a, bool noe = false);
+  void gdlNextPlotHandlingNoEraseOption(EnvT *e, GDLGStream *a);
 
   //handling of Z bounds is not complete IMHO.
 

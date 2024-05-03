@@ -39,7 +39,7 @@ namespace lib {
 
     bool handle_args(EnvT* e) {
       //for cases where 3D is enabled, but z is not defined (since zVal is not an argument of PLOTS() )
-      DFloat * position = gdlGetRegion();
+      DFloat * position = gdlGetWindow();
       DDoubleGDL* zInit = new DDoubleGDL(position[4]);
       Guard<BaseGDL> zinit_guard(zInit);
 

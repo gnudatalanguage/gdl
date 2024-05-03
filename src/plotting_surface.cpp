@@ -248,11 +248,17 @@ namespace lib
       //start a plot
       gdlNextPlotHandlingNoEraseOption(e, actStream);     //NOERASE
 
+
+	  bool nosub=false;
+	  
       // viewport and world coordinates
       // set the PLOT charsize before setting viewport (margin depend on charsize)
       gdlSetPlotCharsize(e, actStream);
       zValue=gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue);
-      
+
+	  //save region info
+	  PLFLT* save_region = gdlGetRegion();
+		
       // Deal with T3D options -- either present and we have to deduce az and alt contained in it,
       // or absent and we have to compute !P.T from az and alt.
 
@@ -278,12 +284,13 @@ namespace lib
           alt=-(360.-alt);
 		}
 		//Compute special transformation matrix for the BOX and give it to the driver. Subpage info is important
-        gdlBox3d=gdlDefinePlplotRotationMatrix( az, alt, scale, saveT3d);
-		actStream->getCurrentSubpageInfo(xratio, yratio, zratio, trans);
-		gdlMakeSubpageRotationMatrix3d(gdlBox3d, xratio, yratio, zratio,trans);
-		//now that 3D matrix is OK, we pass in 'No Sub'
+		gdlBox3d = gdlDefinePlplotRotationMatrix(az, alt, scale, saveT3d);
+		//now that 3D matrix is OK, we pass in 'No Sub'. The plot will be scaled ans offsetted to the size of the actual subpage or position
+		get3DMatrixParametersFor2DPosition(xratio, yratio, zratio, trans);
 		actStream->NoSub();
+		//recompute viewport etc now that ratio and offests will permit to displace the NoSub() plot at the correct position and scale:
 		zValue=gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue);
+		gdlMakeSubpageRotationMatrix3d(gdlBox3d, xratio, yratio, zratio,trans);
 
         GDL_3DTRANSFORMDEVICE T3DForAXes;
         for (int i = 0; i < 16; ++i)T3DForAXes.T[i] =(*gdlBox3d)[i];
@@ -341,6 +348,38 @@ namespace lib
         //This is the good version for surface without the shade argument.
         actStream->vpor(0, 1, 0, 1);
         actStream->wind(-0.5/scale[0],0.5/scale[0],-0.5/scale[1],0.5/scale[1]); //mandatory: to center in (0,0,0) for 3D Matrix rotation.
+	  if (below) {
+		actStream->w3d(1, 1, 1, 0, 1, 0, 1, 0.5, 1.5, -alt, az);
+		gdlFlipYPlotDirection(actStream); //special trick, not possible with plplot
+	  } else {
+		actStream->w3d(1, 1, 1, 0, 1, 0, 1, 0.5, 1.5, alt, az);
+	  // shade //      } else {
+	  // shade //        //This is the good version for shade_surf and surface with shade option
+	  // shade //        // (needs shifting the plplot plot by some amount in the 3DDriverTransform of the driver.)     
+	  // shade //        actStream->vpor(0, 1, 0, 1);
+	  // shade //        actStream->wind(-0.5 / scale[0], 0.5 / scale[0], -0.5 / scale[1], 0.5 / scale[1]); //mandatory: to center in (0,0,0) for 3D Matrix rotation.
+	  // shade //        if (below) {
+	  // shade //          actStream->w3d(1, 1, 1, 0, 1, 0, 1, 0, 1, -alt, az);
+	  // shade //          DDouble xp = 0;
+	  // shade //          DDouble yp1 = 0;
+	  // shade //          DDouble yp2 = 0;
+	  // shade //          Matrix3DTransformXYZval(0, 0, 0, &xp, &yp1,Current3DMatrix);
+	  // shade //          Matrix3DTransformXYZval(0, 0, 0.5, &xp, &yp2,Current3DMatrix);
+	  // shade //          gdlShiftYaxisUsing3DDriverTransform(actStream, 1 - (yp1 - yp2), true);
+	  // shade //        } else {
+	  // shade //          actStream->w3d(1, 1, 1, 0, 1, 0, 1, 0, 1, alt, az); //mandatory: in order to have shades plotted correctly, z must go from 0 to 1, not -0.5 to 0.5
+	  // shade //          //as the code in plplot prevents negative "normalized" values.
+	  // shade //          // To insure this (and shade_surf) to work in all cases, we must rely on the 3DDriverTransform, once again, to shift the [0,1] plot in [-0.5, 0.5]
+	  // shade //          // 
+	  // shade //          //compute vertical displacement of point [0,0,0] in projected coordinates between zv=0 and zv=0.5
+	  // shade //          DDouble xp = 0;
+	  // shade //          DDouble yp1 = 0;
+	  // shade //          DDouble yp2 = 0;
+	  // shade //          Matrix3DTransformXYZval(0, 0, 0, &xp, &yp1,Current3DMatrix);
+	  // shade //          Matrix3DTransformXYZval(0, 0, 0.5, &xp, &yp2,Current3DMatrix);
+	  // shade //          gdlShiftYaxisUsing3DDriverTransform(actStream, yp1 - yp2, false);
+	  // shade //        }
+	  }
 		if (!doT3d) { //use a special matrix to shift and scale into current subpage
 		  gdlMakeSubpageRotationMatrix2d(gdlBox3d, xratio, yratio, zratio,trans);
 		  GDL_3DTRANSFORMDEVICE T3DForAXes;
@@ -348,38 +387,10 @@ namespace lib
 		  T3DForAXes.zValue = (std::isfinite(zValue)) ? zValue : 0;
 		  gdlStartSpecial3DDriverTransform(actStream, T3DForAXes);
           Guard<BaseGDL> g(gdlBox3d);
+		//restore region info
+		gdlStoreXAxisRegion(actStream, save_region);
+		gdlStoreYAxisRegion(actStream, save_region);
 		}
-		if (below) {
-		  actStream->w3d(1, 1, 1, 0, 1, 0, 1, 0.5, 1.5, -alt, az);
-		  gdlFlipYPlotDirection(actStream); //special trick, not possible with plplot
-		} else actStream->w3d(1, 1, 1, 0, 1, 0, 1, 0.5, 1.5, alt, az);
-// shade //      } else {
-// shade //        //This is the good version for shade_surf and surface with shade option
-// shade //        // (needs shifting the plplot plot by some amount in the 3DDriverTransform of the driver.)     
-// shade //        actStream->vpor(0, 1, 0, 1);
-// shade //        actStream->wind(-0.5 / scale[0], 0.5 / scale[0], -0.5 / scale[1], 0.5 / scale[1]); //mandatory: to center in (0,0,0) for 3D Matrix rotation.
-// shade //        if (below) {
-// shade //          actStream->w3d(1, 1, 1, 0, 1, 0, 1, 0, 1, -alt, az);
-// shade //          DDouble xp = 0;
-// shade //          DDouble yp1 = 0;
-// shade //          DDouble yp2 = 0;
-// shade //          Matrix3DTransformXYZval(0, 0, 0, &xp, &yp1,Current3DMatrix);
-// shade //          Matrix3DTransformXYZval(0, 0, 0.5, &xp, &yp2,Current3DMatrix);
-// shade //          gdlShiftYaxisUsing3DDriverTransform(actStream, 1 - (yp1 - yp2), true);
-// shade //        } else {
-// shade //          actStream->w3d(1, 1, 1, 0, 1, 0, 1, 0, 1, alt, az); //mandatory: in order to have shades plotted correctly, z must go from 0 to 1, not -0.5 to 0.5
-// shade //          //as the code in plplot prevents negative "normalized" values.
-// shade //          // To insure this (and shade_surf) to work in all cases, we must rely on the 3DDriverTransform, once again, to shift the [0,1] plot in [-0.5, 0.5]
-// shade //          // 
-// shade //          //compute vertical displacement of point [0,0,0] in projected coordinates between zv=0 and zv=0.5
-// shade //          DDouble xp = 0;
-// shade //          DDouble yp1 = 0;
-// shade //          DDouble yp2 = 0;
-// shade //          Matrix3DTransformXYZval(0, 0, 0, &xp, &yp1,Current3DMatrix);
-// shade //          Matrix3DTransformXYZval(0, 0, 0.5, &xp, &yp2,Current3DMatrix);
-// shade //          gdlShiftYaxisUsing3DDriverTransform(actStream, yp1 - yp2, false);
-// shade //        }
-// shade //      }
       return false;
     }
     

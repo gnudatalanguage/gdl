@@ -111,9 +111,9 @@ namespace lib {
       if (yAxisWasLog) {oyStart=pow(10,oyStart);oyEnd=pow(10,oyEnd);}
       if (zAxisWasLog) {ozStart=pow(10,ozStart);ozEnd=pow(10,ozEnd);}
       
-      gdlAdjustAxisRange(e, XAXIS, oxStart, oxEnd, xAxisWasLog); //Box adjustement
-      gdlAdjustAxisRange(e, YAXIS, oyStart, oyEnd, yAxisWasLog); //Box adjustement
-      gdlAdjustAxisRange(e, ZAXIS, ozStart, ozEnd, zAxisWasLog); //Box adjustement
+//      gdlAdjustAxisRange(e, XAXIS, oxStart, oxEnd, xAxisWasLog); //Box adjustement
+//      gdlAdjustAxisRange(e, YAXIS, oyStart, oyEnd, yAxisWasLog); //Box adjustement
+//      gdlAdjustAxisRange(e, ZAXIS, ozStart, ozEnd, zAxisWasLog); //Box adjustement
 
       //position values are in the 'old' system just defined above.
       xPos = (xaxis_value==0) ? oxStart : oxEnd;
@@ -174,11 +174,6 @@ namespace lib {
       ConvertToNormXY(1, &xPos, xAxisWasLog, &yPos, yAxisWasLog, coordinateSystem);
       ConvertToNormZ(1, &zPos,  zAxisWasLog, coordinateSystem);
            
-      //default axis values: start with 'old' values.
-      xLog = xAxisWasLog;
-      yLog = yAxisWasLog; //by default logness is similar until another option is set
-      zLog = zAxisWasLog;
-
       xStart = oxStart;
       xEnd = oxEnd;
       yStart = oyStart;
@@ -192,15 +187,16 @@ namespace lib {
       static int xLogIx = e->KeywordIx("XLOG");
       static int yLogIx = e->KeywordIx("YLOG");
       static int zLogIx = e->KeywordIx("ZLOG");
-      if (e->KeywordPresent(xLogIx)) xLog = e->KeywordSet(xLogIx);
-      if (e->KeywordPresent(yLogIx)) yLog = e->KeywordSet(yLogIx);
-      if (e->KeywordPresent(zLogIx)) zLog = e->KeywordSet(zLogIx);
+      if (e->KeywordPresent(xLogIx)) xLog = e->KeywordSet(xLogIx); else xLog = xAxisWasLog;
+      if (e->KeywordPresent(yLogIx)) yLog = e->KeywordSet(yLogIx); else yLog = yAxisWasLog; //by default logness is similar until another option is set
+      if (e->KeywordPresent(zLogIx)) zLog = e->KeywordSet(zLogIx); else zLog = zAxisWasLog;
 
       // note: undocumented keywords [xyz]type still exist and
       // have priority on [xyz]log ! In fact, it is the modulo (1, 3, 5 ... --> /log)   
       static int xTypeIx = e->KeywordIx("XTYPE");
       static int yTypeIx = e->KeywordIx("YTYPE");
-      static int xType, yType;
+      static int zTypeIx = e->KeywordIx("ZTYPE");
+      static int xType, yType, zType;
       if (e->KeywordPresent(xTypeIx)) {
         e->AssureLongScalarKWIfPresent(xTypeIx, xType);
         if ((xType % 2) == 1) xLog = true;
@@ -210,6 +206,11 @@ namespace lib {
         e->AssureLongScalarKWIfPresent(yTypeIx, yType);
         if ((yType % 2) == 1) yLog = true;
         else yLog = false;
+      }
+      if (e->KeywordPresent(zTypeIx)) {
+        e->AssureLongScalarKWIfPresent(zTypeIx, zType);
+        if ((yType % 2) == 1) zLog = true;
+        else zLog = false;
       }
 
       //XRANGE and YRANGE overrides all that, but  Start/End should be recomputed accordingly
