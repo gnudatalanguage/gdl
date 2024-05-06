@@ -597,8 +597,8 @@ bool GraphicsMultiDevice::CopyRegion(DLongGDL* me) {
   if (me->N_Elements() == 7) source = (*me)[6];
   else source = actWin;
   int ret=winList[ source]->GetRegion(xs, ys, nx, ny);
-  if (ret!=0){
-	if (ret=1) return true; //region is ot of view. not a problem.
+  if (ret != 0){
+	if (ret == 1) return true; //region is ot of view. not a problem.
 	return false; //CopyRegion is not allowed for this device
   }
   return winList[ actWin ]->SetRegion(xd, yd, nx, ny);
