@@ -4831,7 +4831,7 @@ BaseGDL* GDLWidgetTable::GetDisjointSelectionValuesForStructs(DLongGDL* selectio
   DStructDesc* inStructDesc = structIn->Desc();
   //create tag structure
   DStructDesc* outStructDesc = new DStructDesc("$truct");
-  for (SizeT outTag = 0, n = 0, l = 0; n < MAX(selection->Dim(1), 1); ++n) {
+  for (int outTag = 0, n = 0, l = 0; n < MAX(selection->Dim(1), 1); ++n) {
 	SizeT t = 0;
 	SizeT ix = 0;	
     if (majority == GDLWidgetTable::ROW_MAJOR) {
