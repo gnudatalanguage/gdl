@@ -2961,8 +2961,11 @@ static  BaseGDL* hash_create( EnvT* e, bool isordered=false)
          nEntries = key->N_Elements();
         if(trace_me) std::cout << " nEntries= " << nEntries;
         }
-      }  // nParam==1
-
+      } else if( nParam == 2) { //ckeck key/value similar number of elements
+		if ((e->GetPar(0))->N_Elements() != (e->GetPar(1))->N_Elements()) e->Throw("Key and Value must have the same number of elements.");
+	  } else { 
+	  if (nParam % 2 != 0) e->Throw("Incorrect number of arguments.");
+      }
 // Count the possible entries, no check for total correctness.
     for( SizeT eIx=0; eIx < nParam/2; ++eIx) {
         BaseGDL* key = e->GetPar(  2 * eIx);
@@ -2992,10 +2995,10 @@ static  BaseGDL* hash_create( EnvT* e, bool isordered=false)
     DStructGDL* hashStruct = GetOBJ( newObj, 0);    
     if( nParam == 1) {
         if( key->N_Elements() == 1) {
-            InsertIntoHashTable( hashStruct, hashTable, key, NULL);
+            InsertIntoHashTable( hashStruct, hashTable, key, NullGDL::GetSingleInstance());
             } else {
             for( SizeT kIx=0; kIx < nEntries; ++kIx)
-                InsertIntoHashTable( hashStruct, hashTable, key->NewIx(kIx), NULL);
+                InsertIntoHashTable( hashStruct, hashTable, key->NewIx(kIx), NullGDL::GetSingleInstance());
             }
         newObjGuard.Release();
         return newObj;
