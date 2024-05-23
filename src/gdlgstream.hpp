@@ -224,7 +224,8 @@ public:
   virtual ~GDLGStream()
   {
 	  if (GDL_DEBUG_PLSTREAM) printf(" retire GDLGstream:pls=%p \n", (void *)pls);
-    plend1(); //strange. Was expected to solve #1342 but 1) I cannot reproduce now and 2) this crashes GDL in the following manner:
+//    plend1(); //NEVER use plend here. Causes #1835
+// Above was expected to solve #1342 but 1) I cannot reproduce now and 2) this crashes GDL in the following manner:
 //    plot,dist(10) ; using X11 not wxWidgets
 //    set_plot,'z'
 //    plot,dist(10)
