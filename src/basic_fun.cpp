@@ -422,17 +422,19 @@ namespace lib {
       throw GDLException("Array dimensions must be greater than 0");
 
     DPtrGDL* ret;
-    
-    static int nozeroIx = e->KeywordIx("NOZERO");    
-    if (!e->KeywordSet(nozeroIx))
-      return new DPtrGDL(dim);
-
-    // ALLOCATE_HEAP
     ret = new DPtrGDL(dim, BaseGDL::NOZERO);
 
-    SizeT nEl = ret->N_Elements();
-    SizeT sIx = e->NewHeap(nEl, NullGDL::GetSingleInstance());
-    for (SizeT i = 0; i < nEl; i++) (*ret)[i] = sIx + i;
+    // Why this code exists ? AC240526 #1837
+    static int nozeroIx = e->KeywordIx("NOZERO");    
+    if (e->KeywordSet(nozeroIx)) Message("Obsolete Keyword NOZERO");
+    //  return new DPtrGDL(dim);
+
+    if (e->KeywordSet("ALLOCATE_HEAP")) {
+      SizeT nEl = ret->N_Elements();
+      SizeT sIx = e->NewHeap(nEl, NullGDL::GetSingleInstance());
+      for (SizeT i = 0; i < nEl; i++) (*ret)[i] = sIx + i;
+    }
+    
     return ret;
   }
 
