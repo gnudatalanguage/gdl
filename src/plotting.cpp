@@ -126,17 +126,25 @@ namespace lib
     //the real values.
     DLong minE, maxE;
     const bool omitNaN=true;
+	bool warn=false;
     val->MinMax(&minE, &maxE, NULL, NULL, omitNaN);
     if ( minVal!=NULL ) {
        *minVal=(*val)[ minE];
-       if (isnan(*minVal)) *minVal = UNDEF_RANGE_VALUE;
+       if (isnan(*minVal)) {
+		 *minVal = UNDEF_RANGE_VALUE;
+		 warn=true;
+	   }
     }
     if ( maxVal!=NULL ) {
       *maxVal=(*val)[ maxE];
-       if (isnan(*maxVal)) *maxVal = 1.0;
+       if (isnan(*maxVal)) {
+		 *maxVal = 1.0;
+		 warn=true;
+	   }
     }
     if ((*maxVal)==(*minVal)) *maxVal=*minVal+1.0;
 #undef UNDEF_RANGE_VALUE
+	if (warn) Warning("Infinite plot range.");
   }
   DDouble AutoTickIntv(DDouble x, bool freeRange) {
 	static const double s2 = sqrt(2) / 2.;
@@ -376,7 +384,7 @@ namespace lib
 
 	DDouble min = start;
 	DDouble max = end;
-
+    if (!isfinite(min) || !(isfinite(max))) e->Throw("Not enough valid and unique points specified.");
 	if (hasTickv) {
 	  DLong minE, maxE;
 	  const bool omitNaN = true;
