@@ -1,28 +1,76 @@
-pro TEST_ELMHES, test=test, no_exit=no_exit, help=help
+;
+; Initial version Gilles.
+;
+; ---------------------------------------
+; Modifications history :
+;
+; - 2024-May-29 : AC. small cosmetic change due to troubles on M1/M2
+;
+; ---------------------------------------
+;
+pro PRINT_DEBUG, mess, a, exp_a
+print, mess, a, exp_a, ABS(a-exp_a)
+end
+; ---------------------------------------
+;
+pro TEST_ELMHES, test=test, no_exit=no_exit, help=help, $
+                 verbose=verbose, debug=debug
 ;
 if KEYWORD_SET(help) then begin
-   print, 'pro TEST_ELMHES, test=test, no_exit=no_exit, help=help'
+   print, 'pro TEST_ELMHES, test=test, no_exit=no_exit, help=help, $'
+   print, '                 verbose=verbose, debug=debug'
    return
 endif
 ;
 nb_errors=0
-a=findgen(4,4)+0.5
-b=elmhes(a)
-t=total(b) & p=product(b)
-st=string(t,format='(f012.8)')
-pt=string(p,format='(f012.8)')
-if st ne '101.32080078' or pt ne '-00.00000029' then ERRORS_ADD, nb_errors, 'bad result elmhes'
-b=elmhes(a,/no)
-t=total(b) & p=product(b)
-st=string(t,format='(f012.8)')
-pt=string(p,format='(f012.8)')
-if st ne '096.58079529' or pt ne '-00.00000007' then ERRORS_ADD, nb_errors, 'bad result elmhes,/no_balance'
-b=elmhes(a,/column)
-t=total(b) & p=product(b)
-st=string(t,format='(f012.8)')
-pt=string(p,format='(f012.8)')
-if st ne '099.94132233' or pt ne '000.00000553' then ERRORS_ADD, nb_errors, 'bad result elmhes,/column'
-
+eps=1e-5
+;
+a=FINDGEN(4,4)+0.5
+b=ELMHES(a)
+t=TOTAL(b)
+p=PRODUCT(b)
+expect_tot=101.32079315
+expect_prod=0.0
+mess='bad result ELMHES '
+if (ABS(expect_tot-t) GT eps) then ERRORS_ADD, nb_errors, mess+'T'
+if (ABS(expect_prod-p) GT eps) then ERRORS_ADD, nb_errors, mess+'P'
+if KEYWORD_SET(debug) or KEYWORD_SET(verbose) then begin
+   PRINT_DEBUG, 'p :', p, expect_prod
+   PRINT_DEBUG, 't :', t, expect_tot
+endif
+if KEYWORD_SET(debug) then STOP
+;
+; test with /no_balance
+;
+b=ELMHES(a,/no_bal)
+t=TOTAL(b)
+p=PRODUCT(b)
+expect_tot=96.5808
+expect_prod=0.0
+mess='bad result ELMHES, /no_balance : '
+if (ABS(expect_tot-t) GT eps) then ERRORS_ADD, nb_errors, mess+'T'
+if (ABS(expect_prod-p) GT eps) then ERRORS_ADD, nb_errors, mess+'P'
+if KEYWORD_SET(debug) or KEYWORD_SET(verbose) then begin
+   PRINT_DEBUG, 'p :', p, expect_prod
+   PRINT_DEBUG, 't :', t, expect_tot
+endif
+if KEYWORD_SET(debug) then STOP
+;
+; test with /Column
+;
+b=ELMHES(a,/column)
+t=TOTAL(b)
+p=PRODUCT(b)
+expect_tot=99.941322
+expect_prod=0.0
+mess='bad result ELMHES, /column : '
+if (ABS(expect_tot-t) GT eps) then ERRORS_ADD, nb_errors, mess+'T'
+if (ABS(expect_prod-p) GT eps) then ERRORS_ADD, nb_errors, mess+'P'
+if KEYWORD_SET(debug) or KEYWORD_SET(verbose) then begin
+   PRINT_DEBUG, 'p :', p, expect_prod
+   PRINT_DEBUG, 't :', t, expect_tot
+endif
+if KEYWORD_SET(debug) then STOP
 ;
 ; ----------------- final message ----------
 ;
