@@ -59,7 +59,7 @@ endif else tmpstr=''
         tmpstr+=braceleft & level++
         for j=0,n_tags(value)-1 do begin
            tmpstr+=pretty_serialize(tagname=tagn[j],value.(j),/arrayIdentifier)
-           if (j lt n_tags(value)-1 ) then tmpstr+=comma
+           if j lt n_tags(value)-1  then tmpstr+=comma
         end
         tmpstr+=braceright & level--
      end
@@ -103,20 +103,20 @@ endif else tmpstr=''
        for i=0,nel-1 do begin
         case type of
            8: begin
-              tagn=tag_names((value[i]))
+              tagn=tag_names(value[i])
               tmpstr+='{'
-              for j=0,n_tags((value[i]))-1 do begin
-                 tmpstr+=pretty_serialize(tagname=tagn[j],(value[i]).(j),/arrayIdentifier)
-                 if (j lt n_tags((value[i]))-1 ) then tmpstr+=comma
+              for j=0,n_tags(value[i])-1 do begin
+                 tmpstr+=pretty_serialize(tagname=tagn[j],value[i].(j),/arrayIdentifier)
+                 if (j lt n_tags(value[i])-1 ) then tmpstr+=comma
               end
               tmpstr+='}'
            end
            
            11: begin            ; more tricky depending on single value of array
-              mytype=typename((value[i]))
+              mytype=typename(value[i])
               if (mytype eq 'LIST') then begin
                  tmpstr+='['
-                 nn=(value[i]).Count()
+                 nn=value[i].Count()
                  for j=0,nn-1 do begin
                     tmpstr+=pretty_serialize((value[i])[j])
                     if (j lt nn-1) then tmpstr+=comma
@@ -124,8 +124,8 @@ endif else tmpstr=''
                  tmpstr+=']'
               endif else begin
                  tmpstr+=braceleft & level++
-                 nn=(value[i]).Count()
-                 keys=(value[i]).Keys()
+                 nn=value[i].Count()
+                 keys=value[i].Keys()
                  for j=0,nn-1 do begin
                     tmpstr+=pretty_serialize(tagname=keys[j],(value[i])[keys[j]])
                     if (j lt nn-1) then tmpstr+=comma
@@ -133,7 +133,7 @@ endif else tmpstr=''
                  tmpstr+=braceright & level--
               endelse
            end
-           7:  tmpstr+='"'+(value[i])+'"'
+           7:  tmpstr+='"'+value[i]+'"'
            10: BEGIN
               ind=PTR_VALID(value[i],/get)
               tmpstr+="<PtrHeapVar"+strtrim(ind,2)+">"
@@ -152,7 +152,18 @@ end
 pro gdl_implied_print,out,value
 COMPILE_OPT idl2, HIDDEN
 ON_ERROR, 2
+; get info on out
+info=fstat(out)
+if info.isatty eq 1 then begin
+   width=(TERMINAL_SIZE( ))[0]
+endif else width=132
+
 types=[1,2,3,4,5,6,7,9,12,13,14,15]
+start='('
+fmtflt='(G16.8))'
+fmtdbl='(G25.17))'
+fmtcplx='("(",G16.8,",",G16.8,")"))'
+fmtcplxdbl='("(",G25.17,",",G25.17,")"))'
 type=size(value,/type)
 if (type eq 0) then begin
  printf,out,"!NULL"
@@ -165,16 +176,21 @@ if (count gt 0) then begin
   ndim=ret[0]
   type=ret[ndim+1]
   n=n_elements(value)
-  if (n eq 1) then begin
-    case type of
-    4: printf,out,value,format='(G16.8)'
-    5: printf,out,value,format='(G25.17)'
-    6: printf,out,value,format='("(",G16.8,",",G16.8,")")'
-    9: printf,out,value,format='("(",G25.17,",",G25.17,")")'
-    ELSE: printf,out,value
+  case type of  ; define special formats
+    4: begin & w=16 & n=fix(width/w,/print) & fmt=start+strtrim(n,2)+fmtflt & break &end
+    5: begin & w=25 & n=fix(width/w,/print) & fmt=start+strtrim(n,2)+fmtdbl & break &end
+    6: begin & w=35 & n=fix(width/w,/print) & fmt=start+strtrim(n,2)+fmtcplx & break &end
+    9: begin & w=53 & n=fix(width/w,/print) & fmt=start+strtrim(n,2)+fmtcplxdbl & break &end
+    ELSE:  begin &  printf,out,value & return & end ; just print and return
     endcase
-  endif else printf,out,value
-  return
+  ; only special formats left
+  switch type of
+    4: 
+    5: 
+    6: 
+    9: printf,out,value,format=fmt
+ endswitch
+ return
 endif
 
 text=pretty_serialize(value)
