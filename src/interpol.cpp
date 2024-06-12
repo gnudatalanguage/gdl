@@ -374,6 +374,8 @@ namespace lib {
     //dimensions
     BaseGDL* p0 = e->GetParDefined(0);
     DType type=p0->Type();
+	if (type==GDL_STRING) e->Throw("Internal Error, string value not allowed when calling GDL_INTERPOL, please report.");
+	if (ComplexType(type)) e->Throw("Internal Error, complex value not allowed when calling GDL_INTERPOL, please report.");
     SizeT nV=p0->N_Elements();
     SizeT orig_nV=nV;
     if (nV <nmin) e->Throw("V has too few elements for this kind of interpolation.");
@@ -395,7 +397,7 @@ namespace lib {
     //type of output
     bool isDouble = false;
     
-    if (nParam==2) {       // we make X, only V has to be chacked for Nan
+    if (nParam==2) {       // we make X, only V has to be checked for Nan
       BaseGDL* p1 = e->GetParDefined(1);
       if (p1->N_Elements() >1) e->Throw("N must be one positive integer");
       DLongGDL* n1gdl=e->GetParAs<DLongGDL>(1);
