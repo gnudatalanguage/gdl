@@ -45,25 +45,25 @@ namespace lib {
   std::string PathSeparator()
   {
 #ifdef _WIN32
-    if (lib::posixpaths) return std::string ("/");
-    return std::string ("\\");
+    if (lib::posixpaths) return {"/"};
+    return {"\\"};
 #else
-    return std::string ("/");
+    return {"/"};
 #endif
   }
   
   std::string SearchPathSeparator()
   {
 #ifdef _WIN32
-    return std::string (";");
+    return {";"};
 #else
-    return std::string (":");
+    return {":"};
 #endif
   }
   
   std::string ParentDirectoryIndicator()
   {
-    return std::string ("..");
+    return {".."};
   }
 }
 //using namespace std;
@@ -73,16 +73,13 @@ namespace lib {
 std::string GetEnvString(const char* env)
 {
   char* c=getenv(env);
-  if( !c) return std::string("");
-  return std::string(c);
+  if( !c) return {""};
+  return {c};
 }
 //same but for a path: separator will be '\' for _WIN32
 std::string GetEnvPathString(const char* env)
 {
-  std::string ret("");
-  char* c=getenv(env);
-  if( !c) return ret;
-  ret=std::string(c);
+  std::string ret = GetEnvString(env);
 #ifdef _WIN32
     std::replace(ret.begin(), ret.end(), '/', '\\');
 #endif
