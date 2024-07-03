@@ -778,63 +778,101 @@ DInterpreter::CommandCode DInterpreter::CmdFullReset()
   return CC_OK;
 }
 
-DInterpreter::CommandCode DInterpreter::CmdCompile( const string& command)
-{
-  string cmdstr = command;
-  size_t sppos = cmdstr.find(" ",0);
-  if (sppos == string::npos) 
-    {
-      cout << "Interactive COMPILE not implemented yet." << endl;
-      return CC_OK;
-    }
-      
+std::vector<string> ReturnListOfFiles(const string& command) {
+ size_t pos=command.find(" ", 0);
+  // Parse each file name.
+  size_t l=command.length();
+  std::vector<string> files;
+  if (pos== string::npos) return files;
+  char quote = 0x27;
+  char dquote = 0x22;
+  char blank = 0x20;
+  char comma = 0x2C;
+  bool quoted = false;
+  bool dquoted = false;
+  std::string s;
+  char c = blank; //a blank to start next while
+  //If we have quoted strings: they are separated from others strings by " \"" or " \'"
+  // walk command, starting from sppos+1 to end, put each correct substring (without 
+  // separating quotes and doublequotes and blanks) in a list
+  // find first non-blank char in the rest of the string
+  while (c == blank && pos < l) { //not commas here!
+	pos++;
+	c = (command.data())[pos];
+  }
+  if (c == quote) quoted = true;
+  else if (c == dquote) dquoted = true;
+  else s += c;
+  pos++;
+  // if first nonblank char is not ' or " pass in "blank" mode
+  for (; pos < l; ++pos) {
+	c = (command.data())[pos];
+	if ((c == blank || c == comma) && !quoted && !dquoted) { //IDL passes over commas when not at start of list.
+	  if (s.length() > 0) files.push_back(s);
+	  s.clear();
+	  while ((c == blank || c == comma) && pos < l) {
+		pos++;
+		c = (command.data())[pos];
+	  }
+	  if (c == quote && !dquoted) quoted = true;
+	  else if (c == dquote && !quoted) dquoted = true;
+	  else
+		s += c;
+	} else if (c == quote && !dquoted) {
+	  quoted = false;
+	  if (s.length() > 0) files.push_back(s);
+	  s.clear();
+	} else if (c == dquote && !quoted) {
+	  dquoted = false;
+	  if (s.length() > 0) files.push_back(s);
+	  s.clear();
+	} else {
+	  s += c;
+	}
+  }
+  if (s.length() > 0) files.push_back(s);
+//  for (auto i = 0; i < files.size(); ++i) std::cerr << files[i] << std::endl;
+  return files;
+}
+
+
+DInterpreter::CommandCode DInterpreter::CmdCompile( const string& command) {
+  if (command.find(" ", 0) == string::npos) {
+	cout << "Interactive COMPILE not implemented yet." << endl;
+	return CC_OK;
+  }
+
   bool retAll = false; // Remember if Retall is needed
 
-  // Parse each file name
-  size_t pos = sppos + 1;
-  while (pos < command.length()) 
-    {
-      sppos = command.find(" ",pos);
-      if (sppos == string::npos) sppos = command.length();
-
-      // Found a file
-      if ((sppos - pos) > 0) 
-	{
-	  string argstr  = command.substr(pos, sppos-pos);
-	  string origstr = argstr;
-
+  std::vector<string> files=ReturnListOfFiles(command);
+  for (auto i=0; i< files.size(); ++i) {
+	std::string file=files[i];
 	  // try first with extension
-	  AppendExtension( argstr);
-	  bool found = CompleteFileName( argstr);
+	  AppendExtension(file);
+	  bool found = CompleteFileName(file);
 
 	  // 2nd try without extension
-	  if( !found)
-	    {
-	      argstr = origstr;
-	      found = CompleteFileName( argstr);
-	    }
+	  if (!found) {
+		file=files[i];
+		found = CompleteFileName(file);
+	  }
 
-	  if (found) 
-	    {
-	      try {
-		// default is more verbose
-		CompileFile( argstr); //, origstr); 
-	      }
-	      catch( RetAllException&)
-		{
+	  if (found) {
+		try {
+		  // default is more verbose
+		  CompileFile(file); //, origstr); 
+		} catch (RetAllException&) {
 		  // delay the RetAllException until finished
 		  retAll = true;
 		}
-	    } 
-	  else 
-	    {
-	      Message( "Error opening file. File: "+origstr+".");
-	      return CC_OK;
-	    }
+	  }
+	  else {
+		Message("Error opening file. File: " + files[i] + ".");
+		return CC_OK;
+	  }
 	}
-      pos = sppos + 1;
-    }
-  if( retAll) RetAll();
+  
+  if (retAll) RetAll();
 
   return CC_OK;
 }
@@ -848,64 +886,42 @@ DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
       cout << "Interactive RUN not implemented yet." << endl;
       return CC_OK;
     }
-      
   bool retAll = false; // Remember if Retall is needed
 
-  // Parse each file name
-  size_t pos = sppos + 1;
-  while (pos < command.length()) 
-    {
-      sppos = command.find(" ",pos);
-      size_t spposComma = command.find(",",pos);
-      if (sppos == string::npos && spposComma == string::npos) 
-	sppos = command.length();
-      else if (sppos == string::npos)
-	sppos = spposComma;
-	
-
-      // Found a file
-      if ((sppos - pos) > 0) 
-	{
-	  string argstr  = command.substr(pos, sppos-pos);
-	  string origstr = argstr;
-
-	  // try 1st with extension
-	  AppendExtension( argstr);
-	  bool found = CompleteFileName(argstr);
+  std::vector<string> files=ReturnListOfFiles(command);
+  for (auto i=0; i< files.size(); ++i) {
+	std::string file=files[i];
+	  // try first with extension
+	  AppendExtension(file);
+	  bool found = CompleteFileName(file);
 
 	  // 2nd try without extension
-	  if( !found)
-	    {
-	      argstr = origstr;
-	      found = CompleteFileName( argstr);
-	    }
+	  if (!found) {
+		file=files[i];
+		found = CompleteFileName(file);
+	  }
 
-	  if (found) 
-	    {
-	      try {
-		// default is more verbose
-		CompileFile( argstr); //, origstr); 
-	      }
-	      catch( RetAllException&)
-		{
+	  if (found) {
+		try {
+		  // default is more verbose
+		  CompileFile(file); //, origstr); 
+		} catch (RetAllException&) {
 		  // delay the RetAllException until finished
 		  retAll = true;
 		}
-	    } 
-	  else 
-	    {
-	      Message( "Error opening file. File: "+origstr+".");
-	      return CC_OK;
-	    }
+	  }
+	  else {
+		Message("Error opening file. File: " + files[i] + ".");
+		return CC_OK;
+	  }
 	}
-      pos = sppos + 1;
-    }
-  if( retAll) 
-    Warning( "Compiled a main program while inside a procedure. "
-	     "Returning.");
+
+//  if( retAll) 
+//    Warning( "Compiled a main program while inside a procedure. "
+//	     "Returning.");
 
   // actual run is perfomed in InterpreterLoop()
-  RetAll( RetAllException::RUN); // throws (always)
+  if( retAll) RetAll( RetAllException::RUN); // throws (always)
   return CC_OK; //avoid warnings
 }
 
