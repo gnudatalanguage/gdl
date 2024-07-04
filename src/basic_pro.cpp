@@ -758,6 +758,7 @@ namespace lib {
   void flush_lun(EnvT* e) {
     // within GDL, always lun+1 is used
     int nParam = e->NParam();
+    if (nParam == 0) e->Throw("Incorrect number of arguments.");
     for (int p = 0; p < nParam; p++) {
       DLong lun;
       e->AssureLongScalarPar(p, lun);
