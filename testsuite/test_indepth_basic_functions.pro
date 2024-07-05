@@ -229,7 +229,7 @@ intent="z="+what+"array"
   for i=0,n_elements(what)-1 do z=execute(calls[i])
 end
 
-pro test_indepth_operators_sub, size, given_lun, float=float, complex=complex, include_complex=include_complex
+pro test_indepth_operators_sub, size, given_lun, float=float, complex=complex, string=string, include_complex=include_complex
   if (n_elements(include_complex) eq 0 ) then include_complex=0
   common test_all_basic_function_common, lun, typecodes, typenames, zero, scalar, onedim, small, big
   lun=given_lun
@@ -238,6 +238,8 @@ pro test_indepth_operators_sub, size, given_lun, float=float, complex=complex, i
   typenames_all=["BYTE","INT","LONG","UINT","ULONG","LONG64","ULONG64","FLOAT","DOUBLE","COMPLEX","DCOMPLEX"]
   typecodes_float=[4,5]
   typenames_float=["FLOAT","DOUBLE"]
+  typecodes_string=[7]
+  typenames_string=["STRING"]
   typecodes_complex=[6,9]
   typenames_complex=["COMPLEX","DCOMPLEX"]
   typecodes=typecodes_all & typenames=typenames_all ; default
@@ -261,18 +263,26 @@ pro test_indepth_operators_sub, size, given_lun, float=float, complex=complex, i
      integers_only=1
      not_complex=1
   endif
+  if (keyword_set(string)) then begin
+     typecodes=typecodes_string
+     typenames=typenames_string
+     include_complex=0
+     all_numeric=0
+     integers_only=0
+     not_complex=0
+  endif
   
 
   a=dindgen(size)+1.0d & a[2]=0d ; insures test on some AND or OR codes 
-  onedimarray=[7.0d]
+  onedimarray=[777.0d]
   smallarray=dindgen(4)+1.0d & smallarray[2]=0d;
   big=ptrarr(11,/allo)
-  forbig=a+1.555 & forbig[3]=0 
+  forbig=a+3333 & forbig[3]=0 
   k=0 & foreach i,typecodes do begin & *big[k]=fix(forbig,type=i) & k++ &end
   zero=ptrarr(11,/allo)
   k=0 & foreach i,typecodes do begin & *zero[k]=fix(0,type=i) & k++ &end
   scalar=ptrarr(11,/allo)
-  k=0 & foreach i,typecodes do begin & *scalar[k]=fix(9,type=i) & k++ &end
+  k=0 & foreach i,typecodes do begin & *scalar[k]=fix(99999,type=i) & k++ &end
   onedim=ptrarr(11,/allo)
   k=0 & foreach i,typecodes do begin & *onedim[k]=fix(onedimarray,type=i) & k++ &end
   small=ptrarr(11,/allo)
@@ -286,8 +296,7 @@ pro test_indepth_operators_sub, size, given_lun, float=float, complex=complex, i
 
 ; operators 1
 ; Some of these operators have 4 flavors, depending on size, ex AndOP, AndOpS, AndOpInv, AndOpInvS, and 3 cases: new, new but one var is Guarded, or operating on same operand
-;what=[" + "," - " ," * "," / "," ^ "]
-what=[" ^ "]
+what=[" + "," - " ," * "," / "," ^ "]
 process_new, what, all_numeric
 process_temporary_right, what, all_numeric
 process_temporary_left, what, all_numeric
@@ -324,7 +333,7 @@ process_temporary_right, what, not_complex
 process_temporary_left, what, not_complex
 ; after this, no need to use process_temporary_xxxx, already done.
 ; operators 6
-what=[" ^= "]; , " *= " , " EQ= " , " GE= " ,  " GT= " , " LE= " ,  " LT= " ,  " -= " ,  " NE= " , " OR= " , " += " , " /= ", " AND= ", " MOD= ", " >= ", " <= "]
+what=[" ^= " , " *= " , " EQ= " , " GE= " ,  " GT= " , " LE= " ,  " LT= " ,  " -= " ,  " NE= " , " OR= " , " += " , " /= ", " AND= ", " MOD= ", " >= ", " <= "]
 process_new_self,what, all_numeric
 ; operators 7:  complex not supported (GDL error)
 what=[" MOD= " , " >= " ," <= " ]
@@ -332,7 +341,7 @@ process_new_self,what, not_complex
 end
 ;; trace_routine can only be used and useful if GDL is compiled with option TRACE_OPCALLS.
 ;; it gives on the terminal the nama and file of the exact function used
-pro test_indepth_basic_functions, size=size, trace_routine=trace_routine, test_cpu=test_cpu, include_complex=include_complex, float=float, complex=complex
+pro test_indepth_basic_functions, size=size, trace_routine=trace_routine, test_cpu=test_cpu, include_complex=include_complex, float=float, complex=complex, string=string
   if (n_elements(size) eq 0 ) then size=10
   if keyword_set(trace_routine) then begin
      test_indepth_operators_sub, size, -1, include_complex=include_complex, float=float, complex=complex
