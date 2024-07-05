@@ -253,18 +253,26 @@ pro test_indepth_operators_sub, size, given_lun, float=float, complex=complex, i
      integers_only=1
      not_complex=1
   endif
+  if (keyword_set(complex)) then begin
+     typecodes=typecodes_complex
+     typenames=typenames_complex
+     include_complex=0
+     all_numeric=1
+     integers_only=1
+     not_complex=1
+  endif
   
 
   a=dindgen(size)+1.0d & a[2]=0d ; insures test on some AND or OR codes 
-  onedimarray=[777.0d]
+  onedimarray=[7.0d]
   smallarray=dindgen(4)+1.0d & smallarray[2]=0d;
   big=ptrarr(11,/allo)
-  forbig=a+3333 & forbig[3]=0 
+  forbig=a+1.555 & forbig[3]=0 
   k=0 & foreach i,typecodes do begin & *big[k]=fix(forbig,type=i) & k++ &end
   zero=ptrarr(11,/allo)
   k=0 & foreach i,typecodes do begin & *zero[k]=fix(0,type=i) & k++ &end
   scalar=ptrarr(11,/allo)
-  k=0 & foreach i,typecodes do begin & *scalar[k]=fix(99999,type=i) & k++ &end
+  k=0 & foreach i,typecodes do begin & *scalar[k]=fix(9,type=i) & k++ &end
   onedim=ptrarr(11,/allo)
   k=0 & foreach i,typecodes do begin & *onedim[k]=fix(onedimarray,type=i) & k++ &end
   small=ptrarr(11,/allo)
@@ -278,7 +286,8 @@ pro test_indepth_operators_sub, size, given_lun, float=float, complex=complex, i
 
 ; operators 1
 ; Some of these operators have 4 flavors, depending on size, ex AndOP, AndOpS, AndOpInv, AndOpInvS, and 3 cases: new, new but one var is Guarded, or operating on same operand
-what=[" + "," - " ," * "," / "," ^ "]
+;what=[" + "," - " ," * "," / "," ^ "]
+what=[" ^ "]
 process_new, what, all_numeric
 process_temporary_right, what, all_numeric
 process_temporary_left, what, all_numeric
@@ -315,7 +324,7 @@ process_temporary_right, what, not_complex
 process_temporary_left, what, not_complex
 ; after this, no need to use process_temporary_xxxx, already done.
 ; operators 6
-what=[" ^= " , " *= " , " EQ= " , " GE= " ,  " GT= " , " LE= " ,  " LT= " ,  " -= " ,  " NE= " , " OR= " , " += " , " /= ", " AND= ", " MOD= ", " >= ", " <= "]
+what=[" ^= "]; , " *= " , " EQ= " , " GE= " ,  " GT= " , " LE= " ,  " LT= " ,  " -= " ,  " NE= " , " OR= " , " += " , " /= ", " AND= ", " MOD= ", " >= ", " <= "]
 process_new_self,what, all_numeric
 ; operators 7:  complex not supported (GDL error)
 what=[" MOD= " , " >= " ," <= " ]

@@ -1,0 +1,24 @@
+// e1->N_Elements() < e2->N_Elements() -> e1->OrOpInv(e2) : this (e1) unless e1==0 
+  Data_* right = static_cast<Data_*> (r);
+
+  ULong nEl = N_Elements();
+  Data_* res = NewResult();
+  
+  assert(nEl);
+  if (nEl == 1) {
+    (*res)[0] = (*this)[0];
+    if (std::norm((*res)[0]) == 0 ) (*res)[0] = (*right)[0];
+    return res;
+  }
+
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
+    for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i];
+    for (OMPInt i = 0; i < nEl; ++i) if (std::norm((*res)[i]) == 0 ) (*res)[i] = (*right)[i];
+  } else {
+    TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i];
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+    for (OMPInt i = 0; i < nEl; ++i) if (std::norm((*res)[i]) == 0 ) (*res)[i] = (*right)[i];
+  }
+  return res;

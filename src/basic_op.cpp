@@ -1976,6 +1976,14 @@ template<>
 Data_<SpDDouble>* Data_<SpDDouble>::OrOpInv(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 #include "snippets/basic_op_OrOpInv.incpp"
 }
+template<>
+Data_<SpDComplex>* Data_<SpDComplex>::OrOpInv(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+#include "snippets/basic_op_OrOpInvCplx.incpp"
+}
+template<>
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::OrOpInv(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+#include "snippets/basic_op_OrOpInvCplx.incpp"
+}
 // invalid types
 
 template<>
@@ -2275,20 +2283,18 @@ Data_<Sp>* Data_<Sp>::LtMark(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,_
 
 template<>
 Data_<SpDString>* Data_<SpDString>::LtMark(BaseGDL* r) { 
-  throw GDLException("Cannot apply operation to datatype STRING.", true, false);
+  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
   return this;
 }
 
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::LtMark(BaseGDL* r) { 
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
-  return this;
+#include "snippets/basic_op_LtMarkCplx.incpp"
 }
 
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::LtMark(BaseGDL* r) { 
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
-  return this;
+#include "snippets/basic_op_LtMarkCplx.incpp"
 }
 
 template<>
@@ -2334,14 +2340,12 @@ Data_<SpDString>* Data_<SpDString>::LtMarkS(BaseGDL* r) {
 
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::LtMarkS(BaseGDL* r) { 
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
-  return this;
+#include "snippets/basic_op_LtMarkSCplx.incpp"
 }
 
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::LtMarkS(BaseGDL* r) { 
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
-  return this;
+#include "snippets/basic_op_LtMarkSCplx.incpp"
 }
 
 template<>
@@ -2389,14 +2393,12 @@ Data_<SpDString>* Data_<SpDString>::GtMark(BaseGDL* r) {
 
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::GtMark(BaseGDL* r) { 
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
-  return this;
+#include "snippets/basic_op_GtMarkCplx.incpp"
 }
 
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::GtMark(BaseGDL* r) { 
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
-  return this;
+#include "snippets/basic_op_GtMarkCplx.incpp"
 }
 
 template<>
@@ -2443,14 +2445,12 @@ Data_<SpDString>* Data_<SpDString>::GtMarkS(BaseGDL* r) {
 
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::GtMarkS(BaseGDL* r) { 
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
-  return this;
+#include "snippets/basic_op_GtMarkSCplx.incpp"
 }
 
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::GtMarkS(BaseGDL* r) { 
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
-  return this;
+#include "snippets/basic_op_GtMarkSCplx.incpp"
 }
 
 template<>

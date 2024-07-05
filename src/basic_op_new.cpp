@@ -79,109 +79,32 @@ Data_<Sp>* Data_<Sp>::AndOpInvNew(BaseGDL* right) { TRACE_ROUTINE(__FUNCTION__,_
 
 template<>
 Data_<SpDFloat>* Data_<SpDFloat>::AndOpNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  Data_* right = static_cast<Data_*> (r);
-
-  // ULong rEl=right->N_Elements();
-  ULong nEl = N_Elements();
-  Data_* res = NewResult();
-
-  // assert( rEl);
-  assert(nEl);
-  if (nEl == 1) {
-    if ((*right)[0] == zero) (*res)[0] = zero;
-    else (*res)[0] = (*this)[0];
-    return res;
-  }
-  if ((GDL_NTHREADS=parallelize( nEl))==1) {
-    for (OMPInt i = 0; i < nEl; ++i) if ((*right)[i] == zero) (*res)[i] = zero;
-      else (*res)[i] = (*this)[i];
-  } else {
-    TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-      for (OMPInt i = 0; i < nEl; ++i) if ((*right)[i] == zero) (*res)[i] = zero;
-      else (*res)[i] = (*this)[i];
-  }
-  return res;
+# include "snippets/basic_op_AndOpNew.incpp"
 }
 
 //b=(a and a)
 template<>
 Data_<SpDFloat>* Data_<SpDFloat>::AndOpInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  Data_* right = static_cast<Data_*> (r);
-
-  ULong nEl = N_Elements();
-  assert(nEl);
-  assert(right->N_Elements());
-
-  Data_* res = NewResult();
-  if (nEl == 1) {
-    if ((*this)[0] != zero) (*res)[0] = (*right)[0];
-    else (*res)[0] = zero;
-    return res;
-  }
-  if ((GDL_NTHREADS=parallelize( nEl))==1) {
-    for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = (*right)[i];
-      else (*res)[i] = zero;
-  } else {
-    TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-      for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = (*right)[i];
-      else (*res)[i] = zero;
-  }
-  return res;
+# include "snippets/basic_op_AndOpInvNew.incpp"
 }
 // for doubles
 
 template<>
 Data_<SpDDouble>* Data_<SpDDouble>::AndOpNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  Data_* right = static_cast<Data_*> (r);
-
-  ULong nEl = N_Elements();
-  assert(nEl);
-  assert(right->N_Elements());
-
-  Data_* res = NewResult();
-  if (nEl == 1) {
-    if ((*right)[0] == zero) (*res)[0] = zero;
-    else (*res)[0] = (*this)[0];
-    return res;
-  }
-  if ((GDL_NTHREADS=parallelize( nEl))==1) {
-    for (OMPInt i = 0; i < nEl; ++i) if ((*right)[i] == zero) (*res)[i] = zero;
-      else (*res)[i] = (*this)[i];
-  } else {
-    TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-      for (OMPInt i = 0; i < nEl; ++i) if ((*right)[i] == zero) (*res)[i] = zero;
-      else (*res)[i] = (*this)[i];
-  }
-  return res;
+# include "snippets/basic_op_AndOpNew.incpp"
 }
 
 template<>
 Data_<SpDDouble>* Data_<SpDDouble>::AndOpInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  Data_* right = static_cast<Data_*> (r);
-
-  ULong nEl = N_Elements();
-  assert(nEl);
-  assert(right->N_Elements());
-
-  Data_* res = NewResult();
-  if (nEl == 1) {
-    if ((*this)[0] != zero) (*res)[0] = (*right)[0];
-    else (*res)[0] = zero;
-    return res;
-  }
-  if ((GDL_NTHREADS=parallelize( nEl))==1) {
-    for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = (*right)[i];
-      else (*res)[i] = zero;
-  } else {
-    TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-      for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = (*right)[i];
-      else (*res)[i] = zero;
-  }
-  return res;
+# include "snippets/basic_op_AndOpInvNew.incpp"
+}
+template<>
+Data_<SpDComplex>* Data_<SpDComplex>::AndOpInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+# include "snippets/basic_op_AndOpInvNewCplx.incpp"
+}
+template<>
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::AndOpInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+# include "snippets/basic_op_AndOpInvNewCplx.incpp"
 }
 // invalid types
 
@@ -436,6 +359,14 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTI
 template<>
 Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 #include "snippets/basic_op_OrOpInvNew.incpp"
+}
+template<>
+Data_<SpDComplex>* Data_<SpDComplex>::OrOpInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+#include "snippets/basic_op_OrOpInvNewCplx.incpp"
+}
+template<>
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::OrOpInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+#include "snippets/basic_op_OrOpInvNewCplx.incpp"
 }
 
 // invalid types
@@ -1570,60 +1501,23 @@ Data_<Sp>* Data_<Sp>::DivNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,_
 }
 
 template<> // Float
-Data_<SpDFloat>* Data_<SpDFloat>::DivNew(BaseGDL* r) {
-  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-  Data_* right = static_cast<Data_*> (r);
-  ULong nEl = N_Elements();
-  assert(nEl);
-  Data_* res = NewResult();
-  SizeT i = 0;
-  GDLStartRegisteringFPExceptions();
-  if (nEl == 1) {
-    (*res)[0] = (*this)[0] / (*right)[0];
-	GDLStopRegisteringFPExceptions();
-	return res;
-  }
-  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
-	for (OMPInt ix = i; ix < nEl; ++ix) (*res)[ix] = (*this)[ix] / (*right)[ix];
-  } else {
-	TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-	for (OMPInt ix = i; ix < nEl; ++ix) (*res)[ix] = (*this)[ix] / (*right)[ix];
-  }
-
-  GDLStopRegisteringFPExceptions();
-  
-  return res;
+Data_<SpDFloat>* Data_<SpDFloat>::DivNew(BaseGDL* r) {  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+#include "snippets/basic_op_DivNew.incpp"
 }
 
 template<> // Double
-Data_<SpDDouble>* Data_<SpDDouble>::DivNew(BaseGDL* r) {
-  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-  Data_* right = static_cast<Data_*> (r);
-  ULong nEl = N_Elements();
-  assert(nEl);
-  Data_* res = NewResult();
-  SizeT i = 0;
-  GDLStartRegisteringFPExceptions();
-  if (nEl == 1) {
-    (*this)[0] /= (*right)[0];
-	GDLStopRegisteringFPExceptions();
-	return res;
-  }
-  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
-	for (OMPInt ix = i; ix < nEl; ++ix) (*res)[ix] = (*this)[ix] / (*right)[ix];
-
-  } else {
-	TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-	for (OMPInt ix = i; ix < nEl; ++ix) (*res)[ix] = (*this)[ix] / (*right)[ix];
-  }
-
-  GDLStopRegisteringFPExceptions();
-  
-  return res;
+Data_<SpDDouble>* Data_<SpDDouble>::DivNew(BaseGDL* r) {  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+#include "snippets/basic_op_DivNew.incpp"
 }
 
+template<> // Double
+Data_<SpDComplex>* Data_<SpDComplex>::DivNew(BaseGDL* r) {  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+#include "snippets/basic_op_DivNew.incpp"
+}
+template<> // Double
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::DivNew(BaseGDL* r) {  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+#include "snippets/basic_op_DivNew.incpp"
+}
 
 // inverse division: left=right/left
 
@@ -1660,57 +1554,22 @@ Data_<Sp>* Data_<Sp>::DivInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE_
 }
 
 template<> 
-Data_<SpDFloat>* Data_<SpDFloat>::DivInvNew(BaseGDL* r) {
-  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-  Data_* right = static_cast<Data_*> (r);
-  ULong nEl = N_Elements();
-  assert(nEl);
-  Data_* res = NewResult();
-
-  GDLStartRegisteringFPExceptions();
-  if (nEl == 1) {
-	(*res)[0] = (*right)[0] / (*this)[0];
-	GDLStopRegisteringFPExceptions();
-	return res;
-  }
-  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
-	for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix] = (*right)[ix] / (*this)[ix];
-  } else {
-	TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-	  for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix] = (*right)[ix] / (*this)[ix];
-  }
-
-  GDLStopRegisteringFPExceptions();
-  
-  return res;
+Data_<SpDFloat>* Data_<SpDFloat>::DivInvNew(BaseGDL* r) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+#include "snippets/basic_op_DivInvNewCplx.incpp"
 }
 
 template<> 
-Data_<SpDDouble>* Data_<SpDDouble>::DivInvNew(BaseGDL* r) {
-  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-  Data_* right = static_cast<Data_*> (r);
-  ULong nEl = N_Elements();
-  assert(nEl);
-  Data_* res = NewResult();
+Data_<SpDDouble>* Data_<SpDDouble>::DivInvNew(BaseGDL* r) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+#include "snippets/basic_op_DivInvNewCplx.incpp"
+}
 
-  GDLStartRegisteringFPExceptions();
-  if (nEl == 1) {
-	(*res)[0] = (*right)[0] / (*this)[0];
-	GDLStopRegisteringFPExceptions();
-	return res;
-  }
-  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
-	for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix] = (*right)[ix] / (*this)[ix];
-  } else {
-	TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-	  for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix] = (*right)[ix] / (*this)[ix];
-  }
-
-  GDLStopRegisteringFPExceptions();
-  
-  return res;
+template<> 
+Data_<SpDComplex>* Data_<SpDComplex>::DivInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+#include "snippets/basic_op_DivInvNewCplx.incpp"
+}
+template<> 
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::DivInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+#include "snippets/basic_op_DivInvNewCplx.incpp"
 }
 // invalid types
 
@@ -1782,22 +1641,22 @@ Data_<Sp>* Data_<Sp>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,
 }
 // float version: gives Inf for division by zero
 template<> 
-Data_<SpDFloat>* Data_<SpDFloat>::DivSNew(BaseGDL* r) {
+Data_<SpDFloat>* Data_<SpDFloat>::DivSNew(BaseGDL* r) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 #include "snippets/basic_op_DivSNew.incpp"
 }
 // double version: gives Inf for division by zero
 template<>  //no need to differentiate Sp Types, as the FP exception is produced only by s
-Data_<SpDDouble>* Data_<SpDDouble>::DivSNew(BaseGDL* r) {
+Data_<SpDDouble>* Data_<SpDDouble>::DivSNew(BaseGDL* r) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 #include "snippets/basic_op_DivSNew.incpp"
 }
 // double version: gives -NaN for division by zero to copy IDL.
 template<>  //no need to differentiate Sp Types, as the FP exception is produced only by s
-Data_<SpDComplex>* Data_<SpDComplex>::DivSNew(BaseGDL* r) {
+Data_<SpDComplex>* Data_<SpDComplex>::DivSNew(BaseGDL* r) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 #include "snippets/basic_op_DivSNewCplx.incpp"
 }
 // double version: gives -NaN for division by zero to copy IDL.
 template<>  //no need to differentiate Sp Types, as the FP exception is produced only by s
-Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::DivSNew(BaseGDL* r) {
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::DivSNew(BaseGDL* r) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 #include "snippets/basic_op_DivSNewCplxDbl.incpp"
 }
 
@@ -1974,20 +1833,20 @@ Data_<Sp>* Data_<Sp>::DivInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE
 }
 
 template<>
-Data_<SpDFloat>* Data_<SpDFloat>::DivInvSNew(BaseGDL* r) {
+Data_<SpDFloat>* Data_<SpDFloat>::DivInvSNew(BaseGDL* r) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 #include "snippets/basic_op_DivInvSNew.incpp"
 }
 
 template<>
-Data_<SpDDouble>* Data_<SpDDouble>::DivInvSNew(BaseGDL* r) {
+Data_<SpDDouble>* Data_<SpDDouble>::DivInvSNew(BaseGDL* r) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 #include "snippets/basic_op_DivInvSNew.incpp"
 }
 template<>
-Data_<SpDComplex>* Data_<SpDComplex>::DivInvSNew(BaseGDL* r) {
+Data_<SpDComplex>* Data_<SpDComplex>::DivInvSNew(BaseGDL* r) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 #include "snippets/basic_op_DivInvSNew.incpp"
 }
 template<>
-Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::DivInvSNew(BaseGDL* r) {
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::DivInvSNew(BaseGDL* r) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 #include "snippets/basic_op_DivInvSNew.incpp"
 }
 // invalid types

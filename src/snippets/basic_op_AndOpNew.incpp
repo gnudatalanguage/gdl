@@ -1,0 +1,19 @@
+  Data_* right = static_cast<Data_*> (r);
+
+  ULong nEl = N_Elements();
+  Data_* res = NewResult();
+  assert(nEl);
+  if (nEl == 1) {
+    if ((*right)[0] == zero) (*res)[0] = zero;
+    else (*res)[0] = (*this)[0];
+    return res;
+  }
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
+    for (OMPInt i = 0; i < nEl; ++i) if ((*right)[i] == zero) (*res)[i] = zero; else (*res)[i] = (*this)[i];
+  } else {
+    TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+    for (OMPInt i = 0; i < nEl; ++i) if ((*right)[i] == zero) (*res)[i] = zero; else (*res)[i] = (*this)[i];
+  }
+  return res;
+ 
