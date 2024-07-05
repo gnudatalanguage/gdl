@@ -1,3 +1,4 @@
+//  e1=StrictScalar() OR e2 -> e2 <- e1 : e1 everywhere except if e1==0 
 Data_* right = static_cast<Data_*> (r);
 
 ULong nEl = N_Elements();

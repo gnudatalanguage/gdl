@@ -418,113 +418,26 @@ Data_<Sp>* Data_<Sp>::OrOpInvNew(BaseGDL* right) { TRACE_ROUTINE(__FUNCTION__,__
 
 template<>
 Data_<SpDFloat>* Data_<SpDFloat>::OrOpNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  Data_* right = static_cast<Data_*> (r);
-
-  // ULong rEl=right->N_Elements();
-  ULong nEl = N_Elements();
-  Data_* res = NewResult();
-  // assert( rEl);
-  assert(nEl);
-  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");
-  if (nEl == 1) {
-    if ((*this)[0] == zero) (*res)[0] = (*right)[0];
-    else (*res)[0] = (*this)[0];
-    return res;
-  }
-  if ((GDL_NTHREADS=parallelize( nEl))==1) {
-    for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] == zero) (*res)[i] = (*right)[i];
-      else (*res)[i] = (*this)[i];
-  } else {
-    TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-      for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] == zero) (*res)[i] = (*right)[i];
-      else (*res)[i] = (*this)[i];
-  } //C delete right;
-  return res;
+#include "snippets/basic_op_OrOpNew.incpp"
 }
 
 // b=(a or a)
 template<>
 Data_<SpDFloat>* Data_<SpDFloat>::OrOpInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  Data_* right = static_cast<Data_*> (r);
-
-  // ULong rEl=right->N_Elements();
-  ULong nEl = N_Elements();
-  Data_* res = NewResult();
-  // assert( rEl);
-  assert(nEl);
-  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");
-  if (nEl == 1) {
-    if ((*right)[0] != zero) (*res)[0] = (*right)[0];
-    else (*res)[0] = (*this)[0];
-    return res;
-  }
-  if ((GDL_NTHREADS=parallelize( nEl))==1) {
-    for (OMPInt i = 0; i < nEl; ++i) if ((*right)[i] != zero) (*res)[i] = (*right)[i];
-      else (*res)[i] = (*this)[i];
-  } else {
-    TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-      for (OMPInt i = 0; i < nEl; ++i) if ((*right)[i] != zero) (*res)[i] = (*right)[i];
-      else (*res)[i] = (*this)[i];
-  } //C delete right;
-  return res;
+#include "snippets/basic_op_OrOpInvNew.incpp"
 }
 // for doubles
 
 template<>
 Data_<SpDDouble>* Data_<SpDDouble>::OrOpNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  Data_* right = static_cast<Data_*> (r);
-
-  // ULong rEl=right->N_Elements();
-  ULong nEl = N_Elements();
-  Data_* res = NewResult();
-  // assert( rEl);
-  assert(nEl);
-  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");
-  if (nEl == 1) {
-    if ((*this)[0] == zero) (*res)[0] = (*right)[0];
-    else (*res)[0] = (*this)[0];
-    return res;
-  }
-  if ((GDL_NTHREADS=parallelize( nEl))==1) {
-    for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] == zero) (*res)[i] = (*right)[i];
-      else (*res)[i] = (*this)[i];
-  } else {
-    TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-      for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] == zero) (*res)[i] = (*right)[i];
-      else (*res)[i] = (*this)[i];
-  } //C delete right;
-  return res;
+#include "snippets/basic_op_OrOpNew.incpp"
 }
 
 template<>
 Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  Data_* right = static_cast<Data_*> (r);
-
-  // ULong rEl=right->N_Elements();
-  ULong nEl = N_Elements();
-  Data_* res = NewResult();
-  // assert( rEl);
-  assert(nEl);
-  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");
-  if (nEl == 1) {
-    if ((*right)[0] != zero) (*res)[0] = (*right)[0];
-    else (*res)[0] = (*this)[0];
-    return res;
-  }
-  if ((GDL_NTHREADS=parallelize( nEl))==1) {
-    for (OMPInt i = 0; i < nEl; ++i) if ((*right)[i] != zero) (*res)[i] = (*right)[i];
-      else (*res)[i] = (*this)[i];
-  } else {
-    TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-      for (OMPInt i = 0; i < nEl; ++i) if ((*right)[i] != zero) (*res)[i] = (*right)[i];
-      else (*res)[i] = (*this)[i];
-  } //C delete right;
-  return res;
+#include "snippets/basic_op_OrOpInvNew.incpp"
 }
+
 // invalid types
 
 template<>
@@ -582,27 +495,23 @@ Data_<Sp>* Data_<Sp>::OrOpInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FIL
 }
 
 template<>
-Data_<SpDFloat>* Data_<SpDFloat>::OrOpInvSNew(BaseGDL* r) {
-  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-return this->Dup();
+Data_<SpDFloat>* Data_<SpDFloat>::OrOpInvSNew(BaseGDL* r) {  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+#include "snippets/basic_op_OrOpInvSNewCplx.incpp"
 }
 
 template<>
-Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvSNew(BaseGDL* r) {
-  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-return this->Dup();
+Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvSNew(BaseGDL* r) {  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+#include "snippets/basic_op_OrOpInvSNewCplx.incpp"
 }
 
 template<>
-Data_<SpDComplex>* Data_<SpDComplex>::OrOpInvSNew(BaseGDL* r) {
-  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-return this->Dup();
+Data_<SpDComplex>* Data_<SpDComplex>::OrOpInvSNew(BaseGDL* r) {  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+#include "snippets/basic_op_OrOpInvSNewCplx.incpp"
 }
 
 template<>
-Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::OrOpInvSNew(BaseGDL* r) {
-  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-return this->Dup();
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::OrOpInvSNew(BaseGDL* r) {  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+#include "snippets/basic_op_OrOpInvSNewCplx.incpp"
 }
 
 // invalid types
