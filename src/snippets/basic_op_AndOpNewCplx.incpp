@@ -2,21 +2,17 @@ Data_* right = static_cast<Data_*> (r);
 
 ULong nEl = N_Elements();
 assert(nEl);
-assert(right->N_Elements());
-
 Data_* res = NewResult();
 if (nEl == 1) {
-  if ((*this)[0] != zero) (*res)[0] = (*right)[0];
-  else (*res)[0] = zero;
+    if (std::norm((*right)[0]) == 0) (*res)[0] = zero;
+    else (*res)[0] = (*this)[0];
   return res;
 }
 if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
-  for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = (*right)[i];
-    else (*res)[i] = zero;
+    for (OMPInt i = 0; i < nEl; ++i) if (std::norm((*right)[i]) == 0) (*res)[i] = zero;  else (*res)[i] = (*this)[i];
 } else {
   TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-    for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = (*right)[i];
-    else (*res)[i] = zero;
+    for (OMPInt i = 0; i < nEl; ++i)  if (std::norm((*right)[i]) == 0) (*res)[i] = zero;  else (*res)[i] = (*this)[i];
 }
 return res;

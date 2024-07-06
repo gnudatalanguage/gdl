@@ -9,6 +9,7 @@ end
 pro process_new,what,limit
   format='("{",a,"} ",a)'
   common test_all_basic_function_common, lun, typecodes, typenames, zero, scalar, onedim, small, big
+  for i=0,n_elements(what)-1 do z=execute( " printf,lun,'------------------------------------------------------------------------'" )
 intent="zero right: z=scalar"+what+'0'
   calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin & ret=(*scalar[k]"+what+"*zero[k]) & printf,lun,typenames[k] & printf,lun,ret & end"
   for i=0,n_elements(what)-1 do z=execute(calls[i])
@@ -51,6 +52,7 @@ intent="big big: z=big"+what+"big"
 end
 ; helper for repetitive test with guarded variable (after "AdjustTypesXXX", in prognodeexpr.cpp) operators like in "z= a and temporary(b) " )
 pro process_temporary_right,what,limit
+  for i=0,n_elements(what)-1 do z=execute( " printf,lun,'------------------------------------------------------------------------'" )
   format='("{",a,"} ",a)'
   common test_all_basic_function_common, lun, typecodes, typenames, zero, scalar, onedim, small, big
 intent="*Guarded*,zero right: z=scalar"+what+"temporary(0)"
@@ -95,6 +97,7 @@ intent="*Guarded*,big big: z=big"+what+"temporary(big"
 end
 ; helper for repetitive test with guarded variable (after "AdjustTypesXXX", in prognodeexpr.cpp) operators like in "z= temporary(a) and b " )
 pro process_temporary_left,what,limit
+  for i=0,n_elements(what)-1 do z=execute( " printf,lun,'------------------------------------------------------------------------'" )
   format='("{",a,"} ",a)'
   common test_all_basic_function_common, lun, typecodes, typenames, zero, scalar, onedim, small, big
 intent="*Guarded*,zero right: z=temporary(scalar)"+what+"zero"
@@ -140,6 +143,7 @@ end
 
 ; helper for repetitive test with self variable (operator like in "a and= b" )
 pro process_new_self,what,limit
+  for i=0,n_elements(what)-1 do z=execute( " printf,lun,'------------------------------------------------------------------------'" )
   common test_all_basic_function_common, lun, typecodes, typenames, zero, scalar, onedim, small, big
   format='("{",a,"} ",a)'
 ; need to copy first operands, they will be modified
@@ -179,6 +183,7 @@ intent="big big: z=big"+what+"big"
 end
 ; helper for repetitive test with self left (operator like in "a++" )
 pro process_onevar_left_self,what,limit
+  for i=0,n_elements(what)-1 do z=execute( " printf,lun,'------------------------------------------------------------------------'" )
   common test_all_basic_function_common, lun, typecodes, typenames, zero, scalar, onedim, small, big
   format='("{",a,"} ",a)'
 ; need to copy first operands, they will be modified
@@ -194,6 +199,7 @@ intent="array left: a=array & a"+what
 end
 ; helper for repetitive test with self left (operator like in "a++" )
 pro process_onevar_left,what,limit
+  for i=0,n_elements(what)-1 do z=execute( " printf,lun,'------------------------------------------------------------------------'" )
   common test_all_basic_function_common, lun, typecodes, typenames, zero, scalar, onedim, small, big
   format='("{",a,"} ",a)'
 intent="zero left: ret=0"+what
@@ -208,6 +214,7 @@ intent="array left: ret=array"+what
 end
 ; helper for repetitive test with self right (operator like in "a = NOT a" )
 pro process_onevar_right,what,limit
+  for i=0,n_elements(what)-1 do z=execute( " printf,lun,'------------------------------------------------------------------------'" )
   common test_all_basic_function_common, lun, typecodes, typenames, zero, scalar, onedim, small, big
   format='("{",a,"} ",a)'
 ; need to copy first operands, they will be modified
@@ -222,24 +229,60 @@ intent="z="+what+"array"
   for i=0,n_elements(what)-1 do z=execute(calls[i])
 end
 
-pro test_indepth_operators_sub, size, given_lun
+pro test_indepth_operators_sub, size, given_lun, float=float, complex=complex, string=string, include_complex=include_complex
+  if (n_elements(include_complex) eq 0 ) then include_complex=0
   common test_all_basic_function_common, lun, typecodes, typenames, zero, scalar, onedim, small, big
   lun=given_lun
 ; initialisations: floats at end, since some commands do not accept floats/doubles/complex
-  typecodes=[1,2,3,12,13,14,15,4,5,6,9]
-  typenames=["BYTE","INT","LONG","UINT","ULONG","LONG64","ULONG64","FLOAT","DOUBLE","COMPLEX","DCOMPLEX"]
-  all_numeric=10
+  typecodes_all=[1,2,3,12,13,14,15,4,5,6,9]
+  typenames_all=["BYTE","INT","LONG","UINT","ULONG","LONG64","ULONG64","FLOAT","DOUBLE","COMPLEX","DCOMPLEX"]
+  typecodes_float=[4,5]
+  typenames_float=["FLOAT","DOUBLE"]
+  typecodes_string=[7]
+  typenames_string=["STRING"]
+  typecodes_complex=[6,9]
+  typenames_complex=["COMPLEX","DCOMPLEX"]
+  typecodes=typecodes_all & typenames=typenames_all ; default
+  all_numeric=(include_complex gt 0)?10:8 ; 10 but complex values can valuably return NaNs and Infs because this is what teh C++ runtime library returns for complex. We do not use the same algorithm as IDL.
   integers_only=6
   not_complex=8
-  a=dindgen(size)+1.0d
-  onedimarray=[7.0d]
-  smallarray=a[0:4]
+
+  if (keyword_set(float)) then begin
+     typecodes=typecodes_float
+     typenames=typenames_float
+     include_complex=0
+     all_numeric=1
+     integers_only=1
+     not_complex=1
+  endif
+  if (keyword_set(complex)) then begin
+     typecodes=typecodes_complex
+     typenames=typenames_complex
+     include_complex=0
+     all_numeric=1
+     integers_only=1
+     not_complex=1
+  endif
+  if (keyword_set(string)) then begin
+     typecodes=typecodes_string
+     typenames=typenames_string
+     include_complex=0
+     all_numeric=0
+     integers_only=0
+     not_complex=0
+  endif
+  
+
+  a=dindgen(size)+1.0d & a[2]=0d ; insures test on some AND or OR codes 
+  onedimarray=[777.0d]
+  smallarray=dindgen(4)+1.0d & smallarray[2]=0d;
   big=ptrarr(11,/allo)
-  k=0 & foreach i,typecodes do begin & *big[k]=fix(a,type=i) & k++ &end
+  forbig=a+3333 & forbig[3]=0 
+  k=0 & foreach i,typecodes do begin & *big[k]=fix(forbig,type=i) & k++ &end
   zero=ptrarr(11,/allo)
   k=0 & foreach i,typecodes do begin & *zero[k]=fix(0,type=i) & k++ &end
   scalar=ptrarr(11,/allo)
-  k=0 & foreach i,typecodes do begin & *scalar[k]=fix(2,type=i) & k++ &end
+  k=0 & foreach i,typecodes do begin & *scalar[k]=fix(99999,type=i) & k++ &end
   onedim=ptrarr(11,/allo)
   k=0 & foreach i,typecodes do begin & *onedim[k]=fix(onedimarray,type=i) & k++ &end
   small=ptrarr(11,/allo)
@@ -298,10 +341,10 @@ process_new_self,what, not_complex
 end
 ;; trace_routine can only be used and useful if GDL is compiled with option TRACE_OPCALLS.
 ;; it gives on the terminal the nama and file of the exact function used
-pro test_indepth_basic_functions, size=size, trace_routine=trace_routine, test_cpu=test_cpu
+pro test_indepth_basic_functions, size=size, trace_routine=trace_routine, test_cpu=test_cpu, include_complex=include_complex, float=float, complex=complex, string=string
   if (n_elements(size) eq 0 ) then size=10
   if keyword_set(trace_routine) then begin
-     test_indepth_operators_sub, size, -1
+     test_indepth_operators_sub, size, -1, include_complex=include_complex, float=float, complex=complex
      return
   endif
   DEFSYSV,"!GDL",exists=isgdl
@@ -313,7 +356,7 @@ pro test_indepth_basic_functions, size=size, trace_routine=trace_routine, test_c
   old_ncpu=!cpu.tpool_nthreads
   old_nmin=!cpu.tpool_min_elts
   cpu,tpool_nthreads=1
-  test_indepth_operators_sub, size, lun
+  test_indepth_operators_sub, size, lun, include_complex=include_complex, float=float, complex=complex
   print,"test done for 1 cpu. If possible, compare '"+outfile1+"' and 'IDL_oneCPU_test_operators.txt'."
   if keyword_set(test_cpu) and isgdl then begin
      ; enable test for multiple cpu if old_ncpu is > 4
@@ -324,7 +367,7 @@ pro test_indepth_basic_functions, size=size, trace_routine=trace_routine, test_c
         openw,lun,outfile2
         cpu,tpool_nthreads=4
         cpu,tpool_min_elts=2
-        test_indepth_operators_sub, size, lun
+        test_indepth_operators_sub, size, lun, include_complex=include_complex, float=float, complex=complex
         cpu,tpool_nthreads=old_ncpu
         cpu,tpool_min_elts=old_nmin
         print,"test done for multiple cpu. Compare '"+outfile2+"' and '"+outfile1+"'."
