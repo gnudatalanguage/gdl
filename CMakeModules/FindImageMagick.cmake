@@ -88,7 +88,7 @@ function(FIND_IMAGEMAGICK_API component header)
       ${ImageMagick_INCLUDE_DIRS}
       "[HKEY_LOCAL_MACHINE\\SOFTWARE\\ImageMagick\\Current;BinPath]/include"
     PATH_SUFFIXES
-      ImageMagick ImageMagick-6 ImageMagic-7
+      ImageMagick ImageMagick-6 ImageMagick-7
     DOC "Path to the ImageMagick include dir."
     )
 
