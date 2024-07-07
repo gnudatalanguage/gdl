@@ -10,7 +10,7 @@ pro test_dynamic_drivers
   surfr                         ; set up default 3D
   !P.T3D=1
   set_plot,'z'
-  device,set_resolu=[100,100]
+  device,set_resolution=[100,100]
   ; plot a box passing at pixel [0,0] if unprojected,
   ; which would be the case if the driver is not 'ours'.
   ; this trick works only with axes, as the other drawings use normal
