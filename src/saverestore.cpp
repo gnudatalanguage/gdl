@@ -434,6 +434,12 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     return xdr_get_gdl_pos(xdrs); //end of header
   }
 
+  union U
+  {
+	u_int32_t trentedeux[2];
+	u_int64_t soixantequatre;
+  };
+
   inline u_int64_t updateNewRecordHeader(XDR *xdrs, u_int64_t cur) {
     u_int64_t next = xdr_get_gdl_pos(xdrs);
     //dirty trick for compression: write uncompressed, rewind, read what was just written, compress, write over, reset positions.
@@ -457,18 +463,18 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     }
     xdr_set_gdl_pos(xdrs, cur-12); //ptrs0
     //copy next (64 bit) as two 32 bits. Should be OK on 32 bit machines as next is u_int64.
-    if (BigEndian()) { //first 32 bit is low, second high (XDRS is BigEndian)
-	  xdr_uint64_t(xdrs, &next);
-	} else {
-    u_int32_t first,second;
-    first = ((u_int32_t *) &next)[0];
-    second = ((u_int32_t *) &next)[1];
-    xdr_uint32_t(xdrs, &first);
-    xdr_uint32_t(xdrs, &second);
+    if (!BigEndian()) { //first 32 bit is low, second high (XDRS is BigEndian)
+	  U u;
+	  u.soixantequatre=next;
+	  u_int32_t temp=u.trentedeux[0];
+	  u.trentedeux[0]=u.trentedeux[1];
+	  u.trentedeux[1]=temp;
+	  next=u.soixantequatre;
 	}
+	xdr_uint64_t(xdrs, &next);
     xdr_set_gdl_pos(xdrs, next);
     return next;
-  }
+  }  
   
   u_int64_t writeTimeUserHost(XDR *xdrs, char* FileDatestring, char* FileUser, char* FileHost) {
     u_int64_t cur=writeNewRecordHeader(xdrs, TIMESTAMP);
