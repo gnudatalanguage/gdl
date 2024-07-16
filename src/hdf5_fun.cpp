@@ -973,7 +973,7 @@ hid_t
 
 #if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
 	DLong64 temp=0;
-    e->AssureLongScalarKW(position, temp);
+    e->AssureLongScalarPar(position, temp);
 	hdf5_id=temp;
 #else
     e->AssureLongScalarPar(position, hdf5_id);
