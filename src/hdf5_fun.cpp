@@ -957,9 +957,7 @@ hid_t
     hid_t hdf5_id;
 
 #if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
-	DLong64 temp=0;
-    e->AssureLongScalarKW(position, temp);
-	hdf5_id=temp;
+    e->AssureLongScalarKW(position, (DLong64&)hdf5_id);
 #else
     e->AssureLongScalarKW(position, hdf5_id);
 #endif
@@ -972,9 +970,7 @@ hid_t
     hid_t hdf5_id;
 
 #if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
-	DLong64 temp=0;
-    e->AssureLongScalarPar(position, temp);
-	hdf5_id=temp;
+    e->AssureLongScalarPar(position, (DLong64&)hdf5_id);
 #else
     e->AssureLongScalarPar(position, hdf5_id);
 #endif
