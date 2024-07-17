@@ -462,16 +462,16 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
       //if (next!=(cur+cLength)) cerr<<"problem:"<<cur+cLength<<":"<<next<<"\n";
     }
     xdr_set_gdl_pos(xdrs, cur-12); //ptrs0
-    //copy next (64 bit) as two 32 bits. Should be OK on 32 bit machines as next is u_int64.
-    if (!BigEndian()) { //first 32 bit is low, second high (XDRS is BigEndian)
+	//we write a sort of BigEndian format
 	  U u;
 	  u.soixantequatre=next;
-	  u_int32_t temp=u.trentedeux[0];
-	  u.trentedeux[0]=u.trentedeux[1];
-	  u.trentedeux[1]=temp;
-	  next=u.soixantequatre;
-	}
-	xdr_uint64_t(xdrs, &next);
+	  if (BigEndian()) { //to be tested on BigEndian machines: may be some other logic at work?.
+		xdr_uint32_t(xdrs, &(u.trentedeux[1])); // least significative bits at end ( < 4 GB)
+		xdr_uint32_t(xdrs, &(u.trentedeux[0])); // for adresses > 4GB
+	  } else {
+		xdr_uint32_t(xdrs, &(u.trentedeux[0])); //e.g. intel, little_endian 1st
+		xdr_uint32_t(xdrs, &(u.trentedeux[1])); // this would be for adresses > 4GB
+	  }
     xdr_set_gdl_pos(xdrs, next);
     return next;
   }  
