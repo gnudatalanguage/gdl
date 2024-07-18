@@ -49,7 +49,7 @@ namespace lib {
   void shmunmap_pro(EnvT* e);
   BaseGDL* shmvar_fun(EnvT* e);
   BaseGDL* shmdebug_fun(EnvT* e);
-
+  void TidySharedAtGDLExit();
 } // namespace
 
 #endif
