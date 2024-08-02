@@ -62,6 +62,7 @@
 #endif
 #include "labelregion.hpp"
 #include "value_locate.hpp"
+#include "gdl2gdl.hpp"
 
 using namespace std;
 
@@ -354,8 +355,8 @@ void LibInit()
   const string readKey[]={COMMONKEYWORDSFORSTRINGFORMATTING,"PROMPT"
     ,"KEY_ID","KEY_MATCH","KEY_VALUE" //obsoleted in 5.3
     ,KLISTEND};
-  new DLibPro(lib::read,string("READ"),-1,readKey);
-  new DLibPro(lib::readf,string("READF"),-1,readKey);
+  new DLibPro(lib::read_pro,string("READ"),-1,readKey);
+  new DLibPro(lib::readf_pro,string("READF"),-1,readKey);
 
   const string readsKey[]={COMMONKEYWORDSFORSTRINGFORMATTING,	   KLISTEND}; // no PROMPT
   new DLibPro(lib::reads,string("READS"),-1,readsKey);
@@ -1100,5 +1101,17 @@ new DLibPro(lib::pm_pro, string("PM"), -1, pmKey);
   new DLibFunRetNew(lib::shmvar_fun,string("SHMVAR"),9,shmvarKey);
   new DLibFunRetNew(lib::shmdebug_fun,string("SHMDEBUG"),1);
   #endif
+
+  new DLibPro(lib::gmem_setvar,string("GMEM_SETVAR"),3);
+  new DLibPro(lib::gmem_write,string("GMEM_WRITE"),2);
+  new DLibFunRetNew(lib::gmem_read,string("GMEM_READ"),1);
+  new DLibFunRetNew(lib::gmem_getvar,string("GMEM_GETVAR"),2);
+  new DLibPro(lib::gmem_abort,string("GMEM_ABORT"),1);
+  new DLibFunRetNew(lib::gmem_fork,string("GMEM_FORK"),1);
+  const string gmem_sendKey[] = {"NOWAIT", KLISTEND}; 
+  new DLibPro(lib::gmem_send,string("GMEM_SEND"),2,gmem_sendKey);
+  new DLibFunRetNew(lib::gmem_receive,string("GMEM_RECEIVE"),1);
+  const string gmem_statusKey[] = {"ERROR", KLISTEND}; 
+  new DLibFunRetNew(lib::gmem_status,string("GMEM_STATUS"),1,gmem_statusKey);
 }
 

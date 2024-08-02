@@ -44,6 +44,7 @@
 #define 	AUTO_PRINT_EXPR
 
 void ControlCHandler(int);
+void SignalChildHandler(int);
 
 extern bool lineEdit; // = false;
 extern bool historyIntialized; 
@@ -83,7 +84,7 @@ public:
   {
 #if defined(HAVE_LIBREADLINE)
     // seems to cause valgrind to complain
-    clear_history(); // for testing of memory leaks (in GDL)
+    if (iAmMaster) clear_history(); // for testing of memory leaks (in GDL)
 #endif
   }
   

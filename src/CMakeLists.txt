@@ -62,6 +62,7 @@ exists_fun.cpp
 fftw.cpp
 file.cpp
 fmtnode.cpp
+gdl2gdl.cpp
 gdlarray.cpp
 gdleventhandler.cpp
 gdlexception.cpp

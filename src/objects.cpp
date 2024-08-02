@@ -85,6 +85,7 @@ namespace structDesc {
   DStructDesc* GDL_HASHTABLEENTRY = NULL;
   DStructDesc* IDLFFSHAPE = NULL;
   DStructDesc* IDLFFXMLSAX = NULL;
+  DStructDesc* IDL_IDLBRIDGE= NULL;
 }
 
 //// for OpenMP
@@ -106,6 +107,12 @@ volatile bool useWxWidgets;
 volatile bool useWxWidgetsForGraphics;
 //do we use SVG for graphics in python notebook use?
 volatile bool iAmANotebook;
+//set when gDL is called in subprocess mode
+volatile bool iAmMaster;
+volatile bool signalOnCommandReturn;
+char* master_argv[256];
+int master_argc=0;
+
 //do we use name Devices differently among platforms?
 volatile bool usePlatformDeviceName;
 // do we force fonts to be the ugly IDL fonts?
@@ -119,6 +126,30 @@ volatile bool useEigenForTransposeOps=false;
 //experimental TPOOL use adaptive number of threads.
 volatile bool useSmartTpool=false;
 
+//save calling args, and add (if not already present) the "--subprocess" option.
+//used to start a subprocess, IDL_IDLBridge like. See gdl2gdl.cpp
+void SaveCallingArgs(int argc, char* argv[]) {
+  //copy argv to master_argv
+  int i=0;
+  int j=0;
+  master_argc = argc;
+  int l = strlen(argv[j]);
+  master_argv[i] = (char*) calloc(l + 1, 1);
+  memcpy(master_argv[i], argv[j], l);
+  //if [1] is not already "--subprocess" , copy it there
+  bool add=true;
+  if (argc > 1) add=(strncmp(argv[1],"--subprocess",12)!=0);
+  if (add) {
+	i++;
+	master_argv[i] = (char*) calloc(16, 1);
+	strncpy(master_argv[i],"--subprocess",12);
+  }
+  for (int j=1; (j < argc && j < 256); ++i, ++j) {
+	  int l = strlen(argv[j]);
+	  master_argv[i] = (char*) calloc(l + 1, 1);
+	  memcpy(master_argv[i], argv[j], l);
+  }
+}
 void ResetObjects()
 {
   
@@ -169,6 +200,7 @@ void InitStructs()
   SpDComplexDbl aComplexDbl;
 //  SpDStruct  aStruct;  //protected, we cannot use?
   SpDInt   aColor( dimension(3));
+  SpDLong   aLongArr3( dimension(3));
   SpDLong   aLongArr8( dimension(8));
   SpDLong64   aLong64Arr8( dimension(8));
   SpDDouble   aDoubleArr8( dimension(8));
@@ -321,7 +353,20 @@ void InitStructs()
   structDesc::IDLFFXMLSAX = gdlffXmlSax;
 #endif
   
-  
+   //for IDL_IDLBridge
+   DStructDesc* idl_idlBridge = new DStructDesc( "IDL_IDLBRIDGE");
+  idl_idlBridge->AddTag("IDL_IDLBRIDGE_TOP", &aLong64);
+  idl_idlBridge->AddTag("IDL_COOKIE", &aLong);
+  idl_idlBridge->AddTag("IDL_CMDCOOKIE", &aLong);
+  idl_idlBridge->AddTag("CALLBACK", &aString);
+  idl_idlBridge->AddTag("OUTPUT", &aString);
+  idl_idlBridge->AddTag("USERDATA", &aPtrRef);
+  idl_idlBridge->AddTag("HANDLE",&aLongArr3); 
+  idl_idlBridge->AddTag("IDL_IDLBRIDGE_BOTTOM",  &aLong64);
+  // insert into structList
+  structList.push_back(idl_idlBridge);
+  structDesc::IDL_IDLBRIDGE = idl_idlBridge;
+
   
   // OBJECTS END =======================================================
    

@@ -26,6 +26,7 @@
 
 #include "gdleventhandler.hpp"
 #include "graphicsdevice.hpp"
+#include "gdl2gdl.hpp"
 
 #ifdef HAVE_LIBWXWIDGETS
 #include "gdlwidget.hpp"
@@ -35,7 +36,7 @@ using namespace std;
 
 int GDLEventHandler()
 {
-
+ if (iAmMaster) HandleObjectsCallbacks();
 #ifdef HAVE_LIBWXWIDGETS
   if (useWxWidgets) GDLWidget::HandleUnblockedWidgetEvents();
 #endif

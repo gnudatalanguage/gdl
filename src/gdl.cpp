@@ -181,11 +181,6 @@ void InitGDL()
   setlocale(LC_ALL, "C");
 #endif
 
-  // for debug one could turn on all floating point exceptions, it will stop at first one.
-  //  feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
-
-  signal(SIGINT,ControlCHandler);
-
   lib::SetGDLGenericGSLErrorHandler();
 }
 
@@ -236,12 +231,14 @@ namespace MyPaths {
 }
 }
 
-
 int main(int argc, char *argv[])
 {
+
   // indicates if the user wants to see the welcome message
   bool quiet = false;
   bool gdlde = false;
+  bool setQuietSysvar=false;
+  bool willSuppressEditInput=false;
 
 //The default installation location --- will not always be there.  
   gdlDataDir = std::string(GDLDATADIR);
@@ -275,6 +272,10 @@ int main(int argc, char *argv[])
       driversPath = gdlDataDir + lib::PathSeparator() + "drivers"; //deduced from the location of the executable 
     }
   }
+  //various env set?
+  char* wantCalm = getenv("IDL_QUIET");
+  if (wantCalm != NULL) setQuietSysvar=true;
+  
   //drivers if local
   useLocalDrivers=false;
   bool driversNotFound=false;
@@ -329,7 +330,9 @@ int main(int argc, char *argv[])
   tryToMimicOriginalWidgets = false;
   useDSFMTAcceleration = true;
   iAmANotebook=false; //option --notebook
-  iAmSilent=false; //option --silent
+  iAmMaster=true; //special option --subprocess
+  signalOnCommandReturn=false; //special option --subprocess
+  SaveCallingArgs(argc, argv);
  #ifdef HAVE_LIBWXWIDGETS 
 
     #if defined (__WXMAC__) 
@@ -499,7 +502,14 @@ int main(int argc, char *argv[])
       }
       else if (string(argv[a]) == "--silent")
       {
-         iAmSilent = true;
+         setQuietSysvar=true;
+      }
+      else if (string(argv[a]) == "--subprocess")
+      {
+         iAmMaster = false;
+         setQuietSysvar=true;
+		 willSuppressEditInput=true;
+//		 std::cerr<<"I am a SubProcess"<<std::endl;
       }
       else if (string(argv[a]) == "--fakerelease")
       {
@@ -547,6 +557,24 @@ int main(int argc, char *argv[])
   if ( doUseUglyFonts.length() > 0) tryToMimicOriginalWidgets=true; 
   
   InitGDL(); 
+  
+  // for debug one could turn on all floating point exceptions, it will stop at first one.
+  //  feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+
+  if (iAmMaster) {
+	signal(SIGINT,ControlCHandler); 
+	signal(SIGUSR1,SIG_IGN);
+	signal(SIGUSR2,SIG_IGN);
+	signal(SIGCHLD,SIG_IGN); //end subprocess is by sending it 'EXIT'. 
+	                         //This should avoid zombies after a IDL_IDLBridge::Cleanup for example.
+	                         // but we do not trap a subprocess crashing, which may be desirable!
+  }
+  else {
+	signal(SIGINT,SIG_IGN);
+    signal(SIGUSR1,SignalChildHandler);
+	signal(SIGUSR2,ControlCHandler);
+ 	signal(SIGCHLD,SIG_IGN); //if somebody wanted childs to have childs...
+ }
 
   // must be after !cpu initialisation
   InitOpenMP(); //will supersede values for CpuTPOOL_NTHREADS
@@ -564,7 +592,8 @@ int main(int argc, char *argv[])
     }
   }
   if (useDSFMTAcceleration && (GetEnvString("GDL_NO_DSFMT").length() > 0)) useDSFMTAcceleration=false;
-  
+  if (setQuietSysvar)       SysVar::Make_Quiet();
+  if (willSuppressEditInput)		 SysVar::Suppress_Edit_Input();  
   //report in !GDL status struct
   DStructGDL* gdlconfig = SysVar::GDLconfig();
   unsigned  DSFMTTag= gdlconfig->Desc()->TagIndex("GDL_USE_DSFMT");
@@ -610,6 +639,7 @@ int main(int argc, char *argv[])
 //     }
 
 #ifdef USE_MPI
+  if (iAmMaster) {
   {
     // warning the user if MPI changes the working directory of GDL
     char wd1[PATH_MAX], wd2[PATH_MAX];
@@ -631,6 +661,7 @@ int main(int argc, char *argv[])
     for( SizeT i = 0; i < size; i++)
       MPI_Send(mpi_procedure, strlen(mpi_procedure)+1, MPI_CHAR, i, 
 	       tag, MPI_COMM_WORLD);
+  }
   }
 #endif // USE_MPI
 

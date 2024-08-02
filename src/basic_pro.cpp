@@ -162,7 +162,7 @@ namespace lib {
 //  }
   
   void exitgdl(EnvT* e) {
-
+	if (iAmMaster){
 #if defined(HAVE_LIBREADLINE)
 
     // we manage the ASCII "history" file (located in ~/.gdl/)
@@ -206,7 +206,7 @@ namespace lib {
       }
     }
 #endif
-
+    }
     sem_onexit();
 
     //flush & close still opened files.
