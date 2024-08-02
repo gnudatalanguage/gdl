@@ -23,6 +23,7 @@
 #include <fcntl.h>      /* O_flags */
 #include <sys/mman.h>   /* shared memory and mmap() */
 #include <sys/shm.h>
+#include <sys/stat.h>
 #include "dinterpreter.hpp"
 
 static const DString commandRetall="retall\n";
