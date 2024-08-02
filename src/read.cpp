@@ -174,7 +174,7 @@ void read_is(istream* is, EnvT* e, int parOffset) {
 				(*par)->ToStream(oss);
 				actualPrompt = oss.str();
 #if defined(HAVE_LIBREADLINE)
-				if (iAmMaster) cout << flush;
+			    cout << flush;
 #else
 				cout << oss.str() << flush;
 #endif
@@ -197,22 +197,23 @@ void read_is(istream* is, EnvT* e, int parOffset) {
 			prompt->ToStream(oss);
 			actualPrompt = oss.str();
 #if defined(HAVE_LIBREADLINE)
-			if (iAmMaster) cout << flush;
+		    cout << flush;
 #else
 			cout << oss.str() << flush;
 #endif
 		  } else {
 			actualPrompt = ": ";
 #if defined(HAVE_LIBREADLINE)
-			if (iAmMaster) cout << flush;
+		    cout << flush;
 #else
 			cout << ": " << flush;
 #endif
 		  }
 		}
+		
 #if defined(HAVE_LIBREADLINE)
-		if (iAmMaster) {
-		  if (is == &cin && isatty(0)) {
+	    if( is == &cin  && isatty(0))
+	      {
 			string line;
 			string strTrimLine;
 
@@ -252,8 +253,7 @@ void read_is(istream* is, EnvT* e, int parOffset) {
 			if (sigControlC)
 			  return;
 		  } 
-		} else
-
+		  else
 #endif
 		  {
 			// 		posBeforeLast = is->tellg();
