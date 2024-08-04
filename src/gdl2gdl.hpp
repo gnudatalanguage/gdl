@@ -15,15 +15,18 @@
  *                                                                         *
  ***************************************************************************/
 extern std::map<int,int> g2gListOfSharedMem;
-extern std::map<pid_t,int> g2gListOfSubprocesses;
+//extern std::map<pid_t,int> g2gListOfSubprocesses;
+extern std::map<pid_t, std::pair<int,std::string> > g2gListOfSubprocesses;
 extern std::map<pid_t,DObjGDL*> g2gListOfObjects;
 
 typedef std::map<int,int>::iterator g2gSharedMemListIter;
-typedef std::map<pid_t,int>::iterator g2gSubprocessListIter;
+typedef std::map<pid_t, std::pair<int,std::string> >::iterator g2gSubprocessListIter;
 typedef std::map<pid_t,DObjGDL*>::iterator g2gObjectListIter;
 
 using namespace std;
 extern void HandleObjectsCallbacks();
+
+void gmem_clean(); //internal
 
 namespace lib {
   BaseGDL* gmem_read(EnvT* e);
@@ -35,7 +38,7 @@ namespace lib {
   void gmem_send(EnvT* e);
   BaseGDL* gmem_status(EnvT* e);
   BaseGDL* gmem_receive(EnvT* e);
-  void gmem_clean();
+  void gmem_exit(EnvT* e);
   void gdl2gdl_callback(EnvUDT* e);
 } // namespace
 

@@ -1107,6 +1107,7 @@ new DLibPro(lib::pm_pro, string("PM"), -1, pmKey);
   new DLibFunRetNew(lib::gmem_read,string("GMEM_READ"),1);
   new DLibFunRetNew(lib::gmem_getvar,string("GMEM_GETVAR"),2);
   new DLibPro(lib::gmem_abort,string("GMEM_ABORT"),1);
+  new DLibPro(lib::gmem_exit,string("GMEM_EXIT"),1);
   new DLibFunRetNew(lib::gmem_fork,string("GMEM_FORK"),1);
   const string gmem_sendKey[] = {"NOWAIT", KLISTEND}; 
   new DLibPro(lib::gmem_send,string("GMEM_SEND"),2,gmem_sendKey);

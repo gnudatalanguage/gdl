@@ -504,13 +504,14 @@ int main(int argc, char *argv[])
       {
          setQuietSysvar=true;
       }
-      else if (string(argv[a]) == "--subprocess")
-      {
-         iAmMaster = false;
-         setQuietSysvar=true;
-		 willSuppressEditInput=true;
-//		 std::cerr<<"I am a SubProcess"<<std::endl;
-      }
+      else if (string(argv[a]) == "--subprocess") {
+		iAmMaster = false;
+		setQuietSysvar = true;
+		willSuppressEditInput = true;
+		//		 std::cerr<<"I am a SubProcess"<<std::endl;
+		std::cout.rdbuf(NULL);
+		std::cerr.rdbuf(NULL);
+	  }
       else if (string(argv[a]) == "--fakerelease")
       {
         if (a == argc - 1)
@@ -536,7 +537,7 @@ int main(int argc, char *argv[])
     cerr << argv[0] << ": " << "-e option cannot be specified with batch files" << endl;
     return 0;
   }
-  
+
   //before InitGDL() as InitGDL() starts graphic!
   
 #ifdef HAVE_LIBWXWIDGETS
@@ -561,8 +562,9 @@ int main(int argc, char *argv[])
   // for debug one could turn on all floating point exceptions, it will stop at first one.
   //  feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
 
+  signal(SIGINT, ControlCHandler); 
+
   if (iAmMaster) {
-	signal(SIGINT,ControlCHandler); 
 	signal(SIGUSR1,SIG_IGN);
 	signal(SIGUSR2,SIG_IGN);
 	signal(SIGCHLD,SIG_IGN); //end subprocess is by sending it 'EXIT'. 
@@ -570,10 +572,8 @@ int main(int argc, char *argv[])
 	                         // but we do not trap a subprocess crashing, which may be desirable!
   }
   else {
-	signal(SIGINT,SIG_IGN);
     signal(SIGUSR1,SignalChildHandler);
-	signal(SIGUSR2,ControlCHandler);
- 	signal(SIGCHLD,SIG_IGN); //if somebody wanted childs to have childs...
+	signal(SIGUSR2,SIG_IGN);
  }
 
   // must be after !cpu initialisation
