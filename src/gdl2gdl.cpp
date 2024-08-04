@@ -57,7 +57,7 @@ void HandleObjectsCallbacks() {
 static void ChildSignalHandler(int sig, siginfo_t *siginfo, void *context) {
   // get pid of sender,
   pid_t pid = siginfo->si_pid;
-  //  std::cout << SysVar::MsgPrefix() << "Signal from child " << pid << std::endl;
+//    std::cout << SysVar::MsgPrefix() << "Signal from child " << pid << std::endl;
   g2gListOfSubprocesses.at(pid).first = 2; //child just completed command
 }
 
@@ -209,20 +209,15 @@ namespace lib {
 
 	munmap(mapAddress, nbytes + offset); //unmap
 
-	DString command = (*s)[0] + "=gmem_read('" + sharedId + "')\n";
-	sigset_t sigmask;
-	sigemptyset(&sigmask);
-	sigaddset(&sigmask, SIGUSR2);
-	sigaddset(&sigmask, SIGCHLD);
+	DString command = (*s)[0] + "=gmem_subprocess_receivevar('" + sharedId + "')\n";
 	int status = WriteToChild(e, &((*triplet)[0]), command, false);
-	//	if ( g2gListOfSubprocesses.at(subpid) == 1) status = sigsuspend(&sigmask); //wait for SIGUSR2
 
 	AddGmemCleanToAtexit(); //will suppress shared sections at exit
   }
 
   // slave : gm_write,handle,variable
 
-  void gmem_write(EnvT* e) {
+  void gmem_subprocess_givevar(EnvT* e) {
 	SizeT nParam = e->NParam(2);
 	BaseGDL* p0 = e->GetParDefined(0);
 	if (p0->Type() != GDL_STRING) e->Throw(e->GetParString(0) + " must be a string");
@@ -262,6 +257,7 @@ namespace lib {
 	memcpy((char*) (mapAddress) + offset, p1->DataAddr(), nbytes);
 	msync(mapAddress, nbytes, MS_SYNC);
 	munmap(mapAddress, nbytes + offset); //unmap
+//	kill(getppid(), SIGUSR2); //respond to master: done
   }
 
   //master: var=gmem_getvar(id,name)
@@ -318,7 +314,7 @@ namespace lib {
 	  AddGmemCleanToAtexit(); //will suppress shared sections at exit
 	}
 
-	DString command = "gmem_write,'" + sharedId + "'," + child_var + "\n";
+	DString command = "gmem_subprocess_givevar,'" + sharedId + "'," + child_var + "\n";
 	int status = WriteToChild(e, &((*triplet)[0]), command, false);
 	//read exported var
 
@@ -399,7 +395,7 @@ namespace lib {
 
   //slave: var=gmem_read(handle)
 
-  BaseGDL* gmem_read(EnvT* e) {
+  BaseGDL* gmem_subprocess_receivevar(EnvT* e) {
 	SizeT nParam = e->NParam(1);
 	BaseGDL* p0 = e->GetParDefined(0);
 	if (p0->Type() != GDL_STRING) e->Throw(e->GetParString(0) + " must be a string");
@@ -478,6 +474,7 @@ namespace lib {
 	}
 	memcpy(var->DataAddr(), (char*) (mapAddress) + offset, nbytes);
 	munmap(mapAddress, length); //unmap
+//	kill(getppid(), SIGUSR2); //respond to master: done
 	return var;
   }
 
@@ -534,16 +531,6 @@ namespace lib {
 	} else return new DStringGDL("");
   }
 
-  bool executeCommand(EnvT*e, DString statement) {
-	std::istringstream iss(statement, std::ios_base::out);
-	try {
-	  e->Interpreter()->ExecuteLine(&iss);
-	} catch (GDLException& e) {
-	  return false;
-	}
-	return true;
-  }
-
   void gmem_abort(EnvT*e) {
 	SizeT nParam = e->NParam(1);
 	BaseGDL* p0 = e->GetParDefined(0);
@@ -584,9 +571,9 @@ namespace lib {
 	  close(write_pipe[1]); /* Close unused write end */
 	  close(read_pipe[0]); /* Close unused read end */
 	  close(0);
+	  dup2(write_pipe[0], 0);
 	  close(1);
 	  close(2);
-	  dup2(write_pipe[0], 0);
 	  dup2(read_pipe[1], 1);
 	  dup2(read_pipe[1], 2);
 	  if (-1 == execv(master_argv[0], (char **) master_argv)) { //, NULL)) {
@@ -602,16 +589,32 @@ namespace lib {
 	} else {
 	  close(write_pipe[0]); /* Close unused read end */
 	  close(read_pipe[1]); /* Close unused write end */
-	  // insure communication with child is OK
-	  // send startup commands
-	  // return
-	  DLongGDL* ret = new DLongGDL(dimension(3));
-	  (*ret)[0] = read_pipe[0];
-	  (*ret)[1] = write_pipe[1];
-	  (*ret)[2] = subprocess_pid;
+	  DLongGDL* triplet = new DLongGDL(dimension(3));
+	  (*triplet)[0] = read_pipe[0];
+	  (*triplet)[1] = write_pipe[1];
+	  (*triplet)[2] = subprocess_pid;
 	  g2gListOfSubprocesses.insert( std::pair<pid_t, std::pair<int, std::string> > (subprocess_pid, std::pair<int, std::string>(0,""))); //idle
 	  g2gListOfObjects.insert(std::pair<pid_t, DObjGDL*>(subprocess_pid, o));
-	  return ret;
+	  // insure communication with child is OK
+	  fd_set fds;
+	  struct timeval tv = {.tv_sec = 10, .tv_usec = 0};
+	  FD_ZERO(&fds);
+	  FD_SET((*triplet)[0], &fds); // Watch stdin (fd 0)
+	  if (select((*triplet)[0] + 1, &fds, NULL, NULL, &tv)) {
+		int nread = read((*triplet)[0], theBuf, THEBUFLEN);
+		if (nread == -1) {
+		  perror("gmem_receive");
+		  return triplet;
+		}
+//		DString statement(theBuf, nread);
+//		std::cerr<<statement<<std::endl;
+	  } else e->Throw("subprocess "+i2s(subprocess_pid)+" takes too long to start. Please report if necessary.");
+	  
+	  // send startup commands
+	  // return
+//	  static const DString command = "!EDIT_INPUT=0\n";
+//	  int status = WriteToChild(e, &((*ret)[0]), command, false);
+      return triplet;
 	}
 
   }

@@ -1103,8 +1103,8 @@ new DLibPro(lib::pm_pro, string("PM"), -1, pmKey);
   #endif
 
   new DLibPro(lib::gmem_setvar,string("GMEM_SETVAR"),3);
-  new DLibPro(lib::gmem_write,string("GMEM_WRITE"),2);
-  new DLibFunRetNew(lib::gmem_read,string("GMEM_READ"),1);
+  new DLibPro(lib::gmem_subprocess_givevar,string("GMEM_SUBPROCESS_GIVEVAR"),2);
+  new DLibFunRetNew(lib::gmem_subprocess_receivevar,string("GMEM_SUBPROCESS_RECEIVEVAR"),1);
   new DLibFunRetNew(lib::gmem_getvar,string("GMEM_GETVAR"),2);
   new DLibPro(lib::gmem_abort,string("GMEM_ABORT"),1);
   new DLibPro(lib::gmem_exit,string("GMEM_EXIT"),1);

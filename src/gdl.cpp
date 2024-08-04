@@ -508,9 +508,6 @@ int main(int argc, char *argv[])
 		iAmMaster = false;
 		setQuietSysvar = true;
 		willSuppressEditInput = true;
-		//		 std::cerr<<"I am a SubProcess"<<std::endl;
-		std::cout.rdbuf(NULL);
-		std::cerr.rdbuf(NULL);
 	  }
       else if (string(argv[a]) == "--fakerelease")
       {

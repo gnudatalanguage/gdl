@@ -29,8 +29,8 @@ extern void HandleObjectsCallbacks();
 void gmem_clean(); //internal
 
 namespace lib {
-  BaseGDL* gmem_read(EnvT* e);
-  void gmem_write(EnvT* e);
+  BaseGDL* gmem_subprocess_receivevar(EnvT* e);
+  void gmem_subprocess_givevar(EnvT* e);
   void gmem_setvar(EnvT* e);
   BaseGDL* gmem_getvar(EnvT* e);
   void gmem_abort(EnvT*e);

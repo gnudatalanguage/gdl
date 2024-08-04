@@ -3,7 +3,7 @@ pro   IDL_IDLBridge::Abort
   gmem_abort,self.handle
 end
 pro    IDL_IDLBridge::Cleanup
-  gmem_send,self.handle,"exit",nowait=1
+  gmem_exit,self.handle
 end
 
 pro    IDL_IDLBridge::Execute, what, nowait=nowait
