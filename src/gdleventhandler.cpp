@@ -36,7 +36,9 @@ using namespace std;
 
 int GDLEventHandler()
 {
- if (iAmMaster) HandleObjectsCallbacks();
+#if !defined(_WIN32)
+  if (iAmMaster) HandleObjectsCallbacks();
+#endif
 #ifdef HAVE_LIBWXWIDGETS
   if (useWxWidgets) GDLWidget::HandleUnblockedWidgetEvents();
 #endif
