@@ -562,15 +562,15 @@ int main(int argc, char *argv[])
   signal(SIGINT, ControlCHandler); 
 
   if (iAmMaster) {
-	signal(SIGUSR1,SIG_IGN);
-	signal(SIGUSR2,SIG_IGN);
+	signal(GDL_SIGUSR1,SIG_IGN);
+	signal(GDL_SIGUSR2,SIG_IGN);
 	signal(SIGCHLD,SIG_IGN); //end subprocess is by sending it 'EXIT'. 
 	                         //This should avoid zombies after a IDL_IDLBridge::Cleanup for example.
 	                         // but we do not trap a subprocess crashing, which may be desirable!
   }
   else {
-    signal(SIGUSR1,SignalChildHandler);
-	signal(SIGUSR2,SIG_IGN);
+    signal(GDL_SIGUSR1,SignalChildHandler);
+	signal(GDL_SIGUSR2,SIG_IGN);
  }
 
   // must be after !cpu initialisation

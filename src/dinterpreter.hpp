@@ -25,6 +25,14 @@
 #include <fstream>
 #include <csignal>
 
+#if defined(_WIN32) && !defined(__CYGWIN__)
+#define GDL_SIGUSR1 SIGABRT //working replacement avoidng changing code?
+#define GDL_SIGUSR2 SIGILL
+#else
+#define GDL_SIGUSR1 SIGUSR1
+#define GDL_SIGUSR2 SIGUSR2
+#endif 
+
 #include <cfenv>
 
 #include "GDLLexer.hpp"

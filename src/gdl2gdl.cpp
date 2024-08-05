@@ -64,8 +64,8 @@ static void ChildSignalHandler(int sig, siginfo_t *siginfo, void *context) {
 int WriteToChild(EnvT* e, DLong* id, const std::string & command, bool nowait = true) {
   sigset_t sigmask;
   sigemptyset(&sigmask);
-  sigaddset(&sigmask, SIGUSR2);
-  //	sigaddset(&sigmask, SIGCHLD);
+  sigaddset(&sigmask, GDL_SIGUSR2);
+  //	sigaddset(&sigmask, GDL_SIGCHLD);
   //will trigger signalhandler
   struct sigaction siga;
   memset(&siga, 0, sizeof (struct sigaction)); //no complaints by Valgrind
@@ -74,13 +74,13 @@ int WriteToChild(EnvT* e, DLong* id, const std::string & command, bool nowait = 
   pid_t pid=id[2];
   // should start with no error
   g2gListOfSubprocesses.at(pid).second = "";
-  if (sigaction(SIGUSR2, &siga, NULL) != 0) {
+  if (sigaction(GDL_SIGUSR2, &siga, NULL) != 0) {
 	g2gListOfSubprocesses.at(pid).first = 3;
 	g2gListOfSubprocesses.at(pid).second = "Error in  WriteToChild(), problem with sigaction:" + std::string(strerror(errno));
 	return 0;
   }
   auto l = command.length();
-  kill(id[2], SIGUSR1); //ask for a SIGUSR2 when returned
+  kill(id[2], GDL_SIGUSR1); //ask for a GDL_SIGUSR2 when returned
   g2gListOfSubprocesses.at(pid).first = 1;
   int status = write(id[1], command.c_str(), l);
   if (status != l) {
@@ -257,7 +257,7 @@ namespace lib {
 	memcpy((char*) (mapAddress) + offset, p1->DataAddr(), nbytes);
 	msync(mapAddress, nbytes, MS_SYNC);
 	munmap(mapAddress, nbytes + offset); //unmap
-//	kill(getppid(), SIGUSR2); //respond to master: done
+//	kill(getppid(), GDL_SIGUSR2); //respond to master: done
   }
 
   //master: var=gmem_getvar(id,name)
@@ -474,7 +474,7 @@ namespace lib {
 	}
 	memcpy(var->DataAddr(), (char*) (mapAddress) + offset, nbytes);
 	munmap(mapAddress, length); //unmap
-//	kill(getppid(), SIGUSR2); //respond to master: done
+//	kill(getppid(), GDL_SIGUSR2); //respond to master: done
 	return var;
   }
 
@@ -630,7 +630,7 @@ namespace lib {
 
 
 	if (g2gListOfSubprocesses.at(pid).first == 1) { //interrupt the process
-	  kill((*triplet)[2], SIGUSR2);
+	  kill((*triplet)[2], GDL_SIGUSR2);
 	  g2gListOfSubprocesses.at(pid).first = 2; //aborted
 	  HandleObjectsCallbacks(); //callback must be called
 	}

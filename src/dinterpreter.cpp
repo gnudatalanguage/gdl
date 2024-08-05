@@ -1457,7 +1457,7 @@ void SignalChildHandler(int)
 {
 //  std::cout<<"signalOnCommandReturn was "<<signalOnCommandReturn<<std::endl;
   signalOnCommandReturn=true;
-  signal(SIGUSR1,SignalChildHandler);
+  signal(GDL_SIGUSR1,SignalChildHandler);
 }
 string DInterpreter::GetLine()
 {
@@ -1839,9 +1839,9 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
         RunDelTree();
       } else {
         DInterpreter::CommandCode ret = ExecuteLine();
-		if (signalOnCommandReturn) { //cout is NOT a tty. We just send SIGUSR2 to parent
+		if (signalOnCommandReturn) { //cout is NOT a tty. We just send GDL_SIGUSR2 to parent
 		  signalOnCommandReturn = false;
-		  kill(getppid(), SIGUSR2);
+		  kill(getppid(), GDL_SIGUSR2);
 //		    std::cout<<"signalOnCommandReturn is now "<<signalOnCommandReturn<<std::endl;
 		}
         // stop stepping when at main level
