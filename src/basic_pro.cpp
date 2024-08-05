@@ -213,7 +213,17 @@ namespace lib {
     
     for (int p = 0; p < maxLun; ++p) { //and NOT userlun!
       fileUnits[p].Flush();
-    }
+	}
+	//before stopping a client, acknowledge the last ("EXIT") command otherwise the master is hanged.
+	if (signalOnCommandReturn) { //cout is NOT a tty. We just send GDL_SIGUSR2 to parent
+	  signalOnCommandReturn = false;
+#ifdef _WIN32
+	  kill(GetCurrentProcessId(), GDL_SIGUSR2);
+#else
+	  kill(getppid(), GDL_SIGUSR2);
+#endif
+	  //		    std::cout<<"signalOnCommandReturn is now "<<signalOnCommandReturn<<std::endl;
+	}
     
     BaseGDL* status = e->GetKW(1);
     if (status == NULL) exit(EXIT_SUCCESS);
