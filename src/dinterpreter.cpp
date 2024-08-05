@@ -1841,7 +1841,11 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
         DInterpreter::CommandCode ret = ExecuteLine();
 		if (signalOnCommandReturn) { //cout is NOT a tty. We just send GDL_SIGUSR2 to parent
 		  signalOnCommandReturn = false;
+#ifdef _WIN32
+		  kill(GetCurrentProcessId(), GDL_SIGUSR2);
+#else
 		  kill(getppid(), GDL_SIGUSR2);
+#endif
 //		    std::cout<<"signalOnCommandReturn is now "<<signalOnCommandReturn<<std::endl;
 		}
         // stop stepping when at main level

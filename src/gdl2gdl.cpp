@@ -257,7 +257,6 @@ namespace lib {
 	memcpy((char*) (mapAddress) + offset, p1->DataAddr(), nbytes);
 	msync(mapAddress, nbytes, MS_SYNC);
 	munmap(mapAddress, nbytes + offset); //unmap
-//	kill(getppid(), GDL_SIGUSR2); //respond to master: done
   }
 
   //master: var=gmem_getvar(id,name)
@@ -474,7 +473,6 @@ namespace lib {
 	}
 	memcpy(var->DataAddr(), (char*) (mapAddress) + offset, nbytes);
 	munmap(mapAddress, length); //unmap
-//	kill(getppid(), GDL_SIGUSR2); //respond to master: done
 	return var;
   }
 
