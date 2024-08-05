@@ -14,6 +14,8 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+#if !defined(_WIN32)
+
 extern std::map<int,int> g2gListOfSharedMem;
 //extern std::map<pid_t,int> g2gListOfSubprocesses;
 extern std::map<pid_t, std::pair<int,std::string> > g2gListOfSubprocesses;
@@ -42,3 +44,4 @@ namespace lib {
   void gdl2gdl_callback(EnvUDT* e);
 } // namespace
 
+#endif

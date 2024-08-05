@@ -14,6 +14,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+#if !defined(_WIN32)
 
 #include "envt.hpp"
 #include "gdl2gdl.hpp"
@@ -62,25 +63,21 @@ static void ChildSignalHandler(int sig, siginfo_t *siginfo, void *context) {
 }
 
 int WriteToChild(EnvT* e, DLong* id, const std::string & command, bool nowait = true) {
-  sigset_t sigmask;
-  sigemptyset(&sigmask);
-  sigaddset(&sigmask, GDL_SIGUSR2);
-  //	sigaddset(&sigmask, GDL_SIGCHLD);
   //will trigger signalhandler
-  struct sigaction siga;
-  memset(&siga, 0, sizeof (struct sigaction)); //no complaints by Valgrind
-  siga.sa_sigaction = *ChildSignalHandler;
-  siga.sa_flags = SA_SIGINFO; // get detail info
+//  struct sigaction siga;
+//  memset(&siga, 0, sizeof (struct sigaction)); //no complaints by Valgrind
+//  siga.sa_sigaction = *ChildSignalHandler;
+//  siga.sa_flags = SA_SIGINFO; // get detail info
   pid_t pid=id[2];
   // should start with no error
   g2gListOfSubprocesses.at(pid).second = "";
-  if (sigaction(GDL_SIGUSR2, &siga, NULL) != 0) {
+  if (gdl_ipc_SetReceiverForChildSignal(*ChildSignalHandler) != 0) {
 	g2gListOfSubprocesses.at(pid).first = 3;
 	g2gListOfSubprocesses.at(pid).second = "Error in  WriteToChild(), problem with sigaction:" + std::string(strerror(errno));
 	return 0;
   }
   auto l = command.length();
-  kill(id[2], GDL_SIGUSR1); //ask for a GDL_SIGUSR2 when returned
+  gdl_ipc_sendsignalToChild(id[2]); //ask for a GDL_SIGUSR2 when returned
   g2gListOfSubprocesses.at(pid).first = 1;
   int status = write(id[1], command.c_str(), l);
   if (status != l) {
@@ -537,7 +534,7 @@ namespace lib {
 	pid_t pid=(*triplet)[2];
 	g2gListOfSubprocesses.at(pid).first = 4; //aborted
 	g2gListOfSubprocesses.at(pid).second = "Command aborted."; //aborted
-	kill((*triplet)[2], SIGINT); //make ^C
+	gdl_ipc_sendCtrlCToChild((*triplet)[2]); //make ^C
   }
 
   BaseGDL* gmem_fork(EnvT* e) {
@@ -628,7 +625,7 @@ namespace lib {
 
 
 	if (g2gListOfSubprocesses.at(pid).first == 1) { //interrupt the process
-	  kill((*triplet)[2], GDL_SIGUSR2);
+	  gdl_ipc_sendsignalToParent();
 	  g2gListOfSubprocesses.at(pid).first = 2; //aborted
 	  HandleObjectsCallbacks(); //callback must be called
 	}
@@ -647,3 +644,4 @@ namespace lib {
 	int status = write((*triplet)[1], command.c_str(), 5);
   }
 }
+#endif

@@ -1,5 +1,7 @@
 ; just exercising the idl_idlbridge object and library, not a real test
 pro test_gdl2gdl
+//not yet on windows.
+if STRLOWCASE(!version.os_name) eq 'windows' then return,1
   a=obj_new("idl_idlbridge")
   a->Setvar,"A",indgen(10)
   a->execute,"A-=indgen(10)"

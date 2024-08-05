@@ -1154,10 +1154,14 @@ void SetupOverloadSubroutines() {
   DProlist->SetTree(treePro);
   GDLffXmlSaxDesc->ProList().push_back(DProlist);
 
+#endif
+
+//IDL_IDLBridge is for the moment handled both in gdl2gdl.cpp and in the idl_idlbridge__init.pro 
+#if !defined(_WIN32)
 //  DProlist = new DPro("ONCALLBACK", "IDL_IDLBRIDGE", INTERNAL_LIBRARY_STR);
 //  treePro = new WRAPPED_PRONode(lib::gdl2gdl_callback);
 //  DProlist->SetTree(treePro);
 //  gdl2gdlBridgeDesc->ProList().push_back(DProlist);
-  
 #endif
+  
 }

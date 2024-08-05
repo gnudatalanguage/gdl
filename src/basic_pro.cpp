@@ -217,11 +217,7 @@ namespace lib {
 	//before stopping a client, acknowledge the last ("EXIT") command otherwise the master is hanged.
 	if (signalOnCommandReturn) { //cout is NOT a tty. We just send GDL_SIGUSR2 to parent
 	  signalOnCommandReturn = false;
-#ifdef _WIN32
-	  kill(GetCurrentProcessId(), GDL_SIGUSR2);
-#else
-	  kill(getppid(), GDL_SIGUSR2);
-#endif
+	  gdl_ipc_sendsignalToParent();
 	  //		    std::cout<<"signalOnCommandReturn is now "<<signalOnCommandReturn<<std::endl;
 	}
     
