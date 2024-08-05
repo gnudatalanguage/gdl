@@ -31,7 +31,7 @@
 //
 //DWORD getppid();
 //int gdl_ipc_sendsignalToChild(int pid, int sig);
-//int gdl_ipc_sendsignalToParent(); 
+int gdl_ipc_sendsignalToParent(); 
 //int gdl_ipc_sendCtrlCToChild(int pid); 
 //int gdl_ipc_sendsignalToChild(int pid);
 //int gdl_ipc_SetReceiverForChildSignal(void *handler(int, siginfo_t *, void *) );

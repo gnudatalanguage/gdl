@@ -108,7 +108,7 @@ void LibInit(); // defined in libinit.cpp
 //}
 //
 int gdl_ipc_sendsignalToParent() {
-//  return gdl_ipc_sendsignalToChild(getppid(), GDL_SIGUSR2);
+  return 0; //gdl_ipc_sendsignalToChild(getppid(), GDL_SIGUSR2);
 }
 //
 //int gdl_ipc_sendCtrlCToChild(int pid) {
