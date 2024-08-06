@@ -560,7 +560,8 @@ int main(int argc, char *argv[])
   //  feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
 
   signal(SIGINT, ControlCHandler); 
-
+  
+#if !defined(_WIN32)
   if (iAmMaster) {
 	signal(GDL_SIGUSR1,SIG_IGN);
 	signal(GDL_SIGUSR2,SIG_IGN);
@@ -572,7 +573,8 @@ int main(int argc, char *argv[])
     signal(GDL_SIGUSR1,SignalChildHandler);
 	signal(GDL_SIGUSR2,SIG_IGN);
  }
-
+#endif
+  
   // must be after !cpu initialisation
   InitOpenMP(); //will supersede values for CpuTPOOL_NTHREADS
 
