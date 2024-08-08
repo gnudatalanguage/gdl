@@ -25,6 +25,26 @@
 #include <fstream>
 #include <csignal>
 
+#if defined(_WIN32) && !defined(__CYGWIN__)
+#define GDL_SIGUSR1 SIGABRT //working replacement avoidng changing code?
+#define GDL_SIGUSR2 SIGILL
+//
+//DWORD getppid();
+//int gdl_ipc_sendsignalToChild(int pid, int sig);
+int gdl_ipc_sendsignalToParent(); 
+//int gdl_ipc_sendCtrlCToChild(int pid); 
+//int gdl_ipc_sendsignalToChild(int pid);
+//int gdl_ipc_SetReceiverForChildSignal(void *handler(int, siginfo_t *, void *) );
+
+#else
+#define GDL_SIGUSR1 SIGUSR1
+#define GDL_SIGUSR2 SIGUSR2
+int gdl_ipc_sendsignalToParent();
+int gdl_ipc_sendCtrlCToChild(int pid);
+int gdl_ipc_sendsignalToChild(int pid);
+int gdl_ipc_SetReceiverForChildSignal(void (* handler)(int sig, siginfo_t *siginfo, void *context));
+#endif 
+
 #include <cfenv>
 
 #include "GDLLexer.hpp"
@@ -44,6 +64,7 @@
 #define 	AUTO_PRINT_EXPR
 
 void ControlCHandler(int);
+void SignalChildHandler(int);
 
 extern bool lineEdit; // = false;
 extern bool historyIntialized; 
@@ -83,7 +104,7 @@ public:
   {
 #if defined(HAVE_LIBREADLINE)
     // seems to cause valgrind to complain
-    clear_history(); // for testing of memory leaks (in GDL)
+    if (iAmMaster) clear_history(); // for testing of memory leaks (in GDL)
 #endif
   }
   

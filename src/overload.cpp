@@ -22,6 +22,7 @@
 #include "dinterpreter.hpp"
 #include "list.hpp"
 #include "hash.hpp"
+#include "gdl2gdl.hpp"
 
 #ifdef USE_SHAPELIB
 #include "Shapefiles.hpp"
@@ -407,6 +408,9 @@ void SetupOverloadSubroutines() {
   DStructDesc* hashDesc = FindInStructList(structList, "HASH");
   assert(hashDesc != NULL);
 
+  DStructDesc* gdl2gdlBridgeDesc = FindInStructList(structList, "IDL_IDLBRIDGE");
+  assert(gdl2gdlBridgeDesc != NULL);
+  
 #ifdef USE_SHAPELIB
   DStructDesc* GDLffShapeDesc = FindInStructList(structList, "IDLFFSHAPE");
   assert(GDLffShapeDesc != NULL);
@@ -1150,6 +1154,14 @@ void SetupOverloadSubroutines() {
   DProlist->SetTree(treePro);
   GDLffXmlSaxDesc->ProList().push_back(DProlist);
 
-
 #endif
+
+//IDL_IDLBridge is for the moment handled both in gdl2gdl.cpp and in the idl_idlbridge__init.pro 
+#if !defined(_WIN32)
+//  DProlist = new DPro("ONCALLBACK", "IDL_IDLBRIDGE", INTERNAL_LIBRARY_STR);
+//  treePro = new WRAPPED_PRONode(lib::gdl2gdl_callback);
+//  DProlist->SetTree(treePro);
+//  gdl2gdlBridgeDesc->ProList().push_back(DProlist);
+#endif
+  
 }

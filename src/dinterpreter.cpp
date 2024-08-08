@@ -74,6 +74,74 @@ ProgNodeP GDLInterpreter::NULLProgNodeP = &GDLInterpreter::NULLProgNode;
 
 void LibInit(); // defined in libinit.cpp
 
+
+#if defined(_WIN32) && !defined(__CYGWIN__)
+//#include <windows.h>
+//#include <tlhelp32.h>
+//
+//DWORD getppid() {
+//  PROCESSENTRY32 pe32;
+//  HANDLE hProcessSnap;
+//  // Take a snapshot of all processes in the system.
+//  hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+//  if (hProcessSnap == INVALID_HANDLE_VALUE) return 0;
+//  // Set the size of the structure before using it.
+//  pe32.dwSize = sizeof ( PROCESSENTRY32);
+//
+//  // Retrieve information about the first process,
+//  // and exit if unsuccessful
+//  if (!Process32First(hProcessSnap, &pe32)) return 0;
+//  return pe32.th32ParentProcessID;
+//}
+//
+//int gdl_ipc_sendsignalToChild(int pid, int sig) {
+//  HANDLE ghWriteEvent;
+//  std::string adressee = "GDL__"+i2s(sig)+"TO"+ i2s(pid);
+//  ghWriteEvent = CreateEvent(
+//	NULL, // default security attributes
+//	TRUE, // manual-reset event
+//	FALSE, // initial state is nonsignaled
+//	TEXT(adressee) // object name
+//	);
+//  if (ghWriteEvent == NULL) return -1;
+//  if (! SetEvent(ghWriteEvent) ) return -1;
+//}
+//
+int gdl_ipc_sendsignalToParent() {
+  return 0; //gdl_ipc_sendsignalToChild(getppid(), GDL_SIGUSR2);
+}
+//
+//int gdl_ipc_sendCtrlCToChild(int pid) {
+//  return gdl_ipc_sendsignalToChild(pid, SIGINT);
+//}
+//
+//int gdl_ipc_sendsignalToChild(int pid) {
+//  return gdl_ipc_sendsignalToChild(pid, GDL_SIGUSR1);
+//}
+
+#else
+
+int gdl_ipc_sendsignalToParent() {
+  return kill(getppid(), GDL_SIGUSR2);
+}
+
+int gdl_ipc_sendCtrlCToChild(int pid) {
+  return kill(pid, SIGINT);
+}
+
+int gdl_ipc_sendsignalToChild(int pid) {
+  return kill(pid, GDL_SIGUSR1);
+}
+
+int gdl_ipc_SetReceiverForChildSignal(void (*handler) (int sig, siginfo_t *siginfo, void *context) ){
+struct sigaction siga;
+memset(&siga, 0, sizeof (struct sigaction)); //no complaints by Valgrind
+siga.sa_sigaction = *handler; //*ChildSignalHandler;
+siga.sa_flags = SA_SIGINFO; // get detail info
+return sigaction(GDL_SIGUSR2, &siga, NULL);
+}
+#endif
+
 DInterpreter::DInterpreter(): GDLInterpreter()
 {
 //  DataStackT::Init();
@@ -1088,12 +1156,14 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   // command
   if( firstChar == ".") 
     {
+	  if (!iAmMaster) return CC_OK;
       return ExecuteCommand( line.substr(1));
     }
 
   //  online help (if possible, start a browser)
   if( firstChar == "?") 
     {
+	  if (!iAmMaster) return CC_OK;
       // later, we will have to check whether we have X11/Display or not
       // on some computing nodes on supercomputers, this is de-activated.
       if (line.substr(1).length() > 0) {
@@ -1108,6 +1178,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   // shell command
   if( firstChar == "#") 
     {
+	  if (!iAmMaster) return CC_OK;
       if (line.substr(1).length() > 0) {
 	line=line.substr(1);
 	StrTrim(line);
@@ -1167,6 +1238,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   // shell command
   if( firstChar == "$") 
     {
+	  if (!iAmMaster) return CC_OK;
       ExecuteShellCommand( line.substr(1));
       return CC_OK;
     }
@@ -1175,6 +1247,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   // during compilation this is handled by the interpreter
   if( firstChar == "@" && callStack.size() <= 1) 
     {
+	  if (!iAmMaster) return CC_OK;
       string fileRaw = line.substr(1);
       StrTrim( fileRaw);
 
@@ -1447,7 +1520,13 @@ void ControlCHandler(int)
   sigControlC = true;
   signal(SIGINT,ControlCHandler);
 }
-
+//for child: make it send a SIGUSR2 at end of command processed
+void SignalChildHandler(int)
+{
+//  std::cout<<"signalOnCommandReturn was "<<signalOnCommandReturn<<std::endl;
+  signalOnCommandReturn=true;
+  signal(GDL_SIGUSR1,SignalChildHandler);
+}
 string DInterpreter::GetLine()
 {
   clog << flush; cout << flush;
@@ -1467,11 +1546,13 @@ string DInterpreter::GetLine()
 	//report last math exceptions
 	GDLCheckFPExceptionsAtLineLevel();
 #if defined(HAVE_LIBREADLINE)
-    
+    if (!iAmMaster) cline = NoReadline(actualPrompt);
+	else {
     if( edit_input != 0)
       cline = readline(const_cast<char*>(actualPrompt.c_str()));
     else
       cline = NoReadline(actualPrompt);
+	}
 #else
     
     cline = NoReadline(actualPrompt);
@@ -1761,7 +1842,7 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
       ExecuteFile(*it);
     batch_files.clear(); // not needed anymore...
   }
-
+  if (iAmMaster) {
 #if defined(HAVE_LIBREADLINE)
 
   // initialize readline (own version - not pythons one)
@@ -1808,8 +1889,12 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
   historyIntialized = true;
 
 #endif
-
-
+  }
+  else { //here is a good point to start to be absolutely silent
+	std::cout<<"GDL in subprocess mode started."<<std::endl; //necessary to start communication with Master.
+	std::cout.rdbuf(NULL);
+	std::cerr.rdbuf(NULL);
+  }
   bool runCmd = false; // should tree from $MAIN$ be executed?
   bool continueCmd = false; // .CONTINUE command given already?
 
@@ -1822,8 +1907,12 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
         RunDelTree();
       } else {
         DInterpreter::CommandCode ret = ExecuteLine();
-
-        // stop steppig when at main level
+		if (signalOnCommandReturn) { //cout is NOT a tty. We just send GDL_SIGUSR2 to parent
+		  signalOnCommandReturn = false;
+		  gdl_ipc_sendsignalToParent();
+//		    std::cout<<"signalOnCommandReturn is now "<<signalOnCommandReturn<<std::endl;
+		}
+        // stop stepping when at main level
         stepCount = 0;
         debugMode = DEBUG_CLEAR;
 
