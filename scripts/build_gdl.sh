@@ -447,20 +447,18 @@ function configure_gdl {
     if [[ ${BUILD_OS} == "macOS" ]]; then
         if [[ ${Platform} == "arm64" ]]; then
             export LIBRARY_PATH=$LIBRARY_PATH:/opt/homebrew/opt/llvm/lib
-            CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF -DREADLINEDIR=/opt/homebrew/opt/readline"
-                                    "-DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++"
-                                    "-DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang" ) 
+            CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF -DREADLINEDIR=/opt/homebrew/opt/readline")
         else
             export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/opt/llvm/lib
-            CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF -DREADLINEDIR=/usr/local/opt/readline"
-                                    "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++"
-                                    "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang" )
-        fi
+            CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF -DREADLINEDIR=/usr/local/opt/readline")
+       fi
     fi
 
     if [[ ${BUILD_OS} != "macOS" ]]; then
+        CMAKE_OPENMP_OPT="-DOPENMP=${WITH_OPENMP}"
         CMAKE_QHULLDIR_OPT="-DQHULLDIR="${ROOT_DIR}"/qhull-2020.2"
     else
+        CMAKE_OPENMP_OPT=""
         CMAKE_QHULLDIR_OPT=""
     fi
 
@@ -474,13 +472,13 @@ function configure_gdl {
     cmake ${GDL_DIR} -G"${GENERATOR}" \
         -DCMAKE_BUILD_TYPE=${Configuration} \
         -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
-        -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} -DOPENMP=${WITH_OPENMP} \
+        -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
         -DWXWIDGETS=${WITH_WXWIDGETS} -DX11={WITH_X11} -DGRAPHICSMAGICK=${WITH_GRAPHICSMAGICK} \
         -DNETCDF=${WITH_NETCDF} -DHDF=${WITH_HDF4} -DHDF5=${WITH_HDF5} \
         -DMPI=${WITH_MPI} -DTIFF=${WITH_TIFF} -DGEOTIFF=${WITH_GEOTIFF} \
         -DLIBPROJ=${WITH_LIBPROJ} -DPYTHON=${WITH_PYTHON} -DPYTHONVERSION=${PYTHONVERSION} -DFFTW=${WITH_FFTW} \
-        -DUDUNITS2=${WITH_UDUNITS2} -DGLPK=${WITH_GLPK} -DGRIB=${WITH_GRIB} -DOPENMP=${WITH_OPENMP} \
-         ${CMAKE_ADDITIONAL_ARGS[@]} ${CMAKE_QHULLDIR_OPT} \
+        -DUDUNITS2=${WITH_UDUNITS2} -DGLPK=${WITH_GLPK} -DGRIB=${WITH_GRIB} \
+         ${CMAKE_ADDITIONAL_ARGS[@]} ${CMAKE_QHULLDIR_OPT} ${CMAKE_OPENMP_OPT}\
         -DMACHINE_ARCH=${Platform}
 }
 

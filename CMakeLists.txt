@@ -478,19 +478,17 @@ endif(PNGLIB)
 # -DOPENMP=ON|OFF
 if(OPENMP)
   find_package(OpenMP QUIET)
-  set(USE_OPENMP ${OPENMP_FOUND})
-  if(OPENMP_FOUND)
+  set(USE_OPENMP ${OpenMP_CXX_FOUND})
+#  set(USE_OPENMP ${OPENMP_FOUND})
+  if(USE_OPENMP)
     if(MSVC)
       set(LIBRARIES ${LIBRARIES} vcomp)
     elseif(WIN32)
       set(LIBRARIES ${LIBRARIES} gomp pthread)
     else()
-      set(LIBRARIES ${LIBRARIES} ${OpenMP_CXX_FLAGS})
+       set(LIBRARIES ${LIBRARIES} OpenMP::OpenMP_CXX)
     endif()
-    if(APPLE)
-      link_directories(/usr/local/lib)
-    endif()
-  else(OPENMP_FOUND)
+  else(USE_OPENMP)
     message(FATAL_ERROR "Your compiler does not support OpenMP or OpenMP was not found"
     "note that disabling OpenMP will incur significant performance penalty !\n"
     "Use -DCMAKE_CXX_COMPILER=PATH and -DCMAKE_C_COMPILER=PATH to specify the compiler path."
@@ -498,7 +496,7 @@ if(OPENMP)
     "Use -DOPENMP=OFF to not use it.\n"
     "(suitable Homebrew compiler package: llvm)"
     "(suitable Homebrew library package: libomp)")
-  endif(OPENMP_FOUND) 
+  endif(USE_OPENMP) 
 else(OPENMP)
   # we need to define those semaphore posix symbols, do it with threads libs
   find_package(Threads)
