@@ -1890,10 +1890,9 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
 
 #endif
   }
-  else { //here is a good point to start to be absolutely silent
-	std::cout<<"GDL in subprocess mode started."<<std::endl; //necessary to start communication with Master.
-	std::cout.rdbuf(NULL);
-	std::cerr.rdbuf(NULL);
+  else { 
+		  signalOnCommandReturn = false;
+		  gdl_ipc_sendsignalToParent();
   }
   bool runCmd = false; // should tree from $MAIN$ be executed?
   bool continueCmd = false; // .CONTINUE command given already?

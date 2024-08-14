@@ -590,25 +590,21 @@ namespace lib {
 	  (*triplet)[2] = subprocess_pid;
 	  g2gListOfSubprocesses.insert( std::pair<pid_t, std::pair<int, std::string> > (subprocess_pid, std::pair<int, std::string>(0,""))); //idle
 	  g2gListOfObjects.insert(std::pair<pid_t, DObjGDL*>(subprocess_pid, o));
-	  // insure communication with child is OK
-	  fd_set fds;
-	  struct timeval tv = {.tv_sec = 10, .tv_usec = 0};
-	  FD_ZERO(&fds);
-	  FD_SET((*triplet)[0], &fds); // Watch stdin (fd 0)
-	  if (select((*triplet)[0] + 1, &fds, NULL, NULL, &tv)) {
-		int nread = read((*triplet)[0], theBuf, THEBUFLEN);
-		if (nread == -1) {
-		  perror("gmem_receive");
-		  return triplet;
-		}
-//		DString statement(theBuf, nread);
-//		std::cerr<<statement<<std::endl;
-	  } else e->Throw("subprocess "+i2s(subprocess_pid)+" takes too long to start. Please report if necessary.");
-	  
-	  // send startup commands
-	  // return
-//	  static const DString command = "!EDIT_INPUT=0\n";
-//	  int status = WriteToChild(e, &((*ret)[0]), command, false);
+	  // insure communication with child is OK waiting for a status change
+	  if (gdl_ipc_SetReceiverForChildSignal(*ChildSignalHandler) != 0) {
+		g2gListOfSubprocesses.at(subprocess_pid).first = 3;
+		g2gListOfSubprocesses.at(subprocess_pid).second = "Error in  WriteToChild(), problem with sigaction:" + std::string(strerror(errno));
+		e->Throw("problem starting child process.");
+		return triplet;
+	  }
+	  if (g2gListOfSubprocesses.at(subprocess_pid).first == 0) {
+//			std::cout << SysVar::MsgPrefix() << "caught " << g2gListOfSubprocesses.at(subprocess_pid).first << std::endl;
+		while (g2gListOfSubprocesses.at(subprocess_pid).first == 0) pause();
+	  }
+//    std::cout << SysVar::MsgPrefix() << "caught " << g2gListOfSubprocesses.at(subprocess_pid).first << std::endl;
+	// reset immediately to 'idle'
+    g2gListOfSubprocesses.at(subprocess_pid).first == 0;
+    g2gListOfSubprocesses.at(subprocess_pid).second == "";
       return triplet;
 	}
 
