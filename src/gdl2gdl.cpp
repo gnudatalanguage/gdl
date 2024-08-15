@@ -34,34 +34,82 @@ static char theBuf[THEBUFLEN];
 
 #include "dinterpreter.hpp"
 
+GDLEventQueue gdl2gdlCallbackQueue;
+std::map<pid_t, gdl2gdlparams> g2gMap;
+
+std::map<int, int> g2gListOfSharedMem;
+
+static const std::string base{"_GMEM$"};
+
 void HandleObjectsCallbacks() {
-  for (g2gSubprocessListIter it = g2gListOfSubprocesses.begin(); it != g2gListOfSubprocesses.end(); ++it) {
-	if ((*it).second.first == 2) {
-	  (*it).second.first = 0; //make completed
-	  (*it).second.second = "";
-	  //perform generic callback
-	  DObjGDL* o = g2gListOfObjects.at((*it).first); //pid
-	  DStructGDL* self = BaseGDL::interpreter->GetObjHeap((*o)[0]);
-	  DPro* cbk = self->Desc()->GetPro("ONCALLBACK");
-	  EnvUDT* newEnv = new EnvUDT(NULL, cbk, NULL);
-	  newEnv->SetNextPar(self->Dup()); // pass 'self'
-	  newEnv->SetNextPar(new DLongGDL((*it).second.first));
-	  newEnv->SetNextPar(new DStringGDL((*it).second.second));
+  DStructGDL* ev;
+  while ((ev = gdl2gdlCallbackQueue.Pop()) != NULL) { // get event
+	DStringGDL* callbackname = static_cast<DStringGDL*> (ev->GetTag(0));
+//	std::cerr << (*callbackname)[0] << std::endl;
+	DIntGDL* status = static_cast<DIntGDL*> (ev->GetTag(1));
+	DStringGDL* error = static_cast<DStringGDL*> (ev->GetTag(2));
+	DObjGDL* o = static_cast<DObjGDL*> (ev->GetTag(3));
+	DPtrGDL* ptrgdl = static_cast<DPtrGDL*> (ev->GetTag(4));
+	BaseGDL* data = BaseGDL::interpreter->GetHeap((*ptrgdl)[0]);
+	int proIx = GDLInterpreter::GetProIx((*callbackname)[0]);
+	if (proIx != -1) {
+	  EnvUDT* newEnv = new EnvUDT(NULL, proList[ proIx], NULL);
+	  newEnv->SetNextPar(status);
+	  newEnv->SetNextPar(error);
+	  newEnv->SetNextPar(o);
+	  newEnv->SetNextPar(data);
 	  BaseGDL::interpreter->CallStack().push_back(newEnv);
 	  // make the call
-	  BaseGDL::interpreter->call_pro(cbk->GetTree());
+	  BaseGDL::interpreter->call_pro(proList[ proIx]->GetTree());
 	  BaseGDL::interpreter->CallStack().pop_back();
 	}
   }
 }
 
-static void ChildSignalHandler(int sig, siginfo_t *siginfo, void *context) {
+static void ChildSignalHandlerWithCallBack(int sig, siginfo_t *siginfo, void *context) {
   // get pid of sender,
   pid_t pid = siginfo->si_pid;
 //    std::cout << SysVar::MsgPrefix() << "Signal from child " << pid << std::endl;
-  g2gListOfSubprocesses.at(pid).first = 2; //child just completed command
+  g2gMap.at(pid).status = 2; //child just completed command
+  // push callback event if necessary
+  DObjGDL* o = g2gMap.at(pid).obj;
+  DStructGDL* self = BaseGDL::interpreter->GetObjHeap((*o)[0]);
+  DStringGDL* callbackproc=static_cast<DStringGDL*>(self->GetTag(3));
+  StrUpCaseInplace((*callbackproc)[0]);
+  if(callbackproc->NBytes() >0) {
+	  DStructGDL* ev = new DStructGDL( "GDL2GDL_CBK_EVENT");
+      ev->InitTag("CALLBACKPROC", DStringGDL((*callbackproc)[0]));
+      ev->InitTag("CALLBACKSTATUS", DIntGDL(2));
+      ev->InitTag("CALLBACKERROR", DStringGDL("")); 
+      ev->InitTag("CALLBACKOBJECT", *o); 
+      ev->InitTag("CALLBACKUSERDATA", *(self->GetTag(5))); 
+      gdl2gdlCallbackQueue.PushFront(ev);
+  }
+}
+static void ReportUsingCallBack(pid_t pid) {
+  // push callback event if necessary
+  DObjGDL* o = g2gMap.at(pid).obj;
+  DStructGDL* self = BaseGDL::interpreter->GetObjHeap((*o)[0]);
+  DStringGDL* callbackproc=static_cast<DStringGDL*>(self->GetTag(3));
+  StrUpCaseInplace((*callbackproc)[0]);
+  if(callbackproc->NBytes() >0) {
+	  DStructGDL* ev = new DStructGDL( "GDL2GDL_CBK_EVENT");
+      ev->InitTag("CALLBACKPROC", DStringGDL((*callbackproc)[0]));
+      ev->InitTag("CALLBACKSTATUS", DIntGDL(g2gMap.at(pid).status));
+      ev->InitTag("CALLBACKERROR", DStringGDL(g2gMap.at(pid).description));
+      ev->InitTag("CALLBACKOBJECT", *o); 
+      ev->InitTag("CALLBACKUSERDATA", *(self->GetTag(5))); 
+      gdl2gdlCallbackQueue.PushFront(ev);
+  }
 }
 
+
+static void WaitForChildExecuteCompleted(int sig, siginfo_t *siginfo, void *context) {
+  // get pid of sender,
+  pid_t pid = siginfo->si_pid;
+//    std::cout << SysVar::MsgPrefix() << "Signal from child " << pid << std::endl;
+  g2gMap.at(pid).status = 2; //child just completed command
+}
 int WriteToChild(EnvT* e, DLong* id, const std::string & command, bool nowait = true) {
   //will trigger signalhandler
 //  struct sigaction siga;
@@ -70,37 +118,36 @@ int WriteToChild(EnvT* e, DLong* id, const std::string & command, bool nowait = 
 //  siga.sa_flags = SA_SIGINFO; // get detail info
   pid_t pid=id[2];
   // should start with no error
-  g2gListOfSubprocesses.at(pid).second = "";
-  if (gdl_ipc_SetReceiverForChildSignal(*ChildSignalHandler) != 0) {
-	g2gListOfSubprocesses.at(pid).first = 3;
-	g2gListOfSubprocesses.at(pid).second = "Error in  WriteToChild(), problem with sigaction:" + std::string(strerror(errno));
+  g2gMap.at(pid).description.clear();
+  //Warning: ChildSignalHandlerWithCallBack must be used ONLY when a NOWAIT is asked for.
+  // Normal return handling is with WaitForChildExecuteCompleted
+  void (* callback)(int, siginfo_t *, void *);
+  if (nowait) callback=ChildSignalHandlerWithCallBack; else callback=WaitForChildExecuteCompleted;
+  if (gdl_ipc_SetReceiverForChildSignal(*callback) != 0) {
+	g2gMap.at(pid).status = 3;
+	g2gMap.at(pid).description = "Error in  WriteToChild(), problem with sigaction:" + std::string(strerror(errno));
+	ReportUsingCallBack(pid);
 	return 0;
   }
   auto l = command.length();
   gdl_ipc_sendsignalToChild(id[2]); //ask for a GDL_SIGUSR2 when returned
-  g2gListOfSubprocesses.at(pid).first = 1;
+  g2gMap.at(pid).status = 1;
   int status = write(id[1], command.c_str(), l);
   if (status != l) {
-	g2gListOfSubprocesses.at(pid).first = 3;
-	g2gListOfSubprocesses.at(pid).second = "Error in write command to suprocess:" + std::string(strerror(errno));
-	//   e->Throw("error sending command subprocess.");
+	g2gMap.at(pid).status = 3;
+	g2gMap.at(pid).description = "Error in write command to suprocess:" + std::string(strerror(errno));
+	ReportUsingCallBack(pid);
 	return 0;
   }
 
-  struct timespec tv = {.tv_sec = 10, .tv_nsec = 0};
-  if (!nowait && g2gListOfSubprocesses.at(id[2]).first == 1) {
-	//	std::cout << SysVar::MsgPrefix() << "caught " << g2gListOfSubprocesses.at(id[2]) << std::endl;
-	while (g2gListOfSubprocesses.at(id[2]).first == 1) pause();
+  if (!nowait && g2gMap.at(id[2]).status == 1) {
+//		std::cout << SysVar::MsgPrefix() << "WriteToChild caught " << g2gMap.at(id[2]) .status<< std::endl;
+	while (g2gMap.at(id[2]).status == 1) pause();
   }
-  //  std::cout << SysVar::MsgPrefix() << "caught " << g2gListOfSubprocesses.at(id[2]) << std::endl;
+//    std::cout << SysVar::MsgPrefix() << "WriteToChild caught " << g2gMap.at(id[2]).status << std::endl;
   return 0;
 }
 
-std::map<int, int> g2gListOfSharedMem;
-std::map<pid_t, std::pair<int, std::string> > g2gListOfSubprocesses;
-std::map<pid_t, DObjGDL*> g2gListOfObjects;
-
-static const std::string base{"_GMEM$"};
 
 void gmem_clean() {
   for (g2gSharedMemListIter it = g2gListOfSharedMem.begin(); it != g2gListOfSharedMem.end(); ++it) {
@@ -131,7 +178,7 @@ namespace lib {
 	//insure versioning of shared memory
 	// key is subprocess id (triplet[2])
 	int subpid = (*triplet)[2];
-	if (g2gListOfSubprocesses.at(subpid).first == 1) e->Throw("Error: The object's associated IDL process is currently busy.");
+	if (g2gMap.at(subpid).status == 1) e->Throw("Error: The object's associated IDL process is currently busy.");
 
 	BaseGDL* p1 = e->GetParDefined(1);
 	if (p1->Type() != GDL_STRING) e->Throw(e->GetParString(1) + " must be a string");
@@ -266,7 +313,7 @@ namespace lib {
 	//insure versioning of shared memory
 	// key is subprocess id (triplet[2])
 	int subpid = (*triplet)[2];
-	if (g2gListOfSubprocesses.at(subpid).first == 1) e->Throw("Error: The object's associated IDL process is currently busy.");
+	if (g2gMap.at(subpid).status == 1) e->Throw("Error: The object's associated IDL process is currently busy.");
 	BaseGDL* p1 = e->GetParDefined(1);
 	if (p1->Type() != GDL_STRING) e->Throw(e->GetParString(1) + " must be a string");
 	DStringGDL* child_varname = e->GetKWAs<DStringGDL>(1);
@@ -479,9 +526,9 @@ namespace lib {
 	if (p0->N_Elements() != 3) e->Throw("I need a triplet.");
 	DLongGDL *triplet = e->GetParAs<DLongGDL>(0);
 	pid_t pid = (*triplet)[2];
-	return new DIntGDL(g2gListOfSubprocesses.at(pid).first);
+	return new DIntGDL(g2gMap.at(pid).status);
 	static int ERROR = e->KeywordIx("ERROR");
-	if (e->KeywordPresent(ERROR)) e->SetKW(ERROR, new DStringGDL(g2gListOfSubprocesses.at(pid).second));
+	if (e->KeywordPresent(ERROR)) e->SetKW(ERROR, new DStringGDL(g2gMap.at(pid).description));
   }
 
   //gmem_send,pipefd,"command",/NOWAIT
@@ -495,7 +542,7 @@ namespace lib {
 	static int NOWAIT = e->KeywordIx("NOWAIT");
 
 	pid_t pid = (*triplet)[2];
-	if (g2gListOfSubprocesses.at(pid).first == 1) e->Throw("Error: The object's associated IDL process is currently busy.");
+	if (g2gMap.at(pid).status == 1) e->Throw("Error: The object's associated IDL process is currently busy.");
 
 	BaseGDL* p1 = e->GetParDefined(1);
 	if (p1->Type() != GDL_STRING) e->Throw(e->GetParString(1) + " must be a string");
@@ -532,9 +579,10 @@ namespace lib {
 	if (p0->N_Elements() != 3) e->Throw("I need a triplet.");
 	DLongGDL *triplet = e->GetParAs<DLongGDL>(0);
 	pid_t pid=(*triplet)[2];
-	g2gListOfSubprocesses.at(pid).first = 4; //aborted
-	g2gListOfSubprocesses.at(pid).second = "Command aborted."; //aborted
 	gdl_ipc_sendCtrlCToChild((*triplet)[2]); //make ^C
+	g2gMap.at(pid).status = 4; //aborted
+	g2gMap.at(pid).description = "Command aborted."; //aborted
+	ReportUsingCallBack(pid);
   }
 
   BaseGDL* gmem_fork(EnvT* e) {
@@ -588,23 +636,26 @@ namespace lib {
 	  (*triplet)[0] = read_pipe[0];
 	  (*triplet)[1] = write_pipe[1];
 	  (*triplet)[2] = subprocess_pid;
-	  g2gListOfSubprocesses.insert( std::pair<pid_t, std::pair<int, std::string> > (subprocess_pid, std::pair<int, std::string>(0,""))); //idle
-	  g2gListOfObjects.insert(std::pair<pid_t, DObjGDL*>(subprocess_pid, o));
+	  gdl2gdlparams params;
+	  params.description.clear();
+	  params.status=0;
+	  params.obj=o;
+	  g2gMap.insert(std::pair<pid_t,gdl2gdlparams>(subprocess_pid,params));
 	  // insure communication with child is OK waiting for a status change
-	  if (gdl_ipc_SetReceiverForChildSignal(*ChildSignalHandler) != 0) {
-		g2gListOfSubprocesses.at(subprocess_pid).first = 3;
-		g2gListOfSubprocesses.at(subprocess_pid).second = "Error in  WriteToChild(), problem with sigaction:" + std::string(strerror(errno));
+	  if (gdl_ipc_SetReceiverForChildSignal(*WaitForChildExecuteCompleted) != 0) {
+		g2gMap.at(subprocess_pid).status = 3;
+		g2gMap.at(subprocess_pid).description = "Error in  WriteToChild(), problem with sigaction:" + std::string(strerror(errno));
 		e->Throw("problem starting child process.");
 		return triplet;
 	  }
-	  if (g2gListOfSubprocesses.at(subprocess_pid).first == 0) {
-//			std::cout << SysVar::MsgPrefix() << "caught " << g2gListOfSubprocesses.at(subprocess_pid).first << std::endl;
-		while (g2gListOfSubprocesses.at(subprocess_pid).first == 0) pause();
+	  if (g2gMap.at(subprocess_pid).status == 0) {
+//			std::cout << SysVar::MsgPrefix() << "gmem_fork caught " << g2gMap.at(subprocess_pid).status << std::endl;
+		while (g2gMap.at(subprocess_pid).status == 0) pause();
 	  }
-//    std::cout << SysVar::MsgPrefix() << "caught " << g2gListOfSubprocesses.at(subprocess_pid).first << std::endl;
+//    std::cout << SysVar::MsgPrefix() << "gmem_fork caught " << g2gMap.at(subprocess_pid).status << std::endl;
 	// reset immediately to 'idle'
-    g2gListOfSubprocesses.at(subprocess_pid).first == 0;
-    g2gListOfSubprocesses.at(subprocess_pid).second == "";
+    g2gMap.at(subprocess_pid).status == 0;
+    g2gMap.at(subprocess_pid).description.clear();
       return triplet;
 	}
 
@@ -620,9 +671,9 @@ namespace lib {
 	pid_t pid = (*triplet)[2];
 
 
-	if (g2gListOfSubprocesses.at(pid).first == 1) { //interrupt the process
+	if (g2gMap.at(pid).status == 1) { //interrupt the process
 	  gdl_ipc_sendsignalToParent();
-	  g2gListOfSubprocesses.at(pid).first = 2; //aborted
+	  g2gMap.at(pid).status = 2; //aborted
 	  HandleObjectsCallbacks(); //callback must be called
 	}
 	//remove shared mem and pid, object
@@ -633,9 +684,7 @@ namespace lib {
 	  g2gListOfSharedMem.erase(pid);
 	}
 
-	g2gListOfSubprocesses.erase(pid);
-	g2gListOfObjects.erase(pid);
-
+    g2gMap.erase(pid);
 	DString command = "EXIT\n";
 	int status = write((*triplet)[1], command.c_str(), 5);
   }

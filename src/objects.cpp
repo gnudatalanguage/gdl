@@ -355,18 +355,25 @@ void InitStructs()
   
    //for IDL_IDLBridge
    DStructDesc* idl_idlBridge = new DStructDesc( "IDL_IDLBRIDGE");
-  idl_idlBridge->AddTag("IDL_IDLBRIDGE_TOP", &aLong64);
-  idl_idlBridge->AddTag("IDL_COOKIE", &aLong);
-  idl_idlBridge->AddTag("IDL_CMDCOOKIE", &aLong);
-  idl_idlBridge->AddTag("CALLBACK", &aString);
-  idl_idlBridge->AddTag("OUTPUT", &aString);
-  idl_idlBridge->AddTag("USERDATA", &aPtrRef);
+  idl_idlBridge->AddTag("IDL_IDLBRIDGE_TOP", &aLong64); //0
+  idl_idlBridge->AddTag("IDL_COOKIE", &aLong); //1
+  idl_idlBridge->AddTag("IDL_CMDCOOKIE", &aLong); //2
+  idl_idlBridge->AddTag("CALLBACK", &aString); //must be at pos=3
+  idl_idlBridge->AddTag("OUTPUT", &aString); //4
+  idl_idlBridge->AddTag("USERDATA", &aPtrRef); // 5
   idl_idlBridge->AddTag("HANDLE",&aLongArr3); 
   idl_idlBridge->AddTag("IDL_IDLBRIDGE_BOTTOM",  &aLong64);
   // insert into structList
   structList.push_back(idl_idlBridge);
   structDesc::IDL_IDLBRIDGE = idl_idlBridge;
-
+  DStructDesc* gdl2gdl_cbk_event = new DStructDesc( "GDL2GDL_CBK_EVENT");
+  gdl2gdl_cbk_event->AddTag("CALLBACKPROC", &aString); 
+  gdl2gdl_cbk_event->AddTag("CALLBACKSTATUS", &aInt); 
+  gdl2gdl_cbk_event->AddTag("CALLBACKERROR", &aString); 
+  gdl2gdl_cbk_event->AddTag("CALLBACKOBJECT", &aObjRef);
+  gdl2gdl_cbk_event->AddTag("CALLBACKUSERDATA", &aPtrRef);
+  structList.push_back(gdl2gdl_cbk_event);
+ 
   
   // OBJECTS END =======================================================
    

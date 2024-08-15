@@ -16,14 +16,19 @@
  ***************************************************************************/
 #if !defined(_WIN32)
 
-extern std::map<int,int> g2gListOfSharedMem;
-//extern std::map<pid_t,int> g2gListOfSubprocesses;
-extern std::map<pid_t, std::pair<int,std::string> > g2gListOfSubprocesses;
-extern std::map<pid_t,DObjGDL*> g2gListOfObjects;
+extern GDLEventQueue gdl2gdlCallbackQueue;
 
+struct GDL2GDLINFOS {
+  DObjGDL* obj;
+  int status;
+  std::string description;
+};
+typedef GDL2GDLINFOS gdl2gdlparams;
+extern std::map<pid_t, gdl2gdlparams> g2gMap;
+typedef std::map<pid_t, gdl2gdlparams>::iterator g2gMapIter;
+
+extern std::map<int, int> g2gListOfSharedMem;
 typedef std::map<int,int>::iterator g2gSharedMemListIter;
-typedef std::map<pid_t, std::pair<int,std::string> >::iterator g2gSubprocessListIter;
-typedef std::map<pid_t,DObjGDL*>::iterator g2gObjectListIter;
 
 using namespace std;
 extern void HandleObjectsCallbacks();
