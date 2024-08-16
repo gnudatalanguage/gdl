@@ -43,6 +43,8 @@ int gdl_ipc_sendsignalToParent();
 int gdl_ipc_sendCtrlCToChild(int pid);
 int gdl_ipc_sendsignalToChild(int pid);
 int gdl_ipc_SetReceiverForChildSignal(void (* handler)(int sig, siginfo_t *siginfo, void *context));
+void gdl_ipc_acknowledge_suprocess_started(pid_t pid);
+pid_t gdl_ipc_wait_for_subprocess_started();
 #endif 
 
 #include <cfenv>
@@ -65,6 +67,7 @@ int gdl_ipc_SetReceiverForChildSignal(void (* handler)(int sig, siginfo_t *sigin
 
 void ControlCHandler(int);
 void SignalChildHandler(int);
+void SignalMasterHandler(int);
 
 extern bool lineEdit; // = false;
 extern bool historyIntialized; 

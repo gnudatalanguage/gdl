@@ -41,6 +41,97 @@ std::map<int, int> g2gListOfSharedMem;
 
 static const std::string base{"_GMEM$"};
 
+#if defined(_WIN32) && !defined(__CYGWIN__)
+//#include <windows.h>
+//#include <tlhelp32.h>
+//
+//DWORD getppid() {
+//  PROCESSENTRY32 pe32;
+//  HANDLE hProcessSnap;
+//  // Take a snapshot of all processes in the system.
+//  hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+//  if (hProcessSnap == INVALID_HANDLE_VALUE) return 0;
+//  // Set the size of the structure before using it.
+//  pe32.dwSize = sizeof ( PROCESSENTRY32);
+//
+//  // Retrieve information about the first process,
+//  // and exit if unsuccessful
+//  if (!Process32First(hProcessSnap, &pe32)) return 0;
+//  return pe32.th32ParentProcessID;
+//}
+//
+//int gdl_ipc_sendsignalToChild(int pid, int sig) {
+//  HANDLE ghWriteEvent;
+//  std::string adressee = "GDL__"+i2s(sig)+"TO"+ i2s(pid);
+//  ghWriteEvent = CreateEvent(
+//	NULL, // default security attributes
+//	TRUE, // manual-reset event
+//	FALSE, // initial state is nonsignaled
+//	TEXT(adressee) // object name
+//	);
+//  if (ghWriteEvent == NULL) return -1;
+//  if (! SetEvent(ghWriteEvent) ) return -1;
+//}
+//
+
+int gdl_ipc_sendsignalToParent() {
+  return 0; //gdl_ipc_sendsignalToChild(getppid(), GDL_SIGUSR2);
+}
+//
+//int gdl_ipc_sendCtrlCToChild(int pid) {
+//  return gdl_ipc_sendsignalToChild(pid, SIGINT);
+//}
+//
+//int gdl_ipc_sendsignalToChild(int pid) {
+//  return gdl_ipc_sendsignalToChild(pid, GDL_SIGUSR1);
+//}
+
+#else
+//client side
+void gdl_ipc_acknowledge_suprocess_started(pid_t pid) {
+     char out_buffer [MSG_BUFFER_SIZE];
+	 static int l=sizeof(pid_t);
+	 memcpy(out_buffer,&pid,l);
+	 if (mq_send (qd_master, out_buffer, l + 1, 0) == -1) {
+		perror ("Client: Not able to send message to server");
+	}
+}
+//master side
+pid_t gdl_ipc_wait_for_subprocess_started(){
+     char in_buffer [MSG_BUFFER_SIZE];
+        if (mq_receive (qd_master, in_buffer, MSG_BUFFER_SIZE, NULL) == -1) {
+            perror ("Server: mq_receive");
+            exit (1);
+        }
+	 pid_t pid;
+	 static int l=sizeof(pid_t);
+	 memcpy(&pid,in_buffer,l);
+	 
+        printf ("Server: message received: %d\n",pid);
+		return pid;
+		//in_buffer can be used to open a communication to child, qd_client
+}
+int gdl_ipc_sendsignalToParent() {
+  return kill(getppid(), GDL_SIGUSR2);
+}
+
+int gdl_ipc_sendCtrlCToChild(int pid) {
+  return kill(pid, SIGINT);
+}
+
+int gdl_ipc_sendsignalToChild(int pid) {
+  return kill(pid, GDL_SIGUSR1);
+}
+
+int gdl_ipc_SetReceiverForChildSignal(void (*handler) (int sig, siginfo_t *siginfo, void *context)) {
+  struct sigaction siga;
+  memset(&siga, 0, sizeof (struct sigaction)); //no complaints by Valgrind
+  siga.sa_sigaction = *handler; //*ChildSignalHandler;
+  siga.sa_flags = SA_SIGINFO; // get detail info
+  return sigaction(GDL_SIGUSR2, &siga, NULL);
+}
+#endif
+
 void HandleObjectsCallbacks() {
   DStructGDL* ev;
   while ((ev = gdl2gdlCallbackQueue.Pop()) != NULL) { // get event
@@ -609,8 +700,8 @@ namespace lib {
 	  perror("fork");
 	  exit(EXIT_FAILURE);
 	}
-
-	if (subprocess_pid == 0) {
+	
+	if (subprocess_pid == 0) { //child
 	  close(write_pipe[1]); /* Close unused write end */
 	  close(read_pipe[0]); /* Close unused read end */
 	  close(0);
@@ -619,7 +710,9 @@ namespace lib {
 	  close(2);
 	  dup2(read_pipe[1], 1);
 	  dup2(read_pipe[1], 2);
-	  if (-1 == execv(master_argv[0], (char **) master_argv)) { //, NULL)) {
+	  std::string me=whereami_gdl+"/gdl";
+	  std::string subp="--subprocess";
+	  if (-1 == execl(me.c_str(), me.c_str(), subp.c_str(), (char  *)NULL)) {
 		perror("child process execve failed [%m]");
 		return new DLongGDL(0);
 	  }
@@ -642,20 +735,21 @@ namespace lib {
 	  params.obj=o;
 	  g2gMap.insert(std::pair<pid_t,gdl2gdlparams>(subprocess_pid,params));
 	  // insure communication with child is OK waiting for a status change
-	  if (gdl_ipc_SetReceiverForChildSignal(*WaitForChildExecuteCompleted) != 0) {
-		g2gMap.at(subprocess_pid).status = 3;
-		g2gMap.at(subprocess_pid).description = "Error in  WriteToChild(), problem with sigaction:" + std::string(strerror(errno));
-		e->Throw("problem starting child process.");
-		return triplet;
-	  }
-	  if (g2gMap.at(subprocess_pid).status == 0) {
+      gdl_ipc_wait_for_subprocess_started();
+//  if (gdl_ipc_SetReceiverForChildSignal(*WaitForChildExecuteCompleted) != 0) {
+//		g2gMap.at(subprocess_pid).status = 3;
+//		g2gMap.at(subprocess_pid).description = "Error in  WriteToChild(), problem with sigaction:" + std::string(strerror(errno));
+//		e->Throw("problem starting child process.");
+//		return triplet;
+//	  }
+//	  if (g2gMap.at(subprocess_pid).status == 0) {
 //			std::cout << SysVar::MsgPrefix() << "gmem_fork caught " << g2gMap.at(subprocess_pid).status << std::endl;
-		while (g2gMap.at(subprocess_pid).status == 0) pause();
-	  }
+//		while (g2gMap.at(subprocess_pid).status == 0) pause();
+//	  }
 //    std::cout << SysVar::MsgPrefix() << "gmem_fork caught " << g2gMap.at(subprocess_pid).status << std::endl;
-	// reset immediately to 'idle'
-    g2gMap.at(subprocess_pid).status == 0;
-    g2gMap.at(subprocess_pid).description.clear();
+//	// reset immediately to 'idle'
+//    g2gMap.at(subprocess_pid).status == 0;
+//    g2gMap.at(subprocess_pid).description.clear();
       return triplet;
 	}
 

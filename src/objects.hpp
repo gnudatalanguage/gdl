@@ -33,6 +33,16 @@
 #include "gdlpython.hpp"
 #endif
 
+//for client gdl2gdl (see IDL_IDLBridge)
+#include <mqueue.h>
+
+#define SERVER_QUEUE_NAME   "/gdl-server"
+#define QUEUE_PERMISSIONS 0660
+#define MAX_MESSAGES 10
+#define MAX_MSG_SIZE 256
+#define MSG_BUFFER_SIZE MAX_MSG_SIZE + 10
+
+
 // class DInterpreter;
 // extern DInterpreter* interpreter;
 
@@ -77,10 +87,10 @@ extern std::string gdlLibDir;
 extern volatile bool iAmANotebook;
 
 //for subprocess stuff
+extern std::string whereami_gdl;
+extern mqd_t qd_master; //client server queue descriptor
 extern volatile bool iAmMaster;
 extern volatile bool signalOnCommandReturn;
-extern char* master_argv[];
-extern int master_argc;
 
 // tells if wxwidgets is to be used at all...
 extern volatile bool useWxWidgets;

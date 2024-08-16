@@ -249,12 +249,12 @@ int main(int argc, char *argv[])
 #endif 
 
 //check where is the executable being run
- std::string whereami=MyPaths::getExecutablePath();
+ whereami_gdl=MyPaths::getExecutablePath();
 // if I am at a 'bin' location, then there are chances that I've bee INSTALLED, so all the resources I need can be accessed relatively to this 'bin' directory.
 // if not, then I'm probably just a 'build' gdl and my ressources may (should?) be in the default location GDLDATADIR
-  std::size_t pos=whereami.rfind("bin");
-  if (pos == whereami.size()-3) { //we are the installed gdl!
-    gdlDataDir.assign( whereami+ lib::PathSeparator() + ".." + lib::PathSeparator() + "share" + lib::PathSeparator() + "gnudatalanguage") ;
+  std::size_t pos=whereami_gdl.rfind("bin");
+  if (pos == whereami_gdl.size()-3) { //we are the installed gdl!
+    gdlDataDir.assign( whereami_gdl+ lib::PathSeparator() + ".." + lib::PathSeparator() + "share" + lib::PathSeparator() + "gnudatalanguage") ;
 //    std::cerr<<"installed at: "<<gdlDataDir<<std::endl;
   }
 
@@ -332,7 +332,6 @@ int main(int argc, char *argv[])
   iAmANotebook=false; //option --notebook
   iAmMaster=true; //special option --subprocess
   signalOnCommandReturn=false; //special option --subprocess
-  SaveCallingArgs(argc, argv);
  #ifdef HAVE_LIBWXWIDGETS 
 
     #if defined (__WXMAC__) 
@@ -509,9 +508,6 @@ int main(int argc, char *argv[])
 		setQuietSysvar = true;
 		willSuppressEditInput = true;
 		//		 std::cerr<<"I am a SubProcess"<<std::endl;
-		//here is a good point to start to be absolutely silent
-		std::cout.rdbuf(NULL);
-		std::cerr.rdbuf(NULL);
 	  }
       else if (string(argv[a]) == "--fakerelease")
       {
@@ -539,6 +535,33 @@ int main(int argc, char *argv[])
     return 0;
   }
 
+  //depending on master or not, attach to respective message boxes
+  if (iAmMaster){
+
+    struct mq_attr attr;
+
+    attr.mq_flags = 0;
+    attr.mq_maxmsg = MAX_MESSAGES;
+    attr.mq_msgsize = MAX_MSG_SIZE;
+    attr.mq_curmsgs = 0;
+
+    if ((qd_master = mq_open (SERVER_QUEUE_NAME, O_RDONLY | O_CREAT, QUEUE_PERMISSIONS, &attr)) == -1) {
+        perror ("Server: mq_open (server)");
+        exit (1);
+    }
+	//qd client not (yet) used.
+  } else {
+	//open master 
+    if ((qd_master = mq_open (SERVER_QUEUE_NAME, O_WRONLY)) == -1) {
+        perror ("Client: mq_open (server)");
+        exit (1);
+    }
+	//here is a good point to start to be absolutely silent
+		std::cout.rdbuf(NULL);
+		std::cerr.rdbuf(NULL);
+	
+  }
+  
   //before InitGDL() as InitGDL() starts graphic!
   
 #ifdef HAVE_LIBWXWIDGETS
@@ -568,7 +591,8 @@ int main(int argc, char *argv[])
 #if !defined(_WIN32)
   if (iAmMaster) {
 	signal(GDL_SIGUSR1,SIG_IGN);
-	signal(GDL_SIGUSR2,SIG_IGN);
+//	signal(GDL_SIGUSR2,SIG_IGN);
+	signal(GDL_SIGUSR2,SignalMasterHandler);
 	signal(SIGCHLD,SIG_IGN); //end subprocess is by sending it 'EXIT'. 
 	                         //This should avoid zombies after a IDL_IDLBridge::Cleanup for example.
 	                         // but we do not trap a subprocess crashing, which may be desirable!

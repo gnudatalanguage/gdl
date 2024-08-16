@@ -22,11 +22,6 @@ function IDL_IDLBridge::GetVar,varname
   return, gmem_getvar(self.handle,varname)
 end
 
-
-pro IDL_IDLBridge::OnCallback, Status, Error
-  if self.callback ne "" then call_procedure, self.callback, status, error, self, *(self.userdata)
-end
-
 pro    IDL_IDLBridge::SetProperty, userdata=userdata,ops=ops,callback=callback
   if arg_present(ops) then self.ops=ops
   if arg_present(callback) then self.callback=callback

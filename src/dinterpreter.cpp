@@ -74,74 +74,6 @@ ProgNodeP GDLInterpreter::NULLProgNodeP = &GDLInterpreter::NULLProgNode;
 
 void LibInit(); // defined in libinit.cpp
 
-
-#if defined(_WIN32) && !defined(__CYGWIN__)
-//#include <windows.h>
-//#include <tlhelp32.h>
-//
-//DWORD getppid() {
-//  PROCESSENTRY32 pe32;
-//  HANDLE hProcessSnap;
-//  // Take a snapshot of all processes in the system.
-//  hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-//  if (hProcessSnap == INVALID_HANDLE_VALUE) return 0;
-//  // Set the size of the structure before using it.
-//  pe32.dwSize = sizeof ( PROCESSENTRY32);
-//
-//  // Retrieve information about the first process,
-//  // and exit if unsuccessful
-//  if (!Process32First(hProcessSnap, &pe32)) return 0;
-//  return pe32.th32ParentProcessID;
-//}
-//
-//int gdl_ipc_sendsignalToChild(int pid, int sig) {
-//  HANDLE ghWriteEvent;
-//  std::string adressee = "GDL__"+i2s(sig)+"TO"+ i2s(pid);
-//  ghWriteEvent = CreateEvent(
-//	NULL, // default security attributes
-//	TRUE, // manual-reset event
-//	FALSE, // initial state is nonsignaled
-//	TEXT(adressee) // object name
-//	);
-//  if (ghWriteEvent == NULL) return -1;
-//  if (! SetEvent(ghWriteEvent) ) return -1;
-//}
-//
-int gdl_ipc_sendsignalToParent() {
-  return 0; //gdl_ipc_sendsignalToChild(getppid(), GDL_SIGUSR2);
-}
-//
-//int gdl_ipc_sendCtrlCToChild(int pid) {
-//  return gdl_ipc_sendsignalToChild(pid, SIGINT);
-//}
-//
-//int gdl_ipc_sendsignalToChild(int pid) {
-//  return gdl_ipc_sendsignalToChild(pid, GDL_SIGUSR1);
-//}
-
-#else
-
-int gdl_ipc_sendsignalToParent() {
-  return kill(getppid(), GDL_SIGUSR2);
-}
-
-int gdl_ipc_sendCtrlCToChild(int pid) {
-  return kill(pid, SIGINT);
-}
-
-int gdl_ipc_sendsignalToChild(int pid) {
-  return kill(pid, GDL_SIGUSR1);
-}
-
-int gdl_ipc_SetReceiverForChildSignal(void (*handler) (int sig, siginfo_t *siginfo, void *context) ){
-struct sigaction siga;
-memset(&siga, 0, sizeof (struct sigaction)); //no complaints by Valgrind
-siga.sa_sigaction = *handler; //*ChildSignalHandler;
-siga.sa_flags = SA_SIGINFO; // get detail info
-return sigaction(GDL_SIGUSR2, &siga, NULL);
-}
-#endif
-
 DInterpreter::DInterpreter(): GDLInterpreter()
 {
 //  DataStackT::Init();
@@ -1521,6 +1453,12 @@ void ControlCHandler(int)
   signal(SIGINT,ControlCHandler);
 }
 //for child: make it send a SIGUSR2 at end of command processed
+void SignalMasterHandler(int)
+{
+  std::cout<<"SignalMasterHandler received!";
+  signal(GDL_SIGUSR1,SignalMasterHandler);
+}
+//for child: make it send a SIGUSR2 at end of command processed
 void SignalChildHandler(int)
 {
 //  std::cout<<"signalOnCommandReturn was "<<signalOnCommandReturn<<std::endl;
@@ -1892,7 +1830,8 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
   }
   else { 
 		  signalOnCommandReturn = false;
-		  gdl_ipc_sendsignalToParent();
+		  gdl_ipc_acknowledge_suprocess_started(getpid());
+//		  gdl_ipc_sendsignalToParent();
   }
   bool runCmd = false; // should tree from $MAIN$ be executed?
   bool continueCmd = false; // .CONTINUE command given already?
