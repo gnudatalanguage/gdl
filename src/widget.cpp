@@ -2632,7 +2632,7 @@ void widget_control( EnvT* e ) {
 //  bool delay_destroy = e->KeywordSet( delay_destroyIx ); //TBD, this seems tricky.
   
   static int timerIx = e->KeywordIx( "TIMER" );
-  bool doTimer = e->KeywordPresent( timerIx );
+  bool doTimer = e->KeywordSet( timerIx );
 
   DString eventPro = "";
   static int eventproIx = e->KeywordIx( "EVENT_PRO" );
