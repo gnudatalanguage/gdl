@@ -43,6 +43,7 @@
 #include "dinterpreter.hpp"
 #include "terminfo.hpp"
 #include "gdleventhandler.hpp"
+#include "gdl2gdl.hpp"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -536,30 +537,10 @@ int main(int argc, char *argv[])
   }
 
   //depending on master or not, attach to respective message boxes
-  if (iAmMaster){
-
-    struct mq_attr attr;
-
-    attr.mq_flags = 0;
-    attr.mq_maxmsg = MAX_MESSAGES;
-    attr.mq_msgsize = MAX_MSG_SIZE;
-    attr.mq_curmsgs = 0;
-
-    if ((qd_master = mq_open (SERVER_QUEUE_NAME, O_RDONLY | O_CREAT, QUEUE_PERMISSIONS, &attr)) == -1) {
-        perror ("Server: mq_open (server)");
-        exit (1);
-    }
-	//qd client not (yet) used.
+  if (iAmMaster) {
+	StartMasterMessageChannel();
   } else {
-	//open master 
-    if ((qd_master = mq_open (SERVER_QUEUE_NAME, O_WRONLY)) == -1) {
-        perror ("Client: mq_open (server)");
-        exit (1);
-    }
-	//here is a good point to start to be absolutely silent
-		std::cout.rdbuf(NULL);
-		std::cerr.rdbuf(NULL);
-	
+	AttachToMasterMessageChannel();	
   }
   
   //before InitGDL() as InitGDL() starts graphic!

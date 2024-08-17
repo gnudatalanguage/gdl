@@ -109,7 +109,6 @@ volatile bool useWxWidgetsForGraphics;
 volatile bool iAmANotebook;
 //set when gDL is called in subprocess mode
 std::string whereami_gdl;
-mqd_t qd_master;
 volatile bool iAmMaster;
 volatile bool signalOnCommandReturn;
 

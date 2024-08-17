@@ -35,7 +35,6 @@ end
 function    IDL_IDLBridge::Status,error=error
   status=gmem_status(self.handle, err=err)
   if n_elements(error) gt 0 then error=err
-  print,gmem_receive(self.handle);
   return, status
 end
 

@@ -14,34 +14,9 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-#if !defined(_WIN32)
 
-#include "envt.hpp"
-#include "gdl2gdl.hpp"
-#include <string>       // std::string
-#include <iostream>     // std::cout
-#include <sstream>      // std::istringstream
-#include <fcntl.h>      /* O_flags */
-#include <sys/mman.h>   /* shared memory and mmap() */
-#include <sys/shm.h>
-#include <sys/stat.h>
-#include "dinterpreter.hpp"
-
-static const DString commandRetall = "retall\n";
-static bool atexit_already_done = false;
-#define THEBUFLEN 4096
-static char theBuf[THEBUFLEN];
-
-#include "dinterpreter.hpp"
-
-GDLEventQueue gdl2gdlCallbackQueue;
-std::map<pid_t, gdl2gdlparams> g2gMap;
-
-std::map<int, int> g2gListOfSharedMem;
-
-static const std::string base{"_GMEM$"};
-
-#if defined(_WIN32) && !defined(__CYGWIN__)
+// stub for windows -- one other time
+//#if defined(_WIN32) && !defined(__CYGWIN__)
 //#include <windows.h>
 //#include <tlhelp32.h>
 //
@@ -73,10 +48,10 @@ static const std::string base{"_GMEM$"};
 //  if (! SetEvent(ghWriteEvent) ) return -1;
 //}
 //
-
-int gdl_ipc_sendsignalToParent() {
-  return 0; //gdl_ipc_sendsignalToChild(getppid(), GDL_SIGUSR2);
-}
+//
+//int gdl_ipc_sendsignalToParent() {
+//  return 0; //gdl_ipc_sendsignalToChild(getppid(), GDL_SIGUSR2);
+//}
 //
 //int gdl_ipc_sendCtrlCToChild(int pid) {
 //  return gdl_ipc_sendsignalToChild(pid, SIGINT);
@@ -86,31 +61,191 @@ int gdl_ipc_sendsignalToParent() {
 //  return gdl_ipc_sendsignalToChild(pid, GDL_SIGUSR1);
 //}
 
+#if !defined(_WIN32)
+
+#include "envt.hpp"
+#include "gdl2gdl.hpp"
+#include <string>       // std::string
+#include <iostream>     // std::cout
+#include <sstream>      // std::istringstream
+#include <fcntl.h>      /* O_flags */
+#include <sys/mman.h>   /* shared memory and mmap() */
+#include <sys/shm.h>
+#include <sys/stat.h>
+#include "dinterpreter.hpp"
+
+static bool atexit_already_done = false;
+#define THEBUFLEN 4096
+static char theBuf[THEBUFLEN];
+
+#include "dinterpreter.hpp"
+//for client gdl2gdl (see IDL_IDLBridge)
+#if defined(__APPLE__)
+mach_port_t gdl2gdlMasterMessageBox; //client server queue descriptor
+
+//#elif defined(_WIN32) && !defined(__CYGWIN__)
+
 #else
+#include <mqueue.h>
+mqd_t gdl2gdlMasterMessageBox; //client server queue descriptor
+#endif
+
+GDLEventQueue gdl2gdlCallbackQueue;
+std::map<pid_t, gdl2gdlparams> g2gMap;
+
+std::map<int, int> g2gListOfSharedMem;
+
+static const std::string base{"_GMEM$"};
+
+
+#if defined (__APPLE__)
+void StartMasterMessageChannel(){
+     // Create a new port.
+    kern_return_t kr = mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &gdl2gdlMasterMessageBox);
+    if (kr != KERN_SUCCESS) {
+        printf("mach_port_allocate() failed with code 0x%x\n", kr);
+        return;
+    }
+    printf("mach_port_allocate() created port right name %d\n", gdl2gdlMasterMessageBox);
+
+
+    // Give us a send right to this port, in addition to the receive right.
+    kr = mach_port_insert_right(mach_task_self(), gdl2gdlMasterMessageBox, gdl2gdlMasterMessageBox, MACH_MSG_TYPE_MAKE_SEND);
+    if (kr != KERN_SUCCESS) {
+        printf("mach_port_insert_right() failed with code 0x%x\n", kr);
+        return;
+    }
+    printf("mach_port_insert_right() inserted a send right\n");
+
+
+    // Send the send right to the bootstrap server, so that it can be looked up by other processes.
+    kr = bootstrap_register(bootstrap_port, SERVER_QUEUE_NAME, gdl2gdlMasterMessageBox);
+    if (kr != KERN_SUCCESS) {
+        printf("bootstrap_register() failed with code 0x%x\n", kr);
+        return;
+    }
+    printf("bootstrap_register()'ed our port\n");
+ 
+}
+void AttachToMasterMessageChannel() {
+    // Lookup the receiver port using the bootstrap server.
+    kern_return_t kr = bootstrap_look_up(bootstrap_port, SERVER_QUEUE_NAME, &gdl2gdlMasterMessageBox);
+    if (kr != KERN_SUCCESS) {
+        printf("bootstrap_look_up() failed with code 0x%x\n", kr);
+        return;
+    }
+    printf("bootstrap_look_up() returned port right name %d\n", gdl2gdlMasterMessageBox);
+}
+//client side
+void gdl_ipc_acknowledge_suprocess_started(pid_t pid) {
+     // Construct our message.
+    struct {
+        mach_msg_header_t header;
+        char some_text[10];
+        int pid;
+    } message;
+
+    message.header.msgh_bits = MACH_MSGH_BITS(MACH_MSG_TYPE_COPY_SEND, 0);
+    message.header.msgh_remote_port = gdl2gdlMasterMessageBox;
+    message.header.msgh_local_port = MACH_PORT_NULL;
+
+    strncpy(message.some_text, "Hello", sizeof(message.some_text));
+    message.pid = pid;
+
+    // Send the message.
+    kern_return_t kr = mach_msg(
+        &message.header,  // Same as (mach_msg_header_t *) &message.
+        MACH_SEND_MSG,    // Options. We're sending a message.
+        sizeof(message),  // Size of the message being sent.
+        0,                // Size of the buffer for receiving.
+        MACH_PORT_NULL,   // A port to receive a message on, if receiving.
+        MACH_MSG_TIMEOUT_NONE,
+        MACH_PORT_NULL    // Port for the kernel to send notifications about this message to.
+    );
+    if (kr != KERN_SUCCESS) {
+        printf("mach_msg() failed with code 0x%x\n", kr);
+        return;
+    }
+    printf("Sent a message\n");
+}
+//master side
+pid_t gdl_ipc_wait_for_subprocess_started(){
+    // Wait for a message.
+    struct {
+        mach_msg_header_t header;
+        char some_text[10];
+        int pid;
+        mach_msg_trailer_t trailer;
+    } message;
+
+    kern_return_t kr = mach_msg(
+        &message.header,  // Same as (mach_msg_header_t *) &message.
+        MACH_RCV_MSG,     // Options. We're receiving a message.
+        0,                // Size of the message being sent, if sending.
+        sizeof(message),  // Size of the buffer for receiving.
+        gdl2gdlMasterMessageBox,             // The port to receive a message on.
+        MACH_MSG_TIMEOUT_NONE,
+        MACH_PORT_NULL    // Port for the kernel to send notifications about this message to.
+    );
+    if (kr != KERN_SUCCESS) {
+        printf("mach_msg() failed with code 0x%x\n", kr);
+        return 1;
+    }
+        printf ("Server: message received: %d\n",message.pid);
+		return message.pid;
+}
+#else
+void StartMasterMessageChannel(){
+
+  struct mq_attr attr;
+
+  attr.mq_flags = 0;
+  attr.mq_maxmsg = MAX_MESSAGES;
+  attr.mq_msgsize = MAX_MSG_SIZE;
+  attr.mq_curmsgs = 0;
+
+  if ((gdl2gdlMasterMessageBox = mq_open(SERVER_QUEUE_NAME, O_RDONLY | O_CREAT, QUEUE_PERMISSIONS, &attr)) == -1) {
+	perror("Server: mq_open (server)");
+	exit(1);
+  }
+  //qd client not (yet) used.
+ 
+}
+void AttachToMasterMessageChannel() {
+  //open master 
+  if ((gdl2gdlMasterMessageBox = mq_open(SERVER_QUEUE_NAME, O_WRONLY)) == -1) {
+	perror("Client: mq_open (server)");
+	exit(1);
+  }
+  //here is a good point to start to be absolutely silent
+  std::cout.rdbuf(NULL);
+  std::cerr.rdbuf(NULL);
+}
 //client side
 void gdl_ipc_acknowledge_suprocess_started(pid_t pid) {
      char out_buffer [MSG_BUFFER_SIZE];
 	 static int l=sizeof(pid_t);
 	 memcpy(out_buffer,&pid,l);
-	 if (mq_send (qd_master, out_buffer, l + 1, 0) == -1) {
+	 if (mq_send (gdl2gdlMasterMessageBox, out_buffer, l + 1, 0) == -1) {
 		perror ("Client: Not able to send message to server");
 	}
 }
 //master side
 pid_t gdl_ipc_wait_for_subprocess_started(){
      char in_buffer [MSG_BUFFER_SIZE];
-        if (mq_receive (qd_master, in_buffer, MSG_BUFFER_SIZE, NULL) == -1) {
+        if (mq_receive (gdl2gdlMasterMessageBox, in_buffer, MSG_BUFFER_SIZE, NULL) == -1) {
             perror ("Server: mq_receive");
             exit (1);
         }
 	 pid_t pid;
 	 static int l=sizeof(pid_t);
 	 memcpy(&pid,in_buffer,l);
-	 
         printf ("Server: message received: %d\n",pid);
 		return pid;
 		//in_buffer can be used to open a communication to child, qd_client
 }
+#endif
+
 int gdl_ipc_sendsignalToParent() {
   return kill(getppid(), GDL_SIGUSR2);
 }
@@ -130,7 +265,6 @@ int gdl_ipc_SetReceiverForChildSignal(void (*handler) (int sig, siginfo_t *sigin
   siga.sa_flags = SA_SIGINFO; // get detail info
   return sigaction(GDL_SIGUSR2, &siga, NULL);
 }
-#endif
 
 void HandleObjectsCallbacks() {
   DStructGDL* ev;
@@ -642,26 +776,6 @@ namespace lib {
 	DString command = (*s)[0] + "\n";
 
 	int status = WriteToChild(e, &((*triplet)[0]), command, e->KeywordSet(NOWAIT));
-  }
-
-  BaseGDL* gmem_receive(EnvT*e) {
-	SizeT nParam = e->NParam(1);
-	BaseGDL* p0 = e->GetParDefined(0);
-	if (p0->N_Elements() != 3) e->Throw("I need a triplet.");
-	DLongGDL *triplet = e->GetParAs<DLongGDL>(0);
-	fd_set fds;
-	struct timeval tv = {.tv_sec = 0, .tv_usec = 0};
-	FD_ZERO(&fds);
-	FD_SET((*triplet)[0], &fds); // Watch stdin (fd 0)
-	if (select((*triplet)[0] + 1, &fds, NULL, NULL, &tv)) {
-	  int nread = read((*triplet)[0], theBuf, THEBUFLEN);
-	  if (nread == -1) {
-		perror("gmem_receive");
-		return new DStringGDL("");
-	  }
-	  DString statement(theBuf, nread);
-	  return new DStringGDL(statement);
-	} else return new DStringGDL("");
   }
 
   void gmem_abort(EnvT*e) {

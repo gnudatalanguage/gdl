@@ -1102,7 +1102,7 @@ new DLibPro(lib::pm_pro, string("PM"), -1, pmKey);
   new DLibFunRetNew(lib::shmdebug_fun,string("SHMDEBUG"),1);
   #endif
 #if !defined(_WIN32)
-
+  if (iAmMaster) {
   new DLibPro(lib::gmem_setvar,string("GMEM_SETVAR"),3);
   new DLibPro(lib::gmem_subprocess_givevar,string("GMEM_SUBPROCESS_GIVEVAR"),2);
   new DLibFunRetNew(lib::gmem_subprocess_receivevar,string("GMEM_SUBPROCESS_RECEIVEVAR"),1);
@@ -1112,10 +1112,9 @@ new DLibPro(lib::pm_pro, string("PM"), -1, pmKey);
   new DLibFunRetNew(lib::gmem_fork,string("GMEM_FORK"),1);
   const string gmem_sendKey[] = {"NOWAIT", KLISTEND}; 
   new DLibPro(lib::gmem_send,string("GMEM_SEND"),2,gmem_sendKey);
-  new DLibFunRetNew(lib::gmem_receive,string("GMEM_RECEIVE"),1);
   const string gmem_statusKey[] = {"ERROR", KLISTEND}; 
   new DLibFunRetNew(lib::gmem_status,string("GMEM_STATUS"),1,gmem_statusKey);
-  
+  }
 #endif
 }
 

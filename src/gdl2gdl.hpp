@@ -16,6 +16,26 @@
  ***************************************************************************/
 #if !defined(_WIN32)
 
+//for client gdl2gdl (see IDL_IDLBridge)
+#if defined(__APPLE__)
+#include <mach/mach.h>
+#include <servers/bootstrap.h>
+extern mach_port_t port; //client server queue descriptor
+#define SERVER_QUEUE_NAME   "org.gdl"
+
+//#elif defined(_WIN32) && !defined(__CYGWIN__)
+
+#else
+#include <mqueue.h>
+extern mqd_t gdl2gdlMasterMessageBox; //client server queue descriptor
+#define SERVER_QUEUE_NAME   "/gdl-server"
+#endif
+
+#define QUEUE_PERMISSIONS 0660
+#define MAX_MESSAGES 10
+#define MAX_MSG_SIZE 256
+#define MSG_BUFFER_SIZE MAX_MSG_SIZE + 10
+
 extern GDLEventQueue gdl2gdlCallbackQueue;
 
 struct GDL2GDLINFOS {
@@ -33,6 +53,9 @@ typedef std::map<int,int>::iterator g2gSharedMemListIter;
 using namespace std;
 extern void HandleObjectsCallbacks();
 
+extern void StartMasterMessageChannel();
+extern void AttachToMasterMessageChannel();
+
 void gmem_clean(); //internal
 
 namespace lib {
@@ -44,7 +67,6 @@ namespace lib {
   BaseGDL* gmem_fork(EnvT* e);
   void gmem_send(EnvT* e);
   BaseGDL* gmem_status(EnvT* e);
-  BaseGDL* gmem_receive(EnvT* e);
   void gmem_exit(EnvT* e);
   void gdl2gdl_callback(EnvUDT* e);
 } // namespace
