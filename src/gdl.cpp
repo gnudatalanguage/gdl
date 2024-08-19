@@ -240,7 +240,8 @@ int main(int argc, char *argv[])
   bool gdlde = false;
   bool setQuietSysvar=false;
   bool willSuppressEditInput=false;
-
+  pid_t passed_pid=0;
+  
 //The default installation location --- will not always be there.  
   gdlDataDir = std::string(GDLDATADIR);
   gdlLibDir = std::string(GDLLIBDIR);
@@ -505,7 +506,12 @@ int main(int argc, char *argv[])
          setQuietSysvar=true;
       }
       else if (string(argv[a]) == "--subprocess") {
-		iAmMaster = false;
+		if (a == argc - 1) {
+		  cerr << "gdl: --subprocess must be followed by the parent's pid" << endl;
+		  return 0;
+		}
+		passed_pid = atoi(argv[++a]);
+	  	iAmMaster = false;
 		setQuietSysvar = true;
 		willSuppressEditInput = true;
 		//		 std::cerr<<"I am a SubProcess"<<std::endl;
@@ -538,8 +544,10 @@ int main(int argc, char *argv[])
 
   //depending on master or not, attach to respective message boxes
   if (iAmMaster) {
+	DefineG2GParentPid();
 	StartMasterMessageChannel();
   } else {
+	DefineG2GParentPid(passed_pid);
 	AttachToMasterMessageChannel();	
   }
   

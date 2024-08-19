@@ -21,14 +21,14 @@
 #include <mach/mach.h>
 #include <servers/bootstrap.h>
 extern mach_port_t port; //client server queue descriptor
-#define SERVER_QUEUE_NAME   "org.gdl"
+#define G2G_SERVER_QUEUE_BASENAME   "org.gdl."
 
 //#elif defined(_WIN32) && !defined(__CYGWIN__)
 
 #else
 #include <mqueue.h>
 extern mqd_t gdl2gdlMasterMessageBox; //client server queue descriptor
-#define SERVER_QUEUE_NAME   "/gdl-server"
+#define G2G_SERVER_QUEUE_BASENAME   "/gdl-server-"
 #endif
 
 #define QUEUE_PERMISSIONS 0660
@@ -36,6 +36,7 @@ extern mqd_t gdl2gdlMasterMessageBox; //client server queue descriptor
 #define MAX_MSG_SIZE 256
 #define MSG_BUFFER_SIZE MAX_MSG_SIZE + 10
 
+extern pid_t g2gParentPid;
 extern GDLEventQueue gdl2gdlCallbackQueue;
 
 struct GDL2GDLINFOS {
@@ -55,6 +56,7 @@ extern void HandleObjectsCallbacks();
 
 extern void StartMasterMessageChannel();
 extern void AttachToMasterMessageChannel();
+extern void DefineG2GParentPid(pid_t pid = 0);
 
 void gmem_clean(); //internal
 

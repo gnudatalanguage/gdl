@@ -16,7 +16,7 @@
  ***************************************************************************/
 
 // stub for windows -- one other time
-//#if defined(_WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
 //#include <windows.h>
 //#include <tlhelp32.h>
 //
@@ -61,7 +61,9 @@
 //  return gdl_ipc_sendsignalToChild(pid, GDL_SIGUSR1);
 //}
 
-#if !defined(_WIN32)
+void gdl_ipc_acknowledge_suprocess_started(pid_t pid){}
+
+#else //not pure WIN32
 
 #include "envt.hpp"
 #include "gdl2gdl.hpp"
@@ -90,6 +92,7 @@ mach_port_t gdl2gdlMasterMessageBox; //client server queue descriptor
 mqd_t gdl2gdlMasterMessageBox; //client server queue descriptor
 #endif
 
+pid_t g2gParentPid;
 GDLEventQueue gdl2gdlCallbackQueue;
 std::map<pid_t, gdl2gdlparams> g2gMap;
 
@@ -117,9 +120,12 @@ void StartMasterMessageChannel(){
     }
     printf("mach_port_insert_right() inserted a send right\n");
 
-
+    std::string g2gServerName=G2G_SERVER_QUEUE_BASENAME+i2s(g2gParentPid);
+	int l=g2gServerName.size();
+	name_t name;
+	strncpy(name,g2gServerName.c_str(),l);
     // Send the send right to the bootstrap server, so that it can be looked up by other processes.
-    kr = bootstrap_register(bootstrap_port, SERVER_QUEUE_NAME, gdl2gdlMasterMessageBox);
+    kr = bootstrap_register(bootstrap_port, name, gdl2gdlMasterMessageBox);
     if (kr != KERN_SUCCESS) {
         printf("bootstrap_register() failed with code 0x%x\n", kr);
         return;
@@ -129,7 +135,11 @@ void StartMasterMessageChannel(){
 }
 void AttachToMasterMessageChannel() {
     // Lookup the receiver port using the bootstrap server.
-    kern_return_t kr = bootstrap_look_up(bootstrap_port, SERVER_QUEUE_NAME, &gdl2gdlMasterMessageBox);
+    std::string g2gServerName=G2G_SERVER_QUEUE_BASENAME+i2s(g2gParentPid);
+	int l=g2gServerName.size();
+	name_t name;
+	strncpy(name,g2gServerName.c_str(),l);
+    kern_return_t kr = bootstrap_look_up(bootstrap_port, name, &gdl2gdlMasterMessageBox);
     if (kr != KERN_SUCCESS) {
         printf("bootstrap_look_up() failed with code 0x%x\n", kr);
         return;
@@ -195,6 +205,7 @@ pid_t gdl_ipc_wait_for_subprocess_started(){
 		return message.pid;
 }
 #else
+
 void StartMasterMessageChannel(){
 
   struct mq_attr attr;
@@ -203,8 +214,10 @@ void StartMasterMessageChannel(){
   attr.mq_maxmsg = MAX_MESSAGES;
   attr.mq_msgsize = MAX_MSG_SIZE;
   attr.mq_curmsgs = 0;
+     
+  std::string g2gServerName=G2G_SERVER_QUEUE_BASENAME+i2s(g2gParentPid);
 
-  if ((gdl2gdlMasterMessageBox = mq_open(SERVER_QUEUE_NAME, O_RDONLY | O_CREAT, QUEUE_PERMISSIONS, &attr)) == -1) {
+  if ((gdl2gdlMasterMessageBox = mq_open(g2gServerName.c_str(), O_RDONLY | O_CREAT, QUEUE_PERMISSIONS, &attr)) == -1) {
 	perror("Server: mq_open (server)");
 	exit(1);
   }
@@ -213,7 +226,9 @@ void StartMasterMessageChannel(){
 }
 void AttachToMasterMessageChannel() {
   //open master 
-  if ((gdl2gdlMasterMessageBox = mq_open(SERVER_QUEUE_NAME, O_WRONLY)) == -1) {
+  std::string g2gServerName = G2G_SERVER_QUEUE_BASENAME + i2s(g2gParentPid);
+
+  if ((gdl2gdlMasterMessageBox = mq_open(g2gServerName.c_str(), O_WRONLY)) == -1) {
 	perror("Client: mq_open (server)");
 	exit(1);
   }
@@ -245,6 +260,10 @@ pid_t gdl_ipc_wait_for_subprocess_started(){
 		//in_buffer can be used to open a communication to child, qd_client
 }
 #endif
+
+void DefineG2GParentPid(pid_t pid) {
+  if (pid == 0) g2gParentPid = getpid(); else g2gParentPid = pid;
+}
 
 int gdl_ipc_sendsignalToParent() {
   return kill(getppid(), GDL_SIGUSR2);
@@ -826,7 +845,8 @@ namespace lib {
 	  dup2(read_pipe[1], 2);
 	  std::string me=whereami_gdl+"/gdl";
 	  std::string subp="--subprocess";
-	  if (-1 == execl(me.c_str(), me.c_str(), subp.c_str(), (char  *)NULL)) {
+	  std::string myParentPid=i2s(g2gParentPid);
+	  if (-1 == execl(me.c_str(), me.c_str(), subp.c_str(), myParentPid.c_str(), (char  *)NULL)) {
 		perror("child process execve failed [%m]");
 		return new DLongGDL(0);
 	  }
