@@ -28,7 +28,7 @@
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #define GDL_SIGUSR1 SIGABRT //working replacement avoidng changing code?
 #define GDL_SIGUSR2 SIGILL
-typedef pid_t int
+typedef pid_t int;
 #define getpid _getpid
 //
 //DWORD getppid();
