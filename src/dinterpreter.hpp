@@ -30,12 +30,11 @@
 #define GDL_SIGUSR2 SIGILL
 //
 //DWORD getppid();
-//int gdl_ipc_sendsignalToChild(int pid, int sig);
 int gdl_ipc_sendsignalToParent(); 
 //int gdl_ipc_sendCtrlCToChild(int pid); 
 //int gdl_ipc_sendsignalToChild(int pid);
 //int gdl_ipc_SetReceiverForChildSignal(void *handler(int, siginfo_t *, void *) );
-
+void gdl_ipc_acknowledge_suprocess_started(pid_t pid);
 #else
 #define GDL_SIGUSR1 SIGUSR1
 #define GDL_SIGUSR2 SIGUSR2
@@ -44,7 +43,6 @@ int gdl_ipc_sendCtrlCToChild(int pid);
 int gdl_ipc_sendsignalToChild(int pid);
 int gdl_ipc_SetReceiverForChildSignal(void (* handler)(int sig, siginfo_t *siginfo, void *context));
 void gdl_ipc_acknowledge_suprocess_started(pid_t pid);
-pid_t gdl_ipc_wait_for_subprocess_started();
 #endif 
 
 #include <cfenv>

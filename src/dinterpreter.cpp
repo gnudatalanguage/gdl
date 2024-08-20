@@ -1831,7 +1831,6 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
   else { 
 		  signalOnCommandReturn = false;
 		  gdl_ipc_acknowledge_suprocess_started(getpid());
-//		  gdl_ipc_sendsignalToParent();
   }
   bool runCmd = false; // should tree from $MAIN$ be executed?
   bool continueCmd = false; // .CONTINUE command given already?
