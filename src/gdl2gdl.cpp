@@ -161,7 +161,7 @@ pid_t gdl_ipc_wait_for_subprocess_started(){
         printf("mach_msg() failed with code 0x%x\n", kr);
         return 1;
     }
-        printf ("Server: message received: %d\n",message.pid);
+//        printf ("Server: message received: %d\n",message.pid);
 		return message.pid;
 }
 #else
@@ -214,7 +214,7 @@ pid_t gdl_ipc_wait_for_subprocess_started(){
 	 pid_t pid;
 	 static int l=sizeof(pid_t);
 	 memcpy(&pid,in_buffer,l);
-        printf ("Server: message received: %d\n",pid);
+//        printf ("Server: message received: %d\n",pid);
 		return pid;
 		//in_buffer can be used to open a communication to child, qd_client
 }
@@ -834,20 +834,6 @@ namespace lib {
 	  g2gMap.insert(std::pair<pid_t,gdl2gdlparams>(subprocess_pid,params));
 	  // insure communication with child is OK waiting for a status change
       gdl_ipc_wait_for_subprocess_started();
-//  if (gdl_ipc_SetReceiverForChildSignal(*WaitForChildExecuteCompleted) != 0) {
-//		g2gMap.at(subprocess_pid).status = 3;
-//		g2gMap.at(subprocess_pid).description = "Error in  WriteToChild(), problem with sigaction:" + std::string(strerror(errno));
-//		e->Throw("problem starting child process.");
-//		return triplet;
-//	  }
-//	  if (g2gMap.at(subprocess_pid).status == 0) {
-//			std::cout << SysVar::MsgPrefix() << "gmem_fork caught " << g2gMap.at(subprocess_pid).status << std::endl;
-//		while (g2gMap.at(subprocess_pid).status == 0) pause();
-//	  }
-//    std::cout << SysVar::MsgPrefix() << "gmem_fork caught " << g2gMap.at(subprocess_pid).status << std::endl;
-//	// reset immediately to 'idle'
-//    g2gMap.at(subprocess_pid).status == 0;
-//    g2gMap.at(subprocess_pid).description.clear();
       return triplet;
 	}
 
