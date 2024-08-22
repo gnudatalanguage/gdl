@@ -14,57 +14,8 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-
-// stub for windows -- one other time
 #if defined(_WIN32) && !defined(__CYGWIN__)
-//#include <windows.h>
-//#include <tlhelp32.h>
-//
-//DWORD getppid() {
-//  PROCESSENTRY32 pe32;
-//  HANDLE hProcessSnap;
-//  // Take a snapshot of all processes in the system.
-//  hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-//  if (hProcessSnap == INVALID_HANDLE_VALUE) return 0;
-//  // Set the size of the structure before using it.
-//  pe32.dwSize = sizeof ( PROCESSENTRY32);
-//
-//  // Retrieve information about the first process,
-//  // and exit if unsuccessful
-//  if (!Process32First(hProcessSnap, &pe32)) return 0;
-//  return pe32.th32ParentProcessID;
-//}
-//
-//int gdl_ipc_sendsignalToChild(int pid, int sig) {
-//  HANDLE ghWriteEvent;
-//  std::string adressee = "GDL__"+i2s(sig)+"TO"+ i2s(pid);
-//  ghWriteEvent = CreateEvent(
-//	NULL, // default security attributes
-//	TRUE, // manual-reset event
-//	FALSE, // initial state is nonsignaled
-//	TEXT(adressee) // object name
-//	);
-//  if (ghWriteEvent == NULL) return -1;
-//  if (! SetEvent(ghWriteEvent) ) return -1;
-//}
-//
-//
-//int gdl_ipc_sendsignalToParent() {
-//  return 0; //gdl_ipc_sendsignalToChild(getppid(), GDL_SIGUSR2);
-//}
-//
-//int gdl_ipc_sendCtrlCToChild(int pid) {
-//  return gdl_ipc_sendsignalToChild(pid, SIGINT);
-//}
-//
-//int gdl_ipc_sendsignalToChild(int pid) {
-//  return gdl_ipc_sendsignalToChild(pid, GDL_SIGUSR1);
-//}
-
-void gdl_ipc_acknowledge_suprocess_started(pid_t pid){}
-
-#else //not pure WIN32
-
+#else
 #include "envt.hpp"
 #include "gdl2gdl.hpp"
 #include <string>       // std::string
@@ -99,9 +50,18 @@ std::map<pid_t, gdl2gdlparams> g2gMap;
 std::map<int, int> g2gListOfSharedMem;
 
 static const std::string base{"_GMEM$"};
+#endif
 
-
-#if defined (__APPLE__)
+// stub for windows -- one other time
+#if defined(_WIN32) && !defined(__CYGWIN__)
+void StartMasterMessageChannel(){}
+void AttachToMasterMessageChannel() {}
+//client side
+void gdl_ipc_acknowledge_suprocess_started(long long pid) {}
+//master side
+int gdl_ipc_wait_for_subprocess_started(int pid){return 0;}
+int gdl_ipc_sendsignalToParent()    {return 0;}
+#elif defined (__APPLE__)
 void StartMasterMessageChannel(){
      // Create a new port.
     kern_return_t kr = mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &gdl2gdlMasterMessageBox);
@@ -205,7 +165,6 @@ pid_t gdl_ipc_wait_for_subprocess_started(){
 		return message.pid;
 }
 #else
-
 void StartMasterMessageChannel(){
 
   struct mq_attr attr;
@@ -261,6 +220,11 @@ pid_t gdl_ipc_wait_for_subprocess_started(){
 }
 #endif
 
+#if defined(_WIN32) && !defined(__CYGWIN__)
+
+void DefineG2GParentPid(int pid) {}
+
+#else
 void DefineG2GParentPid(pid_t pid) {
   if (pid == 0) g2gParentPid = getpid(); else g2gParentPid = pid;
 }

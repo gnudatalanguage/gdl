@@ -28,22 +28,16 @@
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #define GDL_SIGUSR1 SIGABRT //working replacement avoidng changing code?
 #define GDL_SIGUSR2 SIGILL
-#define getpid _getpid
-//
-//DWORD getppid();
-int gdl_ipc_sendsignalToParent(); 
-//int gdl_ipc_sendCtrlCToChild(int pid); 
-//int gdl_ipc_sendsignalToChild(int pid);
-//int gdl_ipc_SetReceiverForChildSignal(void *handler(int, siginfo_t *, void *) );
-void gdl_ipc_acknowledge_suprocess_started(pid_t pid);
+extern int gdl_ipc_sendsignalToParent(); 
+extern void gdl_ipc_acknowledge_suprocess_started(long long pid);
 #else
 #define GDL_SIGUSR1 SIGUSR1
 #define GDL_SIGUSR2 SIGUSR2
-int gdl_ipc_sendsignalToParent();
-int gdl_ipc_sendCtrlCToChild(int pid);
-int gdl_ipc_sendsignalToChild(int pid);
-int gdl_ipc_SetReceiverForChildSignal(void (* handler)(int sig, siginfo_t *siginfo, void *context));
-void gdl_ipc_acknowledge_suprocess_started(pid_t pid);
+extern int gdl_ipc_sendsignalToParent();
+extern int gdl_ipc_sendCtrlCToChild(int pid);
+extern int gdl_ipc_sendsignalToChild(int pid);
+extern int gdl_ipc_SetReceiverForChildSignal(void (* handler)(int sig, siginfo_t *siginfo, void *context));
+extern void gdl_ipc_acknowledge_suprocess_started(pid_t pid);
 #endif 
 
 #include <cfenv>

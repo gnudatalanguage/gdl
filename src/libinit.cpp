@@ -1101,7 +1101,7 @@ new DLibPro(lib::pm_pro, string("PM"), -1, pmKey);
   new DLibFunRetNew(lib::shmvar_fun,string("SHMVAR"),9,shmvarKey);
   new DLibFunRetNew(lib::shmdebug_fun,string("SHMDEBUG"),1);
   #endif
-#if !defined(_WIN32)
+#if !defined(_WIN32) || defined(__CYGWIN__)
   if (iAmMaster) {
   new DLibPro(lib::gmem_setvar,string("GMEM_SETVAR"),3);
   new DLibPro(lib::gmem_subprocess_givevar,string("GMEM_SUBPROCESS_GIVEVAR"),2);

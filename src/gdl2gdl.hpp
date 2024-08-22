@@ -14,7 +14,11 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-#if !defined(_WIN32)
+#if defined(_WIN32) && !defined(__CYGWIN__)
+extern void StartMasterMessageChannel();
+extern void AttachToMasterMessageChannel();
+extern void DefineG2GParentPid(int pid = 0);
+#else
 
 //for client gdl2gdl (see IDL_IDLBridge)
 #if defined(__APPLE__)
