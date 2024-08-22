@@ -162,7 +162,7 @@ namespace lib {
 //  }
   
   void exitgdl(EnvT* e) {
-
+	if (iAmMaster){
 #if defined(HAVE_LIBREADLINE)
 
     // we manage the ASCII "history" file (located in ~/.gdl/)
@@ -206,14 +206,20 @@ namespace lib {
       }
     }
 #endif
-
+    }
     sem_onexit();
 
     //flush & close still opened files.
     
     for (int p = 0; p < maxLun; ++p) { //and NOT userlun!
       fileUnits[p].Flush();
-    }
+	}
+	//before stopping a client, acknowledge the last ("EXIT") command otherwise the master is hanged.
+	if (signalOnCommandReturn) { //cout is NOT a tty. We just send GDL_SIGUSR2 to parent
+	  signalOnCommandReturn = false;
+	  gdl_ipc_sendsignalToParent();
+	  //		    std::cout<<"signalOnCommandReturn is now "<<signalOnCommandReturn<<std::endl;
+	}
     
     BaseGDL* status = e->GetKW(1);
     if (status == NULL) exit(EXIT_SUCCESS);

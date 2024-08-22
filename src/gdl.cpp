@@ -43,6 +43,7 @@
 #include "dinterpreter.hpp"
 #include "terminfo.hpp"
 #include "gdleventhandler.hpp"
+#include "gdl2gdl.hpp"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -181,11 +182,6 @@ void InitGDL()
   setlocale(LC_ALL, "C");
 #endif
 
-  // for debug one could turn on all floating point exceptions, it will stop at first one.
-  //  feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
-
-  signal(SIGINT,ControlCHandler);
-
   lib::SetGDLGenericGSLErrorHandler();
 }
 
@@ -236,13 +232,16 @@ namespace MyPaths {
 }
 }
 
-
 int main(int argc, char *argv[])
 {
+
   // indicates if the user wants to see the welcome message
   bool quiet = false;
   bool gdlde = false;
-
+  bool setQuietSysvar=false;
+  bool willSuppressEditInput=false;
+  pid_t passed_pid=0;
+  
 //The default installation location --- will not always be there.  
   gdlDataDir = std::string(GDLDATADIR);
   gdlLibDir = std::string(GDLLIBDIR);
@@ -252,12 +251,12 @@ int main(int argc, char *argv[])
 #endif 
 
 //check where is the executable being run
- std::string whereami=MyPaths::getExecutablePath();
+ whereami_gdl=MyPaths::getExecutablePath();
 // if I am at a 'bin' location, then there are chances that I've bee INSTALLED, so all the resources I need can be accessed relatively to this 'bin' directory.
 // if not, then I'm probably just a 'build' gdl and my ressources may (should?) be in the default location GDLDATADIR
-  std::size_t pos=whereami.rfind("bin");
-  if (pos == whereami.size()-3) { //we are the installed gdl!
-    gdlDataDir.assign( whereami+ lib::PathSeparator() + ".." + lib::PathSeparator() + "share" + lib::PathSeparator() + "gnudatalanguage") ;
+  std::size_t pos=whereami_gdl.rfind("bin");
+  if (pos == whereami_gdl.size()-3) { //we are the installed gdl!
+    gdlDataDir.assign( whereami_gdl+ lib::PathSeparator() + ".." + lib::PathSeparator() + "share" + lib::PathSeparator() + "gnudatalanguage") ;
 //    std::cerr<<"installed at: "<<gdlDataDir<<std::endl;
   }
 
@@ -275,6 +274,10 @@ int main(int argc, char *argv[])
       driversPath = gdlDataDir + lib::PathSeparator() + "drivers"; //deduced from the location of the executable 
     }
   }
+  //various env set?
+  char* wantCalm = getenv("IDL_QUIET");
+  if (wantCalm != NULL) setQuietSysvar=true;
+  
   //drivers if local
   useLocalDrivers=false;
   bool driversNotFound=false;
@@ -329,7 +332,8 @@ int main(int argc, char *argv[])
   tryToMimicOriginalWidgets = false;
   useDSFMTAcceleration = true;
   iAmANotebook=false; //option --notebook
-  iAmSilent=false; //option --silent
+  iAmMaster=true; //special option --subprocess
+  signalOnCommandReturn=false; //special option --subprocess
  #ifdef HAVE_LIBWXWIDGETS 
 
     #if defined (__WXMAC__) 
@@ -499,8 +503,19 @@ int main(int argc, char *argv[])
       }
       else if (string(argv[a]) == "--silent")
       {
-         iAmSilent = true;
+         setQuietSysvar=true;
       }
+      else if (string(argv[a]) == "--subprocess") {
+		if (a == argc - 1) {
+		  cerr << "gdl: --subprocess must be followed by the parent's pid" << endl;
+		  return 0;
+		}
+		passed_pid = atoi(argv[++a]);
+	  	iAmMaster = false;
+		setQuietSysvar = true;
+		willSuppressEditInput = true;
+		//		 std::cerr<<"I am a SubProcess"<<std::endl;
+	  }
       else if (string(argv[a]) == "--fakerelease")
       {
         if (a == argc - 1)
@@ -526,6 +541,15 @@ int main(int argc, char *argv[])
     cerr << argv[0] << ": " << "-e option cannot be specified with batch files" << endl;
     return 0;
   }
+
+  //depending on master or not, attach to respective message boxes
+  if (iAmMaster) {
+	DefineG2GParentPid();
+	StartMasterMessageChannel();
+  } else {
+	DefineG2GParentPid(passed_pid);
+	AttachToMasterMessageChannel();	
+  }
   
   //before InitGDL() as InitGDL() starts graphic!
   
@@ -547,7 +571,27 @@ int main(int argc, char *argv[])
   if ( doUseUglyFonts.length() > 0) tryToMimicOriginalWidgets=true; 
   
   InitGDL(); 
+  
+  // for debug one could turn on all floating point exceptions, it will stop at first one.
+  //  feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
 
+  signal(SIGINT, ControlCHandler); 
+  
+#if !defined(_WIN32)
+  if (iAmMaster) {
+	signal(GDL_SIGUSR1,SIG_IGN);
+//	signal(GDL_SIGUSR2,SIG_IGN);
+	signal(GDL_SIGUSR2,SignalMasterHandler);
+	signal(SIGCHLD,SIG_IGN); //end subprocess is by sending it 'EXIT'. 
+	                         //This should avoid zombies after a IDL_IDLBridge::Cleanup for example.
+	                         // but we do not trap a subprocess crashing, which may be desirable!
+  }
+  else {
+    signal(GDL_SIGUSR1,SignalChildHandler);
+	signal(GDL_SIGUSR2,SIG_IGN);
+ }
+#endif
+  
   // must be after !cpu initialisation
   InitOpenMP(); //will supersede values for CpuTPOOL_NTHREADS
 
@@ -564,7 +608,8 @@ int main(int argc, char *argv[])
     }
   }
   if (useDSFMTAcceleration && (GetEnvString("GDL_NO_DSFMT").length() > 0)) useDSFMTAcceleration=false;
-  
+  if (setQuietSysvar)       SysVar::Make_Quiet();
+  if (willSuppressEditInput)		 SysVar::Suppress_Edit_Input();  
   //report in !GDL status struct
   DStructGDL* gdlconfig = SysVar::GDLconfig();
   unsigned  DSFMTTag= gdlconfig->Desc()->TagIndex("GDL_USE_DSFMT");
@@ -610,6 +655,7 @@ int main(int argc, char *argv[])
 //     }
 
 #ifdef USE_MPI
+  if (iAmMaster) {
   {
     // warning the user if MPI changes the working directory of GDL
     char wd1[PATH_MAX], wd2[PATH_MAX];
@@ -631,6 +677,7 @@ int main(int argc, char *argv[])
     for( SizeT i = 0; i < size; i++)
       MPI_Send(mpi_procedure, strlen(mpi_procedure)+1, MPI_CHAR, i, 
 	       tag, MPI_COMM_WORLD);
+  }
   }
 #endif // USE_MPI
 
