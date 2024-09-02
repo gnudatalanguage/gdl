@@ -1282,9 +1282,9 @@ void GDLWidget::HandleUnblockedWidgetEvents()
         GDLDelete( ev );
         ev = NULL;
       }
+	  CallWXEventLoop(); // eneble results of above in the widgets
     }
     if (wxIsBusy()) wxEndBusyCursor( );
-  CallWXEventLoop(); // eneble results of above in the widgets
   }
 
 void GDLWidget::PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev) {

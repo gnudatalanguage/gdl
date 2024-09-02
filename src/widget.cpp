@@ -2508,8 +2508,10 @@ BaseGDL* widget_info( EnvT* e ) {
     DStructGDL* ev;
 
     do { // outer while loop, will run once if NOWAIT
-   while (1) { //inner loop, catch controlC, default return if no event trapped in nowait mode
-   GDLWidget::CallWXEventLoop();
+
+	  GDLWidget::CallWXEventLoop();
+
+	  while (1) { //inner loop, catch controlC, default return if no event trapped in nowait mode
        if (!all) {
           //specific widget(s)
           // we cannot check only readlineEventQueue thinking our XMANAGER in blocking state looks to ALL widgets.
@@ -2539,6 +2541,7 @@ BaseGDL* widget_info( EnvT* e ) {
         }
         if (nowait) return defaultRes;
         if (sigControlC) return defaultRes;
+		GDLWidget::CallWXEventLoop();
       } //end inner loop
       //here we got a real event, process it, walking back the hierachy (in CallEventHandler()) for modified ev in case of function handlers.
     endwait:
@@ -2548,6 +2551,7 @@ BaseGDL* widget_info( EnvT* e ) {
         return defaultRes;
       }
       ev = CallEventHandler(ev); //process it recursively (going up hierarchy) in eventHandler. Should block waiting for xmanager.
+	  GDLWidget::CallWXEventLoop();
       // examine return:
       if (ev == NULL) { //swallowed by a procedure or non-event-stucture returning function 
         if (nowait) return defaultRes; //else will loop again
