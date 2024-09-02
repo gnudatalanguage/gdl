@@ -597,7 +597,8 @@ void gdlwxFrame::OnTextMouseEvents( wxMouseEvent& event)
       GDLWidget::PushEvent( baseWidgetID, widg);
       // NOTE: "Process a wxEVT_LEFT_DOWN event. The handler of this event should normally call event.Skip()
       // to allow the default processing to take place as otherwise the window under mouse wouldn't get the focus. "
-      if (event.ButtonDown(wxMOUSE_BTN_LEFT)) event.Skip( );
+//      if (event.ButtonDown(wxMOUSE_BTN_LEFT)) 
+		event.Skip( );
     }
     return;
     //middle button (paste) should be filtered. Here we just avoid the paste pollutes a not-edit widget (without creating a GDL event).
@@ -1229,7 +1230,8 @@ void gdlwxFrame::OnKBRDFocusChange( wxFocusEvent &event ) {
     int enter=(event.GetEventType()==wxEVT_SET_FOCUS);
     widgkbrdfocus->InitTag( "ENTER", DIntGDL( enter ) ); 
     GDLWidget::PushEvent( baseWidgetID, widgkbrdfocus );
-  } else event.Skip(); //"The focus event handlers should almost invariably call wxEvent::Skip() on their event argument to allow the default handling to take place. Failure to do this may result in incorrect behaviour of the native controls."
+  } 
+  event.Skip(); //"The focus event handlers should almost invariably call wxEvent::Skip() on their event argument to allow the default handling to take place. Failure to do this may result in incorrect behaviour of the native controls."
 }
 
 void gdlwxFrame::OnContextEvent( wxContextMenuEvent& event) {

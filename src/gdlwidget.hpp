@@ -27,7 +27,7 @@
 // on OSX. So we choose normally to undefine this 
 #ifndef __WXMAC__ 
 //warning MAC should not have prefer_menubar=1 unless you solve the mac manubar problem.
-#define PREFERS_MENUBAR 1
+//#define PREFERS_MENUBAR 1
 #endif
 // For compilers that support precompilation, includes "wx/wx.h".
 // HAVE_LARGEFILE_SUPPORT, SIZEOF_VOID_P, SIZEOF_SIZE_T,  may be set by Python, creates unnecessary warnings
@@ -252,19 +252,19 @@ public:
  WidgetEventInfo(wxEventType t_, wxObjectEventFunction f_, wxWindow* w_) : t(t_), f(f_), w(w_) {
  }
 };
-#ifndef __WXMAC__
-// main App class
- #include "wx/evtloop.h"
- 
-class wxAppGDL: public wxApp
-{
- wxGUIEventLoop loop;
- public:
- int MyLoop();
-};
-
-wxDECLARE_APP(wxAppGDL); //wxAppGDL is equivalent to wxGetApp()
-#endif
+//#ifndef __WXMAC__
+//// main App class
+// #include "wx/evtloop.h"
+// 
+//class wxAppGDL: public wxApp
+//{
+// wxGUIEventLoop loop;
+// public:
+// int MyLoop();
+//};
+//
+//wxDECLARE_APP(wxAppGDL); //wxAppGDL is equivalent to wxGetApp()
+//#endif
 
 // GDL versions of wxWidgets controls =======================================
 DECLARE_LOCAL_EVENT_TYPE(wxEVT_SHOW_REQUEST, -1)
@@ -442,11 +442,12 @@ public:
   }
   static BaseGDL * getSystemColours();
   static void CallWXEventLoop(){
-#ifdef __WXMAC__
+//#ifdef __WXMAC__
+//    wxTheApp->Yield();
+//#else
     wxTheApp->Yield();
-#else
-    wxGetApp().MyLoop(); //central loop for wxEvents!
-#endif
+//    wxGetApp().MyLoop(); //central loop for wxEvents!
+//#endif
   }
 protected:
   
@@ -793,7 +794,7 @@ public:
   bool DisableSizeEvents(gdlwxFrame* &tlbFrame,WidgetIDT &id);
   static void EnableSizeEvents(gdlwxFrame* &tlbFrame,WidgetIDT &id);
 
-  void SendWidgetTimerEvent(DDouble secs);
+  void SendWidgetTimerEvent(int millisecs);
   virtual void SetButtonWidget( bool onOff){}
   void ClearEvents();
 };
@@ -1529,11 +1530,20 @@ protected:
   std::deque<WidgetIDT> children;
   ~GDLWidgetMenuBar();
 public:
+#ifdef __WXMAC__
+  GDLWidgetMenuBar( wxWindow* frame, WidgetIDT p, EnvT* e):
+#else
   GDLWidgetMenuBar( wxFrame* frame, WidgetIDT p, EnvT* e): 
+#endif  
   GDLWidget( p, NULL) //NULL because MBar must not re-read env Values of e
   { 
-   long style=wxTB_HORIZONTAL|wxTB_DOCKABLE|wxTB_FLAT;
+   long style=wxHORIZONTAL|wxTB_DOCKABLE|wxTB_FLAT;
+//Do not ask me why this works on mac and not other way.
+#ifdef __WXMAC__
+   wxToolBar* t= new wxToolBar(frame, wxID_ANY);
+#else
    wxToolBar* t= frame->CreateToolBar(style, wxID_ANY);
+#endif   
     theWxWidget = theWxContainer = t;
 //    widgetSizer=new wxBoxSizer(wxHORIZONTAL);
 //    t->SetSizer(widgetSizer);

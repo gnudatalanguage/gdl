@@ -2632,7 +2632,7 @@ void widget_control( EnvT* e ) {
 //  bool delay_destroy = e->KeywordSet( delay_destroyIx ); //TBD, this seems tricky.
   
   static int timerIx = e->KeywordIx( "TIMER" );
-  bool doTimer = e->KeywordSet( timerIx );
+  bool doTimer = e->KeywordPresent( timerIx );
 
   DString eventPro = "";
   static int eventproIx = e->KeywordIx( "EVENT_PRO" );
@@ -3110,15 +3110,17 @@ void widget_control( EnvT* e ) {
         if (bitmap) bb->SetButtonWidgetBitmap(bitmap);
         
       } else if (widget->IsTable()) {
+		if (value->Rank()==0) e->Throw("Expression must be an array in this context."+ e->GetString(setvalueIx));
         GDLWidgetTable *table = (GDLWidgetTable *) widget;
 		int majority = table->GetMajority();
 		if (useATableSelection && format != NULL) e->Throw("Unable to set format for table widget."); //format not allowed if selection
 		format=table->GetCurrentFormat(); //use stored format
+		if (tableSelectionToUse != NULL && table->GetMajority() == GDLWidgetTable::NONE_MAJOR &&  table->GetVvalue() != NULL) {
 		//convert 'value' to vValue type FIRST...
-		BaseGDL* v=table->GetVvalue();
-		if (v != NULL) {
-		  DType type = v->Type();
-		  if (table->GetMajority() == GDLWidgetTable::NONE_MAJOR) value = value->Convert2(type);
+		  BaseGDL* v=table->GetVvalue();
+		  // this converts the passed values to the type of actual 'vValue', but only if a table lection is used
+			DType type = v->Type();
+            value = value->Convert2(type);
 		}
 		//... then create the String equivalent
 		DStringGDL* newValueAsStrings=GetTableValueAsString(e, value, format, majority, true); //true as IDL accepts non-array in this case
@@ -3352,7 +3354,8 @@ void widget_control( EnvT* e ) {
   if (doTimer) {
     DDouble seconds=0;
     e->AssureDoubleScalarKWIfPresent( timerIx, seconds );
-    widget->SendWidgetTimerEvent(seconds);
+	int millisec=seconds*1000;
+    widget->SendWidgetTimerEvent(millisec);
   }
   
   if ( eventpro ) {
@@ -3901,9 +3904,9 @@ void widget_control( EnvT* e ) {
 
         if (reconnect) GDLWidget::EnableSizeEvents(local_topFrame, id);
       }
-      return;
     }
-  
+  // last line and ONLY RETURN: make the wxWidgets respond
+  wxTheApp->Yield();
 #endif
 }
 #ifdef HAVE_WXWIDGETS_PROPERTYGRID
