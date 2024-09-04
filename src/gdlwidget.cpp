@@ -1264,21 +1264,10 @@ void GDLWidget::HandleUnblockedWidgetEvents()
     DStructGDL* ev = NULL;
     while( (ev = GDLWidget::InteractiveEventQueue.Pop()) != NULL)
     {
-//        static int idIx = ev->Desc( )->TagIndex( "ID" ); // 0
-//        static int topIx = ev->Desc( )->TagIndex( "TOP" ); // 1
-//        static int handlerIx = ev->Desc( )->TagIndex( "HANDLER" ); // 2
-//        assert( idIx == 0 );
-//        assert( topIx == 1 );
-//        assert( handlerIx == 2 );
-
       ev = CallEventHandler( ev );
 
       if( ev != NULL)
       {
-        int idIx = ev->Desc( )->TagIndex( "ID" );
-        assert( idIx == 0 );
-        WidgetIDT id = (*static_cast<DLongGDL*> (ev->GetTag( idIx, 0 )))[0];
-        Warning( "Unhandled event. ID: " + i2s( id ) );
         GDLDelete( ev );
         ev = NULL;
       }

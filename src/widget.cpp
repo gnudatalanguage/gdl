@@ -350,9 +350,6 @@ DStructGDL* CallEventHandler( DStructGDL* ev ) {
 #ifdef GDL_DEBUG_WIDGETS
       Warning("CallEventHandler: Widget no longer valid. ID: " + i2s(actID));
 #endif
-      actID = GDLWidget::NullID;
-      GDLDelete(ev);
-      ev = NULL;
       break; //out of while
     }
     DString eventHandlerPro = widget->GetEventPro();
@@ -361,8 +358,7 @@ DStructGDL* CallEventHandler( DStructGDL* ev ) {
 #ifdef GDL_DEBUG_WIDGETS          
       std::cout << "CallEventPro: " + eventHandlerPro + " on " + i2s(actID) << std::endl;
 #endif
-      CallEventPro(eventHandlerPro, ev); // swallows ev according to the doc, thus:
-      ev = NULL; // note: ev is already deleted at this point when returning.
+      CallEventPro(eventHandlerPro, ev->Dup()); // swallows ev according to the doc, thus:
       break; // out of while
     }
     DString eventHandlerFun = widget->GetEventFun();
@@ -375,27 +371,28 @@ DStructGDL* CallEventHandler( DStructGDL* ev ) {
 #endif
 	  DStructGDL* evstart=(DStructGDL*)(ev)->Dup();
       BaseGDL* retVal = CallEventFunc(eventHandlerFun, ev); // grabs ev
-      // note: ev is already deleted at this point when returning.
 	  //will test if ev is unchanged:
-	  
       if (retVal->Type() == GDL_STRUCT) {
         ev = static_cast<DStructGDL*> (retVal);
         if (ev->Desc()->TagIndex("ID") != idIx || ev->Desc()->TagIndex("TOP") != topIx || ev->Desc()->TagIndex("HANDLER") != handlerIx) {
           GDLDelete(ev);
           throw GDLException(eventHandlerFun + ": Event handler return struct must contain ID, TOP, HANDLER as first tags.");
         }
+		//function returned with handler unchanged: job done. Not clear in the documentation.
 		bool doReturn = ( (*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0] == (*static_cast<DLongGDL*> (evstart->GetTag(handlerIx, 0)))[0] );
 		GDLDelete(evstart);
 		if (doReturn) return ev; //apparently, this is a case where a function should return, at least this patch solves PLOTMAN's panel problem see #1685
       } else { //not a struct, same as a procedure, has swallowed the event
         ev = NULL;
-        break; 
+        return ev; 
       }
       // returned struct is a new ev:
       // FUNCTION --> no break, will go up to the top or exit if consumed.!
     }
     actID = widget->GetParentID(); //go upper in hierarchy
   } while (actID != GDLWidget::NullID);
+  // if we arrve here, all the hierarchy has been traversed 
+  (*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0] = 0;
 #endif
   return ev;
 }
@@ -2508,11 +2505,9 @@ BaseGDL* widget_info( EnvT* e ) {
     DStructGDL* ev;
 
     do { // outer while loop, will run once if NOWAIT
-
-	  GDLWidget::CallWXEventLoop();
-
 	  while (1) { //inner loop, catch controlC, default return if no event trapped in nowait mode
-       if (!all) {
+	  GDLWidget::CallWXEventLoop();
+      if (!all) {
           //specific widget(s)
           // we cannot check only readlineEventQueue thinking our XMANAGER in blocking state looks to ALL widgets.
           // because XMANAGER may have been called AFTER events are created.
@@ -2521,18 +2516,36 @@ BaseGDL* widget_info( EnvT* e ) {
             id = (*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0]; // get its id
             for (SizeT i = 0; i < widgetIDList.size(); i++) { //is ID corresponding to any widget in list?
               if (widgetIDList.at(i) == id) { //if yes
-                goto endwait;
-              }
+				ev = CallEventHandler(ev); //process it recursively (going up hierarchy) in eventHandler. Should block waiting for xmanager.
+				if (ev == NULL) return defaultRes;
+				else return ev;
+              } 
             }
+			// blocking eventqueue should drain (just Pop() ) when unconcerned interactive events must be preserved
+			// to be executed normally when widget_event returns (so, pusehd back in  InteractiveEventQueue).
           }
           while ((ev = GDLWidget::InteractiveEventQueue.Pop()) != NULL) { // get event
             static int idIx = ev->Desc()->TagIndex("ID");
             id = (*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0]; // get its id
             for (SizeT i = 0; i < widgetIDList.size(); i++) { //is ID corresponding to any widget in list?
               if (widgetIDList.at(i) == id) { //if yes
-                goto endwait;
-              }
+				ev = CallEventHandler(ev); //process it recursively (going up hierarchy) in eventHandler. Should block waiting for xmanager.
+				if (ev == NULL) return defaultRes;
+				else return ev;
+              } 
             }
+			GDLWidget::InteractiveEventQueue.PushBack(ev);
+			GDLWidget::CallWXEventLoop();
+	  // avoid looping like crazy
+#ifdef _WIN32 
+	  Sleep(10); // this just to quiet down the character input from readline. 2 was not enough. 20 was ok.
+#else
+	  const long SLEEP = 20000000; // 20ms
+	  struct timespec delay;
+	  delay.tv_sec = 0;
+	  delay.tv_nsec = SLEEP; // 20ms
+	  nanosleep(&delay, NULL);
+#endif
           }
         } else {
           //wait for ALL . This is the case of /XMANAGER_BLOCK for example. Both queues may be active, some widgets being managed other not. 
@@ -2541,7 +2554,6 @@ BaseGDL* widget_info( EnvT* e ) {
         }
         if (nowait) return defaultRes;
         if (sigControlC) return defaultRes;
-		GDLWidget::CallWXEventLoop();
       } //end inner loop
       //here we got a real event, process it, walking back the hierachy (in CallEventHandler()) for modified ev in case of function handlers.
     endwait:
@@ -2551,13 +2563,14 @@ BaseGDL* widget_info( EnvT* e ) {
         return defaultRes;
       }
       ev = CallEventHandler(ev); //process it recursively (going up hierarchy) in eventHandler. Should block waiting for xmanager.
-	  GDLWidget::CallWXEventLoop();
       // examine return:
       if (ev == NULL) { //swallowed by a procedure or non-event-stucture returning function 
         if (nowait) return defaultRes; //else will loop again
       } else { // untreated or modified by a function
           return ev;
       }
+	  GDLWidget::CallWXEventLoop();
+
     } while (infinity);
     return NULL; //pacifier.
 #endif //HAVE_LIBWXWIDGETS

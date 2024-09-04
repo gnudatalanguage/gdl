@@ -123,6 +123,18 @@ function draw2_event,ev
   print,"draw2 event"
   return,ev
 end
+function test_func_button,ev
+  print, "fancy button pressed! (catched in button widget itself)"
+  parent=widget_info(ev.id,/parent)
+  ev.handler=parent ; pass to parent
+  return, ev
+end
+function catch_passed_event_example,ev
+  print, "button "+strtrim(ev.id,2)+" was pressed! (catched in parent's event_func routine)"
+;  parent=widget_info(ev.id,/parent)
+;  ev.handler=parent ; pass to parent
+  return, ev
+end
 
 pro draw1_event,ev
 widget_id=ev.id
@@ -474,7 +486,7 @@ endif
     button_base00 = widget_base( tabbed_base, TITLE="BUTTONs", COL=2, $
        SPACE=10, XPAD=10, YPAD=10) & offy=10
 
-    button_base01 = widget_base(button_base00, TITLE="BUTTONs",/COL) & offy=10
+    button_base01 = widget_base(button_base00, TITLE="BUTTONs",/COL, event_func='catch_passed_event_example') & offy=10
     button_base02 = widget_base(button_base00, TITLE="BUTTONs",/COL) & offy=10
 ; BUTTONs
     tmp=widget_label(yoff=offy,button_base01,value="Simple ON/OFF Button") & offy+=10           ;
@@ -486,7 +498,7 @@ endif
     tmp=widget_label(yoff=offy,button_base01,value="Bitmap Simple Button") & offy+=10           ;
     tmp=widget_button(yoff=offy,button_base01,value=myBitmap()) & offy+=10 ;
     tmp=widget_label(yoff=offy,button_base01,value="Fancy Simple Button") & offy+=10           ;
-    tmp=widget_button(yoff=offy,button_base01,value="Fancy Button",font=fontname) & offy+=10 ;
+    tmp=widget_button(yoff=offy,button_base01,value="Fancy Button",font=fontname, event_func='test_func_button') & offy+=10 ;
     tmp=widget_label(yoff=offy,button_base01,value="Exclusive base, framed 30") & offy+=10  ;
     radio=widget_base(yoff=offy,button_base01,/EXCLUSIVE,COL=1,frame=30) & offy+=150         ;
     rb1=widget_button(radio,VALUE="button in EXCLUSIVE base 1",uvalue={vEv,'rb1',[8,0]}, font=fontname)
@@ -736,7 +748,16 @@ print,"Draw widgets:",draw,draw2
  print,"window indexes",index,index2
  image=dist(128)
  WSET,index
- n=100 & x=randomu(seed,n)& y=randomu(seed,n) &p=randomu(seed,10)*n & x[p]=x[3] &y[p]=y[22]& TRIANGULATE, x, y, tr,b,rep=r,conn=conn &myplot,tr,x,y,b,conn,1
+
+  catch, error
+  if error ne 0 then begin
+     save,x,y,p,file="problemwithtriangulate.sav"
+     message,/inf,"CONGRATULATIONS YOU FOUND (INVOLUNTARILY!) A PROBLEM WITH THE FAST TRIANGULATION ALGORITHM"
+     message,"Please contribute to GDL by saving the file 'problemwithtriangulate.sav' and make an issue on github: https://github.com/gnudatalanguage/gdl , thanks in advance" 
+     catch,/cancel
+  endif
+
+  n=100 & x=randomu(seed,n)& y=randomu(seed,n) &p=randomu(seed,10)*n & x[p]=x[3] &y[p]=y[22]& TRIANGULATE, x, y, tr,b,rep=r,conn=conn &myplot,tr,x,y,b,conn,1
 
     ;;
  WSET, index2 
