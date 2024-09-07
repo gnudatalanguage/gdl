@@ -378,10 +378,7 @@ DStructGDL* CallEventHandler( DStructGDL* ev ) {
           GDLDelete(ev);
           throw GDLException(eventHandlerFun + ": Event handler return struct must contain ID, TOP, HANDLER as first tags.");
         }
-		//function returned with handler unchanged: job done. Not clear in the documentation.
-		bool doReturn = ( (*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0] == (*static_cast<DLongGDL*> (evstart->GetTag(handlerIx, 0)))[0] );
 		GDLDelete(evstart);
-		if (doReturn) return ev; //apparently, this is a case where a function should return, at least this patch solves PLOTMAN's panel problem see #1685
       } else { //not a struct, same as a procedure, has swallowed the event
         ev = NULL;
         return ev; 
@@ -2529,9 +2526,9 @@ BaseGDL* widget_info( EnvT* e ) {
             id = (*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0]; // get its id
             for (SizeT i = 0; i < widgetIDList.size(); i++) { //is ID corresponding to any widget in list?
               if (widgetIDList.at(i) == id) { //if yes
-				ev = CallEventHandler(ev); //process it recursively (going up hierarchy) in eventHandler. Should block waiting for xmanager.
-				if (ev == NULL) return defaultRes;
-				else return ev;
+				//IMPORTANT: return ev immediately. This is what permits #1685: an event trapped by WIDGET_EVENT does not behave
+				//like the same event processed in the evenloop.
+				  return ev;
               } 
             }
 			GDLWidget::InteractiveEventQueue.PushBack(ev);
@@ -2540,7 +2537,7 @@ BaseGDL* widget_info( EnvT* e ) {
 #ifdef _WIN32 
 	  Sleep(10); // this just to quiet down the character input from readline. 2 was not enough. 20 was ok.
 #else
-	  const long SLEEP = 20000000; // 20ms
+	  const long SLEEP = 10000000; // 10ms
 	  struct timespec delay;
 	  delay.tv_sec = 0;
 	  delay.tv_nsec = SLEEP; // 20ms

@@ -5632,12 +5632,13 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     } //else throw GDLException("Parent tree widget is not a folder."); //IDL just forgets.
   }
 void GDLWidgetTree::OnRealize(){
-   GDLWidgetTree* root=this->GetMyRootGDLWidgetTree();
-   if (this==root) {
-     wxTreeCtrlGDL* ctrl=static_cast<wxTreeCtrlGDL*>(this->GetWxWidget());
-     wxTreeItemId id=ctrl->GetFirstVisibleItem 	( 		) 	;
-     if (id) ctrl->SetFocusedItem(id);
-   }
+// not useful? root node does not seem selected at creation with *DL.
+//   GDLWidgetTree* root=this->GetMyRootGDLWidgetTree();
+//   if (this==root) {
+//     wxTreeCtrlGDL* ctrl=static_cast<wxTreeCtrlGDL*>(this->GetWxWidget());
+//     wxTreeItemId id=ctrl->GetFirstVisibleItem 	( 		) 	;
+//     if (id) ctrl->SetFocusedItem(id);
+//   }
 }
 DInt GDLWidgetTree::GetTreeIndex()
 {

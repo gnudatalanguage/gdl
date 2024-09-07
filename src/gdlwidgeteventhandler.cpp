@@ -139,7 +139,7 @@ void wxTextCtrlGDL::OnChar(wxKeyEvent& event ) {
       widg = new DStructGDL( "WIDGET_TEXT_CH" );
       widg->InitTag( "ID", DLongGDL( event.GetId( ) ) );
       widg->InitTag( "TOP", DLongGDL( baseWidgetID ) );
-      widg->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
+//      widg->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
       widg->InitTag( "TYPE", DIntGDL( 0 ) ); // selection
       widg->InitTag( "OFFSET", DLongGDL( this->GetInsertionPoint() ) );
       widg->InitTag( "CH", DByteGDL( 10 ) );
@@ -171,7 +171,7 @@ void wxTextCtrlGDL::OnChar(wxKeyEvent& event ) {
         widg = new DStructGDL( "WIDGET_TEXT_SEL" );
         widg->InitTag( "ID", DLongGDL( event.GetId( ) ) );
         widg->InitTag( "TOP", DLongGDL( baseWidgetID ) );
-        widg->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
+//        widg->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
         widg->InitTag( "TYPE", DIntGDL( 3 ) ); // selection
         widg->InitTag( "OFFSET", DLongGDL( this->GetInsertionPoint( ) ) );
         widg->InitTag( "LENGTH", DLongGDL( 0 ) );
@@ -191,7 +191,7 @@ void wxTextCtrlGDL::OnChar(wxKeyEvent& event ) {
           widg = new DStructGDL( "WIDGET_TEXT_DEL" );
           widg->InitTag( "ID", DLongGDL( event.GetId( ) ) );
           widg->InitTag( "TOP", DLongGDL( baseWidgetID ) );
-          widg->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
+//          widg->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
           widg->InitTag( "TYPE", DIntGDL( 2 ) ); // selection
           widg->InitTag( "OFFSET", DLongGDL( from - 1 ) );
           widg->InitTag( "LENGTH", DLongGDL( to - from + 1 ) );
@@ -204,7 +204,7 @@ void wxTextCtrlGDL::OnChar(wxKeyEvent& event ) {
         widg = new DStructGDL( "WIDGET_TEXT_CH" );
         widg->InitTag( "ID", DLongGDL( event.GetId( ) ) );
         widg->InitTag( "TOP", DLongGDL( baseWidgetID ) );
-        widg->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
+//        widg->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
         widg->InitTag( "TYPE", DIntGDL( 0 ) ); // selection
         widg->InitTag( "OFFSET", DLongGDL( from ) );
         widg->InitTag( "CH", DByteGDL( 9 ) );
@@ -217,7 +217,7 @@ void wxTextCtrlGDL::OnChar(wxKeyEvent& event ) {
         widg = new DStructGDL( "WIDGET_TEXT_CH" );
         widg->InitTag( "ID", DLongGDL( event.GetId( ) ) );
         widg->InitTag( "TOP", DLongGDL( baseWidgetID ) );
-        widg->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
+//        widg->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
         widg->InitTag( "TYPE", DIntGDL( 0 ) ); // selection
         widg->InitTag( "OFFSET", DLongGDL( from ) );
         widg->InitTag( "CH", DByteGDL( 10 ) );
@@ -234,7 +234,7 @@ void wxTextCtrlGDL::OnChar(wxKeyEvent& event ) {
     widg = new DStructGDL( "WIDGET_TEXT_CH" );
     widg->InitTag( "ID", DLongGDL( event.GetId( ) ) );
     widg->InitTag( "TOP", DLongGDL( baseWidgetID ) );
-    widg->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
+//    widg->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     widg->InitTag( "TYPE", DIntGDL( 0 ) ); // single char
     widg->InitTag( "OFFSET", DLongGDL( this->GetInsertionPoint( ) ) );
     widg->InitTag( "CH", DByteGDL( event.GetKeyCode( ) ) );
@@ -349,7 +349,7 @@ void gdlwxFrame::OnButton( wxCommandEvent& event)
   DStructGDL*  widgbut = new DStructGDL( "WIDGET_BUTTON");
   widgbut->InitTag("ID", DLongGDL( event.GetId()));
   widgbut->InitTag("TOP", DLongGDL( baseWidgetID));
-  widgbut->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+//  widgbut->InitTag("HANDLER", DLongGDL( baseWidgetID ));
   widgbut->InitTag("SELECT", DLongGDL( 1));
 
   GDLWidget::PushEvent( baseWidgetID, widgbut);
@@ -367,7 +367,7 @@ void gdlwxFrame::OnMenu( wxCommandEvent& event)
   DStructGDL*  widgbut = new DStructGDL( "WIDGET_BUTTON");
   widgbut->InitTag("ID", DLongGDL( event.GetId()));
   widgbut->InitTag("TOP", DLongGDL( baseWidgetID));
-  widgbut->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+//  widgbut->InitTag("HANDLER", DLongGDL( baseWidgetID ));
   widgbut->InitTag("SELECT", DLongGDL( 1));
 
   GDLWidget::PushEvent( baseWidgetID, widgbut);
@@ -394,7 +394,7 @@ void gdlwxFrame::OnRadioButton( wxCommandEvent& event)
     DStructGDL*  widgbut = new DStructGDL( "WIDGET_BUTTON");
     widgbut->InitTag("ID", DLongGDL( lastSelection));
     widgbut->InitTag("TOP", DLongGDL( baseWidgetID));
-    widgbut->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+//    widgbut->InitTag("HANDLER", DLongGDL( baseWidgetID ));
     widgbut->InitTag("SELECT", DLongGDL( 0));
 
     GDLWidgetButton* widget = dynamic_cast<GDLWidgetButton*>(GDLWidget::GetWidget( lastSelection));
@@ -407,7 +407,7 @@ void gdlwxFrame::OnRadioButton( wxCommandEvent& event)
   DStructGDL*  widgbut = new DStructGDL( "WIDGET_BUTTON");
   widgbut->InitTag("ID", DLongGDL( event.GetId()));
   widgbut->InitTag("TOP", DLongGDL( baseWidgetID));
-  widgbut->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+//  widgbut->InitTag("HANDLER", DLongGDL( baseWidgetID ));
 //   widgbut->InitTag("SELECT", DLongGDL( selectValue ? 1 : 0));
   widgbut->InitTag("SELECT", DLongGDL( 1));
 
@@ -436,7 +436,7 @@ void gdlwxFrame::OnCheckBox( wxCommandEvent& event)
   DStructGDL*  widgbut = new DStructGDL( "WIDGET_BUTTON");
   widgbut->InitTag("ID", DLongGDL( event.GetId()));
   widgbut->InitTag("TOP", DLongGDL( baseWidgetID));
-  widgbut->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+//  widgbut->InitTag("HANDLER", DLongGDL( baseWidgetID ));
   widgbut->InitTag("SELECT", DLongGDL( selectValue ? 1 : 0));
 
   GDLWidget::PushEvent( baseWidgetID, widgbut);
@@ -458,7 +458,7 @@ void gdlwxFrame::OnComboBox( wxCommandEvent& event)
   widgcbox = new DStructGDL( "WIDGET_COMBOBOX");
   widgcbox->InitTag("ID", DLongGDL( event.GetId()));
   widgcbox->InitTag("TOP", DLongGDL( baseWidgetID));
-  widgcbox->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+//  widgcbox->InitTag("HANDLER", DLongGDL( baseWidgetID ));
   widgcbox->InitTag("INDEX", DLongGDL( selectValue));
   widgcbox->InitTag("STR", DStringGDL( std::string(strValue.mb_str(wxConvUTF8)) ));
 
@@ -480,7 +480,7 @@ void gdlwxFrame::OnComboBoxTextEnter( wxCommandEvent& event)
   widgcbox = new DStructGDL( "WIDGET_COMBOBOX");
   widgcbox->InitTag("ID", DLongGDL( event.GetId()));
   widgcbox->InitTag("TOP", DLongGDL( baseWidgetID));
-  widgcbox->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+//  widgcbox->InitTag("HANDLER", DLongGDL( baseWidgetID ));
   widgcbox->InitTag("INDEX", DLongGDL( selectValue));
   widgcbox->InitTag("STR", DStringGDL( std::string(strValue.mb_str(wxConvUTF8)) ));
 
@@ -499,7 +499,7 @@ void gdlwxFrame::OnDropList( wxCommandEvent& event)
   widdrplst = new DStructGDL( "WIDGET_DROPLIST");
   widdrplst->InitTag("ID", DLongGDL( event.GetId()));
   widdrplst->InitTag("TOP", DLongGDL( baseWidgetID));
-  widdrplst->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+//  widdrplst->InitTag("HANDLER", DLongGDL( baseWidgetID ));
   widdrplst->InitTag("INDEX", DLongGDL( selectValue));   
 
   GDLWidget::PushEvent( baseWidgetID, widdrplst);
@@ -520,7 +520,7 @@ void gdlwxFrame::OnListBoxDo( wxCommandEvent& event, DLong clicks)
   widgcbox = new DStructGDL( "WIDGET_LIST");
   widgcbox->InitTag("ID", DLongGDL( event.GetId()));
   widgcbox->InitTag("TOP", DLongGDL( baseWidgetID));
-  widgcbox->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+//  widgcbox->InitTag("HANDLER", DLongGDL( baseWidgetID ));
   widgcbox->InitTag("INDEX", DLongGDL( selectValue));
   widgcbox->InitTag("CLICKS", DLongGDL( clicks));
 
@@ -589,7 +589,7 @@ void gdlwxFrame::OnTextMouseEvents( wxMouseEvent& event)
       widg = new DStructGDL( "WIDGET_TEXT_SEL");
       widg->InitTag("ID", DLongGDL( event.GetId()));
       widg->InitTag("TOP", DLongGDL( baseWidgetID));
-      widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+//      widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
       widg->InitTag("TYPE", DIntGDL( 3)); // selection
       textCtrl->GetSelection(&from,&to);
       widg->InitTag("OFFSET", DLongGDL( from ));
@@ -641,7 +641,7 @@ void gdlwxFrame::OnTextPaste( wxClipboardTextEvent& event)
     widg = new DStructGDL( "WIDGET_TEXT_STR");
     widg->InitTag("ID", DLongGDL( event.GetId()));
     widg->InitTag("TOP", DLongGDL( baseWidgetID));
-    widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+//    widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
     widg->InitTag("TYPE", DIntGDL( 1)); // multiple char
     widg->InitTag("OFFSET", DLongGDL( pos+s.length() ));
     widg->InitTag("STR", DStringGDL(std::string(s.c_str())));
@@ -759,7 +759,7 @@ void gdlwxFrame::OnText( wxCommandEvent& event)
     widg = new DStructGDL( "WIDGET_TEXT_SEL");
     widg->InitTag("ID", DLongGDL( event.GetId()));
     widg->InitTag("TOP", DLongGDL( baseWidgetID));
-    widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+//    widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
     widg->InitTag("TYPE", DIntGDL( 3)); // selection
     widg->InitTag("OFFSET", DLongGDL( offset));
     widg->InitTag("LENGTH", DLongGDL( selEnd-selStart));
@@ -772,7 +772,7 @@ void gdlwxFrame::OnText( wxCommandEvent& event)
       widg = new DStructGDL( "WIDGET_TEXT_DEL");
       widg->InitTag("ID", DLongGDL( event.GetId()));
       widg->InitTag("TOP", DLongGDL( baseWidgetID));
-      widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+//      widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
       widg->InitTag("TYPE", DIntGDL( 2)); // delete
       widg->InitTag("OFFSET", DLongGDL( offset-1));
       widg->InitTag("LENGTH", DLongGDL( -lengthDiff));
@@ -783,7 +783,7 @@ void gdlwxFrame::OnText( wxCommandEvent& event)
       widg = new DStructGDL( "WIDGET_TEXT_DEL");
       widg->InitTag("ID", DLongGDL( event.GetId()));
       widg->InitTag("TOP", DLongGDL( baseWidgetID));
-      widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+//      widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
       widg->InitTag("TYPE", DIntGDL( 2)); // delete
       widg->InitTag("OFFSET", DLongGDL( 0));
       widg->InitTag("LENGTH", DLongGDL( lastValue.length()));
@@ -794,7 +794,7 @@ void gdlwxFrame::OnText( wxCommandEvent& event)
       widg = new DStructGDL( "WIDGET_TEXT_STR");
       widg->InitTag("ID", DLongGDL( event.GetId()));
       widg->InitTag("TOP", DLongGDL( baseWidgetID));
-      widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+//      widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
       widg->InitTag("TYPE", DIntGDL( 1)); // multiple char
       widg->InitTag("OFFSET", DLongGDL( 0));
       widg->InitTag("STR", DStringGDL( newValue));
@@ -804,7 +804,7 @@ void gdlwxFrame::OnText( wxCommandEvent& event)
       widg = new DStructGDL( "WIDGET_TEXT_CH");
       widg->InitTag("ID", DLongGDL( event.GetId()));
       widg->InitTag("TOP", DLongGDL( baseWidgetID));
-      widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+//      widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
       widg->InitTag("TYPE", DIntGDL( 0)); // single char
       widg->InitTag("OFFSET", DLongGDL( offset+1));
       widg->InitTag("CH", DByteGDL( newValue[offset<newValue.length()?offset:newValue.length()-1]));
@@ -821,7 +821,7 @@ void gdlwxFrame::OnText( wxCommandEvent& event)
       widg = new DStructGDL( "WIDGET_TEXT_STR");
       widg->InitTag("ID", DLongGDL( event.GetId()));
       widg->InitTag("TOP", DLongGDL( baseWidgetID));
-      widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+//      widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
       widg->InitTag("TYPE", DIntGDL( 1)); // multiple char
       widg->InitTag("OFFSET", DLongGDL( offset));
       widg->InitTag("STR", DStringGDL( str));
@@ -922,7 +922,7 @@ void gdlwxFrame::OnPageChanged( wxNotebookEvent& event)
   widg = new DStructGDL( "WIDGET_TAB");
   widg->InitTag("ID", DLongGDL( event.GetId()));
   widg->InitTag("TOP", DLongGDL( baseWidgetID));
-  widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+//  widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
   widg->InitTag("TAB", DLongGDL( event.GetSelection()));
   
   GDLWidget::PushEvent( baseWidgetID, widg);
@@ -1035,7 +1035,7 @@ void gdlwxFrame::OnTimerResize(wxTimerEvent& event)
     DStructGDL* widgbase = new DStructGDL("WIDGET_BASE");
     widgbase->InitTag("ID", DLongGDL(owner->GetWidgetID()));
     widgbase->InitTag("TOP", DLongGDL(baseWidgetID));
-    widgbase->InitTag("HANDLER", DLongGDL(baseWidgetID));
+//    widgbase->InitTag("HANDLER", DLongGDL(baseWidgetID));
     widgbase->InitTag("X", DLongGDL(frameSize.x));
     widgbase->InitTag("Y", DLongGDL(frameSize.y));
     GDLWidget::PushEvent(baseWidgetID, widgbase);
@@ -1097,7 +1097,7 @@ void gdlwxFrame::OnSizeWithTimer(wxSizeEvent& event)
     DStructGDL* widgbase = new DStructGDL("WIDGET_BASE");
     widgbase->InitTag("ID", DLongGDL(event.GetId()));
     widgbase->InitTag("TOP", DLongGDL(baseWidgetID));
-    widgbase->InitTag("HANDLER", DLongGDL(baseWidgetID));
+//    widgbase->InitTag("HANDLER", DLongGDL(baseWidgetID));
     widgbase->InitTag("X", DLongGDL(frameSize.x));
     widgbase->InitTag("Y", DLongGDL(frameSize.y));
     GDLWidget::PushEvent(baseWidgetID, widgbase);
@@ -1131,7 +1131,7 @@ void gdlwxFrame::OnThumbTrack( wxScrollEvent& event)
       widg = new DStructGDL( "WIDGET_SLIDER");
       widg->InitTag("ID", DLongGDL( event.GetId()));
       widg->InitTag("TOP", DLongGDL( baseWidgetID));
-      widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+//      widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
       widg->InitTag("VALUE", DLongGDL( newSelection));
       widg->InitTag("DRAG", DIntGDL( 1)); // dragging events from here
       
@@ -1163,7 +1163,7 @@ void gdlwxFrame::OnThumbRelease( wxScrollEvent& event)
     widg = new DStructGDL( "WIDGET_SLIDER");
     widg->InitTag("ID", DLongGDL( event.GetId()));
     widg->InitTag("TOP", DLongGDL( baseWidgetID));
-    widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+//    widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
     widg->InitTag("VALUE", DLongGDL( newSelection));
     widg->InitTag("DRAG", DIntGDL( 0)); // set events from here
     
@@ -1187,7 +1187,7 @@ void gdlwxFrame::OnEnterWindow( wxMouseEvent &event ) {
     DStructGDL* widgtracking = new DStructGDL( "WIDGET_TRACKING" );
     widgtracking->InitTag( "ID", DLongGDL( event.GetId( ) ) );
     widgtracking->InitTag( "TOP", DLongGDL( baseWidgetID ) );
-    widgtracking->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
+//    widgtracking->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     widgtracking->InitTag( "ENTER", DIntGDL( 1 ) ); 
     GDLWidget::PushEvent( baseWidgetID, widgtracking );
   }
@@ -1208,7 +1208,7 @@ void gdlwxFrame::OnLeaveWindow( wxMouseEvent &event ) {
     DStructGDL* widgtracking = new DStructGDL( "WIDGET_TRACKING" );
     widgtracking->InitTag( "ID", DLongGDL( event.GetId( ) ) );
     widgtracking->InitTag( "TOP", DLongGDL( baseWidgetID ) );
-    widgtracking->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
+//    widgtracking->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     widgtracking->InitTag( "ENTER", DIntGDL( 0 ) ); 
     GDLWidget::PushEvent( baseWidgetID, widgtracking );
   }
@@ -1226,7 +1226,7 @@ void gdlwxFrame::OnKBRDFocusChange( wxFocusEvent &event ) {
     DStructGDL* widgkbrdfocus = new DStructGDL( "WIDGET_KBRD_FOCUS" );
     widgkbrdfocus->InitTag( "ID", DLongGDL( event.GetId( ) ) );
     widgkbrdfocus->InitTag( "TOP", DLongGDL( baseWidgetID ) );
-    widgkbrdfocus->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
+//    widgkbrdfocus->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     int enter=(event.GetEventType()==wxEVT_SET_FOCUS);
     widgkbrdfocus->InitTag( "ENTER", DIntGDL( enter ) ); 
     GDLWidget::PushEvent( baseWidgetID, widgkbrdfocus );
@@ -1261,7 +1261,7 @@ void gdlwxFrame::OnContextEvent( wxContextMenuEvent& event) {
     DStructGDL* widgcontext = new DStructGDL( "WIDGET_CONTEXT" );
     widgcontext->InitTag( "ID", DLongGDL( eventID ) );
     widgcontext->InitTag( "TOP", DLongGDL( baseWidgetID ) );
-    widgcontext->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
+//    widgcontext->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     wxPoint position=event.GetPosition( );
     if (position==wxDefaultPosition) { //issued from keyboard
       position=wxGetMousePosition();
@@ -1296,7 +1296,7 @@ void gdlwxFrame::OnIconize( wxIconizeEvent & event)
     DStructGDL* widgtlb_iconify_events = new DStructGDL( "WIDGET_TLB_ICONIFY" );
     widgtlb_iconify_events->InitTag( "ID", DLongGDL( event.GetId( ) ) );
     widgtlb_iconify_events->InitTag( "TOP", DLongGDL( baseWidgetID ) );
-    widgtlb_iconify_events->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
+//    widgtlb_iconify_events->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     widgtlb_iconify_events->InitTag( "ICONIFIED", DIntGDL( event.IsIconized() ) ); 
     GDLWidget::PushEvent( baseWidgetID, widgtlb_iconify_events );
   } else event.Skip();
@@ -1319,7 +1319,7 @@ void gdlwxFrame::OnMove( wxMoveEvent & event)
     DStructGDL* widgtlb_move_events = new DStructGDL( "WIDGET_TLB_MOVE" );
     widgtlb_move_events->InitTag( "ID", DLongGDL( event.GetId( ) ) );
     widgtlb_move_events->InitTag( "TOP", DLongGDL( baseWidgetID ) );
-    widgtlb_move_events->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
+//    widgtlb_move_events->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     widgtlb_move_events->InitTag( "X", DLongGDL( event.GetPosition().x ) );
     widgtlb_move_events->InitTag( "Y", DLongGDL( event.GetPosition().y ) );
     GDLWidget::PushEvent( baseWidgetID, widgtlb_move_events );
@@ -1343,7 +1343,7 @@ void gdlwxFrame::OnCloseFrame( wxCloseEvent & event) {
   DStructGDL* widgtlb_kill_request_events = new DStructGDL("WIDGET_KILL_REQUEST");
   widgtlb_kill_request_events->InitTag("ID", DLongGDL(event.GetId()));
   widgtlb_kill_request_events->InitTag("TOP", DLongGDL(baseWidgetID));
-  widgtlb_kill_request_events->InitTag("HANDLER", DLongGDL(baseWidgetID));
+//  widgtlb_kill_request_events->InitTag("HANDLER", DLongGDL(baseWidgetID));
   GDLWidget::PushEvent(baseWidgetID, widgtlb_kill_request_events);
 }
 
@@ -1472,7 +1472,7 @@ void gdlwxDrawPanel::OnFakeDropFileEvent(wxDropFilesEvent& event){
     DStructGDL* drawdrop = new DStructGDL("WIDGET_DROP");
     drawdrop->InitTag("ID", DLongGDL( myWidgetDraw->GetWidgetID() )); //ID of the destination
     drawdrop->InitTag("TOP", DLongGDL(baseWidgetID));
-    drawdrop->InitTag("HANDLER", DLongGDL(baseWidgetID));
+//    drawdrop->InitTag("HANDLER", DLongGDL(baseWidgetID));
     drawdrop->InitTag("DRAG_ID", DLongGDL(droppedID)); // ID of the source
     drawdrop->InitTag("POSITION", DIntGDL(1)); //   1 above 2 on 4 below destination widget
     wxPoint where=CalcUnscrolledPosition(event.GetPosition());
@@ -1492,7 +1492,7 @@ void gdlwxDrawPanel::OnMouseMove( wxMouseEvent &event ) {
     DStructGDL* widgdraw = new DStructGDL( "WIDGET_DRAW" );
     widgdraw->InitTag( "ID", DLongGDL( myWidgetDraw->GetWidgetID() ) );
     widgdraw->InitTag( "TOP", DLongGDL( baseWidgetID ) );
-    widgdraw->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
+//    widgdraw->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     widgdraw->InitTag( "TYPE", DIntGDL( 2 ) ); //motion
     wxPoint where=WhereIsMouse(event);
     widgdraw->InitTag( "X", DLongGDL( where.x ) );
@@ -1516,7 +1516,7 @@ void gdlwxDrawPanel::OnMouseDown( wxMouseEvent &event ) {
     DStructGDL* widgdraw = new DStructGDL( "WIDGET_DRAW" );
     widgdraw->InitTag( "ID", DLongGDL( myWidgetDraw->GetWidgetID() ) );
     widgdraw->InitTag( "TOP", DLongGDL( baseWidgetID ) );
-    widgdraw->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
+//    widgdraw->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     widgdraw->InitTag( "TYPE", DIntGDL( 0 ) ); //button Press
     wxPoint where=WhereIsMouse(event);
     widgdraw->InitTag( "X", DLongGDL( where.x ) );
@@ -1544,7 +1544,7 @@ void gdlwxDrawPanel::OnMouseDownDble(wxMouseEvent &event) {
 	DStructGDL* widgdraw = new DStructGDL("WIDGET_DRAW");
 	widgdraw->InitTag("ID", DLongGDL(myWidgetDraw->GetWidgetID()));
 	widgdraw->InitTag("TOP", DLongGDL(baseWidgetID));
-	widgdraw->InitTag("HANDLER", DLongGDL(baseWidgetID));
+//	widgdraw->InitTag("HANDLER", DLongGDL(baseWidgetID));
 	widgdraw->InitTag("TYPE", DIntGDL(0)); //button Press
 	wxPoint where = WhereIsMouse(event);
 	widgdraw->InitTag("X", DLongGDL(where.x));
@@ -1571,7 +1571,7 @@ void gdlwxDrawPanel::OnMouseUp( wxMouseEvent &event ) {
     DStructGDL* widgdraw = new DStructGDL( "WIDGET_DRAW" );
     widgdraw->InitTag( "ID", DLongGDL( myWidgetDraw->GetWidgetID() ) );
     widgdraw->InitTag( "TOP", DLongGDL( baseWidgetID ) );
-    widgdraw->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
+//    widgdraw->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     widgdraw->InitTag( "TYPE", DIntGDL( 1 ) ); //button Release
     wxPoint where=WhereIsMouse(event);
     widgdraw->InitTag( "X", DLongGDL( where.x ) );
@@ -1598,7 +1598,7 @@ void gdlwxDrawPanel::OnMouseWheel( wxMouseEvent &event ) {
     DStructGDL* widgdraw = new DStructGDL( "WIDGET_DRAW" );
     widgdraw->InitTag( "ID", DLongGDL( myWidgetDraw->GetWidgetID()  ) );
     widgdraw->InitTag( "TOP", DLongGDL( baseWidgetID ) );
-    widgdraw->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
+//    widgdraw->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     widgdraw->InitTag( "TYPE", DIntGDL( 7 ) ); //wheel event
     wxPoint where=WhereIsMouse(event);
     widgdraw->InitTag( "X", DLongGDL( where.x ) );
@@ -1627,7 +1627,7 @@ void gdlwxDrawPanel::OnKey( wxKeyEvent &event ) {
     DStructGDL* widgdraw = new DStructGDL( "WIDGET_DRAW" );
     widgdraw->InitTag( "ID", DLongGDL( myWidgetDraw->GetWidgetID() ) );
     widgdraw->InitTag( "TOP", DLongGDL( baseWidgetID ) );
-    widgdraw->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
+//    widgdraw->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     wxPoint where=WhereIsMouse(event);
     widgdraw->InitTag( "X", DLongGDL( where.x ) );
     widgdraw->InitTag( "Y", DLongGDL( drawSize.y-where.y  ) );
@@ -1692,7 +1692,7 @@ void wxGridGDL::OnTableRowResizing(wxGridSizeEvent & event){
     DStructGDL* widgtablerowheight = new DStructGDL( "WIDGET_TABLE_ROW_HEIGHT");
     widgtablerowheight->InitTag("ID", DLongGDL( event.GetId( ) ));
     widgtablerowheight->InitTag("TOP", DLongGDL( baseWidgetID));
-    widgtablerowheight->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+//    widgtablerowheight->InitTag("HANDLER", DLongGDL( baseWidgetID ));
     widgtablerowheight->InitTag("TYPE", DIntGDL(6)); // 6
     widgtablerowheight->InitTag("ROW", DLongGDL( event.GetRowOrCol() ));
     widgtablerowheight->InitTag("HEIGHT",DLongGDL( this->GetRowSize(event.GetRowOrCol())));
@@ -1712,7 +1712,7 @@ void wxGridGDL::OnTableColResizing(wxGridSizeEvent & event){
     DStructGDL* widgtablerowheight = new DStructGDL( "WIDGET_TABLE_COL_WIDTH");
     widgtablerowheight->InitTag("ID", DLongGDL( event.GetId( ) ));
     widgtablerowheight->InitTag("TOP", DLongGDL( baseWidgetID));
-    widgtablerowheight->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+//    widgtablerowheight->InitTag("HANDLER", DLongGDL( baseWidgetID ));
     widgtablerowheight->InitTag("TYPE", DIntGDL(7)); // 7
     widgtablerowheight->InitTag("COL", DLongGDL( event.GetRowOrCol() ));
     widgtablerowheight->InitTag("WIDTH",DLongGDL( this->GetColSize(event.GetRowOrCol())));
@@ -1743,7 +1743,7 @@ void wxGridGDL::OnTableRangeSelection(wxGridRangeSelectEvent & event) {
 	  DStructGDL* widgtablecelsel2 = new DStructGDL("WIDGET_TABLE_CELL_SEL"); //sel 
 	  widgtablecelsel2->InitTag("ID", DLongGDL(event.GetId()));
 	  widgtablecelsel2->InitTag("TOP", DLongGDL(baseWidgetID));
-	  widgtablecelsel2->InitTag("HANDLER", DLongGDL(baseWidgetID));
+//	  widgtablecelsel2->InitTag("HANDLER", DLongGDL(baseWidgetID));
 	  widgtablecelsel2->InitTag("TYPE", DIntGDL(4)); // 4 or 9
 	  widgtablecelsel2->InitTag("SEL_LEFT", DLongGDL(lc));
 	  widgtablecelsel2->InitTag("SEL_TOP", DLongGDL(tr));
@@ -1757,7 +1757,7 @@ void wxGridGDL::OnTableRangeSelection(wxGridRangeSelectEvent & event) {
 		DStructGDL* widgtablecelsel = new DStructGDL("WIDGET_TABLE_CELL_DESEL");
 		widgtablecelsel->InitTag("ID", DLongGDL(event.GetId()));
 		widgtablecelsel->InitTag("TOP", DLongGDL(baseWidgetID));
-		widgtablecelsel->InitTag("HANDLER", DLongGDL(baseWidgetID));
+//		widgtablecelsel->InitTag("HANDLER", DLongGDL(baseWidgetID));
 		widgtablecelsel->InitTag("TYPE", DIntGDL(9)); // 9
 		widgtablecelsel->InitTag("SEL_LEFT", DLongGDL(lc));
 		widgtablecelsel->InitTag("SEL_TOP", DLongGDL(tr));
@@ -1770,7 +1770,7 @@ void wxGridGDL::OnTableRangeSelection(wxGridRangeSelectEvent & event) {
 		DStructGDL* widgtablecelsel = new DStructGDL("WIDGET_TABLE_CELL_SEL");
 		widgtablecelsel->InitTag("ID", DLongGDL(event.GetId()));
 		widgtablecelsel->InitTag("TOP", DLongGDL(baseWidgetID));
-		widgtablecelsel->InitTag("HANDLER", DLongGDL(baseWidgetID));
+//		widgtablecelsel->InitTag("HANDLER", DLongGDL(baseWidgetID));
 		widgtablecelsel->InitTag("TYPE", DIntGDL(4)); // 
 		widgtablecelsel->InitTag("SEL_LEFT", DLongGDL(-1));
 		widgtablecelsel->InitTag("SEL_TOP", DLongGDL(-1));
@@ -1839,7 +1839,7 @@ void wxGridGDL::OnTextChanged(wxGridEvent & event) {
 	widg = new DStructGDL("WIDGET_TABLE_DEL");
 	widg->InitTag("ID", DLongGDL(GDLWidgetTableID));
 	widg->InitTag("TOP", DLongGDL(baseWidgetID));
-	widg->InitTag("HANDLER", DLongGDL(baseWidgetID));
+//	widg->InitTag("HANDLER", DLongGDL(baseWidgetID));
 	widg->InitTag("TYPE", DIntGDL(2)); // delete
 	widg->InitTag("OFFSET", DLongGDL(offset));
 	widg->InitTag("LENGTH", DLongGDL(-lengthDiff));
@@ -1852,7 +1852,7 @@ void wxGridGDL::OnTextChanged(wxGridEvent & event) {
 	widg = new DStructGDL("WIDGET_TABLE_CH");
 	widg->InitTag("ID", DLongGDL(GDLWidgetTableID));
 	widg->InitTag("TOP", DLongGDL(baseWidgetID));
-	widg->InitTag("HANDLER", DLongGDL(baseWidgetID));
+//	widg->InitTag("HANDLER", DLongGDL(baseWidgetID));
 	widg->InitTag("TYPE", DIntGDL(0)); // single char
 	widg->InitTag("OFFSET", DLongGDL(offset));
 	widg->InitTag("CH", DByteGDL(10)); //newline
@@ -1865,7 +1865,7 @@ void wxGridGDL::OnTextChanged(wxGridEvent & event) {
 	widg = new DStructGDL("WIDGET_TABLE_CH");
 	widg->InitTag("ID", DLongGDL(GDLWidgetTableID));
 	widg->InitTag("TOP", DLongGDL(baseWidgetID));
-	widg->InitTag("HANDLER", DLongGDL(baseWidgetID));
+//	widg->InitTag("HANDLER", DLongGDL(baseWidgetID));
 	widg->InitTag("TYPE", DIntGDL(0)); // single char
 	widg->InitTag("OFFSET", DLongGDL(offset));
 	widg->InitTag("CH", DByteGDL((newValue.substr(offset, offset).c_str())[0]));
@@ -1880,7 +1880,7 @@ void wxGridGDL::OnTextChanged(wxGridEvent & event) {
 	  widg = new DStructGDL("WIDGET_TABLE_DEL");
 	  widg->InitTag("ID", DLongGDL(GDLWidgetTableID));
 	  widg->InitTag("TOP", DLongGDL(baseWidgetID));
-	  widg->InitTag("HANDLER", DLongGDL(baseWidgetID));
+//	  widg->InitTag("HANDLER", DLongGDL(baseWidgetID));
 	  widg->InitTag("TYPE", DIntGDL(2)); // delete
 	  widg->InitTag("OFFSET", DLongGDL(offset));
 	  widg->InitTag("LENGTH", DLongGDL(previousValue.length() - offset));
@@ -1894,7 +1894,7 @@ void wxGridGDL::OnTextChanged(wxGridEvent & event) {
 	widg2 = new DStructGDL("WIDGET_TABLE_STR");
 	widg2->InitTag("ID", DLongGDL(GDLWidgetTableID));
 	widg2->InitTag("TOP", DLongGDL(baseWidgetID));
-	widg2->InitTag("HANDLER", DLongGDL(baseWidgetID));
+//	widg2->InitTag("HANDLER", DLongGDL(baseWidgetID));
 	widg2->InitTag("TYPE", DIntGDL(1)); // multiple char
 	widg2->InitTag("OFFSET", DLongGDL(offset));
 	widg2->InitTag("STR", DStringGDL(newValue.substr(offset)));

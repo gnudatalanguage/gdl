@@ -282,6 +282,7 @@ pro handle_Event,ev
         end
         
      endcase
+     return
   endif
   print, "(unhandled event: ok)"
 end
