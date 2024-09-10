@@ -1086,7 +1086,7 @@ public:
       this->SetFont(font);
       popupMenu=new wxMenu();
       position=this->GetClientRect().GetBottomLeft();
-      Connect(id, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(wxButtonGDL::OnButton));
+//      Connect(id, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(wxButtonGDL::OnButton));
       Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(wxButtonGDL::OnButton));
     }
   wxMenu* GetPopupMenu(){return popupMenu;}
@@ -1098,6 +1098,7 @@ private:
 class wxBitmapButtonGDL: public wxBitmapButton
 {
   wxMenu* popupMenu;
+  wxPoint position;
 public: 
   wxBitmapButtonGDL(wxWindow *parent, 
           wxWindowID id, 
@@ -1109,7 +1110,8 @@ public:
           const wxString &name=wxButtonNameStr):
       wxBitmapButton(parent,id,bitmap_,pos,size,style,validator,name){
       popupMenu=new wxMenu();
-      Connect(id, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(wxBitmapButtonGDL::OnButton));
+      position=this->GetClientRect().GetBottomLeft();
+//      Connect(id, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(wxBitmapButtonGDL::OnButton));
       Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(wxBitmapButtonGDL::OnButton));
   }
   wxMenu* GetPopupMenu(){return popupMenu;}

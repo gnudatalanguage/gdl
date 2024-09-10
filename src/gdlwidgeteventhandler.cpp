@@ -333,7 +333,7 @@ void wxBitmapButtonGDL::OnButton( wxCommandEvent& event)
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_BUTTON_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlMenuButtonBitmap::OnButton: %d\n"),event.GetId());
 #endif
- this->PopupMenu(static_cast<wxMenu*>(popupMenu));
+ this->PopupMenu(static_cast<wxMenu*>(popupMenu),position);
  event.Skip();
 }
 
