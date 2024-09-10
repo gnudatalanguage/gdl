@@ -18,6 +18,8 @@
 #ifndef DINTERPRETER_HPP_
 #define DINTERPRETER_HPP_
 
+#define GDL_INPUT_TIMEOUT 167 //16667 //microseconds -> 60 per second
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -26,18 +28,13 @@
 #include <csignal>
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
-#define GDL_SIGUSR1 SIGABRT //working replacement avoidng changing code?
-#define GDL_SIGUSR2 SIGILL
-extern int gdl_ipc_sendsignalToParent(); 
-extern void gdl_ipc_acknowledge_suprocess_started(long long pid);
+extern void gdl_ipc_ClientSignalsOperationsOK();
+extern void gdl_ipc_ClientSendReturn(unsigned char status, std::string s);
+extern void gdl_ipc_ClientClosesMailBox();
 #else
-#define GDL_SIGUSR1 SIGUSR1
-#define GDL_SIGUSR2 SIGUSR2
-extern int gdl_ipc_sendsignalToParent();
-extern int gdl_ipc_sendCtrlCToChild(int pid);
-extern int gdl_ipc_sendsignalToChild(int pid);
-extern int gdl_ipc_SetReceiverForChildSignal(void (* handler)(int sig, siginfo_t *siginfo, void *context));
-extern void gdl_ipc_acknowledge_suprocess_started(pid_t pid);
+extern void gdl_ipc_ClientSignalsOperationsOK();
+extern void gdl_ipc_ClientSendReturn(unsigned char status, std::string s);
+extern void gdl_ipc_ClientClosesMailBox();
 #endif 
 
 #include <cfenv>
@@ -59,8 +56,7 @@ extern void gdl_ipc_acknowledge_suprocess_started(pid_t pid);
 #define 	AUTO_PRINT_EXPR
 
 void ControlCHandler(int);
-void SignalChildHandler(int);
-void SignalMasterHandler(int);
+void ChildControlCHandler(int);
 
 extern bool lineEdit; // = false;
 extern bool historyIntialized; 
@@ -74,7 +70,8 @@ public:
      CC_CONTINUE,
      CC_STEP,
      CC_SKIP,
-     CC_RETURN
+     CC_RETURN,
+     CC_ABORT
    };
 
   char* NoReadline(const std::string&);

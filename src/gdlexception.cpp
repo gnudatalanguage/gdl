@@ -244,6 +244,7 @@ GDLException::GDLException(DLong eC, SizeT l, SizeT c, const string& s):
   {
     msg = s;
   }
+  if (!iAmMaster) gdl_ipc_ClientSendReturn(3,s);
 #ifdef GDL_DEBUG
    cerr << s << endl;
 #endif

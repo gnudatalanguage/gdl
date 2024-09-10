@@ -214,11 +214,8 @@ namespace lib {
     for (int p = 0; p < maxLun; ++p) { //and NOT userlun!
       fileUnits[p].Flush();
 	}
-	//before stopping a client, acknowledge the last ("EXIT") command otherwise the master is hanged.
-	if (signalOnCommandReturn) { //cout is NOT a tty. We just send GDL_SIGUSR2 to parent
-	  signalOnCommandReturn = false;
-	  gdl_ipc_sendsignalToParent();
-	  //		    std::cout<<"signalOnCommandReturn is now "<<signalOnCommandReturn<<std::endl;
+	if (!iAmMaster){
+	  gdl_ipc_ClientClosesMailBox();
 	}
     
     BaseGDL* status = e->GetKW(1);
@@ -1174,6 +1171,7 @@ namespace lib {
   }
 
   void stop(EnvT* e) {
+	  if (iAmMaster) {
     if ( e->Interpreter()->IsInBatchProcedureAtMain() ) {
       debugMode = DEBUG_STOP;
       e->Throw("Prematurely closing batch file:");
@@ -1183,6 +1181,10 @@ namespace lib {
       print(e);
       debugMode = DEBUG_STOP_SILENT;
     } else debugMode = DEBUG_STOP;
+	} else {
+		gdl_ipc_ClientSendReturn(2,"");
+		e->Throw("Use of STOP in Client mode!");
+	}
   }
 
   void defsysv(EnvT* e) {

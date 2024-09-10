@@ -38,7 +38,7 @@ int GDLEventHandler()
 {
 #if !defined(_WIN32)
   if (iAmMaster) {
-	HandleObjectsCallbacks();
+	g2gEventDispatcher();
   }
 #endif
 #ifdef HAVE_LIBWXWIDGETS
