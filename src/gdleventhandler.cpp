@@ -46,18 +46,10 @@ int GDLEventHandler()
 #endif
   GraphicsDevice::HandleEvents();
 
-  const long OS_X_DELAY_NS = 20000000; // 20ms
-//ONLY APPLE? or WIN? Why? (GD)
-#ifdef __APPLE__
-  // under OS X the event loop burns to much CPU time
-  struct timespec delay;
-  delay.tv_sec=0;
-  delay.tv_nsec = OS_X_DELAY_NS; // 20ms
-  nanosleep(&delay,NULL);
-#endif
 #ifdef _WIN32 
   Sleep(10);  // this just to quiet down the character input from readline. 2 was not enough. 20 was ok.
 #endif
+  
   return 0;
 }
 
