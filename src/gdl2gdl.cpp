@@ -24,6 +24,7 @@
 #include <string>       // std::string
 #include <iostream>     // std::cout
 #include <sstream>      // std::istringstream
+#include <thread>
 #include <fcntl.h>      /* O_flags */
 #include <sys/mman.h>   /* shared memory and mmap() */
 #include <sys/shm.h>
@@ -101,21 +102,20 @@ static void g2gPerformCallbackProcedure(pid_t pid) {
   }
 }
 
-void g2gEventDispatcher() {
-  for (g2gMapIter it=g2gMap.begin(); it!=g2gMap.end(); ++it)
-  {
-	if ((*it).second.status==1) { //waiting to be finished
-	  if ((*it).second.nowait) gdl_ipc_read_client_nowait((*it).first);
-	  else gdl_ipc_read_client_wait((*it).first);
+void g2gAsynchronousReturnTrap() {
+  while (g2gMap.size() > 0) {
+    for (g2gMapIter it = g2gMap.begin(); it != g2gMap.end(); ++it) {
+	  if ( (*it).second.status==1 && (*it).second.nowait ) gdl_ipc_read_client_nowait((*it).first);
 	}
+	usleep (10000);
   }
+//  std::cerr<<"g2gAsynchronousReturnTrap exiting"<<std::endl;
 }
 
 int gdl_ipc_write_to_client(EnvT* e, DLong* id, const std::string & command, bool nowait = true) {
   pid_t pid=id[2];
   // should start with no error
   g2gMap.at(pid).description.clear();
-  //Warning: ChildSignalHandlerWithCallBack must be used ONLY when a NOWAIT is asked for.
   auto l = command.length();
   g2gMap.at(pid).status = 1;
   g2gMap.at(pid).nowait=nowait;
@@ -417,7 +417,7 @@ void gdl_ipc_ClientSendReturn(unsigned char status, std::string s) {
 	 int l=s.size()+1; l=(l > MSG_BUFFER_SIZE)?MSG_BUFFER_SIZE-1:l;
 	 out_buffer[0]=status;
 	 strncpy(&out_buffer[1],s.c_str(),l);
-//	std::cerr << "using handle " <<gdl2gdlMessageBoxHandle<<" for response"<<std::endl;
+	std::cerr << "using handle " <<gdl2gdlMessageBoxHandle<<" for response"<<status<<std::endl;
 	 if (mq_send (gdl2gdlMessageBoxHandle, out_buffer, l + 2, 0) == -1) {
 		throw GDLException("Client "+i2s(getpid())+" is not able to send message to server, reason: "+string(strerror(errno)));
 	}
@@ -435,11 +435,66 @@ void gdl_ipc_MasterWaitsForClientOK(pid_t pid){
         if (mq_receive (g2gMap.at(pid).MessageChannelHandle, in_buffer, MSG_BUFFER_SIZE, NULL) == -1) {
           throw GDLException("Server: mq_receive :"+string(strerror(errno)));
         }
-//	 pid_t received_pid;
-//	 static int l=sizeof(pid_t);
-//	 memcpy(&received_pid,in_buffer,l);
-//     printf ("Server: message received: %d\n",pid);
 }
+// called from main eventloop. Reads g2gObjetcs events (could easily be extended to other event-needing objects)
+void g2gEventDispatcher() {
+  DStructGDL* ev;
+  while ((ev = gdl2gdlCallbackQueue.Pop()) != NULL) { // get event
+	DStringGDL* callbackname = static_cast<DStringGDL*> (ev->GetTag(0));
+//	std::cerr << "callback: " << (*callbackname)[0] << std::endl;
+	int proIx = GDLInterpreter::GetProIx((*callbackname)[0]);
+	if (proIx != -1) {
+	  // perform callback and reset status to IDLE at end of callback
+	  DIntGDL* status = static_cast<DIntGDL*> (ev->GetTag(1));
+	  DStringGDL* error = static_cast<DStringGDL*> (ev->GetTag(2));
+	  DObjGDL* o = static_cast<DObjGDL*> (ev->GetTag(3));
+      DStructGDL* self = BaseGDL::interpreter->GetObjHeap((*o)[0]);
+	  DLongGDL* triplet=static_cast<DLongGDL*>(self->GetTag(6));
+	  pid_t pid=(*triplet)[2];
+	  EnvUDT* newEnv = new EnvUDT(NULL, proList[ proIx], NULL);
+	  newEnv->SetNextPar(status);
+	  newEnv->SetNextPar(error);
+	  newEnv->SetNextPar(o);
+
+	  DPtrGDL* ptrgdl = static_cast<DPtrGDL*> (ev->GetTag(4));
+	  DPtr p = (*ptrgdl)[0];
+	  if (BaseGDL::interpreter->PtrValid(p)) {
+		BaseGDL* data = BaseGDL::interpreter->GetHeap(p);
+		newEnv->SetNextPar(data);
+	  }
+	  BaseGDL::interpreter->CallStack().push_back(newEnv);
+	  // make the call
+	  BaseGDL::interpreter->call_pro(proList[ proIx]->GetTree());
+	  BaseGDL::interpreter->CallStack().pop_back();
+	  g2gMap.at(pid).status = 0;
+	  g2gMap.at(pid).description.clear();
+	  g2gMap.at(pid).nowait = false;
+	  std::cerr << "and event dispatched for pid= "<<pid<<"\n";
+	}
+  }
+}
+
+// used for non-waiting executes, run in parallel (in g2gAsynchronousReturnTrap()) 
+// with current EnvT of gdl, so MUST NOT interfere with it: just
+// push an event in a queue (thread safe). Event will be processed in the MAIN MASTER LOOP
+static void ReportUsingCallBack(pid_t pid) {
+  // push callback event if necessary
+  DObjGDL* o = g2gMap.at(pid).obj;
+  DStructGDL* self = BaseGDL::interpreter->GetObjHeap((*o)[0]);
+  DStringGDL* callbackproc = static_cast<DStringGDL*> (self->GetTag(3));
+  if (callbackproc->NBytes() > 0) {
+	std::cerr<<"callback struct...";
+	StrUpCaseInplace((*callbackproc)[0]);
+	DStructGDL* ev = new DStructGDL("GDL2GDL_CBK_EVENT");
+	ev->InitTag("CALLBACKPROC", DStringGDL((*callbackproc)[0]));
+	ev->InitTag("CALLBACKSTATUS", DIntGDL(g2gMap.at(pid).status));
+	ev->InitTag("CALLBACKERROR", DStringGDL(g2gMap.at(pid).description));
+	ev->InitTag("CALLBACKOBJECT", *o);
+	ev->InitTag("CALLBACKUSERDATA", *(self->GetTag(5)));
+	gdl2gdlCallbackQueue.PushBack(ev);
+  }
+}
+
 void gdl_ipc_read_client_wait(pid_t pid){
      char* in_buffer=(char*) calloc(MSG_BUFFER_SIZE,1);
 	 messageBoxHandle clientMessageBoxHandle=g2gMap.at(pid).MessageChannelHandle;
@@ -447,13 +502,14 @@ void gdl_ipc_read_client_wait(pid_t pid){
           throw GDLException("Server: mq_receive :"+string(strerror(errno)));
         }
   int status = in_buffer[0]; //2,3, or 4
-//  std::cerr<<"\ngot something:"<<status<<std::endl;
+//  std::cerr<<"\nwait got something:"<<status<<std::endl;
   if (status < 2 || status > 4) throw GDLException("Wrong return from client program");
   g2gMap.at(pid).status=status;
   std::string r(&in_buffer[1]);
   g2gMap.at(pid).description=r;
   g2gPerformCallbackProcedure(pid);
 }
+
 void gdl_ipc_read_client_nowait(pid_t pid) {
   char* in_buffer = (char*) calloc(MSG_BUFFER_SIZE, 1);
   timespec timeout;
@@ -469,12 +525,12 @@ void gdl_ipc_read_client_nowait(pid_t pid) {
   }
   //it has already returned something
   int status = in_buffer[0]; //2,3, or 4
-//  std::cerr<<"\ngot something:"<<status<<std::endl;
+//  std::cerr<<"\nnowait got something:"<<status<<std::endl;
   if (status < 2 || status > 4) throw GDLException("Wrong return from client program");
   g2gMap.at(pid).status=status;
   std::string r(&in_buffer[1]);
   g2gMap.at(pid).description=r;
-  g2gPerformCallbackProcedure(pid);
+  ReportUsingCallBack(pid); //just report (can be done in a thread), will be 'treated' by master loop in GDL.
 }
 #endif
 
@@ -886,6 +942,7 @@ namespace lib {
     g2gMap.at(pid).status = 1;
     g2gMap.at(pid).nowait=false;
 	gdl_ipc_sendCtrlCToClient(pid); //make ^C
+	gdl_ipc_read_client_wait(pid); //synchronously wait for subprocess halted. (not sure IDL does that)
   }
 
   BaseGDL* gmem_fork(EnvT* e) {
@@ -910,7 +967,6 @@ namespace lib {
 	std::string passed_name;
     messageBoxHandle id=StartIndividualClientMessageChannel(passed_name);
 //	std::cerr << "creating handle " <<id<<" for "<<passed_name <<std::endl;
-
 	//now 2 processes
 	subprocess_pid = fork();
 	if (subprocess_pid == -1) {
@@ -950,10 +1006,13 @@ namespace lib {
 	  params.description.clear();
 	  params.status=0;
 	  params.obj=o;
+	  bool startspy = (g2gMap.size() == 0) ; //will start a spy detached thread for NOWAIT operations, that will end itself when g2GMap is empty
 	  g2gMap.insert(std::pair<pid_t,gdl2gdlparams>(subprocess_pid,params));
 	  g2gMap.at(subprocess_pid).MessageChannelHandle=id;
 	  // insure communication with child is OK waiting for a status change
       gdl_ipc_MasterWaitsForClientOK(subprocess_pid);
+	  //  start eventually spy process
+	  if (startspy)  std::thread(g2gAsynchronousReturnTrap).detach();
       return triplet;
 	}
 

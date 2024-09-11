@@ -1081,7 +1081,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 {
   string line = (in != NULL) ? ::GetLine(in) : GetLine();
 
-  // cout << "ExecuteLine: " << line << endl;
+//   cout << "ExecuteLine: " << line << endl;
 
   string firstChar = line.substr(0,1);
 

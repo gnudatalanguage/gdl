@@ -340,6 +340,14 @@ void InitStructs()
   // insert into structList
   structList.push_back(idl_idlBridge);
   structDesc::IDL_IDLBRIDGE = idl_idlBridge;
+  //used for IDL_IDLBRIDGE CALLBACKS
+  DStructDesc* gdl2gdl_cbk_event = new DStructDesc( "GDL2GDL_CBK_EVENT");
+  gdl2gdl_cbk_event->AddTag("CALLBACKPROC", &aString); 
+  gdl2gdl_cbk_event->AddTag("CALLBACKSTATUS", &aInt); 
+  gdl2gdl_cbk_event->AddTag("CALLBACKERROR", &aString); 
+  gdl2gdl_cbk_event->AddTag("CALLBACKOBJECT", &aObjRef);
+  gdl2gdl_cbk_event->AddTag("CALLBACKUSERDATA", &aPtrRef);
+  structList.push_back(gdl2gdl_cbk_event);
  
   
   // OBJECTS END =======================================================

@@ -41,6 +41,7 @@ extern messageBoxHandle gdl2gdlMessageBoxHandle; //client server queue descripto
 #define MSG_BUFFER_SIZE MAX_MSG_SIZE + 10
 
 extern GDLEventQueue gdl2gdlCallbackQueue;
+extern void g2gEventDispatcher();
 
 struct GDL2GDLINFOS {
   DObjGDL* obj;
@@ -57,7 +58,7 @@ extern std::map<int, int> g2gListOfSharedMem;
 typedef std::map<int,int>::iterator g2gSharedMemListIter;
 
 using namespace std;
-extern void g2gEventDispatcher();
+extern void g2gAsynchronousReturnTrap();
 
 extern void StartMasterMessageChannel();
 extern void StartIndividualClientMessageChannel();
