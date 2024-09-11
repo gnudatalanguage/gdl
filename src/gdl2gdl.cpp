@@ -469,7 +469,6 @@ void g2gEventDispatcher() {
 	  g2gMap.at(pid).status = 0;
 	  g2gMap.at(pid).description.clear();
 	  g2gMap.at(pid).nowait = false;
-	  std::cerr << "and event dispatched for pid= "<<pid<<"\n";
 	}
   }
 }
@@ -483,7 +482,6 @@ static void ReportUsingCallBack(pid_t pid) {
   DStructGDL* self = BaseGDL::interpreter->GetObjHeap((*o)[0]);
   DStringGDL* callbackproc = static_cast<DStringGDL*> (self->GetTag(3));
   if (callbackproc->NBytes() > 0) {
-	std::cerr<<"callback struct...";
 	StrUpCaseInplace((*callbackproc)[0]);
 	DStructGDL* ev = new DStructGDL("GDL2GDL_CBK_EVENT");
 	ev->InitTag("CALLBACKPROC", DStringGDL((*callbackproc)[0]));
