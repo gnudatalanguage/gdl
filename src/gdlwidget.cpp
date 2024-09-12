@@ -646,15 +646,15 @@ extern "C" { void CPSEnableForegroundOperation( ProcessSerialNumber* psn ); }
 #endif
 
   //initialize wxWidgets system:  create an instance of wxAppGDL here, not at Main (
-//#ifndef __WXMAC__ 
-//    wxAppGDL& wxGetApp() { return *static_cast<wxAppGDL*>(wxApp::GetInstance()); }   
-//    wxAppConsole *wxCreateApp() 
-//    { 
-//        wxAppConsole::CheckBuildOptions(WX_BUILD_OPTIONS_SIGNATURE,"GDL");
-//        return new wxAppGDL;
-//    }
-//    wxAppInitializer  wxTheAppInitializer((wxAppInitializerFunction) wxCreateApp);
-//#else
+#ifndef __WXMAC__ 
+    wxAppGDL& wxGetApp() { return *static_cast<wxAppGDL*>(wxApp::GetInstance()); }   
+    wxAppConsole *wxCreateApp() 
+    { 
+        wxAppConsole::CheckBuildOptions(WX_BUILD_OPTIONS_SIGNATURE,"GDL");
+        return new wxAppGDL;
+    }
+    wxAppInitializer  wxTheAppInitializer((wxAppInitializerFunction) wxCreateApp);
+#else
     wxApp& wxGetApp() { return *static_cast<wxApp*>(wxApp::GetInstance()); }   
     wxAppConsole *wxCreateApp() 
     { 
@@ -662,7 +662,7 @@ extern "C" { void CPSEnableForegroundOperation( ProcessSerialNumber* psn ); }
         return new wxApp;
     }
     wxAppInitializer  wxTheAppInitializer((wxAppInitializerFunction) wxCreateApp);
-//#endif
+#endif
 
 void GDLEventQueue::Purge()
 {
@@ -7832,20 +7832,20 @@ void GDLWidgetDraw::SetWidgetScreenSize(DLong sizex, DLong sizey) {
 // for MacOS /COCOA port, the following code does not work and the application is hung (!) Help!
 // So we rely only on doing nothing and call Yield() , that works, fingers crossed.
 // Really strange but wxWidgets is not well documented (who is?)
-//#ifndef __WXMAC__ 
-//int wxAppGDL::MyLoop() {
-//    if (loop.IsOk()) {
-////      std::cerr<<&loop<<std::endl;
-//      loop.SetActive(&loop);
-//      if (loop.IsRunning()) {
-//        while (loop.Pending()) // Unprocessed events in queue
-//        {
-//          loop.Dispatch(); // Dispatch next event in queue
-//        }
-//      }
-//    }
-//  return 0;
-//}
-//#endif
+#ifndef __WXMAC__ 
+int wxAppGDL::MyLoop() {
+    if (loop.IsOk()) {
+//      std::cerr<<&loop<<std::endl;
+      loop.SetActive(&loop);
+      if (loop.IsRunning()) {
+        while (loop.Pending()) // Unprocessed events in queue
+        {
+          loop.Dispatch(); // Dispatch next event in queue
+        }
+      }
+    }
+  return 0;
+}
+#endif
 
 #endif
