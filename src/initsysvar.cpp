@@ -213,13 +213,24 @@ namespace SysVar
     DVar& eiSysVar=*sysVarList[edit_inputIx];
     return static_cast<DIntGDL&>(*eiSysVar.Data())[0];
   }
+  void Suppress_Edit_Input()
+  {
+    DVar& eiSysVar=*sysVarList[edit_inputIx];
+    static_cast<DIntGDL&>(*eiSysVar.Data())[0]=0;
+  }
 
   DLong Quiet()
   {
     DVar& qSysVar=*sysVarList[quietIx];
     return static_cast<DLongGDL&>(*qSysVar.Data())[0];
   }
-
+  
+  void Make_Quiet()
+  {
+    DVar& qSysVar=*sysVarList[quietIx];
+    static_cast<DLongGDL&>(*qSysVar.Data())[0]=1;
+  }
+  
   DLong GDL_Warning()
   {
     DVar& gwSysVar=*sysVarList[gdlWarningIx];
@@ -656,7 +667,7 @@ namespace SysVar
 
     // !GDL (to allow distinguish IDL/GDL with DEFSYSV, '!gdl', exists=exists )
     DStructGDL*  gdlStruct = new DStructGDL( "!GNUDATALANGUAGE");
-    gdlStruct->NewTag("RELEASE", new DStringGDL( VERSION + (VERSION[0] == 'v' ? 1 : 0)));
+    gdlStruct->NewTag("RELEASE", new DStringGDL( (char*)VERSION + (VERSION[0] == 'v' ? 1 : 0)));
 
     // creating an explicit build date in !GDL (also exist in !version)
     gdlStruct->NewTag("BUILD_DATE", new DStringGDL(BUILD_DATE));

@@ -162,7 +162,7 @@ namespace lib {
 //  }
   
   void exitgdl(EnvT* e) {
-
+	if (iAmMaster){
 #if defined(HAVE_LIBREADLINE)
 
     // we manage the ASCII "history" file (located in ~/.gdl/)
@@ -206,14 +206,17 @@ namespace lib {
       }
     }
 #endif
-
+    }
     sem_onexit();
 
     //flush & close still opened files.
     
     for (int p = 0; p < maxLun; ++p) { //and NOT userlun!
       fileUnits[p].Flush();
-    }
+	}
+	if (!iAmMaster){
+	  gdl_ipc_ClientClosesMailBox();
+	}
     
     BaseGDL* status = e->GetKW(1);
     if (status == NULL) exit(EXIT_SUCCESS);
@@ -1168,6 +1171,7 @@ namespace lib {
   }
 
   void stop(EnvT* e) {
+	  if (iAmMaster) {
     if ( e->Interpreter()->IsInBatchProcedureAtMain() ) {
       debugMode = DEBUG_STOP;
       e->Throw("Prematurely closing batch file:");
@@ -1177,6 +1181,10 @@ namespace lib {
       print(e);
       debugMode = DEBUG_STOP_SILENT;
     } else debugMode = DEBUG_STOP;
+	} else {
+		gdl_ipc_ClientSendReturn(2,"");
+		e->Throw("Use of STOP in Client mode!");
+	}
   }
 
   void defsysv(EnvT* e) {

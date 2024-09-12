@@ -124,9 +124,9 @@ pro WRITE_JPEG, filename, image, true=true, $
   endif else begin
      mid=MAGICK_CREATE(im_size[0],im_size[1]) ; only 2 dimensions allowed here
                                 ; create a greyscale colormap
-     cmap=indgen(256)
-     MAGICK_WRITECOLORTABLE, mid,cmap,cmap,cmap
+;;     cmap=indgen(256)
      MAGICK_WRITE, mid, image
+;;     MAGICK_WRITECOLORTABLE, mid,cmap,cmap,cmap
      if (KEYWORD_SET(progressive)) then MAGICK_INTERLACE, mid, /LINEINTERLACE
      if (KEYWORD_SET(order)) then MAGICK_FLIP,mid
      q=75

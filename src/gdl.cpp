@@ -43,6 +43,7 @@
 #include "dinterpreter.hpp"
 #include "terminfo.hpp"
 #include "gdleventhandler.hpp"
+#include "gdl2gdl.hpp"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -65,12 +66,6 @@
 //initialize wxWidgets system:  create an instance of wxAppGDL
 #ifdef HAVE_LIBWXWIDGETS
 #include "gdlwidget.hpp"
-//displaced in gdlwidget.cpp to make wxGetApp() available under Python (in GDL.so)
-//#ifndef __WXMAC__ 
-//wxIMPLEMENT_APP_NO_MAIN( wxAppGDL);
-//#else
-//wxIMPLEMENT_APP_NO_MAIN( wxApp);
-//#endif
 #endif
 
 #include "version.hpp"
@@ -163,6 +158,7 @@ void InitGDL()
   //Our handler takes too long
   //when editing the command line with ARROW keys. (bug 562). (used also in dinterpreted.cpp )
   //but... without it we have no graphics event handler! FIXME!!! 
+  rl_set_keyboard_input_timeout (GDL_INPUT_TIMEOUT);
   rl_event_hook = GDLEventHandler;
 #endif
 
@@ -180,11 +176,6 @@ void InitGDL()
 #ifdef HAVE_LOCALE_H
   setlocale(LC_ALL, "C");
 #endif
-
-  // for debug one could turn on all floating point exceptions, it will stop at first one.
-  //  feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
-
-  signal(SIGINT,ControlCHandler);
 
   lib::SetGDLGenericGSLErrorHandler();
 }
@@ -236,16 +227,20 @@ namespace MyPaths {
 }
 }
 
-
 int main(int argc, char *argv[])
 {
+
   // indicates if the user wants to see the welcome message
   bool quiet = false;
   bool gdlde = false;
+  bool setQuietSysvar=false;
+  bool willSuppressEditInput=false;
+  std::string myMessageBoxName="";
 
   // The default installation location --- will not always be there.
   gdlDataDir = std::string(GDL_DATA_DIR);
   gdlLibDir = std::string(GDL_LIB_DIR);
+
 #ifdef _WIN32
   std::replace(gdlDataDir.begin(), gdlDataDir.end(), '/', '\\');
   std::replace(gdlLibDir.begin(), gdlLibDir.end(), '/', '\\');
@@ -255,7 +250,8 @@ int main(int argc, char *argv[])
   if (gdlLibDir.at(0) != lib::PathSeparator()) gdlLibDir.assign(lib::PathSeparator() + gdlLibDir);
 
 //check where is the executable being run
- auto whereami = MyPaths::getExecutablePath();
+
+  auto whereami = MyPaths::getExecutablePath();
 // if I am at a 'bin' location, then there are chances that I've been INSTALLED, so all the resources I need can be accessed relatively to this 'bin' directory.
 // if not, then I'm probably just a 'build' gdl and my resources may (should?) be in the default location GDL_DATA_DIR
   auto pos = whereami.rfind("bin");
@@ -273,6 +269,10 @@ int main(int argc, char *argv[])
   auto driversPath = GetEnvPathString("GDL_DRV_DIR");
   // use the identical approach already used for figuring out the path to out *.pro files etc.
   if (driversPath.empty()) driversPath = gdlLibDir;
+
+  //various env set?
+  char* wantCalm = getenv("IDL_QUIET");
+  if (wantCalm != NULL) setQuietSysvar=true;
 
   //drivers if local
   useLocalDrivers=false;
@@ -328,7 +328,7 @@ int main(int argc, char *argv[])
   tryToMimicOriginalWidgets = false;
   useDSFMTAcceleration = true;
   iAmANotebook=false; //option --notebook
-  iAmSilent=false; //option --silent
+  iAmMaster=true; //special option --subprocess
  #ifdef HAVE_LIBWXWIDGETS 
 
     #if defined (__WXMAC__) 
@@ -498,8 +498,19 @@ int main(int argc, char *argv[])
       }
       else if (string(argv[a]) == "--silent")
       {
-         iAmSilent = true;
+         setQuietSysvar=true;
       }
+      else if (string(argv[a]) == "--subprocess") {
+		if (a == argc - 1) {
+		  cerr << "gdl: --subprocess must be followed by the parent's pid" << endl;
+		  return 0;
+		}
+		myMessageBoxName = argv[++a];
+	  	iAmMaster = false;
+		setQuietSysvar = true;
+		willSuppressEditInput = true;
+		//		 std::cerr<<"I am a SubProcess"<<std::endl;
+	  }
       else if (string(argv[a]) == "--fakerelease")
       {
         if (a == argc - 1)
@@ -525,6 +536,9 @@ int main(int argc, char *argv[])
     cerr << argv[0] << ": " << "-e option cannot be specified with batch files" << endl;
     return 0;
   }
+
+  //depending on master or not, attach to respective message boxes
+  if (!iAmMaster) gdl_ipc_ClientGetsMailboxAddress(myMessageBoxName);	
   
   //before InitGDL() as InitGDL() starts graphic!
   
@@ -546,7 +560,20 @@ int main(int argc, char *argv[])
   if ( doUseUglyFonts.length() > 0) tryToMimicOriginalWidgets=true; 
   
   InitGDL(); 
+  
+  // for debug one could turn on all floating point exceptions, it will stop at first one.
+  //  feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
 
+  
+#if !defined(_WIN32)
+  if (iAmMaster) {
+	signal(SIGINT, ControlCHandler); 
+	signal(SIGCHLD,SIG_IGN); //end subprocess is by sending it 'EXIT'. 
+	                         //This should avoid zombies after a IDL_IDLBridge::Cleanup for example.
+	                         // but we do not trap a subprocess crashing, which may be desirable!
+  } else signal(SIGINT, ChildControlCHandler);
+#endif
+  
   // must be after !cpu initialisation
   InitOpenMP(); //will supersede values for CpuTPOOL_NTHREADS
 
@@ -563,7 +590,8 @@ int main(int argc, char *argv[])
     }
   }
   if (useDSFMTAcceleration && (GetEnvString("GDL_NO_DSFMT").length() > 0)) useDSFMTAcceleration=false;
-  
+  if (setQuietSysvar)       SysVar::Make_Quiet();
+  if (willSuppressEditInput)		 SysVar::Suppress_Edit_Input();  
   //report in !GDL status struct
   DStructGDL* gdlconfig = SysVar::GDLconfig();
   unsigned  DSFMTTag= gdlconfig->Desc()->TagIndex("GDL_USE_DSFMT");
@@ -594,21 +622,9 @@ int main(int argc, char *argv[])
   {
     cerr << "- Please report bugs, feature or help requests and patches at: https://github.com/gnudatalanguage/gdl" << endl << endl;
   }
-//   else
-//     {
-//       // if path not given, add users home
-//       if( !PathGiven(startup))
-// 	{
-// 	  string home=GetEnvString("HOME");
-// 	  if( home != "") 
-// 	    {
-// 	      AppendIfNeeded(home,"/");
-// 	      startup=home+startup;
-// 	    }
-// 	}
-//     }
 
 #ifdef USE_MPI
+  if (iAmMaster) {
   {
     // warning the user if MPI changes the working directory of GDL
     char wd1[PATH_MAX], wd2[PATH_MAX];
@@ -630,6 +646,7 @@ int main(int argc, char *argv[])
     for( SizeT i = 0; i < size; i++)
       MPI_Send(mpi_procedure, strlen(mpi_procedure)+1, MPI_CHAR, i, 
 	       tag, MPI_COMM_WORLD);
+  }
   }
 #endif // USE_MPI
 

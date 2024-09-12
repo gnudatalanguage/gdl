@@ -33,6 +33,8 @@
 #include "gdlpython.hpp"
 #endif
 
+
+
 // class DInterpreter;
 // extern DInterpreter* interpreter;
 
@@ -75,6 +77,12 @@ extern std::string gdlDataDir;
 extern std::string gdlLibDir;
 
 extern volatile bool iAmANotebook;
+
+//for subprocess stuff
+extern std::string whereami_gdl;
+extern volatile bool iAmMaster;
+extern volatile bool signalOnCommandReturn;
+
 // tells if wxwidgets is to be used at all...
 extern volatile bool useWxWidgets;
 // tells if wxwidgets backend for graphics is to be used...
@@ -111,6 +119,7 @@ template< class Container> void PurgeContainer( Container& s)
 }
 
 void InitGDL(); // defined in gdl.cpp
+void SaveCallingArgs(int argc, char* argv[]);
 
 void InitObjects();
 void ResetObjects();

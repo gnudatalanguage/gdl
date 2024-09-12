@@ -96,11 +96,8 @@ endif else begin
         MAGICK_WRITE, mid,_image,rgb=rgb
         if (N_ELEMENTS(red) eq N_ELEMENTS(green) and $
             N_ELEMENTS(red) eq N_ELEMENTS(blue)) then begin
+            MAGICK_WRITEColorTable,mid,red,green,blue
             MAGICK_QUANTIZE,mid,long(N_ELEMENTS(red))
-            ;;
-            ;;  MAGICK_WRITEIndexes,mid,image
-            ;;  MAGICK_WRITEColorTable,mid,red,green,blue
-            ;;
             MAGICK_WRITEFILE, mid, filename, "BMP"
             MAGICK_CLOSE, mid
         endif        
