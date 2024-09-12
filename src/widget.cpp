@@ -3920,7 +3920,7 @@ void widget_control( EnvT* e ) {
       }
     }
   // last line and ONLY RETURN: make the wxWidgets respond
-  wxTheApp->Yield();
+  GDLWidget::CallWXEventLoop();
 #endif
 }
 #ifdef HAVE_WXWIDGETS_PROPERTYGRID
