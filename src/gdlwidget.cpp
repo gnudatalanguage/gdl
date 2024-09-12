@@ -640,6 +640,11 @@ bool GDLWidget::handlersOk=false;
 wxFont GDLWidget::defaultFont=wxNullFont; //the font defined by widget_control,default_font.
 wxFont GDLWidget::systemFont=wxNullFont;  //the initial system font. This to behave as IDL
 
+#ifdef __WXMAC__
+        #include <Carbon/Carbon.h>
+extern "C" { void CPSEnableForegroundOperation( ProcessSerialNumber* psn ); }
+#endif
+
   //initialize wxWidgets system:  create an instance of wxAppGDL here, not at Main (
 #ifndef __WXMAC__ 
     wxAppGDL& wxGetApp() { return *static_cast<wxAppGDL*>(wxApp::GetInstance()); }   
@@ -1229,9 +1234,9 @@ void GDLWidget::RefreshDynamicWidget() {
     }
 }
 
-void GDLWidget::SendWidgetTimerEvent(DDouble secs) {
+void GDLWidget::SendWidgetTimerEvent(int millisecs) {
+  if (millisecs < 1) millisecs=1;  //otherwise 0 hangs on OSX
   WidgetIDT* id = new WidgetIDT(widgetID);
-  int millisecs = floor(secs * 1000.0);
   if (theWxWidget) { //we nee a handle on a wxWindow object...
     wxWindow* w = dynamic_cast<wxWindow*> (theWxWidget);
     assert(w != NULL);
@@ -1259,24 +1264,14 @@ void GDLWidget::HandleUnblockedWidgetEvents()
     DStructGDL* ev = NULL;
     while( (ev = GDLWidget::InteractiveEventQueue.Pop()) != NULL)
     {
-//        static int idIx = ev->Desc( )->TagIndex( "ID" ); // 0
-//        static int topIx = ev->Desc( )->TagIndex( "TOP" ); // 1
-//        static int handlerIx = ev->Desc( )->TagIndex( "HANDLER" ); // 2
-//        assert( idIx == 0 );
-//        assert( topIx == 1 );
-//        assert( handlerIx == 2 );
-
       ev = CallEventHandler( ev );
 
       if( ev != NULL)
       {
-        int idIx = ev->Desc( )->TagIndex( "ID" );
-        assert( idIx == 0 );
-        WidgetIDT id = (*static_cast<DLongGDL*> (ev->GetTag( idIx, 0 )))[0];
-        Warning( "Unhandled event. ID: " + i2s( id ) );
         GDLDelete( ev );
         ev = NULL;
       }
+	  CallWXEventLoop(); // eneble results of above in the widgets
     }
     if (wxIsBusy()) wxEndBusyCursor( );
   }
@@ -1412,22 +1407,11 @@ DLongGDL* GDLWidget::GetAllHeirs(){
   for (SizeT i = 0; i < currentVectorSize ; ++i) (*result)[i] = widgetIDList[i];
   return result;
 }
-#ifdef __WXMAC__
-        #include <Carbon/Carbon.h>
-extern "C" { void CPSEnableForegroundOperation( ProcessSerialNumber* psn ); }
-#endif
 
 //
 bool GDLWidget::InitWx() {
   // this hack enables to have a GUI on Mac OSX even if the
   // program was called from the command line (and isn't a bundle)
-  #ifdef __WXMAC__
-          ProcessSerialNumber psn;
-  
-          GetCurrentProcess( &psn );
-          CPSEnableForegroundOperation( &psn );
-          SetFrontProcess( &psn );
-  #endif
   try{
      wxInitialize();
   } catch (...) {return false;}
@@ -2455,19 +2439,11 @@ long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wx
   }
   topFrame = new gdlwxFrame(NULL, this, widgetID, titleWxString, wOffset, wxDefaultSize, style, modal);
 
-#ifdef __wxMAC__
+#ifdef __WXMAC__
 //does not work.
-//#include <ApplicationServices/ApplicationServices.h>
-//
-//ProcessSerialNumber PSN;
-//GetCurrentProcess(&PSN);
-//TransformProcessType(&PSN,kProcessTransformToForegroundApplication);
-
-  //the following is not really working either, except that a 'gdl' mac menubar is present an that's sufficient to get keyboard focus correctly
-wxMenu* macmenu[1];
-  WXMenubar* macBar=new wxMenubar();
-  macBar->Append(OSXGetAppleMenu (), titleWxString)
-  topFrame->SetMenuBar(macBar);
+  ProcessSerialNumber psn = {0, kCurrentProcess};
+  ProcessApplicationTransformState state = kProcessTransformToForegroundApplication;
+  OSStatus osxErr = TransformProcessType(&psn, state);
 #endif
 
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
@@ -2479,22 +2455,34 @@ wxMenu* macmenu[1];
   //add icon
   topFrame->SetIcon(wxgdlicon);
 
+  wxSizer* tfSizer=new wxBoxSizer(wxVERTICAL);
+  topFrame->SetSizer(tfSizer);
   if (mbarID != 0) {
 #if PREFERS_MENUBAR
     GDLWidgetMenuBar* mBar = new GDLWidgetMenuBar(widgetID, e);
     mbarID = mBar->GetWidgetID();
     mBarIDInOut = mbarID;
     wxMenuBar* me = dynamic_cast<wxMenuBar*> (mBar->GetWxWidget());
+#ifdef __WXMAC__
+//  me->Append(me->OSXGetAppleMenu(), "Apple");
+//    if (!osxErr) me->Append(new wxMenu("does not work\n"));
+#endif
     if (me) topFrame->SetMenuBar(me);
     else cerr << "Warning: GDLWidgetBase::GDLWidgetBase: Non-existent menubar widget!\n";
 #else    
+
+#ifdef __WXMAC__
+    wxPanel* p = new wxPanel(topFrame, wxID_ANY);
+    GDLWidgetMenuBar* mBar = new GDLWidgetMenuBar(p, widgetID, e);
+	wxBoxSizer* mbs=new wxBoxSizer(wxHORIZONTAL);
+	tfSizer->Add(p);
+#else
     GDLWidgetMenuBar* mBar = new GDLWidgetMenuBar(topFrame, widgetID, e);
+#endif
     mbarID = mBar->GetWidgetID();
     mBarIDInOut = mbarID;
 #endif
   }
-  wxSizer* tfSizer=new wxBoxSizer(wxVERTICAL);
-  topFrame->SetSizer(tfSizer);
   CreateBase(topFrame); //define widgetPanel, widgetSizer, theWxWidget and theWxContainer.
   //it is the FRAME that manage all events. Here we dedicate particularly the tlb_* events:
   // note that we have the choice for Size Event Handler for Frames, but need to change also is widgets.cpp
@@ -4841,7 +4829,7 @@ BaseGDL* GDLWidgetTable::GetDisjointSelectionValuesForStructs(DLongGDL* selectio
  	  ix = (*selection)[l++];
 	  t = (*selection)[l++];
 	}
-	sprintf(tagbuf, "%12d", outTag);
+	snprintf(tagbuf, 12, "%12d", outTag);
 	//convert ' ' to '_'
 	for (auto z = 0; z < 12; ++z) if (tagbuf[z] == 32) tagbuf[z] = 95;
 	std::string outTagName(const_cast<char *>(tagbuf));
@@ -5644,12 +5632,13 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     } //else throw GDLException("Parent tree widget is not a folder."); //IDL just forgets.
   }
 void GDLWidgetTree::OnRealize(){
-   GDLWidgetTree* root=this->GetMyRootGDLWidgetTree();
-   if (this==root) {
-     wxTreeCtrlGDL* ctrl=static_cast<wxTreeCtrlGDL*>(this->GetWxWidget());
-     wxTreeItemId id=ctrl->GetFirstVisibleItem 	( 		) 	;
-     if (id) ctrl->SetFocusedItem(id);
-   }
+// not useful? root node does not seem selected at creation with *DL.
+//   GDLWidgetTree* root=this->GetMyRootGDLWidgetTree();
+//   if (this==root) {
+//     wxTreeCtrlGDL* ctrl=static_cast<wxTreeCtrlGDL*>(this->GetWxWidget());
+//     wxTreeItemId id=ctrl->GetFirstVisibleItem 	( 		) 	;
+//     if (id) ctrl->SetFocusedItem(id);
+//   }
 }
 DInt GDLWidgetTree::GetTreeIndex()
 {

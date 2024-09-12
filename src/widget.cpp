@@ -350,9 +350,6 @@ DStructGDL* CallEventHandler( DStructGDL* ev ) {
 #ifdef GDL_DEBUG_WIDGETS
       Warning("CallEventHandler: Widget no longer valid. ID: " + i2s(actID));
 #endif
-      actID = GDLWidget::NullID;
-      GDLDelete(ev);
-      ev = NULL;
       break; //out of while
     }
     DString eventHandlerPro = widget->GetEventPro();
@@ -361,8 +358,7 @@ DStructGDL* CallEventHandler( DStructGDL* ev ) {
 #ifdef GDL_DEBUG_WIDGETS          
       std::cout << "CallEventPro: " + eventHandlerPro + " on " + i2s(actID) << std::endl;
 #endif
-      CallEventPro(eventHandlerPro, ev); // swallows ev according to the doc, thus:
-      ev = NULL; // note: ev is already deleted at this point when returning.
+      CallEventPro(eventHandlerPro, ev->Dup()); // swallows ev according to the doc, thus:
       break; // out of while
     }
     DString eventHandlerFun = widget->GetEventFun();
@@ -375,27 +371,25 @@ DStructGDL* CallEventHandler( DStructGDL* ev ) {
 #endif
 	  DStructGDL* evstart=(DStructGDL*)(ev)->Dup();
       BaseGDL* retVal = CallEventFunc(eventHandlerFun, ev); // grabs ev
-      // note: ev is already deleted at this point when returning.
 	  //will test if ev is unchanged:
-	  
       if (retVal->Type() == GDL_STRUCT) {
         ev = static_cast<DStructGDL*> (retVal);
         if (ev->Desc()->TagIndex("ID") != idIx || ev->Desc()->TagIndex("TOP") != topIx || ev->Desc()->TagIndex("HANDLER") != handlerIx) {
           GDLDelete(ev);
           throw GDLException(eventHandlerFun + ": Event handler return struct must contain ID, TOP, HANDLER as first tags.");
         }
-		bool doReturn = ( (*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0] == (*static_cast<DLongGDL*> (evstart->GetTag(handlerIx, 0)))[0] );
 		GDLDelete(evstart);
-		if (doReturn) return ev; //apparently, this is a case where a function should return, at least this patch solves PLOTMAN's panel problem see #1685
       } else { //not a struct, same as a procedure, has swallowed the event
         ev = NULL;
-        break; 
+        return ev; 
       }
       // returned struct is a new ev:
       // FUNCTION --> no break, will go up to the top or exit if consumed.!
     }
     actID = widget->GetParentID(); //go upper in hierarchy
   } while (actID != GDLWidget::NullID);
+  // if we arrve here, all the hierarchy has been traversed 
+  (*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0] = 0;
 #endif
   return ev;
 }
@@ -2508,9 +2502,9 @@ BaseGDL* widget_info( EnvT* e ) {
     DStructGDL* ev;
 
     do { // outer while loop, will run once if NOWAIT
-   while (1) { //inner loop, catch controlC, default return if no event trapped in nowait mode
-   GDLWidget::CallWXEventLoop();
-       if (!all) {
+	  while (1) { //inner loop, catch controlC, default return if no event trapped in nowait mode
+	  GDLWidget::CallWXEventLoop();
+      if (!all) {
           //specific widget(s)
           // we cannot check only readlineEventQueue thinking our XMANAGER in blocking state looks to ALL widgets.
           // because XMANAGER may have been called AFTER events are created.
@@ -2519,18 +2513,36 @@ BaseGDL* widget_info( EnvT* e ) {
             id = (*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0]; // get its id
             for (SizeT i = 0; i < widgetIDList.size(); i++) { //is ID corresponding to any widget in list?
               if (widgetIDList.at(i) == id) { //if yes
-                goto endwait;
-              }
+				ev = CallEventHandler(ev); //process it recursively (going up hierarchy) in eventHandler. Should block waiting for xmanager.
+				if (ev == NULL) return defaultRes;
+				else return ev;
+              } 
             }
+			// blocking eventqueue should drain (just Pop() ) when unconcerned interactive events must be preserved
+			// to be executed normally when widget_event returns (so, pusehd back in  InteractiveEventQueue).
           }
           while ((ev = GDLWidget::InteractiveEventQueue.Pop()) != NULL) { // get event
             static int idIx = ev->Desc()->TagIndex("ID");
             id = (*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0]; // get its id
             for (SizeT i = 0; i < widgetIDList.size(); i++) { //is ID corresponding to any widget in list?
               if (widgetIDList.at(i) == id) { //if yes
-                goto endwait;
-              }
+				//IMPORTANT: return ev immediately. This is what permits #1685: an event trapped by WIDGET_EVENT does not behave
+				//like the same event processed in the evenloop.
+				  return ev;
+              } 
             }
+			GDLWidget::InteractiveEventQueue.PushBack(ev);
+			GDLWidget::CallWXEventLoop();
+	  // avoid looping like crazy
+#ifdef _WIN32 
+	  Sleep(10); // this just to quiet down the character input from readline. 2 was not enough. 20 was ok.
+#else
+	  const long SLEEP = 10000000; // 10ms
+	  struct timespec delay;
+	  delay.tv_sec = 0;
+	  delay.tv_nsec = SLEEP; // 20ms
+	  nanosleep(&delay, NULL);
+#endif
           }
         } else {
           //wait for ALL . This is the case of /XMANAGER_BLOCK for example. Both queues may be active, some widgets being managed other not. 
@@ -2554,6 +2566,8 @@ BaseGDL* widget_info( EnvT* e ) {
       } else { // untreated or modified by a function
           return ev;
       }
+	  GDLWidget::CallWXEventLoop();
+
     } while (infinity);
     return NULL; //pacifier.
 #endif //HAVE_LIBWXWIDGETS
@@ -2632,7 +2646,7 @@ void widget_control( EnvT* e ) {
 //  bool delay_destroy = e->KeywordSet( delay_destroyIx ); //TBD, this seems tricky.
   
   static int timerIx = e->KeywordIx( "TIMER" );
-  bool doTimer = e->KeywordSet( timerIx );
+  bool doTimer = e->KeywordPresent( timerIx );
 
   DString eventPro = "";
   static int eventproIx = e->KeywordIx( "EVENT_PRO" );
@@ -3110,15 +3124,17 @@ void widget_control( EnvT* e ) {
         if (bitmap) bb->SetButtonWidgetBitmap(bitmap);
         
       } else if (widget->IsTable()) {
+		if (value->Rank()==0) e->Throw("Expression must be an array in this context."+ e->GetString(setvalueIx));
         GDLWidgetTable *table = (GDLWidgetTable *) widget;
 		int majority = table->GetMajority();
 		if (useATableSelection && format != NULL) e->Throw("Unable to set format for table widget."); //format not allowed if selection
 		format=table->GetCurrentFormat(); //use stored format
+		if (tableSelectionToUse != NULL && table->GetMajority() == GDLWidgetTable::NONE_MAJOR &&  table->GetVvalue() != NULL) {
 		//convert 'value' to vValue type FIRST...
-		BaseGDL* v=table->GetVvalue();
-		if (v != NULL) {
-		  DType type = v->Type();
-		  if (table->GetMajority() == GDLWidgetTable::NONE_MAJOR) value = value->Convert2(type);
+		  BaseGDL* v=table->GetVvalue();
+		  // this converts the passed values to the type of actual 'vValue', but only if a table lection is used
+			DType type = v->Type();
+            value = value->Convert2(type);
 		}
 		//... then create the String equivalent
 		DStringGDL* newValueAsStrings=GetTableValueAsString(e, value, format, majority, true); //true as IDL accepts non-array in this case
@@ -3352,7 +3368,8 @@ void widget_control( EnvT* e ) {
   if (doTimer) {
     DDouble seconds=0;
     e->AssureDoubleScalarKWIfPresent( timerIx, seconds );
-    widget->SendWidgetTimerEvent(seconds);
+	int millisec=seconds*1000;
+    widget->SendWidgetTimerEvent(millisec);
   }
   
   if ( eventpro ) {
@@ -3901,9 +3918,9 @@ void widget_control( EnvT* e ) {
 
         if (reconnect) GDLWidget::EnableSizeEvents(local_topFrame, id);
       }
-      return;
     }
-  
+  // last line and ONLY RETURN: make the wxWidgets respond
+  GDLWidget::CallWXEventLoop();
 #endif
 }
 #ifdef HAVE_WXWIDGETS_PROPERTYGRID

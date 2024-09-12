@@ -27,7 +27,7 @@
 // on OSX. So we choose normally to undefine this 
 #ifndef __WXMAC__ 
 //warning MAC should not have prefer_menubar=1 unless you solve the mac manubar problem.
-#define PREFERS_MENUBAR 1
+//#define PREFERS_MENUBAR 1
 #endif
 // For compilers that support precompilation, includes "wx/wx.h".
 // HAVE_LARGEFILE_SUPPORT, SIZEOF_VOID_P, SIZEOF_SIZE_T,  may be set by Python, creates unnecessary warnings
@@ -255,7 +255,7 @@ public:
 #ifndef __WXMAC__
 // main App class
  #include "wx/evtloop.h"
- 
+
 class wxAppGDL: public wxApp
 {
  wxGUIEventLoop loop;
@@ -793,7 +793,7 @@ public:
   bool DisableSizeEvents(gdlwxFrame* &tlbFrame,WidgetIDT &id);
   static void EnableSizeEvents(gdlwxFrame* &tlbFrame,WidgetIDT &id);
 
-  void SendWidgetTimerEvent(DDouble secs);
+  void SendWidgetTimerEvent(int millisecs);
   virtual void SetButtonWidget( bool onOff){}
   void ClearEvents();
 };
@@ -1085,7 +1085,7 @@ public:
       this->SetFont(font);
       popupMenu=new wxMenu();
       position=this->GetClientRect().GetBottomLeft();
-      Connect(id, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(wxButtonGDL::OnButton));
+//      Connect(id, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(wxButtonGDL::OnButton));
       Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(wxButtonGDL::OnButton));
     }
   wxMenu* GetPopupMenu(){return popupMenu;}
@@ -1097,6 +1097,7 @@ private:
 class wxBitmapButtonGDL: public wxBitmapButton
 {
   wxMenu* popupMenu;
+  wxPoint position;
 public: 
   wxBitmapButtonGDL(wxWindow *parent, 
           wxWindowID id, 
@@ -1108,7 +1109,8 @@ public:
           const wxString &name=wxButtonNameStr):
       wxBitmapButton(parent,id,bitmap_,pos,size,style,validator,name){
       popupMenu=new wxMenu();
-      Connect(id, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(wxBitmapButtonGDL::OnButton));
+      position=this->GetClientRect().GetBottomLeft();
+//      Connect(id, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(wxBitmapButtonGDL::OnButton));
       Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(wxBitmapButtonGDL::OnButton));
   }
   wxMenu* GetPopupMenu(){return popupMenu;}
@@ -1529,11 +1531,20 @@ protected:
   std::deque<WidgetIDT> children;
   ~GDLWidgetMenuBar();
 public:
+#ifdef __WXMAC__
+  GDLWidgetMenuBar( wxWindow* frame, WidgetIDT p, EnvT* e):
+#else
   GDLWidgetMenuBar( wxFrame* frame, WidgetIDT p, EnvT* e): 
+#endif  
   GDLWidget( p, NULL) //NULL because MBar must not re-read env Values of e
   { 
-   long style=wxTB_HORIZONTAL|wxTB_DOCKABLE|wxTB_FLAT;
+   long style=wxHORIZONTAL|wxTB_DOCKABLE|wxTB_FLAT;
+//Do not ask me why this works on mac and not other way.
+#ifdef __WXMAC__
+   wxToolBar* t= new wxToolBar(frame, wxID_ANY);
+#else
    wxToolBar* t= frame->CreateToolBar(style, wxID_ANY);
+#endif   
     theWxWidget = theWxContainer = t;
 //    widgetSizer=new wxBoxSizer(wxHORIZONTAL);
 //    t->SetSizer(widgetSizer);
