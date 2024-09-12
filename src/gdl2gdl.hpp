@@ -15,38 +15,40 @@
  *                                                                         *
  ***************************************************************************/
 #if defined(_WIN32) && !defined(__CYGWIN__)
-extern void StartMasterMessageChannel();
-extern void AttachToMasterMessageChannel();
-extern void DefineG2GParentPid(int pid = 0);
+extern void gdl_ipc_ClientGetsMailboxAddress(std::string & s);
 #else
 
 //for client gdl2gdl (see IDL_IDLBridge)
 #if defined(__APPLE__)
 #include <mach/mach.h>
 #include <servers/bootstrap.h>
-extern mach_port_t port; //client server queue descriptor
+typedef mach_port_t messageBoxHandle;
+extern messageBoxHandle port; //client server queue descriptor
 #define G2G_SERVER_QUEUE_BASENAME   "org.gdl."
 
-//#elif defined(_WIN32) && !defined(__CYGWIN__)
-
+#elif defined(_WIN32) && !defined(__CYGWIN__)
+typedef int messageBoxHandle;
 #else
 #include <mqueue.h>
-extern mqd_t gdl2gdlMasterMessageBox; //client server queue descriptor
+typedef mqd_t messageBoxHandle;
+extern messageBoxHandle gdl2gdlMessageBoxHandle; //client server queue descriptor
 #define G2G_SERVER_QUEUE_BASENAME   "/gdl-server-"
 #endif
 
-#define QUEUE_PERMISSIONS 0660
-#define MAX_MESSAGES 10
+#define QUEUE_PERMISSIONS 0700
+#define MAX_MESSAGES 1 
 #define MAX_MSG_SIZE 256
 #define MSG_BUFFER_SIZE MAX_MSG_SIZE + 10
 
-extern pid_t g2gParentPid;
 extern GDLEventQueue gdl2gdlCallbackQueue;
+extern void g2gEventDispatcher();
 
 struct GDL2GDLINFOS {
   DObjGDL* obj;
   int status;
+  bool nowait;
   std::string description;
+  messageBoxHandle MessageChannelHandle;
 };
 typedef GDL2GDLINFOS gdl2gdlparams;
 extern std::map<pid_t, gdl2gdlparams> g2gMap;
@@ -56,11 +58,11 @@ extern std::map<int, int> g2gListOfSharedMem;
 typedef std::map<int,int>::iterator g2gSharedMemListIter;
 
 using namespace std;
-extern void HandleObjectsCallbacks();
+extern void g2gAsynchronousReturnTrap();
 
 extern void StartMasterMessageChannel();
-extern void AttachToMasterMessageChannel();
-extern void DefineG2GParentPid(pid_t pid = 0);
+extern void StartIndividualClientMessageChannel();
+extern void gdl_ipc_ClientGetsMailboxAddress(std::string & s);
 
 void gmem_clean(); //internal
 

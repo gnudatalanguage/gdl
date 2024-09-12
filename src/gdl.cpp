@@ -66,12 +66,6 @@
 //initialize wxWidgets system:  create an instance of wxAppGDL
 #ifdef HAVE_LIBWXWIDGETS
 #include "gdlwidget.hpp"
-//displaced in gdlwidget.cpp to make wxGetApp() available under Python (in GDL.so)
-//#ifndef __WXMAC__ 
-//wxIMPLEMENT_APP_NO_MAIN( wxAppGDL);
-//#else
-//wxIMPLEMENT_APP_NO_MAIN( wxApp);
-//#endif
 #endif
 
 #include "version.hpp"
@@ -164,6 +158,7 @@ void InitGDL()
   //Our handler takes too long
   //when editing the command line with ARROW keys. (bug 562). (used also in dinterpreted.cpp )
   //but... without it we have no graphics event handler! FIXME!!! 
+  rl_set_keyboard_input_timeout (GDL_INPUT_TIMEOUT);
   rl_event_hook = GDLEventHandler;
 #endif
 
@@ -240,7 +235,7 @@ int main(int argc, char *argv[])
   bool gdlde = false;
   bool setQuietSysvar=false;
   bool willSuppressEditInput=false;
-  pid_t passed_pid=0;
+  std::string myMessageBoxName="";
   
 //The default installation location --- will not always be there.  
   gdlDataDir = std::string(GDLDATADIR);
@@ -333,7 +328,6 @@ int main(int argc, char *argv[])
   useDSFMTAcceleration = true;
   iAmANotebook=false; //option --notebook
   iAmMaster=true; //special option --subprocess
-  signalOnCommandReturn=false; //special option --subprocess
  #ifdef HAVE_LIBWXWIDGETS 
 
     #if defined (__WXMAC__) 
@@ -510,7 +504,7 @@ int main(int argc, char *argv[])
 		  cerr << "gdl: --subprocess must be followed by the parent's pid" << endl;
 		  return 0;
 		}
-		passed_pid = atoi(argv[++a]);
+		myMessageBoxName = argv[++a];
 	  	iAmMaster = false;
 		setQuietSysvar = true;
 		willSuppressEditInput = true;
@@ -543,13 +537,7 @@ int main(int argc, char *argv[])
   }
 
   //depending on master or not, attach to respective message boxes
-  if (iAmMaster) {
-	DefineG2GParentPid();
-	StartMasterMessageChannel();
-  } else {
-	DefineG2GParentPid(passed_pid);
-	AttachToMasterMessageChannel();	
-  }
+  if (!iAmMaster) gdl_ipc_ClientGetsMailboxAddress(myMessageBoxName);	
   
   //before InitGDL() as InitGDL() starts graphic!
   
@@ -575,21 +563,14 @@ int main(int argc, char *argv[])
   // for debug one could turn on all floating point exceptions, it will stop at first one.
   //  feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
 
-  signal(SIGINT, ControlCHandler); 
   
 #if !defined(_WIN32)
   if (iAmMaster) {
-	signal(GDL_SIGUSR1,SIG_IGN);
-//	signal(GDL_SIGUSR2,SIG_IGN);
-	signal(GDL_SIGUSR2,SignalMasterHandler);
+	signal(SIGINT, ControlCHandler); 
 	signal(SIGCHLD,SIG_IGN); //end subprocess is by sending it 'EXIT'. 
 	                         //This should avoid zombies after a IDL_IDLBridge::Cleanup for example.
 	                         // but we do not trap a subprocess crashing, which may be desirable!
-  }
-  else {
-    signal(GDL_SIGUSR1,SignalChildHandler);
-	signal(GDL_SIGUSR2,SIG_IGN);
- }
+  } else signal(SIGINT, ChildControlCHandler);
 #endif
   
   // must be after !cpu initialisation

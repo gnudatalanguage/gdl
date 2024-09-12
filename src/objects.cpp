@@ -110,7 +110,6 @@ volatile bool iAmANotebook;
 //set when gDL is called in subprocess mode
 std::string whereami_gdl;
 volatile bool iAmMaster;
-volatile bool signalOnCommandReturn;
 
 //do we use name Devices differently among platforms?
 volatile bool usePlatformDeviceName;
@@ -336,11 +335,12 @@ void InitStructs()
   idl_idlBridge->AddTag("CALLBACK", &aString); //must be at pos=3
   idl_idlBridge->AddTag("OUTPUT", &aString); //4
   idl_idlBridge->AddTag("USERDATA", &aPtrRef); // 5
-  idl_idlBridge->AddTag("HANDLE",&aLongArr3); 
+  idl_idlBridge->AddTag("HANDLE",&aLongArr3); //6
   idl_idlBridge->AddTag("IDL_IDLBRIDGE_BOTTOM",  &aLong64);
   // insert into structList
   structList.push_back(idl_idlBridge);
   structDesc::IDL_IDLBRIDGE = idl_idlBridge;
+  //used for IDL_IDLBRIDGE CALLBACKS
   DStructDesc* gdl2gdl_cbk_event = new DStructDesc( "GDL2GDL_CBK_EVENT");
   gdl2gdl_cbk_event->AddTag("CALLBACKPROC", &aString); 
   gdl2gdl_cbk_event->AddTag("CALLBACKSTATUS", &aInt); 

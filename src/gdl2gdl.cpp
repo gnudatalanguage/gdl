@@ -15,12 +15,16 @@
  *                                                                         *
  ***************************************************************************/
 #if defined(_WIN32) && !defined(__CYGWIN__)
+#include <string>       // std::string
+
 #else
+
 #include "envt.hpp"
 #include "gdl2gdl.hpp"
 #include <string>       // std::string
 #include <iostream>     // std::cout
 #include <sstream>      // std::istringstream
+#include <thread>
 #include <fcntl.h>      /* O_flags */
 #include <sys/mman.h>   /* shared memory and mmap() */
 #include <sys/shm.h>
@@ -34,329 +38,98 @@ static char theBuf[THEBUFLEN];
 #include "dinterpreter.hpp"
 //for client gdl2gdl (see IDL_IDLBridge)
 #if defined(__APPLE__)
-mach_port_t gdl2gdlMasterMessageBox; //client server queue descriptor
-
-//#elif defined(_WIN32) && !defined(__CYGWIN__)
-
+#include <mach/mach.h>
+#include <servers/bootstrap.h>
 #else
 #include <mqueue.h>
-mqd_t gdl2gdlMasterMessageBox; //client server queue descriptor
 #endif
 
-pid_t g2gParentPid;
+ messageBoxHandle gdl2gdlMessageBoxHandle; //client server queue descriptor
+
+static int ClientSessionNumber=0;
+static std::string g2gClientMailbox;
 GDLEventQueue gdl2gdlCallbackQueue;
 std::map<pid_t, gdl2gdlparams> g2gMap;
 
 std::map<int, int> g2gListOfSharedMem;
 
 static const std::string base{"_GMEM$"};
-#endif
 
-// stub for windows -- one other time
-#if defined(_WIN32) && !defined(__CYGWIN__)
-void StartMasterMessageChannel(){}
-void AttachToMasterMessageChannel() {}
-//client side
-void gdl_ipc_acknowledge_suprocess_started(long long pid) {}
-//master side
-int gdl_ipc_wait_for_subprocess_started(int pid){return 0;}
-int gdl_ipc_sendsignalToParent()    {return 0;}
-#elif defined (__APPLE__)
-void StartMasterMessageChannel(){
-     // Create a new port.
-    kern_return_t kr = mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &gdl2gdlMasterMessageBox);
-    if (kr != KERN_SUCCESS) {
-        printf("mach_port_allocate() failed with code 0x%x\n", kr);
-        return;
-    }
-    printf("mach_port_allocate() created port right name %d\n", gdl2gdlMasterMessageBox);
-
-
-    // Give us a send right to this port, in addition to the receive right.
-    kr = mach_port_insert_right(mach_task_self(), gdl2gdlMasterMessageBox, gdl2gdlMasterMessageBox, MACH_MSG_TYPE_MAKE_SEND);
-    if (kr != KERN_SUCCESS) {
-        printf("mach_port_insert_right() failed with code 0x%x\n", kr);
-        return;
-    }
-    printf("mach_port_insert_right() inserted a send right\n");
-
-    std::string g2gServerName=G2G_SERVER_QUEUE_BASENAME+i2s(g2gParentPid);
-	int l=g2gServerName.size();
-	name_t name;
-	strncpy(name,g2gServerName.c_str(),l);
-    // Send the send right to the bootstrap server, so that it can be looked up by other processes.
-    kr = bootstrap_register(bootstrap_port, name, gdl2gdlMasterMessageBox);
-    if (kr != KERN_SUCCESS) {
-        printf("bootstrap_register() failed with code 0x%x\n", kr);
-        return;
-    }
-    printf("bootstrap_register()'ed our port\n");
- 
-}
-void AttachToMasterMessageChannel() {
-    // Lookup the receiver port using the bootstrap server.
-    std::string g2gServerName=G2G_SERVER_QUEUE_BASENAME+i2s(g2gParentPid);
-	int l=g2gServerName.size();
-	name_t name;
-	strncpy(name,g2gServerName.c_str(),l);
-    kern_return_t kr = bootstrap_look_up(bootstrap_port, name, &gdl2gdlMasterMessageBox);
-    if (kr != KERN_SUCCESS) {
-        printf("bootstrap_look_up() failed with code 0x%x\n", kr);
-        return;
-    }
-    printf("bootstrap_look_up() returned port right name %d\n", gdl2gdlMasterMessageBox);
-}
-//client side
-void gdl_ipc_acknowledge_suprocess_started(pid_t pid) {
-     // Construct our message.
-    struct {
-        mach_msg_header_t header;
-        char some_text[10];
-        int pid;
-    } message;
-
-    message.header.msgh_bits = MACH_MSGH_BITS(MACH_MSG_TYPE_COPY_SEND, 0);
-    message.header.msgh_remote_port = gdl2gdlMasterMessageBox;
-    message.header.msgh_local_port = MACH_PORT_NULL;
-
-    strncpy(message.some_text, "Hello", sizeof(message.some_text));
-    message.pid = pid;
-
-    // Send the message.
-    kern_return_t kr = mach_msg(
-        &message.header,  // Same as (mach_msg_header_t *) &message.
-        MACH_SEND_MSG,    // Options. We're sending a message.
-        sizeof(message),  // Size of the message being sent.
-        0,                // Size of the buffer for receiving.
-        MACH_PORT_NULL,   // A port to receive a message on, if receiving.
-        MACH_MSG_TIMEOUT_NONE,
-        MACH_PORT_NULL    // Port for the kernel to send notifications about this message to.
-    );
-    if (kr != KERN_SUCCESS) {
-        printf("mach_msg() failed with code 0x%x\n", kr);
-        return;
-    }
-    printf("Sent a message\n");
-}
-//master side
-pid_t gdl_ipc_wait_for_subprocess_started(){
-    // Wait for a message.
-    struct {
-        mach_msg_header_t header;
-        char some_text[10];
-        int pid;
-        mach_msg_trailer_t trailer;
-    } message;
-
-    kern_return_t kr = mach_msg(
-        &message.header,  // Same as (mach_msg_header_t *) &message.
-        MACH_RCV_MSG,     // Options. We're receiving a message.
-        0,                // Size of the message being sent, if sending.
-        sizeof(message),  // Size of the buffer for receiving.
-        gdl2gdlMasterMessageBox,             // The port to receive a message on.
-        MACH_MSG_TIMEOUT_NONE,
-        MACH_PORT_NULL    // Port for the kernel to send notifications about this message to.
-    );
-    if (kr != KERN_SUCCESS) {
-        printf("mach_msg() failed with code 0x%x\n", kr);
-        return 1;
-    }
-//        printf ("Server: message received: %d\n",message.pid);
-		return message.pid;
-}
-#else
-void StartMasterMessageChannel(){
-
-  struct mq_attr attr;
-
-  attr.mq_flags = 0;
-  attr.mq_maxmsg = MAX_MESSAGES;
-  attr.mq_msgsize = MAX_MSG_SIZE;
-  attr.mq_curmsgs = 0;
-     
-  std::string g2gServerName=G2G_SERVER_QUEUE_BASENAME+i2s(g2gParentPid);
-
-  if ((gdl2gdlMasterMessageBox = mq_open(g2gServerName.c_str(), O_RDONLY | O_CREAT, QUEUE_PERMISSIONS, &attr)) == -1) {
-	perror("Server: mq_open (server)");
-	exit(1);
-  }
-  //qd client not (yet) used.
- 
-}
-void AttachToMasterMessageChannel() {
-  //open master 
-  std::string g2gServerName = G2G_SERVER_QUEUE_BASENAME + i2s(g2gParentPid);
-
-  if ((gdl2gdlMasterMessageBox = mq_open(g2gServerName.c_str(), O_WRONLY)) == -1) {
-	perror("Client: mq_open (server)");
-	exit(1);
-  }
-  //here is a good point to start to be absolutely silent
-  std::cout.rdbuf(NULL);
-  std::cerr.rdbuf(NULL);
-}
-//client side
-void gdl_ipc_acknowledge_suprocess_started(pid_t pid) {
-     char out_buffer [MSG_BUFFER_SIZE];
-	 static int l=sizeof(pid_t);
-	 memcpy(out_buffer,&pid,l);
-	 if (mq_send (gdl2gdlMasterMessageBox, out_buffer, l + 1, 0) == -1) {
-		perror ("Client: Not able to send message to server");
-	}
-}
-//master side
-pid_t gdl_ipc_wait_for_subprocess_started(){
-     char in_buffer [MSG_BUFFER_SIZE];
-        if (mq_receive (gdl2gdlMasterMessageBox, in_buffer, MSG_BUFFER_SIZE, NULL) == -1) {
-            perror ("Server: mq_receive");
-            exit (1);
-        }
-	 pid_t pid;
-	 static int l=sizeof(pid_t);
-	 memcpy(&pid,in_buffer,l);
-//        printf ("Server: message received: %d\n",pid);
-		return pid;
-		//in_buffer can be used to open a communication to child, qd_client
-}
 #endif
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
 
-void DefineG2GParentPid(int pid) {}
-
 #else
-void DefineG2GParentPid(pid_t pid) {
-  if (pid == 0) g2gParentPid = getpid(); else g2gParentPid = pid;
-}
+void gdl_ipc_read_client_nowait(pid_t pid);
+void gdl_ipc_read_client_wait(pid_t pid);
 
-int gdl_ipc_sendsignalToParent() {
-  return kill(getppid(), GDL_SIGUSR2);
-}
-
-int gdl_ipc_sendCtrlCToChild(int pid) {
+int gdl_ipc_sendCtrlCToClient(int pid) {
   return kill(pid, SIGINT);
 }
 
-int gdl_ipc_sendsignalToChild(int pid) {
-  return kill(pid, GDL_SIGUSR1);
-}
-
-int gdl_ipc_SetReceiverForChildSignal(void (*handler) (int sig, siginfo_t *siginfo, void *context)) {
-  struct sigaction siga;
-  memset(&siga, 0, sizeof (struct sigaction)); //no complaints by Valgrind
-  siga.sa_sigaction = *handler; //*ChildSignalHandler;
-  siga.sa_flags = SA_SIGINFO; // get detail info
-  return sigaction(GDL_SIGUSR2, &siga, NULL);
-}
-
-void HandleObjectsCallbacks() {
-  DStructGDL* ev;
-  while ((ev = gdl2gdlCallbackQueue.Pop()) != NULL) { // get event
-	DStringGDL* callbackname = static_cast<DStringGDL*> (ev->GetTag(0));
-//	std::cerr << (*callbackname)[0] << std::endl;
-	DIntGDL* status = static_cast<DIntGDL*> (ev->GetTag(1));
-	DStringGDL* error = static_cast<DStringGDL*> (ev->GetTag(2));
-	DObjGDL* o = static_cast<DObjGDL*> (ev->GetTag(3));
-	DPtrGDL* ptrgdl = static_cast<DPtrGDL*> (ev->GetTag(4));
-	BaseGDL* data = BaseGDL::interpreter->GetHeap((*ptrgdl)[0]);
+static void g2gPerformCallbackProcedure(pid_t pid) {
+  // push callback event if necessary
+  DObjGDL* o = g2gMap.at(pid).obj;
+  DStructGDL* self = BaseGDL::interpreter->GetObjHeap((*o)[0]);
+  DStringGDL* callbackname=static_cast<DStringGDL*>(self->GetTag(3));
+  StrUpCaseInplace((*callbackname)[0]);
+  if(callbackname->NBytes() >0) {
 	int proIx = GDLInterpreter::GetProIx((*callbackname)[0]);
 	if (proIx != -1) {
+	  // perform callback and reset status to IDLE at end of callback
+	  DIntGDL* status = new DIntGDL(g2gMap.at(pid).status);
+	  DStringGDL* error = new DStringGDL(g2gMap.at(pid).description); 
 	  EnvUDT* newEnv = new EnvUDT(NULL, proList[ proIx], NULL);
 	  newEnv->SetNextPar(status);
 	  newEnv->SetNextPar(error);
 	  newEnv->SetNextPar(o);
-	  newEnv->SetNextPar(data);
+
+	  DPtrGDL* ptrgdl = static_cast<DPtrGDL*> (self->GetTag(5));
+	  DPtr p = (*ptrgdl)[0];
+	  if (BaseGDL::interpreter->PtrValid(p)) {
+		BaseGDL* data = BaseGDL::interpreter->GetHeap(p);
+		newEnv->SetNextPar(data);
+	  }
 	  BaseGDL::interpreter->CallStack().push_back(newEnv);
 	  // make the call
 	  BaseGDL::interpreter->call_pro(proList[ proIx]->GetTree());
 	  BaseGDL::interpreter->CallStack().pop_back();
+
+	  g2gMap.at(pid).status = 0;
+	  g2gMap.at(pid).description.clear();
+	  g2gMap.at(pid).nowait = false;
 	}
   }
 }
 
-static void ChildSignalHandlerWithCallBack(int sig, siginfo_t *siginfo, void *context) {
-  // get pid of sender,
-  pid_t pid = siginfo->si_pid;
-//    std::cout << SysVar::MsgPrefix() << "Signal from child " << pid << std::endl;
-  g2gMap.at(pid).status = 2; //child just completed command
-  // push callback event if necessary
-  DObjGDL* o = g2gMap.at(pid).obj;
-  DStructGDL* self = BaseGDL::interpreter->GetObjHeap((*o)[0]);
-  DStringGDL* callbackproc=static_cast<DStringGDL*>(self->GetTag(3));
-  StrUpCaseInplace((*callbackproc)[0]);
-  if(callbackproc->NBytes() >0) {
-	  DStructGDL* ev = new DStructGDL( "GDL2GDL_CBK_EVENT");
-      ev->InitTag("CALLBACKPROC", DStringGDL((*callbackproc)[0]));
-      ev->InitTag("CALLBACKSTATUS", DIntGDL(2));
-      ev->InitTag("CALLBACKERROR", DStringGDL("")); 
-      ev->InitTag("CALLBACKOBJECT", *o); 
-      ev->InitTag("CALLBACKUSERDATA", *(self->GetTag(5))); 
-      gdl2gdlCallbackQueue.PushFront(ev);
+void g2gAsynchronousReturnTrap() {
+  while (g2gMap.size() > 0) {
+    for (g2gMapIter it = g2gMap.begin(); it != g2gMap.end(); ++it) {
+	  if ( (*it).second.status==1 && (*it).second.nowait ) gdl_ipc_read_client_nowait((*it).first);
+	}
+	usleep (10000);
   }
-}
-static void ReportUsingCallBack(pid_t pid) {
-  // push callback event if necessary
-  DObjGDL* o = g2gMap.at(pid).obj;
-  DStructGDL* self = BaseGDL::interpreter->GetObjHeap((*o)[0]);
-  DStringGDL* callbackproc=static_cast<DStringGDL*>(self->GetTag(3));
-  StrUpCaseInplace((*callbackproc)[0]);
-  if(callbackproc->NBytes() >0) {
-	  DStructGDL* ev = new DStructGDL( "GDL2GDL_CBK_EVENT");
-      ev->InitTag("CALLBACKPROC", DStringGDL((*callbackproc)[0]));
-      ev->InitTag("CALLBACKSTATUS", DIntGDL(g2gMap.at(pid).status));
-      ev->InitTag("CALLBACKERROR", DStringGDL(g2gMap.at(pid).description));
-      ev->InitTag("CALLBACKOBJECT", *o); 
-      ev->InitTag("CALLBACKUSERDATA", *(self->GetTag(5))); 
-      gdl2gdlCallbackQueue.PushFront(ev);
-  }
+//  std::cerr<<"g2gAsynchronousReturnTrap exiting"<<std::endl;
 }
 
-
-static void WaitForChildExecuteCompleted(int sig, siginfo_t *siginfo, void *context) {
-  // get pid of sender,
-  pid_t pid = siginfo->si_pid;
-//    std::cout << SysVar::MsgPrefix() << "Signal from child " << pid << std::endl;
-  g2gMap.at(pid).status = 2; //child just completed command
-}
-int WriteToChild(EnvT* e, DLong* id, const std::string & command, bool nowait = true) {
-  //will trigger signalhandler
-//  struct sigaction siga;
-//  memset(&siga, 0, sizeof (struct sigaction)); //no complaints by Valgrind
-//  siga.sa_sigaction = *ChildSignalHandler;
-//  siga.sa_flags = SA_SIGINFO; // get detail info
+int gdl_ipc_write_to_client(EnvT* e, DLong* id, const std::string & command, bool nowait = true) {
   pid_t pid=id[2];
   // should start with no error
   g2gMap.at(pid).description.clear();
-  //Warning: ChildSignalHandlerWithCallBack must be used ONLY when a NOWAIT is asked for.
-  // Normal return handling is with WaitForChildExecuteCompleted
-  void (* callback)(int, siginfo_t *, void *);
-  if (nowait) callback=ChildSignalHandlerWithCallBack; else callback=WaitForChildExecuteCompleted;
-  if (gdl_ipc_SetReceiverForChildSignal(*callback) != 0) {
-	g2gMap.at(pid).status = 3;
-	g2gMap.at(pid).description = "Error in  WriteToChild(), problem with sigaction:" + std::string(strerror(errno));
-	ReportUsingCallBack(pid);
-	return 0;
-  }
   auto l = command.length();
-  gdl_ipc_sendsignalToChild(id[2]); //ask for a GDL_SIGUSR2 when returned
   g2gMap.at(pid).status = 1;
+  g2gMap.at(pid).nowait=nowait;
+
   int status = write(id[1], command.c_str(), l);
-  if (status != l) {
-	g2gMap.at(pid).status = 3;
-	g2gMap.at(pid).description = "Error in write command to suprocess:" + std::string(strerror(errno));
-	ReportUsingCallBack(pid);
+  if (status != l) {e->Throw("Error in write command to subprocess:" + std::string(strerror(errno)));
 	return 0;
   }
 
-  if (!nowait && g2gMap.at(id[2]).status == 1) {
-//		std::cout << SysVar::MsgPrefix() << "WriteToChild caught " << g2gMap.at(id[2]) .status<< std::endl;
-	while (g2gMap.at(id[2]).status == 1) pause();
-  }
-//    std::cout << SysVar::MsgPrefix() << "WriteToChild caught " << g2gMap.at(id[2]).status << std::endl;
+  if (!nowait) gdl_ipc_read_client_wait(id[2]);
   return 0;
 }
 
-
+//tidy the use of shared memory and message channel
 void gmem_clean() {
   for (g2gSharedMemListIter it = g2gListOfSharedMem.begin(); it != g2gListOfSharedMem.end(); ++it) {
 	std::string sharedId = base + i2s(getpid()) + "$" + i2s((*it).second);
@@ -370,7 +143,399 @@ void AddGmemCleanToAtexit() {
 	atexit(gmem_clean);
   }
 }
+// called from main eventloop. Reads g2gObjetcs events (could easily be extended to other event-needing objects)
 
+void g2gEventDispatcher() {
+  DStructGDL* ev;
+  while ((ev = gdl2gdlCallbackQueue.Pop()) != NULL) { // get event
+	DStringGDL* callbackname = static_cast<DStringGDL*> (ev->GetTag(0));
+	//	std::cerr << "callback: " << (*callbackname)[0] << std::endl;
+	int proIx = GDLInterpreter::GetProIx((*callbackname)[0]);
+	if (proIx != -1) {
+	  // perform callback and reset status to IDLE at end of callback
+	  DIntGDL* status = static_cast<DIntGDL*> (ev->GetTag(1));
+	  DStringGDL* error = static_cast<DStringGDL*> (ev->GetTag(2));
+	  DObjGDL* o = static_cast<DObjGDL*> (ev->GetTag(3));
+	  DStructGDL* self = BaseGDL::interpreter->GetObjHeap((*o)[0]);
+	  DLongGDL* triplet = static_cast<DLongGDL*> (self->GetTag(6));
+	  pid_t pid = (*triplet)[2];
+	  EnvUDT* newEnv = new EnvUDT(NULL, proList[ proIx], NULL);
+	  newEnv->SetNextPar(status);
+	  newEnv->SetNextPar(error);
+	  newEnv->SetNextPar(o);
+
+	  DPtrGDL* ptrgdl = static_cast<DPtrGDL*> (ev->GetTag(4));
+	  DPtr p = (*ptrgdl)[0];
+	  if (BaseGDL::interpreter->PtrValid(p)) {
+		BaseGDL* data = BaseGDL::interpreter->GetHeap(p);
+		newEnv->SetNextPar(data);
+	  }
+	  BaseGDL::interpreter->CallStack().push_back(newEnv);
+	  // make the call
+	  BaseGDL::interpreter->call_pro(proList[ proIx]->GetTree());
+	  BaseGDL::interpreter->CallStack().pop_back();
+	  g2gMap.at(pid).status = 0;
+	  g2gMap.at(pid).description.clear();
+	  g2gMap.at(pid).nowait = false;
+	}
+  }
+}
+#endif
+
+#if defined(_WIN32) && !defined(__CYGWIN__)
+void gdl_ipc_ClientGetsMailboxAddress(std::string & s) {}
+void gdl_ipc_ClientSignalsOperationsOK() {}
+void gdl_ipc_ClientSendReturn(unsigned char status, std::string s){};
+void gdl_ipc_ClientClosesMailBox(){};
+#elif defined (__APPLE__)
+messageBoxHandle StartIndividualClientMessageChannel(std::string & name){
+     // Create a new port.
+  messageBoxHandle port;
+    kern_return_t kr = mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &port);
+    if (kr != KERN_SUCCESS) {
+		fprintf(stderr,"mach_port_allocate() failed with code 0x%x\n", kr);
+	    throw GDLException("gdl Server error");
+        return 0;
+    }
+//    printf("mach_port_allocate() created port right name %d\n", port);
+
+
+    // Give us a send right to this port, in addition to the receive right.
+    kr = mach_port_insert_right(mach_task_self(), port, port, MACH_MSG_TYPE_MAKE_SEND);
+    if (kr != KERN_SUCCESS) {
+        printf("mach_port_insert_right() failed with code 0x%x\n", kr);
+        throw GDLException("gdl Server error");
+        return 0;
+    }
+//    printf("mach_port_insert_right() inserted a send right\n");
+    //service registration
+	name=G2G_SERVER_QUEUE_BASENAME+i2s(getpid())+"_"+i2s(++ClientSessionNumber);
+	int l=name.size();
+	name_t namet;
+	strncpy(namet,name.c_str(),l);
+    // Send the send right to the bootstrap server, so that it can be looked up by other processes.
+    messageBoxHandle h;
+    kr = bootstrap_register(bootstrap_port, namet, port  );
+    if (kr != KERN_SUCCESS) {
+        printf("bootstrap_register() failed with code 0x%x\n", kr);
+	    throw GDLException("gdl Server error");
+        return 0;
+    }
+//    printf("MASTER: bootstrap_register()'ed our Master Message Channel port\n");
+    return port;
+}
+void gdl_ipc_ClientClosesMailBox(){
+//  mach_port_destroy(mach_task_self(), MBOXName.c_str());
+}
+void gdl_ipc_ClientGetsMailboxAddress(std::string & s) {
+    g2gClientMailbox=s;
+    // Lookup the receiver port using the bootstrap server.
+	int l=g2gClientMailbox.size();
+	name_t name;
+	strncpy(name,g2gClientMailbox.c_str(),l);
+    kern_return_t kr = bootstrap_look_up(bootstrap_port, name, &gdl2gdlMessageBoxHandle);
+    if (kr != KERN_SUCCESS) {
+        printf("bootstrap_look_up() failed with code 0x%x\n", kr);
+	    throw GDLException("gdl Server error");
+        return;
+    }
+//    printf("CLIENT: bootstrap_look_up() returned MASTER port right name %d\n", gdl2gdlMessageBoxHandle);
+  //here is a good point to start to be absolutely silent
+      std::cout.rdbuf(NULL);
+    std::cerr.rdbuf(NULL);
+}
+//client side
+void gdl_ipc_ClientSignalsOperationsOK() {
+     // Construct our message.
+    struct {
+        mach_msg_header_t header;
+        int pid;
+        mach_port_name_t handle;
+    } message;
+
+    message.header.msgh_bits = MACH_MSGH_BITS(MACH_MSG_TYPE_COPY_SEND, 0);
+    message.header.msgh_remote_port = gdl2gdlMessageBoxHandle;
+    message.header.msgh_local_port = MACH_PORT_NULL;
+
+    message.handle = gdl2gdlMessageBoxHandle; //gdl2gdlIndividualClientMessageBox;
+	message.pid = getpid();
+
+    // Send the message.
+    kern_return_t kr = mach_msg(
+        &message.header,  // Same as (mach_msg_header_t *) &message.
+        MACH_SEND_MSG,    // Options. We're sending a message.
+        sizeof(message),  // Size of the message being sent.
+        0,                // Size of the buffer for receiving.
+        MACH_PORT_NULL,   // A port to receive a message on, if receiving.
+        MACH_MSG_TIMEOUT_NONE,
+        MACH_PORT_NULL    // Port for the kernel to send notifications about this message to.
+    );
+    if (kr != KERN_SUCCESS) {
+        printf("gdl_ipc_acknowledge_subprocess_started() mach_msg() failed with code 0x%x\n", kr);
+  	    throw GDLException("gdl Server error");
+        return;
+    }
+//  printf("client Sent first message\n");
+}
+//client side
+void gdl_ipc_ClientSendReturn(unsigned char status, std::string s) {
+	 int l=s.size(); l=(l > MSG_BUFFER_SIZE)?MSG_BUFFER_SIZE-1:l;
+    // Construct our message.
+    struct {
+        mach_msg_header_t header;
+        char some_text[MSG_BUFFER_SIZE];
+        int status;
+    } message;
+
+    message.header.msgh_bits = MACH_MSGH_BITS(MACH_MSG_TYPE_COPY_SEND, 0);
+    message.header.msgh_remote_port = gdl2gdlMessageBoxHandle; //gdl2gdlIndividualClientMessageBox;
+//	printf("Client %d will write to port %d\n", getpid(), gdl2gdlMasterMessageBox); //gdl2gdlIndividualClientMessageBox);
+    message.header.msgh_local_port = MACH_PORT_NULL;
+
+    strncpy(message.some_text, s.c_str(), l);
+    message.status = status;
+
+    // Send the message.
+    kern_return_t kr = mach_msg(
+        &message.header,  // Same as (mach_msg_header_t *) &message.
+        MACH_SEND_MSG,    // Options. We're sending a message.
+        sizeof(message),  // Size of the message being sent.
+        0,                // Size of the buffer for receiving.
+        MACH_PORT_NULL,   // A port to receive a message on, if receiving.
+        MACH_MSG_TIMEOUT_NONE,
+        MACH_PORT_NULL    // Port for the kernel to send notifications about this message to.
+    );
+    if (kr != KERN_SUCCESS) {
+        printf("gdl_ipc_client_write() mach_msg() failed with code 0x%x\n", kr);
+        return;
+    }
+//    printf("Sent a message\n");
+	 //perform client "retall" if code is > 2 (error or cancel)
+	 if (status < 3) return;
+	static int proIx = LibProIx("RETALL");
+    EnvT* env = new EnvT(NULL, libProList[proIx]);
+    Guard<EnvT> env_guard(env);
+    static_cast<DLibPro*>(env->GetPro())->Pro()(static_cast<EnvT*>(env));
+}
+//master side
+void gdl_ipc_MasterWaitsForClientOK(pid_t pid){
+    // Wait for a message.
+    struct {
+        mach_msg_header_t header;
+		int pid;
+        mach_port_name_t handle;
+        mach_msg_trailer_t trailer;
+    } message;
+
+    kern_return_t kr = mach_msg(
+        &message.header,  // Same as (mach_msg_header_t *) &message.
+        MACH_RCV_MSG,     // Options. We're receiving a message.
+        0,                // Size of the message being sent, if sending.
+        sizeof(message),  // Size of the buffer for receiving.
+        g2gMap.at(pid).MessageChannelHandle,             // The port to receive a message on.
+        MACH_MSG_TIMEOUT_NONE,
+        MACH_PORT_NULL    // Port for the kernel to send notifications about this message to.
+    );
+    if (kr != KERN_SUCCESS) {
+        printf("gdl_ipc_wait_for_subprocess_started() mach_msg() failed with code 0x%x\n", kr);
+	    throw GDLException("gdl Server error");
+        return ;
+    }
+}
+void gdl_ipc_read_client_wait(pid_t pid) {
+  messageBoxHandle clientMessageBoxHandle=g2gMap.at(pid).MessageChannelHandle;
+  struct {
+	mach_msg_header_t header;
+	char some_text[MSG_BUFFER_SIZE];
+	int status;
+	mach_msg_trailer_t trailer;
+  } message;
+
+  kern_return_t  kr = mach_msg(
+	&message.header, // Same as (mach_msg_header_t *) &message.
+	MACH_RCV_MSG, // Options. We're receiving a message.
+	0, // Size of the message being sent, if sending.
+	sizeof (message), // Size of the buffer for receiving.
+	g2gMap.at(pid).MessageChannelHandle,
+	MACH_MSG_TIMEOUT_NONE,
+	MACH_PORT_NULL // Port for the kernel to send notifications about this message to.
+	);
+  if (kr != KERN_SUCCESS) {
+	printf("gdl_ipc_read_client_wait() mach_msg() failed on port %d with code 0x%x\n",clientMessageBoxHandle, kr);
+	throw GDLException("gdl Server error");
+    return;
+  }
+  //        printf ("Server: message received: %d\n",message.pid);
+  int status = message.status; //2,3, or 4
+  //  std::cerr<<"\ngot something:"<<status<<std::endl;
+  if (status < 2 || status > 4) throw GDLException("Wrong return from client program");
+  g2gMap.at(pid).status=status;
+  std::string r(message.some_text);
+  g2gMap.at(pid).description=r;
+  g2gPerformCallbackProcedure(pid);
+}
+void gdl_ipc_read_client_nowait(pid_t pid){
+  mach_port_name_t clientMessageBoxHandle=g2gMap.at(pid).MessageChannelHandle;
+  struct {
+	mach_msg_header_t header;
+	char some_text[MSG_BUFFER_SIZE];
+	int status;
+	mach_msg_trailer_t trailer;
+  } message;
+
+  kern_return_t kr = mach_msg(
+	&message.header, // Same as (mach_msg_header_t *) &message.
+	MACH_RCV_MSG, // Options. We're receiving a message.
+	0, // Size of the message being sent, if sending.
+	sizeof (message), // Size of the buffer for receiving.
+	g2gMap.at(pid).MessageChannelHandle,
+	1, //1 millisec
+	MACH_PORT_NULL // Port for the kernel to send notifications about this message to.
+	);
+  if (kr == KERN_SUCCESS) {
+  int status = message.status; //2,3, or 4
+//  std::cerr<<"\ngot something:"<<status<<std::endl;
+  if (status < 2 || status > 4) throw GDLException("Wrong return from client program");
+  g2gMap.at(pid).status=status;
+  std::string r(message.some_text);
+  g2gMap.at(pid).description=r;
+  g2gPerformCallbackProcedure(pid);
+  } else if (kr == MACH_RCV_TIMED_OUT)  return;
+  else throw GDLException("Server: error reading client message.");
+}
+void gdl_ipc_CloseMasterMasterMessageChannel(pid_t pid){
+  mach_port_deallocate(mach_task_self(), gdl2gdlMessageBoxHandle);
+}
+
+#else
+messageBoxHandle StartIndividualClientMessageChannel(std::string & name){
+
+  struct mq_attr attr;
+
+  attr.mq_flags = 0;
+  attr.mq_maxmsg = MAX_MESSAGES;
+  attr.mq_msgsize = MAX_MSG_SIZE;
+  attr.mq_curmsgs = 0;
+     
+  name=G2G_SERVER_QUEUE_BASENAME+i2s(getpid())+"_"+i2s(++ClientSessionNumber);
+  messageBoxHandle h;
+  if ((h = mq_open(name.c_str(), O_RDONLY | O_CREAT, QUEUE_PERMISSIONS, &attr)) == -1) {
+   throw GDLException("Server: mq_open (client) :"+string(strerror(errno)));
+  }
+  return h;
+}
+void gdl_ipc_ClientClosesMailBox(){
+  	  mq_close(gdl2gdlMessageBoxHandle);
+	  mq_unlink(g2gClientMailbox.c_str());
+}
+void gdl_ipc_ClientGetsMailboxAddress(std::string & s) {
+  g2gClientMailbox=s;
+  if ((gdl2gdlMessageBoxHandle = mq_open(g2gClientMailbox.c_str(), O_WRONLY)) == -1) {
+   throw GDLException("Server: mq_open (server) :"+string(strerror(errno)));
+  }
+  //here is a good point to start to be absolutely silent
+  std::cout.rdbuf(NULL);
+  std::cerr.rdbuf(NULL);
+}
+//client side
+void gdl_ipc_ClientSignalsOperationsOK() {
+     pid_t pid=getpid();
+     char out_buffer [MSG_BUFFER_SIZE];
+	 static int l=sizeof(pid_t);
+	 memcpy(out_buffer,&pid,l);
+//	std::cerr << "using handle " <<gdl2gdlMessageBoxHandle<<" for acknowledge"<<std::endl;
+	 if (mq_send (gdl2gdlMessageBoxHandle, out_buffer, l + 1, 0) == -1) {
+		throw GDLException("Client"+i2s(pid)+" is not able to send message to server, reason: "+string(strerror(errno)));
+	}
+}
+//client side
+void gdl_ipc_ClientSendReturn(unsigned char status, std::string s) {
+     char out_buffer [MSG_BUFFER_SIZE];
+	 int l=s.size()+1; l=(l > MSG_BUFFER_SIZE)?MSG_BUFFER_SIZE-1:l;
+	 out_buffer[0]=status;
+	 strncpy(&out_buffer[1],s.c_str(),l);
+	std::cerr << "using handle " <<gdl2gdlMessageBoxHandle<<" for response"<<status<<std::endl;
+	 if (mq_send (gdl2gdlMessageBoxHandle, out_buffer, l + 2, 0) == -1) {
+		throw GDLException("Client "+i2s(getpid())+" is not able to send message to server, reason: "+string(strerror(errno)));
+	}
+	 //perform client "retall" if code is > 2 (error or cancel)
+	 if (status < 3) return;
+	static int proIx = LibProIx("RETALL");
+    EnvT* env = new EnvT(NULL, libProList[proIx]);
+    Guard<EnvT> env_guard(env);
+    static_cast<DLibPro*>(env->GetPro())->Pro()(static_cast<EnvT*>(env));
+ }
+//master side
+void gdl_ipc_MasterWaitsForClientOK(pid_t pid){
+//  std::cerr << "wait for client "<<pid<<" started at handle " <<g2gMap.at(pid).MessageChannelHandle<<std::endl;
+     char in_buffer [MSG_BUFFER_SIZE];
+        if (mq_receive (g2gMap.at(pid).MessageChannelHandle, in_buffer, MSG_BUFFER_SIZE, NULL) == -1) {
+          throw GDLException("Server: mq_receive :"+string(strerror(errno)));
+        }
+}
+
+
+// used for non-waiting executes, run in parallel (in g2gAsynchronousReturnTrap()) 
+// with current EnvT of gdl, so MUST NOT interfere with it: just
+// push an event in a queue (thread safe). Event will be processed in the MAIN MASTER LOOP
+static void ReportUsingCallBack(pid_t pid) {
+  // push callback event if necessary
+  DObjGDL* o = g2gMap.at(pid).obj;
+  DStructGDL* self = BaseGDL::interpreter->GetObjHeap((*o)[0]);
+  DStringGDL* callbackproc = static_cast<DStringGDL*> (self->GetTag(3));
+  if (callbackproc->NBytes() > 0) {
+	StrUpCaseInplace((*callbackproc)[0]);
+	DStructGDL* ev = new DStructGDL("GDL2GDL_CBK_EVENT");
+	ev->InitTag("CALLBACKPROC", DStringGDL((*callbackproc)[0]));
+	ev->InitTag("CALLBACKSTATUS", DIntGDL(g2gMap.at(pid).status));
+	ev->InitTag("CALLBACKERROR", DStringGDL(g2gMap.at(pid).description));
+	ev->InitTag("CALLBACKOBJECT", *o);
+	ev->InitTag("CALLBACKUSERDATA", *(self->GetTag(5)));
+	gdl2gdlCallbackQueue.PushBack(ev);
+  }
+}
+
+void gdl_ipc_read_client_wait(pid_t pid){
+     char* in_buffer=(char*) calloc(MSG_BUFFER_SIZE,1);
+	 messageBoxHandle clientMessageBoxHandle=g2gMap.at(pid).MessageChannelHandle;
+        if (mq_receive (clientMessageBoxHandle, in_buffer, MSG_BUFFER_SIZE, NULL) == -1) {
+          throw GDLException("Server: mq_receive :"+string(strerror(errno)));
+        }
+  int status = in_buffer[0]; //2,3, or 4
+//  std::cerr<<"\nwait got something:"<<status<<std::endl;
+  if (status < 2 || status > 4) throw GDLException("Wrong return from client program");
+  g2gMap.at(pid).status=status;
+  std::string r(&in_buffer[1]);
+  g2gMap.at(pid).description=r;
+  g2gPerformCallbackProcedure(pid);
+}
+
+void gdl_ipc_read_client_nowait(pid_t pid) {
+  char* in_buffer = (char*) calloc(MSG_BUFFER_SIZE, 1);
+  timespec timeout;
+  timeout.tv_nsec = 0;
+  timeout.tv_sec = 0;
+  messageBoxHandle clientMessageBoxHandle = g2gMap.at(pid).MessageChannelHandle;
+  if (mq_timedreceive(clientMessageBoxHandle, in_buffer, MSG_BUFFER_SIZE, NULL, &timeout) == -1) {
+	if (errno != ETIMEDOUT) {
+          throw GDLException("Server: mq_receive :"+string(strerror(errno)));
+	} else {
+	  return;
+	}
+  }
+  //it has already returned something
+  int status = in_buffer[0]; //2,3, or 4
+//  std::cerr<<"\nnowait got something:"<<status<<std::endl;
+  if (status < 2 || status > 4) throw GDLException("Wrong return from client program");
+  g2gMap.at(pid).status=status;
+  std::string r(&in_buffer[1]);
+  g2gMap.at(pid).description=r;
+  ReportUsingCallBack(pid); //just report (can be done in a thread), will be 'treated' by master loop in GDL.
+}
+#endif
+
+#if defined(_WIN32) && !defined(__CYGWIN__)
+#else
 namespace lib {
   // create a shared memory location containing a copy of variable v
   // if a shared memory file of sufficient size exist, use it
@@ -462,7 +627,7 @@ namespace lib {
 	munmap(mapAddress, nbytes + offset); //unmap
 
 	DString command = (*s)[0] + "=gmem_subprocess_receivevar('" + sharedId + "')\n";
-	int status = WriteToChild(e, &((*triplet)[0]), command, false);
+	int status = gdl_ipc_write_to_client(e, &((*triplet)[0]), command, false);
 
 	AddGmemCleanToAtexit(); //will suppress shared sections at exit
   }
@@ -566,7 +731,7 @@ namespace lib {
 	}
 
 	DString command = "gmem_subprocess_givevar,'" + sharedId + "'," + child_var + "\n";
-	int status = WriteToChild(e, &((*triplet)[0]), command, false);
+	int status = gdl_ipc_write_to_client(e, &((*triplet)[0]), command, false);
 	//read exported var
 
 	int exist_perms = S_IRUSR | S_IWUSR;
@@ -734,9 +899,16 @@ namespace lib {
 	if (p0->N_Elements() != 3) e->Throw("I need a triplet.");
 	DLongGDL *triplet = e->GetParAs<DLongGDL>(0);
 	pid_t pid = (*triplet)[2];
-	return new DIntGDL(g2gMap.at(pid).status);
 	static int ERROR = e->KeywordIx("ERROR");
+	std::string s;
 	if (e->KeywordPresent(ERROR)) e->SetKW(ERROR, new DStringGDL(g2gMap.at(pid).description));
+	int status=g2gMap.at(pid).status;
+	if(status>1) {
+	//status() resets status to 0 when called.
+	  g2gMap.at(pid).status=0;
+	  g2gMap.at(pid).description.clear();
+	}
+	return new DIntGDL(status);
   }
 
   //gmem_send,pipefd,"command",/NOWAIT
@@ -758,7 +930,7 @@ namespace lib {
 	DStringGDL* s = e->GetParAs<DStringGDL>(1);
 	DString command = (*s)[0] + "\n";
 
-	int status = WriteToChild(e, &((*triplet)[0]), command, e->KeywordSet(NOWAIT));
+	int status = gdl_ipc_write_to_client(e, &((*triplet)[0]), command, e->KeywordSet(NOWAIT));
   }
 
   void gmem_abort(EnvT*e) {
@@ -767,10 +939,10 @@ namespace lib {
 	if (p0->N_Elements() != 3) e->Throw("I need a triplet.");
 	DLongGDL *triplet = e->GetParAs<DLongGDL>(0);
 	pid_t pid=(*triplet)[2];
-	gdl_ipc_sendCtrlCToChild((*triplet)[2]); //make ^C
-	g2gMap.at(pid).status = 4; //aborted
-	g2gMap.at(pid).description = "Command aborted."; //aborted
-	ReportUsingCallBack(pid);
+    g2gMap.at(pid).status = 1;
+    g2gMap.at(pid).nowait=false;
+	gdl_ipc_sendCtrlCToClient(pid); //make ^C
+	gdl_ipc_read_client_wait(pid); //synchronously wait for subprocess halted. (not sure IDL does that)
   }
 
   BaseGDL* gmem_fork(EnvT* e) {
@@ -791,7 +963,11 @@ namespace lib {
 	  perror("pipe");
 	  exit(EXIT_FAILURE);
 	}
-
+// create message box & get name
+	std::string passed_name;
+    messageBoxHandle id=StartIndividualClientMessageChannel(passed_name);
+//	std::cerr << "creating handle " <<id<<" for "<<passed_name <<std::endl;
+	//now 2 processes
 	subprocess_pid = fork();
 	if (subprocess_pid == -1) {
 	  perror("fork");
@@ -809,13 +985,12 @@ namespace lib {
 	  dup2(read_pipe[1], 2);
 	  std::string me=whereami_gdl+"/gdl";
 	  std::string subp="--subprocess";
-	  std::string myParentPid=i2s(g2gParentPid);
-	  if (-1 == execl(me.c_str(), me.c_str(), subp.c_str(), myParentPid.c_str(), (char  *)NULL)) {
+	  if (-1 == execl(me.c_str(), me.c_str(), subp.c_str(), passed_name.c_str(), (char  *)NULL)) {
 		perror("child process execve failed [%m]");
 		return new DLongGDL(0);
 	  }
-	  printf("closing fd %d\n", write_pipe[0]);
-	  printf("subprocess %d exited\n", getpid());
+//	  printf("closing fd %d\n", write_pipe[0]);
+//	  printf("subprocess %d exited\n", getpid());
 	  close(write_pipe[0]);
 	  close(read_pipe[1]);
 	  _exit(EXIT_SUCCESS);
@@ -831,16 +1006,20 @@ namespace lib {
 	  params.description.clear();
 	  params.status=0;
 	  params.obj=o;
+	  bool startspy = (g2gMap.size() == 0) ; //will start a spy detached thread for NOWAIT operations, that will end itself when g2GMap is empty
 	  g2gMap.insert(std::pair<pid_t,gdl2gdlparams>(subprocess_pid,params));
+	  g2gMap.at(subprocess_pid).MessageChannelHandle=id;
 	  // insure communication with child is OK waiting for a status change
-      gdl_ipc_wait_for_subprocess_started();
+      gdl_ipc_MasterWaitsForClientOK(subprocess_pid);
+	  //  start eventually spy process
+	  if (startspy)  std::thread(g2gAsynchronousReturnTrap).detach();
       return triplet;
 	}
 
   }
 
   // gmem_exit,id : cleans the shared mem & objectlist, called by IDL_IDLBridge::Cleanup
-
+ // MASTER only
   void gmem_exit(EnvT*e) {
 	SizeT nParam = e->NParam(1);
 	BaseGDL* p0 = e->GetParDefined(0);
@@ -850,11 +1029,11 @@ namespace lib {
 
 
 	if (g2gMap.at(pid).status == 1) { //interrupt the process
-	  gdl_ipc_sendsignalToParent();
-	  g2gMap.at(pid).status = 2; //aborted
-	  HandleObjectsCallbacks(); //callback must be called
+	  gdl_ipc_sendCtrlCToClient(pid);
+	  g2gMap.at(pid).status = 4; //aborted
+	  g2gPerformCallbackProcedure(pid);
 	}
-	//remove shared mem and pid, object
+	//remove shared mem and pid, object, close messagebox
 	g2gSharedMemListIter it = g2gListOfSharedMem.find(pid);
 	if (it != g2gListOfSharedMem.end()) {
 	  std::string sharedId = base + i2s(getpid()) + "$" + i2s((*it).second);
@@ -862,9 +1041,10 @@ namespace lib {
 	  g2gListOfSharedMem.erase(pid);
 	}
 
-    g2gMap.erase(pid);
 	DString command = "EXIT\n";
-	int status = write((*triplet)[1], command.c_str(), 5);
+	size_t l=command.size();
+	int status = write((*triplet)[1], command.c_str(), l);
+    g2gMap.erase(pid);
   }
 }
 #endif
