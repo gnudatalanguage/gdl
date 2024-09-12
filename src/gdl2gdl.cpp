@@ -143,6 +143,43 @@ void AddGmemCleanToAtexit() {
 	atexit(gmem_clean);
   }
 }
+// called from main eventloop. Reads g2gObjetcs events (could easily be extended to other event-needing objects)
+
+void g2gEventDispatcher() {
+  DStructGDL* ev;
+  while ((ev = gdl2gdlCallbackQueue.Pop()) != NULL) { // get event
+	DStringGDL* callbackname = static_cast<DStringGDL*> (ev->GetTag(0));
+	//	std::cerr << "callback: " << (*callbackname)[0] << std::endl;
+	int proIx = GDLInterpreter::GetProIx((*callbackname)[0]);
+	if (proIx != -1) {
+	  // perform callback and reset status to IDLE at end of callback
+	  DIntGDL* status = static_cast<DIntGDL*> (ev->GetTag(1));
+	  DStringGDL* error = static_cast<DStringGDL*> (ev->GetTag(2));
+	  DObjGDL* o = static_cast<DObjGDL*> (ev->GetTag(3));
+	  DStructGDL* self = BaseGDL::interpreter->GetObjHeap((*o)[0]);
+	  DLongGDL* triplet = static_cast<DLongGDL*> (self->GetTag(6));
+	  pid_t pid = (*triplet)[2];
+	  EnvUDT* newEnv = new EnvUDT(NULL, proList[ proIx], NULL);
+	  newEnv->SetNextPar(status);
+	  newEnv->SetNextPar(error);
+	  newEnv->SetNextPar(o);
+
+	  DPtrGDL* ptrgdl = static_cast<DPtrGDL*> (ev->GetTag(4));
+	  DPtr p = (*ptrgdl)[0];
+	  if (BaseGDL::interpreter->PtrValid(p)) {
+		BaseGDL* data = BaseGDL::interpreter->GetHeap(p);
+		newEnv->SetNextPar(data);
+	  }
+	  BaseGDL::interpreter->CallStack().push_back(newEnv);
+	  // make the call
+	  BaseGDL::interpreter->call_pro(proList[ proIx]->GetTree());
+	  BaseGDL::interpreter->CallStack().pop_back();
+	  g2gMap.at(pid).status = 0;
+	  g2gMap.at(pid).description.clear();
+	  g2gMap.at(pid).nowait = false;
+	}
+  }
+}
 #endif
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
@@ -436,42 +473,7 @@ void gdl_ipc_MasterWaitsForClientOK(pid_t pid){
           throw GDLException("Server: mq_receive :"+string(strerror(errno)));
         }
 }
-// called from main eventloop. Reads g2gObjetcs events (could easily be extended to other event-needing objects)
-void g2gEventDispatcher() {
-  DStructGDL* ev;
-  while ((ev = gdl2gdlCallbackQueue.Pop()) != NULL) { // get event
-	DStringGDL* callbackname = static_cast<DStringGDL*> (ev->GetTag(0));
-//	std::cerr << "callback: " << (*callbackname)[0] << std::endl;
-	int proIx = GDLInterpreter::GetProIx((*callbackname)[0]);
-	if (proIx != -1) {
-	  // perform callback and reset status to IDLE at end of callback
-	  DIntGDL* status = static_cast<DIntGDL*> (ev->GetTag(1));
-	  DStringGDL* error = static_cast<DStringGDL*> (ev->GetTag(2));
-	  DObjGDL* o = static_cast<DObjGDL*> (ev->GetTag(3));
-      DStructGDL* self = BaseGDL::interpreter->GetObjHeap((*o)[0]);
-	  DLongGDL* triplet=static_cast<DLongGDL*>(self->GetTag(6));
-	  pid_t pid=(*triplet)[2];
-	  EnvUDT* newEnv = new EnvUDT(NULL, proList[ proIx], NULL);
-	  newEnv->SetNextPar(status);
-	  newEnv->SetNextPar(error);
-	  newEnv->SetNextPar(o);
 
-	  DPtrGDL* ptrgdl = static_cast<DPtrGDL*> (ev->GetTag(4));
-	  DPtr p = (*ptrgdl)[0];
-	  if (BaseGDL::interpreter->PtrValid(p)) {
-		BaseGDL* data = BaseGDL::interpreter->GetHeap(p);
-		newEnv->SetNextPar(data);
-	  }
-	  BaseGDL::interpreter->CallStack().push_back(newEnv);
-	  // make the call
-	  BaseGDL::interpreter->call_pro(proList[ proIx]->GetTree());
-	  BaseGDL::interpreter->CallStack().pop_back();
-	  g2gMap.at(pid).status = 0;
-	  g2gMap.at(pid).description.clear();
-	  g2gMap.at(pid).nowait = false;
-	}
-  }
-}
 
 // used for non-waiting executes, run in parallel (in g2gAsynchronousReturnTrap()) 
 // with current EnvT of gdl, so MUST NOT interfere with it: just
