@@ -633,8 +633,7 @@ WidgetListT GDLWidget::widgetList;
 wxImageList *gdlDefaultTreeStateImages;
 wxImageList *gdlDefaultTreeImages;
 
-GDLEventQueue GDLWidget::BlockingEventQueue; // the event queue in which all widget events are versed in case of blocking (XMANAGER)
-GDLEventQueue GDLWidget::InteractiveEventQueue; // event queue used when no blocking is made -- part of the main GDLEventHandler() 
+GDLEventQueue GDLWidget::widgetEventQueue; // event queue used by the main GDLEventHandler() 
 bool GDLWidget::wxIsOn=false;
 bool GDLWidget::handlersOk=false;
 wxFont GDLWidget::defaultFont=wxNullFont; //the font defined by widget_control,default_font.
@@ -1252,8 +1251,7 @@ void GDLWidget::SendWidgetTimerEvent(int millisecs) {
 }
 
 void GDLWidget::ClearEvents() {
-    InteractiveEventQueue.Purge(this->GetWidgetID());
-    BlockingEventQueue.Purge(this->GetWidgetID());
+    widgetEventQueue.Purge(this->GetWidgetID());
 }
 
 void GDLWidget::HandleUnblockedWidgetEvents()
@@ -1262,7 +1260,7 @@ void GDLWidget::HandleUnblockedWidgetEvents()
   CallWXEventLoop();
   //treat our GDL events...
     DStructGDL* ev = NULL;
-    while( (ev = GDLWidget::InteractiveEventQueue.Pop()) != NULL)
+    while( (ev = GDLWidget::widgetEventQueue.Pop()) != NULL)
     {
       ev = CallEventHandler( ev );
 
@@ -1277,22 +1275,7 @@ void GDLWidget::HandleUnblockedWidgetEvents()
   }
 
 void GDLWidget::PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev) {
-  // Get XmanagerActiveCommand status
-  GDLWidget *baseWidget = GDLWidget::GetWidget( baseWidgetID );
-  if ( baseWidget != NULL ) {
-    bool interactive = baseWidget->IsUsingInteractiveEventLoop( );
-    if ( interactive ) { //non-Blocking: events in InteractiveEventQueue.
-#ifdef GDL_DEBUG_WIDGETS
-           wxMessageOutputStderr().Printf(_T("InteractiveEventQueue.PushEvent: %d\n"),baseWidgetID);
-#endif
-      InteractiveEventQueue.PushBack( ev );
-    } else { //blocking: events in BlockingEventQueue.
-#ifdef GDL_DEBUG_WIDGETS
-           wxMessageOutputStderr().Printf(_T("BlockingEventQueue.PushEvent: %d\n"),baseWidgetID);
-#endif
-      BlockingEventQueue.PushBack( ev );
-    }
-  } else cerr << "NULL baseWidget (possibly Destroyed?) found in GDLWidget::PushEvent( WidgetIDT baseWidgetID=" << baseWidgetID << ", DStructGDL* ev=" << ev << "), please report!\n";
+      widgetEventQueue.PushBack( ev );
 }
 
 void GDLWidget::InformAuthorities(const std::string& message){
@@ -1302,7 +1285,7 @@ void GDLWidget::InformAuthorities(const std::string& message){
         ev->InitTag( "TOP", DLongGDL( 0 ) );
         ev->InitTag( "HANDLER", DLongGDL( 0 ) );
         ev->InitTag( "MESSAGE", DStringGDL(message) );
-          InteractiveEventQueue.PushFront( ev ); // push front (will be handled next)
+          widgetEventQueue.PushFront( ev ); // push front (will be handled next)
     }
 //return false if already blocked by XManager (one managed realized top Widget is not marked as interactive).
 bool GDLWidget::IsXmanagerBlocking() 
@@ -1488,8 +1471,7 @@ void GDLWidget::UnInit() {
   if (wxIsStarted()) {
     ResetWidgets();
     //clear all events --- otherwise baoum!)
-    InteractiveEventQueue.Purge();
-    BlockingEventQueue.Purge();
+    widgetEventQueue.Purge();
     // the following cannot be done: once unitialized, the wxWidgets library cannot be safely initilized again.:  wxUninitialize( );
     UnsetWxStarted(); //reset handlersOk too.
   }
@@ -2542,17 +2524,7 @@ GDLWidgetTopBase::~GDLWidgetTopBase() {
   ev->InitTag("ID", DLongGDL(widgetID));
   ev->InitTag("TOP", DLongGDL(widgetID));
   ev->InitTag("HANDLER", DLongGDL(0));
-  if (this->IsUsingInteractiveEventLoop()) {
-#ifdef GDL_DEBUG_WIDGETS
-            wxMessageOutputStderr().Printf(_T("~GDLWidgetTopBase InteractiveEventQueue.Push: %d\n"),widgetID);
-#endif
-   InteractiveEventQueue.PushFront(ev); // push front (will be handled next)
-   } else {
-#ifdef GDL_DEBUG_WIDGETS
-           wxMessageOutputStderr().Printf(_T("~GDLWidgetTopBase BlockingEventQueue.Push: %d\n"),widgetID);
-#endif           
-    BlockingEventQueue.PushFront(ev); // push front (will be handled next)
- }
+   widgetEventQueue.PushFront(ev); // push front (will be handled next)
 }
 /*********************************************************/
 // Context Menu pseudo-base

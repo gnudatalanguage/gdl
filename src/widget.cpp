@@ -2501,74 +2501,58 @@ BaseGDL* widget_info( EnvT* e ) {
     int infinity = (nowait) ? 0 : 1;
     DStructGDL* ev;
 
-    do { // outer while loop, will run once if NOWAIT
+	do { // outer while loop, will run once if NOWAIT
 	  while (1) { //inner loop, catch controlC, default return if no event trapped in nowait mode
-	  GDLWidget::CallWXEventLoop();
-      if (!all) {
-          //specific widget(s)
-          // we cannot check only readlineEventQueue thinking our XMANAGER in blocking state looks to ALL widgets.
-          // because XMANAGER may have been called AFTER events are created.
-          while ((ev = GDLWidget::BlockingEventQueue.Pop()) != NULL) { // get event
-            static int idIx = ev->Desc()->TagIndex("ID");
-            id = (*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0]; // get its id
-            for (SizeT i = 0; i < widgetIDList.size(); i++) { //is ID corresponding to any widget in list?
-              if (widgetIDList.at(i) == id) { //if yes
-				ev = CallEventHandler(ev); //process it recursively (going up hierarchy) in eventHandler. Should block waiting for xmanager.
-				if (ev == NULL) return defaultRes;
-				else return ev;
-              } 
-            }
-			// blocking eventqueue should drain (just Pop() ) when unconcerned interactive events must be preserved
-			// to be executed normally when widget_event returns (so, pusehd back in  InteractiveEventQueue).
-          }
-          while ((ev = GDLWidget::InteractiveEventQueue.Pop()) != NULL) { // get event
-            static int idIx = ev->Desc()->TagIndex("ID");
-            id = (*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0]; // get its id
-            for (SizeT i = 0; i < widgetIDList.size(); i++) { //is ID corresponding to any widget in list?
-              if (widgetIDList.at(i) == id) { //if yes
+		GDLWidget::CallWXEventLoop();
+		if (!all) {
+		  //specific widget(s)
+		  while ((ev = GDLWidget::widgetEventQueue.Pop()) != NULL) { // get event
+			static int idIx = ev->Desc()->TagIndex("ID");
+			id = (*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0]; // get its id
+			for (SizeT i = 0; i < widgetIDList.size(); i++) { //is ID corresponding to any widget in list?
+			  if (widgetIDList.at(i) == id) { //if yes
 				//IMPORTANT: return ev immediately. This is what permits #1685: an event trapped by WIDGET_EVENT does not behave
 				//like the same event processed in the evenloop.
-				  return ev;
-              } 
-            }
-			GDLWidget::InteractiveEventQueue.PushBack(ev);
+				return ev;
+			  }
+			}
+			GDLWidget::widgetEventQueue.PushBack(ev);
 			GDLWidget::CallWXEventLoop();
-	  // avoid looping like crazy
+			// avoid looping like crazy
 #ifdef _WIN32 
-	  Sleep(10); // this just to quiet down the character input from readline. 2 was not enough. 20 was ok.
+			Sleep(10); // this just to quiet down the character input from readline. 2 was not enough. 20 was ok.
 #else
-	  const long SLEEP = 10000000; // 10ms
-	  struct timespec delay;
-	  delay.tv_sec = 0;
-	  delay.tv_nsec = SLEEP; // 20ms
-	  nanosleep(&delay, NULL);
+			const long SLEEP = 10000000; // 10ms
+			struct timespec delay;
+			delay.tv_sec = 0;
+			delay.tv_nsec = SLEEP; // 20ms
+			nanosleep(&delay, NULL);
 #endif
-          }
-        } else {
-          //wait for ALL . This is the case of /XMANAGER_BLOCK for example. Both queues may be active, some widgets being managed other not. 
-          if ((ev = GDLWidget::BlockingEventQueue.Pop()) != NULL) goto endwait;
-          if ((ev = GDLWidget::InteractiveEventQueue.Pop()) != NULL) goto endwait;
-        }
-        if (nowait) return defaultRes;
-        if (sigControlC) return defaultRes;
-      } //end inner loop
-      //here we got a real event, process it, walking back the hierachy (in CallEventHandler()) for modified ev in case of function handlers.
-    endwait:
-      if (blockedByXmanager && ev->Desc( )->Name( ) == "*TOPLEVEL_DESTROYED*" ) {
-        // deleted widgets list are hopefully handled internally by xmanager 
-        GDLDelete(ev);
-        return defaultRes;
-      }
-      ev = CallEventHandler(ev); //process it recursively (going up hierarchy) in eventHandler. Should block waiting for xmanager.
-      // examine return:
-      if (ev == NULL) { //swallowed by a procedure or non-event-stucture returning function 
-        if (nowait) return defaultRes; //else will loop again
-      } else { // untreated or modified by a function
-          return ev;
-      }
+		  }
+		} else {
+		  //wait for ALL . This is the case of /XMANAGER_BLOCK for example.
+		  if ((ev = GDLWidget::widgetEventQueue.Pop()) != NULL) goto endwait;
+		}
+		if (nowait) return defaultRes;
+		if (sigControlC) return defaultRes;
+	  } //end inner loop
+	  //here we got a real event, process it, walking back the hierachy (in CallEventHandler()) for modified ev in case of function handlers.
+	endwait:
+	  if (blockedByXmanager && ev->Desc()->Name() == "*TOPLEVEL_DESTROYED*") {
+		// deleted widgets list are hopefully handled internally by xmanager 
+		GDLDelete(ev);
+		return defaultRes;
+	  }
+	  ev = CallEventHandler(ev); //process it recursively (going up hierarchy) in eventHandler. Should block waiting for xmanager.
+	  // examine return:
+	  if (ev == NULL) { //swallowed by a procedure or non-event-stucture returning function 
+		if (nowait) return defaultRes; //else will loop again
+	  } else { // untreated or modified by a function
+		return ev;
+	  }
 	  GDLWidget::CallWXEventLoop();
 
-    } while (infinity);
+	} while (infinity);
     return NULL; //pacifier.
 #endif //HAVE_LIBWXWIDGETS
   }
