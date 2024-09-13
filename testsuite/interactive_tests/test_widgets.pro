@@ -173,10 +173,16 @@ pro list_event,event
 toto=["A","list","created","with","WIDGET_LIST","YSIZE=3"]
 print,toto[event.index] 
 end
+
+; called by XMANAGER : main eventloop
 pro handle_Event,ev
   common mycount,count
   common pixmaps,green_bmp,red_bmp
-  help,ev,/str
+  common forprogressbar,progressbar,pbarid,pbarpos
+
+  ; avoid to report timer events
+  if tag_names(ev, /structure_name) ne 'WIDGET_TIMER' then  help,ev,/str
+  
   if tag_names(ev, /structure_name) eq 'WIDGET_KILL_REQUEST' then begin
      acceptance=dialog_message(dialog_parent=ev.id,"I Do want to close the window", /CANCEL, /DEFAULT_NO,/QUESTION) ; +strtrim(ev.id,2))
      if acceptance eq "Yes" then begin
@@ -230,7 +236,7 @@ pro handle_Event,ev
         return
      endif
      
-     print,"uvalue.type=",uv.type
+     if uv.type ne 'timer' then print,"uvalue.type=",uv.type
      case uv.type of
         'file': begin
            widget_control,ev.id,get_value=value ;& print,value
@@ -262,6 +268,9 @@ pro handle_Event,ev
 	   if val eq 'ON' then begin
               widget_control,ev.id,set_value = 'OFF' 
            endif else begin
+              vv=widget_info(/xmanager)
+              widget_control,ev.id,set_value = "MANAGED: "+strtrim(vv,2)
+              wait,1
               widget_control,ev.id,set_value = 'ON'
            endelse
         end
@@ -275,6 +284,14 @@ pro handle_Event,ev
                widget_control,ev.id,set_value = green_bmp, set_uvalue= val
            endelse
         end
+        'timer': begin
+           wset,pbarid
+           pbarpos += 5
+           pbarpos MOD= 300
+           ERASE, 255
+           POLYFILL, pbarpos+[0,0,5,5], [0, 19, 19,0], /DEVICE, color=140
+           WIDGET_CONTROL, ev.id, TIMER=.2
+         end
         'quit':  widget_control,ev.top,/DESTROY
         else: begin
            print, "(other, not treated, event: ok)"
@@ -321,7 +338,8 @@ siz= widget_button(menu,VALUE="Resize (error)",EVENT_PRO="resize_gui") ; 5
 pro test_widgets,table,help=help,nocanvas=nocanvas,notree=notree,block=block,fontname=fontname,present=present,select=select,_extra=extra
   common mycount,count
   common pixmaps,green_bmp,red_bmp
-
+  common forprogressbar,progressbar,pbarid,pbarpos
+  
   green_bmp= bytarr(7,7,3)& green_bmp[*,*,1] = 255& & green_bmp[0,0,1] = 254
   red_bmp= bytarr(7,7,3)& red_bmp[*,*,0] = 255& & red_bmp[0,0,0] = 254
   if (n_elements(select) gt 0) then present=select
@@ -364,7 +382,9 @@ ev = {vEv,type:'',pos:[0,0]}
 base = WIDGET_BASE(/col,MBAR=mbar,title=title,event_pro='base_event_nok',kill_notify='cleanup',/tlb_kill_request_events,/tlb_size_events) ; ---> PROBLEM: ,/tlb_size_events) ;,/scroll)
 doMbar,mbar,fontname
 ;mysize=widget_info(base,string_size='012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234')
-
+; add a progress bar to test timer
+  progressbar = WIDGET_DRAW(base, XSIZE=300, YSIZE=20, UVALUE={vEv,'timer',[0,0]})
+  pbarpos=0
 ; define a tabbed base that contains everything:
 label=widget_label(base,value='to best mimic IDL`s widgets, call GDL ',/align_left)
 label=widget_label(base,value='with option "--widget-compat" ',/align_left)
@@ -738,7 +758,9 @@ widget_control,base,notify_realize='i_am_realized'
 ;Realize the widgets. 
 WIDGET_CONTROL, /REALIZE, base 
  
-;;Obtain the window index. 
+;;Obtain the window index.
+  WIDGET_CONTROL, progressbar, GET_VALUE = pbarId
+
 if ~keyword_set(nocanvas) and total(strcmp('DRAW',present,/fold)) then begin
 print,"Draw widgets:",draw,draw2
  WIDGET_CONTROL, draw, GET_VALUE = index 
@@ -767,5 +789,8 @@ print,"Draw widgets:",draw,draw2
  tv,image,10,10,/data; ,/true
 endif
 
-xmanager,"handle",base,cleanup="cleanup_xmanager",no_block=~block
+; create a timer event --- otherwise will not be active and thus not catched in eventloop
+widget_control,progressbar,timer=0
+
+xmanager,"handle",base,cleanup="cleanup_xmanager";,no_block=~block
 end

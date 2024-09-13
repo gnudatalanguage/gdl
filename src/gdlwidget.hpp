@@ -396,7 +396,7 @@ public:
   static wxFont defaultFont;
   static wxFont systemFont;
   static GDLEventQueue BlockingEventQueue;
-  static GDLEventQueue InteractiveEventQueue;
+  static GDLEventQueue widgetEventQueue;
   static void PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev);
   static void InformAuthorities(const std::string& message);
   
