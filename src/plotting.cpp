@@ -1540,7 +1540,7 @@ namespace lib
 	int e = floor(log10(value * sgn));
 
     //we need !3x!X to insure the x sign is always written in single roman.
-    static string normalfmt[7] = {"%1.0f!3x!X10!E%d!N", "%2.1f!3x!X10!E%d!N", "%3.2f!3x!X10!E%d!N", "%4.2f!3x!X10!E%d!N", "%5.4f!3x!X10!E%d!N", "%6.5f!3x!X10!E%d!N", "%7.6f!3x!X10!E%d!N"};
+    static string normalfmt[7] = {"%1.0f!3x!X10!E%d!N", "%2.1f!3x!X10!E%d!N", "%3.2f!3x!X10!E%d!N", "%4.3f!3x!X10!E%d!N", "%5.4f!3x!X10!E%d!N", "%6.5f!3x!X10!E%d!N", "%7.6f!3x!X10!E%d!N"};
     static string specialfmt = "10!E%d!N";
     static string specialfmtlog = "10!E%s!N";
     PLFLT z;
@@ -1721,7 +1721,7 @@ namespace lib
   
   void doFormatAxisValue(DDouble value, string &label)
   {
-    static string normalfmt[7]={"%1.0fx10^%d","%2.1fx10^%d","%3.2fx10^%d","%4.2fx10^%d","%5.4fx10^%d","%6.5fx10^%d","%7.6fx10^%d"};
+    static string normalfmt[7]={"%1.0fx10^%d","%2.1fx10^%d","%3.2fx10^%d","%4.3fx10^%d","%5.4fx10^%d","%6.5fx10^%d","%7.6fx10^%d"};
     static string specialfmt="10^%d";
     static const int length=20;
     PLFLT z;
