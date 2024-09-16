@@ -255,6 +255,28 @@ namespace lib {
   }
 
   static double
+  dsfmt_ran_gamma_long(dsfmt_t * r, const unsigned long a)
+  {
+    if (a < 12) {
+      unsigned long i;
+      double prod = 1;
+
+      for (i = 0; i < a; i++) {
+        prod *= dsfmt_genrand_open_open(r);
+      }
+
+      /* Note: for 12 iterations we are safe against underflow, since
+         the smallest positive random number is O(2^-32). This means
+         the smallest possible product is 2^(-12*32) = 10^-116 which
+         is within the range of double precision. */
+
+      return -log(prod);
+    } else {
+      return dsfmt_gamma_large(r, (double) a);
+    }
+  }
+
+  static double
   dsfmt_ran_gamma_knuth(dsfmt_t * r, const double a, const double b)
   {
     /* assume a > 0 */
@@ -367,17 +389,17 @@ namespace lib {
     return k;
   }
 
-  unsigned int
+  unsigned long
   dsfmt_ran_poisson(dsfmt_t * r, double mu)
   {
     double emu;
     double prod = 1.0;
-    unsigned int k = 0;
+    unsigned long k = 0;
 
     while (mu > 10) {
-      unsigned int m = mu * (7.0 / 8.0);
+      unsigned long m = mu * (7.0 / 8.0);
 
-      double X = dsfmt_ran_gamma_int(r, m);
+      double X = dsfmt_ran_gamma_long(r, m);
 
       if (X >= mu) {
         return k + dsfmt_ran_binomial_knuth(r, mu / X, m - 1);
