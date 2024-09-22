@@ -106,11 +106,11 @@ namespace lib
     {
        //look only in range x=[xmin,xmax]
        valx=(*xVal)[i];
-       if ( (valx<xmin || valx>xmax || isnan(valx))) continue;
+       if ( (valx<xmin || valx>xmax || !isfinite(valx))) continue;
        else {
-       //min and max of y if not NaN and in range [minVal, maxVal] if doMinMax=yes (min_value, max_value keywords)
+       //min and max of y if not NaN / Inf and in range [minVal, maxVal] if doMinMax=yes (min_value, max_value keywords)
        valy=(*yVal)[i];
-       if ((doMinMax && (valy<minVal || valy>maxVal )) || isnan(valy)) continue;
+       if ((doMinMax && (valy<minVal || valy>maxVal )) || !isfinite(valy)) continue;
        else {if(k==0) {min=valy; max=valy;} else {min=MIN(min,valy); max=MAX(max,valy);}}
        }
        k++;
