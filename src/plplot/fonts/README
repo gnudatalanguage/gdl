@@ -1,0 +1,17 @@
+The Hershey fonts are now stored in a portable binary format and are kept
+in ../data/plstnd5.fnt (standard fonts) and ../data/plxtnd5.fnt (extended
+fonts).
+
+If you really must rebuild the font files, you can do so using the
+font??.c, stndfont.c, and xtndfont.c source code files in this directory.
+Just add the -DBUILD_HERSHEY_FONTS=ON option to the cmake command line, and
+do the normal PLplot build in the build tree.  Then cd to the fonts directory
+in the build tree and run
+
+./generate_stndfonts; ./generate_xtndfonts
+
+This will create the standard and extended Hershey fonts in binary form as
+plstnd5.fnt and plxtnd5.fnt.  Then compare them with the ones already in
+the source tree data directory to confirm no changes have occurred.  (AWI
+last did this check on 2016-07-17 after making some substantial changes
+to stndfont.c, and xtndfont.c to get rid of compiler warnings).

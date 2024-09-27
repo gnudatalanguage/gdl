@@ -79,8 +79,6 @@ set(X11DIR "" CACHE PATH "GDL: Specify X11 directory tree")
 set(READLINE ON CACHE BOOL "GDL: Enable GNU Readline ?")
 set(READLINEDIR "" CACHE PATH "GDL: Specify the GNU Readline directory tree")
 
-set(PLPLOTDIR "" CACHE PATH "GDL: Specify the plplot directory tree")
-
 set(GSLDIR "" CACHE PATH "GDL: Specify the GSL directory tree")
 
 set(ZLIBDIR "" CACHE PATH "GDL: Specify the Zlib directory tree")
@@ -162,13 +160,6 @@ set(SZIPDIR "" CACHE PATH "GDL: Specify the SZip directory tree")
 
 set(GDL_DATA_DIR "/share/gnudatalanguage" CACHE PATH "GDL: data directory relative to CMAKE_INSTALL_PREFIX")
 set(GDL_LIB_DIR "" CACHE PATH "GDL: library directory relative to CMAKE_INSTALL_PREFIX")
-#define (for plplotdriver/CMakeLists.txt) the GDL_DRV_DIR where the drivers will be installed.
-#if GDL_LIB_DIR is empty, it will be the default (GDL_DATA_DIR/drivers) otherwise it is GDL_LIB_DIR (not GDL_LIB_DIR/drivers)
-if ( GDL_LIB_DIR STREQUAL "" OR NOT GDL_LIB_DIR)
- set (GDL_DRV_DIR "${CMAKE_INSTALL_PREFIX}/${GDL_DATA_DIR}/drivers") # CACHE PATH "GDL: where the drivers will be installed.")
-else()
- set (GDL_DRV_DIR "${GDL_LIB_DIR}" ) # CACHE PATH "GDL: where the drivers will be installed.")
-endif()
 # check for 64-bit OS
 if(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
     set(HAVE_64BIT_OS 1)
@@ -372,86 +363,6 @@ endif()
 if (NOT SPLIT_SOURCES_FILES)
 set(ONE_DATAFILE 1)
 endif (NOT SPLIT_SOURCES_FILES)
-# PLplot with DYNDRIVERS MANDATORY
-# it is necessary for 3D support and wxwidgets to avoid using plplot's drivers and instead use a copy, eventually modified by us, 
-# that is installed in gnudatalanguage/lib/drivers. Thus, we NEED that plplot is installed WITH ENABLE_DYNDRIVERS 
-# -DPLPLOTDIR=DIR
-set(CMAKE_PREFIX_PATH ${PLPLOTDIR})
-find_package(Plplot QUIET)
-set(HAVE_LIBPLPLOTCXXD ${PLPLOT_FOUND})
-if(PLPLOT_FOUND)
-    set(LIBRARIES ${LIBRARIES} ${PLPLOT_LIBRARIES})
-    include_directories(${PLPLOT_INCLUDE_DIR})
-else(PLPLOT_FOUND)
-    message(FATAL_ERROR "plplot library is required but was not found.\n"
-    "Use -DPLPLOTDIR=DIR to specify the plplot directory tree.\n"
-        "(suitable Debian/Ubuntu packages: libplplot-dev, [plplot9-driver-xwin])"
-        "(suitable Fedora/CentOS package: plplot-devel)")
-endif(PLPLOT_FOUND)
-
-if(PLPLOT_FOUND)
-    #0) mandatory: plplot compiled with ENABLE_DYNDRIVERS if option INTERACTIVE_GRAPHICS is set --> check presence of plGetDrvDir()
-    check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" INSTALL_LOCAL_DRIVERS)
-    if(INTERACTIVE_GRAPHICS AND NOT INSTALL_LOCAL_DRIVERS)
-      message(FATAL_ERROR "Plplot installation lacks dynamic drivers. \n"
-      "It is mandatory to recompile plplot with option -DENABLE_DYNDRIVERS.\n"
-      "*** Dears Distribution Maintainers, GDL must be distributed only with INTERACTIVE GRAPHICS=ON (default), thanks. ***" )
-    endif()
-    #1) mandatory: has ps_labelfunc() function? 
-    check_library_exists("${PLPLOT_LIBRARIES}" c_plslabelfunc "" HAVE_PLPLOT_SLABELFUNC)
-    if(NOT HAVE_PLPLOT_SLABELFUNC)
-      message(FATAL_ERROR "please upgrade to plplot version > 5.9.6 (missing plslabelfunc")
-    endif()
-
-    set(CMAKE_REQUIRED_INCLUDES "${PLPLOT_INCLUDE_DIR}")
-    set(CMAKE_REQUIRED_LIBRARIES "${PLPLOT_LIBRARIES}")
-
-    #has correct plwidth() function? 
-    #the following does not work with clang (???)
-        check_library_exists("${PLPLOT_LIBRARIES}" c_plwidth "" HAVE_PLPLOT_WIDTH)
-    
-    #give it a 2nd try...
-    if(NOT HAVE_PLPLOT_WIDTH)
-       set(_test_plplot
-       "
-       #include <plplot/plstream.h>
-       int main(int argc, char **argv) {
-         plstream *p = new plstream();
-         PLFLT w = 0.5;
-         p->width(w);
-       }
-       "
-       )
-       check_cxx_source_compiles("${_test_plplot}" HAVE_PLPLOT_WIDTH)
-       if(HAVE_PLPLOT_WIDTH)
-         set(HAVE_PLPLOT_WIDTH 1)
-       endif(HAVE_PLPLOT_WIDTH)
-    endif(NOT HAVE_PLPLOT_WIDTH)
-    
-    #has plstrl function?
-    check_library_exists("${PLPLOT_LIBRARIES}" plstrl "" PLPLOT_PRIVATE_NOT_HIDDEN)
-    if(PLPLOT_PRIVATE_NOT_HIDDEN)
-      set(PLPLOT_PRIVATE_NOT_HIDDEN 1)
-    else(PLPLOT_PRIVATE_NOT_HIDDEN)
-      message(STATUS "Using a plplot library without private functions - UGLY workarounds will be used.")
-    endif(PLPLOT_PRIVATE_NOT_HIDDEN)
-
-    #has plcallback function?
-    set(_test_plplot2
-        "
-        #include <plplot/plstream.h>
-        int main(){
-        PLINT n; 
-        PLFLT x,y;
-        plcallback::fill(n,&x,&y);
-        }
-        "
-        )    
-    check_cxx_source_compiles("${_test_plplot2}" PLPLOT_HAS_PLCALLBACK)
-    if(PLPLOT_HAS_PLCALLBACK)
-      set(PLPLOT_HAS_PLCALLBACK 1)
-    endif(PLPLOT_HAS_PLCALLBACK)
-endif(PLPLOT_FOUND)
 
 #---------------------------------------OPTIONAL MODULES----------------------
 # libpng
@@ -526,7 +437,7 @@ endif(OPENMP)
 # -DWXWIDGETSDIR=DIR
 if(WXWIDGETS)
     set(CMAKE_PREFIX_PATH ${WXWIDGETSDIR})
-    find_package(wxWidgets COMPONENTS base core adv)
+    find_package(wxWidgets 3.0.0 COMPONENTS base core adv )
     set(HAVE_LIBWXWIDGETS ${WXWIDGETS_FOUND})
     if(WXWIDGETS_FOUND)
         set(LIBRARIES ${LIBRARIES} ${wxWidgets_LIBRARIES})
@@ -535,6 +446,8 @@ if(WXWIDGETS)
             add_definitions(-D${WXDEF})
         endforeach(WXDEF ${wxWidgets_DEFINITIONS})
         include_directories(${wxWidgets_INCLUDE_DIRS})
+#plplot-minimum: enable wxwidgets static driver
+        set (PLD_wxwidgets ON)
     else(WXWIDGETS_FOUND)
         message(FATAL_ERROR "wxWidgets are required but were not found.\n"
         "Use -DWXWIDGETSDIR=DIR to specify the wxWidgets directory tree.\n"
@@ -547,6 +460,7 @@ else (WXWIDGETS)
     message(FATAL_ERROR "wxWidgets are required on Windows.")
   endif (INTERACTIVE_GRAPHICS AND WIN32) 
   #forcibly not used, no need to build and install our own copy of drivers, below
+  set (PLD_wxwidgets OFF)
 endif(WXWIDGETS)
 
 # X11 : OFF by default since wxWidgets SHOULD take preference in ALL builds.
@@ -559,7 +473,9 @@ if(CYGWIN OR NOT WIN32)
         if(X11_FOUND)
             set(LIBRARIES ${LIBRARIES} ${X11_LIBRARIES})
             include_directories(${X11_INCLUDE_DIR})
-        else(X11_FOUND)
+ #plplot-minimum: enable xwin static driver
+            set (PLD_xwin ON)
+       else(X11_FOUND)
             message(FATAL_ERROR "X11 is required but was not found.\n"
             "Use -DX11DIR=DIR to specify the X11 directory tree.\n"
             "Use -DX11=OFF to not use it.\n"
@@ -1043,6 +959,19 @@ if(EXPAT)
   endif(EXPAT_FOUND)
 endif(EXPAT)
 
+#currently duplicates src/plplot/modules/freetype as 
+  find_package(Freetype)
+  if (FREETYPE_FOUND)
+    set(LIBRARIES ${LIBRARIES} ${FREETYPE_LIBRARIES})
+    include_directories(${FREETYPE_INCLUDE_DIRS})
+    message(STATUS "Found Freetype.") 
+  endif(FREETYPE_FOUND)
+
+#plplot minimum local
+set (ENABLE_cxx ON)
+#add_subdirectory(src/plplot)
+
+#rest of gdl  
 add_subdirectory(src)
 
 if (TARGET version)
@@ -1162,7 +1091,6 @@ endif (INTERACTIVE_GRAPHICS)
 module(PNGLIB    PNG       "libpng        ")
 message("")
 message(STATUS "Mandatory modules")
-set(PLPLOT ON)
 set(READLINE ON)
 set(GSL ON)
 set(ZLIB ON)
@@ -1170,7 +1098,6 @@ if(NOT WIN32)
   set(CURSES ON)
   set(RPC ON)
   endif(NOT WIN32)
-module(PLPLOT    PLPLOT    "Plplot        ")
 module(READLINE  READLINE  "GNU Readline  ")
 module(GSL       GSL       "GSL           ")
 module(ZLIB      ZLIB      "Zlib          ")

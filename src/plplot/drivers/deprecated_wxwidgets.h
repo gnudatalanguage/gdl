@@ -547,6 +547,4 @@ const int          fontWeightLookup[2] = {
     wxFONTFLAG_DEFAULT,     // medium
     wxFONTFLAG_BOLD         // bold
 };
-extern void SelfTransform3D(int *xs, int *ys);
-extern void Project3DToPlplotFormMatrix(PLFLT *P);
 #endif // __WXWIDGETS_H__

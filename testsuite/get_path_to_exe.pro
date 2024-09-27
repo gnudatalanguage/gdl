@@ -23,8 +23,8 @@ if (STRLOWCASE(!version.os) EQ 'darwin') then begin
    known_case=1
    version=GDL_IDL_FL()
    if version EQ 'GDL' then begin
-      tmp=GETENV('PLPLOT_DRV_DIR')
-      tmp=FILE_DIRNAME(FILE_DIRNAME(FILE_DIRNAME(tmp)))
+      tmp=!GDL_MAPS_DIR
+      tmp=FILE_DIRNAME(FILE_DIRNAME(FILE_DIRNAME(FILE_DIRNAME(tmp))))
       get_abspath_to_exe=FILE_WHICH(tmp+'/bin', 'gdl')
    endif
    if version EQ 'IDL' then begin

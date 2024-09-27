@@ -20,7 +20,7 @@
 
 #include "gdlgstream.hpp"
 #ifdef HAVE_X
-#  include <plplot/plxwd.h>
+#  include "plplot/include/plxwd.h"
 
 class GDLXStream: public GDLGStream
 {

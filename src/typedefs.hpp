@@ -32,10 +32,6 @@
 #error "CBLAS (part of GNU Scientific Library) not installed. Please see README file."
 #endif
 
-#ifndef HAVE_LIBPLPLOTCXXD
-#error "plplot not installed. Please see README file."
-#endif
-
 #endif // HAVE_CONFIG_H
 
 // Python.h must be included before everything else

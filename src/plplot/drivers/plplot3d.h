@@ -25,7 +25,7 @@
 
 static PLDispatchTable *currDispatchTab;
 
-int Status3D;
+static int Status3D;
 
 #define PLESC_2D 99
 #define PLESC_3D 100
@@ -37,7 +37,7 @@ typedef struct {
 
 static GDL_3DTRANSFORMDEVICE Data3d;
       
-void SelfTransform3D(int *xs, int *ys) {
+static void SelfTransform3D(int *xs, int *ys) {
   if (Status3D == 1) { //enable use everywhere.
     PLFLT x = *xs, y = *ys, z=Data3d.zValue;
     // x and Y are in raw device coordinates.
@@ -61,7 +61,7 @@ void SelfTransform3D(int *xs, int *ys) {
    }
 }
 //following incomplete, FIXME.
-void Project3DToPlplotFormMatrix(PLFLT *P) { //P for P ...lplot
+static void Project3DToPlplotFormMatrix(PLFLT *P) { //P for P ...lplot
    if (Status3D == 1) { //enable use everywhere.
    // compute product of P with Data3d.T for the 4 elements of 'xFormMatrix' P (see plot3d.c)
     // so P' = T * P
@@ -78,7 +78,7 @@ void Project3DToPlplotFormMatrix(PLFLT *P) { //P for P ...lplot
    }
 }
 
-void plD_line_3D(PLStream *pls, short x1a, short y1a, short x2a, short y2a){
+static void plD_line_3D(PLStream *pls, short x1a, short y1a, short x2a, short y2a){
    if (Status3D == 1) { //enable use everywhere.
     //perform conversion on the fly
     int x1 = x1a, y1 = y1a, x2 = x2a, y2 = y2a;
@@ -91,7 +91,7 @@ void plD_line_3D(PLStream *pls, short x1a, short y1a, short x2a, short y2a){
   LINE2D(pls, x1a, y1a, x2a, y2a);
 }
 
-void plD_polyline_3D(PLStream *pls, short *xa, short *ya, PLINT npts){
+static void plD_polyline_3D(PLStream *pls, short *xa, short *ya, PLINT npts){
    if (Status3D == 1) { //enable use everywhere.
     //perform conversion on the fly
     for (PLINT i = 0; i < npts; ++i) {

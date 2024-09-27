@@ -50,10 +50,10 @@ GDLWXStream::GDLWXStream( int width, int height )
 
 //init the driver...  
 //plplot switched from PLESC_DEVINIT to dev_data for wxwidgets around version 5.11
-#define PLPLOT_TEST_VERSION_NUMBER PLPLOT_VERSION_MAJOR*1000+PLPLOT_VERSION_MINOR
-#if (PLPLOT_TEST_VERSION_NUMBER > 5010)
+//#define PLPLOT_TEST_VERSION_NUMBER PLPLOT_VERSION_MAJOR*1000+PLPLOT_VERSION_MINOR
+//#if (PLPLOT_TEST_VERSION_NUMBER > 5010)
   this->pls->dev_data=(void*)streamDC;
-#endif
+//#endif
   init();
   
   // Up to now, new PLPLOT wxWidgets driver has a problem with Hershey fonts. Avoid at all costs!

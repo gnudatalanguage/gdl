@@ -35,7 +35,10 @@
 // std and driver headers
 #include <cmath>
 #include "deprecated_wxwidgets.h"
-
+//define LINE2D, POLYLINE2D
+#define LINE2D plD_line_wxwidgets
+#define POLYLINE2D plD_polyline_wxwidgets
+#include "plplot3d.h"
 
 //--------------------------------------------------------------------------
 //  wxPLDevDC::wxPLDevDC( void )
