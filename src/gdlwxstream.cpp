@@ -29,7 +29,6 @@ GDLWXStream::GDLWXStream( int width, int height )
   , streamBitmap(NULL)
   , m_width(width), m_height(height)
   , container(NULL)
-  , olddriver(false)
 {
   streamDC = new wxMemoryDC();
   streamBitmap = new wxBitmap( width, height, 24 );
@@ -45,7 +44,7 @@ GDLWXStream::GDLWXStream( int width, int height )
   spage(0,0, width, height, 0, 0 ); //width and height have importance. dpi is best left to plplot.
 
 //select the fonts in all cases...
-  std::string what = "hrshsym=0,text=1";
+  std::string what = "hrshsym=0,text=1,smooth=1";
   setopt("drvopt", what.c_str());
 
 //init the driver...  
@@ -56,15 +55,10 @@ GDLWXStream::GDLWXStream( int width, int height )
 //#endif
   init();
   
-  // Up to now, new PLPLOT wxWidgets driver has a problem with Hershey fonts. Avoid at all costs!
-  // One possiblity to test if the new driver is in use is that it sets "has_string_length"
-  //To do this, we must have called init()!
-  if (pls->has_string_length == 0) { //old but good driver
-    olddriver=true;
-  //enable fonts OR Hershey --- eventually find how to do this outside initialization init()
-    PLINT doFont = ((PLINT) SysVar::GetPFont()>-1) ? 1 : 0;
-    pls->dev_text=doFont;
-  }
+  // in our copy of the stae of plplot trimmed for our useage, we use their old but fast driver.
+  // we can then set the font to hershey or freetype. (the plplot new driver was buggy with hershey anyway)
+  PLINT doFont = ((PLINT) SysVar::GetPFont()>-1) ? 1 : 0;
+  pls->dev_text=doFont;
   
   
   plstream::cmd(PLESC_DEVINIT, (void*)streamDC );

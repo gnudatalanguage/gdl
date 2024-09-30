@@ -24,7 +24,7 @@
 #define BUILD_DIR                ""
 
 // Location of package data files
-#define DATA_DIR                 "/tmp/gdl/share/gnudatalanguage"
+#define DATA_DIR                 "/usr/local/share/gnudatalanguage"
 
 // Location of dynamically loaded drivers
 #define DRV_DIR                  ""

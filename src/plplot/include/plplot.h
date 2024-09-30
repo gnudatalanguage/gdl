@@ -601,6 +601,7 @@ typedef struct
 typedef struct
 {
     PLFLT ( *get )( PLPointer p, PLINT ix, PLINT iy );
+    PLFLT ( *getcol )( PLPointer p, PLINT ix, PLINT iy, PLINT nx );
     PLFLT ( *set )( PLPointer p, PLINT ix, PLINT iy, PLFLT z );
     PLFLT ( *add )( PLPointer p, PLINT ix, PLINT iy, PLFLT z );
     PLFLT ( *sub )( PLPointer p, PLINT ix, PLINT iy, PLFLT z );
@@ -1484,7 +1485,7 @@ PLDLLIMPEXP void
 c_plot3dcl( PLFLT_VECTOR x, PLFLT_VECTOR y, PLFLT_MATRIX z,
             PLINT nx, PLINT ny, PLINT opt,
             PLFLT_VECTOR clevel, PLINT nlevel,
-            PLINT indexxmin, PLINT indexxmax, PLINT_VECTOR indexymin, PLINT_VECTOR indexymax );
+            PLINT indexxmin, PLINT indexxmax, PLINT_VECTOR indexymin, PLINT_VECTOR indexymax, PLINT* shademap );
 
 // Like plot3dcl, but uses an evaluator function to access z data from zp
 
@@ -1492,7 +1493,7 @@ PLDLLIMPEXP void
 plfplot3dcl( PLFLT_VECTOR x, PLFLT_VECTOR y, PLF2OPS zops, PLPointer zp,
              PLINT nx, PLINT ny, PLINT opt,
              PLFLT_VECTOR clevel, PLINT nlevel,
-             PLINT indexxmin, PLINT indexxmax, PLINT_VECTOR indexymin, PLINT_VECTOR indexymax );
+             PLINT indexxmin, PLINT indexxmax, PLINT_VECTOR indexymin, PLINT_VECTOR indexymax, PLINT* shademap );
 
 //
 // definitions for the opt argument in plot3dc() and plsurf3d()
@@ -1965,13 +1966,13 @@ c_plstyl( PLINT nms, PLINT_VECTOR mark, PLINT_VECTOR space );
 
 PLDLLIMPEXP void
 c_plsurf3d( PLFLT_VECTOR x, PLFLT_VECTOR y, PLFLT_MATRIX z, PLINT nx, PLINT ny,
-            PLINT opt, PLFLT_VECTOR clevel, PLINT nlevel );
+            PLINT opt, PLFLT_VECTOR clevel, PLINT nlevel, PLINT* shademap );
 
 // Like plsurf3d, but uses an evaluator function to access z data from zp
 
 PLDLLIMPEXP void
 plfsurf3d( PLFLT_VECTOR x, PLFLT_VECTOR y, PLF2OPS zops, PLPointer zp,
-           PLINT nx, PLINT ny, PLINT opt, PLFLT_VECTOR clevel, PLINT nlevel );
+           PLINT nx, PLINT ny, PLINT opt, PLFLT_VECTOR clevel, PLINT nlevel, PLINT* shademap  );
 
 // Plots the 3d surface representation of the function z[x][y] with y
 // index limits.
@@ -1979,14 +1980,14 @@ plfsurf3d( PLFLT_VECTOR x, PLFLT_VECTOR y, PLF2OPS zops, PLPointer zp,
 PLDLLIMPEXP void
 c_plsurf3dl( PLFLT_VECTOR x, PLFLT_VECTOR y, PLFLT_MATRIX z, PLINT nx, PLINT ny,
              PLINT opt, PLFLT_VECTOR clevel, PLINT nlevel,
-             PLINT indexxmin, PLINT indexxmax, PLINT_VECTOR indexymin, PLINT_VECTOR indexymax );
+             PLINT indexxmin, PLINT indexxmax, PLINT_VECTOR indexymin, PLINT_VECTOR indexymax, PLINT* shademap );
 
 // Like plsurf3dl, but uses an evaluator function to access z data from zp
 
 PLDLLIMPEXP void
 plfsurf3dl( PLFLT_VECTOR x, PLFLT_VECTOR y, PLF2OPS zops, PLPointer zp, PLINT nx, PLINT ny,
             PLINT opt, PLFLT_VECTOR clevel, PLINT nlevel,
-            PLINT indexxmin, PLINT indexxmax, PLINT_VECTOR indexymin, PLINT_VECTOR indexymax );
+            PLINT indexxmin, PLINT indexxmax, PLINT_VECTOR indexymin, PLINT_VECTOR indexymax, PLINT* shademap  );
 
 // Set arrow style for vector plots.
 PLDLLIMPEXP void

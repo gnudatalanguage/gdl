@@ -27,7 +27,7 @@
 
 // Internal constants
 
-#define  BINC    50             // Block size for memory allocation
+#define  BINC    512             // Block size for memory allocation
 
 static PLINT pl3mode = 0;       // 0 3d solid; 1 mesh plot
 static PLINT pl3upv  = 1;       // 1 update view; 0 no update
@@ -60,7 +60,7 @@ plside3( PLFLT_VECTOR x, PLFLT_VECTOR y, PLF2OPS zops, PLPointer zp, PLINT nx, P
 static void
 plt3zz( PLINT x0, PLINT y0, PLINT dx, PLINT dy, PLINT flag, PLINT *init,
         PLFLT_VECTOR x, PLFLT_VECTOR y, PLF2OPS zops, PLPointer zp, PLINT nx, PLINT ny,
-        PLINT *u, PLINT *v, PLFLT* c );
+        PLINT *u, PLINT *v, PLFLT* c, PLINT* shademap );
 static void plnxtvhi( PLINT *, PLINT *, PLFLT*, PLINT, PLINT );
 static void plnxtvlo( PLINT *, PLINT *, PLFLT*, PLINT, PLINT );
 static void plnxtvhi_draw( PLINT *u, PLINT *v, PLFLT* c, PLINT n );
@@ -76,7 +76,8 @@ static int  plabv( PLINT, PLINT, PLINT, PLINT, PLINT, PLINT );
 static void pl3cut( PLINT, PLINT, PLINT, PLINT, PLINT,
                     PLINT, PLINT, PLINT, PLINT *, PLINT * );
 static PLFLT plGetAngleToLight( PLFLT* x, PLFLT* y, PLFLT* z );
-static void plP_draw3d( PLINT x, PLINT y, PLFLT *c, PLINT j, PLINT move );
+static void plP_draw3d( PLINT x, PLINT y, PLFLT *c, PLINT j);
+static void plP_move3d( PLINT x, PLINT y );
 //static void plxyindexlimits( PLINT instart, PLINT inn,
 //                             PLINT *inarray_min, PLINT *inarray_max,
 //                             PLINT *outstart, PLINT *outn, PLINT outnmax,
@@ -261,7 +262,7 @@ plP_clip_poly( int Ni, PLFLT *Vi[3], int axis, PLFLT dir, PLFLT offset )
 static void
 shade_triangle( PLFLT x0, PLFLT y0, PLFLT z0,
                 PLFLT x1, PLFLT y1, PLFLT z1,
-                PLFLT x2, PLFLT y2, PLFLT z2 )
+                PLFLT x2, PLFLT y2, PLFLT z2, PLFLT* passed_color )
 {
     int   i;
     // arrays for interface to core functions
@@ -290,8 +291,18 @@ shade_triangle( PLFLT x0, PLFLT y0, PLFLT z0,
 
     if ( n > 0 )
     {
-        if ( falsecolor )
+        if ( falsecolor && passed_color >= 0 ) {
+/*
+ *  we could add the shadow using a simple rbh hls conversio
+          PLFLT h,l,s;
+ PLFLT light=plGetAngleToLight( x, y, z ); //or something alike
+          c_plhrgbhls( r, g, b, h, l, s ); //etc...
+*/
+          plcol1(passed_color[0]);
+        }
+/*
             plcol1( ( ( z[0] + z[1] + z[2] ) / 3. - fc_minz ) / ( fc_maxz - fc_minz ) );
+*/
         else
             plcol1( plGetAngleToLight( x, y, z ) );
 
@@ -324,15 +335,15 @@ shade_triangle( PLFLT x0, PLFLT y0, PLFLT z0,
 
 void
 c_plsurf3d( PLFLT_VECTOR x, PLFLT_VECTOR y, PLFLT_MATRIX z, PLINT nx, PLINT ny,
-            PLINT opt, PLFLT_VECTOR clevel, PLINT nlevel )
+            PLINT opt, PLFLT_VECTOR clevel, PLINT nlevel, PLINT* shadeval )
 {
     plfsurf3d( x, y, plf2ops_c(), (PLPointer) z, nx, ny,
-        opt, clevel, nlevel );
+        opt, clevel, nlevel, shadeval );
 }
 
 void
 plfsurf3d( PLFLT_VECTOR x, PLFLT_VECTOR y, PLF2OPS zops, PLPointer zp,
-           PLINT nx, PLINT ny, PLINT opt, PLFLT_VECTOR clevel, PLINT nlevel )
+           PLINT nx, PLINT ny, PLINT opt, PLFLT_VECTOR clevel, PLINT nlevel, PLINT* shadeval )
 {
     PLINT i;
     PLINT *indexymin = (PLINT *) malloc( (size_t) nx * sizeof ( PLINT ) );
@@ -346,7 +357,7 @@ plfsurf3d( PLFLT_VECTOR x, PLFLT_VECTOR y, PLF2OPS zops, PLPointer zp,
         indexymax[i] = ny;
     }
     plfsurf3dl( x, y, zops, zp, nx, ny, opt, clevel, nlevel,
-        0, nx, indexymin, indexymax );
+        0, nx, indexymin, indexymax, shadeval);
     free_mem( indexymin );
     free_mem( indexymax );
 }
@@ -388,16 +399,16 @@ plfsurf3d( PLFLT_VECTOR x, PLFLT_VECTOR y, PLF2OPS zops, PLPointer zp,
 void
 c_plsurf3dl( PLFLT_VECTOR x, PLFLT_VECTOR y, PLFLT_MATRIX z, PLINT nx, PLINT ny,
              PLINT opt, PLFLT_VECTOR clevel, PLINT nlevel,
-             PLINT indexxmin, PLINT indexxmax, PLINT_VECTOR indexymin, PLINT_VECTOR indexymax )
+             PLINT indexxmin, PLINT indexxmax, PLINT_VECTOR indexymin, PLINT_VECTOR indexymax, PLINT* shademap )
 {
     plfsurf3dl( x, y, plf2ops_c(), (PLPointer) z, nx, ny,
-        opt, clevel, nlevel, indexxmin, indexxmax, indexymin, indexymax );
+        opt, clevel, nlevel, indexxmin, indexxmax, indexymin, indexymax, shademap );
 }
 
 void
 plfsurf3dl( PLFLT_VECTOR x, PLFLT_VECTOR y, PLF2OPS zops, PLPointer zp, PLINT nx, PLINT ny,
             PLINT opt, PLFLT_VECTOR clevel, PLINT nlevel,
-            PLINT indexxmin, PLINT indexxmax, PLINT_VECTOR indexymin, PLINT_VECTOR indexymax )
+            PLINT indexxmin, PLINT indexxmax, PLINT_VECTOR indexymin, PLINT_VECTOR indexymax, PLINT* shademap )
 {
     PLFLT      cxx, cxy, cyx, cyy, cyz;
     PLINT      i, j, k;
@@ -415,6 +426,7 @@ plfsurf3dl( PLFLT_VECTOR x, PLFLT_VECTOR y, PLF2OPS zops, PLPointer zp, PLINT nx
     PLINT      color = plsc->icol0;
     PLFLT      width = plsc->width;
     PLFLT      ( *getz )( PLPointer, PLINT, PLINT ) = zops->get;
+    PLFLT ( *getcol )( PLPointer, PLINT, PLINT, PLINT ) = zops->getcol;
 
     if ( plsc->level < 3 )
     {
@@ -657,7 +669,9 @@ plfsurf3dl( PLFLT_VECTOR x, PLFLT_VECTOR y, PLF2OPS zops, PLPointer zp, PLINT nx
 
         cont_clean_store( cont ); // now release the memory
         free( zzloc );
-    }
+  }
+
+  PLFLT passed_color[4] = {-1,-1,-1,-1};
 
     // Now we can iterate over the grid drawing the quads
     for ( iSlow = 0; iSlow < nSlow - 1; iSlow++ )
@@ -672,8 +686,8 @@ plfsurf3dl( PLFLT_VECTOR x, PLFLT_VECTOR y, PLF2OPS zops, PLPointer zp, PLINT nx
             //
 
             xm = ym = zm = 0.;
-
             iftriangle = 1;
+            int k=0;
             for ( i = 0; i < 2; i++ )
             {
                 for ( j = 0; j < 2; j++ )
@@ -685,7 +699,8 @@ plfsurf3dl( PLFLT_VECTOR x, PLFLT_VECTOR y, PLF2OPS zops, PLPointer zp, PLINT nx
 
                     if ( indexxmin <= ix && ix < indexxmax &&
                          indexymin[ix] <= iy && iy < indexymax[ix] )
-                    {
+{
+            if (shademap != NULL) passed_color[k++]= getcol(shademap, ix, iy-1, nx);
                         xm += px[2 * i + j] = x[ix];
                         ym += py[2 * i + j] = y[iy];
                         zm += pz[2 * i + j] = getz( zp, ix, iy );
@@ -706,14 +721,16 @@ plfsurf3dl( PLFLT_VECTOR x, PLFLT_VECTOR y, PLF2OPS zops, PLPointer zp, PLINT nx
             // -- perhaps not a good thing to do for the light shading
 
             xm /= 4.; ym /= 4.; zm /= 4.;
-
+/*
+            if (shademap != NULL) passed_color/=4.;
+*/
             // now draw the quad as four triangles
 
             for ( i = 1; i < 3; i++ )
             {
                 for ( j = 0; j < 4; j += 3 )
-                {
-                    shade_triangle( px[j], py[j], pz[j], xm, ym, zm, px[i], py[i], pz[i] );
+                {   
+                    shade_triangle( px[j], py[j], pz[j], xm, ym, zm, px[i], py[i], pz[i], passed_color );
                 }
             }
 
@@ -780,7 +797,7 @@ plfsurf3dl( PLFLT_VECTOR x, PLFLT_VECTOR y, PLF2OPS zops, PLPointer zp, PLINT nx
     {
         plcol0( 0 );
         plfplot3dcl( x, y, zops, zp, nx, ny, MESH | DRAW_LINEXY, NULL, 0,
-            indexxmin, indexxmax, indexymin, indexymax );
+            indexxmin, indexxmax, indexymin, indexymax, NULL );
     }
 
     if ( opt & DRAW_SIDES ) // the sides look ugly !!!
@@ -812,8 +829,8 @@ plfsurf3dl( PLFLT_VECTOR x, PLFLT_VECTOR y, PLF2OPS zops, PLPointer zp, PLINT nx
                 break;
             // now draw the quad as two triangles (4 might be better)
 
-            shade_triangle( px[0], py[0], pz[0], px[2], py[2], pz[2], px[0], py[0], zmin );
-            shade_triangle( px[2], py[2], pz[2], px[2], py[2], zmin, px[0], py[0], zmin );
+            shade_triangle( px[0], py[0], pz[0], px[2], py[2], pz[2], px[0], py[0], zmin, passed_color );
+            shade_triangle( px[2], py[2], pz[2], px[2], py[2], zmin, px[0], py[0], zmin, passed_color );
         }
 
         iFast      = nFast - 1;
@@ -841,8 +858,8 @@ plfsurf3dl( PLFLT_VECTOR x, PLFLT_VECTOR y, PLF2OPS zops, PLPointer zp, PLINT nx
                 break;
 
             // now draw the quad as two triangles (4 might be better)
-            shade_triangle( px[0], py[0], pz[0], px[2], py[2], pz[2], px[0], py[0], zmin );
-            shade_triangle( px[2], py[2], pz[2], px[2], py[2], zmin, px[0], py[0], zmin );
+            shade_triangle( px[0], py[0], pz[0], px[2], py[2], pz[2], px[0], py[0], zmin, passed_color);
+            shade_triangle( px[2], py[2], pz[2], px[2], py[2], zmin, px[0], py[0], zmin, passed_color );
         }
     }
 }
@@ -884,14 +901,14 @@ c_plot3dc( PLFLT_VECTOR x, PLFLT_VECTOR y, PLFLT_MATRIX z,
            PLINT nx, PLINT ny, PLINT opt,
            PLFLT_VECTOR clevel, PLINT nlevel )
 {
-    plfplot3dcl( x, y, plf2ops_c(), (PLPointer) z, nx, ny, opt, clevel, nlevel, 0, 0, NULL, NULL );
+    plfplot3dcl( x, y, plf2ops_c(), (PLPointer) z, nx, ny, opt, clevel, nlevel, 0, 0, NULL, NULL, NULL );
 }
 
 void
 plfplot3dc( PLFLT_VECTOR x, PLFLT_VECTOR y, PLF2OPS zops, PLPointer zp,
             PLINT nx, PLINT ny, PLINT opt, PLFLT_VECTOR clevel, PLINT nlevel )
 {
-    plfplot3dcl( x, y, zops, zp, nx, ny, opt, clevel, nlevel, 0, 0, NULL, NULL );
+    plfplot3dcl( x, y, zops, zp, nx, ny, opt, clevel, nlevel, 0, 0, NULL, NULL, NULL );
 }
 
 //--------------------------------------------------------------------------
@@ -921,10 +938,10 @@ void
 c_plot3dcl( PLFLT_VECTOR x, PLFLT_VECTOR y, PLFLT_MATRIX z,
             PLINT nx, PLINT ny, PLINT opt,
             PLFLT_VECTOR clevel, PLINT nlevel,
-            PLINT indexxmin, PLINT indexxmax, PLINT_VECTOR indexymin, PLINT_VECTOR indexymax )
+            PLINT indexxmin, PLINT indexxmax, PLINT_VECTOR indexymin, PLINT_VECTOR indexymax, PLINT* shademap )
 {
     plfplot3dcl( x, y, plf2ops_c(), (PLPointer) z, nx, ny,
-        opt, clevel, nlevel, indexxmin, indexxmax, indexymin, indexymax );
+        opt, clevel, nlevel, indexxmin, indexxmax, indexymin, indexymax, shademap );
 }
 
 //--------------------------------------------------------------------------
@@ -970,7 +987,7 @@ void
 plfplot3dcl( PLFLT_VECTOR x, PLFLT_VECTOR y, PLF2OPS zops, PLPointer zp,
              PLINT nx, PLINT ny, PLINT opt,
              PLFLT_VECTOR clevel, PLINT nlevel,
-             PLINT PL_UNUSED( indexxmin ), PLINT PL_UNUSED( indexxmax ), PLINT_VECTOR PL_UNUSED( indexymin ), PLINT_VECTOR PL_UNUSED( indexymax ) )
+             PLINT PL_UNUSED( indexxmin ), PLINT PL_UNUSED( indexxmax ), PLINT_VECTOR PL_UNUSED( indexymin ), PLINT_VECTOR PL_UNUSED( indexymax ), PLINT* shademap )
 {
     PLFLT cxx, cxy, cyx, cyy, cyz;
     PLINT init, ix, iy, color;
@@ -1218,72 +1235,72 @@ plfplot3dcl( PLFLT_VECTOR x, PLFLT_VECTOR y, PLF2OPS zops, PLPointer zp,
     if ( cxx >= 0.0 && cxy <= 0.0 )
     {
         if ( opt == DRAW_LINEY )
-            plt3zz( 1, ny, 1, -1, -opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp );
+            plt3zz( 1, ny, 1, -1, -opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp, shademap );
         else
         {
             for ( iy = 2; iy <= ny; iy++ )
-                plt3zz( 1, iy, 1, -1, -opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp );
+                plt3zz( 1, iy, 1, -1, -opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp, shademap );
         }
         if ( opt == DRAW_LINEX )
-            plt3zz( 1, ny, 1, -1, opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp );
+            plt3zz( 1, ny, 1, -1, opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp, shademap );
         else
         {
             for ( ix = 1; ix <= nx - 1; ix++ )
-                plt3zz( ix, ny, 1, -1, opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp );
+                plt3zz( ix, ny, 1, -1, opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp, shademap );
         }
     }
 
     else if ( cxx <= 0.0 && cxy <= 0.0 )
     {
         if ( opt == DRAW_LINEX )
-            plt3zz( nx, ny, -1, -1, opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp );
+            plt3zz( nx, ny, -1, -1, opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp, shademap );
         else
         {
             for ( ix = 2; ix <= nx; ix++ )
-                plt3zz( ix, ny, -1, -1, opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp );
+                plt3zz( ix, ny, -1, -1, opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp, shademap );
         }
         if ( opt == DRAW_LINEY )
-            plt3zz( nx, ny, -1, -1, -opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp );
+            plt3zz( nx, ny, -1, -1, -opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp, shademap );
         else
         {
             for ( iy = ny; iy >= 2; iy-- )
-                plt3zz( nx, iy, -1, -1, -opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp );
+                plt3zz( nx, iy, -1, -1, -opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp, shademap );
         }
     }
 
     else if ( cxx <= 0.0 && cxy >= 0.0 )
     {
         if ( opt == DRAW_LINEY )
-            plt3zz( nx, 1, -1, 1, -opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp );
+            plt3zz( nx, 1, -1, 1, -opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp, shademap );
         else
         {
             for ( iy = ny - 1; iy >= 1; iy-- )
-                plt3zz( nx, iy, -1, 1, -opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp );
+                plt3zz( nx, iy, -1, 1, -opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp, shademap );
         }
         if ( opt == DRAW_LINEX )
-            plt3zz( nx, 1, -1, 1, opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp );
+            plt3zz( nx, 1, -1, 1, opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp, shademap );
         else
         {
             for ( ix = nx; ix >= 2; ix-- )
-                plt3zz( ix, 1, -1, 1, opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp );
+                plt3zz( ix, 1, -1, 1, opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp, shademap );
         }
     }
 
     else if ( cxx >= 0.0 && cxy >= 0.0 )
     {
         if ( opt == DRAW_LINEX )
-            plt3zz( 1, 1, 1, 1, opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp );
+            plt3zz( 1, 1, 1, 1, opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp, shademap );
         else
         {
             for ( ix = nx - 1; ix >= 1; ix-- )
-                plt3zz( ix, 1, 1, 1, opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp );
+                plt3zz( ix, 1, 1, 1, opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp, shademap );
         }
         if ( opt == DRAW_LINEY )
-            plt3zz( 1, 1, 1, 1, -opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp );
+            plt3zz( 1, 1, 1, 1, -opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp, shademap );
         else
         {
             for ( iy = 1; iy <= ny - 1; iy++ )
-                plt3zz( 1, iy, 1, 1, -opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp );
+                plt3zz( 1, iy, 1, 1, -opt, &init, x_modified, y_modified, zops, zp, nx, ny, utmp, vtmp, ctmp, shademap );
         }
     }
 
@@ -1621,11 +1638,12 @@ plGetAngleToLight( PLFLT* x, PLFLT* y, PLFLT* z )
 static void
 plt3zz( PLINT x0, PLINT y0, PLINT dx, PLINT dy, PLINT flag, PLINT *init,
         PLFLT_VECTOR x, PLFLT_VECTOR y, PLF2OPS zops, PLPointer zp, PLINT nx, PLINT ny,
-        PLINT *u, PLINT *v, PLFLT* c )
+        PLINT *u, PLINT *v, PLFLT* c , PLINT* shademap)
 {
     PLINT n = 0;
     PLFLT x2d, y2d;
     PLFLT ( *getz )( PLPointer, PLINT, PLINT ) = zops->get;
+    PLFLT ( *getcol )( PLPointer, PLINT, PLINT, PLINT ) = zops->getcol;
 
     while ( 1 <= x0 && x0 <= nx && 1 <= y0 && y0 <= ny )
     {
@@ -1633,8 +1651,11 @@ plt3zz( PLINT x0, PLINT y0, PLINT dx, PLINT dy, PLINT flag, PLINT *init,
         y2d  = plP_w3wcy( x[x0 - 1], y[y0 - 1], getz( zp, x0 - 1, y0 - 1 ) );
         u[n] = plP_wcpcx( x2d );
         v[n] = plP_wcpcy( y2d );
-        if ( c != NULL )
+        if ( c != NULL && shademap != NULL )
+/*
             c[n] = ( getz( zp, x0 - 1, y0 - 1 ) - fc_minz ) / ( fc_maxz - fc_minz );
+*/
+            c[n] = getcol( shademap, x0 - 1, y0 - 1, nx ) ;
 
         switch ( flag )
         {
@@ -1682,9 +1703,12 @@ plt3zz( PLINT x0, PLINT y0, PLINT dx, PLINT dy, PLINT flag, PLINT *init,
             y2d  = plP_w3wcy( x[x0 - 1], y[y0 - 1], getz( zp, x0 - 1, y0 - 1 ) );
             u[n] = plP_wcpcx( x2d );
             v[n] = plP_wcpcy( y2d );
-            if ( c != NULL )
+        if ( c != NULL && shademap != NULL )
+/*
                 c[n] = ( getz( zp, x0 - 1, y0 - 1 ) - fc_minz ) / ( fc_maxz - fc_minz );
-            n++;
+*/
+                c[n] = getcol (shademap, x0 -1 , y0 - 1, nx );
+              n++;
         }
     }
 
@@ -1973,12 +1997,12 @@ plnxtvhi( PLINT *u, PLINT *v, PLFLT* c, PLINT n, PLINT init )
 
         oldhiview[0] = u[0];
         oldhiview[1] = v[0];
-        plP_draw3d( u[0], v[0], c, 0, 1 );
+        plP_move3d( u[0], v[0]);
         for ( i = 1; i < n; i++ )
         {
             oldhiview[2 * i]     = u[i];
             oldhiview[2 * i + 1] = v[i];
-            plP_draw3d( u[i], v[i], c, i, 0 );
+            plP_draw3d( u[i], v[i], c, i);
         }
         mhi = n;
         return;
@@ -2114,7 +2138,7 @@ plnxtvhi_draw( PLINT *u, PLINT *v, PLFLT* c, PLINT n )
         //
         if ( first )
         {
-            plP_draw3d( px, py, c, j, 1 );
+            plP_move3d( px, py );
             first  = 0;
             lstold = ptold;
             savehipoint( px, py );
@@ -2129,7 +2153,7 @@ plnxtvhi_draw( PLINT *u, PLINT *v, PLFLT* c, PLINT n )
             //
             if ( pl3upv == 0 && ( ( !ptold && j == 0 ) || ( ptold && i == 0 ) ) )
             {
-                plP_draw3d( px, py, c, j, 1 );
+                plP_move3d( px, py );
                 lstold  = ptold;
                 pthi    = 0;
                 ochange = 0;
@@ -2137,7 +2161,7 @@ plnxtvhi_draw( PLINT *u, PLINT *v, PLFLT* c, PLINT n )
             else if ( pl3upv == 0 &&
                       ( ( !ptold && i >= mhi ) || ( ptold && j >= n ) ) )
             {
-                plP_draw3d( px, py, c, j, 1 );
+                plP_move3d( px, py);
                 lstold  = ptold;
                 pthi    = 0;
                 ochange = 0;
@@ -2199,9 +2223,9 @@ plnxtvhi_draw( PLINT *u, PLINT *v, PLFLT* c, PLINT n )
                 if ( cx == px && cy == py )
                 {
                     if ( lstold && !ochange )
-                        plP_draw3d( px, py, c, j, 1 );
+                        plP_move3d( px, py);
                     else
-                        plP_draw3d( px, py, c, j, 0 );
+                        plP_draw3d( px, py, c, j);
 
                     savehipoint( px, py );
                     lstold = 1;
@@ -2210,9 +2234,9 @@ plnxtvhi_draw( PLINT *u, PLINT *v, PLFLT* c, PLINT n )
                 else
                 {
                     if ( lstold && !ochange )
-                        plP_draw3d( cx, cy, c, j, 1 );
+                        plP_move3d( cx, cy);
                     else
-                        plP_draw3d( cx, cy, c, j, 0 );
+                        plP_draw3d( cx, cy, c, j);
 
                     lstold = 1;
                     savehipoint( cx, cy );
@@ -2226,9 +2250,9 @@ plnxtvhi_draw( PLINT *u, PLINT *v, PLFLT* c, PLINT n )
         if ( pthi )
         {
             if ( lstold && ptold )
-                plP_draw3d( px, py, c, j, 1 );
+                plP_move3d( px, py );
             else
-                plP_draw3d( px, py, c, j, 0 );
+                plP_draw3d( px, py, c, j);
 
             savehipoint( px, py );
             lstold  = ptold;
@@ -2246,20 +2270,26 @@ plnxtvhi_draw( PLINT *u, PLINT *v, PLFLT* c, PLINT n )
 //--------------------------------------------------------------------------
 // void  plP_draw3d()
 //
-// Does a simple move or line draw.
+// Does a line draw.
 //--------------------------------------------------------------------------
 
 static void
-plP_draw3d( PLINT x, PLINT y, PLFLT *c, PLINT j, PLINT move )
+plP_draw3d( PLINT x, PLINT y, PLFLT *c, PLINT j )
+{     
+      if ( c != NULL )  plcol1( c[j] );
+      plP_draphy( x, y );
+}
+
+//--------------------------------------------------------------------------
+// void  plP_move3d()
+//
+// Does a simple move.
+//--------------------------------------------------------------------------
+
+static void
+plP_move3d( PLINT x, PLINT y)
 {
-    if ( move )
-        plP_movphy( x, y );
-    else
-    {
-        if ( c != NULL )
-            plcol1( c[j - 1] );
-        plP_draphy( x, y );
-    }
+   plP_movphy( x, y );
 }
 
 //--------------------------------------------------------------------------
@@ -2290,12 +2320,12 @@ plnxtvlo( PLINT *u, PLINT *v, PLFLT*c, PLINT n, PLINT init )
         if ( !oldloview )
             myexit( "\nplnxtvlo: Out of memory." );
 
-        plP_draw3d( u[0], v[0], c, 0, 1 );
+        plP_move3d( u[0], v[0]);
         oldloview[0] = u[0];
         oldloview[1] = v[0];
         for ( i = 1; i < n; i++ )
         {
-            plP_draw3d( u[i], v[i], c, i, 0 );
+            plP_draw3d( u[i], v[i], c, i);
             oldloview[2 * i]     = u[i];
             oldloview[2 * i + 1] = v[i];
         }
@@ -2399,7 +2429,7 @@ plnxtvlo( PLINT *u, PLINT *v, PLFLT*c, PLINT n, PLINT init )
         //
         if ( first )
         {
-            plP_draw3d( px, py, c, j, 1 );
+            plP_move3d( px, py);
             first  = 0;
             lstold = ptold;
             savelopoint( px, py );
@@ -2414,7 +2444,7 @@ plnxtvlo( PLINT *u, PLINT *v, PLFLT*c, PLINT n, PLINT init )
             //
             if ( pl3upv == 0 && ( ( !ptold && j == 0 ) || ( ptold && i == 0 ) ) )
             {
-                plP_draw3d( px, py, c, j, 1 );
+                plP_move3d( px, py);
                 lstold  = ptold;
                 ptlo    = 0;
                 ochange = 0;
@@ -2422,7 +2452,7 @@ plnxtvlo( PLINT *u, PLINT *v, PLFLT*c, PLINT n, PLINT init )
             else if ( pl3upv == 0 &&
                       ( ( !ptold && i >= mlo ) || ( ptold && j >= n ) ) )
             {
-                plP_draw3d( px, py, c, j, 1 );
+                plP_move3d( px, py);
                 lstold  = ptold;
                 ptlo    = 0;
                 ochange = 0;
@@ -2485,9 +2515,9 @@ plnxtvlo( PLINT *u, PLINT *v, PLFLT*c, PLINT n, PLINT init )
                 if ( cx == px && cy == py )
                 {
                     if ( lstold && !ochange )
-                        plP_draw3d( px, py, c, j, 1 );
+                        plP_move3d( px, py);
                     else
-                        plP_draw3d( px, py, c, j, 0 );
+                        plP_draw3d( px, py, c, j);
 
                     savelopoint( px, py );
                     lstold = 1;
@@ -2496,9 +2526,9 @@ plnxtvlo( PLINT *u, PLINT *v, PLFLT*c, PLINT n, PLINT init )
                 else
                 {
                     if ( lstold && !ochange )
-                        plP_draw3d( cx, cy, c, j, 1 );
+                        plP_move3d( cx, cy);
                     else
-                        plP_draw3d( cx, cy, c, j, 0 );
+                        plP_draw3d( cx, cy, c, j);
 
                     lstold = 1;
                     savelopoint( cx, cy );
@@ -2512,9 +2542,9 @@ plnxtvlo( PLINT *u, PLINT *v, PLFLT*c, PLINT n, PLINT init )
         if ( ptlo )
         {
             if ( lstold && ptold )
-                plP_draw3d( px, py, c, j, 1 );
+                plP_move3d( px, py);
             else
-                plP_draw3d( px, py, c, j, 0 );
+                plP_draw3d( px, py, c, j);
 
             savelopoint( px, py );
             lstold  = ptold;

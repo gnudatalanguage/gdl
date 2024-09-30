@@ -38,6 +38,14 @@ plf2ops_c_get( PLPointer p, PLINT ix, PLINT iy )
 }
 
 static PLFLT
+plf2ops_c_getcol( PLPointer p, PLINT ix, PLINT iy, PLINT n )
+{
+  PLINT *pi=(PLINT*)p;
+  PLFLT ret=pi[iy*n+ix];
+  return ret/256.;
+}
+
+static PLFLT
 plf2ops_c_f2eval( PLINT ix, PLINT iy, PLPointer p )
 {
     return ( (PLFLT **) p )[ix][iy];
@@ -112,6 +120,7 @@ plf2ops_c_minmax( PLPointer p, PLINT nx, PLINT ny, PLFLT *zmin, PLFLT *zmax )
 
 static plf2ops_t s_plf2ops_c = {
     plf2ops_c_get,
+    plf2ops_c_getcol,
     plf2ops_c_set,
     plf2ops_c_add,
     plf2ops_c_sub,
@@ -135,6 +144,11 @@ plf2ops_c()
 
 static PLFLT
 plf2ops_grid_c_get( PLPointer p, PLINT ix, PLINT iy )
+{
+    return ( ( (PLfGrid2 *) p )->f )[ix][iy];
+}
+static PLFLT
+plf2ops_grid_c_getcol( PLPointer p, PLINT ix, PLINT iy , PLINT n)
 {
     return ( ( (PLfGrid2 *) p )->f )[ix][iy];
 }
@@ -219,6 +233,7 @@ plf2ops_grid_c_minmax( PLPointer p, PLINT nx, PLINT ny, PLFLT *zmin, PLFLT *zmax
 
 static plf2ops_t s_plf2ops_grid_c = {
     plf2ops_grid_c_get,
+    plf2ops_grid_c_getcol,
     plf2ops_grid_c_set,
     plf2ops_grid_c_add,
     plf2ops_grid_c_sub,
@@ -245,6 +260,13 @@ plf2ops_grid_c()
 
 static PLFLT
 plf2ops_grid_row_major_get( PLPointer p, PLINT ix, PLINT iy )
+{
+    PLfGrid2 *g = (PLfGrid2 *) p;
+    return ( (PLFLT *) g->f )[ix * g->ny + iy];
+}
+
+static PLFLT
+plf2ops_grid_row_major_getcol( PLPointer p, PLINT ix, PLINT iy, PLINT n )
 {
     PLfGrid2 *g = (PLfGrid2 *) p;
     return ( (PLFLT *) g->f )[ix * g->ny + iy];
@@ -334,6 +356,7 @@ plf2ops_grid_xxx_major_minmax( PLPointer p, PLINT nx, PLINT ny, PLFLT *zmin, PLF
 
 static plf2ops_t s_plf2ops_grid_row_major = {
     plf2ops_grid_row_major_get,
+    plf2ops_grid_row_major_getcol,
     plf2ops_grid_row_major_set,
     plf2ops_grid_row_major_add,
     plf2ops_grid_row_major_sub,
@@ -365,6 +388,12 @@ plf2ops_grid_col_major_get( PLPointer p, PLINT ix, PLINT iy )
     return ( (PLFLT *) g->f )[ix + g->nx * iy];
 }
 
+static PLFLT
+plf2ops_grid_col_major_getcol( PLPointer p, PLINT ix, PLINT iy , PLINT n)
+{
+    PLfGrid2 *g = (PLfGrid2 *) p;
+    return ( (PLFLT *) g->f )[ix + g->nx * iy];
+}
 static PLFLT
 plf2ops_grid_col_major_f2eval( PLINT ix, PLINT iy, PLPointer p )
 {
@@ -416,6 +445,7 @@ plf2ops_grid_col_major_isnan( PLPointer p, PLINT ix, PLINT iy )
 
 plf2ops_t s_plf2ops_grid_col_major = {
     plf2ops_grid_col_major_get,
+    plf2ops_grid_col_major_getcol,
     plf2ops_grid_col_major_set,
     plf2ops_grid_col_major_add,
     plf2ops_grid_col_major_sub,

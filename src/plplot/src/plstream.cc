@@ -1216,11 +1216,11 @@ void plstream::mtex3( const char *side, PLFLT disp, PLFLT pos, PLFLT just,
 
 void plstream::surf3d( const PLFLT *x, const PLFLT *y, const PLFLT * const *z,
                        PLINT nx, PLINT ny, PLINT opt,
-                       const PLFLT *clevel, PLINT nlevel )
+                       const PLFLT *clevel, PLINT nlevel, PLINT* shademap )
 {
     set_stream();
 
-    plsurf3d( x, y, z, nx, ny, opt, clevel, nlevel );
+    plsurf3d( x, y, z, nx, ny, opt, clevel, nlevel, shademap );
 }
 
 // Plots a 3-d shaded representation of the function z[x][y] with
@@ -1230,12 +1230,12 @@ void plstream::surf3dl( const PLFLT *x, const PLFLT *y, const PLFLT * const *z,
                         PLINT nx, PLINT ny, PLINT opt,
                         const PLFLT *clevel, PLINT nlevel,
                         PLINT ixstart, PLINT ixn,
-                        const PLINT *indexymin, const PLINT *indexymax )
+                        const PLINT *indexymin, const PLINT *indexymax, PLINT* shademap )
 {
     set_stream();
 
     plsurf3dl( x, y, z, nx, ny, opt, clevel, nlevel, ixstart, ixn,
-        indexymin, indexymax );
+        indexymin, indexymax, shademap );
 }
 
 // Plots a 3-d representation of the function z[x][y].
@@ -1266,12 +1266,12 @@ void plstream::plot3dcl( const PLFLT *x, const PLFLT *y, const PLFLT * const *z,
                          PLINT nx, PLINT ny, PLINT opt,
                          const PLFLT *clevel, PLINT nlevel,
                          PLINT ixstart, PLINT ixn,
-                         const PLINT *indexymin, const PLINT *indexymax )
+                         const PLINT *indexymin, const PLINT *indexymax, PLINT* shademap )
 {
     set_stream();
 
     ::plot3dcl( x, y, z, nx, ny, opt, clevel, nlevel, ixstart, ixn,
-        indexymin, indexymax );
+        indexymin, indexymax, shademap );
 }
 
 // Process options list using current options info.

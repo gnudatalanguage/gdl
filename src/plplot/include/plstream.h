@@ -567,14 +567,14 @@ public:
     void plot3dcl( const PLFLT *x, const PLFLT *y, const PLFLT * const *z,
                    PLINT nx, PLINT ny, PLINT opt,
                    const PLFLT *clevel, PLINT nlevel,
-                   PLINT ixstart, PLINT ixn, const PLINT *indexymin, const PLINT *indexymax );
+                   PLINT ixstart, PLINT ixn, const PLINT *indexymin, const PLINT *indexymax, PLINT* shademap );
 
 
 // Plots a 3-d shaded representation of the function z[x][y].
 
     void surf3d( const PLFLT *x, const PLFLT *y, const PLFLT * const *z,
                  PLINT nx, PLINT ny, PLINT opt,
-                 const PLFLT *clevel, PLINT nlevel );
+                 const PLFLT *clevel, PLINT nlevel, PLINT* shademap  );
 
 // Plots a 3-d shaded representation of the function z[x][y] with y
 // index limits
@@ -582,7 +582,7 @@ public:
     void surf3dl( const PLFLT *x, const PLFLT *y, const PLFLT * const *z,
                   PLINT nx, PLINT ny, PLINT opt,
                   const PLFLT *clevel, PLINT nlevel,
-                  PLINT ixstart, PLINT ixn, const PLINT *indexymin, const PLINT *indexymax );
+                  PLINT ixstart, PLINT ixn, const PLINT *indexymin, const PLINT *indexymax, PLINT* shademap );
 
 
 // Process options list using current options info.
