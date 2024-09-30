@@ -79,7 +79,6 @@ test_correlate.pro
 test_delvarrnew.pro
 test_diag_matrix.pro
 test_dilate.pro
-test_dynamic_drivers.pro
 test_elmhes.pro
 test_erfinv.pro
 test_erode.pro
