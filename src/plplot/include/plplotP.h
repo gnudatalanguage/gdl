@@ -280,7 +280,7 @@ int plsnscanf( PLCHAR_VECTOR buffer, int n, PLCHAR_VECTOR format, ... );
 
 // Some constants
 
-#define PL_MAXPOLY       256    // Max segments in polyline or polygon
+#define PL_MAXPOLY       32000  // Max segments in polyline or polygon
 #define PL_NSTREAMS      100    // Max number of concurrent streams.
 #define PL_RGB_COLOR     -1     // A hack
 

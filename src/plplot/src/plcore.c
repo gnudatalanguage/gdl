@@ -425,13 +425,14 @@ plP_polyline( short *x, short *y, PLINT npts )
 
     if ( plsc->difilt )
     {
-        for ( i = 0; i < npts; i++ )
+        PLINT nptsmax=MIN(PL_MAXPOLY,npts);
+        for ( i = 0; i < nptsmax; i++ )
         {
             xscl[i] = x[i];
             yscl[i] = y[i];
         }
-        difilt( xscl, yscl, npts, &clpxmi, &clpxma, &clpymi, &clpyma );
-        plP_pllclp( xscl, yscl, npts, clpxmi, clpxma, clpymi, clpyma,
+        difilt( xscl, yscl, nptsmax, &clpxmi, &clpxma, &clpymi, &clpyma );
+        plP_pllclp( xscl, yscl, nptsmax, clpxmi, clpxma, clpymi, clpyma,
             grpolyline );
     }
     else
@@ -491,13 +492,14 @@ plP_fill( short *x, short *y, PLINT npts )
     {
         if ( plsc->difilt )
         {
-            for ( i = 0; i < npts; i++ )
+          PLINT nptsmax=MIN(PL_MAXPOLY,npts);
+          for ( i = 0; i < nptsmax; i++ )
             {
                 xscl[i] = x[i];
                 yscl[i] = y[i];
             }
-            difilt( xscl, yscl, npts, &clpxmi, &clpxma, &clpymi, &clpyma );
-            plP_plfclp( xscl, yscl, npts, clpxmi, clpxma, clpymi, clpyma,
+            difilt( xscl, yscl, nptsmax, &clpxmi, &clpxma, &clpymi, &clpyma );
+            plP_plfclp( xscl, yscl, nptsmax, clpxmi, clpxma, clpymi, clpyma,
                 grfill );
         }
         else
