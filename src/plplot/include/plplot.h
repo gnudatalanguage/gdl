@@ -445,7 +445,7 @@ typedef struct
 
 // Structure for describing the plot window
 
-#define PL_MAXWINDOWS    64     // Max number of windows/page tracked
+#define PL_MAXWINDOWS    1000     // Max number of windows/page tracked
 
 typedef struct
 {
