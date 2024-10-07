@@ -337,7 +337,11 @@ wxPLDevBase* common_init( PLStream *pls )
     PLFLT      downscale, downscale2;
 
     // default options
+#ifdef PL_HAVE_FREETYPE
+    static PLINT freetype    = 1;
+#else
     static PLINT freetype    = -1;
+#endif
     static PLINT smooth_text = 1;
     static PLINT text        = -1;
     static PLINT hrshsym     = 0;

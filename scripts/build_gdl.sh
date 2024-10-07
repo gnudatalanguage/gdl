@@ -418,7 +418,8 @@ function configure_gdl {
         log "Fatal error! Unknown DEPS: ${DEPS}"
         exit 1
     fi
-
+    
+    rm -r ${ROOT_DIR}/build
     mkdir -p ${ROOT_DIR}/build
     cd ${ROOT_DIR}/build
     rm -f CMakeCache.txt  #each 'build' resets cmake, which is safer!

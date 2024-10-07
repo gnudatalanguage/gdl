@@ -44,7 +44,8 @@ GDLWXStream::GDLWXStream( int width, int height )
   spage(0,0, width, height, 0, 0 ); //width and height have importance. dpi is best left to plplot.
 
 //select the fonts in all cases...
-  std::string what = "hrshsym=0,text=1,smooth=1";
+// If wxwidgets have freetype (determined by PL_HAVE_FREETYPE, see src/plplot/modules/freetype, driver will have freetype enabled.
+  std::string what = "hrshsym=0,text=1"; //no smooth available
   setopt("drvopt", what.c_str());
 
 //init the driver...  
