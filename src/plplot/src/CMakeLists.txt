@@ -94,7 +94,6 @@ set_source_files_properties(
     message("${SOURCE_ROOT_NAME}_SOURCE = ${${SOURCE_ROOT_NAME}_SOURCE}")
     
     list(APPEND plplot_LIB_SRCS ${${SOURCE_ROOT_NAME}_SOURCE})
-    message("plplot_LIB_SRCS = ${plplot_LIB_SRCS}")
     if(${SOURCE_ROOT_NAME}_COMPILE_FLAGS)
       set_source_files_properties(
 	${${SOURCE_ROOT_NAME}_SOURCE}
