@@ -454,6 +454,7 @@ if(WXWIDGETS)
         "Use -DWXWIDGETS=OFF to not use it.\n"
                 "(suitable Debian/Ubuntu package: libwxgtk3.0-gtk3-dev)\n"
                 "(suitable Fedora/CentOS package: wxGTK-devel)")
+    set (PLD_wxwidgets OFF)
     endif(WXWIDGETS_FOUND)
 else (WXWIDGETS)
   if (INTERACTIVE_GRAPHICS AND WIN32) 
@@ -480,11 +481,16 @@ if(CYGWIN OR NOT WIN32)
             "Use -DX11DIR=DIR to specify the X11 directory tree.\n"
             "Use -DX11=OFF to not use it.\n"
 	    "(suitable Fedora/CentOS package xorg-x11-devel)\n")
+        set (PLD_xwin OFF)
         endif(X11_FOUND)
+    else(X11)
+      set (PLD_xwin OFF)
     endif(X11)
     if (X11_FOUND AND NOT WXWIDGETS_FOUND) 
       message(STATUS "WARNING: GDL is BEST with wxWidgets instead of X11, please consider installing wxWidgets")
     endif (X11_FOUND AND NOT WXWIDGETS_FOUND) 
+else(CYGWIN OR NOT WIN32)
+  set (PLD_xwin OFF)
 endif(CYGWIN OR NOT WIN32)
 
     
