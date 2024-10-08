@@ -383,20 +383,21 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
 
       // PLOT ONLY IF NODATA=0
       if (!nodata) {
-        //SHADES : not supported yet since plplot does not honor it correctly --- see documentation.
-        // shades //      static int shadesIx = e->KeywordIx("SHADES");
-        // shades //      bool doShade=false;
-        // shades //      DLongGDL* shadevalues=NULL;
-        // shades //      if (e->GetKW(shadesIx) != NULL) {
-        // shades //        shadevalues = e->GetKWAs<DLongGDL>(shadesIx);
-        // shades //        doShade=true;
-        // shades //      }
-        // Get decomposed value for shades
-        // shades //      if (doShade && decomposed==0) actStream->SetColorMap1Table(shadevalues->N_Elements(), shadevalues, decomposed); 
-        // shades //      else if (doShade && decomposed==1) actStream->SetColorMap1DefaultColors(256,  decomposed );
-        // shades //      else 
-        
-        DLong decomposed = actStream->ForceColorMap1Ramp(0.33);
+		//SHADES : works now with our internal plplot patches
+		static int shadesIx = e->KeywordIx("SHADES");
+		bool doShade = false;
+		DLongGDL* shadevalues = NULL;
+		PLINT * shadevals = NULL;
+		if (e->GetKW(shadesIx) != NULL) {
+		  shadevalues = e->GetKWAs<DLongGDL>(shadesIx);
+		  if (shadevalues->N_Elements() < xEl * yEl) e->Throw("Shade array too short.");
+		  shadevals = static_cast<PLINT*> (shadevalues->DataAddr());
+		  doShade = true;
+		}
+	  // doShade will work correctly only if decomposed=0 --- same as IDL.
+      // Get decomposed value for shades
+        DLong decomposed;
+		if (doShade) decomposed=actStream->ForceColorMap1Ramp(0.0); else decomposed=actStream->ForceColorMap1Ramp(0.33);
         //use of intermediate map for correct handling of blanking values and nans.
         PLFLT ** map;
         actStream->Alloc2dGrid( &map, xEl, yEl);
@@ -426,7 +427,7 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
         
         //mesh option
         PLINT meshOpt=0;
-// shades //        meshOpt=(doShade)?MAG_COLOR:0;
+        meshOpt=(doShade)?MAG_COLOR:0;
 
         //position of light Source. Plplot does not use only the direction of the beam but the position of the illuminating
         //source. And its illumination looks strange. We try to make the ill. source a bit far in the good direction.
@@ -435,7 +436,7 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
         sun[1]=lightSourcePos[1]*1E10;
         sun[2]=lightSourcePos[2]*1E10;if (below) sun[2]*=-1;
         actStream->lightsource(sun[0],sun[1],sun[2]);
-        actStream->surf3d(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt,NULL,0);
+        actStream->surf3d(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt,NULL,0,shadevals);
 
 //Clean allocated data struct
         delete[] xg1;

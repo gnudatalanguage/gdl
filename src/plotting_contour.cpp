@@ -25,12 +25,7 @@
 
 // sometime after 10/14 the tr0,tr1 moved from plstream:: to plcallback::
 
-#undef PLCALLBACK
-#ifdef PLPLOT_HAS_PLCALLBACK
 #define PLCALLBACK plcallback
-#else
-#define PLCALLBACK plstream
-#endif
 
 namespace lib {
 

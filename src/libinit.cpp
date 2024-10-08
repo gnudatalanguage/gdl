@@ -856,11 +856,11 @@ void LibInit()
       "ZTICK_GET", "YTICK_GET", "XTICK_GET",
       "ZTITLE", "YTITLE", "XTITLE",
       //3D KW
-      "ZVALUE","T3D", "SAVE", "SKIRT", "ZAXIS", "CHANNEL", KLISTEND
+      "ZVALUE","T3D", "SAVE", "SKIRT", "ZAXIS", "CHANNEL",  "SHADES", KLISTEND
     };
   const string shade_surfWarnKey[]=
   {
-       "SHADES", "IMAGE", "PIXELS", KLISTEND //SHADES cannot be correctly made with current plplot code
+      "IMAGE", "PIXELS", KLISTEND 
   };
   new DLibPro(lib::shade_surf,string("SHADE_SURF"),3,shade_surfKey, shade_surfWarnKey);
 
@@ -888,11 +888,11 @@ void LibInit()
      "MAX_VALUE",  "MIN_VALUE", "AX", "AZ", 
      "XLOG", "YLOG", "ZLOG", "XTYPE", "YTYPE", "ZTYPE",      // ([xyz]type undocumented but still existing in SURFACE ...)
      "HORIZONTAL", "LOWER_ONLY", "UPPER_ONLY",  "ZAXIS",  "BOTTOM", 
-     "SKIRT", "SAVE", "T3D",  "ZVALUE", "CHANNEL", KLISTEND
+     "SKIRT", "SAVE", "T3D",  "ZVALUE", "CHANNEL", "SHADES", KLISTEND
     };
   const string surfaceWarnKey[]=
   {
-      "SHADES","LEGO", KLISTEND //SHADES cannot be correctly made with current plplot code
+      "LEGO", KLISTEND 
   };
   new DLibPro(lib::surface,string("SURFACE"),3,surfaceKey, surfaceWarnKey);
 

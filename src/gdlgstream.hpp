@@ -25,19 +25,10 @@
 #define GDL_DEBUG_PLSTREAM 0
 #endif
 
-#ifdef HAVE_CONFIG_H
-// we should not add all the plplot's internal defines (which are 
-// added if HAVE_CONFIG_H is defined) to ours. Makes problem with distros.
-#undef HAVE_CONFIG_H 
-#include <plplot/plstream.h>
-#include <plplot/plstrm.h>
-#include <plplot/plplot.h>
-#define HAVE_CONFIG_H 1
-#endif
-//this include should be removed as soon as plplot has a public method to give the size of a string in mm when plotted.
-#if PLPLOT_PRIVATE_NOT_HIDDEN
-#include <plplot/plplotP.h>
-#endif
+#include "plplot/include/plstream.h"
+#include "plplot/include/plstrm.h"
+#include "plplot/include/plplot.h"
+#include "plplot/include/plplotP.h"
 #include <string>
 #include <iostream>
 #include "typedefs.hpp"
@@ -449,13 +440,11 @@ public:
 //  //subpage to mm
 //  //subpage to physical
 
-#if PLPLOT_PRIVATE_NOT_HIDDEN
   //use simple internal function
   PLFLT gdlGetStringLength(const std::string &s)
   {
     return plstrl(s.c_str());
   }
-#endif
 
 //  void  currentPhysicalPos(PLFLT &x, PLFLT &y)
 //  {

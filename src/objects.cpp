@@ -115,8 +115,6 @@ volatile bool iAmMaster;
 volatile bool usePlatformDeviceName;
 // do we force fonts to be the ugly IDL fonts?
 volatile bool tryToMimicOriginalWidgets;
-//do we use our own copy of (better?) drivers?
-volatile bool useLocalDrivers;
 //do we favor SIMD-accelerated random number generation?
 volatile bool useDSFMTAcceleration;
 //Transpose() operations are faster with our method, but setting this may test if this is still true for future Eigen:: versions or platforms.

@@ -260,60 +260,9 @@ int main(int argc, char *argv[])
   if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH"); //warning: is a Path, use system separator.
   if( gdlPath == "") gdlPath = gdlDataDir + lib::PathSeparator() + "lib";
 
-//LIBDIR. Can be '' in which case the location of drivers is deduced from the location of
-//the executable (OSX, Windows, unix in user-installed mode).
-  string driversPath = GetEnvPathString("GDL_DRV_DIR");
-  if (driversPath == "") { //NOT enforced by GDL_DRV_DIR
-    driversPath = gdlLibDir; //e.g. Fedora
-    if (driversPath == "") { //NOT enforced by GDLLIBDIR at build : not a distro
-      driversPath = gdlDataDir + lib::PathSeparator() + "drivers"; //deduced from the location of the executable 
-    }
-  }
-  //various env set?
   char* wantCalm = getenv("IDL_QUIET");
   if (wantCalm != NULL) setQuietSysvar=true;
   
-  //drivers if local
-  useLocalDrivers=false;
-  bool driversNotFound=false;
-
-  //The current value for PLPLOT_DRV_DIR.
-  //To find our drivers, the plplot library needs to have PLPLOT_DRV_DIR set to the good path, i.e., driversPath.
-  const char* DrvEnvName = "PLPLOT_DRV_DIR";
-  //In a startup message (below), the value of $PLPLOT_DRV_DIR appears.
-  //It will be the value set inside the program (just below) to find the relevant drivers.
-
-#ifdef INSTALL_LOCAL_DRIVERS
-  useLocalDrivers=true;
-  //For WIN32 the drivers dlls are copied along with the gdl.exe and plplot does not use PLPLOT_DRV_DIR to find them.
-#ifndef _WIN32
-  char* oldDriverEnv=getenv(DrvEnvName);
-  // We must declare here (and not later) where our local copy of (customized?) drivers is to be found.
-  char s[256];
-  strcpy(s,DrvEnvName);
-  strcat(s,"=");
-  strcat(s,driversPath.c_str());
-      //set nex drvPath as PLPLOT_DRV_DIR
-  putenv(s);
-  //Now, it is possible that GDL WAS compiled with INSTALL_LOCAL_DRIVERS, but the plplot installation is NOT compiled with DYNAMIC DRIVERS.
-  //So I check here the plplot driver list to check if wxwidgets is present. If not, useLocalDriver=false
-  bool driversOK=GDLGStream::checkPlplotDriver("ps"); //ps because xwin and wxwidgets may be absent. ps is always present.
-  if (!driversOK) {
-    driversNotFound=true; 
-    useLocalDrivers=false;
-    unsetenv(DrvEnvName); //unknown on windows
-    //eventually restore previous value
-    if (oldDriverEnv) {
-      strcpy(s,DrvEnvName);
-      strcat(s,"=");
-      strcat(s,oldDriverEnv);
-      putenv(s);
-    }
-    plend(); //this is necessary to reset PLPLOT to a state that will read again the driver configuration at PLPLOT_DRV_DIR
-             // otherwise the next call to checkPlplotDriver() in GDLWxStream will fail.
-  }
-#endif
-#endif
   // keeps a list of files to be executed after the startup file
   // and before entering the interactive mode
   vector<string> batch_files;
@@ -583,10 +532,6 @@ int main(int argc, char *argv[])
     StartupMessage();
     cerr << "- Default library routine search path used (GDL_PATH/IDL_PATH env. var. not set): " << gdlPath << endl;
     if (useWxWidgetsForGraphics) cerr << "- Using WxWidgets as graphics library (windows and widgets)." << endl;
-    if (useLocalDrivers || driversNotFound) {
-      if (driversNotFound) cerr << "- Local drivers not found --- using default ones. " << endl;
-      else if (getenv(DrvEnvName)) cerr << "- Using local drivers in " << getenv(DrvEnvName) << endl; //protect against NULL.
-    }
   }
   if (useDSFMTAcceleration && (GetEnvString("GDL_NO_DSFMT").length() > 0)) useDSFMTAcceleration=false;
   if (setQuietSysvar)       SysVar::Make_Quiet();
