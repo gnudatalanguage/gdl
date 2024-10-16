@@ -318,7 +318,7 @@ if N_ELEMENTS(template) eq 0 then begin
       index = WHERE(STREGEX(row, rnumber, /fold_case, /boolean), count)
       if count gt 0 then result[index, line] = float(row[index])
    endfor
-   return, {field1:TEMPORARY(result)}
+   return, {FIELD01:TEMPORARY(result)}
 endif
 ;
 ; should take into account the field keyword, when RSI implements it.
