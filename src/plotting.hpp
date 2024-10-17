@@ -155,8 +155,8 @@ struct GDL_TICKDATA {
   SizeT nTickUnits;
   DStringGDL* TickUnits;
   SizeT counter;
-  DDouble Start; //used where the span of values in axis matters.
-  DDouble End; //used where the spand of values in axis matters.
+  DFloat Start; //used where the span of values in axis matters. //FLOATS as IDL rounds range on floats. Probably uses only floats for graphics. I would do the same.
+  DFloat End; //used where the spand of values in axis matters.
   double nchars; //length of string *returned* after formatting. Can be non-integer.
   int tickOptionCode;
   int tickLayoutCode;

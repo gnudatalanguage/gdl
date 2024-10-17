@@ -1548,7 +1548,7 @@ namespace lib
     char *i;
     //special cases, since plplot gives approximate zero values, not strict zeros.
 	bool logWithPlainNumbers=false;
-	DDouble range=ptr->End-ptr->Start;
+	DFloat range=ptr->End-ptr->Start;
 	if (ptr->isLog) {
 	  range=log10(ptr->End)-log10(ptr->Start);
 	  if (range < 8) {
@@ -1683,7 +1683,7 @@ namespace lib
     else if (what.substr(0, 6) == "MINUTE") convcode = 5;
     else if (what.substr(0, 6) == "SECOND") convcode = 6;
     else if (what.substr(0, 4) == "TIME") {
-	  DDouble range=ptr->End-ptr->Start;
+	  DFloat range=ptr->End-ptr->Start;
       if (range >= 366) convcode = 1;
       else if (range >= 32) convcode = 2;
       else if (range >= 1.1) convcode = 3;
