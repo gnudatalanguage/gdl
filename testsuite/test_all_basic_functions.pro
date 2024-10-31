@@ -105,29 +105,39 @@ if (section eq 0 or section eq 4) then begin
 ; operators 1
 what=[' + ',' - ' ,' * ',' / ']
 process_new,what, n_elements(what)-1
+
 ; operators 2
 what=[' # ',' ## ']
-calls="for k=0,all_numeric do ret=(*big[k])"+what+"(*big[k])"
+calls="for k=0,all_numeric do  ret=(*big[k])"+what+"(*big[k])"
 for i=0,n_elements(what)-1 do begin & clock=tic(what[i])  &  z=execute(calls[i]) &  toc,clock & endfor
+
 what=[' #= ',' ##= ']
-calls="for k=0,all_numeric do (*big[k])"+what+"(*big[k])"
+; need to use another variable not to overwrite and change it big[] !
+calls="for k=0,all_numeric do begin & var=(*big[k]) & var"+what+"var & end"
 for i=0,n_elements(what)-1 do begin & clock=tic(what[i])  &  z=execute(calls[i]) &  toc,clock & endfor
+
 ; operators 3
 what=[' ++ ',' -- ']
-calls="for k=0,all_numeric do (*big[k])"+what
+; need to use another variable not to overwrite and change it big[] !
+calls="for k=0,all_numeric do begin & var=(*big[k]) & var"+what+" & end"
 for i=0,n_elements(what)-1 do begin & clock=tic(what[i])  &  z=execute(calls[i]) &  toc,clock & endfor
+
 ; operators 4
 what=[' AND ',' OR ',' EQ ',' NE ',' LE ',' LT ', ' GE ', ' GT ',' ^']
 process_new, what, all_numeric
+
 ; operators 5: complex not supported (GDL error)
 what=[' < ',' > ',' MOD ']
 process_new, what, not_complex
+
 ; operators 6
 what=['^=' , '*=' , 'eq=' , 'ge=' ,  'gt=' , 'le=' ,  'lt=' ,  '-=' ,  'ne=' , 'or=' , '+=' , '/= ', 'xor=', 'and=']
 process_self,what, all_numeric
+
 ; operators 7:  complex not supported (GDL error)
 what=['mod=' , '>=' ,'<=' ]
 process_self,what, not_complex
+
 endif
 print
 
@@ -181,7 +191,7 @@ if (section eq 0 or section eq 6) then begin
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=max(*big[k],dim=2) & toc,subclock & end ',$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=fft(*big[k]) & toc,subclock & end ',$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=fft(*big[k],dim=2) & toc,subclock & end ']
-
+stop
 for i=0,n_elements(calls)-1 do begin & clock=tic(what[i])  & z=execute(calls[i]) &  toc,clock & end
      print
   endif
@@ -209,6 +219,8 @@ if (section eq 0 or section eq 8) then begin
 endif
 
   toc,masterclock
+; test if *big type has been changed in all those processes --- it should not, but only if special measures were taken at all places self operaors are used.
+  if ~ISA(*big[0],'Byte') then exit,status=1
 end
 
 ; to do :string things, that are 2 times slower than idl (up to several seconds)
