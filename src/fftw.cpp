@@ -43,13 +43,18 @@ namespace lib {
 	T* res;
 	BaseGDL* data;
 	Guard<BaseGDL> guard_data;
-
+    
 	// if recenter and inverse (direct > 0) we will work on a "de-centered" p0 variant.
 	// and of course not center the result.
 
 	if (recenter && sign == FFTW_BACKWARD) {
 	  DLong centerIx[ MAXRANK];
-	  for (int i = 0; i < p0->Rank(); ++i) centerIx[i] = (p0->Dim(i) % 2 == 1) ? ((p0->Dim(i)) / 2) + 1 : ((p0->Dim(i)) / 2);
+	  if (overdim < 1) {
+		for (auto i = 0; i < p0->Rank(); ++i) centerIx[i] = (p0->Dim(i) % 2 == 1) ? ((p0->Dim(i)) / 2) + 1 : ((p0->Dim(i)) / 2);
+	  } else {
+		for (auto i = 0; i < p0->Rank(); ++i) centerIx[i] = 0; 
+		centerIx[overdim-1]= (p0->Dim(overdim-1) % 2 == 1) ? ((p0->Dim(overdim-1)) / 2) + 1 : ((p0->Dim(overdim-1)) / 2);
+	  }
 	  data = p0->CShift(centerIx);
 	  recenter = false;
 	  guard_data.Reset(data);
@@ -240,10 +245,11 @@ namespace lib {
 		}
 	  }
 	}
-	if (recenter) {
+	if (recenter) { //we are in overdim case
 	  Guard<BaseGDL> guard_res(res);
 	  DLong centerIx[ MAXRANK];
-	  for (int i = 0; i < data->Rank(); ++i) centerIx[i] = (p0->Dim(i)) / 2;
+	  for (auto i = 0; i < p0->Rank(); ++i) centerIx[i] = 0; 
+	  centerIx[overdim-1] = (p0->Dim(overdim-1)) / 2;
 	  return (T*) res->CShift(centerIx);
 	} else return res;
   }
