@@ -191,7 +191,7 @@ if (section eq 0 or section eq 6) then begin
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=max(*big[k],dim=2) & toc,subclock & end ',$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=fft(*big[k]) & toc,subclock & end ',$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=fft(*big[k],dim=2) & toc,subclock & end ']
-stop
+
 for i=0,n_elements(calls)-1 do begin & clock=tic(what[i])  & z=execute(calls[i]) &  toc,clock & end
      print
   endif
