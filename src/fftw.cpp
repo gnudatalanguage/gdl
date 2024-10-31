@@ -171,14 +171,12 @@ namespace lib {
 //	std::cout << "howmanyCalls: "<< howmanyCalls <<", istride: "<< istride <<", howmanyPerCall = "<<howmanyPerCall<< " n= [";
 //	for (auto i = 0; i < 1; ++i) std::cout<<n[i]<<","; std::cout<<"]\n";
 
-	DComplexDblGDL* p0C = static_cast<DComplexDblGDL*> (data);
-	DComplexGDL* p0CF = static_cast<DComplexGDL*> (data);
-	fftwf_plan p_f;
-	fftw_plan p;
 	if (data->Type() == GDL_COMPLEXDBL) {
+	  DComplexDblGDL* p0C = static_cast<DComplexDblGDL*> (data);
+	  fftw_plan p;
 	  for (auto j = 0; j < howmanyCalls; ++j) {
 		fftw_complex *in, *out;
-		in = (fftw_complex *) &(*p0CF)[j * callOffset];
+		in = (fftw_complex *) &(*p0C)[j * callOffset];
 		out = (fftw_complex *) &(*res)[j * callOffset];
 
 		p = fftw_plan_many_dft(1, n,
@@ -190,7 +188,7 @@ namespace lib {
 	  }
 	  fftw_destroy_plan(p);
 	  fftw_complex *in, *out;
-	  in = (fftw_complex *) &(*p0CF)[0];
+	  in = (fftw_complex *) &(*p0C)[0];
 	  out = (fftw_complex *) &(*res)[0];
 	  if (sign == FFTW_FORWARD) {
 		if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
@@ -208,6 +206,8 @@ namespace lib {
 		}
 	  }
 	} else if (data->Type() == GDL_COMPLEX) {
+	  DComplexGDL* p0CF = static_cast<DComplexGDL*> (data);
+	  fftwf_plan p_f;
 	  for (auto j = 0; j < howmanyCalls; ++j) {
 		fftwf_complex *in_f, *out_f;
 		in_f = (fftwf_complex *) &(*p0CF)[j * callOffset];
