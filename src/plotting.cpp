@@ -1548,7 +1548,7 @@ namespace lib
     char *i;
     //special cases, since plplot gives approximate zero values, not strict zeros.
 	bool logWithPlainNumbers=false;
-	DFloat range=ptr->End-ptr->Start;
+	DDouble range=ptr->End-ptr->Start;
 	if (ptr->isLog) {
 	  range=log10(ptr->End)-log10(ptr->Start);
 	  if (range < 8) {
@@ -1577,7 +1577,7 @@ namespace lib
 	  // 10^1->N (positive logs) give zero precision (integer numbers)
 	  // < 1 numbers precision will be the abs of negative magnitude
 	  int prec = 0;
-	  int mag = log10(ptr->Start);
+	  int mag = log10(float(ptr->Start)); // float() see #1887
 	  if (mag < 0) prec = -mag;
 	  snprintf(label, length, "%.*f", prec, pow(10, value));
 	  return;
@@ -1683,7 +1683,7 @@ namespace lib
     else if (what.substr(0, 6) == "MINUTE") convcode = 5;
     else if (what.substr(0, 6) == "SECOND") convcode = 6;
     else if (what.substr(0, 4) == "TIME") {
-	  DFloat range=ptr->End-ptr->Start;
+	  DDouble range=ptr->End-ptr->Start;
       if (range >= 366) convcode = 1;
       else if (range >= 32) convcode = 2;
       else if (range >= 1.1) convcode = 3;
@@ -3684,7 +3684,7 @@ NoTitlesAccepted:
 
 
     gdlGetDesiredAxisTickGet(e, axisId, TickInterval, Start, End, Log);
-	
+  
 	if (Start == End) return;
 	if (Log && (Start <= 0 || End <= 0)) return; //important protection 
 	bool doplot = ((AxisStyle & 4) != 4); 
@@ -3854,6 +3854,8 @@ NoTitlesAccepted:
 	tickdata.e = e;
 	tickdata.isLog = Log;
 	tickdata.Start = (Start>End)?End:Start;
+	//protect against (plplot) bug #1893
+	if (TickInterval + tickdata.Start == tickdata.Start) return; //the best we can do?	
 	tickdata.End = (Start>End)?Start:End;
 	tickdata.nchars = 0;
 	tickdata.TickFormat = NULL;
@@ -3912,7 +3914,8 @@ NoTitlesAccepted:
 	for (auto i = 0; i < tickdata.nTickUnits; ++i) //loop on TICKUNITS axis
 	{
 	  if (i > 0 || TickInterval == 0) TickInterval = gdlComputeAxisTickInterval(e, axisId, Start, End, Log, i/*, (AxisStyle & 1) == 0*/);
-
+	  //protect against (plplot) bug #1893
+      if (TickInterval+tickdata.Start == tickdata.Start) continue;
 	  tickdata.nchars = 0; //set nchars to 0, at the end nchars will be the maximum size.
 	  if (i == 1) tickOpt = (TickLayout == 2) ? tickLayout2 : additionalAxesTickOpt; //change style of ticks for supplemental axes
 	  defineLabeling(a, axisId, gdlNoLabelTickFunc, &tickdata); //prevent plplot to write labels (but writes something, so that label positions are reported in getLabelingValues())
