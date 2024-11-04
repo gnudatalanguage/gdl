@@ -180,6 +180,8 @@ void cursor(EnvT* e){
     actStream->vpor(0, 1, 0, 1);
     actStream->wind(0, 1, 0, 1);
 
+  } else {
+	restoreDrawArea(actStream);
   }
   // mimic idl logic:
   DLong wait = WAIT;
@@ -226,7 +228,7 @@ void cursor(EnvT* e){
     }
     else
     { // default (/data)
-     if (out) { gin.dX = 0; gin.dY = 0;}
+	  if (out) { gin.dX = 0; gin.dY = 0;}
       DDouble tempx,tempy;
 #ifdef USE_LIBPROJ
       bool mapSet = false;

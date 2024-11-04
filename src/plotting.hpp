@@ -322,8 +322,6 @@ namespace lib {
     virtual void applyGraphics(EnvT*, GDLGStream*) = 0;
     virtual void post_call(EnvT*, GDLGStream*) = 0;
 
-    void restoreDrawArea(GDLGStream *a);
-
     // all steps combined (virtual methods cannot be called from ctor)
   public:
     void call(EnvT* e, SizeT n_params_required);
@@ -333,7 +331,8 @@ namespace lib {
   //This because static pointers to options indexes are needed to speed up process, but these indexes vary between
   //the definition of the caller functions (e.g. "CHARSIZE" is 1 for CONTOUR but 7 for XYOUTS). So they need to be kept
   //static (for speed) but private for each graphic command.
-
+  void restoreDrawArea(GDLGStream *a);
+  
   void gdlSetGraphicsBackgroundColorFromKw(EnvT *e, GDLGStream *a, bool kw = true);
 
    void gdlSetGraphicsForegroundColorFromBackgroundKw(EnvT *e, GDLGStream *a, bool kw = true);
