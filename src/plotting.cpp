@@ -3637,13 +3637,14 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	  
 	  a->plstream::vpor(refboxxmin, refboxxmax, refboxymin, refboxymax);
 	  a->wind(owboxxmin, owboxxmax, owboxymin, owboxymax); //restore old values
-	  gdlSetPlotCharthick(e, a);
 	  if (!subTitle.empty()) {
+		gdlSetPlotCharthick(e, a);
 		gdlSetPlotCharsize(e, a);
 		PLFLT title_disp = 4 * interligne_as_char - 0.5; //in chars
 		a->mtex("b", title_disp, 0.5, 0.5, subTitle.c_str()); //position is in units of current char height. baseline at half-height
 	  }
 	  if (!title.empty()) {
+		gdlSetPlotCharthick(e, a);
 		gdlSetPlotCharsize(e, a, 1.25);
 		PLFLT disp = interligne_as_char / 2;
 		a->mtex("t", disp + 0.5, 0.5, 0.5, title.c_str()); //position is in units of current char height. baseline at half-height
@@ -3704,8 +3705,8 @@ NoTitlesAccepted:
 	gdlGetDesiredAxisGridStyle(e, axisId, GridStyle);
 	DLong Minor;
 	gdlGetDesiredAxisMinor(e, axisId, Minor);
-	DFloat Thick;
-	gdlGetDesiredAxisThick(e, axisId, Thick);
+	DFloat AxisThick;
+	gdlGetDesiredAxisThick(e, axisId, AxisThick);
 	DStringGDL* TickFormat;
 	gdlGetDesiredAxisTickFormat(e, axisId, TickFormat);
 	DLong TickLayout;
@@ -3906,8 +3907,7 @@ NoTitlesAccepted:
 	a->plstream::vpor(refboxxmin, refboxxmax, refboxymin, refboxymax);
 	a->plstream::gvpd(boxxmin, boxxmax, boxymin, boxymax);
 	a->plstream::wind(wboxxmin, wboxxmax, wboxymin, wboxymax);
-	//      thick for box and ticks.
-	a->Thick(Thick);
+
 	a->smaj(ticklen_in_mm, 1.0);
 	if (TickLen < 0.3 || inverted_ticks) a->smin(ticklen_in_mm / 2.0, 1.0); //IDL behaviour.
 
@@ -3925,6 +3925,8 @@ NoTitlesAccepted:
 	  else a->plstream::wind(Start, End, owboxymin, owboxymax);
 //		a->plstream::wind(wboxxmin, wboxxmax, wboxymin, wboxymax);
 		if (doplot) {
+		  //   Set thick for this axis line and ticks.
+		  a->Thick(AxisThick);
 		  bool isTickv = (hasTickv && i == 0);
 		  if (isTickv) {
 			gdlDrawAxisTicks(a, axisId, Tickv, Log, Ticks, TickLen, tickOpt, where, TickLayout, &tickdata, doplot);
@@ -3933,6 +3935,8 @@ NoTitlesAccepted:
 			a->box(tickOpt.c_str(), TickInterval, Minor, "", 0.0, 0); //ticks
 			a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0); //no labels, just get ticks positions
 		  }	
+		  // Labels: replace PenThickness with character desired thickness (otherwise drawing of characters inherits the /[XYZ]THICK option )
+		  gdlSetPlotCharthick(e, a);
 		  DDoubleGDL* values = getLabelingValues(axisId);	
 		  gdlDrawOurLabels(a, axisId, values, Log, isTickv, adddisplacement, Opt, where, TickLayout, (i == 0) ? gdlSimpleAxisTickFunc : gdlMultiAxisTickFunc, &tickdata, otheraxis, doplot);
 		  GDLDelete(values);
@@ -3945,6 +3949,8 @@ NoTitlesAccepted:
 	  else a->plstream::wind(owboxxmin, owboxxmax, Start, End);
 //		a->plstream::wind(wboxxmin, wboxxmax, wboxymin, wboxymax);
 		if (doplot) {
+		  //   Set thick for this axis line and ticks.
+		  a->Thick(AxisThick);
 		  bool isTickv = (hasTickv && i == 0);
 		  if (isTickv) {
 			gdlDrawAxisTicks(a, axisId, Tickv, Log, Ticks, TickLen, tickOpt, where, TickLayout, &tickdata, doplot);
@@ -3953,6 +3959,8 @@ NoTitlesAccepted:
 			a->box("", 0.0, 0.0, tickOpt.c_str(), TickInterval, Minor); //write ticks
 			a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor); //write blank labels and get ticks positions
 		  }
+		  // Labels: replace PenThickness with character desired thickness (otherwise drawing of characters inherits the /[XYZ]THICK option )
+		  gdlSetPlotCharthick(e, a);
 		  DDoubleGDL* values = getLabelingValues(axisId);
 		  //write labels our way, with any centering , even on multiline etc. We need the length of the 
 		  nchars[i] = gdlDrawOurLabels(a, axisId, values, Log, isTickv, adddisplacement, Opt, where, TickLayout, (i == 0) ? gdlSimpleAxisTickFunc : gdlMultiAxisTickFunc, &tickdata, otheraxis, doplot);
