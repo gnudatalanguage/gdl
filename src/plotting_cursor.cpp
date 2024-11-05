@@ -180,6 +180,8 @@ void cursor(EnvT* e){
     actStream->vpor(0, 1, 0, 1);
     actStream->wind(0, 1, 0, 1);
 
+  } else {
+	restoreDrawArea(actStream);
   }
   // mimic idl logic:
   DLong wait = WAIT;

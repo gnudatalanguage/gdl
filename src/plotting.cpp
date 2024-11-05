@@ -528,7 +528,7 @@ namespace lib
 	}
   }
 
-  void plotting_routine_call::restoreDrawArea(GDLGStream *a) {
+  void restoreDrawArea(GDLGStream *a) {
 	//retrieve and reset plplot to the last setup for vpor() and wind() made by position-scaling commands like PLOT or CONTOUR
 	DDouble *sx, *sy;
 	DDouble wx[2], wy[2];
