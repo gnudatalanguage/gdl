@@ -256,6 +256,8 @@ namespace lib {
   void gdlSetGraphicsPenColorToBackground(GDLGStream *a);
   void gdlLineStyle(GDLGStream *a, DLong style);
   PLFLT* gdlGetRegion();
+  PLFLT gdlGetBoxNXSize(); // what !X thinks the current PLOT box size is, in normalised coordinates. To be used instead of the boxnXSize() gdlgstream function whenever possible.
+  PLFLT gdlGetBoxNYSize(); // what !Y thinks the current PLOT box size is, in normalised coordinates. To be used instead of the boxnYSize() gdlgstream function whenever possible.
   DFloat* gdlGetWindow();
   void gdlStoreXAxisRegion(GDLGStream* actStream, PLFLT* r);
   void gdlStoreYAxisRegion(GDLGStream* actStream, PLFLT* r);

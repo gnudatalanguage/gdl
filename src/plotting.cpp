@@ -1278,7 +1278,23 @@ namespace lib
     position[5]=(*static_cast<DFloatGDL*>(SysVar::Z()->GetTag(WINDOWTAG, 0)))[1];
     return position;
 }
- //Get [XYZ].REGION
+  PLFLT gdlGetBoxNXSize() {
+    DStructGDL* Struct=SysVar::X(); 
+    static unsigned WINDOWTAG=Struct->Desc()->TagIndex("WINDOW");
+    DFloat end,start;
+    start=(*static_cast<DFloatGDL*>(Struct->GetTag(WINDOWTAG, 0)))[0];
+    end=(*static_cast<DFloatGDL*>(Struct->GetTag(WINDOWTAG, 0)))[1];
+    return end-start;
+}
+PLFLT gdlGetBoxNYSize() {
+    DStructGDL* Struct=SysVar::Y(); 
+    static unsigned WINDOWTAG=Struct->Desc()->TagIndex("WINDOW");
+    DFloat end,start;
+    start=(*static_cast<DFloatGDL*>(Struct->GetTag(WINDOWTAG, 0)))[0];
+    end=(*static_cast<DFloatGDL*>(Struct->GetTag(WINDOWTAG, 0)))[1];
+    return end-start;
+}
+    //Get [XYZ].REGION
   PLFLT* gdlGetRegion() {
     DStructGDL* Struct=SysVar::X(); //same for all
     static unsigned REGIONTAG=Struct->Desc()->TagIndex("REGION");
@@ -3742,9 +3758,10 @@ NoTitlesAccepted:
 	  inverted_ticks = true;
 	  TickLen = -TickLen;
 	}
-	//ticklen in a percentage of box x or y size, to be expressed in mm 
-	if (axisId == XAXIS) ticklen_in_mm = a->mmyPageSize()*(a->boxnYSize()) * ticklen_in_mm;
-	else ticklen_in_mm = a->mmxPageSize()*(a->boxnXSize()) * ticklen_in_mm;
+	//ticklen in a percentage of box x or y size, to be expressed in mm. Since AXis is also called by the AXIS command that internally redefines vpor()
+	// the ticklen must be defined from current !X and !Y values, so:
+	if (axisId == XAXIS) ticklen_in_mm = a->mmyPageSize() * gdlGetBoxNYSize() * ticklen_in_mm;
+	else ticklen_in_mm = a->mmxPageSize()* gdlGetBoxNXSize() * ticklen_in_mm;
 	//    if (ticklen_in_mm > 100.) ticklen_in_mm = 0; //PATCH to avoid PS and MEM device problem. Check why gspa() returns silly values. TBC 
 	DFloat ticklen_as_norm = (axisId == XAXIS) ? a->mm2ndy(ticklen_in_mm) : a->mm2ndx(ticklen_in_mm); //in normed coord
 	//eventually, each succesive X or Y axis is separated from previous by interligne + ticklen in adequate units. 
