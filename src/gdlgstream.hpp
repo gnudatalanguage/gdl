@@ -108,24 +108,24 @@ static std::string internalFontCodes[] = {
 
   typedef struct GDL_BOX {
     bool initialized;
-    PLFLT wx1; //world coord of x min
-    PLFLT wx2;
-    PLFLT wy1;
-    PLFLT wy2;
-    PLFLT nx1; //normalized position in subpage
-    PLFLT nx2;
-    PLFLT ny1;
-    PLFLT ny2;
-    PLFLT ndx1; //normalized device position
-    PLFLT ndx2;
-    PLFLT ndy1;
-    PLFLT ndy2;
+    PLFLT wx1 = 0; //world coord of x min
+    PLFLT wx2 = 1;
+    PLFLT wy1 = 0;
+    PLFLT wy2 = 1;
+    PLFLT nx1= 0; //normalized position in subpage
+    PLFLT nx2= 1;
+    PLFLT ny1= 0;
+    PLFLT ny2= 1;
+    PLFLT ndx1= 0; //normalized device position
+    PLFLT ndx2= 1;
+    PLFLT ndy1= 0;
+    PLFLT ndy2= 1;
     PLFLT nxsize; //size of box, x , normed
     PLFLT nysize;
-    PLFLT dx1; //position in device coords (e.g. pixels)
-    PLFLT dx2;
-    PLFLT dy1;
-    PLFLT dy2;
+    PLFLT dx1= 0; //position in device coords (e.g. pixels)
+    PLFLT dx2= 1;
+    PLFLT dy1= 0;
+    PLFLT dy2= 1;
     PLFLT dxsize; //size of box, x , normed
     PLFLT dysize;
     PLFLT pageWorldCoordinates[4];

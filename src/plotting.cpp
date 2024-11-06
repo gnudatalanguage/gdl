@@ -528,7 +528,7 @@ namespace lib
 	}
   }
 
-  void plotting_routine_call::restoreDrawArea(GDLGStream *a) {
+  void restoreDrawArea(GDLGStream *a) {
 	//retrieve and reset plplot to the last setup for vpor() and wind() made by position-scaling commands like PLOT or CONTOUR
 	DDouble *sx, *sy;
 	DDouble wx[2], wy[2];
@@ -1278,7 +1278,23 @@ namespace lib
     position[5]=(*static_cast<DFloatGDL*>(SysVar::Z()->GetTag(WINDOWTAG, 0)))[1];
     return position;
 }
- //Get [XYZ].REGION
+  PLFLT gdlGetBoxNXSize() {
+    DStructGDL* Struct=SysVar::X(); 
+    static unsigned WINDOWTAG=Struct->Desc()->TagIndex("WINDOW");
+    DFloat end,start;
+    start=(*static_cast<DFloatGDL*>(Struct->GetTag(WINDOWTAG, 0)))[0];
+    end=(*static_cast<DFloatGDL*>(Struct->GetTag(WINDOWTAG, 0)))[1];
+    return end-start;
+}
+PLFLT gdlGetBoxNYSize() {
+    DStructGDL* Struct=SysVar::Y(); 
+    static unsigned WINDOWTAG=Struct->Desc()->TagIndex("WINDOW");
+    DFloat end,start;
+    start=(*static_cast<DFloatGDL*>(Struct->GetTag(WINDOWTAG, 0)))[0];
+    end=(*static_cast<DFloatGDL*>(Struct->GetTag(WINDOWTAG, 0)))[1];
+    return end-start;
+}
+    //Get [XYZ].REGION
   PLFLT* gdlGetRegion() {
     DStructGDL* Struct=SysVar::X(); //same for all
     static unsigned REGIONTAG=Struct->Desc()->TagIndex("REGION");
@@ -3637,13 +3653,14 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	  
 	  a->plstream::vpor(refboxxmin, refboxxmax, refboxymin, refboxymax);
 	  a->wind(owboxxmin, owboxxmax, owboxymin, owboxymax); //restore old values
-	  gdlSetPlotCharthick(e, a);
 	  if (!subTitle.empty()) {
+		gdlSetPlotCharthick(e, a);
 		gdlSetPlotCharsize(e, a);
 		PLFLT title_disp = 4 * interligne_as_char - 0.5; //in chars
 		a->mtex("b", title_disp, 0.5, 0.5, subTitle.c_str()); //position is in units of current char height. baseline at half-height
 	  }
 	  if (!title.empty()) {
+		gdlSetPlotCharthick(e, a);
 		gdlSetPlotCharsize(e, a, 1.25);
 		PLFLT disp = interligne_as_char / 2;
 		a->mtex("t", disp + 0.5, 0.5, 0.5, title.c_str()); //position is in units of current char height. baseline at half-height
@@ -3704,8 +3721,8 @@ NoTitlesAccepted:
 	gdlGetDesiredAxisGridStyle(e, axisId, GridStyle);
 	DLong Minor;
 	gdlGetDesiredAxisMinor(e, axisId, Minor);
-	DFloat Thick;
-	gdlGetDesiredAxisThick(e, axisId, Thick);
+	DFloat AxisThick;
+	gdlGetDesiredAxisThick(e, axisId, AxisThick);
 	DStringGDL* TickFormat;
 	gdlGetDesiredAxisTickFormat(e, axisId, TickFormat);
 	DLong TickLayout;
@@ -3741,9 +3758,10 @@ NoTitlesAccepted:
 	  inverted_ticks = true;
 	  TickLen = -TickLen;
 	}
-	//ticklen in a percentage of box x or y size, to be expressed in mm 
-	if (axisId == XAXIS) ticklen_in_mm = a->mmyPageSize()*(a->boxnYSize()) * ticklen_in_mm;
-	else ticklen_in_mm = a->mmxPageSize()*(a->boxnXSize()) * ticklen_in_mm;
+	//ticklen in a percentage of box x or y size, to be expressed in mm. Since AXis is also called by the AXIS command that internally redefines vpor()
+	// the ticklen must be defined from current !X and !Y values, so:
+	if (axisId == XAXIS) ticklen_in_mm = a->mmyPageSize() * gdlGetBoxNYSize() * ticklen_in_mm;
+	else ticklen_in_mm = a->mmxPageSize()* gdlGetBoxNXSize() * ticklen_in_mm;
 	//    if (ticklen_in_mm > 100.) ticklen_in_mm = 0; //PATCH to avoid PS and MEM device problem. Check why gspa() returns silly values. TBC 
 	DFloat ticklen_as_norm = (axisId == XAXIS) ? a->mm2ndy(ticklen_in_mm) : a->mm2ndx(ticklen_in_mm); //in normed coord
 	//eventually, each succesive X or Y axis is separated from previous by interligne + ticklen in adequate units. 
@@ -3906,8 +3924,7 @@ NoTitlesAccepted:
 	a->plstream::vpor(refboxxmin, refboxxmax, refboxymin, refboxymax);
 	a->plstream::gvpd(boxxmin, boxxmax, boxymin, boxymax);
 	a->plstream::wind(wboxxmin, wboxxmax, wboxymin, wboxymax);
-	//      thick for box and ticks.
-	a->Thick(Thick);
+
 	a->smaj(ticklen_in_mm, 1.0);
 	if (TickLen < 0.3 || inverted_ticks) a->smin(ticklen_in_mm / 2.0, 1.0); //IDL behaviour.
 
@@ -3925,6 +3942,8 @@ NoTitlesAccepted:
 	  else a->plstream::wind(Start, End, owboxymin, owboxymax);
 //		a->plstream::wind(wboxxmin, wboxxmax, wboxymin, wboxymax);
 		if (doplot) {
+		  //   Set thick for this axis line and ticks.
+		  a->Thick(AxisThick);
 		  bool isTickv = (hasTickv && i == 0);
 		  if (isTickv) {
 			gdlDrawAxisTicks(a, axisId, Tickv, Log, Ticks, TickLen, tickOpt, where, TickLayout, &tickdata, doplot);
@@ -3933,6 +3952,8 @@ NoTitlesAccepted:
 			a->box(tickOpt.c_str(), TickInterval, Minor, "", 0.0, 0); //ticks
 			a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0); //no labels, just get ticks positions
 		  }	
+		  // Labels: replace PenThickness with character desired thickness (otherwise drawing of characters inherits the /[XYZ]THICK option )
+		  gdlSetPlotCharthick(e, a);
 		  DDoubleGDL* values = getLabelingValues(axisId);	
 		  gdlDrawOurLabels(a, axisId, values, Log, isTickv, adddisplacement, Opt, where, TickLayout, (i == 0) ? gdlSimpleAxisTickFunc : gdlMultiAxisTickFunc, &tickdata, otheraxis, doplot);
 		  GDLDelete(values);
@@ -3945,6 +3966,8 @@ NoTitlesAccepted:
 	  else a->plstream::wind(owboxxmin, owboxxmax, Start, End);
 //		a->plstream::wind(wboxxmin, wboxxmax, wboxymin, wboxymax);
 		if (doplot) {
+		  //   Set thick for this axis line and ticks.
+		  a->Thick(AxisThick);
 		  bool isTickv = (hasTickv && i == 0);
 		  if (isTickv) {
 			gdlDrawAxisTicks(a, axisId, Tickv, Log, Ticks, TickLen, tickOpt, where, TickLayout, &tickdata, doplot);
@@ -3953,6 +3976,8 @@ NoTitlesAccepted:
 			a->box("", 0.0, 0.0, tickOpt.c_str(), TickInterval, Minor); //write ticks
 			a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor); //write blank labels and get ticks positions
 		  }
+		  // Labels: replace PenThickness with character desired thickness (otherwise drawing of characters inherits the /[XYZ]THICK option )
+		  gdlSetPlotCharthick(e, a);
 		  DDoubleGDL* values = getLabelingValues(axisId);
 		  //write labels our way, with any centering , even on multiline etc. We need the length of the 
 		  nchars[i] = gdlDrawOurLabels(a, axisId, values, Log, isTickv, adddisplacement, Opt, where, TickLayout, (i == 0) ? gdlSimpleAxisTickFunc : gdlMultiAxisTickFunc, &tickdata, otheraxis, doplot);

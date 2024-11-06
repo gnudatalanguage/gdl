@@ -218,7 +218,7 @@ namespace lib {
       // *** start drawing by defalut values
       gdlSetGraphicsForegroundColorFromKw(e, actStream);
       if (!docharthick) gdlSetPlotCharthick(e, actStream);
-      if (!docharsize) gdlSetPlotCharsize(e, actStream, true); //accept SIZE kw!
+      if (!docharsize) gdlSetPlotCharsize(e, actStream, 1.0, true); //accept SIZE kw!
 
       // Get decomposed value for colors
       DLong decomposed = GraphicsDevice::GetDevice()->GetDecomposed();
