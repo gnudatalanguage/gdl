@@ -218,7 +218,7 @@ void LibInit_jmg()
   const string trigridWarnKey[]={"EXTRAPOLATE","QUINTIC",KLISTEND};
   new DLibFunRetNew(lib::trigrid_fun,string("TRIGRID"),6,trigridKey,trigridWarnKey);
 
-  const string poly_2dKey[]={"CUBIC","MISSING",KLISTEND};
+  const string poly_2dKey[]={"CUBIC","MISSING","PIXEL_CENTER", KLISTEND};
   new DLibFunRetNewTP(lib::poly_2d_fun,string("POLY_2D"),6,poly_2dKey);  //UsesThreadPOOL 
 
   const string make_arrayKey[]={"DIMENSION", "INCREMENT", "INDEX", "NOZERO",

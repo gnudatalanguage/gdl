@@ -30,7 +30,6 @@
 //#undef GDL_DEBUG
 
 #define COMPLEX2 GDL_COMPLEX
-
 #if defined(_MSC_VER) && _MSC_VER < 1800
 #define FE_DIVBYZERO
 #define FE_UNDERFLOW
@@ -902,67 +901,103 @@ namespace lib {
     DDouble *P,
     DDouble *Q,
     DDouble initvalue_,
-    bool doMissing) {
+	bool doMissing,
+	DDouble pixcenter) {
+	DLong lx = data_->Dim(0);
+	DLong ly = data_->Dim(1);
 
-    DLong lx = data_->Dim(0);
-    DLong ly = data_->Dim(1);
+	dimension dim(nCols, nRows);
+	T1* res_ = new T1(dim, BaseGDL::NOZERO);
+	T2 initvalue = initvalue_;
+	DLong nEl = nCols*nRows;
 
-    dimension dim(nCols, nRows);
-    T1* res_ = new T1(dim, BaseGDL::NOZERO);
-    T2 initvalue = initvalue_;
-    DLong nEl = nCols*nRows;
-
-    T2* res = (T2*) res_->DataAddr();
-    T2* data = (T2*) data_->DataAddr();
-    if (doMissing) {
-      if ((GDL_NTHREADS=parallelize( nEl))==1) {
-        for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
-      } else {
-      TRACEOMP(__FILE__,__LINE__)
+	T2* res = (T2*) res_->DataAddr();
+	T2* data = (T2*) data_->DataAddr();
+	if (doMissing) {
+	  if ((GDL_NTHREADS = parallelize(nEl, TP_CPU_INTENSIVE)) == 1) {
+		for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
+	  } else {
+		TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
-      }
-    }
-
-    /* Double loop on the output image  */
-    if ((GDL_NTHREADS=parallelize( nEl, TP_CPU_INTENSIVE))==1) {
-      for (OMPInt j = 0; j < nRows; ++j) {
-        for (OMPInt i = 0; i < nCols; ++i) {
-          // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
-          DLong px = (DLong) (P[0] + P[1] * (DDouble) j + P[2] * (DDouble) i);
-          DLong py = (DLong) (Q[0] + Q[1] * (DDouble) j + Q[2] * (DDouble) i);
-          if (doMissing && ((px < 0) || (px > (lx - 1)) || (py < 0) || (py > (ly - 1)))) {
-            continue; // already initialised to 'missing' value.
-          } else {
-            if (px < 0) px = 0;
-            if (px > (lx - 1)) px = (lx - 1);
-            if (py < 0) py = 0;
-            if (py > (ly - 1)) py = (ly - 1);
-            res[i + j * nCols] = data[px + py * lx];
-          }
-        }
-      }
-    } else {
-    TRACEOMP(__FILE__,__LINE__)
+		  for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
+	  }
+	}
+	P[0]+=pixcenter;
+	Q[0]+=pixcenter;
+	  if (!doMissing) {
+	  /* Double loop on the output image  */
+	  if ((GDL_NTHREADS = parallelize(nEl, TP_CPU_INTENSIVE)) == 1) {
+		for (OMPInt j = 0; j < nRows; ++j) {
+		  for (OMPInt i = 0; i < nCols; ++i) {
+			// Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
+			float x = P[0] + P[1] * j + P[2] * i;
+			float y = Q[0] + Q[1] * j + Q[2] * i;
+			OMPInt px = x;
+			OMPInt py = y;
+			if (px < 0) px = 0;
+			else if (px >= lx ) px = (lx - 1);
+			if (py < 0) py = 0;
+			else if (py > ly ) py = (ly - 1);
+			res[i + j * nCols] = data[px + py * lx];
+		  }
+		}
+	  } else {
+		TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for collapse(2) num_threads(GDL_NTHREADS)
-        for (OMPInt j = 0; j < nRows; ++j) {
-        for (OMPInt i = 0; i < nCols; ++i) {
-          // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
-          DLong px = (DLong) (P[0] + P[1] * (DDouble) j + P[2] * (DDouble) i);
-          DLong py = (DLong) (Q[0] + Q[1] * (DDouble) j + Q[2] * (DDouble) i);
-          if (doMissing && ((px < 0) || (px > (lx - 1)) || (py < 0) || (py > (ly - 1)))) {
-            continue; // already initialised to 'missing' value.
-          } else {
-            if (px < 0) px = 0;
-            if (px > (lx - 1)) px = (lx - 1);
-            if (py < 0) py = 0;
-            if (py > (ly - 1)) py = (ly - 1);
-            res[i + j * nCols] = data[px + py * lx];
-          }
-        }
-      }
-    }
-    return res_;
+		  for (OMPInt j = 0; j < nRows; ++j) {
+		  for (OMPInt i = 0; i < nCols; ++i) {
+			// Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
+			float x = P[0] + P[1] * j + P[2] * i;
+			float y = Q[0] + Q[1] * j + Q[2] * i;
+			OMPInt px = x;
+			OMPInt py = y;
+			if (px < 0) px = 0;
+			else if (px >= lx ) px = (lx - 1);
+			if (py < 0) py = 0;
+			else if (py > ly ) py = (ly - 1);
+			res[i + j * nCols] = data[px + py * lx];
+		  }
+		}
+	  }
+	} else { //do Missing values. The algorithm IS NOT THE SAME as above: test the following:
+	  // a=bindgen(3,3) & P=[0.9,-0,1,0] & Q=[0.9,1,0,0] & B = POLY_2D(A, P, Q, MISS=-1) & print,b
+	  // versus a=bindgen(3,3) & P=[0.9,-0,1,0] & Q=[0.9,1,0,0] & B = POLY_2D(A, P, Q) & print,b
+	  /* Double loop on the output image  */
+	  if ((GDL_NTHREADS = parallelize(nEl, TP_CPU_INTENSIVE)) == 1) {
+		for (OMPInt j = 0; j < nRows; ++j) {
+		  for (OMPInt i = 0; i < nCols; ++i) {
+			// Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
+			float x = P[0] + P[1] * j + P[2] * i;
+			if (x < 0) continue;
+			if (x >= lx) continue;
+			OMPInt px = x;
+			float y = Q[0] + Q[1] * j + Q[2] * i;
+			if (y < 0) continue;
+			if (y >= ly) continue;
+			OMPInt py = y;
+			res[i + j * nCols] = data[px + py * lx];
+		  }
+		}
+	  } else {
+		TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for collapse(2) num_threads(GDL_NTHREADS)
+		  for (OMPInt j = 0; j < nRows; ++j) {
+		  for (OMPInt i = 0; i < nCols; ++i) {
+			// Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
+			float x = P[0] + P[1] * j + P[2] * i;
+			if (x < 0) continue;
+			if (x >= lx) continue;
+			OMPInt px = x;
+			float y = Q[0] + Q[1] * j + Q[2] * i;
+			if (y < 0) continue;
+			if (y >= ly) continue;
+			OMPInt py = y;
+			res[i + j * nCols] = data[px + py * lx];
+		  }
+		}
+	  }
+	}
+	return res_;
   }
 
   template< typename T1, typename T2>
@@ -975,6 +1010,7 @@ namespace lib {
     DDouble cubicParameter,
     DDouble missingValue,
     bool doMissing) {
+	std::cerr<<"warp_linear2\n";
 
     DLong lx = data_->Dim(0);
     DLong ly = data_->Dim(1);
@@ -1029,10 +1065,10 @@ namespace lib {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
-          DDouble x = (P[0] + P[1] * (DDouble) j + P[2] * (DDouble) i);
-          DLong px = (DLong) x;
-          DDouble y = (Q[0] + Q[1] * (DDouble) j + Q[2] * (DDouble) i);
-          DLong py = (DLong) y;
+			DDouble x = P[0] + P[1] * j + P[2] * i;
+			DDouble y = Q[0] + Q[1] * j + Q[2] * i;
+			OMPInt px = static_cast<OMPInt> (floor(x));
+			OMPInt py = static_cast<OMPInt> (floor(y));
           if (doMissing && ((px < 0) || (px > (lx - 1)) || (py < 0) || (py > (ly - 1)))) {
             continue; // already initialised to 'missing' value.
           } else {
@@ -1101,10 +1137,10 @@ namespace lib {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
-          DDouble x = (P[0] + P[1] * (DDouble) j + P[2] * (DDouble) i);
-          DLong px = (DLong) x;
-          DDouble y = (Q[0] + Q[1] * (DDouble) j + Q[2] * (DDouble) i);
-          DLong py = (DLong) y;
+			DDouble x = P[0] + P[1] * j + P[2] * i;
+			DDouble y = Q[0] + Q[1] * j + Q[2] * i;
+			OMPInt px = static_cast<OMPInt> (floor(x));
+			OMPInt py = static_cast<OMPInt> (floor(y));
           if (doMissing && ((px < 0) || (px > (lx - 1)) || (py < 0) || (py > (ly - 1)))) {
             continue; // already initialised to 'missing' value.
           } else {
@@ -1181,6 +1217,7 @@ namespace lib {
     DDouble *Q,
     DDouble missingValue,
     bool doMissing) {
+	std::cerr<<"warp_linear1\n";
 
     DLong lx = data_->Dim(0);
     DLong ly = data_->Dim(1);
@@ -1227,10 +1264,10 @@ namespace lib {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
-          DDouble x = (P[0] + P[1] * (DDouble) j + P[2] * (DDouble) i);
-          DLong px = (DLong) x;
-          DDouble y = (Q[0] + Q[1] * (DDouble) j + Q[2] * (DDouble) i);
-          DLong py = (DLong) y;
+			DDouble x = P[0] + P[1] * j + P[2] * i;
+			DDouble y = Q[0] + Q[1] * j + Q[2] * i;
+			OMPInt px = static_cast<OMPInt> (floor(x));
+			OMPInt py = static_cast<OMPInt> (floor(y));
           if (doMissing && ((px < 0) || (px > (lx - 1)) || (py < 0) || (py > (ly - 1)))) {
             continue; // already initialised to 'missing' value.
           } else {
@@ -1284,10 +1321,10 @@ namespace lib {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
-          DDouble x = (P[0] + P[1] * (DDouble) j + P[2] * (DDouble) i);
-          DLong px = (DLong) x;
-          DDouble y = (Q[0] + Q[1] * (DDouble) j + Q[2] * (DDouble) i);
-          DLong py = (DLong) y;
+			DDouble x = P[0] + P[1] * j + P[2] * i;
+			DDouble y = Q[0] + Q[1] * j + Q[2] * i;
+			OMPInt px = static_cast<OMPInt> (floor(x));
+			OMPInt py = static_cast<OMPInt> (floor(y));
           if (doMissing && ((px < 0) || (px > (lx - 1)) || (py < 0) || (py > (ly - 1)))) {
             continue; // already initialised to 'missing' value.
           } else {
@@ -1862,7 +1899,15 @@ namespace lib {
     if (doMissing) {
       e->AssureDoubleScalarKWIfPresent(MISSINGIx, missing);
     }
-// check P dimension first
+	
+    static int PIXELIx = e->KeywordIx("PIXEL_CENTER");
+    bool doPix = (e->KeywordPresent(PIXELIx));
+	DDouble pixcenter = 0.0;
+	if (doPix) {
+	  e->AssureDoubleScalarKWIfPresent(PIXELIx, pixcenter);
+	}
+	
+	// check P dimension first
     DLong Psize=p1->N_Elements();
     if (Psize < 4) e->Throw("Value of Polynomial degree is out of allowed range.");
     
@@ -1877,31 +1922,31 @@ namespace lib {
     DDoubleGDL* Q = static_cast<DDoubleGDL*>
       (p2->Convert2(GDL_DOUBLE, BaseGDL::COPY));
 
+
     if (nDegree == 1 && (*P)[3] == 0 && (*Q)[3] == 0 ) { //LINEAR CASE
       //return p0 if identity.
       if ((*P)[0] == 0 && (*P)[1] == 0 && (*P)[2] == 1 && (*P)[3] == 0 && (*Q)[0] == 0 && (*Q)[1] == 1 && (*Q)[2] == 0 && (*Q)[3] == 0) {
         return p0->Dup();
       }
-      
       if (interp==0) {
          if (p0->Type() == GDL_BYTE) {
-          return warp_linear0< DByteGDL, DByte>(nCol, nRow, p0, (DDouble*) P->DataAddr(),(DDouble*) Q->DataAddr(), missing, doMissing);
+          return warp_linear0< DByteGDL, DByte>(nCol, nRow, p0, (DDouble*) P->DataAddr(),(DDouble*) Q->DataAddr(), missing, doMissing, pixcenter);
         } else if (p0->Type() == GDL_INT) {
-          return warp_linear0< DIntGDL, DInt>(nCol, nRow, p0, (DDouble*) P->DataAddr(),(DDouble*) Q->DataAddr(), missing, doMissing);
+          return warp_linear0< DIntGDL, DInt>(nCol, nRow, p0, (DDouble*) P->DataAddr(),(DDouble*) Q->DataAddr(), missing, doMissing, pixcenter);
         } else if (p0->Type() == GDL_UINT) {
-          return warp_linear0< DUIntGDL, DUInt>(nCol, nRow, p0, (DDouble*) P->DataAddr(),(DDouble*) Q->DataAddr(), missing, doMissing);
+          return warp_linear0< DUIntGDL, DUInt>(nCol, nRow, p0, (DDouble*) P->DataAddr(),(DDouble*) Q->DataAddr(), missing, doMissing, pixcenter);
         } else if (p0->Type() == GDL_LONG) {
-          return warp_linear0< DLongGDL, DLong>(nCol, nRow, p0, (DDouble*) P->DataAddr(),(DDouble*) Q->DataAddr(), missing, doMissing);
+          return warp_linear0< DLongGDL, DLong>(nCol, nRow, p0, (DDouble*) P->DataAddr(),(DDouble*) Q->DataAddr(), missing, doMissing, pixcenter);
         } else if (p0->Type() == GDL_ULONG) {
-          return warp_linear0< DULongGDL, DULong>(nCol, nRow, p0, (DDouble*) P->DataAddr(),(DDouble*) Q->DataAddr(), missing, doMissing);
+          return warp_linear0< DULongGDL, DULong>(nCol, nRow, p0, (DDouble*) P->DataAddr(),(DDouble*) Q->DataAddr(), missing, doMissing, pixcenter);
         } else if (p0->Type() == GDL_LONG64) {
-          return warp_linear0< DLong64GDL, DLong64>(nCol, nRow, p0, (DDouble*) P->DataAddr(),(DDouble*) Q->DataAddr(), missing, doMissing);
+          return warp_linear0< DLong64GDL, DLong64>(nCol, nRow, p0, (DDouble*) P->DataAddr(),(DDouble*) Q->DataAddr(), missing, doMissing, pixcenter);
         } else if (p0->Type() == GDL_ULONG64) {
-          return warp_linear0< DULong64GDL, DULong64>(nCol, nRow, p0, (DDouble*) P->DataAddr(),(DDouble*) Q->DataAddr(), missing, doMissing);
+          return warp_linear0< DULong64GDL, DULong64>(nCol, nRow, p0, (DDouble*) P->DataAddr(),(DDouble*) Q->DataAddr(), missing, doMissing, pixcenter);
         } else if (p0->Type() == GDL_FLOAT) {
-          return warp_linear0< DFloatGDL, DFloat>(nCol, nRow, p0, (DDouble*) P->DataAddr(),(DDouble*) Q->DataAddr(), missing, doMissing);
+          return warp_linear0< DFloatGDL, DFloat>(nCol, nRow, p0, (DDouble*) P->DataAddr(),(DDouble*) Q->DataAddr(), missing, doMissing, pixcenter);
         } else if (p0->Type() == GDL_DOUBLE) {
-          return warp_linear0< DDoubleGDL, DDouble>(nCol, nRow, p0, (DDouble*) P->DataAddr(),(DDouble*) Q->DataAddr(), missing, doMissing);
+          return warp_linear0< DDoubleGDL, DDouble>(nCol, nRow, p0, (DDouble*) P->DataAddr(),(DDouble*) Q->DataAddr(), missing, doMissing, pixcenter);
         }
       } else if (interp==1) {
          if (p0->Type() == GDL_BYTE) {
