@@ -2540,10 +2540,16 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
   
   //dummy stub preventing !err and other !errore_state to be set!
   void pref_set_pro(EnvT* e) {
-    SizeT nParam = e->NParam(1);
-    if (nParam == 0) return;
+    SizeT nParam = e->NParam(2);
     DStringGDL* p0 = e->GetParAs<DStringGDL>(0);
-    cerr << "% PREF_SET: Unknown preference: " + (*p0)[0] << endl;
+	DString s=(*p0)[0];
+	s=StrUpCase(s);
+	if ( s == "IDL_RBUF_SIZE") {
+#if defined(HAVE_LIBREADLINE)
+     DLongGDL* p1 = e->GetParAs<DLongGDL>(1);
+     if ((*p1)[0] > 20)    stifle_history( (*p1)[0]);
+#endif
+	} else cerr << "% PREF_SET: Unknown preference: " + (*p0)[0] << endl;
   }
   //dummy stub preventing !err and other !errore_state to be set!
   void pref_commit_pro(EnvT* e) {
