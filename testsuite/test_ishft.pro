@@ -25,6 +25,18 @@ if ~ARRAY_EQUAL(expected, result) then ERRORS_ADD, nb_errors, 'error 1 2^3'
 expected=2^tableau
 result=ISHFT(1b, tableau)
 if ~ARRAY_EQUAL(expected, result) then ERRORS_ADD, nb_errors, 'error 2 BD'
+
+
+expected=[4L,8,16,32]
+result=ISHFT(2l, [1,2,3,4])
+if ~ARRAY_EQUAL(expected, result) then ERRORS_ADD, nb_errors, 'error GD 1'
+expected=4L
+result=ISHFT([2l], [1,2,3,4])
+if ~ARRAY_EQUAL(expected, result) then ERRORS_ADD, nb_errors, 'error GD 2'
+expected=255us
+result=ISHFT([-32us], [-8,5,-2])
+if ~ARRAY_EQUAL(expected, result) then ERRORS_ADD, nb_errors, 'error GD 3'
+
 ;
 ; ----------------- final message ----------
 ;
