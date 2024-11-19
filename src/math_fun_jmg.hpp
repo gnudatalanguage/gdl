@@ -24,7 +24,7 @@ typedef struct _2D_POLY_ {
         DLong  nc;            /* number of coefficients in px, py, c */
         DLong* px;            /* powers of x                         */
         DLong* py;            /* powers of y                         */
-        DDouble* c;           /* polynomial coefficients             */
+        DFloat* c;           /* polynomial coefficients             */
 } poly2d ;
 
 typedef double	pixelvalue ;
@@ -60,8 +60,8 @@ namespace lib {
 
   double ipow(double x, int p);
 //  double sinc(double x);
-  double poly2d_compute(poly2d *p, double x, double y);
-  DDouble * generate_interpolation_kernel(int kernel_type, DDouble cubic);
+  float poly2d_compute(poly2d *p, float x, float y);
+  DFloat * generate_interpolation_kernel(int kernel_type, DFloat cubic);
 
 } // namespace
 
