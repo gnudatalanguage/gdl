@@ -2883,9 +2883,8 @@ int plInBuildTree()
 
     if ( inited == 0 )
     {
-        int  len_currdir, len_builddir;
-        char currdir[PLPLOT_MAX_PATH], *pcurrdir = currdir;
-        char builddir[PLPLOT_MAX_PATH], *pbuilddir = builddir;
+        char currdir[PLPLOT_MAX_PATH] = {};
+        char builddir[PLPLOT_MAX_PATH] = {};
 
 
         if ( getcwd( currdir, PLPLOT_MAX_PATH ) == NULL )
@@ -2907,8 +2906,14 @@ int plInBuildTree()
                 }
                 else
                 {
-                    len_currdir  = strlen( currdir );
-                    len_builddir = strlen( builddir );
+                    unsigned int len_currdir  = strlen( currdir );
+                    unsigned int len_builddir = strlen( builddir );
+                    // we might have set current dir not to cmake's main build dir,
+                    // but subdirectory "src" within the build tree
+                    if (len_currdir < PLPLOT_MAX_PATH - 4 /* be sure not to overflow */ &&  len_currdir == len_builddir + 4) {
+                      strncat(builddir, "/src", 5);
+                      len_builddir = strlen( builddir );
+                    }
 #if defined ( IGNORECASE )
                     pldebug( "plInBuildTree(): ", "comparing ignoring case\n" );
                     // On Windows all parts of the path are case insensitive
