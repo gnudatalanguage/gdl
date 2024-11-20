@@ -892,28 +892,161 @@ namespace lib {
       return res;
     }
   }
- 
+//-----------------------------------------------------------------POLY_2D
+  // Function to return a^n
+
+  int powerOptimised(OMPInt a, OMPInt n) {
+
+	// Stores final answer
+	OMPInt ans = 1;
+
+	while (n > 0) {
+
+	  OMPInt last_bit = (n & 1);
+
+	  // Check if current LSB
+	  // is set
+	  if (last_bit) {
+		ans = ans * a;
+	  }
+
+	  a = a * a;
+
+	  // Right shift
+	  n = n >> 1;
+	}
+
+	return ans;
+  }
+
+  /*-------------------------------------------------------------------------*/
+  /**
+	@brief	Compute the value of a poly2d at a given point.
+	@param	p	Poly2d object.
+	@param	x	x coordinate.
+	@param	y	y coordinate.
+	@return	The value of the 2d polynomial at (x,y) as a float.
+
+	This computes the value of a poly2d in a single point. To
+	compute many values in a row, see poly2d_compute_array().
+   this version for DLong ( x and y are DLong pixels)
+   */
+
+  /*--------------------------------------------------------------------------*/
+  DFloat poly2d_compute(
+	poly2d * p,
+	OMPInt x,
+	OMPInt y) {
+	DFloat z = 0.00;
+	for (DLong i = 0; i < p->nc; i++) 		z+=p->c[i] * powerOptimised(x, p->px[i]) * powerOptimised(y, p->py[i]);
+	return z;
+  }
+  DFloat * poly2d_compute_init_x(poly2d * p,	SizeT n) {
+	DFloat * res= (DFloat*) malloc(p->nc*n*sizeof(DFloat));
+	for (auto i=0, s=0; i< n; ++i) for (DLong k = 0; k < p->nc; k++) res[s++]=powerOptimised(i, p->px[k]);
+	return res;
+  }
+  DFloat* poly2d_compute_init_y(poly2d * p,	SizeT n) {
+	DFloat * res= (DFloat*) malloc(p->nc*n*sizeof(DFloat));
+	for (auto i=0,s=0; i< n; ++i) for (DLong k = 0; k < p->nc; k++) res[s++]=powerOptimised(i, p->py[k]);
+	return res;
+  }
+  /*-------------------------------------------------------------------------*/
+  /**
+	@brief	Generate an interpolation kernel to use in this module.
+	@param	kernel_type (integer) 1:linear 2:cubic 3 quintic
+	@param	cubic (DFloat) cubic parameter [0..1[ for cubic kernel.
+	@return	1 newly allocated array of floats.
+
+	The returned array of floats must be deallocated using free().
+   */
+
+  /*--------------------------------------------------------------------------*/
+  DFloat * generate_interpolation_kernel(int kernel_type, DFloat cubicParameter) {
+	float * tab;
+	int i;
+	float x;
+	int samples = KERNEL_SAMPLES;
+	/*
+	  Taken from "Image Reconstruction By Piecewise Polynomial Kernels", 
+	  Meijering et al
+	 */
+
+	if (kernel_type == 1) {
+	  tab = (float *) calloc(samples, sizeof (float));
+	  tab[0] = 1.0;
+	  for (i = 1; i < samples; ++i) {
+		x = (float) KERNEL_WIDTH * (float) i / (float) (samples - 1);
+		if (x < 1)
+		  tab[i] = -x + 1;
+		else if (x >= 1)
+		  tab[i] = 0;
+	  }
+	} else if (kernel_type == 2) { //uses cubic
+	  tab = (float *) calloc(samples, sizeof (float));
+	  tab[0] = 1.0;
+	  for (i = 1; i < samples; ++i) {
+		x = (float) KERNEL_WIDTH * (float) i / (float) (samples - 1);
+		if (x < 1)
+		  tab[i] = (cubicParameter + 2) * gdl::powI(x, 3) - (cubicParameter + 3) * gdl::powI(x, 2) + 1;
+		else if (x < 2)
+		  tab[i] = cubicParameter * gdl::powI(x, 3) -
+		  (5 * cubicParameter) * gdl::powI(x, 2) + (8 * cubicParameter) * x - (4 * cubicParameter);
+	  }
+	} else if (kernel_type == 3) { //quintic
+	  tab = (float *) calloc(samples, sizeof (float));
+	  tab[0] = 1.0;
+	  for (i = 1; i < samples; ++i) {
+		x = (float) KERNEL_WIDTH * (float) i / (float) (samples - 1);
+		if (x < 1)
+		  tab[i] = (10. * cubicParameter - (21. / 16.)) * gdl::powI(x, 5) +
+		  (-18. * cubicParameter + (45. / 16)) * gdl::powI(x, 4)+
+		  (8. * cubicParameter - (5. / 2.)) * gdl::powI(x, 2) +
+		  1.0;
+		else if (x < 2)
+		  tab[i] = (11. * cubicParameter - (5. / 16.)) * gdl::powI(x, 5)+
+		  (-88. * cubicParameter + (45. / 16.)) * gdl::powI(x, 4)+
+		  (270. * cubicParameter - 10) * gdl::powI(x, 3)+
+		  (-392. * cubicParameter + (35. / 2.)) * gdl::powI(x, 2)+
+		  (265. * cubicParameter - 15.) * x +
+		  (-66. * cubicParameter + 5);
+		else if (x < 3)
+		  tab[i] = cubicParameter * gdl::powI(x, 5) +
+		  (-14. * cubicParameter) * gdl::powI(x, 4) +
+		  (78. * cubicParameter) * gdl::powI(x, 3) +
+		  (-216. * cubicParameter) * gdl::powI(x, 2) +
+		  297. * cubicParameter * x +
+		  (-162. * cubicParameter);
+	  }
+	} else {
+	  throw GDLException("Internal GDL error in generate_interpolation_kernel(), please report.");
+	  return NULL;
+	}
+	return tab;
+  }
+
   template< typename T1, typename T2>
   BaseGDL* warp_linear0(
-    SizeT nCols,
-    SizeT nRows,
+    const SizeT nCols,
+    const SizeT nRows,
     BaseGDL* data_,
-    DFloat *P,
-    DFloat *Q,
-    DFloat initvalue_,
-	bool doMissing) {
-	DLong lx = data_->Dim(0);
-	DLong ly = data_->Dim(1);
+    DFloat * const P,
+    DFloat * const Q,
+    DFloat const initvalue_,
+	const bool doMissing) {
+	std::cerr<<"warp_linear0\n";
+	SizeT lx = data_->Dim(0);
+	SizeT ly = data_->Dim(1);
 
 	dimension dim(nCols, nRows);
 	T1* res_ = new T1(dim, BaseGDL::NOZERO);
 	T2 initvalue = initvalue_;
-	DLong nEl = nCols*nRows;
+	SizeT nEl = nCols*nRows;
 
 	T2* res = (T2*) res_->DataAddr();
-	T2* data = (T2*) data_->DataAddr();
+	T2* const data = (T2* const) data_->DataAddr();
 	if (doMissing) {
-	  if ((GDL_NTHREADS = parallelize(nEl, TP_CPU_INTENSIVE)) == 1) {
+	  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
 		for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
 	  } else {
 		TRACEOMP(__FILE__, __LINE__)
@@ -921,53 +1054,102 @@ namespace lib {
 		  for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
 	  }
 	}
-	DLong llx = lx - 1;
-	DLong lly = ly - 1;
-	/* Double loop on the output image  */
-	if ((GDL_NTHREADS = parallelize(nEl, TP_CPU_INTENSIVE)) == 1) {
-	  for (OMPInt j = 0; j < nRows; ++j) {
-		for (OMPInt i = 0; i < nCols; ++i) {
-		  // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
-		  float x = P[0] + P[1] * j + P[2] * i;
-		  float y = Q[0] + Q[1] * j + Q[2] * i;
-		  if (doMissing && ((x < 0) || (x >= lx) || (y < 0) || (y >= ly))) {
-			continue; // already initialised to 'missing' value.
-		  } else {
-			OMPInt px = x;
-			OMPInt py = y;
-			if (px < 0) px = 0;
-			else if (px >= llx) px = llx;
-			if (py < 0) py = 0;
-			else if (py > lly) py = lly;
+	DFloat p0 = P[0];
+	DFloat q0 = Q[0];
+	DFloat p1 = P[1];
+	DFloat q1 = Q[1];
+	DFloat p2 = P[2];
+	DFloat q2 = Q[2];
+	DFloat p3 = P[3];
+	DFloat q3 = Q[3];
+	DFloat p1j, p3j, q1j, q3j;
+	if (doMissing) {
+	  /* Double loop on the output image  */
+	  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+		for (OMPInt j = 0; j < nRows; ++j) {
+		  p1j = p0 + p1 * j;
+		  p3j = p2 + p3 * j;
+		  q1j = q0 + q1 * j;
+		  q3j = q2 + q3 * j;
+		  for (OMPInt i = 0; i < nCols; ++i) {
+			// Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
+			DFloat x = p1j + p3j * i;
+			if (x < 0) continue;
+			if (x >= lx) continue;
+			DFloat y = q1j + q3j * i;
+			if (y < 0) continue;
+			if (y >= ly) continue;
+			SizeT px=x;
+			SizeT py=y;
 			res[i + j * nCols] = data[px + py * lx];
 		  }
+		}
+	  } else {
+		TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS) private(p1j,p3j,q1j,q3j)
+		  for (OMPInt j = 0; j < nRows; ++j) {
+		  p1j = p0 + p1 * j;
+		  p3j = p2 + p3 * j;
+		  q1j = q0 + q1 * j;
+		  q3j = q2 + q3 * j;
+		  for (OMPInt i = 0; i < nCols; ++i) {
+			// Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
+		    DFloat x = p1j + p3j * i;
+			if (x < 0) continue;
+			if (x >= lx) continue;
+			DFloat y = q1j + q3j * i;
+			if (y < 0) continue;
+			if (y >= ly) continue;
+			SizeT px=x;
+			SizeT py=y;
+			res[i + j * nCols] = data[px + py * lx];
+		  }
+		}
+	  }
+	  
+	} else {
+	/* Double loop on the output image  */
+	if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+	  for (OMPInt j = 0; j < nRows; ++j) {
+		  p1j = p0 + p1 * j;
+		  p3j = p2 + p3 * j;
+		  q1j = q0 + q1 * j;
+		  q3j = q2 + q3 * j;
+		for (OMPInt i = 0; i < nCols; ++i) {
+		  // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
+		    DFloat x = p1j + p3j * i;
+		  SizeT px;
+		  if (x < 0) px = 0; else if (x > lx - 1) px = lx - 1; else px = x;
+			DFloat y = q1j + q3j * i;
+		  SizeT py ;
+		  if (y < 0) py = 0; else if (y > ly - 1) py = ly - 1; else py = y;
+		  res[i + j * nCols] = data[px + py * lx];
 		}
 	  }
 	} else {
 	  TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for collapse(2) num_threads(GDL_NTHREADS)
-		for (OMPInt j = 0; j < nRows; ++j) {
+#pragma omp parallel for num_threads(GDL_NTHREADS) private(p1j,p3j,q1j,q3j)
+	  for (OMPInt j = 0; j < nRows; ++j) {
+		  p1j = p0 + p1 * j;
+		  p3j = p2 + p3 * j;
+		  q1j = q0 + q1 * j;
+		  q3j = q2 + q3 * j;
 		for (OMPInt i = 0; i < nCols; ++i) {
 		  // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
-		  float x = P[0] + P[1] * j + P[2] * i;
-		  float y = Q[0] + Q[1] * j + Q[2] * i;
-		  if (doMissing && ((x < 0) || (x >= lx) || (y < 0) || (y >= ly))) {
-			continue; // already initialised to 'missing' value.
-		  } else {
-			OMPInt px = x;
-			OMPInt py = y;
-			if (px < 0) px = 0;
-			else if (px >= llx) px = llx;
-			if (py < 0) py = 0;
-			else if (py > lly) py = lly;
-			res[i + j * nCols] = data[px + py * lx];
-		  }
+		    DFloat x = p1j + p3j * i;
+		  SizeT px;
+		  if (x < 0) px = 0; else if (x > lx - 1) px = lx - 1; else px = x;
+			DFloat y = q1j + q3j * i;
+		  SizeT py ;
+		  if (y < 0) py = 0; else if (y > ly - 1) py = ly - 1; else py = y;
+		  res[i + j * nCols] = data[px + py * lx];
 		}
 	  }
 	}
+  }
 	return res_;
   }
-  
+
   template< typename T1, typename T2>
   BaseGDL* warp0(
     SizeT nCols,
@@ -978,73 +1160,104 @@ namespace lib {
     DFloat initvalue_,
     bool doMissing) {
 	std::cerr<<"warp0\n";
+	SizeT lx = data_->Dim(0);
+	SizeT ly = data_->Dim(1);
 
-    DLong lx = data_->Dim(0);
-    DLong ly = data_->Dim(1);
+	dimension dim(nCols, nRows);
+	T1* res_ = new T1(dim, BaseGDL::NOZERO);
+	T2 initvalue = initvalue_;
+	SizeT nEl = nCols*nRows;
 
-    dimension dim(nCols, nRows);
-    T1* res_ = new T1(dim, BaseGDL::NOZERO);
-    T2 initvalue = initvalue_;
-    DLong nEl = nCols*nRows;
-
-    T2* res = (T2*) res_->DataAddr();
-    T2* data = (T2*) data_->DataAddr();
-    if (doMissing) {
-      if ((GDL_NTHREADS=parallelize( nEl))==1) {
-        for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
-      } else {
-      TRACEOMP(__FILE__,__LINE__)
+	T2* res = (T2*) res_->DataAddr();
+	T2* data = (T2*) data_->DataAddr();
+	if (doMissing) {
+	  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+		for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
+	  } else {
+		TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
-      }
-    }
-	DFloat *P = poly_u->c;
-	DFloat *Q = poly_v->c;
-    /* Double loop on the output image  */
-    if ((GDL_NTHREADS=parallelize( nEl, TP_CPU_INTENSIVE))==1) {
-      for (OMPInt j = 0; j < nRows; ++j) {
-        for (OMPInt i = 0; i < nCols; ++i) {
-          // Compute the original source for this pixel, note order of j and i.
-          DFloat x = poly2d_compute(poly_u, j, i);
-          DFloat y = poly2d_compute(poly_v, j, i);
-          if (doMissing && ((x < 0) || (x >= lx) || (y < 0) || (y > ly))) {
-            continue; // already initialised to 'missing' value.
-          } else {
-			DLong px, py;
-            if (x < 0) px = 0; else if (x >= lx) px = (lx - 1); else px=x;
-            if (y < 0) py = 0; else if (y >= ly) py = (ly - 1); else py=y;
-            res[i + j * nCols] = data[px + py * lx];
-          }
-        }
-      }
-    } else {
-    TRACEOMP(__FILE__,__LINE__)
+		  for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
+	  }
+	}
+	DLong nc=poly_u->nc;
+	DFloat * xcoefu=poly2d_compute_init_x(poly_u,lx);
+	DFloat * ycoefu=poly2d_compute_init_y(poly_u,lx);
+	DFloat * xcoefv=poly2d_compute_init_x(poly_v,ly);
+	DFloat * ycoefv=poly2d_compute_init_y(poly_v,ly);
+	/* Double loop on the output image  */
+	if (doMissing) {
+	if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+	  for (OMPInt j = 0; j < nRows; ++j) {
+		for (OMPInt i = 0; i < nCols; ++i) {
+          DFloat x = 0; for (auto k=0; k< nc; ++k) x+=poly_u->c[k]*xcoefu[i*nc+k]*ycoefu[j*nc+k];
+		  if ((x < 0) || (x >= lx) ) continue; // already initialised to 'missing' value.
+          DFloat y = 0; for (auto k=0; k< nc; ++k) y+=poly_v->c[k]*xcoefv[i*nc+k]*ycoefv[j*nc+k];
+		  if ((y < 0) || (y >= ly)) 	continue;
+		  SizeT px , py ;
+		  if (x < 0) px = 0; else if (x > lx - 1) px = lx - 1; else px = x;
+		  if (y < 0) py = 0; else if (y > ly - 1) py = ly - 1; else py = y;
+		  res[i + j * nCols] = data[px + py * lx];
+		}
+	  }
+	} else {
+	  TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for collapse(2) num_threads(GDL_NTHREADS)
-      for (OMPInt j = 0; j < nRows; ++j) {
-        for (OMPInt i = 0; i < nCols; ++i) {
-          // Compute the original source for this pixel, note order of j and i.
-          DFloat x = poly2d_compute(poly_u, j, i);
-          DFloat y = poly2d_compute(poly_v, j, i);
-          if (doMissing && ((x < 0) || (x >= lx) || (y < 0) || (y > ly))) {
-            continue; // already initialised to 'missing' value.
-          } else {
-			DLong px, py;
-            if (x < 0) px = 0; else if (x >= lx) px = (lx - 1); else px=x;
-            if (y < 0) py = 0; else if (y >= ly) py = (ly - 1); else py=y;
-            res[i + j * nCols] = data[px + py * lx];
-          }
-        }
-      }
-    }
-    free(poly_u->px);
-    free(poly_u->py);
-    free(poly_u->c);
-    free(poly_u);
-    free(poly_v->px);
-    free(poly_v->py);
-    free(poly_v->c);
-    free(poly_v);
-    return res_;
+	  for (OMPInt j = 0; j < nRows; ++j) {
+		for (OMPInt i = 0; i < nCols; ++i) {
+		  // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
+          DFloat x = 0; for (auto k=0; k< nc; ++k) x+=poly_u->c[k]*xcoefu[i*nc+k]*ycoefu[j*nc+k];
+		  if ((x < 0) || (x >= lx)) continue;
+          DFloat y = 0; for (auto k=0; k< nc; ++k) y+=poly_v->c[k]*xcoefv[i*nc+k]*ycoefv[j*nc+k];
+		  if ((y < 0) || (y >= ly)) 	continue;
+		  SizeT px , py ;
+		  if (x < 0) px = 0; else if (x > lx - 1) px = lx - 1; else px = x;
+		  if (y < 0) py = 0; else if (y > ly - 1) py = ly - 1; else py = y;
+		  res[i + j * nCols] = data[px + py * lx];
+		}
+	  }
+	}
+	} else {
+	/* Double loop on the output image  */
+	if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+	  for (OMPInt j = 0; j < nRows; ++j) {
+		for (OMPInt i = 0; i < nCols; ++i) {
+          DFloat x = 0; for (auto k=0; k< nc; ++k) x+=poly_u->c[k]*xcoefu[i*nc+k]*ycoefu[j*nc+k];
+          DFloat y = 0; for (auto k=0; k< nc; ++k) y+=poly_v->c[k]*xcoefv[i*nc+k]*ycoefv[j*nc+k];
+		  SizeT px , py ;
+		  if (x < 0) px = 0; else if (x > lx - 1) px = lx - 1; else px = x;
+		  if (y < 0) py = 0; else if (y > ly - 1) py = ly - 1; else py = y;
+		  res[i + j * nCols] = data[px + py * lx];
+		}
+	  }
+	} else {
+	  TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for collapse(2) num_threads(GDL_NTHREADS)
+	  for (OMPInt j = 0; j < nRows; ++j) {
+		for (OMPInt i = 0; i < nCols; ++i) {
+		  // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
+          DFloat x = 0; for (auto k=0; k< nc; ++k) x+=poly_u->c[k]*xcoefu[i*nc+k]*ycoefu[j*nc+k];
+          DFloat y = 0; for (auto k=0; k< nc; ++k) y+=poly_v->c[k]*xcoefv[i*nc+k]*ycoefv[j*nc+k];
+		  SizeT px , py ;
+		  if (x < 0) px = 0; else if (x > lx - 1) px = lx - 1; else px = x;
+		  if (y < 0) py = 0; else if (y > ly - 1) py = ly - 1; else py = y;
+		  res[i + j * nCols] = data[px + py * lx];
+		}
+	  }
+	}
+	}
+	free(xcoefu);
+	free(ycoefu);
+	free(xcoefv);
+	free(ycoefv);
+	free(poly_u->px);
+	free(poly_u->py);
+	free(poly_u->c);
+	free(poly_u);
+	free(poly_v->px);
+	free(poly_v->py);
+	free(poly_v->c);
+	free(poly_v);
+	return res_;
   }
 
   template< typename T1, typename T2>
@@ -1058,13 +1271,13 @@ namespace lib {
     bool doMissing) {
 	std::cerr<<"warp_linear1\n";
 
-    DLong lx = data_->Dim(0);
-    DLong ly = data_->Dim(1);
+    SizeT lx = data_->Dim(0);
+    SizeT ly = data_->Dim(1);
 
     dimension dim(nCols, nRows);
     T1* res_ = new T1(dim, BaseGDL::NOZERO);
     T2 initvalue = missingValue;
-    DLong nEl = nCols*nRows;
+    SizeT nEl = nCols*nRows;
 
     T2* res = (T2*) res_->DataAddr();
     T2* data = (T2*) data_->DataAddr();
@@ -1089,19 +1302,19 @@ namespace lib {
           if (doMissing && ((x < 0) || (x >= lx ) || (y < 0) || (y >= ly ))) {
             continue; // already initialised to 'missing' value.
           } else {
-			if (x < 1) x=1; else if (x > lx-2) x=lx-2;
-			if (y < 1) y=1; else if (y > ly-2) y=ly-2;
-			OMPInt px = x;
-			OMPInt py = y;
-			OMPInt pixnum[4];
+			if (x < 1) x = 1; else if (x > lx - 2) x = lx - 2;
+			if (y < 1) y = 1; else if (y > ly - 2) y = ly - 2;
+			SizeT px = x;
+			SizeT py = y;
+			SizeT pixnum[4];
 			DFloat dx = x - px;
 			DFloat dy = y - py;
 			pixnum[0]=px + py * lx;
 			pixnum[1]=pixnum[0]+1;
 			pixnum[2]=pixnum[0]+lx;
 			pixnum[3]=pixnum[2]+1;
-			float a = data[pixnum[0]] + dx * (data[pixnum[1]]-data[pixnum[0]]);
-			float b = data[pixnum[2]] + dx * (data[pixnum[3]]-data[pixnum[2]]);
+			DFloat a = data[pixnum[0]] + dx * (data[pixnum[1]]-data[pixnum[0]]);
+			DFloat b = data[pixnum[2]] + dx * (data[pixnum[3]]-data[pixnum[2]]);
 			res[i + j * nCols] = a + dy * (b-a);
 			//			DFloat umdx=1 - dx;
 			//			DFloat umdy=1 - dy;
@@ -1120,20 +1333,23 @@ namespace lib {
 		  if (doMissing && ((x < 0) || (x >= lx) || (y < 0) || (y >= ly))) {
 			continue; // already initialised to 'missing' value.
 		  } else {
-			if (x < 1) x=1; else if (x > lx-2) x=lx-2;
-			if (y < 1) y=1; else if (y > ly-2) y=ly-2;
-			OMPInt px = x;
-			OMPInt py = y;
-			OMPInt pixnum[4];
+			if (x < 1) x = 1; else if (x > lx - 2) x = lx - 2;
+			if (y < 1) y = 1; else if (y > ly - 2) y = ly - 2;
+			SizeT px = x;
+			SizeT py = y;
+			SizeT pixnum[4];
 			DFloat dx = x - px;
 			DFloat dy = y - py;
-			pixnum[0] = px + py * lx;
-			pixnum[1] = pixnum[0] + 1;
-			pixnum[2] = pixnum[0] + lx;
-			pixnum[3] = pixnum[2] + 1;
-			float a = data[pixnum[0]] + dx * (data[pixnum[1]] - data[pixnum[0]]);
-			float b = data[pixnum[2]] + dx * (data[pixnum[3]] - data[pixnum[2]]);
-			res[i + j * nCols] = a + dy * (b - a);
+			pixnum[0]=px + py * lx;
+			pixnum[1]=pixnum[0]+1;
+			pixnum[2]=pixnum[0]+lx;
+			pixnum[3]=pixnum[2]+1;
+			DFloat a = data[pixnum[0]] + dx * (data[pixnum[1]]-data[pixnum[0]]);
+			DFloat b = data[pixnum[2]] + dx * (data[pixnum[3]]-data[pixnum[2]]);
+			res[i + j * nCols] = a + dy * (b-a);
+			//			DFloat umdx=1 - dx;
+			//			DFloat umdy=1 - dy;
+            // same time:			res[i + j * nCols] = data[pixnum[0]]*umdx*umdy+data[pixnum[1]]*dx*umdy+data[pixnum[2]]*dy*umdx+data[pixnum[3]]*dx*dy;
 		  }
 		}
 	  }
@@ -1153,13 +1369,13 @@ namespace lib {
 
 	std::cerr<<"warp1\n";
 
-    DLong lx = data_->Dim(0);
-    DLong ly = data_->Dim(1);
+    SizeT lx = data_->Dim(0);
+    SizeT ly = data_->Dim(1);
 
     dimension dim(nCols, nRows);
     T1* res_ = new T1(dim, BaseGDL::NOZERO);
     T2 initvalue = missingValue;
-    DLong nEl = nCols*nRows;
+    SizeT nEl = nCols*nRows;
 
     T2* res = (T2*) res_->DataAddr();
     T2* data = (T2*) data_->DataAddr();
@@ -1184,19 +1400,19 @@ namespace lib {
           if (doMissing && ((x < 0) || (x >= lx ) || (y < 0) || (y >= ly ))) {
             continue; // already initialised to 'missing' value.
           } else {
-			if (x < 1) x=1; else if (x > lx-2) x=lx-2;
-			if (y < 1) y=1; else if (y > ly-2) y=ly-2;
-			OMPInt px = x;
-			OMPInt py = y;
-			OMPInt pixnum[4];
+			if (x < 1) x = 1; else if (x > lx - 2) x = lx - 2;
+			if (y < 1) y = 1; else if (y > ly - 2) y = ly - 2;
+			SizeT px = x;
+			SizeT py = y;
+			SizeT pixnum[4];
 			DFloat dx = x - px;
 			DFloat dy = y - py;
 			pixnum[0]=px + py * lx;
 			pixnum[1]=pixnum[0]+1;
 			pixnum[2]=pixnum[0]+lx;
 			pixnum[3]=pixnum[2]+1;
-			float a = data[pixnum[0]] + dx * (data[pixnum[1]]-data[pixnum[0]]);
-			float b = data[pixnum[2]] + dx * (data[pixnum[3]]-data[pixnum[2]]);
+			DFloat a = data[pixnum[0]] + dx * (data[pixnum[1]]-data[pixnum[0]]);
+			DFloat b = data[pixnum[2]] + dx * (data[pixnum[3]]-data[pixnum[2]]);
 			res[i + j * nCols] = a + dy * (b-a);
 			//			DFloat umdx=1 - dx;
 			//			DFloat umdy=1 - dy;
@@ -1215,24 +1431,35 @@ namespace lib {
 		  if (doMissing && ((x < 0) || (x >= lx) || (y < 0) || (y >= ly))) {
 			continue; // already initialised to 'missing' value.
 		  } else {
-			if (x < 1) x=1; else if (x > lx-2) x=lx-2;
-			if (y < 1) y=1; else if (y > ly-2) y=ly-2;
-			OMPInt px = x;
-			OMPInt py = y;
-			OMPInt pixnum[4];
+			if (x < 1) x = 1; else if (x > lx - 2) x = lx - 2;
+			if (y < 1) y = 1; else if (y > ly - 2) y = ly - 2;
+			SizeT px = x;
+			SizeT py = y;
+			SizeT pixnum[4];
 			DFloat dx = x - px;
 			DFloat dy = y - py;
-			pixnum[0] = px + py * lx;
-			pixnum[1] = pixnum[0] + 1;
-			pixnum[2] = pixnum[0] + lx;
-			pixnum[3] = pixnum[2] + 1;
-			float a = data[pixnum[0]] + dx * (data[pixnum[1]] - data[pixnum[0]]);
-			float b = data[pixnum[2]] + dx * (data[pixnum[3]] - data[pixnum[2]]);
-			res[i + j * nCols] = a + dy * (b - a);
+			pixnum[0]=px + py * lx;
+			pixnum[1]=pixnum[0]+1;
+			pixnum[2]=pixnum[0]+lx;
+			pixnum[3]=pixnum[2]+1;
+			DFloat a = data[pixnum[0]] + dx * (data[pixnum[1]]-data[pixnum[0]]);
+			DFloat b = data[pixnum[2]] + dx * (data[pixnum[3]]-data[pixnum[2]]);
+			res[i + j * nCols] = a + dy * (b-a);
+			//			DFloat umdx=1 - dx;
+			//			DFloat umdy=1 - dy;
+            // same time:			res[i + j * nCols] = data[pixnum[0]]*umdx*umdy+data[pixnum[1]]*dx*umdy+data[pixnum[2]]*dy*umdx+data[pixnum[3]]*dx*dy;
 		  }
 		}
 	  }
-    }
+	}
+	free(poly_u->px);
+	free(poly_u->py);
+	free(poly_u->c);
+	free(poly_u);
+	free(poly_v->px);
+	free(poly_v->py);
+	free(poly_v->c);
+	free(poly_v);
     return res_;
   }
 
@@ -1509,8 +1736,8 @@ namespace lib {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i.
-          DFloat x = poly2d_compute(poly_u, (DFloat) j, (DFloat) i);
-          DFloat y = poly2d_compute(poly_v, (DFloat) j, (DFloat) i);
+          DFloat x = poly2d_compute(poly_u, j, i);
+          DFloat y = poly2d_compute(poly_v, j, i);
           DLong px = (DLong) x;
           DLong py = (DLong) y;
           if (doMissing && ((px < 0) || (px > (lx - 1)) || (py < 0) || (py > (ly - 1)))) {
@@ -1581,8 +1808,8 @@ namespace lib {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i.
-          DFloat x = poly2d_compute(poly_u, (DFloat) j, (DFloat) i);
-          DFloat y = poly2d_compute(poly_v, (DFloat) j, (DFloat) i);
+          DFloat x = poly2d_compute(poly_u,  j, i);
+          DFloat y = poly2d_compute(poly_v,  j, i);
           DLong px = (DLong) x;
           DLong py = (DLong) y;
           if (doMissing && ((px < 0) || (px > (lx - 1)) || (py < 0) || (py > (ly - 1)))) {
@@ -1733,7 +1960,7 @@ namespace lib {
 	(*P)[0]+=pixcenter;
 	(*Q)[0]+=pixcenter;
 
-    if (nDegree == 1 && (*P)[3] == 0 && (*Q)[3] == 0 ) { //LINEAR CASE
+    if (nDegree == 1 ) { //&& (*P)[3] == 0 && (*Q)[3] == 0 ) { //LINEAR CASE
       //return p0 if identity.
       if ((*P)[0] == 0 && (*P)[1] == 0 && (*P)[2] == 1 && (*P)[3] == 0 && (*Q)[0] == 0 && (*Q)[1] == 1 && (*Q)[2] == 0 && (*Q)[3] == 0) {
         return p0->Dup();
@@ -1896,154 +2123,5 @@ namespace lib {
     }
     return NULL;
   }
-
-
-
-/*-------------------------------------------------------------------------*/
-/**
-  @brief	Compute the value of a poly2d at a given point.
-  @param	p	Poly2d object.
-  @param	x	x coordinate.
-  @param	y	y coordinate.
-  @return	The value of the 2d polynomial at (x,y) as a float.
-
-  This computes the value of a poly2d in a single point. To
-  compute many values in a row, see poly2d_compute_array().
- */
-/*--------------------------------------------------------------------------*/
-float poly2d_compute(
-		poly2d	*	p,
-		float		x,
-		float		y)
-{
-	float	z ;
-	int		i ;
-
-	z = 0.00 ;
-	for (i=0 ; i<p->nc ; i++) {
-		z += p->c[i] * gdl::powI(x, p->px[i]) * gdl::powI(y, p->py[i]) ;
-	}
-	return z ;
-}
-/*-------------------------------------------------------------------------*/
-/**
-  @brief	Compute the value of a poly2d at a given point.
-  @param	p	Poly2d object.
-  @param	x	x coordinate.
-  @param	y	y coordinate.
-  @return	The value of the 2d polynomial at (x,y) as a float.
-
-  This computes the value of a poly2d in a single point. To
-  compute many values in a row, see poly2d_compute_array().
- this version for DLong ( x and y are DLong pixels)
- */
-/*--------------------------------------------------------------------------*/
-float poly2d_compute(
-		poly2d	*	p,
-		OMPInt		x,
-		OMPInt		y)
-{
-	float	z ;
-	int		i ;
-
-	z = 0.00 ;
-	for (i=0 ; i<p->nc ; i++) {
-		z += p->c[i] * gdl::powI(x, p->px[i]) * gdl::powI(y, p->py[i]) ;
-	}
-	return z ;
-}
-///*-------------------------------------------------------------------------*/
-///**
-//  @brief	Cardinal sine.
-//  @param	x	double value.
-//  @return	1 double.
-//
-//  Compute the value of the function sinc(x)=sin(pi*x)/(pi*x) at the
-//  requested x.
-// */
-///*--------------------------------------------------------------------------*/
-//double sinc(double x)
-//{
-//    if (fabs(x)<1e-4)
-//        return (double)1.00 ;
-//    else
-//        return ((sin(x * (double)PI_NUMB)) / (x * (double)PI_NUMB)) ;
-//}
-
-
-
-/*-------------------------------------------------------------------------*/
-/**
-  @brief	Generate an interpolation kernel to use in this module.
-  @param	kernel_type (integer) 1:linear 2:cubic 3 quintic
-  @param	cubic (DFloat) cubic parameter [0..1[ for cubic kernel.
-  @return	1 newly allocated array of floats.
-
-  The returned array of floats must be deallocated using free().
- */
-/*--------------------------------------------------------------------------*/
-DFloat * generate_interpolation_kernel(int kernel_type, DFloat cubicParameter)
-{
-    float  *	tab ;
-    int     	i ;
-    float  	x ;
-    int     	samples = KERNEL_SAMPLES ;
-	  /*
-	    Taken from "Image Reconstruction By Piecewise Polynomial Kernels", 
-	    Meijering et al
-	  */
-
-     if (kernel_type == 1) {
-	  tab = (float *) calloc(samples , sizeof(float)) ;
-	  tab[0] = 1.0 ;
-	  for (i=1 ; i<samples ; ++i) {
-	    x = (float)KERNEL_WIDTH * (float)i/(float)(samples-1) ;
-	    if (x < 1)
-	      tab[i] = -x + 1;
-	    else if (x >= 1)
-	      tab[i] = 0;
-	  }
-	} else if (kernel_type == 2) { //uses cubic
-	  tab = (float *) calloc(samples , sizeof(float)) ;
-	  tab[0] = 1.0 ;
-	  for (i=1 ; i<samples ; ++i) {
-	    x = (float)KERNEL_WIDTH * (float)i/(float)(samples-1) ;
-	    if (x < 1)
-	      tab[i] = (cubicParameter+2)*gdl::powI(x,3) - (cubicParameter+3)*gdl::powI(x,2) + 1;
-	    else if (x < 2)
-	      tab[i] = cubicParameter*gdl::powI(x,3) - 
-		(5*cubicParameter)*gdl::powI(x,2) + (8*cubicParameter)*x - (4*cubicParameter);
-	  }
-    } else if (kernel_type == 3) { //quintic
-	  tab = (float *) calloc(samples , sizeof(float)) ;
-	  tab[0] = 1.0 ;
-	  for (i=1 ; i<samples ; ++i) {
-	    x = (float)KERNEL_WIDTH * (float)i/(float)(samples-1) ;
-	    if (x < 1)
-	      tab[i] = (10.*cubicParameter-(21./16.))*gdl::powI(x,5) +
-            (-18.*cubicParameter+(45./16))*gdl::powI(x,4)+
-            (8.*cubicParameter-(5./2.))*gdl::powI(x,2)+
-            1.0;
-	    else if (x < 2)
-	      tab[i] = (11.*cubicParameter-(5./16.))*gdl::powI(x,5)+
-            (-88.*cubicParameter+(45./16.))*gdl::powI(x,4)+
-            (270.*cubicParameter-10)*gdl::powI(x,3)+
-            (-392.*cubicParameter+(35./2.))*gdl::powI(x,2)+
-            (265.*cubicParameter-15.)*x+
-            (-66.*cubicParameter+5);
-        else if (x < 3)
-	      tab[i] = cubicParameter*gdl::powI(x,5) +
-            (-14.*cubicParameter)*gdl::powI(x,4) +
-            (78.*cubicParameter)*gdl::powI(x,3)  +
-            (-216.*cubicParameter)*gdl::powI(x,2)+
-            297.*cubicParameter*x +
-            (-162.*cubicParameter);
-	  }
-	} else {
-      throw GDLException("Internal GDL error in generate_interpolation_kernel(), please report.");
-	  return NULL ;
-	}
-    return tab ;
-}
 
 } // namespace

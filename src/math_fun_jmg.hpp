@@ -49,19 +49,13 @@ typedef struct _image_
  
 namespace lib {
 
-//   BaseGDL* transpose_fun( EnvT* e);
   BaseGDL* machar_fun( EnvT* e);
   BaseGDL* finite_fun( EnvT* e);
   BaseGDL* check_math_fun( EnvT* e);
   BaseGDL* radon_fun( EnvT* e);
   BaseGDL* poly_2d_fun( EnvT* e);
-  BaseGDL* poly_2d_funnew( EnvT* e);
   BaseGDL* rk4jmg_fun( EnvT* e);
 
-  double ipow(double x, int p);
-//  double sinc(double x);
-  float poly2d_compute(poly2d *p, float x, float y);
-  DFloat * generate_interpolation_kernel(int kernel_type, DFloat cubic);
 
 } // namespace
 
