@@ -1,8 +1,8 @@
 /***************************************************************************
-                          math_fun_jmg.hpp  -  mathematical GDL library function
+                          poly_2d.cpp  -  2D polynomial interpolation
                              -------------------
-    begin                : 2004
-    copyright            : (C) 2004 by Joel Gales
+    begin                : March 03 2004
+    copyright            : (C) 2002 by Joel Gales 2024 by Gilles Duvert
     email                : jomoga@users.sourceforge.net
  ***************************************************************************/
 
@@ -15,21 +15,20 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef MATH_FUN_HPP_
-#define MATH_FUN_HPP_
+#ifndef POLY2D_FUN_HPP_
+#define PLOY2D_FUN_HPP_
 
 #include "envt.hpp"
 
+typedef struct _2D_POLY_ {
+        DLong  nc;            /* number of coefficients in px, py, c */
+        DLong* px;            /* powers of x                         */
+        DLong* py;            /* powers of y                         */
+        DFloat* c;           /* polynomial coefficients             */
+} poly2d ;
+
 namespace lib {
-
-  BaseGDL* machar_fun( EnvT* e);
-  BaseGDL* finite_fun( EnvT* e);
-  BaseGDL* check_math_fun( EnvT* e);
-  BaseGDL* radon_fun( EnvT* e);
-  BaseGDL* rk4jmg_fun( EnvT* e);
-
+  BaseGDL* poly_2d_fun( EnvT* e);
 } // namespace
 
 #endif
-
-

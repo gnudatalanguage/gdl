@@ -24,6 +24,7 @@
 
 #include "basic_fun_jmg.hpp"
 #include "math_fun_jmg.hpp"
+#include "poly_2d.hpp" //replace old function that was in math_fun_jmg.hpp
 #include "basic_pro_jmg.hpp"
 
 #include "gsl_fun.hpp"
