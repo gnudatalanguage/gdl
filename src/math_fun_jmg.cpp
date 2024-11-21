@@ -1054,6 +1054,11 @@ namespace lib {
 		  for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
 	  }
 	}
+	//these are accelerators - not using them increase exec time by 2 or 3.
+	DFloat fllx=lx-1;
+	DFloat flly=ly-1;
+	SizeT llx = lx - 1;
+	SizeT lly = ly - 1;
 	DFloat p0 = P[0];
 	DFloat q0 = Q[0];
 	DFloat p1 = P[1];
@@ -1117,12 +1122,12 @@ namespace lib {
 		  q3j = q2 + q3 * j;
 		for (OMPInt i = 0; i < nCols; ++i) {
 		  // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
-		    DFloat x = p1j + p3j * i;
-		  SizeT px;
-		  if (x < 0) px = 0; else if (x > lx - 1) px = lx - 1; else px = x;
-			DFloat y = q1j + q3j * i;
-		  SizeT py ;
-		  if (y < 0) py = 0; else if (y > ly - 1) py = ly - 1; else py = y;
+		  DFloat x = p1j + p3j * i;
+		  SizeT px=x;
+		  if (x < 0) px = 0; else if (x > fllx) px = llx;
+		  DFloat y = q1j + q3j * i;
+		  SizeT py=y;
+		  if (y < 0) py = 0; else if (y > flly) py = lly;
 		  res[i + j * nCols] = data[px + py * lx];
 		}
 	  }
@@ -1136,12 +1141,12 @@ namespace lib {
 		  q3j = q2 + q3 * j;
 		for (OMPInt i = 0; i < nCols; ++i) {
 		  // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
-		    DFloat x = p1j + p3j * i;
-		  SizeT px;
-		  if (x < 0) px = 0; else if (x > lx - 1) px = lx - 1; else px = x;
-			DFloat y = q1j + q3j * i;
-		  SizeT py ;
-		  if (y < 0) py = 0; else if (y > ly - 1) py = ly - 1; else py = y;
+		  DFloat x = p1j + p3j * i;
+		  SizeT px=x;
+		  if (x < 0) px = 0; else if (x > fllx) px = fllx;
+	      DFloat y = q1j + q3j * i;
+		  SizeT py=y;
+		  if (y < 0) py = 0; else if (y > flly) py = flly;
 		  res[i + j * nCols] = data[px + py * lx];
 		}
 	  }
@@ -1152,26 +1157,26 @@ namespace lib {
 
   template< typename T1, typename T2>
   BaseGDL* warp0(
-    SizeT nCols,
-    SizeT nRows,
-    BaseGDL* data_,
-    poly2d* poly_u,
-    poly2d* poly_v,
-    DFloat initvalue_,
+    const SizeT nCols,
+    const SizeT nRows,
+    BaseGDL* const data_,
+    poly2d* const poly_u,
+    poly2d* const poly_v,
+    const DFloat initvalue_,
     bool doMissing) {
 	std::cerr<<"warp0\n";
-	SizeT lx = data_->Dim(0);
-	SizeT ly = data_->Dim(1);
+	const SizeT lx = data_->Dim(0);
+	const SizeT ly = data_->Dim(1);
 
 	dimension dim(nCols, nRows);
 	T1* res_ = new T1(dim, BaseGDL::NOZERO);
 	T2 initvalue = initvalue_;
-	SizeT nEl = nCols*nRows;
+	const SizeT nEl = nCols*nRows;
 
 	T2* res = (T2*) res_->DataAddr();
-	T2* data = (T2*) data_->DataAddr();
+	T2* const data = (T2* const) data_->DataAddr();
 	if (doMissing) {
-	  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+	if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
 		for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
 	  } else {
 		TRACEOMP(__FILE__, __LINE__)
@@ -1179,23 +1184,27 @@ namespace lib {
 		  for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
 	  }
 	}
+	//these are accelerators - not using them increase exec time by 2 or 3.
+	DFloat fllx = lx - 1;
+	DFloat flly = ly - 1;
+	SizeT llx = lx - 1;
+	SizeT lly = ly - 1;
 	DLong nc=poly_u->nc;
-	DFloat * xcoefu=poly2d_compute_init_x(poly_u,lx);
-	DFloat * ycoefu=poly2d_compute_init_y(poly_u,lx);
-	DFloat * xcoefv=poly2d_compute_init_x(poly_v,ly);
-	DFloat * ycoefv=poly2d_compute_init_y(poly_v,ly);
+	DFloat * const xcoefu=poly2d_compute_init_x(poly_u,lx);
+	DFloat * const ycoefu=poly2d_compute_init_y(poly_u,lx);
+	DFloat * const xcoefv=poly2d_compute_init_x(poly_v,ly);
+	DFloat * const ycoefv=poly2d_compute_init_y(poly_v,ly);
 	/* Double loop on the output image  */
 	if (doMissing) {
 	if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
 	  for (OMPInt j = 0; j < nRows; ++j) {
 		for (OMPInt i = 0; i < nCols; ++i) {
-          DFloat x = 0; for (auto k=0; k< nc; ++k) x+=poly_u->c[k]*xcoefu[i*nc+k]*ycoefu[j*nc+k];
-		  if ((x < 0) || (x >= lx) ) continue; // already initialised to 'missing' value.
-          DFloat y = 0; for (auto k=0; k< nc; ++k) y+=poly_v->c[k]*xcoefv[i*nc+k]*ycoefv[j*nc+k];
-		  if ((y < 0) || (y >= ly)) 	continue;
-		  SizeT px , py ;
-		  if (x < 0) px = 0; else if (x > lx - 1) px = lx - 1; else px = x;
-		  if (y < 0) py = 0; else if (y > ly - 1) py = ly - 1; else py = y;
+          DFloat x = poly_u->c[0]; for (auto k=1; k< nc; ++k) x+=poly_u->c[k]*xcoefu[j*nc+k]*ycoefu[i*nc+k];
+		  if ((x < 0) || (x > lx -1) ) continue; // already initialised to 'missing' value.
+          DFloat y = poly_v->c[0]; for (auto k=1; k< nc; ++k) y+=poly_v->c[k]*xcoefv[j*nc+k]*ycoefv[i*nc+k];
+		  if ((y < 0) || (y > ly -1)) 	continue;
+		  SizeT px = x;
+		  SizeT py = y;
 		  res[i + j * nCols] = data[px + py * lx];
 		}
 	  }
@@ -1205,13 +1214,12 @@ namespace lib {
 	  for (OMPInt j = 0; j < nRows; ++j) {
 		for (OMPInt i = 0; i < nCols; ++i) {
 		  // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
-          DFloat x = 0; for (auto k=0; k< nc; ++k) x+=poly_u->c[k]*xcoefu[i*nc+k]*ycoefu[j*nc+k];
-		  if ((x < 0) || (x >= lx)) continue;
-          DFloat y = 0; for (auto k=0; k< nc; ++k) y+=poly_v->c[k]*xcoefv[i*nc+k]*ycoefv[j*nc+k];
-		  if ((y < 0) || (y >= ly)) 	continue;
-		  SizeT px , py ;
-		  if (x < 0) px = 0; else if (x > lx - 1) px = lx - 1; else px = x;
-		  if (y < 0) py = 0; else if (y > ly - 1) py = ly - 1; else py = y;
+          DFloat x = poly_u->c[0]; for (auto k=1; k< nc; ++k) x+=poly_u->c[k]*xcoefu[j*nc+k]*ycoefu[i*nc+k];
+		  if ((x < 0) || (x > lx -1)) continue;
+          DFloat y = poly_v->c[0]; for (auto k=1; k< nc; ++k) y+=poly_v->c[k]*xcoefv[j*nc+k]*ycoefv[i*nc+k];
+		  if ((y < 0) || (y > ly -1)) 	continue;
+		  SizeT px = x;
+		  SizeT py = y;
 		  res[i + j * nCols] = data[px + py * lx];
 		}
 	  }
@@ -1221,11 +1229,16 @@ namespace lib {
 	if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
 	  for (OMPInt j = 0; j < nRows; ++j) {
 		for (OMPInt i = 0; i < nCols; ++i) {
-          DFloat x = 0; for (auto k=0; k< nc; ++k) x+=poly_u->c[k]*xcoefu[i*nc+k]*ycoefu[j*nc+k];
-          DFloat y = 0; for (auto k=0; k< nc; ++k) y+=poly_v->c[k]*xcoefv[i*nc+k]*ycoefv[j*nc+k];
-		  SizeT px , py ;
-		  if (x < 0) px = 0; else if (x > lx - 1) px = lx - 1; else px = x;
-		  if (y < 0) py = 0; else if (y > ly - 1) py = ly - 1; else py = y;
+          DFloat x = poly_u->c[0];
+		  DFloat y = poly_v->c[0];
+		  for (auto k=1; k< nc; ++k) {
+			x+=poly_u->c[k]*xcoefu[j*nc+k]*ycoefu[i*nc+k];
+            y+=poly_v->c[k]*xcoefv[j*nc+k]*ycoefv[i*nc+k];
+		  }
+		  SizeT px=x;
+		  SizeT py=y;
+		  if (x < 0) px = 0; else if (x > fllx) px = llx;
+		  if (y < 0) py = 0; else if (y > flly) py = lly;
 		  res[i + j * nCols] = data[px + py * lx];
 		}
 	  }
@@ -1235,11 +1248,16 @@ namespace lib {
 	  for (OMPInt j = 0; j < nRows; ++j) {
 		for (OMPInt i = 0; i < nCols; ++i) {
 		  // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
-          DFloat x = 0; for (auto k=0; k< nc; ++k) x+=poly_u->c[k]*xcoefu[i*nc+k]*ycoefu[j*nc+k];
-          DFloat y = 0; for (auto k=0; k< nc; ++k) y+=poly_v->c[k]*xcoefv[i*nc+k]*ycoefv[j*nc+k];
-		  SizeT px , py ;
-		  if (x < 0) px = 0; else if (x > lx - 1) px = lx - 1; else px = x;
-		  if (y < 0) py = 0; else if (y > ly - 1) py = ly - 1; else py = y;
+          DFloat x = poly_u->c[0];
+		  DFloat y = poly_v->c[0];
+		  for (auto k=1; k< nc; ++k) {
+			x+=poly_u->c[k]*xcoefu[j*nc+k]*ycoefu[i*nc+k];
+            y+=poly_v->c[k]*xcoefv[j*nc+k]*ycoefv[i*nc+k];
+		  }
+		  SizeT px=x;
+		  SizeT py=y;
+		  if (x < 0) px = 0; else if (x > fllx) px = llx;
+		  if (y < 0) py = 0; else if (y > flly) py = lly;
 		  res[i + j * nCols] = data[px + py * lx];
 		}
 	  }
