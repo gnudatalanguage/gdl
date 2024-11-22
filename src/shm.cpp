@@ -33,8 +33,17 @@ enum { BYTE=0,COMPLEX,DCOMPLEX,DOUBLE,FLOAT,INTEGER,L64,LONG,UINT,UL64,ULONG, DI
 //atom size of all types and names
 static const std::string atomName[16]={"UNDEFINED","BYTE","INT","LONG","FLOAT","DOUBLE","COMPLEX","STRING","STRUCT","DCOMPLEX","POINTER","OBJREF","UINT","ULONG","LONG64","ULONG64"};
 static const int atomSize[16]={0,1,2,4,4,8,8,0,0,16,0,0,2,4,8,8};
-namespace lib {
+static bool atexit_already_done = false;
 
+void AddToAtexit() {
+  if (!atexit_already_done) {
+	atexit_already_done = true;
+	atexit(lib::TidySharedAtGDLExit);
+  }
+}
+
+namespace lib {
+  
   bool get_shm_common_keywords(EnvT* e, std::string &segmentName, dimension & dim, int & type) {
 	SizeT np = e->NParam(0);
 	if (np != 0) e->AssureStringScalarPar(0, segmentName);
@@ -145,12 +154,10 @@ namespace lib {
 	  //reinterpret OS_HANDLE
 	  DLong sysv_handle=0;
 	  if (doOsHandle) { //must exist and be useable
-		e->AssureLongScalarKW(OS_HANDLE,sysv_handle);
-		int shmflg=all_perms;
-		key_t handle=sysv_handle;
-		sysv_hdle=shmget(handle,total_length,shmflg);
-		if (sysv_hdle ==-1) e->Throw("SYSV Shared Memory Segment " + i2s(sysv_handle) + " attach failed, reason: " + std::string(strerror(errno)) + ".");
-	  } else {
+		e->AssureLongScalarKW(OS_HANDLE,sysv_hdle); //handle must be sysv_hdle
+		destroy_segment = false;
+	  } else { // a creation 
+		destroy_segment = true;
 		int shmflg=IPC_CREAT|all_perms;
 		key_t handle=0;
 		sysv_hdle=shmget(handle,total_length,shmflg);
@@ -190,9 +197,13 @@ namespace lib {
 		if (status != 0) e->Throw("Shared Memory Segment " + segmentName + " creation failed (size), reason: " + std::string(strerror(errno)) + ".");
 		//segment is destroyable on exit unless 'destroy_segment' is set to 0
 		destroy_segment = true;
-		if (e->KeywordPresentAndDefined(DESTROY_SEGMENT)) destroy_segment = e->KeywordSet(DESTROY_SEGMENT);
+	  } else { //exist: 
+		destroy_segment = false;
 	  }
 	}
+	//DESTROY_SEGMENT modifies default behaviour  
+	if (e->KeywordPresentAndDefined(DESTROY_SEGMENT)) destroy_segment = e->KeywordSet(DESTROY_SEGMENT);
+	if (destroy_segment) AddToAtexit();
 	//now, exist or not, we define only the requested memory mapping size "length".
 	void* mapAddress=NULL;
 	if (sysv) {
@@ -247,7 +258,12 @@ namespace lib {
 	  if (((*i).second.flags & USE_SYSV) == USE_SYSV) {
 		int result=shmdt((*i).second.mapped_address);
 		if (result ==-1) e->Throw("SYSV Shared Memory Segment " + segmentName + " Unmapping unsucessfull, reason: "+ std::string(strerror(errno))+".");
+		if (((*i).second.flags & DESTROY_SEGMENT_ON_UNMAP)==DESTROY_SEGMENT_ON_UNMAP) {
+		  int shmid=0;
+		  if (sscanf((*i).second.osHandle.c_str(),"%i",&shmid)==1) shmctl(shmid, IPC_RMID, NULL);
+		}
 	  } else {
+		msync((*i).second.mapped_address,(*i).second.length, MS_ASYNC); //msync is recommended even if probably overkill on linux since 2.6.19
 		int result=munmap((*i).second.mapped_address,(*i).second.length); //unmap
 		if (result !=0) e->Throw("Shared Memory Segment " + segmentName + " Unmapping unsucessfull, reason: "+ std::string(strerror(errno))+".");
 		if (((*i).second.flags & DESTROY_SEGMENT_ON_UNMAP)==DESTROY_SEGMENT_ON_UNMAP)  shm_unlink((*i).second.osHandle.c_str());
@@ -386,7 +402,7 @@ namespace lib {
 	}
 	return;
   }
-  //called from system when deleting a mapped variable
+  //called from system when deleting a mapped variable.
   void shm_unreference(BaseGDL* var){
 	void* pointer=var->DataAddr(); //the mapped address
 	for (shmListIter i=shmList.begin(); i!=shmList.end(); ++i) {
@@ -399,7 +415,12 @@ namespace lib {
 		  if (((*i).second.flags & USE_SYSV) == USE_SYSV) {
 			int result = shmdt((*i).second.mapped_address);
 			if (result == -1) Warning("SYSV Shared Memory Segment " + (*i).first  + " Unmapping unsucessfull after deleting last mapped variable, reason: " + std::string(strerror(errno)) + ".");
+			if (((*i).second.flags & DESTROY_SEGMENT_ON_UNMAP) == DESTROY_SEGMENT_ON_UNMAP) {
+			  int shmid = 0;
+			  if (sscanf((*i).second.osHandle.c_str(), "%i", &shmid) == 1) shmctl(shmid, IPC_RMID, NULL);
+			}
 		  } else {
+	        msync((*i).second.mapped_address,(*i).second.length, MS_ASYNC); //msync is recommended even if probably overkill on linux since 2.6.19
 			int result = munmap((*i).second.mapped_address, (*i).second.length); //unmap
 			if (result != 0) Warning("Shared Memory Segment " + (*i).first  + " Unmapping unsucessfull after deleting last mapped variable, reason: " + std::string(strerror(errno)) + ".");
 			if (((*i).second.flags & DESTROY_SEGMENT_ON_UNMAP) == DESTROY_SEGMENT_ON_UNMAP) shm_unlink((*i).second.osHandle.c_str());
@@ -410,5 +431,31 @@ namespace lib {
 	  }
 	}
   }
+  void shm_tidy() {
+	for (shmListIter i = shmList.begin(); i != shmList.end(); ++i) {
+	  if (((*i).second.flags & USE_SYSV) == USE_SYSV) {
+		int result = shmdt((*i).second.mapped_address);
+		if (result == -1) Warning("SYSV Shared Memory Segment " + (*i).first + " Unmapping unsucessfull after deleting last mapped variable, reason: " + std::string(strerror(errno)) + ".");
+		if (((*i).second.flags & DESTROY_SEGMENT_ON_UNMAP) == DESTROY_SEGMENT_ON_UNMAP) {
+		  int shmid = 0;
+		  if (sscanf((*i).second.osHandle.c_str(), "%i", &shmid) == 1) shmctl(shmid, IPC_RMID, NULL);
+		}
+	  } else {
+		msync((*i).second.mapped_address, (*i).second.length, MS_ASYNC); //msync is recommended even if probably overkill on linux since 2.6.19
+		int result = munmap((*i).second.mapped_address, (*i).second.length); //unmap
+		if (result != 0) Warning("Shared Memory Segment " + (*i).first + " Unmapping unsucessfull after deleting last mapped variable, reason: " + std::string(strerror(errno)) + ".");
+		if (((*i).second.flags & DESTROY_SEGMENT_ON_UNMAP) == DESTROY_SEGMENT_ON_UNMAP) shm_unlink((*i).second.osHandle.c_str());
+	  }
+	}
+  }
+  
+  void TidySharedAtGDLExit()
+{
+  //remove shared mem mappings that need to be removed according to permissions etc.
+#ifndef _WIN32
+  shm_tidy();
+#endif
+}
+
 } // namespace
 #endif

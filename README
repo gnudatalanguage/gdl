@@ -76,7 +76,6 @@ REQUIREMENTS:
 
 In short:
 Mandatory libraries:
-plplot      http://plplot.sourceforge.net
 gsl         http://www.gnu.org/software/gsl
 zlib        http://www.zlib.net/
 
@@ -113,7 +112,6 @@ COMPILING:
   packages rather than compiling them from sources, please note that
   depending on your distribution, you may need development packages
   as well. Examples are (for Fedora):
-  plplot-devel
   GraphicsMagick-devel
   GraphicsMagick-c++-devel
 
@@ -130,9 +128,7 @@ LINE EDITING:
   
 GRAPHICS AND DEPENDENCIES:
 --------------------------
-  For the graphics support of GDL, we use the plplot library.
-  To download plplot please look here:
-  http://plplot.sourceforge.net/source/index.html
+  For the graphics support of GDL, we use a trimmed version of the plplot library.
  
 MATH FUNCTIONS & MORE:
 -----------------------
@@ -177,10 +173,6 @@ WIDGETS:
   http://www.wxwidgets.org/downloads
   
   The wxWidget version must be 2.8.1 or higher. 
-  WIDGET_DRAW 'plot' widgets use the plplot wxwidgets driver behind the scene. 
-  This driver must have been installed on your machine, it is not necessarily part of the base plplot distribution.
-  Unfortunately the wxWidget implementation of the plplot graphic library has changed between plplot 5.9.9 and
-  plplot 5.11, and several distributions have been affected by these incompatibilities. Should be solved now.
   
   The WIDGET_*... functions are all implemented (use HELP,/LIB for an overview). Only a few
   rarely seen options have not been written yet (please report in case of need). They have

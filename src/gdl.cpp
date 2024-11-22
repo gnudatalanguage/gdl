@@ -43,6 +43,7 @@
 #include "dinterpreter.hpp"
 #include "terminfo.hpp"
 #include "gdleventhandler.hpp"
+#include "gdl2gdl.hpp"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -65,12 +66,6 @@
 //initialize wxWidgets system:  create an instance of wxAppGDL
 #ifdef HAVE_LIBWXWIDGETS
 #include "gdlwidget.hpp"
-//displaced in gdlwidget.cpp to make wxGetApp() available under Python (in GDL.so)
-//#ifndef __WXMAC__ 
-//wxIMPLEMENT_APP_NO_MAIN( wxAppGDL);
-//#else
-//wxIMPLEMENT_APP_NO_MAIN( wxApp);
-//#endif
 #endif
 
 #include "version.hpp"
@@ -163,6 +158,7 @@ void InitGDL()
   //Our handler takes too long
   //when editing the command line with ARROW keys. (bug 562). (used also in dinterpreted.cpp )
   //but... without it we have no graphics event handler! FIXME!!! 
+  rl_set_keyboard_input_timeout (GDL_INPUT_TIMEOUT);
   rl_event_hook = GDLEventHandler;
 #endif
 
@@ -180,11 +176,6 @@ void InitGDL()
 #ifdef HAVE_LOCALE_H
   setlocale(LC_ALL, "C");
 #endif
-
-  // for debug one could turn on all floating point exceptions, it will stop at first one.
-  //  feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
-
-  signal(SIGINT,ControlCHandler);
 
   lib::SetGDLGenericGSLErrorHandler();
 }
@@ -236,13 +227,16 @@ namespace MyPaths {
 }
 }
 
-
 int main(int argc, char *argv[])
 {
+
   // indicates if the user wants to see the welcome message
   bool quiet = false;
   bool gdlde = false;
-
+  bool setQuietSysvar=false;
+  bool willSuppressEditInput=false;
+  std::string myMessageBoxName="";
+  
 //The default installation location --- will not always be there.  
   gdlDataDir = std::string(GDLDATADIR);
   gdlLibDir = std::string(GDLLIBDIR);
@@ -252,12 +246,12 @@ int main(int argc, char *argv[])
 #endif 
 
 //check where is the executable being run
- std::string whereami=MyPaths::getExecutablePath();
+ whereami_gdl=MyPaths::getExecutablePath();
 // if I am at a 'bin' location, then there are chances that I've bee INSTALLED, so all the resources I need can be accessed relatively to this 'bin' directory.
 // if not, then I'm probably just a 'build' gdl and my ressources may (should?) be in the default location GDLDATADIR
-  std::size_t pos=whereami.rfind("bin");
-  if (pos == whereami.size()-3) { //we are the installed gdl!
-    gdlDataDir.assign( whereami+ lib::PathSeparator() + ".." + lib::PathSeparator() + "share" + lib::PathSeparator() + "gnudatalanguage") ;
+  std::size_t pos=whereami_gdl.rfind("bin");
+  if (pos == whereami_gdl.size()-3) { //we are the installed gdl!
+    gdlDataDir.assign( whereami_gdl+ lib::PathSeparator() + ".." + lib::PathSeparator() + "share" + lib::PathSeparator() + "gnudatalanguage") ;
 //    std::cerr<<"installed at: "<<gdlDataDir<<std::endl;
   }
 
@@ -266,56 +260,9 @@ int main(int argc, char *argv[])
   if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH"); //warning: is a Path, use system separator.
   if( gdlPath == "") gdlPath = gdlDataDir + lib::PathSeparator() + "lib";
 
-//LIBDIR. Can be '' in which case the location of drivers is deduced from the location of
-//the executable (OSX, Windows, unix in user-installed mode).
-  string driversPath = GetEnvPathString("GDL_DRV_DIR");
-  if (driversPath == "") { //NOT enforced by GDL_DRV_DIR
-    driversPath = gdlLibDir; //e.g. Fedora
-    if (driversPath == "") { //NOT enforced by GDLLIBDIR at build : not a distro
-      driversPath = gdlDataDir + lib::PathSeparator() + "drivers"; //deduced from the location of the executable 
-    }
-  }
-  //drivers if local
-  useLocalDrivers=false;
-  bool driversNotFound=false;
-
-  //The current value for PLPLOT_DRV_DIR.
-  //To find our drivers, the plplot library needs to have PLPLOT_DRV_DIR set to the good path, i.e., driversPath.
-  const char* DrvEnvName = "PLPLOT_DRV_DIR";
-  //In a startup message (below), the value of $PLPLOT_DRV_DIR appears.
-  //It will be the value set inside the program (just below) to find the relevant drivers.
-
-#ifdef INSTALL_LOCAL_DRIVERS
-  useLocalDrivers=true;
-  //For WIN32 the drivers dlls are copied along with the gdl.exe and plplot does not use PLPLOT_DRV_DIR to find them.
-#ifndef _WIN32
-  char* oldDriverEnv=getenv(DrvEnvName);
-  // We must declare here (and not later) where our local copy of (customized?) drivers is to be found.
-  char s[256];
-  strcpy(s,DrvEnvName);
-  strcat(s,"=");
-  strcat(s,driversPath.c_str());
-      //set nex drvPath as PLPLOT_DRV_DIR
-  putenv(s);
-  //Now, it is possible that GDL WAS compiled with INSTALL_LOCAL_DRIVERS, but the plplot installation is NOT compiled with DYNAMIC DRIVERS.
-  //So I check here the plplot driver list to check if wxwidgets is present. If not, useLocalDriver=false
-  bool driversOK=GDLGStream::checkPlplotDriver("ps"); //ps because xwin and wxwidgets may be absent. ps is always present.
-  if (!driversOK) {
-    driversNotFound=true; 
-    useLocalDrivers=false;
-    unsetenv(DrvEnvName); //unknown on windows
-    //eventually restore previous value
-    if (oldDriverEnv) {
-      strcpy(s,DrvEnvName);
-      strcat(s,"=");
-      strcat(s,oldDriverEnv);
-      putenv(s);
-    }
-    plend(); //this is necessary to reset PLPLOT to a state that will read again the driver configuration at PLPLOT_DRV_DIR
-             // otherwise the next call to checkPlplotDriver() in GDLWxStream will fail.
-  }
-#endif
-#endif
+  char* wantCalm = getenv("IDL_QUIET");
+  if (wantCalm != NULL) setQuietSysvar=true;
+  
   // keeps a list of files to be executed after the startup file
   // and before entering the interactive mode
   vector<string> batch_files;
@@ -329,7 +276,7 @@ int main(int argc, char *argv[])
   tryToMimicOriginalWidgets = false;
   useDSFMTAcceleration = true;
   iAmANotebook=false; //option --notebook
-  iAmSilent=false; //option --silent
+  iAmMaster=true; //special option --subprocess
  #ifdef HAVE_LIBWXWIDGETS 
 
     #if defined (__WXMAC__) 
@@ -499,8 +446,19 @@ int main(int argc, char *argv[])
       }
       else if (string(argv[a]) == "--silent")
       {
-         iAmSilent = true;
+         setQuietSysvar=true;
       }
+      else if (string(argv[a]) == "--subprocess") {
+		if (a == argc - 1) {
+		  cerr << "gdl: --subprocess must be followed by the parent's pid" << endl;
+		  return 0;
+		}
+		myMessageBoxName = argv[++a];
+	  	iAmMaster = false;
+		setQuietSysvar = true;
+		willSuppressEditInput = true;
+		//		 std::cerr<<"I am a SubProcess"<<std::endl;
+	  }
       else if (string(argv[a]) == "--fakerelease")
       {
         if (a == argc - 1)
@@ -526,6 +484,9 @@ int main(int argc, char *argv[])
     cerr << argv[0] << ": " << "-e option cannot be specified with batch files" << endl;
     return 0;
   }
+
+  //depending on master or not, attach to respective message boxes
+  if (!iAmMaster) gdl_ipc_ClientGetsMailboxAddress(myMessageBoxName);	
   
   //before InitGDL() as InitGDL() starts graphic!
   
@@ -547,7 +508,20 @@ int main(int argc, char *argv[])
   if ( doUseUglyFonts.length() > 0) tryToMimicOriginalWidgets=true; 
   
   InitGDL(); 
+  
+  // for debug one could turn on all floating point exceptions, it will stop at first one.
+  //  feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
 
+  
+#if !defined(_WIN32)
+  if (iAmMaster) {
+	signal(SIGINT, ControlCHandler); 
+	signal(SIGCHLD,SIG_IGN); //end subprocess is by sending it 'EXIT'. 
+	                         //This should avoid zombies after a IDL_IDLBridge::Cleanup for example.
+	                         // but we do not trap a subprocess crashing, which may be desirable!
+  } else signal(SIGINT, ChildControlCHandler);
+#endif
+  
   // must be after !cpu initialisation
   InitOpenMP(); //will supersede values for CpuTPOOL_NTHREADS
 
@@ -558,13 +532,10 @@ int main(int argc, char *argv[])
     StartupMessage();
     cerr << "- Default library routine search path used (GDL_PATH/IDL_PATH env. var. not set): " << gdlPath << endl;
     if (useWxWidgetsForGraphics) cerr << "- Using WxWidgets as graphics library (windows and widgets)." << endl;
-    if (useLocalDrivers || driversNotFound) {
-      if (driversNotFound) cerr << "- Local drivers not found --- using default ones. " << endl;
-      else if (getenv(DrvEnvName)) cerr << "- Using local drivers in " << getenv(DrvEnvName) << endl; //protect against NULL.
-    }
   }
   if (useDSFMTAcceleration && (GetEnvString("GDL_NO_DSFMT").length() > 0)) useDSFMTAcceleration=false;
-  
+  if (setQuietSysvar)       SysVar::Make_Quiet();
+  if (willSuppressEditInput)		 SysVar::Suppress_Edit_Input();  
   //report in !GDL status struct
   DStructGDL* gdlconfig = SysVar::GDLconfig();
   unsigned  DSFMTTag= gdlconfig->Desc()->TagIndex("GDL_USE_DSFMT");
@@ -610,6 +581,7 @@ int main(int argc, char *argv[])
 //     }
 
 #ifdef USE_MPI
+  if (iAmMaster) {
   {
     // warning the user if MPI changes the working directory of GDL
     char wd1[PATH_MAX], wd2[PATH_MAX];
@@ -631,6 +603,7 @@ int main(int argc, char *argv[])
     for( SizeT i = 0; i < size; i++)
       MPI_Send(mpi_procedure, strlen(mpi_procedure)+1, MPI_CHAR, i, 
 	       tag, MPI_COMM_WORLD);
+  }
   }
 #endif // USE_MPI
 

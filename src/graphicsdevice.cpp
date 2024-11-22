@@ -500,8 +500,8 @@ int GraphicsMultiDevice::WAddFree() {
   for (int i = max_win; i < wLSize; i++)
     if (winList[i] == NULL) return i;
   
-  // plplot allows only 101 windows [0 to 100], do not allocate more
-  if (wLSize == 101) return -1;
+  // careful not to get more windows than MAX_WIN_RESERVE
+  if (wLSize == max_win_reserve+1) return -1;
   //else allocate new
   winList.push_back(NULL);
   oList.push_back(0);

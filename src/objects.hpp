@@ -33,6 +33,8 @@
 #include "gdlpython.hpp"
 #endif
 
+
+
 // class DInterpreter;
 // extern DInterpreter* interpreter;
 
@@ -75,6 +77,12 @@ extern std::string gdlDataDir;
 extern std::string gdlLibDir;
 
 extern volatile bool iAmANotebook;
+
+//for subprocess stuff
+extern std::string whereami_gdl;
+extern volatile bool iAmMaster;
+extern volatile bool signalOnCommandReturn;
+
 // tells if wxwidgets is to be used at all...
 extern volatile bool useWxWidgets;
 // tells if wxwidgets backend for graphics is to be used...
@@ -83,8 +91,6 @@ extern volatile bool useWxWidgetsForGraphics;
 extern volatile bool tryToMimicOriginalWidgets;
 //do we favor SIMD-accelerated random number generation?
 extern volatile bool useDSFMTAcceleration;
-//do we use our own copy of (better?) drivers?
-extern volatile bool useLocalDrivers;
 extern volatile bool usePlatformDeviceName;
 extern volatile bool useEigenForTransposeOps;
 extern volatile bool useSmartTpool;
@@ -111,6 +117,7 @@ template< class Container> void PurgeContainer( Container& s)
 }
 
 void InitGDL(); // defined in gdl.cpp
+void SaveCallingArgs(int argc, char* argv[]);
 
 void InitObjects();
 void ResetObjects();

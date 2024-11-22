@@ -18,12 +18,24 @@
 #ifndef DINTERPRETER_HPP_
 #define DINTERPRETER_HPP_
 
+#define GDL_INPUT_TIMEOUT 167 //16667 //microseconds -> 60 per second
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
 #include <fstream>
 #include <csignal>
+
+#if defined(_WIN32) && !defined(__CYGWIN__)
+extern void gdl_ipc_ClientSignalsOperationsOK();
+extern void gdl_ipc_ClientSendReturn(unsigned char status, std::string s);
+extern void gdl_ipc_ClientClosesMailBox();
+#else
+extern void gdl_ipc_ClientSignalsOperationsOK();
+extern void gdl_ipc_ClientSendReturn(unsigned char status, std::string s);
+extern void gdl_ipc_ClientClosesMailBox();
+#endif 
 
 #include <cfenv>
 
@@ -44,6 +56,7 @@
 #define 	AUTO_PRINT_EXPR
 
 void ControlCHandler(int);
+void ChildControlCHandler(int);
 
 extern bool lineEdit; // = false;
 extern bool historyIntialized; 
@@ -57,7 +70,8 @@ public:
      CC_CONTINUE,
      CC_STEP,
      CC_SKIP,
-     CC_RETURN
+     CC_RETURN,
+     CC_ABORT
    };
 
   char* NoReadline(const std::string&);
@@ -83,7 +97,7 @@ public:
   {
 #if defined(HAVE_LIBREADLINE)
     // seems to cause valgrind to complain
-    clear_history(); // for testing of memory leaks (in GDL)
+    if (iAmMaster) clear_history(); // for testing of memory leaks (in GDL)
 #endif
   }
   

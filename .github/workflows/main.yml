@@ -44,9 +44,9 @@ jobs:
       id: set-matrix-others
       run: |
         if [[ '${{ github.event_name }}' == "schedule" || '${{ github.event.inputs.type }}' == "release" || '${{ github.ref }}' == "refs/tags/v"* ]]; then 
-            matrix="{os: ['ubuntu-latest', 'macos-12'], deps: ['standard', 'headless'], configuration: ['Release']}"
+            matrix="{os: ['ubuntu-latest', 'macos-12', 'macos-14'], deps: ['standard', 'headless'], configuration: ['Release']}"
         else
-            matrix="{os: ['ubuntu-latest', 'macos-12'], deps: ['debug'], configuration: ['Debug']}"
+            matrix="{os: ['ubuntu-latest', 'macos-12', 'macos-14'], deps: ['debug'], configuration: ['Debug']}"
         fi
         echo "matrix_others=$matrix" >> $GITHUB_OUTPUT
     - name: Remove Release (scheduled build only)
@@ -127,6 +127,13 @@ jobs:
       - name: Install Dependencies
         run: |
           scripts/build_gdl.sh prep
+      - name: Set HDF path on macOS usin brew
+        # https://stackoverflow.com/questions/66741778/how-to-install-h5py-needed-for-keras-on-macos-with-m1
+        if: contains(matrix.os, 'macos')
+        run: echo HDF5_DIR="$(brew --prefix hdf5)" >> $GITHUB_ENV
+      - name: Disable OpenMP for Apple Silicon (FIXME!)
+        if: matrix.os == 'macos-14'
+        run: echo WITH_OPENMP=OFF >> $GITHUB_ENV
       - name: Build GDL
         run: |
           scripts/build_gdl.sh configure
@@ -149,7 +156,7 @@ jobs:
           path: gdl-*-${{ matrix.deps }}.zip
           name: GDL (${{ matrix.os }}, ${{ matrix.deps }}, ${{ matrix.configuration }})
       - name: Upload Release Assets (unstable)
-        if: (github.event_name == 'schedule' || github.event.inputs.type == 'release') && matrix.os == 'macos-12'
+        if: (github.event_name == 'schedule' || github.event.inputs.type == 'release') && startsWith(matrix.os, 'macos-')
         uses: ncipollo/release-action@v1
         with:
           artifacts: "gdl-*-${{ matrix.deps }}.dmg"
@@ -175,6 +182,7 @@ jobs:
       - name: Test GDL
         run: |
           scripts/build_gdl.sh check
+
   build-windows:
     runs-on: windows-latest
     needs: prelude
@@ -232,8 +240,6 @@ jobs:
           scripts/build_gdl.sh prep
           ls MINGW-packages/mingw-w64-graphicsmagick/
           mv MINGW-packages/mingw-w64-graphicsmagick/mingw-w64-*-graphicsmagick-*.tar.* /var/cache/pacman/pkg
-          ls MINGW-packages/mingw-w64-plplot/
-          mv MINGW-packages/mingw-w64-plplot/mingw-w64-*-plplot-*.tar.* /var/cache/pacman/pkg
           pacman -Q | tr ' ' '-' | sort > ~/snapshot2.txt
           echo "Setting up cache..."
           mkdir -p /cache
@@ -294,7 +300,7 @@ jobs:
         with:
           name: GDL Installer (${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
           path: gdlsetup-*-${{ matrix.deps }}.exe
-# DO NOT export .zip as artifact: due to necessary use of a precise location for our customized plplot drivers,
+# STILL TRUE? DO NOT export .zip as artifact: (was due to necessary use of a precise location for our customized plplot drivers before plplot is integrated)
 # only an installer can be used (sets the correct environment variables) 
 #      - name: Upload Build Artifacts
 #        uses: actions/upload-artifact@v4

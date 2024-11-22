@@ -41,8 +41,8 @@ pro write_ppm, file, image,  help = help
   if sz[0] eq 2 then begin      ; PGM
      mid = magick_create(sz[1], sz[2])
      cmap = indgen(256)
-     magick_writecolortable, mid, cmap, cmap, cmap
      magick_write, mid, reverse(image, 2)
+     magick_writecolortable, mid, cmap, cmap, cmap
      magick_writefile, mid, file, 'PGM'
   endif else if sz[0] eq 3 && sz[1] eq 3 then begin ; PPM
      mid = magick_create(sz[2], sz[3])

@@ -58,6 +58,7 @@ WITH_PYTHONVERSION=${WITH_PYTHONVERSION:-ON}
 WITH_FFTW=${WITH_FFTW:-ON}
 WITH_UDUNITS2=${WITH_UDUNITS2:-ON}
 WITH_GLPK=${WITH_GLPK:-ON}
+WITH_OPENMP=${WITH_OPENMP:-ON}
 if [[ ${BUILD_OS} == "macOS" ]]; then
     WITH_HDF4=${WITH_HDF4:-OFF}
     WITH_GRIB=${WITH_GRIB:-ON}
@@ -87,19 +88,19 @@ function log {  # log is needded just below!
 if [ ${BUILD_OS} == "Windows" ]; then
     BSDXDR_URL="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz"
     MSYS2_PACKAGES=(
-        readline zlib libpng gsl wxWidgets plplot libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi udunits
+        readline zlib libpng gsl wxWidgets libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi udunits
         eigen3 eccodes glpk shapelib expat openssl
     )
     #if you add something in MSYS2_PACKAGES_REBUILD you may have to add special lines in main.yml to push the product in /var/cache/pacman/pkg
     MSYS2_PACKAGES_REBUILD=(
-        graphicsmagick plplot
+        graphicsmagick
     )
 elif [ ${BUILD_OS} == "Linux" ]; then
     # JP: Note the seperator ',' between the package name candidates below. The leftmost one has the highest priority.
     # Debian, Ubuntu, Linux Mint, Elementary OS, etc.
     APT_PACKAGES=(
         libncurses-dev libreadline-dev,libreadline-gplv2-dev zlib1g-dev libpng-dev libgsl-dev,libgsl0-dev
-        libwxgtk3.0-gtk3-dev,libwxgtk3.0-dev,libwxgtk2.8-dev libplplot-dev libgraphicsmagick++1-dev,libgraphicsmagick++-dev libtiff-dev
+        libwxgtk3.0-gtk3-dev,libwxgtk3.0-dev,libwxgtk2.8-dev  libgraphicsmagick++1-dev,libgraphicsmagick++-dev libtiff-dev
         libgeotiff-dev libnetcdf-dev libhdf4-alt-dev libhdf5-dev libfftw3-dev libproj-dev libopenmpi-dev libpython3-dev,libpython-dev python3-dev,python-dev
         python3-numpy,python-numpy libudunits2-dev libeigen3-dev libeccodes-dev libglpk-dev libshp-dev,shapelib libexpat1-dev
     )
@@ -107,7 +108,6 @@ elif [ ${BUILD_OS} == "Linux" ]; then
     RPM_PACKAGES=(
         libtirpc-devel ncurses-devel readline-devel zlib-devel libpng-devel,libpng16-devel gsl-devel
 	wxGTK3-devel,wxGTK-devel,wxWidgets-3_2-devel,wxWidgets-3_0-devel
-        plplot-wxGTK-devel,plplotwxwidgets-devel plplot-driver-xwin plplot-driver-wxwidgets plplot-driver-svg plplot-driver-ps 
         GraphicsMagick-c++-devel,libGraphicsMagick++-devel libtiff-devel libgeotiff-devel,libgeotiff5-devel,geotiff-devel 
         netcdf-devel hdf-devel hdf5-devel fftw-devel,fftw3-devel proj-devel openmpi-devel,openmpi4-devel,openmpi3-devel
 	python39-devel,python38-devel,python3-devel,python-devel
@@ -118,11 +118,10 @@ elif [ ${BUILD_OS} == "Linux" ]; then
 elif [ ${BUILD_OS} == "macOS" ]; then
     BREW_PACKAGES=(
         llvm libx11 libomp ncurses readline zlib libpng gsl wxwidgets graphicsmagick libtiff libgeotiff netcdf hdf5 fftw proj open-mpi python numpy udunits eigen
-        eccodes glpk shapelib expat gcc@11 qhull dylibbundler
+        eccodes glpk shapelib expat gcc@11 qhull dylibbundler cmake
     ) # JP 2021 Mar 21: HDF4 isn't available - not so critical I guess
       # JP 2021 May 25: Added GCC 10 which includes libgfortran, which the numpy tap relies on.
       # J-KL 2022 July 30: GCC 10 didn't work with apple silicon mac. So I replaced it with GCC 11
-      # GD Feb 2023: brew cannot recompile plplot --- will install plplot ourselves
       # GD added dylibbundler that simplify building correct apps.
 else
     log "Fatal error! Unknown OS: ${BUILD_OS}. This script only supports one of: Windows, Linux, macOS."
@@ -393,19 +392,6 @@ function prep_packages {
         else
             eval "brew install ${BREW_PACKAGES[@]}"
         fi
-	    pushd ${ROOT_DIR}
-           git clone https://github.com/PLplot/PLplot.git
-           pushd ${ROOT_DIR}/PLplot
-             mkdir build
-             pushd ${ROOT_DIR}/PLplot/build
-             cmake .. -DCMAKE_INSTALL_PREFIX=$(brew --prefix) -DENABLE_octave=OFF -DENABLE_qt=OFF -DENABLE_lua=OFF \
-             -DENABLE_tk=OFF -DENABLE_python=OFF -DENABLE_tcl=OFF -DPLD_xcairo=OFF -DPLD_wxwidgets=ON -DENABLE_wxwidgets=ON \
-             -DENABLE_DYNDRIVERS=ON -DENABLE_java=OFF -DPLD_xwin=ON -DENABLE_fortran=OFF
-             make
-             make install
-             popd
-           popd
-        popd
     fi
 }
 
@@ -432,7 +418,8 @@ function configure_gdl {
         log "Fatal error! Unknown DEPS: ${DEPS}"
         exit 1
     fi
-
+    
+    rm -r ${ROOT_DIR}/build
     mkdir -p ${ROOT_DIR}/build
     cd ${ROOT_DIR}/build
     rm -f CMakeCache.txt  #each 'build' resets cmake, which is safer!
@@ -467,9 +454,7 @@ function configure_gdl {
         export WX_CONFIG=${GDL_DIR}/scripts/deps/windows/wx-config-wrapper
     fi
     # The INTERACTIVE_GRAPHICS option is removed. 
-    # Now plplot drivers ARE shipped with GDL as we patched them to correct bugs and provide real 3D.
-    # In 'deps' we force plplot to be recompiled with DYNAMIC drivers for OSX --and test if not the case for unix.
-    # then it is a matter of depositing the drivers in the windows PATH as plplot uses lt_dlopenext() that search in the PATH.
+    # Now plplot drivers is part of GDL
     cmake ${GDL_DIR} -G"${GENERATOR}" \
         -DCMAKE_BUILD_TYPE=${Configuration} \
         -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
@@ -478,7 +463,7 @@ function configure_gdl {
         -DNETCDF=${WITH_NETCDF} -DHDF=${WITH_HDF4} -DHDF5=${WITH_HDF5} \
         -DMPI=${WITH_MPI} -DTIFF=${WITH_TIFF} -DGEOTIFF=${WITH_GEOTIFF} \
         -DLIBPROJ=${WITH_LIBPROJ} -DPYTHON=${WITH_PYTHON} -DPYTHONVERSION=${PYTHONVERSION} -DFFTW=${WITH_FFTW} \
-        -DUDUNITS2=${WITH_UDUNITS2} -DGLPK=${WITH_GLPK} -DGRIB=${WITH_GRIB} \
+        -DUDUNITS2=${WITH_UDUNITS2} -DGLPK=${WITH_GLPK} -DGRIB=${WITH_GRIB} -DOPENMP=${WITH_OPENMP} \
          ${CMAKE_ADDITIONAL_ARGS[@]} ${CMAKE_QHULLDIR_OPT} \
         -DMACHINE_ARCH=${Platform}
 }
@@ -514,7 +499,6 @@ function install_gdl {
         found_dlls=()
         find_dlls ${ROOT_DIR}/build/src/gdl.exe
         PYTHON_DLL=`ldd ${ROOT_DIR}/build/src/gdl.exe | tr '[:upper:]' '[:lower:]' | grep python | xargs | cut -d' ' -f3`
-        PLPLOT_DRV_DLL=`ls ${ROOT_DIR}/build/src/plplotdriver/*.dll`
         if [[ -n "${PYTHON_DLL}" ]]; then
             cp -f "${PYTHON_DLL}" bin/
         fi
@@ -524,27 +508,20 @@ function install_gdl {
             cp -rf /${mname}/share/udunits share/
         fi
 
-#        #this ensures that we overcome the bug in plplot version for Windows that does not know about PLPLOT_DRV_DIR env. var.
-        log "Copying our drivers to same directory as gdl.."
-        if [[ -n "${PLPLOT_DRV_DLL}" ]]; then
-          for f in ${PLPLOT_DRV_DLL}; do
-            cp -f "$f" bin/
-          done
-        fi
         for f in ${found_dlls[@]}; do
             cp -f "$f" bin/
         done
         
         log "Copying plplot stuff (not drivers) to install directory..."
         mkdir -p share
-        cp -rf /${mname}/share/plplot* share/
-        rm -rf share/plplot*/examples
-        rm -rf share/plplot*/ss
-        rm -rf share/plplot*/tcl
-        rm -rf share/plplot*/*.shx
-        rm -rf share/plplot*/*.shp
-        rm -rf share/plplot*/*.tcl
-
+#        cp -rf /${mname}/share/plplot* share/
+#        rm -rf share/plplot*/examples
+#        rm -rf share/plplot*/ss
+#        rm -rf share/plplot*/tcl
+#        rm -rf share/plplot*/*.shx
+#        rm -rf share/plplot*/*.shp
+#        rm -rf share/plplot*/*.tcl
+#
         #with PROJ7, needs proj.db, and serachs for it at '"where libproj.dll is"/../share/proj so we do the same
         log "Copying PROJ database at correct location"
         cp -rf /${mname}/share/proj share/
@@ -608,19 +585,13 @@ function pack_gdl {
 
         mkdir Resources
         cp -R ${ROOT_DIR}/install/* Resources/
-        cp ${GDL_DIR}/resource/gdl.icns Resources/
+        cp -R ${GDL_DIR}/resource/* Resources/
 
         mkdir Resources/libs
         dylibbundler -od -b -s $(brew --prefix)/lib/ -x Resources/bin/gdl -d Resources/libs
 #        mkdir Frameworks
-#        #GD: found the need to have @rpath libs changed to their fixed paths to insure copy_dylibs_recursive find and copy them (to export via a DMG)
-#        # This seems more complicated to do inside copy_dylibs_recursive as it is, recursive.
-#        for dylib in $(otool -l Resources/bin/gdl | grep @rpath | sed -e "s%name %%g;s%(.*)%%g" | xargs); do install_name_tool -change $dylib $(brew --prefix)/lib/`basename $dylib` Resources/bin/gdl; done
-#        #add dependency of plplot.
 #        found_dylibs=()
 #        copy_dylibs_recursive Resources/bin/gdl @executable_path/../../Frameworks Frameworks
-#        cp -pa $(brew --prefix)/lib/libcsirocsa.*dylib Frameworks #copy link possible
-#        cp -pa $(brew --prefix)/lib/libqsastime.*dylib Frameworks #copy link possible
 #        cp  $(brew --prefix)/lib/libsz.*dylib Frameworks #copy link impossible
 #
         echo '<?xml version="1.0" encoding="UTF-8"?>' > Info.plist

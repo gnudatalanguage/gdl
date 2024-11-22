@@ -25,19 +25,10 @@
 #define GDL_DEBUG_PLSTREAM 0
 #endif
 
-#ifdef HAVE_CONFIG_H
-// we should not add all the plplot's internal defines (which are 
-// added if HAVE_CONFIG_H is defined) to ours. Makes problem with distros.
-#undef HAVE_CONFIG_H 
-#include <plplot/plstream.h>
-#include <plplot/plstrm.h>
-#include <plplot/plplot.h>
-#define HAVE_CONFIG_H 1
-#endif
-//this include should be removed as soon as plplot has a public method to give the size of a string in mm when plotted.
-#if PLPLOT_PRIVATE_NOT_HIDDEN
-#include <plplot/plplotP.h>
-#endif
+#include "plplot/include/plstream.h"
+#include "plplot/include/plstrm.h"
+#include "plplot/include/plplot.h"
+#include "plplot/include/plplotP.h"
 #include <string>
 #include <iostream>
 #include "typedefs.hpp"
@@ -117,24 +108,24 @@ static std::string internalFontCodes[] = {
 
   typedef struct GDL_BOX {
     bool initialized;
-    PLFLT wx1; //world coord of x min
-    PLFLT wx2;
-    PLFLT wy1;
-    PLFLT wy2;
-    PLFLT nx1; //normalized position in subpage
-    PLFLT nx2;
-    PLFLT ny1;
-    PLFLT ny2;
-    PLFLT ndx1; //normalized device position
-    PLFLT ndx2;
-    PLFLT ndy1;
-    PLFLT ndy2;
+    PLFLT wx1 = 0; //world coord of x min
+    PLFLT wx2 = 1;
+    PLFLT wy1 = 0;
+    PLFLT wy2 = 1;
+    PLFLT nx1= 0; //normalized position in subpage
+    PLFLT nx2= 1;
+    PLFLT ny1= 0;
+    PLFLT ny2= 1;
+    PLFLT ndx1= 0; //normalized device position
+    PLFLT ndx2= 1;
+    PLFLT ndy1= 0;
+    PLFLT ndy2= 1;
     PLFLT nxsize; //size of box, x , normed
     PLFLT nysize;
-    PLFLT dx1; //position in device coords (e.g. pixels)
-    PLFLT dx2;
-    PLFLT dy1;
-    PLFLT dy2;
+    PLFLT dx1= 0; //position in device coords (e.g. pixels)
+    PLFLT dx2= 1;
+    PLFLT dy1= 0;
+    PLFLT dy2= 1;
     PLFLT dxsize; //size of box, x , normed
     PLFLT dysize;
     PLFLT pageWorldCoordinates[4];
@@ -449,13 +440,11 @@ public:
 //  //subpage to mm
 //  //subpage to physical
 
-#if PLPLOT_PRIVATE_NOT_HIDDEN
   //use simple internal function
   PLFLT gdlGetStringLength(const std::string &s)
   {
     return plstrl(s.c_str());
   }
-#endif
 
 //  void  currentPhysicalPos(PLFLT &x, PLFLT &y)
 //  {

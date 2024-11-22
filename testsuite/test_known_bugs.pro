@@ -17,7 +17,6 @@ if KEYWORD_SET(verbose) then begin
     print, 'A bug related to ImageMagick and Plplot exists in'
     print, 'Debian Lenny and (maybe) in recent Ubuntu (9.10, 10.4).'
     print, 'If GDL crashs here, please re-compiled PLPlot library'
-    print, 'using option -DENABLE_DYNDRIVERS=OFF in cmake'
 endif
 ;
 WINDOW

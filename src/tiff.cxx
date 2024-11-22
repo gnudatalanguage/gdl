@@ -514,9 +514,11 @@ namespace lib
 
             DInt hasPalette = (dir.photometric == TIFF::Directory::Photometric::Palette);
             DType pixelType = dir.PixelType();
-
-            if(pixelType == GDL_UNDEF)
-                return new DLongGDL(0);
+// see #1911 -- if the file is not a TIFF file, Open would have already returned with 0.
+// Unfortunately, PixelType() does return a zero = GDL_UNDEF value for complex data.
+// We cannot return 0 on the following test, as it would be false for bona fide complex TIFF files.
+//            if(pixelType == GDL_UNDEF)
+//               return new DLongGDL(0);
 
             static int infoIx = e->KeywordIx("INFO");
             if(e->KeywordPresent(infoIx)) {

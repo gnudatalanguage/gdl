@@ -35,7 +35,7 @@
 namespace lib {
 
   //  BaseGDL* invert_fun( EnvT* e);
-  BaseGDL* fft_fun( EnvT* e);
+//  BaseGDL* fft_fun( EnvT* e);
   BaseGDL* random_fun( EnvT* e);
 
   //GD: replaced la_trired from gsl by la_trired from eigen (if eigen is present) as it gives the same results as IDL's LA_TRIRED and is 5 times faster.
@@ -45,8 +45,8 @@ namespace lib {
   
 //  int fft_1d( BaseGDL*, void*, SizeT, SizeT, //SizeT, 
 //	      double, SizeT);
-  int fft_1d( BaseGDL* p0, void* data, SizeT nEl, SizeT offset, SizeT stride, 
-	      double direct, SizeT dbl, DLong dimension);
+//  int fft_1d( BaseGDL* p0, void* data, SizeT nEl, SizeT offset, SizeT stride, 
+//	      double direct, SizeT dbl, DLong dimension);
 
   //  int unpack_real_radix2(double*, SizeT);
   int unpack_real_mxradix(double*, SizeT);

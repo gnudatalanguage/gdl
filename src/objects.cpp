@@ -85,6 +85,7 @@ namespace structDesc {
   DStructDesc* GDL_HASHTABLEENTRY = NULL;
   DStructDesc* IDLFFSHAPE = NULL;
   DStructDesc* IDLFFXMLSAX = NULL;
+  DStructDesc* IDL_IDLBRIDGE= NULL;
 }
 
 //// for OpenMP
@@ -106,12 +107,14 @@ volatile bool useWxWidgets;
 volatile bool useWxWidgetsForGraphics;
 //do we use SVG for graphics in python notebook use?
 volatile bool iAmANotebook;
+//set when gDL is called in subprocess mode
+std::string whereami_gdl;
+volatile bool iAmMaster;
+
 //do we use name Devices differently among platforms?
 volatile bool usePlatformDeviceName;
 // do we force fonts to be the ugly IDL fonts?
 volatile bool tryToMimicOriginalWidgets;
-//do we use our own copy of (better?) drivers?
-volatile bool useLocalDrivers;
 //do we favor SIMD-accelerated random number generation?
 volatile bool useDSFMTAcceleration;
 //Transpose() operations are faster with our method, but setting this may test if this is still true for future Eigen:: versions or platforms.
@@ -169,6 +172,7 @@ void InitStructs()
   SpDComplexDbl aComplexDbl;
 //  SpDStruct  aStruct;  //protected, we cannot use?
   SpDInt   aColor( dimension(3));
+  SpDLong   aLongArr3( dimension(3));
   SpDLong   aLongArr8( dimension(8));
   SpDLong64   aLong64Arr8( dimension(8));
   SpDDouble   aDoubleArr8( dimension(8));
@@ -321,7 +325,28 @@ void InitStructs()
   structDesc::IDLFFXMLSAX = gdlffXmlSax;
 #endif
   
-  
+   //for IDL_IDLBridge
+   DStructDesc* idl_idlBridge = new DStructDesc( "IDL_IDLBRIDGE");
+  idl_idlBridge->AddTag("IDL_IDLBRIDGE_TOP", &aLong64); //0
+  idl_idlBridge->AddTag("IDL_COOKIE", &aLong); //1
+  idl_idlBridge->AddTag("IDL_CMDCOOKIE", &aLong); //2
+  idl_idlBridge->AddTag("CALLBACK", &aString); //must be at pos=3
+  idl_idlBridge->AddTag("OUTPUT", &aString); //4
+  idl_idlBridge->AddTag("USERDATA", &aPtrRef); // 5
+  idl_idlBridge->AddTag("HANDLE",&aLongArr3); //6
+  idl_idlBridge->AddTag("IDL_IDLBRIDGE_BOTTOM",  &aLong64);
+  // insert into structList
+  structList.push_back(idl_idlBridge);
+  structDesc::IDL_IDLBRIDGE = idl_idlBridge;
+  //used for IDL_IDLBRIDGE CALLBACKS
+  DStructDesc* gdl2gdl_cbk_event = new DStructDesc( "GDL2GDL_CBK_EVENT");
+  gdl2gdl_cbk_event->AddTag("CALLBACKPROC", &aString); 
+  gdl2gdl_cbk_event->AddTag("CALLBACKSTATUS", &aInt); 
+  gdl2gdl_cbk_event->AddTag("CALLBACKERROR", &aString); 
+  gdl2gdl_cbk_event->AddTag("CALLBACKOBJECT", &aObjRef);
+  gdl2gdl_cbk_event->AddTag("CALLBACKUSERDATA", &aPtrRef);
+  structList.push_back(gdl2gdl_cbk_event);
+ 
   
   // OBJECTS END =======================================================
    

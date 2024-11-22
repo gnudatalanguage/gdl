@@ -33,13 +33,7 @@ static float psSymFudge=1; //to compensate the wrong size of symbols in PS
 
 void GDLGStream::Thick(DFloat thick)
 {
-  //note that 'cmake' may not able to find correct value of HAVE_PLPLOT_WIDTH. Please report.
-  // in the meantime, you may edit "config.h" by hand.
-#ifdef HAVE_PLPLOT_WIDTH
     plstream::width(static_cast<PLFLT>(thick*thickFactor));
-#else
-    plstream::wid(static_cast<PLINT>(floor((thick*thickFactor)-0.5)));
-#endif
 }
 
 #define BLACK 0
@@ -1028,9 +1022,7 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
   }
   activeFontCodeNum = curr_fnt;
   //if gdlGetStringLength function is available, use it to give back a better value ("X" and "I" do not have the same width in hershey format!)
-#if PLPLOT_PRIVATE_NOT_HIDDEN
   if (stringLength!=NULL) *stringLength=gdlGetStringLength(out)/this->mmCharLength();
-#endif
   return out;
 retrn:
   activeFontCodeNum = curr_fnt;
@@ -1162,19 +1154,15 @@ void GDLGStream::setVariableCharacterSize( PLFLT charwidthpixel, PLFLT scale , P
 //trick: if 'em' is not 0, we have the character real width, in mm. It is assumed that when 0, then the size is OK
 //if not 0, then we know the height/width ratio and can recompute the 'good' height that will give the 'good' width (in pixels) 
    PLFLT em=0;
-#if PLPLOT_PRIVATE_NOT_HIDDEN
     em=gdlGetStringLength(ALLCHARACTERSFORSTRINGLENGTHTEST)/ALLCHARACTERSFORSTRINGLENGTHTEST_NCHARS; //mean of all
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"Able to check character width=%f, should have been %f\n",em, charwidthpixel/xdpi*INCHToMM);
-#endif
   if (em > 0) {
     PLFLT ratio=charwidthpixel/xdpi*INCHToMM/em;
     plstream::schr(expectedheight_in_mm*ratio, 1);
    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"got plplot character height in mm=%f (2nd pass))\n",pls->chrdef);
-//#if PLPLOT_PRIVATE_NOT_HIDDEN
 //    em=gdlGetStringLength(PATTERN)/PATTERN_LENGTH; //mean of all
 //    ratio=charwidthpixel/xdpi*INCHToMM/em;
 //    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"re-check character width=%f, ratio is %f\n",em, ratio);
-//#endif
   }
   setLineSpacing(lineSpacingpixel/ydpi*INCHToMM); //this one is NOT related to characters idiosyncrasies.
   gdlDefaultCharInitialized=0; //reset Default
@@ -1197,19 +1185,15 @@ void GDLGStream::setFixedCharacterSize( PLFLT charwidthpixel, PLFLT scale , PLFL
 //trick: if 'em' is not 0, we have the character real width, in mm. It is assumed that when 0, then the size is OK
 //if not 0, then we know the height/width ratio and can recompute the 'good' height that will give the 'good' width (in pixels) 
    PLFLT em=0;
-#if PLPLOT_PRIVATE_NOT_HIDDEN
     em=gdlGetStringLength(ALLCHARACTERSFORSTRINGLENGTHTEST)/ALLCHARACTERSFORSTRINGLENGTHTEST_NCHARS; //mean of all
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"Able to check character width=%f, should have been %f\n",em, charwidthpixel/pls->xdpi*INCHToMM);
-#endif
   if (em > 0) {
     PLFLT ratio=charwidthpixel/pls->xdpi*INCHToMM/em;
     plstream::schr(expectedheight*ratio, 1);
    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"got plplot character height in mm=%f (2nd pass))\n",pls->chrdef);
-//#if PLPLOT_PRIVATE_NOT_HIDDEN
 //    em=gdlGetStringLength(PATTERN)/PATTERN_LENGTH; //mean of all
 //    ratio=charwidthpixel/pls->xdpi*INCHToMM/em;
 //    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"re-check character width=%f, ratio is %f, in pixels:%f\n",em, ratio, em/INCHToMM*pls->xdpi);
-//#endif
   }
  setLineSpacing(lineSpacingpixel/pls->ydpi*INCHToMM); //this one is NOT related to characters idiosyncrasies.
   gdlDefaultCharInitialized=0; //reset Default

@@ -14,7 +14,7 @@
     // gets inserted after the antlr generated includes in the cpp file
 #include "dinterpreter.hpp"
 #include "prognodeexpr.hpp"
-
+#include "gdleventhandler.hpp"
 #include <cassert>
 
 // tweaking ANTLR

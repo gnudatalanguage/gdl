@@ -135,8 +135,8 @@ void LibInit_jmg()
   const string fftKey[]={"DOUBLE","INVERSE","OVERWRITE","DIMENSION","CENTER",KLISTEND};
 #if defined(USE_FFTW)
   new DLibFun(lib::fftw_fun,string("FFT"),2,fftKey,NULL,0,true);  //UsesThreadPOOL 
-#else
-  new DLibFun(lib::fft_fun,string("FFT"),2,fftKey); 
+//#else
+//  new DLibFun(lib::fft_fun,string("FFT"),2,fftKey); 
 #endif
 
   const string randomKey[]={"DOUBLE","GAMMA","LONG","NORMAL",

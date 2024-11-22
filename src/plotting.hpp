@@ -256,6 +256,8 @@ namespace lib {
   void gdlSetGraphicsPenColorToBackground(GDLGStream *a);
   void gdlLineStyle(GDLGStream *a, DLong style);
   PLFLT* gdlGetRegion();
+  PLFLT gdlGetBoxNXSize(); // what !X thinks the current PLOT box size is, in normalised coordinates. To be used instead of the boxnXSize() gdlgstream function whenever possible.
+  PLFLT gdlGetBoxNYSize(); // what !Y thinks the current PLOT box size is, in normalised coordinates. To be used instead of the boxnYSize() gdlgstream function whenever possible.
   DFloat* gdlGetWindow();
   void gdlStoreXAxisRegion(GDLGStream* actStream, PLFLT* r);
   void gdlStoreYAxisRegion(GDLGStream* actStream, PLFLT* r);
@@ -322,8 +324,6 @@ namespace lib {
     virtual void applyGraphics(EnvT*, GDLGStream*) = 0;
     virtual void post_call(EnvT*, GDLGStream*) = 0;
 
-    void restoreDrawArea(GDLGStream *a);
-
     // all steps combined (virtual methods cannot be called from ctor)
   public:
     void call(EnvT* e, SizeT n_params_required);
@@ -333,6 +333,7 @@ namespace lib {
   //This because static pointers to options indexes are needed to speed up process, but these indexes vary between
   //the definition of the caller functions (e.g. "CHARSIZE" is 1 for CONTOUR but 7 for XYOUTS). So they need to be kept
   //static (for speed) but private for each graphic command.
+  void restoreDrawArea(GDLGStream *a);
 
   void gdlSetGraphicsBackgroundColorFromKw(EnvT *e, GDLGStream *a, bool kw = true);
 
