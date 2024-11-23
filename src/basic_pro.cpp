@@ -1996,12 +1996,12 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     if (nParam > 1) e->AssureGlobalPar(1);
     if (nParam > 2) e->AssureGlobalPar(2);
 
-    int coutP[2];
+    int coutP[2] = {0};
     if (nParam > 1 || unitKeyword) {
-      if (pipe(coutP)) return;
+      if (pipe(coutP) == -1) return;
     }
 
-    int cerrP[2];
+    int cerrP[2] = {0};
     if (nParam > 2 && stderrKeyword) e->Throw("STDERR option conflicts with "+e->GetParString(2));
     if (nParam > 2 && !unitKeyword && pipe(cerrP)) return;
     if (stderrKeyword /*&& !IS_A_Spawn*/) cmd+=" 2>&1";
@@ -2141,9 +2141,12 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
         }
 
         // wait until child terminates
-        int status;
-        pid_t wpid = wait(&status);
+        int status = -1;
+        if (waitpid(pid, &status, 0) == -1) {
+          e->Throw(DString("Error waiting for child process: ") + strerror(errno));
+        }
 
+        // if waitpid fails, we still have status in the default of -1, indicating a failure
         if (exit_statusKeyword)
           e->SetKW(exit_statusIx, new DLongGDL(status >> 8));
 
