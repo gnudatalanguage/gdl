@@ -104,20 +104,23 @@ static void g2gPerformCallbackProcedure(pid_t pid) {
 }
 
 void g2gAsynchronousReturnTrap() {
-  int status = -1;
-  do {
-    // wait for all sub-processes in the same process group to finish -> avoid zombies
-    // Note: by default, wait also waits for sub-processes in another thread, so it seems fine to run this code in another thread
-    if (waitpid(0, &status, WUNTRACED | WCONTINUED) == -1) {
-      // we're out of luck, wait returns an error, so break to loop and exit
+  for (auto g2gMapIter = g2gMap.cbegin(); g2gMapIter != g2gMap.cend();) {
+    if ((*g2gMapIter).second.status == 1 && (*g2gMapIter).second.nowait) {
+      gdl_ipc_read_client_nowait((*g2gMapIter).first);
+    }
+    // we need to take care of our children, use a no-hang wait call to check the pid
+    int status = -1;
+    if (waitpid((*g2gMapIter).first, &status, WUNTRACED | WCONTINUED | WNOHANG) == -1) {
+      // we're out of luck, wait returns an error, so break the loop and exit
       std::cerr << "g2gAsynchronousReturnTrap exiting" << std::endl;
       break;
     }
-    for (const auto& g2gMapIter : g2gMap) {
-      if (g2gMapIter.second.status == 1 && g2gMapIter.second.nowait) gdl_ipc_read_client_nowait(g2gMapIter.first);
-    }
-    usleep (10000);
-  } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+    // remove stopped children from the map
+    if (WIFEXITED(status) || WIFSIGNALED(status)) g2gMap.erase(g2gMapIter++);
+    // we need to manually count here, since we're modifying the map in the loop
+    else ++g2gMapIter;
+  }
+  usleep (10000);
 }
 
 int gdl_ipc_write_to_client(EnvT* e, DLong* id, const std::string & command, bool nowait = true) {
