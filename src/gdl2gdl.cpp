@@ -114,7 +114,6 @@ void g2gAsynchronousReturnTrap() {
       break;
     }
     for (const auto& g2gMapIter : g2gMap) {
-      //for (g2gMapIter g2gMapIter = g2gMap.begin(); g2gMapIter != g2gMap.end(); ++g2gMapIter) {
       if (g2gMapIter.second.status == 1 && g2gMapIter.second.nowait) gdl_ipc_read_client_nowait(g2gMapIter.first);
     }
     usleep (10000);
