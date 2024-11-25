@@ -21,7 +21,7 @@
 #define BIN_DIR                  "@BIN_DIR@"
 
 // Location of Build tree
-#define BUILD_DIR                "@BUILD_DIR@"
+#define BUILD_DIR                "@CMAKE_BINARY_DIR@"
 
 // Location of package data files
 #define DATA_DIR                 "@CMAKE_INSTALL_PREFIX@@GDL_DATA_DIR@"
@@ -270,7 +270,9 @@
 #define RETSIGTYPE                         @RETSIGTYPE@
 
 // Location of Source tree
-#define SOURCE_DIR                         "@SOURCE_DIR@"
+// NOTE: plplot's source tree within GDL starts at @CMAKE_SOURCE_DIR@/src/plplot. If this is going to be changed,
+// we need to adjust this variable, too.
+#define SOURCE_DIR                         "@CMAKE_SOURCE_DIR@/src/plplot"
 
 // Define to 1 if you have the ANSI C header files.
 #cmakedefine STDC_HEADERS 1
