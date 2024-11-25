@@ -2150,6 +2150,7 @@ plFindCommand( PLCHAR_VECTOR fn )
     char *fs = NULL, *dn;
 
     //*** see if in build tree **
+    // Note: this will never work, since GDL's copy of plplot does not ship those bindings
     if ( plInBuildTree() == 1 )
     {
         plGetName( BUILD_DIR, "bindings/tk", fn, &fs );
