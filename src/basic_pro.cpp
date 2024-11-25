@@ -2146,7 +2146,6 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
           e->Throw(DString("Error waiting for child process: ") + strerror(errno));
         }
 
-        // if waitpid fails, we still have status in the default of -1, indicating a failure
         if (exit_statusKeyword)
           e->SetKW(exit_statusIx, new DLongGDL(status >> 8));
 
