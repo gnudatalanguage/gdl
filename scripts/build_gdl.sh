@@ -102,7 +102,7 @@ elif [ ${BUILD_OS} == "Linux" ]; then
         libncurses-dev libreadline-dev,libreadline-gplv2-dev zlib1g-dev libpng-dev libgsl-dev,libgsl0-dev
         libwxgtk3.0-gtk3-dev,libwxgtk3.0-dev,libwxgtk2.8-dev  libgraphicsmagick++1-dev,libgraphicsmagick++-dev libtiff-dev
         libgeotiff-dev libnetcdf-dev libhdf4-alt-dev libhdf5-dev libfftw3-dev libproj-dev libopenmpi-dev libpython3-dev,libpython-dev python3-dev,python-dev
-        python3-numpy,python-numpy libudunits2-dev libeigen3-dev libeccodes-dev libglpk-dev libshp-dev,shapelib libexpat1-dev
+        python3-numpy,python-numpy libudunits2-dev libeigen3-dev libeccodes-dev libglpk-dev libshp-dev,shapelib libexpat1-dev libqhull-dev
     )
     # Redhat, Fedora, Scientific Linux, CentOS, openSuSE, SLES, etc.
     RPM_PACKAGES=(
@@ -112,7 +112,7 @@ elif [ ${BUILD_OS} == "Linux" ]; then
         netcdf-devel hdf-devel hdf5-devel fftw-devel,fftw3-devel proj-devel openmpi-devel,openmpi4-devel,openmpi3-devel
 	python39-devel,python38-devel,python3-devel,python-devel
         python39-numpy-devel,python38-numpy-devel,python3-numpy-devel,python-numpy-devel,python39-numpy,python38-numpy,python3-numpy,python-numpy
-	udunits2-devel eigen3-devel eccodes-devel glpk-devel libshp-devel,shapelib-devel
+	udunits2-devel eigen3-devel eccodes-devel glpk-devel libshp-devel,shapelib-devel qhull
         expat-devel,libexpat-devel
     ) # JP 2021 Mar 21: SuSE lacks eccodes
 elif [ ${BUILD_OS} == "macOS" ]; then
@@ -314,14 +314,14 @@ function prep_packages {
             build_msys2_package $package_name
         done
 	
-	pushd ${ROOT_DIR}
-        download_file "https://github.com/qhull/qhull/archive/refs/tags/2020.2.zip"
-        decompress_file
-        log "Building qhull..."
-        pushd qhull-2020.2
-        make SO=dll || exit 1
-        popd
-	popd
+#	pushd ${ROOT_DIR}
+#        download_file "https://github.com/qhull/qhull/archive/refs/tags/2020.2.zip"
+#        decompress_file
+#        log "Building qhull..."
+#        pushd qhull-2020.2
+#        make SO=dll || exit 1
+#        popd
+#	popd
 
         download_file ${BSDXDR_URL}
         decompress_file
@@ -358,14 +358,14 @@ function prep_packages {
             done
         done
 
-	pushd ${ROOT_DIR}
-        download_file "https://github.com/qhull/qhull/archive/refs/tags/2020.2.zip"
-        decompress_file
-        log "Building qhull..."
-        pushd qhull-2020.2
-        make || exit 1
-        popd
-	popd
+#	pushd ${ROOT_DIR}
+#        download_file "https://github.com/qhull/qhull/archive/refs/tags/2020.2.zip"
+#        decompress_file
+#        log "Building qhull..."
+#        pushd qhull-2020.2
+#        make || exit 1
+#        popd
+#	popd
 
         if [[ -z ${INSTALL_PACKAGES} ]]; then
             log "All required packages are already installed on your system."
@@ -444,11 +444,11 @@ function configure_gdl {
         fi
     fi
 
-    if [[ ${BUILD_OS} != "macOS" ]]; then
-        CMAKE_QHULLDIR_OPT="-DQHULLDIR="${ROOT_DIR}"/qhull-2020.2"
-    else
-        CMAKE_QHULLDIR_OPT=""
-    fi
+#    if [[ ${BUILD_OS} != "macOS" ]]; then
+#        CMAKE_QHULLDIR_OPT="-DQHULLDIR="${ROOT_DIR}"/qhull-2020.2"
+#    else
+#        CMAKE_QHULLDIR_OPT=""
+#    fi
 
     if [ ${BUILD_OS} == "Windows" ]; then
         export WX_CONFIG=${GDL_DIR}/scripts/deps/windows/wx-config-wrapper
