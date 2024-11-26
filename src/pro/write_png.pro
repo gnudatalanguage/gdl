@@ -126,9 +126,15 @@ if (nb_channels eq 1) then begin
       alpha=image*0+255
       MAGICK_MATTE, mid
    endif
-   ;;
-   MAGICK_WRITECOLORTABLE, mid, red, green, blue
+   ;; for some reason imagemagick does not use colortables when writing PNG files with 1 channel images.
+   ;; Better to do it by hand:
+   rr=image & gg=image & bb=image
+   for i=0,im_size[0]*im_size[1]-1 do rr[i]=red[rr[i]]
+   for i=0,im_size[0]*im_size[1]-1 do gg[i]=green[gg[i]]
+   for i=0,im_size[0]*im_size[1]-1 do bb[i]=blue[bb[i]]
+   image=transpose([[[rr]],[[gg]],[[bb]]],[2,0,1])
    MAGICK_WRITE, mid, image, rgb=rgb
+;;   MAGICK_WRITECOLORTABLE, mid, red, green, blue
    if (KEYWORD_SET(order)) then MAGICK_FLIP, mid
    MAGICK_WRITEFILE, mid, filename, "PNG"
    MAGICK_CLOSE, mid

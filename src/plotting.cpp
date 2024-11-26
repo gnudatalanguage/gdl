@@ -106,11 +106,11 @@ namespace lib
     {
        //look only in range x=[xmin,xmax]
        valx=(*xVal)[i];
-       if ( (valx<xmin || valx>xmax || isnan(valx))) continue;
+       if ( (valx<xmin || valx>xmax || !isfinite(valx))) continue;
        else {
-       //min and max of y if not NaN and in range [minVal, maxVal] if doMinMax=yes (min_value, max_value keywords)
+       //min and max of y if not NaN / Inf and in range [minVal, maxVal] if doMinMax=yes (min_value, max_value keywords)
        valy=(*yVal)[i];
-       if ((doMinMax && (valy<minVal || valy>maxVal )) || isnan(valy)) continue;
+       if ((doMinMax && (valy<minVal || valy>maxVal )) || !isfinite(valy)) continue;
        else {if(k==0) {min=valy; max=valy;} else {min=MIN(min,valy); max=MAX(max,valy);}}
        }
        k++;
@@ -126,17 +126,25 @@ namespace lib
     //the real values.
     DLong minE, maxE;
     const bool omitNaN=true;
+	bool warn=false;
     val->MinMax(&minE, &maxE, NULL, NULL, omitNaN);
     if ( minVal!=NULL ) {
        *minVal=(*val)[ minE];
-       if (isnan(*minVal)) *minVal = UNDEF_RANGE_VALUE;
+       if (isnan(*minVal)) {
+		 *minVal = UNDEF_RANGE_VALUE;
+		 warn=true;
+	   }
     }
     if ( maxVal!=NULL ) {
       *maxVal=(*val)[ maxE];
-       if (isnan(*maxVal)) *maxVal = 1.0;
+       if (isnan(*maxVal)) {
+		 *maxVal = 1.0;
+		 warn=true;
+	   }
     }
     if ((*maxVal)==(*minVal)) *maxVal=*minVal+1.0;
 #undef UNDEF_RANGE_VALUE
+	if (warn) Warning("Infinite plot range.");
   }
   DDouble AutoTickIntv(DDouble x, bool freeRange) {
 	static const double s2 = sqrt(2) / 2.;
@@ -179,7 +187,7 @@ namespace lib
   PLFLT AutoLogTickIntv(DDouble min, DDouble max)
   {
     DDouble x=abs(log10(max)-log10(min));
-    if (!isfinite(x)) return 0; //trouble ahead...
+    if (!isfinite(x)) return 1; //trouble ahead...
     if ( x==0.0 ) return 1.0;
     if (x < 8) return 1;
     if (x < 15) return 2;
@@ -376,7 +384,7 @@ namespace lib
 
 	DDouble min = start;
 	DDouble max = end;
-
+    if (!isfinite(min) || !(isfinite(max))) e->Throw("Not enough valid and unique points specified.");
 	if (hasTickv) {
 	  DLong minE, maxE;
 	  const bool omitNaN = true;
@@ -520,7 +528,7 @@ namespace lib
 	}
   }
 
-  void plotting_routine_call::restoreDrawArea(GDLGStream *a) {
+  void restoreDrawArea(GDLGStream *a) {
 	//retrieve and reset plplot to the last setup for vpor() and wind() made by position-scaling commands like PLOT or CONTOUR
 	DDouble *sx, *sy;
 	DDouble wx[2], wy[2];
@@ -565,7 +573,7 @@ namespace lib
 
       applyGraphics(e, actStream);
 
-      restoreDrawArea(actStream);
+//      restoreDrawArea(actStream); //doing this would mess the /NOERASE logic when MULTI
 
       post_call(e, actStream);
       // IDEM: SLOW
@@ -1258,19 +1266,67 @@ namespace lib
   }
 
   //Get [XYZ].WINDOW
-  DFloat* gdlGetRegion() {
-    static const SizeT REGIONTAG=12;
+  DFloat* gdlGetWindow() {
+    DStructGDL* Struct=SysVar::X(); //same for all
+    static unsigned WINDOWTAG=Struct->Desc()->TagIndex("WINDOW");
     static DFloat position[6];
+    position[0]=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(WINDOWTAG, 0)))[0];
+    position[1]=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(WINDOWTAG, 0)))[1];
+    position[2]=(*static_cast<DFloatGDL*>(SysVar::Y()->GetTag(WINDOWTAG, 0)))[0];
+    position[3]=(*static_cast<DFloatGDL*>(SysVar::Y()->GetTag(WINDOWTAG, 0)))[1];
+    position[4]=(*static_cast<DFloatGDL*>(SysVar::Z()->GetTag(WINDOWTAG, 0)))[0];
+    position[5]=(*static_cast<DFloatGDL*>(SysVar::Z()->GetTag(WINDOWTAG, 0)))[1];
+    return position;
+}
+  PLFLT gdlGetBoxNXSize() {
+    DStructGDL* Struct=SysVar::X(); 
+    static unsigned WINDOWTAG=Struct->Desc()->TagIndex("WINDOW");
+    DFloat end,start;
+    start=(*static_cast<DFloatGDL*>(Struct->GetTag(WINDOWTAG, 0)))[0];
+    end=(*static_cast<DFloatGDL*>(Struct->GetTag(WINDOWTAG, 0)))[1];
+    return end-start;
+}
+PLFLT gdlGetBoxNYSize() {
+    DStructGDL* Struct=SysVar::Y(); 
+    static unsigned WINDOWTAG=Struct->Desc()->TagIndex("WINDOW");
+    DFloat end,start;
+    start=(*static_cast<DFloatGDL*>(Struct->GetTag(WINDOWTAG, 0)))[0];
+    end=(*static_cast<DFloatGDL*>(Struct->GetTag(WINDOWTAG, 0)))[1];
+    return end-start;
+}
+    //Get [XYZ].REGION
+  PLFLT* gdlGetRegion() {
+    DStructGDL* Struct=SysVar::X(); //same for all
+    static unsigned REGIONTAG=Struct->Desc()->TagIndex("REGION");
+    static PLFLT position[6];
     position[0]=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(REGIONTAG, 0)))[0];
-    position[1]=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(REGIONTAG, 0)))[1];
-    position[2]=(*static_cast<DFloatGDL*>(SysVar::Y()->GetTag(REGIONTAG, 0)))[0];
+    position[2]=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(REGIONTAG, 0)))[1];
+    position[1]=(*static_cast<DFloatGDL*>(SysVar::Y()->GetTag(REGIONTAG, 0)))[0];
     position[3]=(*static_cast<DFloatGDL*>(SysVar::Y()->GetTag(REGIONTAG, 0)))[1];
     position[4]=(*static_cast<DFloatGDL*>(SysVar::Z()->GetTag(REGIONTAG, 0)))[0];
     position[5]=(*static_cast<DFloatGDL*>(SysVar::Z()->GetTag(REGIONTAG, 0)))[1];
     return position;
 }
-
-  //Stores [XYZ].WINDOW, .REGION and .S
+	//Stores Axis Region
+  void gdlStoreXAxisRegion(GDLGStream* actStream, PLFLT* p)
+  {
+    DStructGDL* Struct=SysVar::X(); 
+    static unsigned regionTag=Struct->Desc()->TagIndex("REGION");
+    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[0]=p[0];
+    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[1]=p[2];
+  }  
+ void gdlStoreYAxisRegion(GDLGStream* actStream, PLFLT* p)
+  {
+    DStructGDL* Struct=SysVar::Y(); 
+    static unsigned regionTag=Struct->Desc()->TagIndex("REGION");
+    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[0]=p[1];
+    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[1]=p[3];
+  }
+ void gdlStoreZAxisRegion(GDLGStream* actStream, PLFLT* p)
+  {
+   // ??? will see when needed.
+  }
+ //Stores [XYZ].WINDOW, TYPE, CRANGE and .S
   void gdlStoreXAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log)
   {
     // !X etc parameters relative to the VIEWPORT:
@@ -1500,7 +1556,7 @@ namespace lib
 	int e = floor(log10(value * sgn));
 
     //we need !3x!X to insure the x sign is always written in single roman.
-    static string normalfmt[7] = {"%1.0f!3x!X10!E%d!N", "%2.1f!3x!X10!E%d!N", "%3.2f!3x!X10!E%d!N", "%4.2f!3x!X10!E%d!N", "%5.4f!3x!X10!E%d!N", "%6.5f!3x!X10!E%d!N", "%7.6f!3x!X10!E%d!N"};
+    static string normalfmt[7] = {"%1.0f!3x!X10!E%d!N", "%2.1f!3x!X10!E%d!N", "%3.2f!3x!X10!E%d!N", "%4.3f!3x!X10!E%d!N", "%5.4f!3x!X10!E%d!N", "%6.5f!3x!X10!E%d!N", "%7.6f!3x!X10!E%d!N"};
     static string specialfmt = "10!E%d!N";
     static string specialfmtlog = "10!E%s!N";
     PLFLT z;
@@ -1537,7 +1593,7 @@ namespace lib
 	  // 10^1->N (positive logs) give zero precision (integer numbers)
 	  // < 1 numbers precision will be the abs of negative magnitude
 	  int prec = 0;
-	  int mag = log10(ptr->Start);
+	  int mag = log10(float(ptr->Start)); // float() see #1887
 	  if (mag < 0) prec = -mag;
 	  snprintf(label, length, "%.*f", prec, pow(10, value));
 	  return;
@@ -1681,7 +1737,7 @@ namespace lib
   
   void doFormatAxisValue(DDouble value, string &label)
   {
-    static string normalfmt[7]={"%1.0fx10^%d","%2.1fx10^%d","%3.2fx10^%d","%4.2fx10^%d","%5.4fx10^%d","%6.5fx10^%d","%7.6fx10^%d"};
+    static string normalfmt[7]={"%1.0fx10^%d","%2.1fx10^%d","%3.2fx10^%d","%4.3fx10^%d","%5.4fx10^%d","%6.5fx10^%d","%7.6fx10^%d"};
     static string specialfmt="10^%d";
     static const int length=20;
     PLFLT z;
@@ -3156,11 +3212,9 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 
   //advance to next plot unless the noerase flag is set
 
-  void gdlNextPlotHandlingNoEraseOption(EnvT *e, GDLGStream *a, bool noe) {
+  void gdlNextPlotHandlingNoEraseOption(EnvT *e, GDLGStream *a) {
     bool noErase = false;
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
-
-    if (!noe) {
       DLong LnoErase = (*static_cast<DLongGDL*>
         (pStruct->
         GetTag(pStruct->Desc()->TagIndex("NOERASE"), 0)))[0];
@@ -3170,9 +3224,6 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       if (e->KeywordSet(NOERASEIx)) {
         noErase = true;
       }
-    } else {
-      noErase = true;
-    }
 
     a->NextPlot(!noErase);
     // all but the first element of !P.MULTI are ignored if POSITION kw or !P.POSITION or !P.REGION is specified
@@ -3243,9 +3294,17 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     DDouble zValue_input, //input
     bool iso) {
 
-    COORDSYS coordinateSystem = DATA;
     DDouble xStart, yStart, xEnd, yEnd, zStart, zEnd;
 
+	static PLFLT aspect = 0.0;
+
+	static PLFLT P_position_normed[4] = {0, 0, 0, 0};
+	static PLFLT P_region_normed[4] = {0, 0, 0, 0};
+	static PLFLT position[4];
+	static PLFLT axis_region[4];
+	// Set to default values:
+
+	
     //work on local values, taking account loginess
     xStart = x0;
     xEnd = x1;
@@ -3265,112 +3324,99 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     if (zLog) {
       zStart = log10(zStart);
       zEnd = log10(zEnd);
-    }
-
-    // MARGIN
-    DFloat xMarginL, xMarginR, yMarginB, yMarginT, zMarginB, zMarginT; //, zMarginB, zMarginT;
-    gdlGetDesiredAxisMargin(e, XAXIS, xMarginL, xMarginR);
-    gdlGetDesiredAxisMargin(e, YAXIS, yMarginB, yMarginT);
-    gdlGetDesiredAxisMargin(e, ZAXIS, zMarginB, zMarginT);
-
+	}
+	
     PLFLT sxmin, symin, sxmax, symax, szmin, szmax;
     actStream->getSubpageRegion(&sxmin, &symin, &sxmax, &symax, &szmin, &szmax);
     //Special for Z: for Z.S, Z.WINDOW and Z.REGION, in case of POSITION having 6 elements
 
-    DDouble zposStart, zposEnd;
-    if (std::isfinite(zValue_input)) {
-      zposStart = zValue_input;
-      zposEnd = ZVALUEMAX;
-    } else {
-      zposStart = szmin;
-      zposEnd = szmax;
-    }
+	DDouble zposStart, zposEnd;
+	if (std::isfinite(zValue_input)) {
+	  zposStart = zValue_input;
+	  zposEnd = ZVALUEMAX;
+	} else {
+	  zposStart = szmin;
+	  zposEnd = szmax;
+	}
+	
+    // GET MARGIN
+    DFloat xMarginL, xMarginR, yMarginB, yMarginT, zMarginB, zMarginT; //, zMarginB, zMarginT;
+    gdlGetDesiredAxisMargin(e, XAXIS, xMarginL, xMarginR);
+    gdlGetDesiredAxisMargin(e, YAXIS, yMarginB, yMarginT);
+    gdlGetDesiredAxisMargin(e, ZAXIS, zMarginB, zMarginT);
+  
+	// Compute BOX position
 
-    PLFLT xMR, xML, yMB, yMT, zMB, zMT;
-    CheckMargin(actStream,
-      xMarginL,
-      xMarginR,
-      yMarginB,
-      yMarginT,
-      xMR, xML, yMB, yMT);
+	// if position given, take it
+	int positionIx = e->KeywordIx("POSITION");
+	DFloatGDL* boxPosition = e->IfDefGetKWAs<DFloatGDL>(positionIx);
+	if (boxPosition != NULL) {
+	  for (SizeT i = 0; i < 4 && i < boxPosition->N_Elements(); ++i) position[i] = (*boxPosition)[i];
+	  if (boxPosition->N_Elements() > 4) {
+		zposStart = fmin((*boxPosition)[4], ZVALUEMAX);
+		zposStart = fmax(zposStart, 0);
+		if (boxPosition->N_Elements() > 5) {
+		  zposEnd = fmin((*boxPosition)[5], ZVALUEMAX);
+		  zposEnd = fmax(zposEnd, 0);
+		}
+	  }
+	  //check presence of DEVICE  options
+	  int DEVICEIx = e->KeywordIx("DEVICE");
+	  if (e->KeywordSet(DEVICEIx)) {
+		// modify position to NORMAL if DEVICE is present
+		actStream->DeviceToNormedDevice(position[0], position[1], position[0], position[1]);
+		actStream->DeviceToNormedDevice(position[2], position[3], position[2], position[3]);
+	  }
+	  //compatibility again: Position NEVER outside [0,1]:
+	  position[0] = max(0.0, position[0]);
+	  position[1] = max(0.0, position[1]);
+	  position[2] = min(1.0, position[2]);
+	  position[3] = min(1.0, position[3]);
+	} else {
+    //POSITION not Ggiven, compute best position
+	  PLFLT xMR, xML, yMB, yMT, zMB, zMT;
+	  CheckMargin(actStream,
+		xMarginL,
+		xMarginR,
+		yMarginB,
+		yMarginT,
+		xMR, xML, yMB, yMT);
 
-    // viewport - POSITION overrides
-    static PLFLT aspect = 0.0;
+	  //compute position removing margins
+	  position[0] = sxmin + xMarginL * actStream->nCharLength();
+	  position[1] = symin + yMarginB * actStream->nLineSpacing();
+	  position[2] = sxmax - xMarginR * actStream->nCharLength();
+	  position[3] = symax - yMarginT * actStream->nLineSpacing();
+	  DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
+	  // Get !P.position values. !P.REGION is superseded by !P.POSITION
+	  if (pStruct != NULL) {
+		unsigned regionTag = pStruct->Desc()->TagIndex("REGION");
+		for (SizeT i = 0; i < 4; ++i) P_region_normed[i] = (PLFLT) (*static_cast<DFloatGDL*> (pStruct->GetTag(regionTag, 0)))[i];
+		unsigned positionTag = pStruct->Desc()->TagIndex("POSITION");
+		for (SizeT i = 0; i < 4; ++i) P_position_normed[i] = (PLFLT) (*static_cast<DFloatGDL*> (pStruct->GetTag(positionTag, 0)))[i];
+	  }
+	  if (P_region_normed[0] != P_region_normed[2]) //exist, so it is a first approx to position: 
+	  {
+		//compute position removing margins
+		position[0] = P_region_normed[0] + xMarginL * actStream->nCharLength();
+		position[1] = P_region_normed[1] + yMarginB * actStream->nLineSpacing();
+		position[2] = P_region_normed[2] - xMarginR * actStream->nCharLength();
+		position[3] = P_region_normed[3] - yMarginT * actStream->nLineSpacing();
+	  }
+	  if (P_position_normed[0] != P_position_normed[2]) //exist, so it is a second approx to position, this one dos not include margins:
+	  {
+		position[0] = P_position_normed[0];
+		position[1] = P_position_normed[1];
+		position[2] = P_position_normed[2];
+		position[3] = P_position_normed[3];
+	  }
+	  //compatibility: Position NEVER outside [0,1]:
+	  position[0] = max(0.0, position[0]);
+	  position[1] = max(0.0, position[1]);
+	  position[2] = min(1.0, position[2]);
+	  position[3] = min(1.0, position[3]);
 
-    static PLFLT P_position_normed[4] = {0, 0, 0, 0};
-    static PLFLT P_region_normed[4] = {0, 0, 0, 0};
-    static PLFLT position[4];
-    // Set to default values:
-
-    //compute position removing margins
-    position[0] = sxmin + xMarginL * actStream->nCharLength();
-    position[1] = symin + yMarginB * actStream->nLineSpacing();
-    position[2] = sxmax - xMarginR * actStream->nCharLength();
-    position[3] = symax - yMarginT * actStream->nLineSpacing();
-    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
-    // Get !P.position values. !P.REGION is superseded by !P.POSITION
-    if (pStruct != NULL) {
-      unsigned regionTag = pStruct->Desc()->TagIndex("REGION");
-      for (SizeT i = 0; i < 4; ++i) P_region_normed[i] = (PLFLT) (*static_cast<DFloatGDL*> (pStruct->GetTag(regionTag, 0)))[i];
-      unsigned positionTag = pStruct->Desc()->TagIndex("POSITION");
-      for (SizeT i = 0; i < 4; ++i) P_position_normed[i] = (PLFLT) (*static_cast<DFloatGDL*> (pStruct->GetTag(positionTag, 0)))[i];
-    }
-    if (P_region_normed[0] != P_region_normed[2]) //exist, so it is a first approx to position: 
-    {
-      //compute position removing margins
-      position[0] = P_region_normed[0] + xMarginL * actStream->nCharLength();
-      position[1] = P_region_normed[1] + yMarginB * actStream->nLineSpacing();
-      position[2] = P_region_normed[2] - xMarginR * actStream->nCharLength();
-      position[3] = P_region_normed[3] - yMarginT * actStream->nLineSpacing();
-    }
-    if (P_position_normed[0] != P_position_normed[2]) //exist, so it is a second approx to position, this one dos not include margins:
-    {
-      position[0] = P_position_normed[0];
-      position[1] = P_position_normed[1];
-      position[2] = P_position_normed[2];
-      position[3] = P_position_normed[3];
-    }
-    //compatibility: Position NEVER outside [0,1]:
-    position[0] = max(0.0, position[0]);
-    position[1] = max(0.0, position[1]);
-    position[2] = min(1.0, position[2]);
-    position[3] = min(1.0, position[3]);
-
-    //check presence of DATA,DEVICE and NORMAL options
-    int DATAIx = e->KeywordIx("DATA");
-    int DEVICEIx = e->KeywordIx("DEVICE");
-    int NORMALIx = e->KeywordIx("NORMAL");
-
-    if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
-    if (e->KeywordSet(DEVICEIx)) coordinateSystem = DEVICE;
-    if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
-
-    // read boxPosition if needed
-    int positionIx = e->KeywordIx("POSITION");
-    DFloatGDL* boxPosition = e->IfDefGetKWAs<DFloatGDL>(positionIx);
-    if (boxPosition != NULL) {
-      for (SizeT i = 0; i < 4 && i < boxPosition->N_Elements(); ++i) position[i] = (*boxPosition)[i];
-      if (boxPosition->N_Elements() > 4) {
-        zposStart = fmin((*boxPosition)[4], ZVALUEMAX);
-        zposStart = fmax(zposStart, 0);
-        if (boxPosition->N_Elements() > 5) {
-          zposEnd = fmin((*boxPosition)[5], ZVALUEMAX);
-          zposEnd = fmax(zposEnd, 0);
-        }
-      }
-    }
-    if (boxPosition != NULL) { //use passed values
-      if (coordinateSystem == DEVICE) {
-        // modify position to NORMAL if DEVICE is present
-        actStream->DeviceToNormedDevice(position[0], position[1], position[0], position[1]);
-        actStream->DeviceToNormedDevice(position[2], position[3], position[2], position[3]);
-      }
-      //compatibility again: Position NEVER outside [0,1]:
-      position[0] = max(0.0, position[0]);
-      position[1] = max(0.0, position[1]);
-      position[2] = min(1.0, position[2]);
-      position[3] = min(1.0, position[3]);
-    }
+	}
 
     aspect = 0.0; // vpas with aspect=0.0 equals vpor.
     if (iso) aspect = abs((yEnd - yStart) / (xEnd - xStart)); //log-log or lin-log
@@ -3381,6 +3427,14 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 
     actStream->wind(xStart, xEnd, yStart, yEnd);
 
+      //compute axis_region adding margins (information in !X.REGION etc)
+      axis_region[0] = max(0.0,position[0] - xMarginL * actStream->nCharLength());
+      axis_region[1] = max(0.0,position[1] - yMarginB * actStream->nLineSpacing());
+      axis_region[2] = min(1.0,position[2] + xMarginR * actStream->nCharLength());
+      axis_region[3] = min(1.0,position[3] + yMarginT * actStream->nLineSpacing());
+	  gdlStoreXAxisRegion(actStream, axis_region);
+	  gdlStoreYAxisRegion(actStream, axis_region);
+	  gdlStoreZAxisRegion(actStream, axis_region);
     //set ![XYZ].CRANGE ![XYZ].type ![XYZ].WINDOW and ![XYZ].S
     gdlStoreXAxisParameters(actStream, xStart, xEnd, xLog); //already in log here if relevant!
     gdlStoreYAxisParameters(actStream, yStart, yEnd, yLog);
@@ -3594,16 +3648,19 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	  if (SUBTITLEIx >= 0) {
 		e->AssureStringScalarKWIfPresent(SUBTITLEIx, subTitle);
 	  } else goto NoTitlesAccepted;
-
+	  
+      if (subTitle.empty() && title.empty()) goto NoTitlesAccepted; //escape early, saves code
+	  
 	  a->plstream::vpor(refboxxmin, refboxxmax, refboxymin, refboxymax);
 	  a->wind(owboxxmin, owboxxmax, owboxymin, owboxymax); //restore old values
-	  gdlSetPlotCharthick(e, a);
 	  if (!subTitle.empty()) {
+		gdlSetPlotCharthick(e, a);
 		gdlSetPlotCharsize(e, a);
 		PLFLT title_disp = 4 * interligne_as_char - 0.5; //in chars
 		a->mtex("b", title_disp, 0.5, 0.5, subTitle.c_str()); //position is in units of current char height. baseline at half-height
 	  }
 	  if (!title.empty()) {
+		gdlSetPlotCharthick(e, a);
 		gdlSetPlotCharsize(e, a, 1.25);
 		PLFLT disp = interligne_as_char / 2;
 		a->mtex("t", disp + 0.5, 0.5, 0.5, title.c_str()); //position is in units of current char height. baseline at half-height
@@ -3644,7 +3701,7 @@ NoTitlesAccepted:
 
 
     gdlGetDesiredAxisTickGet(e, axisId, TickInterval, Start, End, Log);
-	
+  
 	if (Start == End) return;
 	if (Log && (Start <= 0 || End <= 0)) return; //important protection 
 	bool doplot = ((AxisStyle & 4) != 4); 
@@ -3664,8 +3721,8 @@ NoTitlesAccepted:
 	gdlGetDesiredAxisGridStyle(e, axisId, GridStyle);
 	DLong Minor;
 	gdlGetDesiredAxisMinor(e, axisId, Minor);
-	DFloat Thick;
-	gdlGetDesiredAxisThick(e, axisId, Thick);
+	DFloat AxisThick;
+	gdlGetDesiredAxisThick(e, axisId, AxisThick);
 	DStringGDL* TickFormat;
 	gdlGetDesiredAxisTickFormat(e, axisId, TickFormat);
 	DLong TickLayout;
@@ -3701,9 +3758,10 @@ NoTitlesAccepted:
 	  inverted_ticks = true;
 	  TickLen = -TickLen;
 	}
-	//ticklen in a percentage of box x or y size, to be expressed in mm 
-	if (axisId == XAXIS) ticklen_in_mm = a->mmyPageSize()*(a->boxnYSize()) * ticklen_in_mm;
-	else ticklen_in_mm = a->mmxPageSize()*(a->boxnXSize()) * ticklen_in_mm;
+	//ticklen in a percentage of box x or y size, to be expressed in mm. Since AXis is also called by the AXIS command that internally redefines vpor()
+	// the ticklen must be defined from current !X and !Y values, so:
+	if (axisId == XAXIS) ticklen_in_mm = a->mmyPageSize() * gdlGetBoxNYSize() * ticklen_in_mm;
+	else ticklen_in_mm = a->mmxPageSize()* gdlGetBoxNXSize() * ticklen_in_mm;
 	//    if (ticklen_in_mm > 100.) ticklen_in_mm = 0; //PATCH to avoid PS and MEM device problem. Check why gspa() returns silly values. TBC 
 	DFloat ticklen_as_norm = (axisId == XAXIS) ? a->mm2ndy(ticklen_in_mm) : a->mm2ndx(ticklen_in_mm); //in normed coord
 	//eventually, each succesive X or Y axis is separated from previous by interligne + ticklen in adequate units. 
@@ -3768,7 +3826,7 @@ NoTitlesAccepted:
 	gdlLineStyle(a, GridStyle);
 	// ticklayout2 has no log and no subticks
 	if (Log) {
-	  if (TickInterval < 1) { //if log and tickinterval was >1 then we pass in 'linear, no subticks' mode (see issue #1112)
+	  if (TickInterval <= 1) { //if log and tickinterval was >1 then we pass in 'linear, no subticks' mode (see issue #1112)
 		tickOpt += SUBTICKS LOG;
 		Minor = 0;
 	  } else if (TickInterval < 2) {
@@ -3814,6 +3872,8 @@ NoTitlesAccepted:
 	tickdata.e = e;
 	tickdata.isLog = Log;
 	tickdata.Start = (Start>End)?End:Start;
+	//protect against (plplot) bug #1893
+	if (TickInterval + tickdata.Start == tickdata.Start) return; //the best we can do?	
 	tickdata.End = (Start>End)?Start:End;
 	tickdata.nchars = 0;
 	tickdata.TickFormat = NULL;
@@ -3864,22 +3924,26 @@ NoTitlesAccepted:
 	a->plstream::vpor(refboxxmin, refboxxmax, refboxymin, refboxymax);
 	a->plstream::gvpd(boxxmin, boxxmax, boxymin, boxymax);
 	a->plstream::wind(wboxxmin, wboxxmax, wboxymin, wboxymax);
-	//      thick for box and ticks.
-	a->Thick(Thick);
+
 	a->smaj(ticklen_in_mm, 1.0);
 	if (TickLen < 0.3 || inverted_ticks) a->smin(ticklen_in_mm / 2.0, 1.0); //IDL behaviour.
 
 	for (auto i = 0; i < tickdata.nTickUnits; ++i) //loop on TICKUNITS axis
 	{
 	  if (i > 0 || TickInterval == 0) TickInterval = gdlComputeAxisTickInterval(e, axisId, Start, End, Log, i/*, (AxisStyle & 1) == 0*/);
-
+	  //protect against (plplot) bug #1893
+      if (TickInterval+tickdata.Start == tickdata.Start) continue;
 	  tickdata.nchars = 0; //set nchars to 0, at the end nchars will be the maximum size.
 	  if (i == 1) tickOpt = (TickLayout == 2) ? tickLayout2 : additionalAxesTickOpt; //change style of ticks for supplemental axes
 	  defineLabeling(a, axisId, gdlNoLabelTickFunc, &tickdata); //prevent plplot to write labels (but writes something, so that label positions are reported in getLabelingValues())
 	  if (axisId == XAXIS) {
 		a->plstream::vpor(boxxmin, boxxmax, (otheraxis)?boxymin:boxymin - xdisplacement, (otheraxis)?boxymax + xdisplacement:boxymax);
-		a->plstream::wind(wboxxmin, wboxxmax, wboxymin, wboxymax);
+	  if (Log) a->plstream::wind(log10(Start), log10(End), owboxymin, owboxymax);
+	  else a->plstream::wind(Start, End, owboxymin, owboxymax);
+//		a->plstream::wind(wboxxmin, wboxxmax, wboxymin, wboxymax);
 		if (doplot) {
+		  //   Set thick for this axis line and ticks.
+		  a->Thick(AxisThick);
 		  bool isTickv = (hasTickv && i == 0);
 		  if (isTickv) {
 			gdlDrawAxisTicks(a, axisId, Tickv, Log, Ticks, TickLen, tickOpt, where, TickLayout, &tickdata, doplot);
@@ -3888,6 +3952,8 @@ NoTitlesAccepted:
 			a->box(tickOpt.c_str(), TickInterval, Minor, "", 0.0, 0); //ticks
 			a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0); //no labels, just get ticks positions
 		  }	
+		  // Labels: replace PenThickness with character desired thickness (otherwise drawing of characters inherits the /[XYZ]THICK option )
+		  gdlSetPlotCharthick(e, a);
 		  DDoubleGDL* values = getLabelingValues(axisId);	
 		  gdlDrawOurLabels(a, axisId, values, Log, isTickv, adddisplacement, Opt, where, TickLayout, (i == 0) ? gdlSimpleAxisTickFunc : gdlMultiAxisTickFunc, &tickdata, otheraxis, doplot);
 		  GDLDelete(values);
@@ -3896,8 +3962,12 @@ NoTitlesAccepted:
 		if (!inverted_ticks && TickLayout != 2) xdisplacement += ticklen_as_norm; //every axis after the first will be separated by this
 	  } else {
 		a->plstream::vpor((otheraxis)?boxxmin:boxxmin - ydisplacement, (otheraxis)?boxxmax+ydisplacement:boxxmax, boxymin, boxymax);
-		a->plstream::wind(wboxxmin, wboxxmax, wboxymin, wboxymax);
+	  if (Log) a->plstream::wind(owboxxmin, owboxxmax, log10(Start), log10(End));
+	  else a->plstream::wind(owboxxmin, owboxxmax, Start, End);
+//		a->plstream::wind(wboxxmin, wboxxmax, wboxymin, wboxymax);
 		if (doplot) {
+		  //   Set thick for this axis line and ticks.
+		  a->Thick(AxisThick);
 		  bool isTickv = (hasTickv && i == 0);
 		  if (isTickv) {
 			gdlDrawAxisTicks(a, axisId, Tickv, Log, Ticks, TickLen, tickOpt, where, TickLayout, &tickdata, doplot);
@@ -3906,6 +3976,8 @@ NoTitlesAccepted:
 			a->box("", 0.0, 0.0, tickOpt.c_str(), TickInterval, Minor); //write ticks
 			a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor); //write blank labels and get ticks positions
 		  }
+		  // Labels: replace PenThickness with character desired thickness (otherwise drawing of characters inherits the /[XYZ]THICK option )
+		  gdlSetPlotCharthick(e, a);
 		  DDoubleGDL* values = getLabelingValues(axisId);
 		  //write labels our way, with any centering , even on multiline etc. We need the length of the 
 		  nchars[i] = gdlDrawOurLabels(a, axisId, values, Log, isTickv, adddisplacement, Opt, where, TickLayout, (i == 0) ? gdlSimpleAxisTickFunc : gdlMultiAxisTickFunc, &tickdata, otheraxis, doplot);

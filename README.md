@@ -89,6 +89,7 @@ GDL has numerous dependencies, most of the optional but highly recommended if yo
 - [GLPK](https://www.gnu.org/software/glpk/) optional, provides the SIMPLEX command.
 
 Besides, for optimal use (speed mainly), GDL incorporates slightly edited code of
+- [plplot](https://sourceforge.net/projects/plplot/) of which we keep only a bare minimum (and patched for bugs as the projects seems unmaintained now).
 - [dSFMT](http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/SFMT) as our parallel random Generator.
 - [delaunator](https://github.com/mapbox/delaunator) as our new hyperfast triangulation.
 - [ANTLR3](https://www.antlr3.org/) as interpretor.

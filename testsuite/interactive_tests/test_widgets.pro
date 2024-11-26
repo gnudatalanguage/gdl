@@ -123,6 +123,18 @@ function draw2_event,ev
   print,"draw2 event"
   return,ev
 end
+function test_func_button,ev
+  print, "fancy button pressed! (catched in button widget itself)"
+  parent=widget_info(ev.id,/parent)
+  ev.handler=parent ; pass to parent
+  return, ev
+end
+function catch_passed_event_example,ev
+  print, "button "+strtrim(ev.id,2)+" was pressed! (catched in parent's event_func routine)"
+;  parent=widget_info(ev.id,/parent)
+;  ev.handler=parent ; pass to parent
+  return, ev
+end
 
 pro draw1_event,ev
 widget_id=ev.id
@@ -161,10 +173,16 @@ pro list_event,event
 toto=["A","list","created","with","WIDGET_LIST","YSIZE=3"]
 print,toto[event.index] 
 end
+
+; called by XMANAGER : main eventloop
 pro handle_Event,ev
   common mycount,count
   common pixmaps,green_bmp,red_bmp
-  help,ev,/str
+  common forprogressbar,progressbar,pbarid,pbarpos
+
+  ; avoid to report timer events
+  if tag_names(ev, /structure_name) ne 'WIDGET_TIMER' then  help,ev,/str
+  
   if tag_names(ev, /structure_name) eq 'WIDGET_KILL_REQUEST' then begin
      acceptance=dialog_message(dialog_parent=ev.id,"I Do want to close the window", /CANCEL, /DEFAULT_NO,/QUESTION) ; +strtrim(ev.id,2))
      if acceptance eq "Yes" then begin
@@ -218,7 +236,7 @@ pro handle_Event,ev
         return
      endif
      
-     print,"uvalue.type=",uv.type
+     if uv.type ne 'timer' then print,"uvalue.type=",uv.type
      case uv.type of
         'file': begin
            widget_control,ev.id,get_value=value ;& print,value
@@ -250,6 +268,9 @@ pro handle_Event,ev
 	   if val eq 'ON' then begin
               widget_control,ev.id,set_value = 'OFF' 
            endif else begin
+              vv=widget_info(/xmanager)
+              widget_control,ev.id,set_value = "MANAGED: "+strtrim(vv,2)
+              wait,1
               widget_control,ev.id,set_value = 'ON'
            endelse
         end
@@ -263,6 +284,14 @@ pro handle_Event,ev
                widget_control,ev.id,set_value = green_bmp, set_uvalue= val
            endelse
         end
+        'timer': begin
+           wset,pbarid
+           pbarpos += 5
+           pbarpos MOD= 300
+           ERASE, 255
+           POLYFILL, pbarpos+[0,0,5,5], [0, 19, 19,0], /DEVICE, color=140
+           WIDGET_CONTROL, ev.id, TIMER=.2
+         end
         'quit':  widget_control,ev.top,/DESTROY
         else: begin
            print, "(other, not treated, event: ok)"
@@ -270,6 +299,7 @@ pro handle_Event,ev
         end
         
      endcase
+     return
   endif
   print, "(unhandled event: ok)"
 end
@@ -308,7 +338,8 @@ siz= widget_button(menu,VALUE="Resize (error)",EVENT_PRO="resize_gui") ; 5
 pro test_widgets,table,help=help,nocanvas=nocanvas,notree=notree,block=block,fontname=fontname,present=present,select=select,_extra=extra
   common mycount,count
   common pixmaps,green_bmp,red_bmp
-
+  common forprogressbar,progressbar,pbarid,pbarpos
+  
   green_bmp= bytarr(7,7,3)& green_bmp[*,*,1] = 255& & green_bmp[0,0,1] = 254
   red_bmp= bytarr(7,7,3)& red_bmp[*,*,0] = 255& & red_bmp[0,0,0] = 254
   if (n_elements(select) gt 0) then present=select
@@ -351,7 +382,9 @@ ev = {vEv,type:'',pos:[0,0]}
 base = WIDGET_BASE(/col,MBAR=mbar,title=title,event_pro='base_event_nok',kill_notify='cleanup',/tlb_kill_request_events,/tlb_size_events) ; ---> PROBLEM: ,/tlb_size_events) ;,/scroll)
 doMbar,mbar,fontname
 ;mysize=widget_info(base,string_size='012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234')
-
+; add a progress bar to test timer
+  progressbar = WIDGET_DRAW(base, XSIZE=300, YSIZE=20, UVALUE={vEv,'timer',[0,0]})
+  pbarpos=0
 ; define a tabbed base that contains everything:
 label=widget_label(base,value='to best mimic IDL`s widgets, call GDL ',/align_left)
 label=widget_label(base,value='with option "--widget-compat" ',/align_left)
@@ -474,7 +507,7 @@ endif
     button_base00 = widget_base( tabbed_base, TITLE="BUTTONs", COL=2, $
        SPACE=10, XPAD=10, YPAD=10) & offy=10
 
-    button_base01 = widget_base(button_base00, TITLE="BUTTONs",/COL) & offy=10
+    button_base01 = widget_base(button_base00, TITLE="BUTTONs",/COL, event_func='catch_passed_event_example') & offy=10
     button_base02 = widget_base(button_base00, TITLE="BUTTONs",/COL) & offy=10
 ; BUTTONs
     tmp=widget_label(yoff=offy,button_base01,value="Simple ON/OFF Button") & offy+=10           ;
@@ -486,7 +519,7 @@ endif
     tmp=widget_label(yoff=offy,button_base01,value="Bitmap Simple Button") & offy+=10           ;
     tmp=widget_button(yoff=offy,button_base01,value=myBitmap()) & offy+=10 ;
     tmp=widget_label(yoff=offy,button_base01,value="Fancy Simple Button") & offy+=10           ;
-    tmp=widget_button(yoff=offy,button_base01,value="Fancy Button",font=fontname) & offy+=10 ;
+    tmp=widget_button(yoff=offy,button_base01,value="Fancy Button",font=fontname, event_func='test_func_button') & offy+=10 ;
     tmp=widget_label(yoff=offy,button_base01,value="Exclusive base, framed 30") & offy+=10  ;
     radio=widget_base(yoff=offy,button_base01,/EXCLUSIVE,COL=1,frame=30) & offy+=150         ;
     rb1=widget_button(radio,VALUE="button in EXCLUSIVE base 1",uvalue={vEv,'rb1',[8,0]}, font=fontname)
@@ -725,7 +758,9 @@ widget_control,base,notify_realize='i_am_realized'
 ;Realize the widgets. 
 WIDGET_CONTROL, /REALIZE, base 
  
-;;Obtain the window index. 
+;;Obtain the window index.
+  WIDGET_CONTROL, progressbar, GET_VALUE = pbarId
+
 if ~keyword_set(nocanvas) and total(strcmp('DRAW',present,/fold)) then begin
 print,"Draw widgets:",draw,draw2
  WIDGET_CONTROL, draw, GET_VALUE = index 
@@ -736,7 +771,16 @@ print,"Draw widgets:",draw,draw2
  print,"window indexes",index,index2
  image=dist(128)
  WSET,index
- n=100 & x=randomu(seed,n)& y=randomu(seed,n) &p=randomu(seed,10)*n & x[p]=x[3] &y[p]=y[22]& TRIANGULATE, x, y, tr,b,rep=r,conn=conn &myplot,tr,x,y,b,conn,1
+
+  catch, error
+  if error ne 0 then begin
+     save,x,y,p,file="problemwithtriangulate.sav"
+     message,/inf,"CONGRATULATIONS YOU FOUND (INVOLUNTARILY!) A PROBLEM WITH THE FAST TRIANGULATION ALGORITHM"
+     message,"Please contribute to GDL by saving the file 'problemwithtriangulate.sav' and make an issue on github: https://github.com/gnudatalanguage/gdl , thanks in advance" 
+     catch,/cancel
+  endif
+
+  n=100 & x=randomu(seed,n)& y=randomu(seed,n) &p=randomu(seed,10)*n & x[p]=x[3] &y[p]=y[22]& TRIANGULATE, x, y, tr,b,rep=r,conn=conn &myplot,tr,x,y,b,conn,1
 
     ;;
  WSET, index2 
@@ -745,5 +789,8 @@ print,"Draw widgets:",draw,draw2
  tv,image,10,10,/data; ,/true
 endif
 
-xmanager,"handle",base,cleanup="cleanup_xmanager",no_block=~block
+; create a timer event --- otherwise will not be active and thus not catched in eventloop
+widget_control,progressbar,timer=0
+
+xmanager,"handle",base,cleanup="cleanup_xmanager";,no_block=~block
 end

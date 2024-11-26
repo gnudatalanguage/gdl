@@ -32,10 +32,6 @@
 #error "CBLAS (part of GNU Scientific Library) not installed. Please see README file."
 #endif
 
-#ifndef HAVE_LIBPLPLOTCXXD
-#error "plplot not installed. Please see README file."
-#endif
-
 #endif // HAVE_CONFIG_H
 
 // Python.h must be included before everything else
@@ -647,5 +643,49 @@ public:
 };
 
 //typedef std::vector< void*> FreeListT;	
+// thread safe deque
+
+
+#include <deque>
+class DStructGDL;
+class GDLEventQueue {
+private:
+  std::deque<DStructGDL*> dq;
+public:
+
+  GDLEventQueue() //normally we should have ~GDLEventQueue removing the DStructGDLs?
+  {
+  }
+
+  DStructGDL* Pop() {
+    if (dq.empty())
+      return NULL;
+    //    if( dq.empty()) // needed again for thread safe behaviour
+    //      return NULL;   
+    DStructGDL* front = dq.front();
+    dq.pop_front();
+    return front;
+  }
+  // for all regular events
+
+  void PushBack(DStructGDL* ev) {
+    dq.push_back(ev);
+  }
+  // for priority events (like delete widget)
+
+  void PushFront(DStructGDL* ev) {
+    dq.push_front(ev);
+  }
+  // Not good: between call of Empty and Pop another thread's Pop could be executed
+  //           -> Empty is useless (dangerous) for polling
+  // although: as used here (there is only one thread calling Pop) it would work
+  //   bool Empty() const
+  //   { 
+  //     return isEmpty;    
+  //   }
+  void Purge();
+  void Purge(DLong id); //remove specific id
+};
+
 
 #endif

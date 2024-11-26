@@ -4,7 +4,6 @@
 #define EXEC_PREFIX "@CMAKE_INSTALL_PREFIX@"
 #define GDLDATADIR "@CMAKE_INSTALL_PREFIX@@GDL_DATA_DIR@"
 #define GDLLIBDIR "@GDL_LIB_DIR@"
-#define GDL_DRV_DIR "@GDL_DRV_DIR@"
 
 #define _CRT_SECURE_NO_WARNINGS
 
@@ -16,7 +15,6 @@
 #cmakedefine HAVE_LIBGSL 1
 #cmakedefine HAVE_LIBGSLCBLAS 1
 #cmakedefine HAVE_LIBNCURSES 1
-#cmakedefine HAVE_LIBPLPLOTCXXD 1
 #cmakedefine HAVE_LIBREADLINE 1
 #cmakedefine HAVE_LIBWXWIDGETS 1
 #cmakedefine HAVE_LIBZ 1
@@ -29,9 +27,7 @@
 #cmakedefine HAVE_MALLOC_ZONE_STATISTICS 1
 #cmakedefine HAVE_MEMORY_H 1
 #cmakedefine HAVE_NEXTTOWARD 1
-#cmakedefine HAVE_PLPLOT_WIDTH 1
-#cmakedefine PLPLOT_PRIVATE_NOT_HIDDEN 1
-#cmakedefine PLPLOT_HAS_PLCALLBACK
+#cmakedefine HAVE__WIDTH 1
 #cmakedefine HAVE_QHULL 1
 #define _WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ 1
 

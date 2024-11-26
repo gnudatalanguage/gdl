@@ -500,8 +500,8 @@ int GraphicsMultiDevice::WAddFree() {
   for (int i = max_win; i < wLSize; i++)
     if (winList[i] == NULL) return i;
   
-  // plplot allows only 101 windows [0 to 100], do not allocate more
-  if (wLSize == 101) return -1;
+  // careful not to get more windows than MAX_WIN_RESERVE
+  if (wLSize == max_win_reserve+1) return -1;
   //else allocate new
   winList.push_back(NULL);
   oList.push_back(0);
@@ -597,8 +597,8 @@ bool GraphicsMultiDevice::CopyRegion(DLongGDL* me) {
   if (me->N_Elements() == 7) source = (*me)[6];
   else source = actWin;
   int ret=winList[ source]->GetRegion(xs, ys, nx, ny);
-  if (ret!=0){
-	if (ret=1) return true; //region is ot of view. not a problem.
+  if (ret != 0){
+	if (ret == 1) return true; //region is ot of view. not a problem.
 	return false; //CopyRegion is not allowed for this device
   }
   return winList[ actWin ]->SetRegion(xd, yd, nx, ny);

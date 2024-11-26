@@ -543,26 +543,27 @@ static void help_lastmsg(EnvT* e)
     }
   }
     
-  static DStringGDL* recall_commands_internal()
-  {
+  static DStringGDL* recall_commands_internal() {
 
 #if defined(HAVE_LIBREADLINE)
-    // http://cnswww.cns.cwru.edu/php/chet/readline/history.html#IDX14
-    HIST_ENTRY **the_list;
-    //    cout << "history_length" << history_length << '\n';
-    the_list = history_list();
+  if (iAmMaster) {
+	// http://cnswww.cns.cwru.edu/php/chet/readline/history.html#IDX14
+	HIST_ENTRY **the_list;
+	//    cout << "history_length" << history_length << '\n';
+	the_list = history_list();
 
-    if (the_list) {
-      DStringGDL* retVal = new DStringGDL(history_length, BaseGDL::NOZERO);
-      for (SizeT i = 0; i < history_length; ++i)
-        (*retVal)[history_length-i-1] = the_list[i]->line;
-      return retVal;
-    } else return new DStringGDL("");
+	if (the_list) {
+	  DStringGDL* retVal = new DStringGDL(history_length, BaseGDL::NOZERO);
+	  for (SizeT i = 0; i < history_length; ++i)
+		(*retVal)[history_length - i - 1] = the_list[i]->line;
+	  return retVal;
+	}  else return new DStringGDL("");
+  } else return new DStringGDL(""); //pacify compiler
 #else
-    Message("RECALL_COMMANDS: nothing done, because compiled without READLINE");
-    return new DStringGDL("");
+  Message("RECALL_COMMANDS: nothing done, because compiled without READLINE");
+  return new DStringGDL("");
 #endif
-  }
+}
 
 namespace lib {
 

@@ -1,19 +1,37 @@
-pro test_heap_refcount
-err=0
+;
+; Seem to be related to a bug discovered long time ago in SF !
 ; closed bug 708: This didn't work.
-ab = ptr_new(fltarr(12))
+;
+; This test not only test "HEAP_REFCOUNT" but also "PTRARR" !
+;
+; Modifications history :
+; -2024-05-27 AC : cleaning (details ...)
+;
+pro TEST_HEAP_REFCOUNT, test=test, no_exit=no_exit
+;
+err=0
+;
+ab = PTR_NEW(FLTARR(12))
 cmp = {a:ab, b:ab}
-
-if(heap_refcount(ab) ne 3) then err++
-
-jptr = ptrarr(4)
-for k=1,3 do jptr[k] = ptr_new(findgen(100+k))
+if (HEAP_REFCOUNT(ab) ne 3) then ERRORS_ADD, err, 'First error'
+;
+jptr = PTRARR(4)
+for k=1,3 do jptr[k] = PTR_NEW(FINDGEN(100+k))
 jptr[0] = ab
-if(total(heap_refcount(jptr)) ne 4+1+1+1) then err++
-kptr = ptrarr(4)
+if (TOTAL(HEAP_REFCOUNT(jptr)) ne 4+1+1+1) then ERRORS_ADD, err, 'second error'
+;
+kptr = PTRARR(4)
 for k=0,3 do kptr[k] = jptr[k]
-if(total(heap_refcount(jptr)) ne 5+2+2+2) then err++
-
-if err ne 0 then exit, status=1
-
+if (TOTAL(HEAP_REFCOUNT(jptr)) ne 5+2+2+2) then ERRORS_ADD, err, 'third error'
+;
+cumul_errors=err
+;
+; ----------------- final message ----------
+;
+BANNER_FOR_TESTSUITE, 'TEST_HEAP_REFCOUNT', cumul_errors, short=short
+;
+if (cumul_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+;
+if KEYWORD_SET(test) then STOP
+;
 end

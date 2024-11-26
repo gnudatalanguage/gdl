@@ -325,458 +325,458 @@ namespace lib {
     return 0;
   }
 
-  template<typename T>
-  T *fft_template(EnvT *e, BaseGDL *p0,
-		  SizeT nEl, SizeT dbl, SizeT overwrite,
-		  double direct, DLong dimension) {
-    SizeT offset;
-    SizeT stride = 1;
-
-    T *res;
-    T *tabtemp = new T(p0->Dim());
-    Guard<T> tabtempGuard(tabtemp);
-
-    Guard<T> resGuard;
-    if (overwrite == 0) {
-      res = new T(p0->Dim(), BaseGDL::ZERO);
-      resGuard.Reset(res);
-    } else {
-      res = (T *) p0;
-      if (e->GlobalPar(0))
-	e->SetPtrToReturnValue(&e->GetPar(0));
-    }
-
-    DComplexGDL *tabfft = new DComplexGDL(p0->Dim());
-    Guard<DComplexGDL> tabfftGuard(tabfft);
-
-    DComplexGDL *p0C = static_cast<DComplexGDL *>
-      (p0->Convert2(GDL_COMPLEX, BaseGDL::COPY));
-    Guard<DComplexGDL> p0CGuard(p0C);
-
-    int dec = 0;
-    int temp = 0;
-    int flag = 0;
-    int l = 0;
-
-    int tab[MAXRANK];
-    for (int y = 0; y < tabfft->Rank(); y++)
-      tab[y] = 0;
-
-    if (dimension >= 0) {
-      // contact for this part (dim > 0) is Mathieu P. or Alain C.
-      // Debut demontage tab
-
-      l = 0;
-      for (int j = 0; j < nEl / tabfft->Dim(dimension); j++) {
-	dec = 0;
-	flag = 0;
-	for (int n = 0; n < tabfft->Rank(); n++) {
-	  if (tab[n] != tabfft->Dim(n) - 1 && flag == 0 && n != dimension && l != 0) {
-	    tab[n]++;
-	    //cout << "tab[" << n << "] = " << tab[n] << endl;
-	    flag = 1;
-	  } else if (tab[n] == tabfft->Dim(n) - 1 && flag == 0 && n != dimension && l != 0)
-	    tab[n] = 0;
-
-	  temp = 1;
-	  if (n != 0) {
-	    for (int m = n - 1; m >= 0; m--) {
-	      temp = temp * tabfft->Dim(m);
-	    }
-	  }
-	  //cout << "temp = " << temp << endl;
-	  dec = dec + tab[n] * temp;
-	  //cout << "dec = " << dec << endl;
-	}
-
-	temp = 1;
-	for (int y = dimension - 1; y >= 0; y--) {
-	  temp = temp * tabfft->Dim(y);
-	}
-	for (int i = 0; i < tabfft->Dim(dimension); i++) {
-	  (*tabfft)[l] = (*p0C)[dec + i * temp];
-	  //cout << l << "=" << dec+i*temp << endl;
-	  l++;
-	}
-      }
-
-      // Fin demontage tab - Debut res
-
-      temp = 1;
-      for (int y = 0; y < tabfft->Rank(); y++) {
-	if (y != dimension)
-	  temp = temp * tabfft->Dim(y);
-      }
-
-      for (int i = 0; i < temp; i++) {
-	offset = i * tabfft->Dim(dimension);
-	fft_1d(tabfft, &(*tabtemp)[0], tabfft->Dim(dimension), offset, stride,
-	       direct, dbl, 1);
-      }
-
-      // Fin res - Debut remontage
-
-      for (int y = 0; y < tabfft->Rank(); y++)
-	tab[y] = 0;
-
-      l = 0;
-      for (int j = 0; j < nEl / tabfft->Dim(dimension); j++) {
-	dec = 0;
-	flag = 0;
-	for (int n = 0; n < tabfft->Rank(); n++) {
-	  if (tab[n] != tabfft->Dim(n) - 1 && flag == 0 && n != dimension && l != 0) {
-	    tab[n]++;
-	    //cout << "tab[" << n << "] = " << tab[n] << endl;
-	    flag = 1;
-	  } else if (tab[n] == tabfft->Dim(n) - 1 && flag == 0 && n != dimension && l != 0)
-	    tab[n] = 0;
-
-	  temp = 1;
-	  if (n != 0) {
-	    for (int m = n - 1; m >= 0; m--) {
-	      temp = temp * tabfft->Dim(m);
-	    }
-	  }
-	  //cout << "temp = " << temp << endl;
-	  dec = dec + tab[n] * temp;
-	  //cout << "dec = " << dec << endl;
-	}
-
-	temp = 1;
-	for (int y = dimension - 1; y >= 0; y--) {
-	  temp = temp * tabfft->Dim(y);
-	}
-	for (int i = 0; i < tabfft->Dim(dimension); i++) {
-	  (*res)[dec + i * temp] = (*tabtemp)[l];
-	  //cout << l << "=" << dec+i*temp << endl;
-	  l++;
-	}
-      }
-    } else {
-      dimension = 0;
-
-      if (p0->Rank() == 1) {
-	offset = 0;
-	stride = 1;
-
-	fft_1d(p0, &(*res)[0], nEl, offset, stride,
-	       direct, dbl, dimension);
-
-      } else if (p0->Rank() == 2) {
-	stride = p0->Dim(0);
-	for (SizeT i = 0; i < p0->Dim(0); ++i) {
-	  fft_1d(p0, &(*res)[0], p0->Dim(1), i, stride,
-		 direct, dbl, dimension);
-	}
-	for (SizeT i = 0; i < p0->Dim(1); ++i) {
-	  fft_1d(res, &(*res)[0],
-		 p0->Dim(0), i * p0->Dim(0), 1,
-		 direct, dbl, dimension);
-	}
-      } else if (p0->Rank() >= 3) {
-	unsigned char *used = new unsigned char[nEl];
-	ArrayGuard<unsigned char> usedGuard(used);
-
-	stride = nEl;
-	for (SizeT i = p0->Rank(); i < nEl; ++i) used[i] = 0;
-
-	for (SizeT k = p0->Rank(); k > 0; --k) {
-	  for (SizeT i = 0; i < nEl; ++i) used[i] = 0;
-	  stride /= p0->Dim(k - 1);
-
-	  SizeT cnt = 1;
-	  offset = 0;
-	  while (cnt <= nEl / p0->Dim(k - 1)) {
-	    if (used[offset] != 1) {
-	      cnt++;
-	      for (SizeT i = 0; i < p0->Dim(k - 1); ++i)
-		used[offset + i * stride] = 1;
-	      if (k == p0->Rank())
-		fft_1d(p0, &(*res)[0], p0->Dim(k - 1), offset, stride,
-		       direct, dbl, dimension);
-	      else
-		fft_1d(res, &(*res)[0], p0->Dim(k - 1), offset, stride,
-		       direct, dbl, dimension);
-	    }
-	    offset++;
-	  }
-	}
-	// 	  delete used;
-      }
-    }
-
-    resGuard.release();
-    return res;
-  }
-
-
-  BaseGDL *fft_fun(EnvT *e) {
-    static bool warning_done = false;
-    /*
-      Program Flow
-      ------------
-      fft_fun
-      fft_template
-      fft_1d
-      (real/complex)_fft_transform_template
-      cp2data_template (real only)
-      cp2data_2_template (real only)
-    */
-
-    SizeT nParam = e->NParam(1);
-    SizeT overwrite = 0, dbl = 0;
-    //unused    SizeT stride;
-    //unused    SizeT offset;
-
-    double direct = -1.0;
-
-    //BaseGDL* p0 = e->GetNumericArrayParDefined( 0);
-    BaseGDL *p0 = e->GetParDefined(0);
-
-    SizeT nEl = p0->N_Elements();
-    if (nEl == 0)
-      e->Throw(
-	       "Variable is undefined: " + e->GetParString(0));
-
-
-    if (nParam == 2) {
-      BaseGDL *p1 = e->GetPar(1);
-      if (p1->N_Elements() > 1)
-	e->Throw(
-		 "Expression must be a scalar or 1 element array: "
-		 + e->GetParString(1));
-
-
-      DDoubleGDL *direction =
-	static_cast<DDoubleGDL *>(p1->Convert2(GDL_DOUBLE, BaseGDL::COPY));
-      direct = GSL_SIGN((*direction)[0]);
-    }
-
-    // AC 2024/04/22 : some of the last "by number" keywords :(
-    static int doubleIx=e->KeywordIx("DOUBLE");
-    static int inverseIx=e->KeywordIx("INVERSE");
-    static int overwriteIx=e->KeywordIx("OVERWRITE");
-    static int centerIx=e->KeywordIx("CENTER");    
-    if (e->KeywordSet(doubleIx)) dbl = 1;
-    if (e->KeywordSet(inverseIx)) direct = +1.0;
-    if (e->KeywordSet(overwriteIx)) overwrite = 1;
-    if (e->KeywordSet(centerIx) && !warning_done) {
-      warning_done = true;
-      cerr << "Warning, keyword CENTER ignored, fixme!" << endl; //(recenter not handled here)
-    }
-    // Check for dimension keyword
-    DLong dimension = 0;  // the general case
-
-    static int DimEnvIx = e->KeywordIx("DIMENSION");
-    if (e->KeywordSet(DimEnvIx)) {
-
-      BaseGDL *DimOfDim = e->GetKW(DimEnvIx);
-      if (DimOfDim->N_Elements() > 1)
-	e->Throw("Expression must be a scalar or 1 element array in this context:");
-
-      e->AssureLongScalarKW(DimEnvIx, dimension);
-      if ((dimension < 0) || (dimension > p0->Rank())) {
-	e->Throw("Illegal keyword value for DIMENSION.");
-      }
-    }
-    // AC 07/09/2012: Mathieu did it like that and we checked !
-    // in fact, here dimension should always be >=0
-    dimension--;
-
-    if (p0->Type() == GDL_COMPLEXDBL || p0->Type() == GDL_DOUBLE || dbl) {
-
-      //cout << "if 1" << endl;
-      if (overwrite)
-	e->StealLocalPar(0); // only steals if local par
-      // 		e->StealLocalParUndefGlobal(0);
-
-      // AC 10-09-2012: temporary fix
-      dbl = 1;
-
-      return fft_template<DComplexDblGDL>(e, p0, nEl, dbl, overwrite,
-					  direct, dimension);
-
-    } else if (p0->Type() == GDL_COMPLEX) {
-
-      //cout << "if 2" << endl;
-      //            DComplexGDL *res;
-
-      if (overwrite)
-	e->StealLocalPar(0); // only steals if local par
-      // 		e->StealLocalParUndefGlobal(0);
-
-      return fft_template<DComplexGDL>(e, p0, nEl, dbl, overwrite,
-				       direct, dimension);
-
-    } else if (p0->Type() == GDL_FLOAT ||
-	       p0->Type() == GDL_LONG ||
-	       p0->Type() == GDL_ULONG ||
-	       p0->Type() == GDL_INT ||
-	       p0->Type() == GDL_UINT ||
-	       p0->Type() == GDL_BYTE) {
-
-      //cout << "if 3" << endl;
-      overwrite = 0;
-      return fft_template<DComplexGDL>(e, p0, nEl, dbl, overwrite,
-				       direct, dimension);
-
-    } else {
-      //cout << "else" << endl;
-
-      overwrite = 0;
-      DComplexGDL *p0C = static_cast<DComplexGDL *>
-	(p0->Convert2(GDL_COMPLEX, BaseGDL::COPY));
-      Guard<BaseGDL> guard_p0C(p0C);
-      return fft_template<DComplexGDL>(e, p0C, nEl, dbl, overwrite,
-				       direct, dimension);
-
-    }
-  }
-
-
-  int fft_1d(BaseGDL *p0, void *data, SizeT nEl, SizeT offset, SizeT stride,
-	     double direct, SizeT dbl, DLong dimension) {
-    float f32[2];
-    double f64[2];
-
-    // Determine if radix2
-    //[gsl_fun.cpp:692]: (error) Shifting signed 32-bit value by 31 bits is undefined behaviour
-    //[gsl_fun.cpp:692]: (error) Signed integer overflow for expression '2<<i'.
-    SizeT radix2 = 0;
-    for (SizeT i = 0; i < 32; ++i) {
-      if (nEl == (2 << i)) {
-	radix2 = 1;
-	break;
-      }
-    }
-
-    // Determine input stride
-    SizeT stride_in = 1;
-    if (dimension > 0)
-      for (SizeT i = 0; i < dimension - 1; ++i) stride_in *= p0->Dim(i);
-    else
-      stride_in = stride;
-
-    if (p0->Type() == GDL_COMPLEX && dbl == 0) {
-      DComplexGDL *p0C = static_cast<DComplexGDL *>( p0);
-      float *dptr;
-      dptr = (float *) data;
-
-      if (dimension > 0) {
-	for (SizeT i = 0; i < nEl; ++i) {
-	  memcpy(&dptr[2 * (i * stride + offset)],
-		 &(*p0C)[i * stride_in + offset], szflt * 2);
-	}
-      } else {
-	// NO dimension Keyword
-	if (stride == 1 && offset == 0) {
-	  if ((void *) dptr != (void *) &(*p0C)[0])
-	    memcpy(dptr, &(*p0C)[0], szflt * 2 * nEl);
-	} else {
-	  for (SizeT i = 0; i < nEl; ++i) {
-	    memcpy(&dptr[2 * (i * stride + offset)],
-		   &(*p0C)[i * stride + offset], szflt * 2);
-	  }
-	}
-      }
-
-      complex_fft_transform_template<float,
-				     gsl_fft_complex_wavetable_float,
-				     gsl_fft_complex_workspace_float>
-	(p0, dptr, nEl, direct, offset, stride, radix2,
-	 gsl_fft_complex_float_radix2_forward,
-	 gsl_fft_complex_float_radix2_backward,
-	 gsl_fft_complex_float_forward,
-	 gsl_fft_complex_float_backward,
-	 gsl_fft_complex_wavetable_float_alloc,
-	 gsl_fft_complex_workspace_float_alloc,
-	 gsl_fft_complex_wavetable_float_free,
-	 gsl_fft_complex_workspace_float_free);
-
-      return 0;
-    } else if (p0->Type() == GDL_COMPLEXDBL ||
-	       (p0->Type() == GDL_COMPLEX && dbl)) {
-      DComplexDblGDL *p0C = static_cast<DComplexDblGDL *>( p0);
-      DComplexGDL *p0CF = static_cast<DComplexGDL *>( p0);
-
-      double *dptr;
-      dptr = (double *) data;
-
-      if (p0->Type() == GDL_COMPLEXDBL) {
-	for (SizeT i = 0; i < nEl; ++i) {
-	  memcpy(&dptr[2 * (i * stride + offset)],
-		 &(*p0C)[i * stride_in + offset], szdbl * 2);
-	}
-      } else if (p0->Type() == GDL_COMPLEX) {
-	DComplexDbl c128;
-
-	for (SizeT i = 0; i < nEl; ++i) {
-	  c128 = (*p0CF)[i * stride_in + offset];
-	  memcpy(&dptr[2 * (i * stride + offset)], &c128, 2 * szdbl);
-	}
-      }
-
-      complex_fft_transform_template<double,
-				     gsl_fft_complex_wavetable,
-				     gsl_fft_complex_workspace>
-	(p0, dptr, nEl, direct, offset, stride, radix2,
-	 gsl_fft_complex_radix2_forward,
-	 gsl_fft_complex_radix2_backward,
-	 gsl_fft_complex_forward,
-	 gsl_fft_complex_backward,
-	 gsl_fft_complex_wavetable_alloc,
-	 gsl_fft_complex_workspace_alloc,
-	 gsl_fft_complex_wavetable_free,
-	 gsl_fft_complex_workspace_free);
-
-      return 0;
-    } else if (p0->Type() == GDL_DOUBLE || dbl) {
-      double *dptr;
-      dptr = (double *) data;
-
-      real_fft_transform_template<double,
-				  gsl_fft_real_wavetable,
-				  gsl_fft_real_workspace>
-	(p0, dptr, nEl, direct, offset, stride_in, stride, radix2,
-	 gsl_fft_complex_radix2_forward,
-	 gsl_fft_complex_radix2_backward,
-	 gsl_fft_real_transform,
-	 gsl_fft_real_wavetable_alloc,
-	 gsl_fft_real_workspace_alloc,
-	 gsl_fft_real_wavetable_free,
-	 gsl_fft_real_workspace_free);
-
-      //	printf("real_fft_transform_template\n");
-
-      return 0;
-    } else if (p0->Type() == GDL_FLOAT ||
-	       p0->Type() == GDL_LONG ||
-	       p0->Type() == GDL_ULONG ||
-	       p0->Type() == GDL_INT ||
-	       p0->Type() == GDL_UINT ||
-	       p0->Type() == GDL_BYTE) {
-      float *dptr;
-      dptr = (float *) data;
-
-      real_fft_transform_template<float,
-				  gsl_fft_real_wavetable_float,
-				  gsl_fft_real_workspace_float>
-	(p0, dptr, nEl, direct, offset, stride_in, stride, radix2,
-	 gsl_fft_complex_float_radix2_forward,
-	 gsl_fft_complex_float_radix2_backward,
-	 gsl_fft_real_float_transform,
-	 gsl_fft_real_wavetable_float_alloc,
-	 gsl_fft_real_workspace_float_alloc,
-	 gsl_fft_real_wavetable_float_free,
-	 gsl_fft_real_workspace_float_free);
-
-      //	printf("real_fft_transform_template (float)\n");
-
-      return 0;
-    }
-    assert(false);
-    return 0;
-  }
+//  template<typename T>
+//  T *fft_template(EnvT *e, BaseGDL *p0,
+//		  SizeT nEl, SizeT dbl, SizeT overwrite,
+//		  double direct, DLong dimension) {
+//    SizeT offset;
+//    SizeT stride = 1;
+//
+//    T *res;
+//    T *tabtemp = new T(p0->Dim());
+//    Guard<T> tabtempGuard(tabtemp);
+//
+//    Guard<T> resGuard;
+//    if (overwrite == 0) {
+//      res = new T(p0->Dim(), BaseGDL::ZERO);
+//      resGuard.Reset(res);
+//    } else {
+//      res = (T *) p0;
+//      if (e->GlobalPar(0))
+//	e->SetPtrToReturnValue(&e->GetPar(0));
+//    }
+//
+//    DComplexGDL *tabfft = new DComplexGDL(p0->Dim());
+//    Guard<DComplexGDL> tabfftGuard(tabfft);
+//
+//    DComplexGDL *p0C = static_cast<DComplexGDL *>
+//      (p0->Convert2(GDL_COMPLEX, BaseGDL::COPY));
+//    Guard<DComplexGDL> p0CGuard(p0C);
+//
+//    int dec = 0;
+//    int temp = 0;
+//    int flag = 0;
+//    int l = 0;
+//
+//    int tab[MAXRANK];
+//    for (int y = 0; y < tabfft->Rank(); y++)
+//      tab[y] = 0;
+//
+//    if (dimension >= 0) {
+//      // contact for this part (dim > 0) is Mathieu P. or Alain C.
+//      // Debut demontage tab
+//
+//      l = 0;
+//      for (int j = 0; j < nEl / tabfft->Dim(dimension); j++) {
+//	dec = 0;
+//	flag = 0;
+//	for (int n = 0; n < tabfft->Rank(); n++) {
+//	  if (tab[n] != tabfft->Dim(n) - 1 && flag == 0 && n != dimension && l != 0) {
+//	    tab[n]++;
+//	    //cout << "tab[" << n << "] = " << tab[n] << endl;
+//	    flag = 1;
+//	  } else if (tab[n] == tabfft->Dim(n) - 1 && flag == 0 && n != dimension && l != 0)
+//	    tab[n] = 0;
+//
+//	  temp = 1;
+//	  if (n != 0) {
+//	    for (int m = n - 1; m >= 0; m--) {
+//	      temp = temp * tabfft->Dim(m);
+//	    }
+//	  }
+//	  //cout << "temp = " << temp << endl;
+//	  dec = dec + tab[n] * temp;
+//	  //cout << "dec = " << dec << endl;
+//	}
+//
+//	temp = 1;
+//	for (int y = dimension - 1; y >= 0; y--) {
+//	  temp = temp * tabfft->Dim(y);
+//	}
+//	for (int i = 0; i < tabfft->Dim(dimension); i++) {
+//	  (*tabfft)[l] = (*p0C)[dec + i * temp];
+//	  //cout << l << "=" << dec+i*temp << endl;
+//	  l++;
+//	}
+//      }
+//
+//      // Fin demontage tab - Debut res
+//
+//      temp = 1;
+//      for (int y = 0; y < tabfft->Rank(); y++) {
+//	if (y != dimension)
+//	  temp = temp * tabfft->Dim(y);
+//      }
+//
+//      for (int i = 0; i < temp; i++) {
+//	offset = i * tabfft->Dim(dimension);
+//	fft_1d(tabfft, &(*tabtemp)[0], tabfft->Dim(dimension), offset, stride,
+//	       direct, dbl, 1);
+//      }
+//
+//      // Fin res - Debut remontage
+//
+//      for (int y = 0; y < tabfft->Rank(); y++)
+//	tab[y] = 0;
+//
+//      l = 0;
+//      for (int j = 0; j < nEl / tabfft->Dim(dimension); j++) {
+//	dec = 0;
+//	flag = 0;
+//	for (int n = 0; n < tabfft->Rank(); n++) {
+//	  if (tab[n] != tabfft->Dim(n) - 1 && flag == 0 && n != dimension && l != 0) {
+//	    tab[n]++;
+//	    //cout << "tab[" << n << "] = " << tab[n] << endl;
+//	    flag = 1;
+//	  } else if (tab[n] == tabfft->Dim(n) - 1 && flag == 0 && n != dimension && l != 0)
+//	    tab[n] = 0;
+//
+//	  temp = 1;
+//	  if (n != 0) {
+//	    for (int m = n - 1; m >= 0; m--) {
+//	      temp = temp * tabfft->Dim(m);
+//	    }
+//	  }
+//	  //cout << "temp = " << temp << endl;
+//	  dec = dec + tab[n] * temp;
+//	  //cout << "dec = " << dec << endl;
+//	}
+//
+//	temp = 1;
+//	for (int y = dimension - 1; y >= 0; y--) {
+//	  temp = temp * tabfft->Dim(y);
+//	}
+//	for (int i = 0; i < tabfft->Dim(dimension); i++) {
+//	  (*res)[dec + i * temp] = (*tabtemp)[l];
+//	  //cout << l << "=" << dec+i*temp << endl;
+//	  l++;
+//	}
+//      }
+//    } else {
+//      dimension = 0;
+//
+//      if (p0->Rank() == 1) {
+//	offset = 0;
+//	stride = 1;
+//
+//	fft_1d(p0, &(*res)[0], nEl, offset, stride,
+//	       direct, dbl, dimension);
+//
+//      } else if (p0->Rank() == 2) {
+//	stride = p0->Dim(0);
+//	for (SizeT i = 0; i < p0->Dim(0); ++i) {
+//	  fft_1d(p0, &(*res)[0], p0->Dim(1), i, stride,
+//		 direct, dbl, dimension);
+//	}
+//	for (SizeT i = 0; i < p0->Dim(1); ++i) {
+//	  fft_1d(res, &(*res)[0],
+//		 p0->Dim(0), i * p0->Dim(0), 1,
+//		 direct, dbl, dimension);
+//	}
+//      } else if (p0->Rank() >= 3) {
+//	unsigned char *used = new unsigned char[nEl];
+//	ArrayGuard<unsigned char> usedGuard(used);
+//
+//	stride = nEl;
+//	for (SizeT i = p0->Rank(); i < nEl; ++i) used[i] = 0;
+//
+//	for (SizeT k = p0->Rank(); k > 0; --k) {
+//	  for (SizeT i = 0; i < nEl; ++i) used[i] = 0;
+//	  stride /= p0->Dim(k - 1);
+//
+//	  SizeT cnt = 1;
+//	  offset = 0;
+//	  while (cnt <= nEl / p0->Dim(k - 1)) {
+//	    if (used[offset] != 1) {
+//	      cnt++;
+//	      for (SizeT i = 0; i < p0->Dim(k - 1); ++i)
+//		used[offset + i * stride] = 1;
+//	      if (k == p0->Rank())
+//		fft_1d(p0, &(*res)[0], p0->Dim(k - 1), offset, stride,
+//		       direct, dbl, dimension);
+//	      else
+//		fft_1d(res, &(*res)[0], p0->Dim(k - 1), offset, stride,
+//		       direct, dbl, dimension);
+//	    }
+//	    offset++;
+//	  }
+//	}
+//	// 	  delete used;
+//      }
+//    }
+//
+//    resGuard.release();
+//    return res;
+//  }
+
+
+//  BaseGDL *fft_fun(EnvT *e) {
+//    static bool warning_done = false;
+//    /*
+//      Program Flow
+//      ------------
+//      fft_fun
+//      fft_template
+//      fft_1d
+//      (real/complex)_fft_transform_template
+//      cp2data_template (real only)
+//      cp2data_2_template (real only)
+//    */
+//
+//    SizeT nParam = e->NParam(1);
+//    SizeT overwrite = 0, dbl = 0;
+//    //unused    SizeT stride;
+//    //unused    SizeT offset;
+//
+//    double direct = -1.0;
+//
+//    //BaseGDL* p0 = e->GetNumericArrayParDefined( 0);
+//    BaseGDL *p0 = e->GetParDefined(0);
+//
+//    SizeT nEl = p0->N_Elements();
+//    if (nEl == 0)
+//      e->Throw(
+//	       "Variable is undefined: " + e->GetParString(0));
+//
+//
+//    if (nParam == 2) {
+//      BaseGDL *p1 = e->GetPar(1);
+//      if (p1->N_Elements() > 1)
+//	e->Throw(
+//		 "Expression must be a scalar or 1 element array: "
+//		 + e->GetParString(1));
+//
+//
+//      DDoubleGDL *direction =
+//	static_cast<DDoubleGDL *>(p1->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+//      direct = GSL_SIGN((*direction)[0]);
+//    }
+//
+//    // AC 2024/04/22 : some of the last "by number" keywords :(
+//    static int doubleIx=e->KeywordIx("DOUBLE");
+//    static int inverseIx=e->KeywordIx("INVERSE");
+//    static int overwriteIx=e->KeywordIx("OVERWRITE");
+//    static int centerIx=e->KeywordIx("CENTER");    
+//    if (e->KeywordSet(doubleIx)) dbl = 1;
+//    if (e->KeywordSet(inverseIx)) direct = +1.0;
+//    if (e->KeywordSet(overwriteIx)) overwrite = 1;
+//    if (e->KeywordSet(centerIx) && !warning_done) {
+//      warning_done = true;
+//      cerr << "Warning, keyword CENTER ignored, fixme!" << endl; //(recenter not handled here)
+//    }
+//    // Check for dimension keyword
+//    DLong dimension = 0;  // the general case
+//
+//    static int DimEnvIx = e->KeywordIx("DIMENSION");
+//    if (e->KeywordSet(DimEnvIx)) {
+//
+//      BaseGDL *DimOfDim = e->GetKW(DimEnvIx);
+//      if (DimOfDim->N_Elements() > 1)
+//	e->Throw("Expression must be a scalar or 1 element array in this context:");
+//
+//      e->AssureLongScalarKW(DimEnvIx, dimension);
+//      if ((dimension < 0) || (dimension > p0->Rank())) {
+//	e->Throw("Illegal keyword value for DIMENSION.");
+//      }
+//    }
+//    // AC 07/09/2012: Mathieu did it like that and we checked !
+//    // in fact, here dimension should always be >=0
+//    dimension--;
+//
+//    if (p0->Type() == GDL_COMPLEXDBL || p0->Type() == GDL_DOUBLE || dbl) {
+//
+//      //cout << "if 1" << endl;
+//      if (overwrite)
+//	e->StealLocalPar(0); // only steals if local par
+//      // 		e->StealLocalParUndefGlobal(0);
+//
+//      // AC 10-09-2012: temporary fix
+//      dbl = 1;
+//
+//      return fft_template<DComplexDblGDL>(e, p0, nEl, dbl, overwrite,
+//					  direct, dimension);
+//
+//    } else if (p0->Type() == GDL_COMPLEX) {
+//
+//      //cout << "if 2" << endl;
+//      //            DComplexGDL *res;
+//
+//      if (overwrite)
+//	e->StealLocalPar(0); // only steals if local par
+//      // 		e->StealLocalParUndefGlobal(0);
+//
+//      return fft_template<DComplexGDL>(e, p0, nEl, dbl, overwrite,
+//				       direct, dimension);
+//
+//    } else if (p0->Type() == GDL_FLOAT ||
+//	       p0->Type() == GDL_LONG ||
+//	       p0->Type() == GDL_ULONG ||
+//	       p0->Type() == GDL_INT ||
+//	       p0->Type() == GDL_UINT ||
+//	       p0->Type() == GDL_BYTE) {
+//
+//      //cout << "if 3" << endl;
+//      overwrite = 0;
+//      return fft_template<DComplexGDL>(e, p0, nEl, dbl, overwrite,
+//				       direct, dimension);
+//
+//    } else {
+//      //cout << "else" << endl;
+//
+//      overwrite = 0;
+//      DComplexGDL *p0C = static_cast<DComplexGDL *>
+//	(p0->Convert2(GDL_COMPLEX, BaseGDL::COPY));
+//      Guard<BaseGDL> guard_p0C(p0C);
+//      return fft_template<DComplexGDL>(e, p0C, nEl, dbl, overwrite,
+//				       direct, dimension);
+//
+//    }
+//  }
+
+//
+//  int fft_1d(BaseGDL *p0, void *data, SizeT nEl, SizeT offset, SizeT stride,
+//	     double direct, SizeT dbl, DLong dimension) {
+//    float f32[2];
+//    double f64[2];
+//
+//    // Determine if radix2
+//    //[gsl_fun.cpp:692]: (error) Shifting signed 32-bit value by 31 bits is undefined behaviour
+//    //[gsl_fun.cpp:692]: (error) Signed integer overflow for expression '2<<i'.
+//    SizeT radix2 = 0;
+//    for (SizeT i = 0; i < 32; ++i) {
+//      if (nEl == (2 << i)) {
+//	radix2 = 1;
+//	break;
+//      }
+//    }
+//
+//    // Determine input stride
+//    SizeT stride_in = 1;
+//    if (dimension > 0)
+//      for (SizeT i = 0; i < dimension - 1; ++i) stride_in *= p0->Dim(i);
+//    else
+//      stride_in = stride;
+//
+//    if (p0->Type() == GDL_COMPLEX && dbl == 0) {
+//      DComplexGDL *p0C = static_cast<DComplexGDL *>( p0);
+//      float *dptr;
+//      dptr = (float *) data;
+//
+//      if (dimension > 0) {
+//	for (SizeT i = 0; i < nEl; ++i) {
+//	  memcpy(&dptr[2 * (i * stride + offset)],
+//		 &(*p0C)[i * stride_in + offset], szflt * 2);
+//	}
+//      } else {
+//	// NO dimension Keyword
+//	if (stride == 1 && offset == 0) {
+//	  if ((void *) dptr != (void *) &(*p0C)[0])
+//	    memcpy(dptr, &(*p0C)[0], szflt * 2 * nEl);
+//	} else {
+//	  for (SizeT i = 0; i < nEl; ++i) {
+//	    memcpy(&dptr[2 * (i * stride + offset)],
+//		   &(*p0C)[i * stride + offset], szflt * 2);
+//	  }
+//	}
+//      }
+//
+//      complex_fft_transform_template<float,
+//				     gsl_fft_complex_wavetable_float,
+//				     gsl_fft_complex_workspace_float>
+//	(p0, dptr, nEl, direct, offset, stride, radix2,
+//	 gsl_fft_complex_float_radix2_forward,
+//	 gsl_fft_complex_float_radix2_backward,
+//	 gsl_fft_complex_float_forward,
+//	 gsl_fft_complex_float_backward,
+//	 gsl_fft_complex_wavetable_float_alloc,
+//	 gsl_fft_complex_workspace_float_alloc,
+//	 gsl_fft_complex_wavetable_float_free,
+//	 gsl_fft_complex_workspace_float_free);
+//
+//      return 0;
+//    } else if (p0->Type() == GDL_COMPLEXDBL ||
+//	       (p0->Type() == GDL_COMPLEX && dbl)) {
+//      DComplexDblGDL *p0C = static_cast<DComplexDblGDL *>( p0);
+//      DComplexGDL *p0CF = static_cast<DComplexGDL *>( p0);
+//
+//      double *dptr;
+//      dptr = (double *) data;
+//
+//      if (p0->Type() == GDL_COMPLEXDBL) {
+//	for (SizeT i = 0; i < nEl; ++i) {
+//	  memcpy(&dptr[2 * (i * stride + offset)],
+//		 &(*p0C)[i * stride_in + offset], szdbl * 2);
+//	}
+//      } else if (p0->Type() == GDL_COMPLEX) {
+//	DComplexDbl c128;
+//
+//	for (SizeT i = 0; i < nEl; ++i) {
+//	  c128 = (*p0CF)[i * stride_in + offset];
+//	  memcpy(&dptr[2 * (i * stride + offset)], &c128, 2 * szdbl);
+//	}
+//      }
+//
+//      complex_fft_transform_template<double,
+//				     gsl_fft_complex_wavetable,
+//				     gsl_fft_complex_workspace>
+//	(p0, dptr, nEl, direct, offset, stride, radix2,
+//	 gsl_fft_complex_radix2_forward,
+//	 gsl_fft_complex_radix2_backward,
+//	 gsl_fft_complex_forward,
+//	 gsl_fft_complex_backward,
+//	 gsl_fft_complex_wavetable_alloc,
+//	 gsl_fft_complex_workspace_alloc,
+//	 gsl_fft_complex_wavetable_free,
+//	 gsl_fft_complex_workspace_free);
+//
+//      return 0;
+//    } else if (p0->Type() == GDL_DOUBLE || dbl) {
+//      double *dptr;
+//      dptr = (double *) data;
+//
+//      real_fft_transform_template<double,
+//				  gsl_fft_real_wavetable,
+//				  gsl_fft_real_workspace>
+//	(p0, dptr, nEl, direct, offset, stride_in, stride, radix2,
+//	 gsl_fft_complex_radix2_forward,
+//	 gsl_fft_complex_radix2_backward,
+//	 gsl_fft_real_transform,
+//	 gsl_fft_real_wavetable_alloc,
+//	 gsl_fft_real_workspace_alloc,
+//	 gsl_fft_real_wavetable_free,
+//	 gsl_fft_real_workspace_free);
+//
+//      //	printf("real_fft_transform_template\n");
+//
+//      return 0;
+//    } else if (p0->Type() == GDL_FLOAT ||
+//	       p0->Type() == GDL_LONG ||
+//	       p0->Type() == GDL_ULONG ||
+//	       p0->Type() == GDL_INT ||
+//	       p0->Type() == GDL_UINT ||
+//	       p0->Type() == GDL_BYTE) {
+//      float *dptr;
+//      dptr = (float *) data;
+//
+//      real_fft_transform_template<float,
+//				  gsl_fft_real_wavetable_float,
+//				  gsl_fft_real_workspace_float>
+//	(p0, dptr, nEl, direct, offset, stride_in, stride, radix2,
+//	 gsl_fft_complex_float_radix2_forward,
+//	 gsl_fft_complex_float_radix2_backward,
+//	 gsl_fft_real_float_transform,
+//	 gsl_fft_real_wavetable_float_alloc,
+//	 gsl_fft_real_workspace_float_alloc,
+//	 gsl_fft_real_wavetable_float_free,
+//	 gsl_fft_real_workspace_float_free);
+//
+//      //	printf("real_fft_transform_template (float)\n");
+//
+//      return 0;
+//    }
+//    assert(false);
+//    return 0;
+//  }
 
   /* following are modified codes taken from the GNU Scientific Library (gauss.c)
    *
@@ -1313,7 +1313,7 @@ namespace lib {
 
   void la_trired_pro(EnvT *e) {
 
-    static int debugIx=KeywordIx("DEBUG");
+    static int debugIx=e->KeywordIx("DEBUG");
     if (e->KeywordSet(debugIx)) cout << "GSL version of LA_TRIRED" << endl;
 
     SizeT nParam = e->NParam(3);

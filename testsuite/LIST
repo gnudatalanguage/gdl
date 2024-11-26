@@ -79,7 +79,6 @@ test_correlate.pro
 test_delvarrnew.pro
 test_diag_matrix.pro
 test_dilate.pro
-test_dynamic_drivers.pro
 test_elmhes.pro
 test_erfinv.pro
 test_erode.pro
@@ -103,6 +102,7 @@ test_fx_root.pro
 test_fz_roots.pro
 test_gaussfit.pro
 test_gc.pro
+test_gdl2gdl.pro
 test_get_lun.pro
 test_gh00178.pro
 test_gh00716.pro

@@ -778,63 +778,101 @@ DInterpreter::CommandCode DInterpreter::CmdFullReset()
   return CC_OK;
 }
 
-DInterpreter::CommandCode DInterpreter::CmdCompile( const string& command)
-{
-  string cmdstr = command;
-  size_t sppos = cmdstr.find(" ",0);
-  if (sppos == string::npos) 
-    {
-      cout << "Interactive COMPILE not implemented yet." << endl;
-      return CC_OK;
-    }
-      
+std::vector<string> ReturnListOfFiles(const string& command) {
+ size_t pos=command.find(" ", 0);
+  // Parse each file name.
+  size_t l=command.length();
+  std::vector<string> files;
+  if (pos== string::npos) return files;
+  char quote = 0x27;
+  char dquote = 0x22;
+  char blank = 0x20;
+  char comma = 0x2C;
+  bool quoted = false;
+  bool dquoted = false;
+  std::string s;
+  char c = blank; //a blank to start next while
+  //If we have quoted strings: they are separated from others strings by " \"" or " \'"
+  // walk command, starting from sppos+1 to end, put each correct substring (without 
+  // separating quotes and doublequotes and blanks) in a list
+  // find first non-blank char in the rest of the string
+  while (c == blank && pos < l) { //not commas here!
+	pos++;
+	c = (command.data())[pos];
+  }
+  if (c == quote) quoted = true;
+  else if (c == dquote) dquoted = true;
+  else s += c;
+  pos++;
+  // if first nonblank char is not ' or " pass in "blank" mode
+  for (; pos < l; ++pos) {
+	c = (command.data())[pos];
+	if ((c == blank || c == comma) && !quoted && !dquoted) { //IDL passes over commas when not at start of list.
+	  if (s.length() > 0) files.push_back(s);
+	  s.clear();
+	  while ((c == blank || c == comma) && pos < l) {
+		pos++;
+		c = (command.data())[pos];
+	  }
+	  if (c == quote && !dquoted) quoted = true;
+	  else if (c == dquote && !quoted) dquoted = true;
+	  else
+		s += c;
+	} else if (c == quote && !dquoted) {
+	  quoted = false;
+	  if (s.length() > 0) files.push_back(s);
+	  s.clear();
+	} else if (c == dquote && !quoted) {
+	  dquoted = false;
+	  if (s.length() > 0) files.push_back(s);
+	  s.clear();
+	} else {
+	  s += c;
+	}
+  }
+  if (s.length() > 0) files.push_back(s);
+//  for (auto i = 0; i < files.size(); ++i) std::cerr << files[i] << std::endl;
+  return files;
+}
+
+
+DInterpreter::CommandCode DInterpreter::CmdCompile( const string& command) {
+  if (command.find(" ", 0) == string::npos) {
+	cout << "Interactive COMPILE not implemented yet." << endl;
+	return CC_OK;
+  }
+
   bool retAll = false; // Remember if Retall is needed
 
-  // Parse each file name
-  size_t pos = sppos + 1;
-  while (pos < command.length()) 
-    {
-      sppos = command.find(" ",pos);
-      if (sppos == string::npos) sppos = command.length();
-
-      // Found a file
-      if ((sppos - pos) > 0) 
-	{
-	  string argstr  = command.substr(pos, sppos-pos);
-	  string origstr = argstr;
-
+  std::vector<string> files=ReturnListOfFiles(command);
+  for (auto i=0; i< files.size(); ++i) {
+	std::string file=files[i];
 	  // try first with extension
-	  AppendExtension( argstr);
-	  bool found = CompleteFileName( argstr);
+	  AppendExtension(file);
+	  bool found = CompleteFileName(file);
 
 	  // 2nd try without extension
-	  if( !found)
-	    {
-	      argstr = origstr;
-	      found = CompleteFileName( argstr);
-	    }
+	  if (!found) {
+		file=files[i];
+		found = CompleteFileName(file);
+	  }
 
-	  if (found) 
-	    {
-	      try {
-		// default is more verbose
-		CompileFile( argstr); //, origstr); 
-	      }
-	      catch( RetAllException&)
-		{
+	  if (found) {
+		try {
+		  // default is more verbose
+		  CompileFile(file); //, origstr); 
+		} catch (RetAllException&) {
 		  // delay the RetAllException until finished
 		  retAll = true;
 		}
-	    } 
-	  else 
-	    {
-	      Message( "Error opening file. File: "+origstr+".");
-	      return CC_OK;
-	    }
+	  }
+	  else {
+		Message("Error opening file. File: " + files[i] + ".");
+		return CC_OK;
+	  }
 	}
-      pos = sppos + 1;
-    }
-  if( retAll) RetAll();
+  
+  if (retAll) RetAll();
 
   return CC_OK;
 }
@@ -848,64 +886,42 @@ DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
       cout << "Interactive RUN not implemented yet." << endl;
       return CC_OK;
     }
-      
   bool retAll = false; // Remember if Retall is needed
 
-  // Parse each file name
-  size_t pos = sppos + 1;
-  while (pos < command.length()) 
-    {
-      sppos = command.find(" ",pos);
-      size_t spposComma = command.find(",",pos);
-      if (sppos == string::npos && spposComma == string::npos) 
-	sppos = command.length();
-      else if (sppos == string::npos)
-	sppos = spposComma;
-	
-
-      // Found a file
-      if ((sppos - pos) > 0) 
-	{
-	  string argstr  = command.substr(pos, sppos-pos);
-	  string origstr = argstr;
-
-	  // try 1st with extension
-	  AppendExtension( argstr);
-	  bool found = CompleteFileName(argstr);
+  std::vector<string> files=ReturnListOfFiles(command);
+  for (auto i=0; i< files.size(); ++i) {
+	std::string file=files[i];
+	  // try first with extension
+	  AppendExtension(file);
+	  bool found = CompleteFileName(file);
 
 	  // 2nd try without extension
-	  if( !found)
-	    {
-	      argstr = origstr;
-	      found = CompleteFileName( argstr);
-	    }
+	  if (!found) {
+		file=files[i];
+		found = CompleteFileName(file);
+	  }
 
-	  if (found) 
-	    {
-	      try {
-		// default is more verbose
-		CompileFile( argstr); //, origstr); 
-	      }
-	      catch( RetAllException&)
-		{
+	  if (found) {
+		try {
+		  // default is more verbose
+		  CompileFile(file); //, origstr); 
+		} catch (RetAllException&) {
 		  // delay the RetAllException until finished
 		  retAll = true;
 		}
-	    } 
-	  else 
-	    {
-	      Message( "Error opening file. File: "+origstr+".");
-	      return CC_OK;
-	    }
+	  }
+	  else {
+		Message("Error opening file. File: " + files[i] + ".");
+		return CC_OK;
+	  }
 	}
-      pos = sppos + 1;
-    }
-  if( retAll) 
-    Warning( "Compiled a main program while inside a procedure. "
-	     "Returning.");
+
+//  if( retAll) 
+//    Warning( "Compiled a main program while inside a procedure. "
+//	     "Returning.");
 
   // actual run is perfomed in InterpreterLoop()
-  RetAll( RetAllException::RUN); // throws (always)
+  if( retAll) RetAll( RetAllException::RUN); // throws (always)
   return CC_OK; //avoid warnings
 }
 
@@ -1065,19 +1081,21 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 {
   string line = (in != NULL) ? ::GetLine(in) : GetLine();
 
-  // cout << "ExecuteLine: " << line << endl;
+//   cout << "ExecuteLine: " << line << endl;
 
   string firstChar = line.substr(0,1);
 
   // command
   if( firstChar == ".") 
     {
+	  if (!iAmMaster) return CC_OK;
       return ExecuteCommand( line.substr(1));
     }
 
   //  online help (if possible, start a browser)
   if( firstChar == "?") 
     {
+	  if (!iAmMaster) return CC_OK;
       // later, we will have to check whether we have X11/Display or not
       // on some computing nodes on supercomputers, this is de-activated.
       if (line.substr(1).length() > 0) {
@@ -1092,6 +1110,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   // shell command
   if( firstChar == "#") 
     {
+	  if (!iAmMaster) return CC_OK;
       if (line.substr(1).length() > 0) {
 	line=line.substr(1);
 	StrTrim(line);
@@ -1151,6 +1170,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   // shell command
   if( firstChar == "$") 
     {
+	  if (!iAmMaster) return CC_OK;
       ExecuteShellCommand( line.substr(1));
       return CC_OK;
     }
@@ -1159,6 +1179,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   // during compilation this is handled by the interpreter
   if( firstChar == "@" && callStack.size() <= 1) 
     {
+	  if (!iAmMaster) return CC_OK;
       string fileRaw = line.substr(1);
       StrTrim( fileRaw);
 
@@ -1344,6 +1365,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
       if( actualLine != "") lib::write_journal( actualLine); 
   
       if( retCode == RC_RETURN) return CC_RETURN;
+      if( retCode == RC_ABORT) return CC_ABORT;
       return CC_OK;
     }
   catch( GDLException& e)
@@ -1365,13 +1387,17 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 }
 #define GDL_MAX_INPUT_STR_LENGTH 32766 //current limitation of our esteemed model
 
-void inputThread() {
+void KeyboardInputThread() {
   while (1) {
 	// patch by Ole, 2017-01-06
 	//char ch = getchar(); if (ch==EOF) return NULL;
 	int ch = getchar(); //see #1377
-      if (ch==EOF) {
-	return;
+	if (ch == EOF) {
+	  if( inputstr.size() == 0)  {inputstr.assign("\x04"); return;}
+	  else {
+		inputstr += '\n'; 
+		break;
+	  }
 	}
 	inputstr += ch;
 	if (ch == '\n')
@@ -1380,39 +1406,40 @@ void inputThread() {
 }
 
 // if readline is not available or !EDIT_INPUT set to zero
-char* DInterpreter::NoReadline( const string& prompt)
-{
-  static const size_t inputStrMaxSize = MIN(GDL_MAX_INPUT_STR_LENGTH, inputstr.max_size()/2); //plenty of room left!!!
+char* DInterpreter::NoReadline( const string& prompt) {
+  static const size_t inputStrMaxSize = MIN(GDL_MAX_INPUT_STR_LENGTH, inputstr.max_size() / 2); //plenty of room left!!!
   if (isatty(0)) cout << prompt << flush;
-  if( feof(stdin)) return NULL;
+  if (feof(stdin)) return NULL;
 
-  std::thread th(inputThread);
-  std::thread::native_handle_type h=th.native_handle();
-  for (;;)
-    {
-        GDLEventHandler();
-		if (inputstr.size() > inputStrMaxSize) {
-		  Warning ("Input line is too long for input buffer of " + i2s(inputStrMaxSize) + " characters.");
-		  pthread_cancel(h);
-		  
-		  exit (EXIT_FAILURE);
-		}
-        if (inputstr.size() && inputstr[inputstr.size() - 1] == '\n') break;
-        if (feof(stdin)) 
-        {
-          th.join();
-          return NULL;
-        }
+  std::thread th(KeyboardInputThread);
+  std::thread::native_handle_type h = th.native_handle();
+  for (;;) {
+	GDLEventHandler();
+	if (inputstr.size() > inputStrMaxSize) {
+	  Warning("Input line is too long for input buffer of " + i2s(inputStrMaxSize) + " characters.");
+	  pthread_cancel(h);
+
+	  exit(EXIT_FAILURE);
+	}
+	//with precedent version, obviously not tested, the eventloop was not active as the exiting test on feof(stdin)
+	//was immediately true --- since no keyboard line was ever available!
+	if (inputstr.size()) {
+	  if (inputstr[inputstr.size() - 1] == '\n') break;
+	  if (inputstr == "\x04") { //KeyboardInputThread detected a ^D
+		th.join();
+		return NULL;
+	  }
+	}
 #ifdef _WIN32
-        Sleep(10);
+	Sleep(GDL_INPUT_TIMEOUT);
 #else
-        usleep(10);
+	usleep(GDL_INPUT_TIMEOUT);
 #endif
-    }
+  }
   inputstr = inputstr.substr(0, inputstr.size() - 1); // removes '\n'
   //if (inputstr[inputstr.size() - 1] == '\r')
   //    inputstr = inputstr.substr(0, inputstr.size() - 1); // removes '\r' too, if exists
-  char *result = (char*)malloc((inputstr.length() + 1) * sizeof(char));
+  char *result = (char*) malloc((inputstr.length() + 1) * sizeof (char));
   strcpy(result, inputstr.c_str()); // copies including terminating '\0'
   inputstr.clear();
 
@@ -1431,7 +1458,11 @@ void ControlCHandler(int)
   sigControlC = true;
   signal(SIGINT,ControlCHandler);
 }
-
+void ChildControlCHandler(int)
+{
+  sigControlC = true;
+  signal(SIGINT,ChildControlCHandler);
+}
 string DInterpreter::GetLine()
 {
   clog << flush; cout << flush;
@@ -1451,11 +1482,13 @@ string DInterpreter::GetLine()
 	//report last math exceptions
 	GDLCheckFPExceptionsAtLineLevel();
 #if defined(HAVE_LIBREADLINE)
-    
+    if (!iAmMaster) cline = NoReadline(actualPrompt);
+	else {
     if( edit_input != 0)
       cline = readline(const_cast<char*>(actualPrompt.c_str()));
     else
       cline = NoReadline(actualPrompt);
+	}
 #else
     
     cline = NoReadline(actualPrompt);
@@ -1745,7 +1778,7 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
       ExecuteFile(*it);
     batch_files.clear(); // not needed anymore...
   }
-
+  if (iAmMaster) {
 #if defined(HAVE_LIBREADLINE)
 
   // initialize readline (own version - not pythons one)
@@ -1792,8 +1825,10 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
   historyIntialized = true;
 
 #endif
-
-
+  }
+  else { 
+		  gdl_ipc_ClientSignalsOperationsOK();
+       }
   bool runCmd = false; // should tree from $MAIN$ be executed?
   bool continueCmd = false; // .CONTINUE command given already?
 
@@ -1806,8 +1841,13 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
         RunDelTree();
       } else {
         DInterpreter::CommandCode ret = ExecuteLine();
-
-        // stop steppig when at main level
+		if (!iAmMaster) {
+		  if (ret == CC_OK) gdl_ipc_ClientSendReturn(2,""); 
+		  else if (ret == CC_ABORT) gdl_ipc_ClientSendReturn(4,"aborted"); 
+		  ret=CC_OK;
+		} else {
+		  if (ret == CC_ABORT) ret=CC_OK;
+        // stop stepping when at main level
         stepCount = 0;
         debugMode = DEBUG_CLEAR;
 
@@ -1828,6 +1868,7 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
             cout << SysVar::MsgPrefix() <<
             "Cannot continue from this point." << endl;
         }
+		}
       }
     }    catch (RetAllException& retAllEx) {
       runCmd = (retAllEx.Code() == RetAllException::RUN);
@@ -1899,11 +1940,11 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
         } // if( startup...
       }
     }    catch (exception& e) {
-      cerr << "InterpreterLoop: Exception: " << e.what() << endl;
+	  if (!iAmMaster) gdl_ipc_ClientSendReturn(3,e.what()); else  cerr << "InterpreterLoop: Exception: " << e.what() << endl;
     }    catch (GDLException &e ) {
-      Warning(e.getMessage());
+      if (!iAmMaster) gdl_ipc_ClientSendReturn(3,e.getMessage()); else Warning(e.getMessage());
     }   catch (...) {
-      cerr << "InterpreterLoop: Unhandled Error." << endl;
+	  if (!iAmMaster) gdl_ipc_ClientSendReturn(3,"InterpreterLoop: Unhandled Error." ); else cerr << "InterpreterLoop: Unhandled Error." << endl;
     }
   }
 }

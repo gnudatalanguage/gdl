@@ -57,8 +57,8 @@ namespace lib {
   void print_os(std::ostream* os, EnvT* e, int parOffset, SizeT width);
 
   // in read.cpp
-  void read(EnvT* e);
-  void readf(EnvT* e);
+  void read_pro(EnvT* e);
+  void readf_pro(EnvT* e);
   void reads(EnvT* e);
   void read_is(std::istream* is, EnvT* e, int parOffset);
 

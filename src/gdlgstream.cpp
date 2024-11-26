@@ -33,13 +33,7 @@ static float psSymFudge=1; //to compensate the wrong size of symbols in PS
 
 void GDLGStream::Thick(DFloat thick)
 {
-  //note that 'cmake' may not able to find correct value of HAVE_PLPLOT_WIDTH. Please report.
-  // in the meantime, you may edit "config.h" by hand.
-#ifdef HAVE_PLPLOT_WIDTH
     plstream::width(static_cast<PLFLT>(thick*thickFactor));
-#else
-    plstream::wid(static_cast<PLINT>(floor((thick*thickFactor)-0.5)));
-#endif
 }
 
 #define BLACK 0
@@ -381,74 +375,71 @@ void GDLGStream::SetCharSize(DLong ichx, DLong chy) {
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"             %fx%f,%f (dev)\n",theDefaultChar.dsx   ,theDefaultChar.dsy  ,theDefaultChar.dspacing);
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"             %fx%f,%f (world)\n",theDefaultChar.wsx ,theDefaultChar.wsy  ,theDefaultChar.wspacing);
     gdlDefaultCharInitialized=1;
-  }
+}
 
-void GDLGStream::NextPlot( bool erase ) {
-  // restore charsize to default for newpage at beginning since adv() uses charsize to get box position.
-  if (!erase) sizeChar(1.0);
+void GDLGStream::NextPlot(bool erase) {
+
   DLongGDL* pMulti = SysVar::GetPMulti();
 
   DLong nx = (*pMulti)[ 1];
   DLong ny = (*pMulti)[ 2];
   DLong nz = (*pMulti)[ 3];
-
   DLong dir = (*pMulti)[ 4];
 
-  nx = (nx>0)?nx:1;
-  ny = (ny>0)?ny:1;
-  nz = (nz>0)?nz:1;
-  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"NextPlot(erase=%d)\n",erase);
-  // set subpage numbers in X and Y
-//  plstream::ssub( nx, ny ); // ssub does not change charsize it seems
-  ssub( nx, ny, nz ); 
-  DLong nsub=nx*ny*nz;
+  nx = (nx > 0) ? nx : 1;
+  ny = (ny > 0) ? ny : 1;
+  nz = (nz > 0) ? nz : 1;
+  DLong nsub = nx * ny * nz;
+
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "NextPlot(erase=%d)\n", erase);
+  //this code reproduces the behaviour of IDL seen in:
+  // !P.MULTI=[0,3,2] & data=dist(10) & (repeat many times: plot,data & plot,data,col='ff'x,/noe )
+  // the previous code would not erase the screen correctly after 6 commands.
   DLong pMod = (*pMulti)[0] % (nsub);
-
-//  if( (*pMulti)[0] <= 0 || (*pMulti)[0] == nx*ny) // clear and restart to first subpage
-  if( pMod == 0 ) // clear and restart to first subpage
-  {
-    if( erase )
-    {
-      eop();           // overridden (for Z-buffer)
-      //get background value (*not pen 0*, we try to avoid plplot's silly behaviour).
-      //use it for bop(), then reset the pen 0 to correct value.
-
-      PLINT red,green,blue;
-      DByte r,g,b;
-      PLINT red0,green0,blue0;
-      
-      GraphicsDevice::GetCT()->Get(0,r,g,b);red=r;green=g;blue=b;
-      
-      red0=GraphicsDevice::GetDevice()->BackgroundR();
-      green0=GraphicsDevice::GetDevice()->BackgroundG();
-      blue0=GraphicsDevice::GetDevice()->BackgroundB();
-      plstream::scolbg(red0,green0,blue0); //overwrites col[0]
-      plstream::bop(); // note: changes charsize
-      plstream::scolbg(red,green,blue); //resets col[0]
-    }
-
-//    plstream::adv(1); //advance to first subpage
-    adv(1); //advance to first subpage
-    (*pMulti)[0] = nsub-1; //set PMULTI[0] to this page
+  ssub(nx, ny, nz);
+  if (dir == 0) {
+	adv(nsub - pMod + 1);
+  } else {
+	int p = nsub - pMod;
+	int pp = p * nx % (nx * ny) + p / ny + 1;
+	adv(pp);
   }
-  else
+  if (!erase) return;
+
+  if (pMod == 0) // clear and restart to first subpage
   {
-    if( dir == 0 )
-    {
-//      plstream::adv(nx*ny - pMod + 1);
-      adv(nsub - pMod + 1);
-    }
-    else
-    {
-      int p = nsub - pMod;
-      int pp = p*nx % (nx*ny) + p/ny + 1;
-//      plstream::adv(pp);
-      adv(pp);
-    }
-    if( erase )
-    {
-      --(*pMulti)[0];
-    }
+	eop(); // overridden (for Z-buffer)
+	//get background value (*not pen 0*, we try to avoid plplot's silly behaviour).
+	//use it for bop(), then reset the pen 0 to correct value.
+
+	PLINT red, green, blue;
+	DByte r, g, b;
+	PLINT red0, green0, blue0;
+
+	GraphicsDevice::GetCT()->Get(0, r, g, b);
+	red = r;
+	green = g;
+	blue = b;
+
+	red0 = GraphicsDevice::GetDevice()->BackgroundR();
+	green0 = GraphicsDevice::GetDevice()->BackgroundG();
+	blue0 = GraphicsDevice::GetDevice()->BackgroundB();
+	plstream::scolbg(red0, green0, blue0); //overwrites col[0]
+	plstream::bop(); // note: changes charsize
+	plstream::scolbg(red, green, blue); //resets col[0]
+	adv(1); //advance to first subpage
+	(*pMulti)[0] = nsub - 1; //set PMULTI[0] to this page
+  } else {
+	if (dir == 0) {
+	  //      plstream::adv(nx*ny - pMod + 1);
+	  adv(nsub - pMod + 1);
+	} else {
+	  int p = nsub - pMod;
+	  int pp = p * nx % (nx * ny) + p / ny + 1;
+	  //      plstream::adv(pp);
+	  adv(pp);
+	}
+	--(*pMulti)[0];
   }
 
 }
@@ -1031,9 +1022,7 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
   }
   activeFontCodeNum = curr_fnt;
   //if gdlGetStringLength function is available, use it to give back a better value ("X" and "I" do not have the same width in hershey format!)
-#if PLPLOT_PRIVATE_NOT_HIDDEN
   if (stringLength!=NULL) *stringLength=gdlGetStringLength(out)/this->mmCharLength();
-#endif
   return out;
 retrn:
   activeFontCodeNum = curr_fnt;
@@ -1165,19 +1154,15 @@ void GDLGStream::setVariableCharacterSize( PLFLT charwidthpixel, PLFLT scale , P
 //trick: if 'em' is not 0, we have the character real width, in mm. It is assumed that when 0, then the size is OK
 //if not 0, then we know the height/width ratio and can recompute the 'good' height that will give the 'good' width (in pixels) 
    PLFLT em=0;
-#if PLPLOT_PRIVATE_NOT_HIDDEN
     em=gdlGetStringLength(ALLCHARACTERSFORSTRINGLENGTHTEST)/ALLCHARACTERSFORSTRINGLENGTHTEST_NCHARS; //mean of all
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"Able to check character width=%f, should have been %f\n",em, charwidthpixel/xdpi*INCHToMM);
-#endif
   if (em > 0) {
     PLFLT ratio=charwidthpixel/xdpi*INCHToMM/em;
     plstream::schr(expectedheight_in_mm*ratio, 1);
    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"got plplot character height in mm=%f (2nd pass))\n",pls->chrdef);
-//#if PLPLOT_PRIVATE_NOT_HIDDEN
 //    em=gdlGetStringLength(PATTERN)/PATTERN_LENGTH; //mean of all
 //    ratio=charwidthpixel/xdpi*INCHToMM/em;
 //    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"re-check character width=%f, ratio is %f\n",em, ratio);
-//#endif
   }
   setLineSpacing(lineSpacingpixel/ydpi*INCHToMM); //this one is NOT related to characters idiosyncrasies.
   gdlDefaultCharInitialized=0; //reset Default
@@ -1200,19 +1185,15 @@ void GDLGStream::setFixedCharacterSize( PLFLT charwidthpixel, PLFLT scale , PLFL
 //trick: if 'em' is not 0, we have the character real width, in mm. It is assumed that when 0, then the size is OK
 //if not 0, then we know the height/width ratio and can recompute the 'good' height that will give the 'good' width (in pixels) 
    PLFLT em=0;
-#if PLPLOT_PRIVATE_NOT_HIDDEN
     em=gdlGetStringLength(ALLCHARACTERSFORSTRINGLENGTHTEST)/ALLCHARACTERSFORSTRINGLENGTHTEST_NCHARS; //mean of all
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"Able to check character width=%f, should have been %f\n",em, charwidthpixel/pls->xdpi*INCHToMM);
-#endif
   if (em > 0) {
     PLFLT ratio=charwidthpixel/pls->xdpi*INCHToMM/em;
     plstream::schr(expectedheight*ratio, 1);
    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"got plplot character height in mm=%f (2nd pass))\n",pls->chrdef);
-//#if PLPLOT_PRIVATE_NOT_HIDDEN
 //    em=gdlGetStringLength(PATTERN)/PATTERN_LENGTH; //mean of all
 //    ratio=charwidthpixel/pls->xdpi*INCHToMM/em;
 //    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"re-check character width=%f, ratio is %f, in pixels:%f\n",em, ratio, em/INCHToMM*pls->xdpi);
-//#endif
   }
  setLineSpacing(lineSpacingpixel/pls->ydpi*INCHToMM); //this one is NOT related to characters idiosyncrasies.
   gdlDefaultCharInitialized=0; //reset Default
@@ -1399,7 +1380,7 @@ void GDLGStream::getSubpageRegion(PLFLT *sxmin, PLFLT *symin, PLFLT *sxmax, PLFL
  }
 }
 
-void GDLGStream::getCurrentSubpageInfo(PLFLT &xratio, PLFLT &yratio, PLFLT &zratio, PLFLT* displacement) {
+void GDLGStream::compute3DCubeLimits(PLFLT &xratio, PLFLT &yratio, PLFLT &zratio, PLFLT* displacement) {
   int p=thePage.curPage-1;
   int nx = thePage.nx;
   int ny = thePage.ny;

@@ -422,17 +422,21 @@ namespace lib {
       throw GDLException("Array dimensions must be greater than 0");
 
     DPtrGDL* ret;
-    
+
+    // Why this code exists ? AC240526 #1837
     static int nozeroIx = e->KeywordIx("NOZERO");    
-    if (!e->KeywordSet(nozeroIx))
-      return new DPtrGDL(dim);
+    if (e->KeywordSet(nozeroIx)) Message("Obsolete Keyword NOZERO");
+    //  return new DPtrGDL(dim);
 
-    // ALLOCATE_HEAP
-    ret = new DPtrGDL(dim, BaseGDL::NOZERO);
-
-    SizeT nEl = ret->N_Elements();
-    SizeT sIx = e->NewHeap(nEl, NullGDL::GetSingleInstance());
-    for (SizeT i = 0; i < nEl; i++) (*ret)[i] = sIx + i;
+    if (e->KeywordSet("ALLOCATE_HEAP")) {
+      ret = new DPtrGDL(dim, BaseGDL::NOZERO);
+      SizeT nEl = ret->N_Elements();
+      SizeT sIx = e->NewHeap(nEl, NullGDL::GetSingleInstance());
+      for (SizeT i = 0; i < nEl; i++) (*ret)[i] = sIx + i;
+    } else {
+      ret = new DPtrGDL(dim);
+    }
+    
     return ret;
   }
 
@@ -6593,18 +6597,18 @@ namespace lib {
     for (SizeT i = 0; i < n; ++i) out[i] >>= s;
   }
 
-  template<typename T> void ishft_m(T* out, const SizeT n, const DLong* s) {
+  template<typename T> void ishft_m( const T* in, T* out, const SizeT n, const DLong* s) {
     if ((GDL_NTHREADS=parallelize( n))==1) {
       for (SizeT i = 0; i < n; ++i) {
-        if (s[i] >= 0) out[i] <<= s[i];
-        else out[i] >>= s[i];
+        if (s[i] >= 0) out[i] = in[i] << s[i];
+        else out[i] = in[i] >> -s[i];
       }
     } else {
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
         for (OMPInt i = 0; i < n; ++i) {
-        if (s[i] >= 0) out[i] <<= s[i];
-        else out[i] >>= s[i];
+        if (s[i] >= 0) out[i] = in[i] << s[i];
+        else out[i] = in[i] >> -s[i];
       }
     }
   }
@@ -6668,49 +6672,56 @@ namespace lib {
   }
 
   BaseGDL* ishft_multiple(BaseGDL* in, DLongGDL* _s, SizeT n) {
-    BaseGDL* out = in->Dup(); //New(n, BaseGDL::NOZERO);
+    BaseGDL* out = in->New(n, BaseGDL::NOZERO);
     DLong* s = static_cast<DLong*> (_s->DataAddr());
     switch (in->Type()) {
     case GDL_BYTE:
     {
       DByte* _out = static_cast<DByte*> (out->DataAddr());
-      ishft_m(_out, n, s);
+      DByte* _in = static_cast<DByte*> (in->DataAddr());
+      ishft_m(_in , _out, n, s);
     }
       break;
     case GDL_UINT:
     {
       DUInt* _out = static_cast<DUInt*> (out->DataAddr());
-      ishft_m(_out, n, s);
+      DUInt* _in = static_cast<DUInt*> (in->DataAddr());
+      ishft_m(_in ,_out, n, s);
     }
       break;
     case GDL_INT:
     {
       DInt* _out = static_cast<DInt*> (out->DataAddr());
-      ishft_m(_out, n, s);
-    }
+      DInt* _in = static_cast<DInt*> (in->DataAddr());
+      ishft_m(_in ,_out, n, s);
+    } 
       break;
     case GDL_LONG:
     {
       DLong* _out = static_cast<DLong*> (out->DataAddr());
-      ishft_m(_out, n, s);
+      DLong* _in = static_cast<DLong*> (in->DataAddr());
+      ishft_m(_in ,_out, n, s);
     }
       break;
     case GDL_ULONG:
     {
       DULong* _out = static_cast<DULong*> (out->DataAddr());
-      ishft_m(_out, n, s);
+      DULong* _in = static_cast<DULong*> (in->DataAddr());
+      ishft_m(_in, _out, n, s);
     }
       break;
     case GDL_LONG64:
     {
       DULong64* _out = static_cast<DULong64*> (out->DataAddr());
-      ishft_m(_out, n, s);
+      DULong64* _in = static_cast<DULong64*> (in->DataAddr());
+      ishft_m(_in, _out, n, s);
     }
       break;
     case GDL_ULONG64:
     {
       DLong64* _out = static_cast<DLong64*> (out->DataAddr());
-      ishft_m(_out, n, s);
+      DLong64* _in = static_cast<DLong64*> (in->DataAddr());
+      ishft_m(_in, _out, n, s);
     }
       break;
     default:
@@ -6725,33 +6736,25 @@ namespace lib {
     Guard<BaseGDL>guard;
 
     BaseGDL* in = (e->GetParDefined(0));
+	//note: res is always 0's type:
+	//fill shift, using a large type Long as apparently IDL does
+	DLongGDL* sss = e->GetParAs<DLongGDL>(1);
+
     DType typ = in->Type();
     //types are normally correct, so do not loose time looking for wrong types
     if (IntType(typ)) {
-      dimension finalDim;
-      //behaviour: minimum set of dimensions of arrays. singletons expanded to dimension,
+      //behaviour: minimum set of dimensions of arrays. strict scalars expanded to dimension,
       //keep array trace.
-      SizeT nEl, maxEl = 1, minEl, finalN = 1;
-      for (int i = 0; i < 2; ++i) {
-        nEl = e->GetPar(i)->N_Elements();
-        if ((nEl > 1) && (nEl > maxEl)) {
-          maxEl = nEl;
-          finalN = maxEl;
-          finalDim = e->GetPar(i)->Dim();
-        }
-      } //first max - but we need first min:
-      minEl = maxEl;
-      for (int i = 0; i < 2; ++i) {
-        nEl = e->GetPar(i)->N_Elements();
-        if ((nEl > 1) && (nEl < minEl)) {
-          minEl = nEl;
-          finalN = minEl;
-          finalDim = e->GetPar(i)->Dim();
-        }
-      }
-      //note: res is always 0's type:
-      //fill shift, using a large type Long as apparently IDL does
-      DLongGDL* sss = e->GetParAs<DLongGDL>(1);
+      SizeT nEl, finalN;
+	  if (in->StrictScalar()) {
+		finalN=sss->N_Elements();
+		in = in->New(finalN, BaseGDL::INIT);
+		guard.Reset(in);
+	  } else {
+		finalN=in->N_Elements();
+		if (sss->N_Elements() > 1 && sss->N_Elements() < finalN) finalN=sss->N_Elements();
+	  }
+
       //if sss is a singleton, or not:
       if (sss->N_Elements() == 1) {
         char shift;
@@ -6766,10 +6769,6 @@ namespace lib {
           return ishft_single(in, finalN, shift, false);
         }
       } else {
-        if (in->Scalar()) {
-          in = in->New(finalN, BaseGDL::INIT);
-          guard.Reset(in);
-        } //expand to return element size, for parallel processing
         return ishft_multiple(in, sss, finalN);
       }
     } else e->Throw("Operand must be integer:" + e->GetParString(0));

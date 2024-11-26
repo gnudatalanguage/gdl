@@ -162,7 +162,7 @@ namespace lib {
 //  }
   
   void exitgdl(EnvT* e) {
-
+	if (iAmMaster){
 #if defined(HAVE_LIBREADLINE)
 
     // we manage the ASCII "history" file (located in ~/.gdl/)
@@ -206,14 +206,17 @@ namespace lib {
       }
     }
 #endif
-
+    }
     sem_onexit();
 
     //flush & close still opened files.
     
     for (int p = 0; p < maxLun; ++p) { //and NOT userlun!
       fileUnits[p].Flush();
-    }
+	}
+	if (!iAmMaster){
+	  gdl_ipc_ClientClosesMailBox();
+	}
     
     BaseGDL* status = e->GetKW(1);
     if (status == NULL) exit(EXIT_SUCCESS);
@@ -758,6 +761,7 @@ namespace lib {
   void flush_lun(EnvT* e) {
     // within GDL, always lun+1 is used
     int nParam = e->NParam();
+    if (nParam == 0) e->Throw("Incorrect number of arguments.");
     for (int p = 0; p < nParam; p++) {
       DLong lun;
       e->AssureLongScalarPar(p, lun);
@@ -1167,6 +1171,7 @@ namespace lib {
   }
 
   void stop(EnvT* e) {
+	  if (iAmMaster) {
     if ( e->Interpreter()->IsInBatchProcedureAtMain() ) {
       debugMode = DEBUG_STOP;
       e->Throw("Prematurely closing batch file:");
@@ -1176,6 +1181,10 @@ namespace lib {
       print(e);
       debugMode = DEBUG_STOP_SILENT;
     } else debugMode = DEBUG_STOP;
+	} else {
+		gdl_ipc_ClientSendReturn(2,"");
+		e->Throw("Use of STOP in Client mode!");
+	}
   }
 
   void defsysv(EnvT* e) {
@@ -1949,8 +1958,8 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     string shellCmd = "/bin/sh"; // must be there if POSIX
     if (!shKeyword) {
       char* shellEnv = getenv("SHELL");
-      if (shellEnv == NULL) shellEnv = getenv("COMSPEC");
-      if (shellEnv == NULL) e->Throw("Error spawning child process: \n"
+      if (shellEnv == nullptr) shellEnv = getenv("COMSPEC");
+      if (shellEnv == nullptr) e->Throw("Error spawning child process: \n"
         "Environment variable SHELL | COMSPEC not set.");
       shellCmd = shellEnv;
     }
@@ -1964,9 +1973,14 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
         e->SetKW(exit_statusIx, new DLongGDL(status));
       return;
     }
-
+#if defined(__APPLE__) || defined(__MACH__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__bsdi__) || defined(__DragonFly__)
+    sig_t oldsig;
+#else
+    sighandler_t oldsig;
+#endif
     // added on occasion of the UNIT kw patch
-    if (unitKeyword) signal(SIGCHLD, child_sighandler);
+    // insure that whatever the "external" signal handler is, it will be DFL (for wait() below) or child_sighandler
+    if (unitKeyword) oldsig=signal(SIGCHLD, child_sighandler); else oldsig=signal(SIGCHLD, SIG_DFL); 
 
     DStringGDL* command = e->GetParAs<DStringGDL>(0);
     DString cmd = (*command)[0];
@@ -1987,14 +2001,14 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     if (nParam > 1) e->AssureGlobalPar(1);
     if (nParam > 2) e->AssureGlobalPar(2);
 
-    int coutP[2];
+    int coutP[2] = {0};
     if (nParam > 1 || unitKeyword) {
-      if (pipe(coutP)) return;
+      if (pipe(coutP) == -1) return;
     }
 
-    int cerrP[2];
+    int cerrP[2] = {0};
     if (nParam > 2 && stderrKeyword) e->Throw("STDERR option conflicts with "+e->GetParString(2));
-    if (nParam > 2 && !unitKeyword && pipe(cerrP)) return;
+    if (nParam > 2 && !unitKeyword && pipe(cerrP) == -1) return;
     if (stderrKeyword /*&& !IS_A_Spawn*/) cmd+=" 2>&1";
     
     pid_t pid = fork(); // *** fork
@@ -2033,7 +2047,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
       if (noshellKeyword) {
         SizeT nArg = command->N_Elements();
         char** argv = new char*[nArg + 1];
-        argv[nArg] = NULL;
+        argv[nArg] = nullptr;
         for (SizeT i = 0; i < nArg; ++i)
           argv[i] = const_cast<char*> ((*command)[i].c_str());
 
@@ -2042,7 +2056,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
         delete[] argv; // only executes if exec fails
       } else
         execl(shellCmd.c_str(), shellCmd.c_str(), "-c",
-        cmd.c_str(), (char *) NULL);
+        cmd.c_str(), (char *) nullptr);
 
       Warning("SPAWN: Error managing child process.");
       _exit(1); // error in exec
@@ -2066,9 +2080,9 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
         if (unit_lun == 0)
           e->Throw("SPAWN: Failed to get new LUN: GetLUN says: All available logical units are currently in use.");
 
-        FILE *coutF;
+        FILE *coutF = nullptr;
         coutF = fdopen(coutP[0], "r");
-        if (coutF == NULL) close(coutP[0]);
+        if (coutF == nullptr) close(coutP[0]);
 
         if (unitKeyword) {
           e->SetKW(unitIx, new DLongGDL(unit_lun)); //only if this sort of "spwan /nowait" was triggered by the UNIT
@@ -2098,42 +2112,44 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
         e->Throw("UNIT kw. relies on GNU extensions to the std C++ library (that were not available during compilation?)");
 #endif
       } else {
-        FILE *coutF=NULL, *cerrF=NULL;
+        FILE *coutF=nullptr, *cerrF=nullptr;
         if (nParam > 1) {
           coutF = fdopen(coutP[0], "r");
-          if (coutF == NULL) close(coutP[0]);
+          if (coutF == nullptr) close(coutP[0]);
         }
         if (nParam > 2) {
           cerrF = fdopen(cerrP[0], "r");
-          if (cerrF == NULL) close(cerrP[0]);
+          if (cerrF == nullptr) close(cerrP[0]);
         }
 
         vector<DString> outStr;
         vector<DString> errStr;
 
         // read cout
-        if (nParam > 1 && coutF != NULL) {
-          while (fgets(buf, bufSize, coutF) != NULL) {
+        if (nParam > 1 && coutF != nullptr) {
+          while (fgets(buf, bufSize, coutF) != nullptr) {
             SizeT len = strlen(buf);
             if (len != 0 && buf[len - 1] == '\n') buf[len - 1] = 0;
-            outStr.push_back(DString(buf));
+            outStr.emplace_back(buf);
           }
           fclose(coutF);
         }
 
         // read cerr
-        if (nParam > 2 && cerrF != NULL) {
-          while (fgets(buf, bufSize, cerrF) != NULL) {
+        if (nParam > 2 && cerrF != nullptr) {
+          while (fgets(buf, bufSize, cerrF) != nullptr) {
             SizeT len = strlen(buf);
             if (len != 0 && buf[len - 1] == '\n') buf[len - 1] = 0;
-            errStr.push_back(DString(buf));
+            errStr.emplace_back(buf);
           }
           fclose(cerrF);
         }
 
         // wait until child terminates
-        int status;
-        pid_t wpid = wait(&status);
+        int status = -1;
+        if (waitpid(pid, &status, 0) == -1) {
+          e->Throw(DString("Error waiting for child process: ") + strerror(errno));
+        }
 
         if (exit_statusKeyword)
           e->SetKW(exit_statusIx, new DLongGDL(status >> 8));
@@ -2165,6 +2181,8 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
           e->SetPar(2, errResult);
         }
       }
+      //restore handler that was current before this call:
+      signal(SIGCHLD,oldsig);
     }
   }
 #endif

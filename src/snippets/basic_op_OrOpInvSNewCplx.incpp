@@ -1,0 +1,20 @@
+//  e1 Or e2=StrictScalar() : e1 everywhere except if e1==0 
+Data_* right = static_cast<Data_*> (r);
+
+ULong nEl = N_Elements();
+Data_* res = this->Dup();
+assert(nEl);
+Ty s = (*right)[0];
+if (nEl == 1) {
+  if ((*this)[0]==zero) (*res)[0]=s;
+  return res;
+}
+
+if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+  for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i]==zero) (*res)[i] = s;
+} else {
+  TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+    for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i]==zero) (*res)[i] = s;
+}
+return res;
