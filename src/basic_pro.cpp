@@ -1973,8 +1973,11 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
         e->SetKW(exit_statusIx, new DLongGDL(status));
       return;
     }
-
+#if defined(__APPLE__) || defined(__MACH__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__bsdi__) || defined(__DragonFly__)
+    sig_t oldsig;
+#else
     sighandler_t oldsig;
+#endif
     // added on occasion of the UNIT kw patch
     // insure that whatever the "external" signal handler is, it will be DFL (for wait() below) or child_sighandler
     if (unitKeyword) oldsig=signal(SIGCHLD, child_sighandler); else oldsig=signal(SIGCHLD, SIG_DFL); 
