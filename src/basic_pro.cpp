@@ -1974,8 +1974,10 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
       return;
     }
 
+    sighandler_t oldsig;
     // added on occasion of the UNIT kw patch
-    if (unitKeyword) signal(SIGCHLD, child_sighandler);
+    // insure that whatever the "external" signal handler is, it will be DFL (for wait() below) or child_sighandler
+    if (unitKeyword) oldsig=signal(SIGCHLD, child_sighandler); else oldsig=signal(SIGCHLD, SIG_DFL); 
 
     DStringGDL* command = e->GetParAs<DStringGDL>(0);
     DString cmd = (*command)[0];
@@ -2176,6 +2178,8 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
           e->SetPar(2, errResult);
         }
       }
+      //restore handler that was current before this call:
+      signal(SIGCHLD,oldsig);
     }
   }
 #endif
