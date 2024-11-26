@@ -52,7 +52,6 @@ struct GDL2GDLINFOS {
 };
 typedef GDL2GDLINFOS gdl2gdlparams;
 extern std::map<pid_t, gdl2gdlparams> g2gMap;
-typedef std::map<pid_t, gdl2gdlparams>::iterator g2gMapIter;
 
 extern std::map<int, int> g2gListOfSharedMem;
 typedef std::map<int,int>::iterator g2gSharedMemListIter;
