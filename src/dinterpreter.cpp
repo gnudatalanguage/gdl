@@ -1791,10 +1791,10 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
   //when editing the command line with ARROW keys. (bug 562). (used also in gdl.cpp)
   //but... without it we have no graphics event handler! FIXME!!!
   rl_event_hook = GDLEventHandler;
-  {
-    int edit_input = SysVar::Edit_Input();
-    stifle_history(edit_input == 1 || edit_input < 0 ? 200 : edit_input);
-  }
+//  {
+//    int edit_input = SysVar::Edit_Input();
+//    stifle_history(edit_input == 1 || edit_input < 0 ? 200 : edit_input);
+//  }
 
   // Eventually read back the ".gdl" path in user $HOME
   // we do not make one commun function with the save side
