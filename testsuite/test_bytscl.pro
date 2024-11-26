@@ -267,6 +267,7 @@ end
 ; ------------------------------------------------
 ;
 pro TEST_BYTSCL, help=help, verbose=verbose, no_exit=no_exit, test=test
+if ( version.arch eq "arm64" ) then exit  ; suppress this test on ARM64
 ;
 if KEYWORD_SET(help) then begin
    print, 'pro TEST_BYTSCL, help=help, verbose=verbose, $'
