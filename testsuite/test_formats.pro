@@ -137,6 +137,7 @@ end
 ; if IDL, it is used to generate the reference
 ;
 pro TEST_FORMATS, help=help, no_exit=no_exit, test=test, debug=debug
+if ( version.arch eq "arm64" ) then exit  ; suppress this test on ARM64
 ;
 ;ON_ERROR, 2
 ;
