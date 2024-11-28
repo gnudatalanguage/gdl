@@ -519,6 +519,10 @@ int main(int argc, char *argv[])
 	signal(SIGCHLD,SIG_IGN); //end subprocess is by sending it 'EXIT'. 
 	                         //This should avoid zombies after a IDL_IDLBridge::Cleanup for example.
 	                         // but we do not trap a subprocess crashing, which may be desirable!
+	// BUT we would need to trap on every case it must be used in gdl2gdl.cpp, including ABORT and EXIT commands
+	// "Normally" there should be few problems if every other place wait() is used in GDL has temporarily correctly set
+	// the SIGCHLD signal handler to SIG_DFL before use and reset it to these defaulst after use.
+	// An obvious improvement would be to get rid of all signal handlers in gdl2gdl.
   } else signal(SIGINT, ChildControlCHandler);
 #endif
   

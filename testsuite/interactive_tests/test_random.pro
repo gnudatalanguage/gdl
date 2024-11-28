@@ -311,9 +311,17 @@ if (ABS(MAX(res_l1-vals[0])) GT tol) then ERRORS_ADD, nb_pbs, txt+'1'
 if (ABS(MAX(res_l4)-vals[1]) GT tol) then ERRORS_ADD, nb_pbs, txt+'4'
 if (ABS(MAX(res_l10)-vals[2]) GT tol) then ERRORS_ADD, nb_pbs, txt+'10'
 ;
+; Is the result valid with /DOUBLE and POISSON > 4.2e9 ? 
+;
+nb_dev_err=0
+for ii=40, 49 do begin
+  if (ABS( ii*1e8-MEAN(RANDOMU(seed, 1000, /double, POISSON=ii*1e5)) ) GT 1) then nb_dev_err++
+endfor
+if nb_dev_err GT 0 then ERRORS_ADD, nb_pbs, 'Case Poisson Large Seed (out of UINT range)'
+;
 ; ----- final ----
 ;
-BANNER_FOR_TESTSUITE, "TEST_RANDOM_POISSON", nb_pbs, /status, verb=verbose
+BANNER_FOR_TESTSUITE, "TEST_RANDOM_POISSON", nb_pbs, /status
 ERRORS_CUMUL, errors, nb_pbs
 ;
 if KEYWORD_SET(test) then STOP
