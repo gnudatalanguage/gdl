@@ -24,7 +24,7 @@
 #define BUILD_DIR                ""
 
 // Location of package data files
-#define DATA_DIR                 "/usr/local/share/gnudatalanguage"
+#define DATA_DIR                 "/home/users/rsiddans/gdl/gdl/install/share/gnudatalanguage"
 
 // Location of dynamically loaded drivers
 #define DRV_DIR                  ""
@@ -52,7 +52,7 @@
 #define HAVE_DLFCN_H 1
 
 // Define if [freetype] is available
-#define PL_HAVE_FREETYPE
+/* #undef PL_HAVE_FREETYPE */
 
 // Define if [shapelib] is available
 /* #undef HAVE_SHAPELIB */
@@ -273,7 +273,7 @@
 #define SOURCE_DIR                         ""
 
 // Define to 1 if you have the ANSI C header files.
-#define STDC_HEADERS 1
+/* #undef STDC_HEADERS */
 
 // Location of Tcl stuff
 #define TCL_DIR                    ""

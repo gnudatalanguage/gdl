@@ -301,6 +301,17 @@ else if(var_type == NC_LONG)
 	  GDLDelete(e->GetParGlobal(2));
 	e->GetParGlobal(2) = new DLongGDL((ivar));
       }
+    else if(var_type == NC_UINT)
+      {
+	
+	unsigned int uivar;
+	status=nc_get_var1_uint(cdfid,
+				varid,
+				index,
+				&uivar);
+	  GDLDelete(e->GetParGlobal(2));
+	e->GetParGlobal(2) = new DULongGDL((uivar));
+      }
     else if(var_type == NC_SHORT)
       {
 	
@@ -312,6 +323,17 @@ else if(var_type == NC_LONG)
 	  GDLDelete(e->GetParGlobal(2));
 	e->GetParGlobal(2) = new DIntGDL((svar));
       }
+    else if(var_type == NC_USHORT)
+      {
+	
+	unsigned short usvar;
+	status=nc_get_var1_ushort(cdfid,
+				varid,
+				index,
+				&usvar);
+	  GDLDelete(e->GetParGlobal(2));
+	e->GetParGlobal(2) = new DUIntGDL((usvar));
+      }
     else if(var_type == NC_CHAR)
     {
       char cvar;
@@ -319,7 +341,7 @@ else if(var_type == NC_LONG)
       GDLDelete(e->GetParGlobal(2));
       e->GetParGlobal(2) = new DByteGDL(cvar);
     }
-    else if(var_type == NC_BYTE){
+    else if(var_type == NC_BYTE || var_type == NC_UBYTE ){
       unsigned char  bvar;
       status=nc_get_var1_uchar(cdfid,
 			       varid,
@@ -436,6 +458,14 @@ else if(var_type == NC_LONG)
         GDLDelete(e->GetParGlobal(2));
         e->GetParGlobal(2)=temp;      	
       } 
+      else if (var_type == NC_USHORT)
+      {
+        DUIntGDL * temp=new DUIntGDL(dim,BaseGDL::NOZERO);
+        status=nc_get_var_ushort(cdfid, varid,&(*temp)[0]);
+        ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+        GDLDelete(e->GetParGlobal(2));
+        e->GetParGlobal(2)=temp;      	
+      } 
       else if (var_type == NC_INT)
       {
         DLongGDL* temp=new DLongGDL(dim,BaseGDL::NOZERO);
@@ -444,15 +474,26 @@ else if(var_type == NC_LONG)
         GDLDelete(e->GetParGlobal(2));
         e->GetParGlobal(2)=temp;      	
       } 
-      else if (var_type == NC_BYTE)
+      else if (var_type == NC_UINT)
+      {
+        DULongGDL* temp=new DULongGDL(dim,BaseGDL::NOZERO);
+        status=nc_get_var_uint(cdfid, varid,&(*temp)[0]);
+        ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+        GDLDelete(e->GetParGlobal(2));
+        e->GetParGlobal(2)=temp;      	
+      } 
+      else if (var_type == NC_BYTE || var_type == NC_UBYTE )
       {
         DByteGDL* temp=new DByteGDL(dim,BaseGDL::NOZERO);
         status=nc_get_var_uchar(cdfid, varid, &(*temp)[0]);
 	if (status != NC_ERANGE) {
 	  ncdf_var_handle_error(e,status,"NCDF_VARGET (ici)", temp);
 	} else {
-	  Warning("Warning in NCDF_VARGET: NC_ERANGE during BYTE reading");
-	  ncdf_var_handle_error(e,status,"NCDF_VARGET (ici)", temp);
+// exceeding range of signed byte is allowed in IDL
+// because IDL has no signed byte datatype - need to read it as unsigned byte and
+// then code needs to handle the sign bit (convert to int then values>127 need 256 subtracting)
+	  //Warning("Warning in NCDF_VARGET: NC_ERANGE while reading BYTE");
+	  status=NC_NOERR;
 	}
 	GDLDelete(e->GetParGlobal(2));  
         e->GetParGlobal(2)=temp;      	
@@ -563,6 +604,14 @@ else if(var_type == NC_LONG)
           GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp;      	
         }
+        else if (var_type == NC_USHORT)
+        {
+          DUIntGDL *temp = new DUIntGDL(dim, BaseGDL::NOZERO);
+          status = nc_get_vara_ushort(cdfid, varid, off, cou, &(*temp)[0]);
+          ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+          GDLDelete(e->GetParGlobal(2));
+          e->GetParGlobal(2) = temp;      	
+        }
         else if(var_type == NC_INT)
         {
           DLongGDL *temp = new DLongGDL(dim,BaseGDL::NOZERO);
@@ -571,7 +620,15 @@ else if(var_type == NC_LONG)
           GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp;    
         }
-        else if (var_type == NC_BYTE)
+        else if(var_type == NC_UINT)
+        {
+          DULongGDL *temp = new DULongGDL(dim,BaseGDL::NOZERO);
+          status = nc_get_vara_uint(cdfid, varid, off, cou, &(*temp)[0]);
+          ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+          GDLDelete(e->GetParGlobal(2));
+          e->GetParGlobal(2) = temp;    
+        }
+        else if (var_type == NC_BYTE || var_type == NC_UBYTE )
         {
           DByteGDL *temp=new DByteGDL(dim,BaseGDL::NOZERO);
           status = nc_get_vara_uchar(cdfid, varid, off, cou, &(*temp)[0]);
@@ -666,6 +723,14 @@ else if(var_type == NC_LONG)
           GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp;      	
         }
+        else if (var_type == NC_USHORT)
+        {
+          DUIntGDL *temp = new DUIntGDL(dim, BaseGDL::NOZERO);
+          status = nc_get_vars_ushort(cdfid, varid, off, cou, stri, &(*temp)[0]);
+          ncdf_var_handle_error(e,status,"NCDF_VARGET", temp);
+          GDLDelete(e->GetParGlobal(2));
+          e->GetParGlobal(2) = temp;      	
+        }
         else if(var_type == NC_INT)
         {
           DLongGDL *temp = new DLongGDL(dim, BaseGDL::NOZERO);
@@ -674,7 +739,15 @@ else if(var_type == NC_LONG)
           GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp;  
         }
-        else if(var_type == NC_BYTE)
+        else if(var_type == NC_UINT)
+        {
+          DULongGDL *temp = new DULongGDL(dim, BaseGDL::NOZERO);
+          status = nc_get_vars_uint(cdfid, varid, off,cou, stri, &(*temp)[0]);
+          ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+          GDLDelete(e->GetParGlobal(2));
+          e->GetParGlobal(2) = temp;  
+        }
+        else if(var_type == NC_BYTE || var_type == NC_UBYTE )
         {
           DByteGDL *temp=new DByteGDL(dim, BaseGDL::NOZERO);
           status = nc_get_vars_uchar(cdfid, varid, off, cou, stri, &(*temp)[0]);
@@ -734,6 +807,7 @@ else if(var_type == NC_LONG)
 	//dims is not set, scalar
       }
 
+//"BYTE","CHAR","DOUBLE","FLOAT","LONG","SHORT","UBYTE","ULONG","USHORT","INT64","UINT64","STRING","GZIP","SHUFFLE"
     if(e->KeywordSet(0))//GDL_BYTE
       type=NC_BYTE;
     else if(e->KeywordSet(1))//CHAR
@@ -744,6 +818,18 @@ else if(var_type == NC_LONG)
       type=NC_INT;
     else if(e->KeywordSet(5))//SHORT
       type=NC_SHORT;
+    else if(e->KeywordSet(6))
+      type=NC_UBYTE;
+    else if(e->KeywordSet(7))
+      type=NC_UINT;
+    else if(e->KeywordSet(8))
+      type=NC_USHORT;
+    else if(e->KeywordSet(9))
+      type=NC_INT64;
+    else if(e->KeywordSet(10))
+      type=NC_UINT64;
+    else if(e->KeywordSet(11))
+      type=NC_STRING;
     else
       type=NC_FLOAT;
 
@@ -759,6 +845,20 @@ else if(var_type == NC_LONG)
 			   "Unable to define variable, name in use by another variable ("+var_name+")");
 	else
 	  ncdf_handle_error(e,status,"NCDF_VARDEF");
+
+// Compression settings (controlled by GZIP keyword)
+	int deflate_level = 0;
+	int shuffle = NC_NOSHUFFLE;
+        if(e->KeywordSet(12)) {
+      		DLong deflLong = 0;
+      		e->AssureLongScalarKW(12, deflLong);
+      		deflate_level = (int) deflLong;
+        	if(e->KeywordSet(13)) shuffle=NC_SHUFFLE;
+//printf("Compression on level=%d; shuffle=%d\n",deflate_level,shuffle);
+		status = nc_def_var_deflate(cdfid, var_id, shuffle, 1, deflate_level);
+	        ncdf_handle_error(e,status,"NCDF_VARDEF");
+        }
+
   
 
     return new DIntGDL(var_id);
@@ -1031,9 +1131,23 @@ else if(var_type == NC_LONG)
         break;
       }
       case GDL_STRING :
-        status = nc_put_vars_text(cdfid, varid, offset, count, stride, 
-          (*static_cast<DStringGDL*>(v))[0].c_str());
+      {
+        const char *tmp = (*static_cast<DStringGDL*>(v))[0].c_str();
+        switch (var_type) 
+	{
+          case NC_CHAR : // char array
+            status = nc_put_vars_text(cdfid, varid, offset, count, stride, tmp);
+            break;
+          case NC_STRING : // string
+//printf("NC_STRING %d %d\n",var_ndims,count[0]);
+            if ( var_ndims > 1 || count[0] != 1) e->Throw("GDL string array cannot be written - only single value allowed by code!");
+            status = nc_put_vars_string(cdfid, varid, offset, count, stride, &tmp);
+            break;
+          default:
+            e->Throw("GDL string can only be written to NC_CHAR or NC_STRING!");
+	}
         break;
+      }
       // reporting illegal types (could be done before...)
       case GDL_STRUCT :  
         e->Throw("Struct expression not allowed in this context: " 

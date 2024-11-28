@@ -50,6 +50,6 @@
 #define PLD_psc
 #define PLD_svg
 #define PLD_wxwidgets
-#define PLD_xwin
+/* #undef PLD_xwin */
 
 #endif  // __PLDEVS_H__
