@@ -166,6 +166,7 @@ test_qromo.pro
 test_readf_with_crlf.pro
 test_reads.pro
 test_rebin.pro
+test_rot.pro
 test_routine_dir.pro
 test_routine_filepath.pro
 test_routine_name.pro
