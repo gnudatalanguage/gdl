@@ -218,7 +218,7 @@ end
 ; ------------------------
 ;
 pro TEST_BYTE_CONVERSION, help=help, verbose=verbose, no_exit=no_exit, test=test
-if ( version.arch eq "arm64" ) then exit  ; suppress this test on ARM64
+if ( !version.arch eq "arm64" ) then exit  ; suppress this test on ARM64
 ;
 if KEYWORD_SET(help) then begin
    print, 'pro TEST_BYTE, help=help, verbose=verbose, $'
