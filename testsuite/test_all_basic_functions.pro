@@ -210,7 +210,7 @@ if (section eq 0 or section eq 8) then begin
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=ROTATE(*big[k],1) & toc,subclock & end ',$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=REVERSE(*big[k],2) & toc,subclock & end ',$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=REFORM(*big[k],cote*cote) & toc,subclock & end ',$
-     'print,what[i] & for k=0,not_complex do begin & subclock=tic(typenames[k]) & ret=ROT(*big[k],33,0.6,/INTERP) & toc,subclock & end ',$
+;     'print,what[i] & for k=0,not_complex do begin & subclock=tic(typenames[k]) & ret=ROT(*big[k],33,0.6,/INTERP) & toc,subclock & end ',$
      'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & BYTEORDER,*big[k],/LSWAP & toc,subclock & end ',$
      'print,what[i] & x = FINDGEN(100)*0.02 & y=sin(x) & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & res=interpol(y,x,*big[k]) & toc,subclock & end ']
 
