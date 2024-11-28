@@ -205,7 +205,9 @@ if (section eq 0 or section eq 7) then begin
 endif
 ; non-threaded functions
 if (section eq 0 or section eq 8) then begin
-  what=['ROTATE','REVERSE','REFORM','ROT','BYTEORDER','INTERPOL']
+  what=['ROTATE','REVERSE','REFORM',$
+;'ROT', 
+'BYTEORDER','INTERPOL']
   calls=[$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=ROTATE(*big[k],1) & toc,subclock & end ',$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=REVERSE(*big[k],2) & toc,subclock & end ',$
