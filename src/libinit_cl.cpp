@@ -150,7 +150,7 @@ void LibInit_cl()
 
   //writing NetCDF
   //Put attribute into file
-  const string ncdf_attputKey[]={"GLOBAL","LENGTH","BYTE","CHAR","DOUBLE","FLOAT","LONG","SHORT",KLISTEND};
+  const string ncdf_attputKey[]={"GLOBAL","LENGTH","BYTE","CHAR","DOUBLE","FLOAT","LONG","SHORT","UBYTE","ULONG","USHORT","INT64","UINT64","STRING",KLISTEND};
   new DLibPro(lib::ncdf_attput, string("NCDF_ATTPUT"), 4,ncdf_attputKey);
 
   //copy attribute between files
@@ -174,7 +174,7 @@ void LibInit_cl()
   new DLibPro(lib::ncdf_dimrename, string("NCDF_DIMRENAME"), 3);
 
   //define variable
-  const string ncdf_vardefKey[]={"BYTE","CHAR","DOUBLE","FLOAT","LONG","SHORT",
+  const string ncdf_vardefKey[]={"BYTE","CHAR","DOUBLE","FLOAT","LONG","SHORT","UBYTE","ULONG","USHORT","INT64","UINT64","STRING","GZIP","SHUFFLE",
 				 KLISTEND};
   new DLibFunRetNew(lib::ncdf_vardef, string("NCDF_VARDEF"), 3,ncdf_vardefKey);
 
