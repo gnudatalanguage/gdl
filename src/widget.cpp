@@ -1123,7 +1123,9 @@ BaseGDL* widget_draw( EnvT* e ) {
   if (parent->IsMenu() && !isMenu) {
     checked=(e->KeywordSet(checkIx));
   }
-// TBD:  "HELP", "INPUT_FOCUS", "X_BITMAP_EXTRA", "FLAT", "NO_RELEASE", "ACCELERATOR","TAB_MODE" 
+  static int NO_RELEASE = e->KeywordIx( "NO_RELEASE" );
+  bool norelease=e->KeywordSet( NO_RELEASE);
+// TBD:  "HELP", "INPUT_FOCUS", "X_BITMAP_EXTRA", "FLAT", "ACCELERATOR","TAB_MODE" 
   
   
 //  To get the equivalent of pushbutton_events (push and release) with wxWidgets and have a better coverage, use ToggleButtons (wx 2.9 and after)
@@ -1182,7 +1184,7 @@ BaseGDL* widget_draw( EnvT* e ) {
   //Separate Button Types depending on parent container type:
   if (parent->IsBase()) {
   if (isMenu) button = new GDLWidgetMenuButton( parentID, e, value, eventFlags, bitmap, tooltipgdl);
-    else button = new GDLWidgetNormalButton( parentID, e, value, eventFlags, bitmap, tooltipgdl);
+  else button = new GDLWidgetNormalButton( parentID, e, value, eventFlags, norelease, bitmap, tooltipgdl);
   } else if (parent->IsMenuBar()) {
 #ifdef PREFERS_MENUBAR
     button = new GDLWidgetMenuBarButton( parentID, e, value, eventFlags, tooltipgdl);
