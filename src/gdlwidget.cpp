@@ -5987,8 +5987,9 @@ GDLWidgetButton::~GDLWidgetButton() {
 
 //a normal button.
 GDLWidgetNormalButton::GDLWidgetNormalButton(WidgetIDT p, EnvT* e,
-  DStringGDL* value, DULong eventflags,  wxBitmap* bitmap_, DStringGDL* buttonToolTip)
-: GDLWidgetButton(p, e, value, eventflags, bitmap_)
+  DStringGDL* value, DULong eventflags, bool norelease,  wxBitmap* bitmap_, DStringGDL* buttonToolTip)
+: GDLWidgetButton(p, e, value, eventflags, bitmap_),
+  noRelease(false)
 {
   GDLWidget* gdlParent = GetWidget(parentID);
   widgetPanel = GetParentPanel();
@@ -6012,6 +6013,7 @@ GDLWidgetNormalButton::GDLWidgetNormalButton(WidgetIDT p, EnvT* e,
     }
   } else if (gdlParent->GetExclusiveMode() == BGEXCLUSIVE1ST) {
     wxRadioButton *radioButton = new wxRadioButton(widgetPanel, widgetID, valueWxString,  wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+	noRelease=norelease;
     gdlParent->SetExclusiveMode(1);
     GDLWidgetBase* b = static_cast<GDLWidgetBase*> (gdlParent);
     if (b) b->SetLastRadioSelection(widgetID);
@@ -6022,11 +6024,13 @@ GDLWidgetNormalButton::GDLWidgetNormalButton(WidgetIDT p, EnvT* e,
     buttonType = RADIO;
   } else if (gdlParent->GetExclusiveMode() == BGEXCLUSIVE) {
     wxRadioButton *radioButton = new wxRadioButton(widgetPanel, widgetID, valueWxString, wxDefaultPosition, wxDefaultSize);
+	noRelease=norelease;
     theWxContainer = theWxWidget = radioButton;
     this->AddToDesiredEvents(wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler(gdlwxFrame::OnRadioButton), radioButton);
     buttonType = RADIO;
   } else if (gdlParent->GetExclusiveMode() == BGNONEXCLUSIVE) {
     wxCheckBox *checkBox = new wxCheckBox(widgetPanel, widgetID, valueWxString,  wxDefaultPosition, wxDefaultSize);
+	noRelease=norelease;
     theWxContainer = theWxWidget = checkBox;
     this->AddToDesiredEvents(wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler(gdlwxFrame::OnCheckBox), checkBox);
     buttonType = CHECKBOX;

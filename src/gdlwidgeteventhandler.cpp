@@ -397,10 +397,11 @@ void gdlwxFrame::OnRadioButton( wxCommandEvent& event)
 //    widgbut->InitTag("HANDLER", DLongGDL( baseWidgetID ));
     widgbut->InitTag("SELECT", DLongGDL( 0));
 
-    GDLWidgetButton* widget = dynamic_cast<GDLWidgetButton*>(GDLWidget::GetWidget( lastSelection));
+    GDLWidgetNormalButton* widget = dynamic_cast<GDLWidgetNormalButton*>(GDLWidget::GetWidget( lastSelection));
     assert(widget!=NULL);
     widget->SetRadioButton( false);
-    GDLWidget::PushEvent( baseWidgetID, widgbut);
+
+    if (widget->getNoReleaseOption()==false) GDLWidget::PushEvent( baseWidgetID, widgbut);
   }
     
   // create GDL event struct
@@ -415,7 +416,7 @@ void gdlwxFrame::OnRadioButton( wxCommandEvent& event)
 
   GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
   assert(widget->IsButton());
-  static_cast<GDLWidgetButton*>(widget)->SetRadioButton( true);
+  static_cast<GDLWidgetNormalButton*>(widget)->SetRadioButton( true);
   GDLWidget::PushEvent( baseWidgetID, widgbut);
 }
 
@@ -428,9 +429,12 @@ void gdlwxFrame::OnCheckBox( wxCommandEvent& event)
   bool selectValue = event.IsChecked();
   
   WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId());
-  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
-  assert(widget->IsButton());
-  static_cast<GDLWidgetButton*>(widget)->SetRadioButton( selectValue);
+  GDLWidgetNormalButton* widget = dynamic_cast<GDLWidgetNormalButton*>(GDLWidget::GetWidget(event.GetId()));
+  assert(widget!=NULL);
+  widget->SetRadioButton( selectValue);
+  
+  //do not report an unchecked event if /NO_RELEASE is set for this widget
+  if (selectValue==false && widget->getNoReleaseOption()==true) return;
   
   // create GDL event struct
   DStructGDL*  widgbut = new DStructGDL( "WIDGET_BUTTON");
