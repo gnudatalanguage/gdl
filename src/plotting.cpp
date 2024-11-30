@@ -146,12 +146,14 @@ namespace lib
 #undef UNDEF_RANGE_VALUE
 	if (warn) Warning("Infinite plot range.");
   }
+  
+  // freeRange serves only for gdlAdjustAxisRange() when axis style is not 'fixed', to get reasonable intervals.
   DDouble AutoTickIntv(DDouble x, bool freeRange) {
-	static const double s2 = sqrt(2) / 2.;
+	static const double s2 = 0.707107; //sqrt(2) / 2.;
 	static const double s3 = sqrt(2) / 2.5;
-	static const double s4 = sqrt(2) / 4.;
+	static const double s4 = 0.3535534; //sqrt(2) / 4.;
 	static const double s5 = sqrt(2) / 5;
-	static const double s9 = 0.15811390; //not sqrt(2) / 9.;
+	static const double s9 = 0.1581139; //not sqrt(2) / 9.; //could be not sqrt(2) / 9.?;
 	static const double s10 = s9/1.25; //not sqrt(2) / 9.;
 	static const double recompute = 0.1;
 
@@ -472,34 +474,34 @@ namespace lib
 	} else {
 	  if (log) { //no "leak factor" as below for the linear case: the axis range in the case xstyle=0 MUST cover an integer
 		// number of powers of ten, i.e., of AutoLogTickIntv(). As the intv depends on the range, it is necessary to converge towards a 'stable' value
-		PLFLT intvold = AutoLogTickIntv(pow(10, min), pow(10, max));
-		PLFLT intv = 0;
-		//find the "good" intv
-		PLFLT start=min;
-		PLFLT end=max;
-		while (intv != intvold) {
-			intv = intvold;
-			start= floor(start / intv) * intv;
-			end = ceil(end / intv) * intv;
-			intvold = AutoLogTickIntv(pow(10, start), pow(10, end));
-		  }
+		PLFLT intv = AutoLogTickIntv(pow(10, min), pow(10, max));
+//		PLFLT intv = 0;
+//		//find the "good" intv
+//		PLFLT start=min;
+//		PLFLT end=max;
+//		while (intv != intvold) {
+//			intv = intvold;
+//			start= floor(start / intv) * intv;
+//			end = ceil(end / intv) * intv;
+//			intvold = AutoLogTickIntv(pow(10, start), pow(10, end));
+//		  }
 		//intv is OK, find nearest value for max and min
 		  if ( abs ( (floor(max / intv) * intv ) - max ) > intv/1000) max =  ceil(max / intv) * intv;
 		  if ( abs ( (ceil(min / intv) * intv ) - min ) > intv/1000)  min = floor(min / intv) * intv;
 	  } else {
-		PLFLT intvold = AutoTickIntv(range,true);
-		PLFLT intv = 0;
-		//find the "good" intv
-		PLFLT start=min;
-		PLFLT end=max;
-//		while (intv != intvold) {
-			intv = intvold;
-			start= floor(start / intv) * intv;
-			end = ceil(end / intv) * intv;
-			range=end-start;
-			intvold = AutoTickIntv(range,true);
-//		  }
-			intv = intvold;
+		PLFLT intv = AutoTickIntv(range,true);
+//		PLFLT intv = 0;
+//		//find the "good" intv
+//		PLFLT start=min;
+//		PLFLT end=max;
+////		while (intv != intvold) {
+//			intv = intvold;
+//			start= floor(start / intv) * intv;
+//			end = ceil(end / intv) * intv;
+//			range=end-start;
+//			intvold = AutoTickIntv(range,true);
+////		  }
+//			intv = intvold;
 		//intv is OK, find nearest value for max and min, do not jump to next tick if the difference is invisible:
 		  if ( abs ( (floor(max / intv) * intv ) - max ) > intv/1000) max =  ceil(max / intv) * intv;
 		  if ( abs ( (ceil(min / intv) * intv ) - min ) > intv/1000)  min = floor(min / intv) * intv;
@@ -3099,12 +3101,12 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	  if (nint > 0) {
 		if (isLog) {
 		  DDouble first = ceil(min / TickInterval) * TickInterval;
-		  DDoubleGDL* val = new DDoubleGDL(dimension(nint+1), BaseGDL::NOZERO);
+		  DDoubleGDL* val = new DDoubleGDL(dimension(nint), BaseGDL::NOZERO); //IDL does not return the terminal tick (box limit)
 		  for (auto i = 0; i < val->N_Elements(); ++i) (*val)[i] = pow(10,first + i * sign* TickInterval);
 		  e->SetKW(choosenIx, val);
 		} else {
 		  DDouble first = ceil(min / TickInterval)*TickInterval;
-		  DDoubleGDL* val = new DDoubleGDL(dimension(nint+1), BaseGDL::NOZERO);
+		  DDoubleGDL* val = new DDoubleGDL(dimension(nint), BaseGDL::NOZERO); //IDL does not return the terminal tick (box limit)
 		  for (auto i = 0; i < val->N_Elements(); ++i) (*val)[i] = first + i * sign * TickInterval;
 		  e->SetKW(choosenIx, val);
 		}
@@ -3683,7 +3685,7 @@ NoTitlesAccepted:
 	DLong AxisStyle;
 	gdlGetDesiredAxisStyle(e, axisId, AxisStyle);
 	if (TickInterval == 0 && !hasTickv) {
-	  if (Ticks <= 0) TickInterval = gdlComputeAxisTickInterval(e, axisId, Start, End, Log, 0, (axisId==ZAXIS && ((AxisStyle & 1) == 0)));
+	  if (Ticks <= 0) TickInterval = gdlComputeAxisTickInterval(e, axisId, Start, End, Log, 0, ((AxisStyle & 1) == 0));
 	  else if (Ticks > 1) TickInterval = (End - Start) / Ticks;
 	  else TickInterval = (End - Start);
 	} else {
@@ -3930,7 +3932,7 @@ NoTitlesAccepted:
 
 	for (auto i = 0; i < tickdata.nTickUnits; ++i) //loop on TICKUNITS axis
 	{
-	  if (i > 0 || TickInterval == 0) TickInterval = gdlComputeAxisTickInterval(e, axisId, Start, End, Log, i/*, (AxisStyle & 1) == 0*/);
+	  if (i > 0 || TickInterval == 0) TickInterval = gdlComputeAxisTickInterval(e, axisId, Start, End, Log, i, false); //fixed range by 1st axis written
 	  //protect against (plplot) bug #1893
       if (TickInterval+tickdata.Start == tickdata.Start) continue;
 	  tickdata.nchars = 0; //set nchars to 0, at the end nchars will be the maximum size.

@@ -1264,9 +1264,11 @@ public:
 class GDLWidgetNormalButton: public GDLWidgetButton
 { 
 public:
- GDLWidgetNormalButton( WidgetIDT parentID, EnvT* e, DStringGDL* value, DULong eventflags, wxBitmap* bitmap=NULL, DStringGDL* buttonTooltip=NULL);
+  bool noRelease; //option checked only for radiobuttons
+ GDLWidgetNormalButton( WidgetIDT parentID, EnvT* e, DStringGDL* value, DULong eventflags, bool norelease, wxBitmap* bitmap=NULL, DStringGDL* buttonTooltip=NULL);
  ~GDLWidgetNormalButton();
  void SetButtonWidgetLabelText( const DString& value_ );
+ bool getNoReleaseOption(){return noRelease;}
 };
 
 class GDLWidgetMenuEntry: public GDLWidgetButton
