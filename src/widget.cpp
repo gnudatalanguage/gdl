@@ -2511,9 +2511,7 @@ BaseGDL* widget_info( EnvT* e ) {
 			id = (*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0]; // get its id
 			for (SizeT i = 0; i < widgetIDList.size(); i++) { //is ID corresponding to any widget in list?
 			  if (widgetIDList.at(i) == id) { //if yes
-				//IMPORTANT: return ev immediately. This is what permits #1685: an event trapped by WIDGET_EVENT does not behave
-				//like the same event processed in the evenloop.
-				return ev;
+				goto endwait;
 			  }
 			}
 			GDLWidget::widgetEventQueue.PushBack(ev);
