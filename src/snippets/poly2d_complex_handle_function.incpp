@@ -1,0 +1,18 @@
+	T2* tmp = new T2(data_->Dim(), BaseGDL::NOZERO);
+	for (auto i = 0; i < data_->N_Elements(); ++i) (*tmp)[i] = (*data_)[i].real();
+	BaseGDL* rea = POLY2D_FUNCTION<T2, T4>(nCols, nRows, tmp, P, Q, missing, doMissing);
+	for (auto i = 0; i < data_->N_Elements(); ++i) (*tmp)[i] = (*data_)[i].imag();
+	BaseGDL* ima = POLY2D_FUNCTION<T2, T4>(nCols, nRows, tmp, P, Q, 0, doMissing); //missing imaginary is always 0 in IDL.
+	GDLDelete(tmp);
+	dimension dim(nCols, nRows);
+	T1* comp = new T1(dim, BaseGDL::NOZERO);
+	T3* fcomp = static_cast<T3*> (comp->DataAddr());
+	T4* realval = static_cast<T4*> (rea->DataAddr());
+	T4* imagval = static_cast<T4*> (ima->DataAddr());
+	for (auto i = 0; i < nCols * nRows; ++i) {
+	  reinterpret_cast<T4*>(fcomp)[2 * i] = realval[i];
+	  reinterpret_cast<T4*>(fcomp)[2 * i +1] = imagval[i];
+	}
+	GDLDelete(rea);
+	GDLDelete(ima);
+	return comp;

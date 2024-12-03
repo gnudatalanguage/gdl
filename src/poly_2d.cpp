@@ -76,14 +76,10 @@ namespace lib {
   }
 
 
-  DFloat * poly2d_compute_init_x(poly2d * p,	SizeT n) {
+  DFloat * poly2d_compute_init(poly2d * p,	const SizeT m0, const SizeT m1) {
+	SizeT n=(m1>m0)?m1:m0;
 	DFloat * res= (DFloat*) malloc(p->nc*n*sizeof(DFloat));
 	for (auto i=0, s=0; i< n; ++i) for (DLong k = 0; k < p->nc; k++) res[s++]=ipowI(i, p->px[k]);
-	return res;
-  }
-  DFloat* poly2d_compute_init_y(poly2d * p,	SizeT n) {
-	DFloat * res= (DFloat*) malloc(p->nc*n*sizeof(DFloat));
-	for (auto i=0,s=0; i< n; ++i) for (DLong k = 0; k < p->nc; k++) res[s++]=ipowI(i, p->py[k]);
 	return res;
   }
 
@@ -126,6 +122,9 @@ DFloat bicubicInterpolate (DFloat p[4][4], DFloat x, DFloat y, DFloat * precompu
   The returned array of DFloats must be deallocated using free().
  */
 /*--------------------------------------------------------------------------*/
+
+// commenting unused code is the best way to avoid a frustrating uncompleteness of coverage
+// when using coverage tests.
 DFloat * generate_interpolation_kernel(/* int kernel_type, */ DFloat cubicParameter)
 {
     DFloat  *	tab ;
@@ -196,8 +195,8 @@ template< typename T1, typename T2>
     const SizeT nCols,
     const SizeT nRows,
     BaseGDL* data_,
-    DFloat * const P,
-    DFloat * const Q,
+    const DFloat * P,
+    const DFloat * Q,
     DFloat const initvalue_,
 	const bool doMissing) {
 //	std::cerr<<"warp_linear0\n";
@@ -335,14 +334,14 @@ template< typename T1, typename T2>
   BaseGDL* warp0(
     const SizeT nCols,
     const SizeT nRows,
-    BaseGDL* const data_,
-    poly2d* const poly_u,
-    poly2d* const poly_v,
+    BaseGDL * data_,
+    poly2d * poly_u,
+    poly2d * poly_v,
     const DFloat initvalue_,
-    bool doMissing) {
+    const bool doMissing) {
 //	std::cerr<<"warp0\n";
-	const SizeT lx = data_->Dim(0);
-	const SizeT ly = data_->Dim(1);
+	SizeT lx = data_->Dim(0);
+	SizeT ly = data_->Dim(1);
 
 	dimension dim(nCols, nRows);
 	T1* res_ = new T1(dim, BaseGDL::NOZERO);
@@ -366,19 +365,17 @@ template< typename T1, typename T2>
 	DFloat fl0y=0;
 	//these are accelerators - not using them increase exec time by 2 or 3.
 	DLong nc=poly_u->nc;
-	DFloat * const xcoefu=poly2d_compute_init_x(poly_u,lx);
-	DFloat * const ycoefu=poly2d_compute_init_y(poly_u,lx);
-	DFloat * const xcoefv=poly2d_compute_init_x(poly_v,ly);
-	DFloat * const ycoefv=poly2d_compute_init_y(poly_v,ly);
+	assert(poly_u->nc == poly_v->nc);
+	DFloat * const coef=poly2d_compute_init(poly_u,lx,ly); //poly_u and poly_va share the same size.
 	/* Double loop on the output image  */
 	if (doMissing) {
 	if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
 	  for (OMPInt j = 0; j < nRows; ++j) {
 		for (OMPInt i = 0; i < nCols; ++i) {
-          DFloat x = poly_u->c[0]; for (auto k=1; k< nc; ++k) x+=poly_u->c[k]*xcoefu[j*nc+k]*ycoefu[i*nc+k];
+          DFloat x = poly_u->c[0]; for (auto k=1; k< nc; ++k) x+=poly_u->c[k]*coef[j*nc+k]*coef[i*nc+k];
 		  if (x < fl0x) continue;
 		  if (x >= fllx) continue; // already initialised to 'missing' value.
-          DFloat y = poly_v->c[0]; for (auto k=1; k< nc; ++k) y+=poly_v->c[k]*xcoefv[j*nc+k]*ycoefv[i*nc+k];
+          DFloat y = poly_v->c[0]; for (auto k=1; k< nc; ++k) y+=poly_v->c[k]*coef[j*nc+k]*coef[i*nc+k];
 		  if (y < fl0y) continue;
 		  if (y >= flly)	continue;
 		  SizeT px = x;
@@ -392,10 +389,10 @@ template< typename T1, typename T2>
 	  for (OMPInt j = 0; j < nRows; ++j) {
 		for (OMPInt i = 0; i < nCols; ++i) {
 		  // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
-          DFloat x = poly_u->c[0]; for (auto k=1; k< nc; ++k) x+=poly_u->c[k]*xcoefu[j*nc+k]*ycoefu[i*nc+k];
+          DFloat x = poly_u->c[0]; for (auto k=1; k< nc; ++k) x+=poly_u->c[k]*coef[j*nc+k]*coef[i*nc+k];
 		  if (x < fl0x) continue;
 		  if (x >= fllx) continue; // already initialised to 'missing' value.
-          DFloat y = poly_v->c[0]; for (auto k=1; k< nc; ++k) y+=poly_v->c[k]*xcoefv[j*nc+k]*ycoefv[i*nc+k];
+          DFloat y = poly_v->c[0]; for (auto k=1; k< nc; ++k) y+=poly_v->c[k]*coef[j*nc+k]*coef[i*nc+k];
 		  if (y < fl0y) continue;
 		  if (y >= flly)	continue;
 		  SizeT px = x;
@@ -418,8 +415,8 @@ template< typename T1, typename T2>
           DFloat x = poly_u->c[0];
 		  DFloat y = poly_v->c[0];
 		  for (auto k=1; k< nc; ++k) {
-			x+=poly_u->c[k]*xcoefu[j*nc+k]*ycoefu[i*nc+k];
-            y+=poly_v->c[k]*xcoefv[j*nc+k]*ycoefv[i*nc+k];
+			x+=poly_u->c[k]*coef[j*nc+k]*coef[i*nc+k];
+            y+=poly_v->c[k]*coef[j*nc+k]*coef[i*nc+k];
 		  }
 		  SizeT px=x;
 		  SizeT py=y;
@@ -437,8 +434,8 @@ template< typename T1, typename T2>
           DFloat x = poly_u->c[0];
 		  DFloat y = poly_v->c[0];
 		  for (auto k=1; k< nc; ++k) {
-			x+=poly_u->c[k]*xcoefu[j*nc+k]*ycoefu[i*nc+k];
-            y+=poly_v->c[k]*xcoefv[j*nc+k]*ycoefv[i*nc+k];
+			x+=poly_u->c[k]*coef[j*nc+k]*coef[i*nc+k];
+            y+=poly_v->c[k]*coef[j*nc+k]*coef[i*nc+k];
 		  }
 		  SizeT px=x;
 		  SizeT py=y;
@@ -449,18 +446,7 @@ template< typename T1, typename T2>
 	  }
 	}
 	}
-	free(xcoefu);
-	free(ycoefu);
-	free(xcoefv);
-	free(ycoefv);
-	free(poly_u->px);
-	free(poly_u->py);
-	free(poly_u->c);
-	free(poly_u);
-	free(poly_v->px);
-	free(poly_v->py);
-	free(poly_v->c);
-	free(poly_v);
+	free(coef);
 	return res_;
   }
 
@@ -469,9 +455,9 @@ template< typename T1, typename T2>
    const SizeT nCols,
     const SizeT nRows,
     BaseGDL* data_,
-    DFloat * const P,
-    DFloat * const Q,
-    DFloat const initvalue_,
+    const DFloat * P,
+    const DFloat * Q,
+    const DFloat initvalue_,
 	const bool doMissing) {
 //	std::cerr << "warp_linear1\n";
 	SizeT lx = data_->Dim(0);
@@ -494,20 +480,20 @@ template< typename T1, typename T2>
 	  }
 	}
 	//these are accelerators - not using them increase exec time by 2 or 3.
-	const DFloat xmax = lx;
-	const DFloat ymax = ly;
-	const DFloat xmin = 0;
-	const DFloat ymin = 0;
-	const DFloat xbound = lx - 1; //-1 for linear
-	const DFloat ybound = ly - 1;
-	const DFloat p0 = P[0];
-	const DFloat q0 = Q[0];
-	const DFloat p1 = P[1];
-	const DFloat q1 = Q[1];
-	const DFloat p2 = P[2];
-	const DFloat q2 = Q[2];
-	const DFloat p3 = P[3];
-	const DFloat q3 = Q[3];
+	DFloat xmax = lx;
+	DFloat ymax = ly;
+	DFloat xmin = 0;
+	DFloat ymin = 0;
+	DFloat xbound = lx - 1; //-1 for linear
+	DFloat ybound = ly - 1;
+	DFloat p0 = P[0];
+	DFloat q0 = Q[0];
+	DFloat p1 = P[1];
+	DFloat q1 = Q[1];
+	DFloat p2 = P[2];
+	DFloat q2 = Q[2];
+	DFloat p3 = P[3];
+	DFloat q3 = Q[3];
 	DFloat p1j, p3j, q1j, q3j;
 
 	/* Double loop on the output internal image  */
@@ -615,14 +601,14 @@ template< typename T1, typename T2>
   BaseGDL* warp1(
     const SizeT nCols,
     const SizeT nRows,
-    BaseGDL* const data_,
-    poly2d* const poly_u,
-    poly2d* const poly_v,
+    BaseGDL * data_,
+    poly2d * poly_u,
+    poly2d * poly_v,
     const DFloat initvalue_,
-    bool doMissing) {
+    const bool doMissing) {
 //	std::cerr<<"warp1\n";
-	const SizeT lx = data_->Dim(0);
-	const SizeT ly = data_->Dim(1);
+	SizeT lx = data_->Dim(0);
+	SizeT ly = data_->Dim(1);
 
     dimension dim(nCols, nRows);
     T1* res_ = new T1(dim, BaseGDL::NOZERO);
@@ -646,21 +632,19 @@ template< typename T1, typename T2>
 	DFloat fl0x=0;
 	DFloat fl0y=0;
 	DLong nc=poly_u->nc;
-	DFloat * const xcoefu=poly2d_compute_init_x(poly_u,lx);
-	DFloat * const ycoefu=poly2d_compute_init_y(poly_u,lx);
-	DFloat * const xcoefv=poly2d_compute_init_x(poly_v,ly);
-	DFloat * const ycoefv=poly2d_compute_init_y(poly_v,ly);
+	assert(poly_u->nc == poly_v->nc);
+	DFloat * const coef=poly2d_compute_init(poly_u,lx,ly); //poly_u and poly_va share the same size.
 	/* Double loop on the output image  */
 	if (doMissing) {
 	  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
 		for (OMPInt j = 0; j < nRows; ++j) {
 		  for (OMPInt i = 0; i < nCols; ++i) {
 			DFloat x = poly_u->c[0];
-			for (auto k = 1; k < nc; ++k) x += poly_u->c[k] * xcoefu[j * nc + k] * ycoefu[i * nc + k];
+			for (auto k = 1; k < nc; ++k) x += poly_u->c[k] * coef[j * nc + k] * coef[i * nc + k];
 			if (x < fl0x) continue;
 			if (x >= fllx) continue;
 			DFloat y = poly_v->c[0];
-			for (auto k = 1; k < nc; ++k) y += poly_v->c[k] * xcoefv[j * nc + k] * ycoefv[i * nc + k];
+			for (auto k = 1; k < nc; ++k) y += poly_v->c[k] * coef[j * nc + k] * coef[i * nc + k];
 			if (y < fl0y) continue;
 			if (y >= flly) continue;
 			SizeT px = x;
@@ -683,11 +667,11 @@ template< typename T1, typename T2>
 		  for (OMPInt j = 0; j < nRows; ++j) {
 		  for (OMPInt i = 0; i < nCols; ++i) {
 			DFloat x = poly_u->c[0];
-			for (auto k = 1; k < nc; ++k) x += poly_u->c[k] * xcoefu[j * nc + k] * ycoefu[i * nc + k];
+			for (auto k = 1; k < nc; ++k) x += poly_u->c[k] * coef[j * nc + k] * coef[i * nc + k];
 			if (x < fl0x) continue;
 			if (x >= fllx) continue;
 			DFloat y = poly_v->c[0];
-			for (auto k = 1; k < nc; ++k) y += poly_v->c[k] * xcoefv[j * nc + k] * ycoefv[i * nc + k];
+			for (auto k = 1; k < nc; ++k) y += poly_v->c[k] * coef[j * nc + k] * coef[i * nc + k];
 			if (y < fl0y) continue;
 			if (y >= flly) continue;
 			SizeT px = x;
@@ -718,8 +702,8 @@ template< typename T1, typename T2>
 			DFloat x = poly_u->c[0];
 			DFloat y = poly_v->c[0];
 			for (auto k=1; k< nc; ++k) {
-			  x+=poly_u->c[k]*xcoefu[j*nc+k]*ycoefu[i*nc+k];
-			  y+=poly_v->c[k]*xcoefv[j*nc+k]*ycoefv[i*nc+k];
+			  x+=poly_u->c[k]*coef[j*nc+k]*coef[i*nc+k];
+			  y+=poly_v->c[k]*coef[j*nc+k]*coef[i*nc+k];
 			}
 			SizeT px=x;
 			SizeT py=y;
@@ -745,8 +729,8 @@ template< typename T1, typename T2>
 			DFloat x = poly_u->c[0];
 			DFloat y = poly_v->c[0];
 			for (auto k=1; k< nc; ++k) {
-			  x+=poly_u->c[k]*xcoefu[j*nc+k]*ycoefu[i*nc+k];
-			  y+=poly_v->c[k]*xcoefv[j*nc+k]*ycoefv[i*nc+k];
+			  x+=poly_u->c[k]*coef[j*nc+k]*coef[i*nc+k];
+			  y+=poly_v->c[k]*coef[j*nc+k]*coef[i*nc+k];
 			}
 			SizeT px=x;
 			SizeT py=y;
@@ -766,18 +750,7 @@ template< typename T1, typename T2>
 		}
 	  }
 	}
-	free(xcoefu);
-	free(ycoefu);
-	free(xcoefv);
-	free(ycoefv);
-	free(poly_u->px);
-	free(poly_u->py);
-	free(poly_u->c);
-	free(poly_u);
-	free(poly_v->px);
-	free(poly_v->py);
-	free(poly_v->c);
-	free(poly_v);
+	free(coef);
     return res_;
   }
 
@@ -786,10 +759,10 @@ template< typename T1, typename T2>
    const SizeT nCols,
     const SizeT nRows,
     BaseGDL* data_,
-    DFloat * const P,
-    DFloat * const Q,
+    const DFloat * P,
+    const DFloat * Q,
     const DFloat cubicParameter,
-    DFloat const initvalue_,
+    const DFloat initvalue_,
 	const bool doMissing) {
 //	std::cerr<<"warp_linear2\n";
     const SizeT lx = data_->Dim(0);
@@ -841,20 +814,20 @@ template< typename T1, typename T2>
     leaps[3][3] = 2 + 2 * lx;
 
 	//these are accelerators - not using them increase exec time by 2 or 3.
-	const DFloat xmax = lx;
-	const DFloat ymax = ly;
-	const DFloat xmin = 1;
-	const DFloat ymin = 1;
-	const DFloat xbound = lx - 2; //-2 for cubic
-	const DFloat ybound = ly - 2;
-	const DFloat p0 = P[0];
-	const DFloat q0 = Q[0];
-	const DFloat p1 = P[1];
-	const DFloat q1 = Q[1];
-	const DFloat p2 = P[2];
-	const DFloat q2 = Q[2];
-	const DFloat p3 = P[3];
-	const DFloat q3 = Q[3];
+	DFloat xmax = lx;
+	DFloat ymax = ly;
+	DFloat xmin = 1;
+	DFloat ymin = 1;
+	DFloat xbound = lx - 2; //-2 for cubic
+	DFloat ybound = ly - 2;
+	DFloat p0 = P[0];
+	DFloat q0 = Q[0];
+	DFloat p1 = P[1];
+	DFloat q1 = Q[1];
+	DFloat p2 = P[2];
+	DFloat q2 = Q[2];
+	DFloat p3 = P[3];
+	DFloat q3 = Q[3];
 	DFloat p1j, p3j, q1j, q3j;
 
     /* Double loop on the output internal image  */
@@ -1001,15 +974,15 @@ template< typename T1, typename T2>
   BaseGDL* warp2(
     const SizeT nCols,
     const SizeT nRows,
-    BaseGDL* const data_,
+    BaseGDL * data_,
+    poly2d * poly_u,
+    poly2d * poly_v,
     const DFloat cubicParameter,
-    poly2d* const poly_u,
-    poly2d* const poly_v,
     const DFloat initvalue_,
-    bool doMissing) {
+    const bool doMissing) {
 //	std::cerr<<"warp2\n";
-	const SizeT lx = data_->Dim(0);
-	const SizeT ly = data_->Dim(1);
+	SizeT lx = data_->Dim(0);
+	SizeT ly = data_->Dim(1);
 
 	DFloat* kernel=cubicKernel; //already computed
 	bool destroyKernel=false;
@@ -1057,31 +1030,28 @@ template< typename T1, typename T2>
     leaps[3][3] = 2 + 2 * lx;
 
 	//these are accelerators - not using them increase exec time by 2 or 3.
-	const DFloat xmax = lx;
-	const DFloat ymax = ly;
-	const DFloat xmin = 1;
-	const DFloat ymin = 1;
-	const DFloat xbound = lx - 2; //-2 for cubic
-	const DFloat ybound = ly - 2;
+	DFloat xmax = lx;
+	DFloat ymax = ly;
+	DFloat xmin = 1;
+	DFloat ymin = 1;
+	DFloat xbound = lx - 2; //-2 for cubic
+	DFloat ybound = ly - 2;
 	DLong nc = poly_u->nc;
-	DFloat * const xcoefu=poly2d_compute_init_x(poly_u,lx);
-	DFloat * const ycoefu=poly2d_compute_init_y(poly_u,lx);
-	DFloat * const xcoefv=poly2d_compute_init_x(poly_v,ly);
-	DFloat * const ycoefv=poly2d_compute_init_y(poly_v,ly);
-
+	assert(poly_u->nc == poly_v->nc);
+	DFloat * const coef=poly2d_compute_init(poly_u,lx,ly);//poly_u and poly_va share the same size.
     /* Double loop on the output internal image  */
     if ((GDL_NTHREADS=parallelize( nEl ))==1) {
 		for (OMPInt j = 0; j < nRows; ++j) {
 		for (OMPInt i = 0; i < nCols; ++i) {
 		  // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
 			DFloat x = poly_u->c[0];
-			for (auto k = 1; k < nc; ++k) x += poly_u->c[k] * xcoefu[j * nc + k] * ycoefu[i * nc + k];
+			for (auto k = 1; k < nc; ++k) x += poly_u->c[k] * coef[j * nc + k] * coef[i * nc + k];
 		  if (doMissing) {
 			if (x < xmin) continue;
 			if (x >= xmax) continue;
 		  }
 			DFloat y = poly_v->c[0];
-			for (auto k = 1; k < nc; ++k) y += poly_v->c[k] * xcoefv[j * nc + k] * ycoefv[i * nc + k];
+			for (auto k = 1; k < nc; ++k) y += poly_v->c[k] * coef[j * nc + k] * coef[i * nc + k]; 
 		  if (doMissing) {
 			if (y < ymin) continue;
 			if (y >= ymax) continue;
@@ -1141,13 +1111,13 @@ template< typename T1, typename T2>
 		for (OMPInt i = 0; i < nCols; ++i) {
 		  // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
 			DFloat x = poly_u->c[0];
-			for (auto k = 1; k < nc; ++k) x += poly_u->c[k] * xcoefu[j * nc + k] * ycoefu[i * nc + k];
+			for (auto k = 1; k < nc; ++k) x += poly_u->c[k] * coef[j * nc + k] * coef[i * nc + k];
 		  if (doMissing) {
 			if (x < xmin) continue;
 			if (x >= xmax) continue;
 		  }
 			DFloat y = poly_v->c[0];
-			for (auto k = 1; k < nc; ++k) y += poly_v->c[k] * xcoefv[j * nc + k] * ycoefv[i * nc + k];
+			for (auto k = 1; k < nc; ++k) y += poly_v->c[k] * coef[j * nc + k] * coef[i * nc + k];
 		  if (doMissing) {
 			if (y < ymin) continue;
 			if (y >= ymax) continue;
@@ -1201,9 +1171,91 @@ template< typename T1, typename T2>
           }
         }
 	}
+	free(coef);
 	if (destroyKernel) free(kernel);
     return res_;
   }
+#define POLY2D_FUNCTION warp_linear0
+  template< typename T1, typename T2, typename T3, typename T4> //<GDL_COMPLEX, GDL_FLOAT, COMPLEX, FLOAT> 
+  BaseGDL* poly2d_complex_handle_warp_linear0(
+	const SizeT nCols,
+	const SizeT nRows,
+	T1* data_,
+	const DFloat * P,
+	const DFloat * Q,
+	const DFloat missing,
+	const bool doMissing) {
+#include "snippets/poly2d_complex_handle_function.incpp"
+  }
+#undef POLY2D_FUNCTION
+#define POLY2D_FUNCTION warp_linear1
+  template< typename T1, typename T2, typename T3, typename T4> //<GDL_COMPLEX, GDL_FLOAT, COMPLEX, FLOAT> 
+  BaseGDL* poly2d_complex_handle_warp_linear1(
+	const SizeT nCols,
+	const SizeT nRows,
+	T1* data_,
+	const DFloat * P,
+	const DFloat * Q,
+	const DFloat missing,
+	const bool doMissing) {
+#include "snippets/poly2d_complex_handle_function.incpp"
+  }
+#undef POLY2D_FUNCTION
+#define POLY2D_FUNCTION warp_linear2
+  template< typename T1, typename T2, typename T3, typename T4> //<GDL_COMPLEX, GDL_FLOAT, COMPLEX, FLOAT> 
+  BaseGDL* poly2d_complex_handle_warp_linear2(
+	const SizeT nCols,
+	const SizeT nRows,
+	T1* data_,
+	const DFloat * P,
+	const DFloat * Q,
+    const DFloat cubicParameter,
+	const DFloat missing,
+	const bool doMissing) {
+#include "snippets/poly2d_complex_handle_cubic_function.incpp"
+  }
+#undef POLY2D_FUNCTION
+  // same code for warp, only the P and Q arguments are diffrent type
+#define POLY2D_FUNCTION warp0
+  template< typename T1, typename T2, typename T3, typename T4> //<GDL_COMPLEX, GDL_FLOAT, COMPLEX, FLOAT> 
+  BaseGDL* poly2d_complex_handle_warp0(
+	const SizeT nCols,
+	const SizeT nRows,
+	T1* data_,
+	poly2d * P,
+	poly2d * Q,
+	const DFloat missing,
+	const bool doMissing) {
+#include "snippets/poly2d_complex_handle_function.incpp"
+  }
+#undef POLY2D_FUNCTION
+#define POLY2D_FUNCTION warp1
+  template< typename T1, typename T2, typename T3, typename T4> //<GDL_COMPLEX, GDL_FLOAT, COMPLEX, FLOAT> 
+  BaseGDL* poly2d_complex_handle_warp1(
+	const SizeT nCols,
+	const SizeT nRows,
+	T1* data_,
+	poly2d * P,
+	poly2d * Q,
+	const DFloat missing,
+	const bool doMissing) {
+#include "snippets/poly2d_complex_handle_function.incpp"
+  }
+#undef POLY2D_FUNCTION
+#define POLY2D_FUNCTION warp2
+  template< typename T1, typename T2, typename T3, typename T4> //<GDL_COMPLEX, GDL_FLOAT, COMPLEX, FLOAT> 
+  BaseGDL* poly2d_complex_handle_warp2(
+	const SizeT nCols,
+	const SizeT nRows,
+	T1* data_,
+	poly2d * P,
+	poly2d * Q,
+	const DFloat cubicParameter,
+	const DFloat missing,
+	const bool doMissing) {
+#include "snippets/poly2d_complex_handle_cubic_function.incpp"
+  }
+#undef POLY2D_FUNCTION
 
 
   BaseGDL* poly_2d_fun(EnvT* e) {
@@ -1216,7 +1268,7 @@ template< typename T1, typename T2>
 
     BaseGDL* p0 = e->GetParDefined(0);
     
-    if (p0->Type() == GDL_COMPLEX || p0->Type() == GDL_COMPLEXDBL)  e->Throw("Complex values not supported (FIXME)");
+    if (NumericType(p0->Type())==false)  e->Throw("Type of operand not supported.");
     
     if (p0->Rank() != 2)
       e->Throw("Array must have 2 dimensions: " + e->GetParString(0));
@@ -1308,6 +1360,12 @@ template< typename T1, typename T2>
           return warp_linear0< DFloatGDL, DFloat>(nCol, nRow, p0, (DFloat*) P->DataAddr(),(DFloat*) Q->DataAddr(), missing, doMissing);
         } else if (p0->Type() == GDL_DOUBLE) {
           return warp_linear0< DDoubleGDL, DDouble>(nCol, nRow, p0, (DFloat*) P->DataAddr(),(DFloat*) Q->DataAddr(), missing, doMissing);
+        } else if (p0->Type() == GDL_COMPLEX) { //duplicating warp code for Complex would make the whole thing unmaintainable. Use a simpler solution.
+		  DComplexGDL* p0c=static_cast<DComplexGDL*>(p0);
+		  return poly2d_complex_handle_warp_linear0<DComplexGDL, DFloatGDL, DComplex, DFloat>(nCol, nRow, p0c, (DFloat*) P->DataAddr(),(DFloat*) Q->DataAddr(), missing, doMissing);
+        } else if (p0->Type() == GDL_COMPLEXDBL) { //duplicating warp code for Complex would make the whole thing unmaintainable. Use a simpler solution.
+		  DComplexDblGDL* p0c=static_cast<DComplexDblGDL*>(p0);
+		  return poly2d_complex_handle_warp_linear0<DComplexDblGDL, DDoubleGDL, DComplexDbl, DDouble>(nCol, nRow, p0c, (DFloat*) P->DataAddr(),(DFloat*) Q->DataAddr(), missing, doMissing);
         }
       } else if (interp==1) {
          if (p0->Type() == GDL_BYTE) {
@@ -1328,7 +1386,13 @@ template< typename T1, typename T2>
           return warp_linear1< DFloatGDL, DFloat>(nCol, nRow, p0, (DFloat*) P->DataAddr(),(DFloat*) Q->DataAddr(), missing, doMissing);
         } else if (p0->Type() == GDL_DOUBLE) {
           return warp_linear1< DDoubleGDL, DDouble>(nCol, nRow, p0, (DFloat*) P->DataAddr(),(DFloat*) Q->DataAddr(), missing, doMissing);
-        }
+		} else if (p0->Type() == GDL_COMPLEX) { //duplicating warp code for Complex would make the whole thing unmaintainable. Use a simpler solution.
+		  DComplexGDL* p0c = static_cast<DComplexGDL*> (p0);
+		  return poly2d_complex_handle_warp_linear1<DComplexGDL, DFloatGDL, DComplex, DFloat>(nCol, nRow, p0c, (DFloat*) P->DataAddr(), (DFloat*) Q->DataAddr(), missing, doMissing);
+		} else if (p0->Type() == GDL_COMPLEXDBL) { //duplicating warp code for Complex would make the whole thing unmaintainable. Use a simpler solution.
+		  DComplexDblGDL* p0c = static_cast<DComplexDblGDL*> (p0);
+		  return poly2d_complex_handle_warp_linear1<DComplexDblGDL, DDoubleGDL, DComplexDbl, DDouble>(nCol, nRow, p0c, (DFloat*) P->DataAddr(), (DFloat*) Q->DataAddr(), missing, doMissing);
+		}
       } else if (interp==2) {
          if (p0->Type() == GDL_BYTE) {
           return warp_linear2< DByteGDL, DByte>(nCol, nRow, p0, (DFloat*) P->DataAddr(),(DFloat*) Q->DataAddr(), cubicParameter, missing, doMissing);
@@ -1348,103 +1412,136 @@ template< typename T1, typename T2>
           return warp_linear2< DFloatGDL, DFloat>(nCol, nRow, p0, (DFloat*) P->DataAddr(),(DFloat*) Q->DataAddr(), cubicParameter, missing, doMissing);
         } else if (p0->Type() == GDL_DOUBLE) {
           return warp_linear2< DDoubleGDL, DDouble>(nCol, nRow, p0, (DFloat*) P->DataAddr(),(DFloat*) Q->DataAddr(), cubicParameter, missing, doMissing);
-        }
+		} else if (p0->Type() == GDL_COMPLEX) { //duplicating warp code for Complex would make the whole thing unmaintainable. Use a simpler solution.
+		  DComplexGDL* p0c = static_cast<DComplexGDL*> (p0);
+		  return poly2d_complex_handle_warp_linear2<DComplexGDL, DFloatGDL, DComplex, DFloat>(nCol, nRow, p0c, (DFloat*) P->DataAddr(), (DFloat*) Q->DataAddr(), cubicParameter, missing, doMissing);
+		} else if (p0->Type() == GDL_COMPLEXDBL) { //duplicating warp code for Complex would make the whole thing unmaintainable. Use a simpler solution.
+		  DComplexDblGDL* p0c = static_cast<DComplexDblGDL*> (p0);
+		  return poly2d_complex_handle_warp_linear2<DComplexDblGDL, DDoubleGDL, DComplexDbl, DDouble>(nCol, nRow, p0c, (DFloat*) P->DataAddr(), (DFloat*) Q->DataAddr(), cubicParameter, missing, doMissing);
+		}
       }
     } 
-	
+
 	else {
-    
-    //NON-LINEAR Polynomial
 
-    poly2d* poly_u;
-    poly2d* poly_v;
+	  //NON-LINEAR Polynomial
 
-    poly_u = (poly2d *) malloc(sizeof (poly2d));
-    poly_u->nc = nc;
-    poly_u->px = (DLong *) malloc(nc * sizeof (DLong));
-    poly_u->py = (DLong *) malloc(nc * sizeof (DLong));
-    poly_u->c = (DFloat *) malloc(nc * sizeof (DFloat));
+	  poly2d* poly_u;
+	  poly2d* poly_v;
 
-    for (SizeT i = 0; i < (nDegree + 1)*(nDegree + 1); ++i) {
-      poly_u->px[i] = i / (nDegree + 1);
-      poly_u->py[i] = i - (poly_u->px[i] * (nDegree + 1));
-      poly_u->c[i] = (*P)[poly_u->px[i]+(nDegree + 1) * poly_u->py[i]];
-    }
+	  poly_u = (poly2d *) malloc(sizeof (poly2d));
+	  poly_u->nc = nc;
+	  poly_u->px = (DLong *) malloc(nc * sizeof (DLong));
+	  poly_u->py = (DLong *) malloc(nc * sizeof (DLong));
+	  poly_u->c = (DFloat *) malloc(nc * sizeof (DFloat));
 
-    poly_v = (poly2d *) malloc(sizeof (poly2d));
-    poly_v->nc = nc;
-    poly_v->px = (DLong *) malloc(nc * sizeof (DLong));
-    poly_v->py = (DLong *) malloc(nc * sizeof (DLong));
-    poly_v->c = (DFloat *) malloc(nc * sizeof (DFloat));
+	  for (SizeT i = 0; i < (nDegree + 1)*(nDegree + 1); ++i) {
+		poly_u->px[i] = i / (nDegree + 1);
+		poly_u->py[i] = i - (poly_u->px[i] * (nDegree + 1));
+		poly_u->c[i] = (*P)[poly_u->px[i]+(nDegree + 1) * poly_u->py[i]];
+	  }
 
-    for (SizeT i = 0; i < (nDegree + 1)*(nDegree + 1); ++i) {
-      poly_v->px[i] = i / (nDegree + 1);
-      poly_v->py[i] = i - (poly_v->px[i] * (nDegree + 1));
-      poly_v->c[i] = (*Q)[poly_v->px[i]+(nDegree + 1) * poly_v->py[i]];
-    }
-    if (interp==0) {
-       if (p0->Type() == GDL_BYTE) {
-        return warp0< DByteGDL, DByte>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_INT) {
-        return warp0< DIntGDL, DInt>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_UINT) {
-        return warp0< DUIntGDL, DUInt>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_LONG) {
-        return warp0< DLongGDL, DLong>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_ULONG) {
-        return warp0< DULongGDL, DULong>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_LONG64) {
-        return warp0< DLong64GDL, DLong64>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_ULONG64) {
-        return warp0< DULong64GDL, DULong64>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_FLOAT) {
-        return warp0< DFloatGDL, DFloat>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_DOUBLE) {
-        return warp0< DDoubleGDL, DDouble>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
-      }
-    } else if (interp==1) {
-       if (p0->Type() == GDL_BYTE) {
-        return warp1< DByteGDL, DByte>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_INT) {
-        return warp1< DIntGDL, DInt>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_UINT) {
-        return warp1< DUIntGDL, DUInt>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_LONG) {
-        return warp1< DLongGDL, DLong>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_ULONG) {
-        return warp1< DULongGDL, DULong>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_LONG64) {
-        return warp1< DLong64GDL, DLong64>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_ULONG64) {
-        return warp1< DULong64GDL, DULong64>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_FLOAT) {
-        return warp1< DFloatGDL, DFloat>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_DOUBLE) {
-        return warp1< DDoubleGDL, DDouble>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
-      }
-    } else if (interp==2) {
-       if (p0->Type() == GDL_BYTE) {
-        return warp2< DByteGDL, DByte>(nCol, nRow, p0, cubicParameter, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_INT) {
-        return warp2< DIntGDL, DInt>(nCol, nRow, p0, cubicParameter, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_UINT) {
-        return warp2< DUIntGDL, DUInt>(nCol, nRow, p0, cubicParameter, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_LONG) {
-        return warp2< DLongGDL, DLong>(nCol, nRow, p0, cubicParameter, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_ULONG) {
-        return warp2< DULongGDL, DULong>(nCol, nRow, p0, cubicParameter, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_LONG64) {
-        return warp2< DLong64GDL, DLong64>(nCol, nRow, p0, cubicParameter, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_ULONG64) {
-        return warp2< DULong64GDL, DULong64>(nCol, nRow, p0, cubicParameter, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_FLOAT) {
-        return warp2< DFloatGDL, DFloat>(nCol, nRow, p0, cubicParameter, poly_u, poly_v, missing, doMissing);
-      } else if (p0->Type() == GDL_DOUBLE) {
-        return warp2< DDoubleGDL, DDouble>(nCol, nRow, p0, cubicParameter, poly_u, poly_v, missing, doMissing);
-      }
-    }
+	  poly_v = (poly2d *) malloc(sizeof (poly2d));
+	  poly_v->nc = nc;
+	  poly_v->px = (DLong *) malloc(nc * sizeof (DLong));
+	  poly_v->py = (DLong *) malloc(nc * sizeof (DLong));
+	  poly_v->c = (DFloat *) malloc(nc * sizeof (DFloat));
 
-    }
+	  for (SizeT i = 0; i < (nDegree + 1)*(nDegree + 1); ++i) {
+		poly_v->px[i] = i / (nDegree + 1);
+		poly_v->py[i] = i - (poly_v->px[i] * (nDegree + 1));
+		poly_v->c[i] = (*Q)[poly_v->px[i]+(nDegree + 1) * poly_v->py[i]];
+	  }
+	  BaseGDL* ret;
+	  if (interp == 0) {
+		if (p0->Type() == GDL_BYTE) {
+		  ret = warp0< DByteGDL, DByte>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
+		} else if (p0->Type() == GDL_INT) {
+		  ret = warp0< DIntGDL, DInt>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
+		} else if (p0->Type() == GDL_UINT) {
+		  ret = warp0< DUIntGDL, DUInt>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
+		} else if (p0->Type() == GDL_LONG) {
+		  ret = warp0< DLongGDL, DLong>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
+		} else if (p0->Type() == GDL_ULONG) {
+		  ret = warp0< DULongGDL, DULong>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
+		} else if (p0->Type() == GDL_LONG64) {
+		  ret = warp0< DLong64GDL, DLong64>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
+		} else if (p0->Type() == GDL_ULONG64) {
+		  ret = warp0< DULong64GDL, DULong64>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
+		} else if (p0->Type() == GDL_FLOAT) {
+		  ret = warp0< DFloatGDL, DFloat>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
+		} else if (p0->Type() == GDL_DOUBLE) {
+		  ret = warp0< DDoubleGDL, DDouble>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
+		} else if (p0->Type() == GDL_COMPLEX) { //duplicating warp code for Complex would make the whole thing unmaintainable. Use a simpler solution.
+		  DComplexGDL* p0c = static_cast<DComplexGDL*> (p0);
+		  ret = poly2d_complex_handle_warp0<DComplexGDL, DFloatGDL, DComplex, DFloat>(nCol, nRow, p0c, poly_u, poly_v, missing, doMissing);
+		} else if (p0->Type() == GDL_COMPLEXDBL) { //duplicating warp code for Complex would make the whole thing unmaintainable. Use a simpler solution.
+		  DComplexDblGDL* p0c = static_cast<DComplexDblGDL*> (p0);
+		  ret = poly2d_complex_handle_warp0<DComplexDblGDL, DDoubleGDL, DComplexDbl, DDouble>(nCol, nRow, p0c, poly_u, poly_v, missing, doMissing);
+		}
+	  } else if (interp == 1) {
+		if (p0->Type() == GDL_BYTE) {
+		  ret = warp1< DByteGDL, DByte>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
+		} else if (p0->Type() == GDL_INT) {
+		  ret = warp1< DIntGDL, DInt>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
+		} else if (p0->Type() == GDL_UINT) {
+		  ret = warp1< DUIntGDL, DUInt>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
+		} else if (p0->Type() == GDL_LONG) {
+		  ret = warp1< DLongGDL, DLong>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
+		} else if (p0->Type() == GDL_ULONG) {
+		  ret = warp1< DULongGDL, DULong>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
+		} else if (p0->Type() == GDL_LONG64) {
+		  ret = warp1< DLong64GDL, DLong64>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
+		} else if (p0->Type() == GDL_ULONG64) {
+		  ret = warp1< DULong64GDL, DULong64>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
+		} else if (p0->Type() == GDL_FLOAT) {
+		  ret = warp1< DFloatGDL, DFloat>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
+		} else if (p0->Type() == GDL_DOUBLE) {
+		  ret = warp1< DDoubleGDL, DDouble>(nCol, nRow, p0, poly_u, poly_v, missing, doMissing);
+		} else if (p0->Type() == GDL_COMPLEX) { //duplicating warp code for Complex would make the whole thing unmaintainable. Use a simpler solution.
+		  DComplexGDL* p0c = static_cast<DComplexGDL*> (p0);
+		  ret = poly2d_complex_handle_warp1<DComplexGDL, DFloatGDL, DComplex, DFloat>(nCol, nRow, p0c, poly_u, poly_v, missing, doMissing);
+		} else if (p0->Type() == GDL_COMPLEXDBL) { //duplicating warp code for Complex would make the whole thing unmaintainable. Use a simpler solution.
+		  DComplexDblGDL* p0c = static_cast<DComplexDblGDL*> (p0);
+		  ret = poly2d_complex_handle_warp1<DComplexDblGDL, DDoubleGDL, DComplexDbl, DDouble>(nCol, nRow, p0c, poly_u, poly_v, missing, doMissing);
+		}
+	  } else if (interp == 2) {
+		if (p0->Type() == GDL_BYTE) {
+		  ret = warp2< DByteGDL, DByte>(nCol, nRow, p0, poly_u, poly_v, cubicParameter, missing, doMissing);
+		} else if (p0->Type() == GDL_INT) {
+		  ret = warp2< DIntGDL, DInt>(nCol, nRow, p0, poly_u, poly_v, cubicParameter, missing, doMissing);
+		} else if (p0->Type() == GDL_UINT) {
+		  ret = warp2< DUIntGDL, DUInt>(nCol, nRow, p0, poly_u, poly_v, cubicParameter, missing, doMissing);
+		} else if (p0->Type() == GDL_LONG) {
+		  ret = warp2< DLongGDL, DLong>(nCol, nRow, p0, poly_u, poly_v, cubicParameter, missing, doMissing);
+		} else if (p0->Type() == GDL_ULONG) {
+		  ret = warp2< DULongGDL, DULong>(nCol, nRow, p0, poly_u, poly_v, cubicParameter, missing, doMissing);
+		} else if (p0->Type() == GDL_LONG64) {
+		  ret = warp2< DLong64GDL, DLong64>(nCol, nRow, p0, poly_u, poly_v, cubicParameter, missing, doMissing);
+		} else if (p0->Type() == GDL_ULONG64) {
+		  ret = warp2< DULong64GDL, DULong64>(nCol, nRow, p0, poly_u, poly_v, cubicParameter, missing, doMissing);
+		} else if (p0->Type() == GDL_FLOAT) {
+		  ret = warp2< DFloatGDL, DFloat>(nCol, nRow, p0, poly_u, poly_v, cubicParameter, missing, doMissing);
+		} else if (p0->Type() == GDL_DOUBLE) {
+		  ret = warp2< DDoubleGDL, DDouble>(nCol, nRow, p0, poly_u, poly_v, cubicParameter, missing, doMissing);
+		} else if (p0->Type() == GDL_COMPLEX) { //duplicating warp code for Complex would make the whole thing unmaintainable. Use a simpler solution.
+		  DComplexGDL* p0c = static_cast<DComplexGDL*> (p0);
+		  ret = poly2d_complex_handle_warp2<DComplexGDL, DFloatGDL, DComplex, DFloat>(nCol, nRow, p0c, poly_u, poly_v, cubicParameter, missing, doMissing);
+		} else if (p0->Type() == GDL_COMPLEXDBL) { //duplicating warp code for Complex would make the whole thing unmaintainable. Use a simpler solution.
+		  DComplexDblGDL* p0c = static_cast<DComplexDblGDL*> (p0);
+		  ret = poly2d_complex_handle_warp2<DComplexDblGDL, DDoubleGDL, DComplexDbl, DDouble>(nCol, nRow, p0c, poly_u, poly_v, cubicParameter, missing, doMissing);
+		}
+	  }
+	  free(poly_u->px);
+	  free(poly_u->py);
+	  free(poly_u->c);
+	  free(poly_u);
+	  free(poly_v->px);
+	  free(poly_v->py);
+	  free(poly_v->c);
+	  free(poly_v);
+	  return ret;
+	}
     return NULL;
   }
 }
