@@ -181,7 +181,12 @@ pro handle_Event,ev
   common forprogressbar,progressbar,pbarid,pbarpos
 
   ; avoid to report timer events
-  if tag_names(ev, /structure_name) ne 'WIDGET_TIMER' then  help,ev,/str
+  if tag_names(ev, /structure_name) ne 'WIDGET_TIMER' then begin
+     print, 'event: ',count++
+     help,ev,/str
+     print
+  endif
+  
   
   if tag_names(ev, /structure_name) eq 'WIDGET_KILL_REQUEST' then begin
      acceptance=dialog_message(dialog_parent=ev.id,"I Do want to close the window", /CANCEL, /DEFAULT_NO,/QUESTION) ; +strtrim(ev.id,2))
@@ -524,12 +529,14 @@ endif
     radio=widget_base(yoff=offy,button_base01,/EXCLUSIVE,COL=1,frame=30) & offy+=150         ;
     rb1=widget_button(radio,VALUE="button in EXCLUSIVE base 1",uvalue={vEv,'rb1',[8,0]}, font=fontname)
     rb2=widget_button(radio,VALUE="button in EXCLUSIVE base 2",uvalue={vEv,'rb2',[9,0]})
+    rb2=widget_button(radio,VALUE="button with NO_RELASE option",/NO_RELEASE,uvalue={vEv,'rb2',[9,0]})
     
     tmp=widget_label(yoff=offy,button_base01,value="Non-Exclusive base,simple look") & offy+=10 ;
     
     check=widget_base(yoff=offy,button_base01,/NONEXCLUSIVE,COL=1) & offy+=100 ;
     cb1=widget_button(check,VALUE="button in NONEXCLUSIVE base 1",uvalue={vEv,'cb1',[81,0]}, font=fontname)
     cb2=widget_button(check,VALUE="button in NONEXCLUSIVE base 2",uvalue={vEv,'cb2',[12,0]})
+    cb2=widget_button(check,VALUE="button with NO_RELEASE option",/NO_RELEASE,uvalue={vEv,'cb2',[12,0]})
     
     tmp=widget_label(yoff=offy,button_base01,value='2 CW_BGROUP /COL in a framed base') & offy+=10 ;
     
