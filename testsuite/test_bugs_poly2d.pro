@@ -91,8 +91,8 @@ p=replicate(0.3,9) & q=replicate(0.4,9)
  for k=0,all_numeric do ret=poly_2d(*big[k],p,q,1, 27, 19, miss=-1) 
  for k=0,all_numeric do ret=poly_2d(*big[k],p,q,2, 27, 19, miss=-1) 
  for k=0,all_numeric do ret=poly_2d(*big[k],p,q,2, 27, 19, cub=-0.5, miss=-1) 
-
-
+; just for the fun
+; p=replicate(0.3,9)& p[2]=!values.f_nan & q=replicate(0.4,9) & ret=poly_2d(randomu(33,3,3),p,q,0)
 if (nb_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
 if KEYWORD_SET(test) then STOP
