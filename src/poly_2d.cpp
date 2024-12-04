@@ -25,40 +25,15 @@
 
 namespace lib {
 
-  // fast function to return a^n
-
-  OMPInt ipowI(OMPInt a, OMPInt n) {
-
-	// Stores final answer
-	OMPInt ans = 1;
-
-	while (n > 0) {
-
-	  OMPInt last_bit = (n & 1);
-
-	  // Check if current LSB
-	  // is set
-	  if (last_bit) {
-		ans = ans * a;
-	  }
-
-	  a = a * a;
-
-	  // Right shift
-	  n = n >> 1;
-	}
-
-	return ans;
-  }
-  // version for floats
-  DFloat ipowF(DFloat a, OMPInt n) {
+  // fast float as i^N
+  DFloat ipowF(OMPInt a, DLong n) {
 
 	// Stores final answer
 	DFloat ans = 1;
 
 	while (n > 0) {
 
-	  OMPInt last_bit = (n & 1);
+	  DLong last_bit = (n & 1);
 
 	  // Check if current LSB
 	  // is set
@@ -75,11 +50,14 @@ namespace lib {
 	return ans;
   }
 
-
-  DFloat * poly2d_compute_init(poly2d * p,	const SizeT m0, const SizeT m1) {
-	SizeT n=(m1>m0)?m1:m0;
+  DFloat * poly2d_compute_init_x(poly2d * p, const SizeT n) {
 	DFloat * res= (DFloat*) malloc(p->nc*n*sizeof(DFloat));
-	for (auto i=0, s=0; i< n; ++i) for (DLong k = 0; k < p->nc; k++) res[s++]=ipowI(i, p->px[k]);
+	for (DLong k = 0, s=0; k < p->nc; k++) for (OMPInt i=0; i< n; ++i) res[s++]=ipowF(i, p->px[k]);
+	return res;
+  }
+  DFloat * poly2d_compute_init_y(poly2d * p, const SizeT n) {
+	DFloat * res= (DFloat*) malloc(p->nc*n*sizeof(DFloat));
+	for (DLong k = 0, s=0; k < p->nc; k++) for (OMPInt i=0; i< n; ++i) res[s++]=ipowF(i, p->py[k]);
 	return res;
   }
 
@@ -366,16 +344,25 @@ template< typename T1, typename T2>
 	//these are accelerators - not using them increase exec time by 2 or 3.
 	DLong nc=poly_u->nc;
 	assert(poly_u->nc == poly_v->nc);
-	DFloat * const coef=poly2d_compute_init(poly_u,lx,ly); //poly_u and poly_va share the same size.
+	DFloat * const coefux=poly2d_compute_init_x(poly_u, nCols);
+	DFloat * const coefuy=poly2d_compute_init_y(poly_u, nRows);
+	DFloat * const coefvx=poly2d_compute_init_x(poly_v, nCols);
+	DFloat * const coefvy=poly2d_compute_init_y(poly_v, nRows);
 	/* Double loop on the output image  */
 	if (doMissing) {
 	if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
 	  for (OMPInt j = 0; j < nRows; ++j) {
 		for (OMPInt i = 0; i < nCols; ++i) {
-          DFloat x = poly_u->c[0]; for (auto k=1; k< nc; ++k) x+=poly_u->c[k]*coef[j*nc+k]*coef[i*nc+k];
+          DFloat x = 0;
+		  DFloat y = 0;
+		  for (auto k=0; k< nc; ++k) {
+			x+=poly_u->c[k]*coefuy[k*ly+j]*coefux[k*lx+i];
+		  }
 		  if (x < fl0x) continue;
 		  if (x >= fllx) continue; // already initialised to 'missing' value.
-          DFloat y = poly_v->c[0]; for (auto k=1; k< nc; ++k) y+=poly_v->c[k]*coef[j*nc+k]*coef[i*nc+k];
+		  for (auto k=0; k< nc; ++k) {
+            y+=poly_v->c[k]*coefvy[k*ly+j]*coefvx[k*lx+i];
+		  }
 		  if (y < fl0y) continue;
 		  if (y >= flly)	continue;
 		  SizeT px = x;
@@ -388,11 +375,16 @@ template< typename T1, typename T2>
 #pragma omp parallel for collapse(2) num_threads(GDL_NTHREADS)
 	  for (OMPInt j = 0; j < nRows; ++j) {
 		for (OMPInt i = 0; i < nCols; ++i) {
-		  // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
-          DFloat x = poly_u->c[0]; for (auto k=1; k< nc; ++k) x+=poly_u->c[k]*coef[j*nc+k]*coef[i*nc+k];
+          DFloat x = 0;
+		  DFloat y = 0;
+		  for (auto k=0; k< nc; ++k) {
+			x+=poly_u->c[k]*coefuy[k*ly+j]*coefux[k*lx+i];
+		  }
 		  if (x < fl0x) continue;
 		  if (x >= fllx) continue; // already initialised to 'missing' value.
-          DFloat y = poly_v->c[0]; for (auto k=1; k< nc; ++k) y+=poly_v->c[k]*coef[j*nc+k]*coef[i*nc+k];
+		  for (auto k=0; k< nc; ++k) {
+            y+=poly_v->c[k]*coefvy[k*ly+j]*coefvx[k*lx+i];
+		  }
 		  if (y < fl0y) continue;
 		  if (y >= flly)	continue;
 		  SizeT px = x;
@@ -412,11 +404,11 @@ template< typename T1, typename T2>
 	if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
 	  for (OMPInt j = 0; j < nRows; ++j) {
 		for (OMPInt i = 0; i < nCols; ++i) {
-          DFloat x = poly_u->c[0];
-		  DFloat y = poly_v->c[0];
-		  for (auto k=1; k< nc; ++k) {
-			x+=poly_u->c[k]*coef[j*nc+k]*coef[i*nc+k];
-            y+=poly_v->c[k]*coef[j*nc+k]*coef[i*nc+k];
+          DFloat x = 0;
+		  DFloat y = 0;
+		  for (auto k=0; k< nc; ++k) {
+			x+=poly_u->c[k]*coefuy[k*ly+j]*coefux[k*lx+i];
+            y+=poly_v->c[k]*coefvy[k*ly+j]*coefvx[k*lx+i];
 		  }
 		  SizeT px=x;
 		  SizeT py=y;
@@ -430,12 +422,11 @@ template< typename T1, typename T2>
 #pragma omp parallel for collapse(2) num_threads(GDL_NTHREADS)
 	  for (OMPInt j = 0; j < nRows; ++j) {
 		for (OMPInt i = 0; i < nCols; ++i) {
-		  // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
-          DFloat x = poly_u->c[0];
-		  DFloat y = poly_v->c[0];
-		  for (auto k=1; k< nc; ++k) {
-			x+=poly_u->c[k]*coef[j*nc+k]*coef[i*nc+k];
-            y+=poly_v->c[k]*coef[j*nc+k]*coef[i*nc+k];
+          DFloat x = 0;
+		  DFloat y = 0;
+		  for (auto k=0; k< nc; ++k) {
+			x+=poly_u->c[k]*coefuy[k*ly+j]*coefux[k*lx+i];
+            y+=poly_v->c[k]*coefvy[k*ly+j]*coefvx[k*lx+i];
 		  }
 		  SizeT px=x;
 		  SizeT py=y;
@@ -446,7 +437,10 @@ template< typename T1, typename T2>
 	  }
 	}
 	}
-	free(coef);
+	free(coefux);
+	free(coefuy);
+	free(coefvx);
+	free(coefvy);
 	return res_;
   }
 
@@ -633,18 +627,25 @@ template< typename T1, typename T2>
 	DFloat fl0y=0;
 	DLong nc=poly_u->nc;
 	assert(poly_u->nc == poly_v->nc);
-	DFloat * const coef=poly2d_compute_init(poly_u,lx,ly); //poly_u and poly_va share the same size.
+	DFloat * const coefux=poly2d_compute_init_x(poly_u, nCols);
+	DFloat * const coefuy=poly2d_compute_init_y(poly_u, nRows);
+	DFloat * const coefvx=poly2d_compute_init_x(poly_v, nCols);
+	DFloat * const coefvy=poly2d_compute_init_y(poly_v, nRows);
 	/* Double loop on the output image  */
 	if (doMissing) {
 	  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
 		for (OMPInt j = 0; j < nRows; ++j) {
 		  for (OMPInt i = 0; i < nCols; ++i) {
-			DFloat x = poly_u->c[0];
-			for (auto k = 1; k < nc; ++k) x += poly_u->c[k] * coef[j * nc + k] * coef[i * nc + k];
+          DFloat x = 0;
+		  for (auto k=0; k< nc; ++k) {
+			x+=poly_u->c[k]*coefuy[k*ly+j]*coefux[k*lx+i];
+		  }
 			if (x < fl0x) continue;
 			if (x >= fllx) continue;
-			DFloat y = poly_v->c[0];
-			for (auto k = 1; k < nc; ++k) y += poly_v->c[k] * coef[j * nc + k] * coef[i * nc + k];
+		  DFloat y = 0;
+		  for (auto k=0; k< nc; ++k) {
+            y+=poly_v->c[k]*coefvy[k*ly+j]*coefvx[k*lx+i];
+		  }
 			if (y < fl0y) continue;
 			if (y >= flly) continue;
 			SizeT px = x;
@@ -666,12 +667,16 @@ template< typename T1, typename T2>
 #pragma omp parallel for collapse(2) num_threads(GDL_NTHREADS)
 		  for (OMPInt j = 0; j < nRows; ++j) {
 		  for (OMPInt i = 0; i < nCols; ++i) {
-			DFloat x = poly_u->c[0];
-			for (auto k = 1; k < nc; ++k) x += poly_u->c[k] * coef[j * nc + k] * coef[i * nc + k];
+          DFloat x = 0;
+		  for (auto k=0; k< nc; ++k) {
+			x+=poly_u->c[k]*coefuy[k*ly+j]*coefux[k*lx+i];
+		  }
 			if (x < fl0x) continue;
 			if (x >= fllx) continue;
-			DFloat y = poly_v->c[0];
-			for (auto k = 1; k < nc; ++k) y += poly_v->c[k] * coef[j * nc + k] * coef[i * nc + k];
+		  DFloat y = 0;
+		  for (auto k=0; k< nc; ++k) {
+            y+=poly_v->c[k]*coefvy[k*ly+j]*coefvx[k*lx+i];
+		  }
 			if (y < fl0y) continue;
 			if (y >= flly) continue;
 			SizeT px = x;
@@ -690,8 +695,8 @@ template< typename T1, typename T2>
 		}
 	  }
 	} else {
-	  fllx -= 1; //restrict range by 1 for following interger pixel computation to work. 
-	  flly -= 1; //restrict range by 1 for following interger pixel computation to work. 
+	  fllx -= 2; //restrict range by 1 for following interger pixel computation to work. 
+	  flly -= 2; //restrict range by 1 for following interger pixel computation to work. 
 	  SizeT llx = fllx;
 	  SizeT lly = flly;
 	  SizeT l0x = fl0x;
@@ -699,12 +704,12 @@ template< typename T1, typename T2>
 	   if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
 		for (OMPInt j = 0; j < nRows; ++j) {
 		  for (OMPInt i = 0; i < nCols; ++i) {
-			DFloat x = poly_u->c[0];
-			DFloat y = poly_v->c[0];
-			for (auto k=1; k< nc; ++k) {
-			  x+=poly_u->c[k]*coef[j*nc+k]*coef[i*nc+k];
-			  y+=poly_v->c[k]*coef[j*nc+k]*coef[i*nc+k];
-			}
+          DFloat x = 0;
+		  DFloat y = 0;
+		  for (auto k=0; k< nc; ++k) {
+			x+=poly_u->c[k]*coefuy[k*ly+j]*coefux[k*lx+i];
+            y+=poly_v->c[k]*coefvy[k*ly+j]*coefvx[k*lx+i];
+		  }
 			SizeT px=x;
 			SizeT py=y;
 			if (x < fl0x) px = l0x; else if (x > fllx) px = llx;
@@ -726,12 +731,12 @@ template< typename T1, typename T2>
   #pragma omp parallel for collapse(2) num_threads(GDL_NTHREADS)
 		for (OMPInt j = 0; j < nRows; ++j) {
 		  for (OMPInt i = 0; i < nCols; ++i) {
-			DFloat x = poly_u->c[0];
-			DFloat y = poly_v->c[0];
-			for (auto k=1; k< nc; ++k) {
-			  x+=poly_u->c[k]*coef[j*nc+k]*coef[i*nc+k];
-			  y+=poly_v->c[k]*coef[j*nc+k]*coef[i*nc+k];
-			}
+          DFloat x = 0;
+		  DFloat y = 0;
+		  for (auto k=0; k< nc; ++k) {
+			x+=poly_u->c[k]*coefuy[k*ly+j]*coefux[k*lx+i];
+            y+=poly_v->c[k]*coefvy[k*ly+j]*coefvx[k*lx+i];
+		  }
 			SizeT px=x;
 			SizeT py=y;
 			if (x < fl0x) px = l0x; else if (x > fllx) px = llx;
@@ -750,7 +755,10 @@ template< typename T1, typename T2>
 		}
 	  }
 	}
-	free(coef);
+	free(coefux);
+	free(coefuy);
+	free(coefvx);
+	free(coefvy);
     return res_;
   }
 
@@ -1038,20 +1046,25 @@ template< typename T1, typename T2>
 	DFloat ybound = ly - 2;
 	DLong nc = poly_u->nc;
 	assert(poly_u->nc == poly_v->nc);
-	DFloat * const coef=poly2d_compute_init(poly_u,lx,ly);//poly_u and poly_va share the same size.
-    /* Double loop on the output internal image  */
+	DFloat * const coefux=poly2d_compute_init_x(poly_u, nCols);
+	DFloat * const coefuy=poly2d_compute_init_y(poly_u, nRows);
+	DFloat * const coefvx=poly2d_compute_init_x(poly_v, nCols);
+	DFloat * const coefvy=poly2d_compute_init_y(poly_v, nRows);    /* Double loop on the output internal image  */
     if ((GDL_NTHREADS=parallelize( nEl ))==1) {
 		for (OMPInt j = 0; j < nRows; ++j) {
 		for (OMPInt i = 0; i < nCols; ++i) {
-		  // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
-			DFloat x = poly_u->c[0];
-			for (auto k = 1; k < nc; ++k) x += poly_u->c[k] * coef[j * nc + k] * coef[i * nc + k];
+          DFloat x = 0;
+		  for (auto k=0; k< nc; ++k) {
+			x+=poly_u->c[k]*coefuy[k*ly+j]*coefux[k*lx+i];
+		  }
 		  if (doMissing) {
 			if (x < xmin) continue;
 			if (x >= xmax) continue;
 		  }
-			DFloat y = poly_v->c[0];
-			for (auto k = 1; k < nc; ++k) y += poly_v->c[k] * coef[j * nc + k] * coef[i * nc + k]; 
+		  DFloat y = 0;
+		  for (auto k=0; k< nc; ++k) {
+            y+=poly_v->c[k]*coefvy[k*ly+j]*coefvx[k*lx+i];
+		  }
 		  if (doMissing) {
 			if (y < ymin) continue;
 			if (y >= ymax) continue;
@@ -1109,15 +1122,18 @@ template< typename T1, typename T2>
 #pragma omp parallel for collapse(2) num_threads(GDL_NTHREADS)
 		for (OMPInt j = 0; j < nRows; ++j) {
 		for (OMPInt i = 0; i < nCols; ++i) {
-		  // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
-			DFloat x = poly_u->c[0];
-			for (auto k = 1; k < nc; ++k) x += poly_u->c[k] * coef[j * nc + k] * coef[i * nc + k];
+          DFloat x = 0;
+		  for (auto k=0; k< nc; ++k) {
+			x+=poly_u->c[k]*coefuy[k*ly+j]*coefux[k*lx+i];
+		  }
 		  if (doMissing) {
 			if (x < xmin) continue;
 			if (x >= xmax) continue;
 		  }
-			DFloat y = poly_v->c[0];
-			for (auto k = 1; k < nc; ++k) y += poly_v->c[k] * coef[j * nc + k] * coef[i * nc + k];
+		  DFloat y = 0;
+		  for (auto k=0; k< nc; ++k) {
+            y+=poly_v->c[k]*coefvy[k*ly+j]*coefvx[k*lx+i];
+		  }
 		  if (doMissing) {
 			if (y < ymin) continue;
 			if (y >= ymax) continue;
@@ -1171,7 +1187,10 @@ template< typename T1, typename T2>
           }
         }
 	}
-	free(coef);
+	free(coefux);
+	free(coefuy);
+	free(coefvx);
+	free(coefvy);
 	if (destroyKernel) free(kernel);
     return res_;
   }

@@ -62,7 +62,6 @@ BANNER_FOR_TESTSUITE, 'TEST_BUGS_POLY2D', nb_errors
 ; ADDING unchecked commands to serve as a coverage test for all cases:
 ; initialisations: floats at end, since some commands do not accpet floats/doubles/complex
   typecodes=[1,2,3,12,13,14,15,4,5,6,9]
-  typenames=["		BYTE","		INT","		LONG","		UINT","		ULONG","		LONG64","		ULONG64","		FLOAT","		DOUBLE","		COMPLEX","		DCOMPLEX"]
   all_numeric=10
   seed=33
   ; use non-trivial dimensions
