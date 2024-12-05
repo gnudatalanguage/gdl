@@ -18,10 +18,6 @@
 #include "poly_2d.hpp"
 #include "includefirst.hpp"
 
-#ifdef _MSC_VER
-#define isfinite _finite
-#endif
-
 #define TABSPERPIX      (1000)
 #define KERNEL_WIDTH    (2.0)
 #define KERNEL_SAMPLES  (1+(int)(TABSPERPIX * KERNEL_WIDTH))
@@ -1358,8 +1354,8 @@ template< typename T1, typename T2>
       (p2->Convert2(GDL_FLOAT, BaseGDL::COPY));
 	
 	// protect from P or Q harbouring non-numbers
-	for (auto i=0; i< P->N_Elements(); ++i) if (!isfinite((*P)[i])) e->Throw("Value of Coefficient is out of allowed range.");
-	for (auto i=0; i< Q->N_Elements(); ++i) if (!isfinite((*Q)[i])) e->Throw("Value of Coefficient is out of allowed range.");
+	for (auto i=0; i< P->N_Elements(); ++i) if (!std::isfinite((*P)[i])) e->Throw("Value of Coefficient is out of allowed range.");
+	for (auto i=0; i< Q->N_Elements(); ++i) if (!std::isfinite((*Q)[i])) e->Throw("Value of Coefficient is out of allowed range.");
 	(*P)[0]+=pixcenter;
 	(*Q)[0]+=pixcenter;
 
