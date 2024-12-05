@@ -1514,10 +1514,16 @@ void GDLWidget::ConnectToDesiredEvents(){
 int GDLWidget::gdl_lastControlId=0;
 
 GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, BaseGDL* vV, DULong eventFlags_)
-: theWxWidget( NULL )
-, theWxContainer(NULL)
-, widgetID (0)
+: widgetID(0)
 , parentID( p )
+, widgetSizer( NULL )
+, widgetPanel( NULL )
+, framePanel( NULL )
+, theWxWidget( NULL )
+, theWxContainer(NULL)
+, wOffset(wxDefaultPosition)
+, wSize(wxDefaultSize)
+, wScreenSize(wxDefaultSize)
 , uValue( NULL )
 , vValue( vV )
 , scrolled(false)
@@ -1525,12 +1531,7 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, BaseGDL* vV, DULong eventFlags_)
 , managed( false )
 , eventFlags( eventFlags_ )
 , exclusiveMode( 0 )
-, wOffset(wxDefaultPosition)
-, wSize(wxDefaultSize)
-, wScreenSize(wxDefaultSize)
-, widgetSizer( NULL )
-, widgetPanel( NULL )
-, framePanel( NULL )
+
 , widgetType(GDLWidget::WIDGET_UNKNOWN)
 , widgetName("")
 , groupLeader(GDLWidget::NullID)
@@ -1540,14 +1541,18 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, BaseGDL* vV, DULong eventFlags_)
 , valid(true)
 , alignment(gdlwALIGN_NOT)
 , dynamicResize(0) //unset
-, eventFun("")
-, eventPro("")
-, killNotify("")
 , notifyRealize("")
+// followers;
+// desiredEventsList
+// m_windowTimer
+//, delay_destroy(false)
+// private
 , proValue("")
 , funcValue("")
+, eventPro("")
+, eventFun("")
+, killNotify("")
 , uName("")
-//, delay_destroy(false)
 {
   m_windowTimer = NULL;
   
@@ -2152,8 +2157,8 @@ GDLWidgetBase::GDLWidgetBase(WidgetIDT parentID, EnvT* e, ULong eventFlags_,
   DLong x_scroll_size, DLong y_scroll_size, bool grid_layout, long children_alignment, int space_)
 : GDLWidgetContainer(parentID, e, eventFlags_)
 , lastRadioSelection(NullID)
-, nrows(row)
 , ncols(col)
+, nrows(row)
 , grid(grid_layout)
 , childrenAlignment(children_alignment)
 , space(space_)
@@ -4801,7 +4806,7 @@ BaseGDL* GDLWidgetTable::GetDisjointSelectionValuesForStructs(DLongGDL* selectio
  	  ix = (*selection)[l++];
 	  t = (*selection)[l++];
 	}
-	snprintf(tagbuf, 12, "%12d", outTag);
+	snprintf(tagbuf, 13, "%12d", outTag);
 	//convert ' ' to '_'
 	for (auto z = 0; z < 12; ++z) if (tagbuf[z] == 32) tagbuf[z] = 95;
 	std::string outTagName(const_cast<char *>(tagbuf));
@@ -5383,12 +5388,15 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
 : GDLWidget( p, e, value_, eventFlags_ )
 ,droppable(dropability ) //inherited
 ,draggable(dragability ) //inherited
-,expanded(expanded_)
-,myRoot(NULL)
-,treeItemData(NULL)
 ,has_checkbox(false)
+,expanded(expanded_)
+//noBitmaps //only for roots.
 ,folder(folder_)
 ,mask(false)
+// multiple  //only for roots.
+// treeItemID 
+,treeItemData(NULL)
+,myRoot(NULL)
 ,dragNotify( dragNotify_) 
 {
 
@@ -5970,8 +5978,8 @@ DStringGDL* value , DULong eventflags, wxBitmap* bitmap_)
 : GDLWidget( p, e, value, eventflags )
 , buttonType( UNDEFINED )
 //, buttonBitmap(bitmap_)
-, buttonState(false)
 , menuItem(NULL)
+, buttonState(false)
 , valueWxString( wxString((*value)[0].c_str(), wxConvUTF8) )
 {
   if (valueWxString.Length() < 1) valueWxString=wxT(" ");
@@ -6164,8 +6172,8 @@ GDLWidgetMenuEntry::GDLWidgetMenuEntry(WidgetIDT p, EnvT* e,
   DStringGDL* value, DULong eventflags, bool hasSeparatorAbove, wxBitmap* bitmap_, bool checked_type)
 : GDLWidgetButton(p, e, value, eventflags, bitmap_)
 , addSeparatorAbove( hasSeparatorAbove)
-, checkedState(false) //unchecked at start
 , the_sep(NULL)
+, checkedState(false) //unchecked at start
 {
   GDLWidget* gdlParent = GetWidget(parentID);
   if (bitmap_) checked_type=false; //wxWidgets does not like checked bitmaps 
@@ -6826,8 +6834,8 @@ bool editable_ )
 : GDLWidget( p, e, valueStr, eventflags )
 , noNewLine( noNewLine_ )
 , editable(editable_)
-, multiline(false)
 , maxlinelength(0)
+, multiline(false)
 {
   static int wrapIx=e->KeywordIx("WRAP");
   wrapped=(e->KeywordSet(wrapIx));
@@ -7428,10 +7436,10 @@ void gdlwxPlotFrame::Realize() {
 //version using wxBG_STYLE_PAINT and blit to an AutoBufferedPaintDC, will this improve speed?
 gdlwxGraphicsPanel::gdlwxGraphicsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name)
 : wxScrolled<wxPanel>() // Use default ctor here!
-, pstreamIx( -1 )
 , pstreamP( NULL )
-, wx_dc( NULL)
+, pstreamIx( -1 )
 , drawSize(size)
+, wx_dc( NULL)
 { 
         // Do this first:
         SetBackgroundStyle(wxBG_STYLE_PAINT);
@@ -7506,7 +7514,7 @@ void gdlwxDrawPanel::InitStream(int wIx)
 
 void gdlwxGraphicsPanel::ResizeDrawArea(wxSize s)
 {
-  if (drawSize.x == s.x & drawSize.y == s.y) return; //VERY important , was one problem in #1471
+  if ( (drawSize.x == s.x) && (drawSize.y == s.y) ) return; //VERY important , was one problem in #1471
   bool doClear=false; 
   if (drawSize.x > s.x || drawSize.y > s.y ) doClear=true; 
   drawSize=s;

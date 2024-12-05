@@ -486,21 +486,21 @@ protected:
   bool         valid; //if not, is in the process of being destroyed (prevent reentrance).
   long  alignment; //alignment of the widget
   int dynamicResize; //for some widgets, will enable resizing: -1: not resizable, 0/1 resizable
+  DString      notifyRealize;
+
   std::vector<WidgetIDT> followers; //all the widgets that use me as group_leader
   std::vector<WidgetEventInfo*> desiredEventsList; //list of all the events (and handlers) this widget must obey.
-  DString      notifyRealize;
-  
   wxTimer * m_windowTimer;
 //  bool delay_destroy;
   
 private:  
 
-  DString      uName;
   DString      proValue;
   DString      funcValue;
   DString      eventPro; // event handler PRO
   DString      eventFun; // event handler FUN
   DString      killNotify;
+  DString      uName;
   
   void GetCommonKeywords( EnvT* e);
   void DefaultValuesInAbsenceofEnv();

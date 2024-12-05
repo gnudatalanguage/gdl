@@ -1449,7 +1449,7 @@ namespace lib {
     if (p0->Type() == GDL_COMPLEXDBL) {
       DComplexDblGDL* res;
       if (isReference) res = static_cast<DComplexDblGDL*> (p0)->NewResult();
-      else res = res = static_cast<DComplexDblGDL*> (p0);
+      else res = static_cast<DComplexDblGDL*> (p0);
       DComplexDblGDL* p0C = static_cast<DComplexDblGDL*> (p0);
       if ((GDL_NTHREADS=parallelize( nEl))==1) {
         for (SizeT i = 0; i < nEl; ++i) (*res)[i] = std::conj((*p0C)[i]);

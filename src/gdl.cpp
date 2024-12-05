@@ -295,7 +295,7 @@ int main(int argc, char *argv[])
 #endif
   for( SizeT a=1; a< argc; ++a)
     {
-      if( string( argv[a]) == "--help" | string( argv[a]) == "-h") {
+      if( string( argv[a]) == "--help" || string( argv[a]) == "-h") {
       cerr << "Usage: gdl [ OPTIONS ] [ batch_file ... ]" << endl;
       cerr << "Start the GDL interpreter (incremental compiler)" << endl;
       cerr << endl;
@@ -338,7 +338,7 @@ int main(int argc, char *argv[])
       cerr << "Homepage: https://gnudatalanguage.github.io" << endl;
       return 0;
     }
-      else if (string(argv[a])=="--version" | string(argv[a])=="-v" | string(argv[a])=="-V")
+      else if (string(argv[a])=="--version" || string(argv[a])=="-v" || string(argv[a])=="-V")
 	{
 	  cerr << "GDL - GNU Data Language, Version " << VERSION << endl;
 	  return 0;
@@ -357,7 +357,7 @@ int main(int argc, char *argv[])
         for (int i = a + 1; i < argc; i++) lib::command_line_args.push_back(string(argv[i]));
         break;
       }
-      else if (string(argv[a])=="-quiet" | string(argv[a])=="--quiet" | string(argv[a])=="-q") 
+      else if (string(argv[a])=="-quiet" || string(argv[a])=="--quiet" || string(argv[a])=="-q") 
 	{
 	  quiet = true;
 	}
@@ -428,7 +428,7 @@ int main(int argc, char *argv[])
       {
          usePlatformDeviceName = true;
       }
-      else if (string(argv[a]) == "--no-use-wx" |  string(argv[a]) == "-X")
+      else if (string(argv[a]) == "--no-use-wx" ||  string(argv[a]) == "-X")
       {
          force_no_wxgraphics = true;
       }
