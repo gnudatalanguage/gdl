@@ -163,7 +163,7 @@ if (section eq 0 or section eq 5) then begin
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=atan(*big[k],*big[k]) & toc,subclock & end ',$
    'print,what[i] & kernel=[ [0,1,0],[-1,0,1],[0,-1,0] ] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=convol(*big[k],kernel) & toc,subclock & end ',$
    'print,what[i] & z=findgen(size) & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=interpolate(*big[k],z) & toc,subclock & end ',$
-   'print,what[i] & for k=0,not_complex do begin & subclock=tic(typenames[k]) & ret=poly_2d(*big[k],p,q) & toc,subclock & end ',$
+   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=poly_2d(*big[k],p,q) & toc,subclock & end ',$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & tvscl,(*big[k]) & toc,subclock & end ' ]
 
 for i=0,n_elements(calls)-1 do begin & clock=tic(what[i])  & z=execute(calls[i]) &  toc,clock & end
