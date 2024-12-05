@@ -382,7 +382,9 @@ if (hasypos) then begin & i++ & AddtoTags,tags,i,287,tiffrational,1s,0 & endif ;
    software = "GDL, version "+!GDL.RELEASE
    i++ & AddtoTags,tags,i,305,tiffascii,n_bytes(software)+1,0 ; Software
    softwareIndex=i                                            ; memo
-   modifydate=systime()
+; not what IDL does.   modifydate=systime()
+   modifydate=string(systime(/jul),format='(C(CYI4,":",CMOI02,":",CDI02," ",CHI02, ":", CMI02, ":", CSI02))')
+
    i++ & AddtoTags,tags,i,306,tiffascii,n_bytes(modifydate)+1,0 ; ModifyDate
    modifydateIndex=i                                            ; memo
    if (doPalette) then begin
