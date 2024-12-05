@@ -18,6 +18,10 @@
 #include "poly_2d.hpp"
 #include "includefirst.hpp"
 
+#ifdef _MSC_VER
+#define isfinite _finite
+#endif
+
 #define TABSPERPIX      (1000)
 #define KERNEL_WIDTH    (2.0)
 #define KERNEL_SAMPLES  (1+(int)(TABSPERPIX * KERNEL_WIDTH))
