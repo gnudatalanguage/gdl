@@ -4801,7 +4801,7 @@ BaseGDL* GDLWidgetTable::GetDisjointSelectionValuesForStructs(DLongGDL* selectio
  	  ix = (*selection)[l++];
 	  t = (*selection)[l++];
 	}
-	snprintf(tagbuf, 12, "%12d", outTag);
+	snprintf(tagbuf, 13, "%12d", outTag);
 	//convert ' ' to '_'
 	for (auto z = 0; z < 12; ++z) if (tagbuf[z] == 32) tagbuf[z] = 95;
 	std::string outTagName(const_cast<char *>(tagbuf));
