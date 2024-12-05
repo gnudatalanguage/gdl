@@ -775,11 +775,8 @@ BaseGDL* LIST___OverloadEQOp( EnvUDT* e)
       Guard<BaseGDL> eqResGuard( eqRes);
       DByteGDL* eqResByte = static_cast<DByteGDL*>(eqRes);
       SizeT c = 0;
-      for( c=0; c<eqResByte->N_Elements(); ++c)
-        if( !((*eqResByte)[ c]))
-          break;
-      if( c == eqResByte->N_Elements())
-        (*result)[ i] = 1;    
+      for( c=0; c<eqResByte->N_Elements(); ++c) if( !((*eqResByte)[ c])) break;
+      if( c == eqResByte->N_Elements()) (*result)[ i] = 1;    
         eqResGuard.Release();
     }
       }
@@ -3207,8 +3204,7 @@ void list__swap( EnvUDT* e)
 
   BaseGDL* value = NULL;
     DType valType;
-  if( nParam >= 2)
-    value = e->GetTheKW(kwVALUEIx);
+  if( nParam >= 2)  value = e->GetTheKW(kwVALUEIx);
     bool isvalscalar = false;
     if( value == NULL || value == NullGDL::GetSingleInstance()) 
         isvalscalar = true;

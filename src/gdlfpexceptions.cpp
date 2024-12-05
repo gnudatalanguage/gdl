@@ -65,7 +65,8 @@ std::unique_ptr<ReportFPExceptionsGuard> GDLStartAutoStopRegisteringFPExceptions
   // just clear existing fpe exceptions
     std::feclearexcept(FE_ALL_EXCEPT);
 	std::unique_ptr<ReportFPExceptionsGuard> p(new ReportFPExceptionsGuard()) ;
-	return std::move( p ); 
+	std::unique_ptr<ReportFPExceptionsGuard> pp=std::move( p );
+	return pp;
 }
 //normal !EXCEPT=1 reporting
 void GDLCheckFPExceptionsAtLineLevel() {

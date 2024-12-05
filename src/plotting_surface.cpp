@@ -384,7 +384,8 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
       }
 	  // doShade will work correctly only if decomposed=0 --- same as IDL.
       // Get decomposed value for shades
-      DLong decomposed;
+      DLong decomposed= GraphicsDevice::GetDevice()->GetDecomposed();
+
 	  if (doShade) actStream->ForceColorMap1Ramp(0.0); else actStream->ForceColorMap1Ramp(0.33);
       static int UPPER_ONLYIx = e->KeywordIx( "UPPER_ONLY");
       static int LOWER_ONLYIx = e->KeywordIx( "LOWER_ONLY");

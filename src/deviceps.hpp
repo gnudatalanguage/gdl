@@ -41,18 +41,18 @@
 
 class DevicePS: public GraphicsDevice
 {
-  std::string      fileName;
-  GDLPSStream*     actStream;
-  float            XPageSize;
-  float            YPageSize;
-  float            XOffset;
-  float            YOffset;
-  int              color;
-  int              decomposed; // false -> use color table
-  bool	           orient_portrait; 
-  bool             encapsulated;
-  int              bitsPerPix;
-  float	           scale;
+  std::string fileName;
+  GDLPSStream* actStream;
+  float XPageSize;
+  float YPageSize;
+  float XOffset;
+  float YOffset;
+  int color;
+  int decomposed; // false -> use color table
+  bool orient_portrait;
+  bool encapsulated;
+  int bitsPerPix;
+  float scale;
 
   GDLStream  *psUnit;
 
@@ -147,9 +147,21 @@ class DevicePS: public GraphicsDevice
   }
     
 public:
-  DevicePS(): GraphicsDevice(), fileName( "gdl.ps"), actStream( NULL),
-    XPageSize(17.78), YPageSize(12.7), XOffset(1.905),YOffset(12.7),  //IDL default for offsets: 54 pts /X and 360 pts/Y
-    color(0), decomposed( 0), encapsulated(false), scale(1.), orient_portrait(true), bitsPerPix(8)
+  DevicePS(): 
+  GraphicsDevice()
+  , fileName( "gdl.ps")
+  , actStream( NULL)
+  , XPageSize(17.78)
+  , YPageSize(12.7)
+  , XOffset(1.905)
+  , YOffset(12.7)
+   //IDL default for offsets: 54 pts /X and 360 pts/Y
+  , color(0)
+  , decomposed( 0)
+  , orient_portrait(true)
+  , encapsulated(false)
+  , bitsPerPix(8)
+  , scale(1.)
   {
     name = "PS";
 
