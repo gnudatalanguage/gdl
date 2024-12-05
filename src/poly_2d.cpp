@@ -1352,6 +1352,10 @@ template< typename T1, typename T2>
 
     DFloatGDL* Q = static_cast<DFloatGDL*>
       (p2->Convert2(GDL_FLOAT, BaseGDL::COPY));
+	
+	// protect from P or Q harbouring non-numbers
+	for (auto i=0; i< P->N_Elements(); ++i) if (!isfinite((*P)[i])) e->Throw("Value of Coefficient is out of allowed range.");
+	for (auto i=0; i< Q->N_Elements(); ++i) if (!isfinite((*Q)[i])) e->Throw("Value of Coefficient is out of allowed range.");
 	(*P)[0]+=pixcenter;
 	(*Q)[0]+=pixcenter;
 
