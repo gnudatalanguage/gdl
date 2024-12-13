@@ -367,8 +367,6 @@ namespace lib {
 #else
     if (e->KeywordSet(SPLINE)) interpol=gdl_interpol_spline;
 #endif
-    static int NANIx = e->KeywordIx("NAN");
-    bool doNan=e->KeywordSet(NANIx);
     unsigned int nmin=gdl_interpol_type_min_size(interpol);
     
     //dimensions
@@ -376,6 +374,12 @@ namespace lib {
     DType type=p0->Type();
 	if (type==GDL_STRING) e->Throw("Internal Error, string value not allowed when calling GDL_INTERPOL, please report.");
 	if (ComplexType(type)) e->Throw("Internal Error, complex value not allowed when calling GDL_INTERPOL, please report.");
+
+	static int NANIx = e->KeywordIx("NAN");
+	bool possibleNaN = (p0->Type() == GDL_DOUBLE || p0->Type() == GDL_FLOAT);
+	bool doNan = (e->BooleanKeywordAbsentOrSet(NANIx) && possibleNaN);
+
+
     SizeT nV=p0->N_Elements();
     SizeT orig_nV=nV;
     if (nV <nmin) e->Throw("V has too few elements for this kind of interpolation.");

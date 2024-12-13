@@ -2800,7 +2800,7 @@ namespace lib {
       downgradeDoubleResult = !doublePrecision;
     }
 
-    bool nan = e->KeywordSet(nanIx);
+    bool nan = e->BooleanKeywordAbsentOrSet(nanIx);
     bool preserve = e->KeywordSet(preserveIx);
 
     DLong sumDim = 0;
@@ -3531,7 +3531,7 @@ namespace lib {
     static int intIx = e->KeywordIx("INTEGER");
     static int preIx = e->KeywordIx("PRESERVE_TYPE");
     bool KwCumul = e->KeywordSet(cumIx);
-    bool KwNaN = e->KeywordSet(nanIx);
+    bool KwNaN = e->BooleanKeywordAbsentOrSet(nanIx);
     bool KwInt = e->KeywordSet(intIx);
     bool KwPre = e->KeywordSet(preIx);
     bool nanInt = false;
@@ -3916,7 +3916,7 @@ namespace lib {
     BaseGDL* searchArr = e->GetParDefined(0);
 
     static int omitNaNIx = e->KeywordIx("NAN");
-    bool omitNaN = e->KeywordSet(omitNaNIx);
+    bool omitNaN = e->BooleanKeywordAbsentOrSet(omitNaNIx);
 
     static int subIx = e->KeywordIx("SUBSCRIPT_MAX");
     bool subMax = e->WriteableKeywordPresent(subIx); //insure the output variable exist and is of 'good' type
@@ -4017,7 +4017,7 @@ namespace lib {
     BaseGDL* searchArr = e->GetParDefined(0);
 
     static int omitNaNIx = e->KeywordIx("NAN");
-    bool omitNaN = e->KeywordSet(omitNaNIx);
+    bool omitNaN = e->BooleanKeywordAbsentOrSet(omitNaNIx);
 
     static int subIx = e->KeywordIx("SUBSCRIPT_MIN");
     bool subMin = e->WriteableKeywordPresent(subIx);
@@ -5502,7 +5502,7 @@ namespace lib {
       p0->Type() == GDL_FLOAT ||
       p0->Type() == GDL_COMPLEX ||
       p0->Type() == GDL_COMPLEXDBL);
-    bool omitNaN = (e->KeywordPresent(nanIx) && possibleNaN);
+    bool omitNaN = (e->BooleanKeywordAbsentOrSet(nanIx) && possibleNaN);
 
     //DIMENSION Kw
     static int dimIx = e->KeywordIx("DIMENSION");
@@ -6076,7 +6076,7 @@ namespace lib {
       p0->Type() == GDL_FLOAT ||
       p0->Type() == GDL_COMPLEX ||
       p0->Type() == GDL_COMPLEXDBL);
-    bool omitNaN = (e->KeywordPresent(nanIx) && possibleNaN);
+    bool omitNaN = (e->BooleanKeywordAbsentOrSet(nanIx) && possibleNaN);
 
     //DIMENSION Kw
     static int dimIx = e->KeywordIx("DIMENSION");
@@ -7154,7 +7154,11 @@ namespace lib {
     static int maxIx = e->KeywordIx("MAX");
     static int topIx = e->KeywordIx("TOP");
     static int nanIx = e->KeywordIx("NAN");
-    bool omitNaN = e->KeywordPresent(nanIx);
+    bool possibleNaN = (p0->Type() == GDL_DOUBLE ||
+      p0->Type() == GDL_FLOAT ||
+      p0->Type() == GDL_COMPLEX ||
+      p0->Type() == GDL_COMPLEXDBL);
+    bool omitNaN = (e->BooleanKeywordAbsentOrSet(nanIx) && possibleNaN);
 
     //the following is going to be wrong in cases where TOP is so negative that a Long does not suffice.
     //Besides, a template version for each different type would be faster and probably the only solution to get the

@@ -85,7 +85,7 @@ static BaseGDL* do_histogram_fun(EnvT* e, BaseGDL* p0) {
   if (FloatType(p0->Type())) {
     static int nanIx = e->KeywordIx("NAN");
     // minArrayVal/maxArrayVal
-    if (e->KeywordSet(nanIx)) {
+    if (e->BooleanKeywordAbsentOrSet(nanIx)) {
       DLong minEl, maxEl;
       array->MinMax(&minEl, &maxEl, NULL, NULL, true);
       minArrayVal = (*array)[minEl];
