@@ -11,7 +11,7 @@ on:
 
 jobs:
   codecov:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       DEPS: debug
       Configuration: Debug
