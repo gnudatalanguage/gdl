@@ -459,11 +459,7 @@ namespace lib {
     Guard<BaseGDL> guard;
 
     static int nanIx = e->KeywordIx("NAN");
-	bool possibleNaN = (p0->Type() == GDL_DOUBLE ||
-	  p0->Type() == GDL_FLOAT ||
-	  p0->Type() == GDL_COMPLEX ||
-	  p0->Type() == GDL_COMPLEXDBL);
-	bool kwNaN = (e->BooleanKeywordAbsentOrSet(nanIx) && possibleNaN);
+    bool kwNaN = e->KeywordSet(nanIx);
 
     static int infinityIx = e->KeywordIx("INFINITY");
     bool kwInfinity = e->KeywordSet(infinityIx);
