@@ -1446,6 +1446,9 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 	  hence the dance below where, for Nparam > 1, first duty is to search on the 1st parameter for directories.
   //     modifications        : 2014, 2015 by Greg Jung
    */
+  
+  // NOTE: FILE_SEARCH replaces FINDFILE obsoleted in IDL 5.5, but must be supported
+  // FINDFILE is a FILE_SEARCH but with only one option: COUNT
   BaseGDL* file_search(EnvT* e) {
 
 	enum {
@@ -1470,7 +1473,9 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 	// common with FINDFILE
 	static int countIx = e->KeywordIx("COUNT");
 	bool countKW = e->KeywordPresent(countIx);
+    bool isFindFile=(e->GetProName() == "FINDFILE");
 
+    if (!isFindFile) {
 	static int TEST_READIx = e->KeywordIx("TEST_READ");
 	static int TEST_WRITEIx = e->KeywordIx("TEST_WRITE");
 	static int TEST_EXECUTABLEIx = e->KeywordIx("TEST_EXECUTABLE");
@@ -1544,7 +1549,12 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 	if (match_all_dot)
 	  Warning("FILE_SEARCH: MATCH_ALL_INITIAL_DOT keyword ignored (not supported).");
 
-
+    } else {
+#ifndef _WIN32
+      //Under Windows, FINDFILE appends a "\" character to the end of the returned file name if the file is a directory.
+      mark=true;
+#endif
+    }
 	// SYNTAX:
 	//  Result = FILE_SEARCH(Path_Specification)
 	//      or for recursive searching,
@@ -1638,6 +1648,34 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 
 	DLong pCount = fileOut.size();
 
+    //special trick for findfile returning a single directory: list contents
+    if (isFindFile && pCount == 1) {
+      struct stat64 statStruct;
+      bool isaDir, isaSymLink;
+      int actStat = filestat(fileList[0].c_str(), statStruct, isaDir, isaSymLink);
+      if (actStat == 0 && isaDir) {
+        DIR* dir = opendir(fileList[0].c_str());
+        if (dir != NULL) {
+          pCount = 0;
+          struct dirent* entry;
+          fileOut.clear();
+          while ((entry = readdir(dir)) != NULL) {
+            //avoid copying twice in a string, first in entryStr, then in fileOut //small speedup?
+//            DString entryStr( entry->d_name);
+//            if( entryStr == "." || entryStr == "..") continue;
+//            pCount++;
+//            fileOut.push_back(entryStr);
+            char* name=entry->d_name; //note d_name is supposedly 256 chars max, but this is not really true..
+            size_t len=strlen(name);
+            if ((len==1 && (strncmp(name,".",1)==0)) || (len==2 && (strncmp(name,"..",2)==0) ))  continue;
+            pCount++;
+            fileOut.push_back(name);
+          }
+        }
+        closedir(dir);
+      }
+    }
+    
 	if (countKW)
 	  e->SetKW(countIx, new DLongGDL(pCount));
 
