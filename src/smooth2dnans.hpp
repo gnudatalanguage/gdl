@@ -22,6 +22,9 @@ SizeT w1 = width[0] / 2;
 SizeT w2 = width[1] / 2;
 SizeT nEl = dimx*dimy;
 SMOOTH_Ty* tmp=(SMOOTH_Ty*)malloc(nEl*sizeof(SMOOTH_Ty));
+// bug #1940: tmp must be set with quiet_nans otherwise tmp will contain uninitialized data should all the input pixels be NaN.
+// there is and additional loop to replace left Nans by missing in smooth_inc.cpp
+for (SizeT i=0; i < dimx*dimy; ++i) tmp[i]=std::numeric_limits<SMOOTH_Ty>::quiet_NaN();
 //parallelizing all that stuff is more complicated than a single pragma...
 {
  for (SizeT j = 0; j < dimy; ++j) {
