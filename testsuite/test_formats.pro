@@ -98,12 +98,16 @@ if (identity eq 'IDL') then begin ; overwrite a in some rare case
    if (vers < 8.2) then restore,filename='test_formats_random_input.sav' ; actually it is 8.2.2
 endif
 for i=0,n_tags(struct)-1 do struct.(i)=a[i]
+if keyword_set(with_nans) then struct.nand=!values.d_nan
+if keyword_set(with_nans) then struct.infd=!values.d_infinity
 struct.cmplx=complex(a[np-1],a[np-2])
 struct.dcmplx=dcomplex(a[np-3],a[np-4])
 ;
 INTERNAL_FORMAT_PRINTING, lun1, struct
 a=-a
 for i=0,n_tags(struct)-1 do struct.(i)=a[i]
+if keyword_set(with_nans) then struct.nand=-!values.d_nan
+if keyword_set(with_nans) then struct.infd=-!values.d_infinity
 struct.cmplx=complex(a[np-1],a[np-2])
 struct.dcmplx=dcomplex(a[np-3],a[np-4])
 
