@@ -34,6 +34,19 @@ using namespace std;
         if( nEl == 1) { (*dest)[0]=(*this)[0]; if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest;}\
         if((GDL_NTHREADS=parallelize(nEl,  TP_ARRAY_INITIALISATION))==1) {for( SizeT i=0; i < nEl; ++i) (*dest)[i]=(*this)[i]; if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest; }
 
+#define DO_CONVERT_START_FLOAT_TO_UNSIGNED_IA64(tnew, unsigned, signed) DO_CONVERT_START(tnew)
+
+#define DO_CONVERT_START_FLOAT_TO_UNSIGNED_ARM64(tnew, unsigned, signed)  {\
+        Data_<tnew>* dest=new Data_<tnew>( dim, BaseGDL::NOZERO);\
+        if( nEl == 1) { (*dest)[0]=static_cast<unsigned>(static_cast<signed>((*this)[0])); if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest;}\
+        if((GDL_NTHREADS=parallelize(nEl,  TP_ARRAY_INITIALISATION))==1) {for( SizeT i=0; i < nEl; ++i) (*dest)[i]=static_cast<unsigned>(static_cast<signed>((*this)[i])); if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest; }
+
+#ifdef __aarch64__
+#define DO_CONVERT_START_FLOAT_TO_UNSIGNED(tnew, unsigned, signed) DO_CONVERT_START_FLOAT_TO_UNSIGNED_ARM64(tnew, unsigned, signed)
+#else
+#define DO_CONVERT_START_FLOAT_TO_UNSIGNED(tnew, unsigned, signed) DO_CONVERT_START_FLOAT_TO_UNSIGNED_IA64(tnew, unsigned, signed)
+#endif
+
 #define DO_CONVERT_START_BIG_TO_SMALL(tnew, mask)  {\
         Data_<tnew>* dest=new Data_<tnew>( dim, BaseGDL::NOZERO);\
         if( nEl == 1) { (*dest)[0]=((*this)[0]&mask); if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest;}\
@@ -43,6 +56,18 @@ using namespace std;
         Data_<tnew>* dest=new Data_<tnew>( dim, BaseGDL::NOZERO);\
         if( nEl == 1) { (*dest)[0]=(*this)[0].real(); if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest;}\
         if((GDL_NTHREADS=parallelize(nEl,  TP_ARRAY_INITIALISATION))==1) {for( SizeT i=0; i < nEl; ++i) (*dest)[i]=(*this)[i].real(); if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest; }
+
+#define DO_CONVERT_START_FLOAT_TO_UNSIGNED_CPX_IA64(tnew, unsigned, signed) DO_CONVERT_START_CPX(tnew)
+
+#define DO_CONVERT_START_FLOAT_TO_UNSIGNED_CPX_ARM64(tnew, unsigned, signed)  {\
+        Data_<tnew>* dest=new Data_<tnew>( dim, BaseGDL::NOZERO);\
+        if( nEl == 1) { (*dest)[0]=static_cast<unsigned>(static_cast<signed>((*this)[0].real())); if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest;}\
+        if((GDL_NTHREADS=parallelize(nEl,  TP_ARRAY_INITIALISATION))==1) {for( SizeT i=0; i < nEl; ++i) (*dest)[i]=static_cast<unsigned>(static_cast<signed>((*this)[i].real())); if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest; }
+#ifdef __aarch64__
+#define DO_CONVERT_START_FLOAT_TO_UNSIGNED_CPX(tnew, unsigned, signed) DO_CONVERT_START_FLOAT_TO_UNSIGNED_CPX_ARM64(tnew, unsigned, signed)
+#else
+#define DO_CONVERT_START_FLOAT_TO_UNSIGNED_CPX(tnew, unsigned, signed) DO_CONVERT_START_FLOAT_TO_UNSIGNED_CPX_IA64(tnew, unsigned, signed)
+#endif
 
 #define DO_CONVERT_END  for( SizeT i=0; i < nEl; ++i) (*dest)[i]=(*this)[i]; if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest; }
 #define DO_CONVERT_END_BIG_TO_SMALL(mask)  for( SizeT i=0; i < nEl; ++i) (*dest)[i]=((*this)[i]&mask); if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest; }
@@ -678,7 +703,7 @@ template<> BaseGDL* Data_<SpDFloat>::Convert2(DType destTy, BaseGDL::Convert2Mod
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END
   case GDL_UINT:
-    DO_CONVERT_START(SpDUInt)
+    DO_CONVERT_START_FLOAT_TO_UNSIGNED(SpDUInt, DUInt, DInt)
     TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END
@@ -688,7 +713,7 @@ template<> BaseGDL* Data_<SpDFloat>::Convert2(DType destTy, BaseGDL::Convert2Mod
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END
   case GDL_ULONG:
-    DO_CONVERT_START(SpDULong)
+ DO_CONVERT_START_FLOAT_TO_UNSIGNED(SpDULong, DULong, DLong) 
     TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END
@@ -698,7 +723,7 @@ template<> BaseGDL* Data_<SpDFloat>::Convert2(DType destTy, BaseGDL::Convert2Mod
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END
   case GDL_ULONG64:
-    DO_CONVERT_START(SpDULong64)
+ DO_CONVERT_START_FLOAT_TO_UNSIGNED(SpDULong64, DULong64, DLong64) 
     TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END
@@ -764,7 +789,7 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2(DType destTy, BaseGDL::Convert2Mo
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END
   case GDL_UINT:
-    DO_CONVERT_START(SpDUInt)
+    DO_CONVERT_START_FLOAT_TO_UNSIGNED(SpDUInt, DUInt, DInt)
     TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END
@@ -774,7 +799,7 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2(DType destTy, BaseGDL::Convert2Mo
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END
   case GDL_ULONG:
-    DO_CONVERT_START(SpDULong)
+ DO_CONVERT_START_FLOAT_TO_UNSIGNED(SpDULong, DULong, DLong) 
     TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END
@@ -784,7 +809,7 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2(DType destTy, BaseGDL::Convert2Mo
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END
   case GDL_ULONG64:
-    DO_CONVERT_START(SpDULong64)
+ DO_CONVERT_START_FLOAT_TO_UNSIGNED(SpDULong64, DULong64, DLong64) 
     TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END
@@ -1151,7 +1176,7 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2(DType destTy, BaseGDL::Convert2M
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END_CPX
   case GDL_UINT:
-    DO_CONVERT_START_CPX(SpDUInt)
+    DO_CONVERT_START_FLOAT_TO_UNSIGNED_CPX(SpDUInt, DUInt, DInt)
     TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END_CPX
@@ -1161,7 +1186,7 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2(DType destTy, BaseGDL::Convert2M
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END_CPX
   case GDL_ULONG:
-    DO_CONVERT_START_CPX(SpDULong)
+    DO_CONVERT_START_FLOAT_TO_UNSIGNED_CPX(SpDULong, DULong, DLong)
     TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END_CPX
@@ -1171,7 +1196,7 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2(DType destTy, BaseGDL::Convert2M
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END_CPX
   case GDL_ULONG64:
-    DO_CONVERT_START_CPX(SpDULong64)
+    DO_CONVERT_START_FLOAT_TO_UNSIGNED_CPX(SpDULong64, DULong64, DLong64)
     TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END_CPX
@@ -1263,7 +1288,7 @@ template<> BaseGDL* Data_<SpDComplexDbl>::Convert2(DType destTy, BaseGDL::Conver
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END_CPX
   case GDL_UINT:
-    DO_CONVERT_START_CPX(SpDUInt)
+    DO_CONVERT_START_FLOAT_TO_UNSIGNED_CPX(SpDUInt, DUInt, DInt)
     TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END_CPX
@@ -1273,7 +1298,7 @@ template<> BaseGDL* Data_<SpDComplexDbl>::Convert2(DType destTy, BaseGDL::Conver
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END_CPX
   case GDL_ULONG:
-    DO_CONVERT_START_CPX(SpDULong)
+    DO_CONVERT_START_FLOAT_TO_UNSIGNED_CPX(SpDULong, DULong, DLong)
     TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END_CPX
@@ -1283,7 +1308,7 @@ template<> BaseGDL* Data_<SpDComplexDbl>::Convert2(DType destTy, BaseGDL::Conver
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END_CPX
   case GDL_ULONG64:
-    DO_CONVERT_START_CPX(SpDULong64)
+     DO_CONVERT_START_FLOAT_TO_UNSIGNED_CPX(SpDULong64, DULong64, DLong64)
     TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END_CPX
