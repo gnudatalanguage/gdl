@@ -64,7 +64,7 @@ end
 ;
 ; ------------------------------------------------------------
 ;
-pro GENERATE_FORMATS_FILE, nb_cases, verbose=verbose, test=test
+pro GENERATE_FORMATS_FILE, nb_cases, verbose=verbose, test=test, with_nans=with_nans
 ;
 identity=GDL_IDL_FL()
 filename='formats.'+identity
@@ -73,11 +73,19 @@ if FILE_TEST(filename) then begin
     MESSAGE,/cont, 'Copy of old file <<'+filename+'_old'+'>> done.'
 endif
 ;
-struct = {BYTE:0b,short:-0s,ushort:0us, $
+structnonan = {BYTE:0b,short:-0s,ushort:0us, $
               long:0l,ulong:0ul,long64:0ll, $
-              ulong64:0ull,float:0.0,double:0.0d, nand:0.0d, infd:0.0d,$
+              ulong64:0ull,float:0.0,double:0.0d,$
+              cmplx:complex(0,0),dcmplx:dcomplex(0d,0d)}
+structnan = {BYTE:0b,short:-0s,ushort:0us, $
+              long:0l,ulong:0ul,long64:0ll, $
+              ulong64:0ull,float:0.0,double:0.0d,$
+              nand:0.0d, infd:0.0d,$
               cmplx:complex(0,0),dcmplx:dcomplex(0d,0d)}
 ;
+; The WITH_NANS can be used only by calling GENERATE_FORMATS_FILE outside the normal use of TEST_FORMATS.
+; Because the printing of NaNs and Infs on AARCH64 = ARM64 is not the same as on other platforms.  
+if keyword_set(with_nans) then struct=structnan else struct=structnonan 
 GET_LUN, lun1
 OPENW, lun1, filename
 np=20 ; do not modify without recomputing save file below with idl8.
@@ -90,16 +98,16 @@ if (identity eq 'IDL') then begin ; overwrite a in some rare case
    if (vers < 8.2) then restore,filename='test_formats_random_input.sav' ; actually it is 8.2.2
 endif
 for i=0,n_tags(struct)-1 do struct.(i)=a[i]
-struct.nand=!values.d_nan
-struct.infd=!values.d_infinity
+if keyword_set(with_nans) then struct.nand=!values.d_nan
+if keyword_set(with_nans) then struct.infd=!values.d_infinity
 struct.cmplx=complex(a[np-1],a[np-2])
 struct.dcmplx=dcomplex(a[np-3],a[np-4])
 ;
 INTERNAL_FORMAT_PRINTING, lun1, struct
 a=-a
 for i=0,n_tags(struct)-1 do struct.(i)=a[i]
-struct.nand=-!values.d_nan
-struct.infd=-!values.d_infinity
+if keyword_set(with_nans) then struct.nand=-!values.d_nan
+if keyword_set(with_nans) then struct.infd=-!values.d_infinity
 struct.cmplx=complex(a[np-1],a[np-2])
 struct.dcmplx=dcomplex(a[np-3],a[np-4])
 

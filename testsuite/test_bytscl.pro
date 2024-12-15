@@ -273,7 +273,6 @@ end
 ;
 pro TEST_BYTSCL, help=help, verbose=verbose, no_exit=no_exit, test=test
 
-if ( !version.arch eq "arm64" ) then exit  ; temporarily suppress this test on ARM64
 if (!version.release lt '8.5.1' ) then exit ; new tests are not adapated to these old versions
 
 ;
