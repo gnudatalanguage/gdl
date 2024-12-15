@@ -16,7 +16,7 @@
  ***************************************************************************/
 
 #ifndef POLY2D_FUN_HPP_
-#define PLOY2D_FUN_HPP_
+#define POLY2D_FUN_HPP_
 
 #include "envt.hpp"
 
