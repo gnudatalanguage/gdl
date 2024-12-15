@@ -259,7 +259,11 @@ BaseGDL* smooth_fun( EnvT* e)
     /***********************************Parameter NAN****************************************/
 
     static int nanIx = e->KeywordIx( "NAN");
-    bool doNan = e->KeywordSet( nanIx);
+	bool possibleNaN = (p0->Type() == GDL_DOUBLE ||
+	  p0->Type() == GDL_FLOAT ||
+	  p0->Type() == GDL_COMPLEX ||
+	  p0->Type() == GDL_COMPLEXDBL);
+	bool doNan = (e->BooleanKeywordAbsentOrSet(nanIx) && possibleNaN);
     
     /***********************************Parameter MISSING************************************/
     static int missingIx = e->KeywordIx("MISSING");
