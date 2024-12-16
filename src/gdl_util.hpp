@@ -9,7 +9,12 @@ namespace gdl {
 //All x integer types
   if (y == 0) return 1;
   if (y < 0) {
-    return x==1?1:0; //do not forget 1
+    // case x=1 or -1 is special, other values give 0 ( as integer division of 1 by x^-y with y negative )
+    if (x == 1 ) { return 1;}
+    else if (x == -1 ) {
+      if ( y & 0x1 ) return -1; else return 1;
+    }
+    else return 0;
   }
 
   const int nBits = sizeof (DLong) * 8;
@@ -33,8 +38,6 @@ inline DFloat powI(const DFloat x, const DLong yy) {
 //All x integer types
   if (yy == 0) return 1;
   const int nBits = sizeof (DLong) * 8;
-  
-
 
   DLong y = yy;
   DFloat arr = x;
