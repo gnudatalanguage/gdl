@@ -7060,6 +7060,8 @@ void GDLWidgetText::InsertText( DStringGDL* valueStr, bool noNewLine_, bool appe
   }
   
   //really append/replace
+  txt->GetSelection(&from, &to);
+  
   if (append) { //see discussion wxTextEntry::GetInsertionPoint() at https://docs.wxwidgets.org/trunk/classwx_text_entry.html
 	//changes suggested by @klimpel (on windows)
 	if (multiline) {
@@ -7070,6 +7072,7 @@ void GDLWidgetText::InsertText( DStringGDL* valueStr, bool noNewLine_, bool appe
 	  to = pos;
 	}
   }
+
   bool doNotAddNl=(noNewLine_ || (!multiline) );
 
   DString value = (doNotAddNl)?"":(!append)?"":"\n";
