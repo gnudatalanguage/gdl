@@ -101,11 +101,11 @@ DInterpreter::DInterpreter(): GDLInterpreter()
   //  tmpList.reserve(100);
 }
 
-// void SetActualCompileOpt( unsigned int cOpt)
-// {
-// if( BaseGDL::interpreter!=NULL && BaseGDL::interpreter->CallStack().size()>0) 
-// 	BaseGDL::interpreter->CallStack().back()->SetCompileOpt( cOpt);
-// }
+ void MemorizeCompileOptForMAINIfNeeded( unsigned int cOpt)
+ {
+   if( BaseGDL::interpreter!=NULL && BaseGDL::interpreter->CallStack().size()>0 && BaseGDL::interpreter->CallStack().back()->CallingNode() == 0) 
+     BaseGDL::interpreter->CallStack().back()->SetCompileOpt( cOpt);
+ }
 
 // used in the statement function.
 // runs a new instance of the interpreter if not
@@ -1238,7 +1238,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 			executeLine.clear(); // clear EOF (for executeLine)
 			executeLine.str( "print,/implied_print," + executeLine.str()); // append new line
 			
-			lexer.reset( new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
+			lexer.reset( new GDLLexer(executeLine, "", 2 )); //2 is HIDDEN //callStack.back()->CompileOpt()));
 			lexer->Parser().interactive();
 			
 			break; // no error -> everything ok

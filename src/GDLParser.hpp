@@ -10,11 +10,13 @@
 
 
 #include <fstream>
-#include "basegdl.hpp"
-//#include "str.hpp"
-//#include "dnodefactory.hpp"
+
+#include "GDLParser.hpp"
+
+#include "str.hpp"
+#include "dnodefactory.hpp"
 #include "objects.hpp"
-//#include "initsysvar.hpp"
+#include "initsysvar.hpp"
 
 #include <antlr/TokenStreamSelector.hpp>
 
@@ -28,7 +30,7 @@
 //#include "dinterpreter.hpp"
 
 // defintion in dinterpreter.cpp
-//void SetActualCompileOpt( unsigned int cOpt);
+void MemorizeCompileOptForMAINIfNeeded( unsigned int cOpt);
 
 class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
 {
@@ -67,7 +69,7 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
         else if( opt == "STATIC")            compileOpt |= STATIC;
         else if( opt == "NOSAVE")            compileOpt |= NOSAVE;
         else throw GDLException("Unrecognised COMPILE_OPT option: "+opt);
-//        SetActualCompileOpt( compileOpt);
+        MemorizeCompileOptForMAINIfNeeded( compileOpt);
     }
 
     std::string subName; // name of procedure function to be compiled ("" -> all file)
