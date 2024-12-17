@@ -46,7 +46,7 @@ header {
 //#include "dinterpreter.hpp"
 
 // defintion in dinterpreter.cpp
-//void SetActualCompileOpt( unsigned int cOpt);
+void MemorizeCompileOptForMAINIfNeeded( unsigned int cOpt);
 }
 
 options {
@@ -198,7 +198,7 @@ tokens {
         else if( opt == "STATIC")            compileOpt |= STATIC;
         else if( opt == "NOSAVE")            compileOpt |= NOSAVE;
         else throw GDLException("Unrecognised COMPILE_OPT option: "+opt);
-//        SetActualCompileOpt( compileOpt);
+        MemorizeCompileOptForMAINIfNeeded( compileOpt);
     }
 
     std::string subName; // name of procedure function to be compiled ("" -> all file)
