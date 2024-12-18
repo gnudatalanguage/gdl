@@ -11,6 +11,33 @@
 
 #include <cstdlib>
 
+#include <fstream>
+#include <iostream>
+#include <string>
+
+static void printLineErrorHelper(std::string filename, int line, int col) {
+  if (filename.size() > 0) {
+	std::ifstream ifs;
+	ifs.open(filename, std::ifstream::in);
+	int linenum = 0;
+	std::string str;
+	while (std::getline(ifs, str)) {
+	  linenum++;
+	  if (linenum == line) {
+		std::cerr << std::endl << str << std::endl; //skip one line, print line
+		break;
+	  }
+	}
+	ifs.close();
+  }
+  for (auto i = 0; i < col; ++i) std::cerr << ' ';
+  std::cerr << '^';
+  std::cerr << '\n';
+  std::cerr << "% Syntax error.\n";
+  if ( filename.size() > 0)   std::cerr <<"  At: "<<filename<<", Line "<<line<<std::endl;
+  return;
+}
+
 GDLParser::GDLParser(antlr::TokenBuffer& tokenBuf, int k)
 : antlr::LLkParser(tokenBuf,k)
 {
@@ -869,9 +896,8 @@ void GDLParser::translation_unit() {
 	}
 	catch ( antlr::NoViableAltException& e) {
 		if (inputState->guessing==0) {
-			
-			// PARSER SYNTAX ERROR
-			throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+e.getMessage());
+						
+			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());
 			
 		} else {
 			throw;
@@ -880,8 +906,7 @@ void GDLParser::translation_unit() {
 	catch ( antlr::NoViableAltForCharException& e) {
 		if (inputState->guessing==0) {
 			
-			// LEXER SYNTAX ERROR
-			throw GDLException( e.getLine(), e.getColumn(), "Lexer syntax error: "+e.getMessage());
+			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());
 			
 		} else {
 			throw;
@@ -890,8 +915,7 @@ void GDLParser::translation_unit() {
 	catch ( antlr::RecognitionException& e) {
 		if (inputState->guessing==0) {
 			
-			// SYNTAX ERROR
-			throw GDLException( e.getLine(), e.getColumn(), "Lexer/Parser syntax error: "+e.getMessage());
+			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());
 			
 		} else {
 			throw;
@@ -1633,9 +1657,7 @@ void GDLParser::interactive() {
 	catch ( antlr::NoViableAltException& e) {
 		if (inputState->guessing==0) {
 			
-			// PARSER SYNTAX ERROR
-			throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+
-			e.getMessage());
+			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());
 			
 		} else {
 			throw;
@@ -1644,9 +1666,7 @@ void GDLParser::interactive() {
 	catch ( antlr::NoViableAltForCharException& e) {
 		if (inputState->guessing==0) {
 			
-			// LEXER SYNTAX ERROR
-			throw GDLException( e.getLine(), e.getColumn(), "Lexer syntax error: "+
-			e.getMessage());
+			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());
 			
 		} else {
 			throw;
@@ -1655,9 +1675,7 @@ void GDLParser::interactive() {
 	catch ( antlr::RecognitionException& e) {
 		if (inputState->guessing==0) {
 			
-			// SYNTAX ERROR
-			throw GDLException( e.getLine(), e.getColumn(), 
-			"Lexer/Parser syntax error: "+e.getMessage());
+			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());
 			
 		} else {
 			throw;
