@@ -13,6 +13,32 @@
 #include <memory>
 
 #include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <string>
+
+static void printLineErrorHelper(std::string filename, int line, int col) {
+  if (filename.size() > 0) {
+	std::ifstream ifs;
+	ifs.open(filename, std::ifstream::in);
+	int linenum = 0;
+	std::string str;
+	while (std::getline(ifs, str)) {
+	  linenum++;
+	  if (linenum == line) {
+		std::cerr << std::endl << str << std::endl; //skip one line, print line
+		break;
+	  }
+	}
+	ifs.close();
+  }
+  for (auto i = 0; i < col; ++i) std::cerr << ' ';
+  std::cerr << '^';
+  std::cerr << '\n';
+  std::cerr << "% Syntax error.\n";
+  if ( filename.size() > 0)   std::cerr <<"  At: "<<filename<<", Line "<<line<<std::endl;
+  return;
+}
 
 // ****
 #include "print_tree.hpp"
@@ -186,14 +212,12 @@ void GDLTreeParser::translation_unit(RefDNode _t) {
 	}
 	catch ( antlr::NoViableAltException& e) {
 		
-		// SYNTAX ERROR
-		throw GDLException( e.getLine(), e.getColumn(), "Compiler syntax error: "+e.getMessage());
+		printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());
 		
 	}
 	catch ( antlr::RecognitionException& e) {
 		
-		// SYNTAX ERROR
-		throw GDLException( e.getLine(), e.getColumn(), "General syntax error: "+e.getMessage());
+		printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());
 		
 	}
 	returnAST = translation_unit_AST;
@@ -946,14 +970,12 @@ void GDLTreeParser::interactive(RefDNode _t) {
 	}
 	catch ( antlr::NoViableAltException& e) {
 		
-		// SYNTAX ERROR
-		throw GDLException( e.getLine(), e.getColumn(), "Compiler syntax error: "+e.getMessage());
+		printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());
 		
 	}
 	catch ( antlr::RecognitionException& e) {
 		
-		// SYNTAX ERROR
-		throw GDLException( e.getLine(), e.getColumn(), "General syntax error: "+e.getMessage());
+		printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());
 		
 	}
 	returnAST = interactive_AST;
