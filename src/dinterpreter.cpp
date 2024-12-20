@@ -44,6 +44,30 @@
 
 #include <cassert>
 
+static void printLineErrorHelper(std::string filename, int line, int col) {
+  if (filename.size() > 0) {
+	std::ifstream ifs;
+	ifs.open(filename, std::ifstream::in);
+	int linenum = 0;
+	std::string str;
+	while (std::getline(ifs, str)) {
+	  linenum++;
+	  if (linenum == line) {
+		std::cerr << std::endl << str << std::endl; //skip one line, print line
+		break;
+	  }
+	}
+	ifs.close();
+  } else {
+	for (auto i = 0; i < SysVar::Prompt().size(); ++i) std::cerr << ' ';
+  }
+  for (auto i = 0; i < col; ++i) std::cerr << ' ';
+  std::cerr << '^';
+  std::cerr << '\n';
+  std::cerr << "% Syntax error.\n";
+  if (filename.size() > 0) std::cerr << "  At: " << filename << ", Line " << line << std::endl;
+  return;
+}
 // print out AST tree
 //#define GDL_DEBUG
 //#undef GDL_DEBUG
@@ -500,7 +524,7 @@ int GDLInterpreter::GetProIx(ProgNodeP f)
     if (proIx != -1) return proIx;
 #ifdef 	AUTO_PRINT_EXPR
     //noInteractive: throw
-    if (noInteractive) throw GDLException(f, "Procedure not found: " + subName, true, false);
+    if (noInteractive) throw GDLException(f, "Attempt to call undefined procedure: " + subName, true, false);
     //attempts an implied print. All this should be done in the ANTLR stuff of course.
     //We are here because the text is interpreted as a procedure. It is not (otherwise it would have been found),
     //but it could just be one or a series of variable names, such as in "a=dist(3) & b=findgen(2) & a,b"
@@ -509,7 +533,7 @@ int GDLInterpreter::GetProIx(ProgNodeP f)
     //gather types of siblings. if they are not all "ref", do not tempt anything
     EnvStackT& callStack = ProgNode::interpreter->CallStack();
     DLong curlevnum = callStack.size();
-    if (curlevnum > 1) throw GDLException(f, "Procedure not found: " + subName, true, false);
+    if (curlevnum > 1) throw GDLException(f, "Attempt to call undefined procedure: " + subName, true, false);
     DSubUD* pro = static_cast<DSubUD*> (callStack[curlevnum - 1]->GetPro());
     bool ok = true;
     ProgNodeP test = f;
@@ -519,36 +543,23 @@ int GDLInterpreter::GetProIx(ProgNodeP f)
       BaseGDL** varPtr = pro->GetCommonVarPtr(what);
       if (varPtr == NULL) ok = false;
     }
-    while (ok) {
-      test = test->GetNextSibling();
-      if (!test) break;
-      string type = test->getText();
-      string varName = test->GetFirstChild()->getText();
-      ok = (type == "ref"); //only simple variables.
-      if (ok) { //test it is a REAL variable.
-        xI = pro->FindVar(varName);
-        if (xI == -1) {
-          BaseGDL** varPtr = pro->GetCommonVarPtr(varName);
-          if (varPtr == NULL) ok = false;
-        }
-      }
-      if (!ok) break;
-      what += "," + test->GetFirstChild()->getText(); //for "ref" firstChild contains the name to be printed
-    }
-    if (ok) { //only simple things like "a,b,c"
+    if (ok) { //try with autoprint
+		std::string s= ProgNode::interpreter->executeLine.str();
+		// if line has multiple sentences, we cannot risk just 'print' the line. better to throw.
+		if (s.find("&")!=std::string::npos) throw GDLException(f, "Unhandled compound expression.", false, false);
       try {
         ProgNode::interpreter->executeLine.clear(); // clear EOF (for executeLine)
-        ProgNode::interpreter->executeLine.str("print,/implied_print," + what);
+        ProgNode::interpreter->executeLine.str("print,/implied_print," + s);
         std::istream execute_me(ProgNode::interpreter->executeLine.rdbuf());
         ProgNode::interpreter->ExecuteLine(&execute_me, 0);
         ProgNode::interpreter->SetRetTree(f->GetLastSibling()->GetNextSibling());
         return proIx;
       } catch (GDLException& e) {
-        throw GDLException(f, "Procedure not found: " + subName, true, false);
+        throw GDLException(f, "Unhandled expression.", false, false);
       }
-    } else throw GDLException(f, "Procedure not found: " + subName, true, false);
+    } else throw GDLException(f, "Unknown variable: " + subName, true, false);
 #else      
-      throw GDLException(f, "Procedure not found: " + subName, true, false);
+      throw GDLException(f, "Attempt to call undefined procedure: " + subName, true, false);
 #endif    
   }
   return proIx;
@@ -1202,70 +1213,77 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   executeLine.clear(); // clear EOF (for executeLine)
   executeLine.str( line + "\n"); // append new line
 
+  bool try_Autoprint=false;
+#ifdef  AUTO_PRINT_EXPR
+// Here we try to support implied_print: replay with "print,/implied_print," added
+  try_Autoprint=true;
+#endif
+  
+  
   RefDNode theAST;
   try { 
     Guard<GDLLexer> lexer;
 
-    // LineContinuation LC
-    // conactenate the strings and insert \n
-    // the resulting string can be fed to the lexer
+    // LineContinuation LC 'problem' with ANTLR2: WILL always return a parser error, 
+	// that has to be trapped here, compensated (we do the line concatenation and insert \n)
+	// and the resulting string can be fed to the lexer
    
     // print if expr parse ok 
     int lCNum = 0;
-    for(;;) 
-      {
-	lexer.Reset( new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
-	try {
-	  // works, but ugly -> depends from parser detecting an error
-	  // (which it always will due to missing END_U token in case of LC)
- 	  //lexer->Parser().SetCompileOpt(callStack.back()->CompileOpt());
- 	  lexer.Get()->Parser().interactive();
-	  break; // no error -> everything ok
-	}
-	catch( GDLException& e)
-	  {
-	    int lCNew = lexer.Get()->LineContinuation();
-	    if( lCNew == lCNum)
-// 	      throw; // no LC -> real error
-	{
-#ifdef 	AUTO_PRINT_EXPR
-#ifndef GDL_DEBUG 		
- 		try {
-// 			executeLine.clear(); // clear EOF (for executeLine)
-// 			lexer.reset( new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
-// 			lexer->Parser().expr();
-	
-			executeLine.clear(); // clear EOF (for executeLine)
-			executeLine.str( "print,/implied_print," + executeLine.str()); // append new line
-			
-			lexer.reset( new GDLLexer(executeLine, "", 2 )); //2 is HIDDEN //callStack.back()->CompileOpt()));
-			lexer->Parser().interactive();
-			
-			break; // no error -> everything ok
-		}
-		catch( GDLException& e2)
-#endif
-#endif
+	for (;;) {
+	  lexer.Reset(new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
+	  try {
+		// works, but ugly -> depends from parser detecting an error
+		// (which it always will due to missing END_U token in case of LC)
+		//lexer->Parser().SetCompileOpt(callStack.back()->CompileOpt());
+		lexer.Get()->Parser().interactive();
+		break; // no error -> everything ok
+	  } catch (GDLException& e) {
+		int lCNew = lexer.Get()->LineContinuation();
+		if (lCNew == lCNum)
+		  // 	      throw; // no LC -> real error
 		{
-			throw e;
-		}
-	}
+		  if (try_Autoprint) {
+			try {
+			  // 			executeLine.clear(); // clear EOF (for executeLine)
+			  // 			lexer.reset( new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
+			  // 			lexer->Parser().expr();
 
-	    lCNum = lCNew; // save number to see if next line also has LC
+			  executeLine.clear(); // clear EOF (for executeLine)
+			  executeLine.str("print,/implied_print," + executeLine.str()); // append new line
+
+			  lexer.reset(new GDLLexer(executeLine, "", 2)); //2 is HIDDEN //callStack.back()->CompileOpt()));
+			  lexer->Parser().interactive();
+
+			  break; // no error -> everything ok: will continue 
+			} catch (GDLException& e2) {
+			  printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());
+			  return CC_ABORT; // be silent //was: throw e2;
+			}
+		  } else { //no Autoprint: just throw
+			// in INTERACTIVE MODE, the exception "unexpected end of file" is trapped due to the impossibility to handle here the line continuation '$' in ANTLR2.
+			// see dinterpreter.cpp line 1227 and around.
+			// so in this particular case we need to throw.
+			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());
+			return CC_ABORT; //be silent //was: throw e;
+		  }
+		}
+
+		lCNum = lCNew; // save number to see if next line also has LC
 	  }
 
 
 
-	// line continuation -> get next line
-	if( in != NULL && !in->good())
-	  throw GDLException( "End of file encountered during line continuation.");
-	
-	string cLine = (in != NULL) ? ::GetLine(in) : GetLine();
+	  // line continuation -> get next line
+	  if (in != NULL && !in->good())
+		throw GDLException("End of file encountered during line continuation.");
 
-	executeLine.clear(); // clear EOF (for executeLine)
-	executeLine.str( executeLine.str() + cLine + "\n"); // append new line
-      } 
-    
+	  string cLine = (in != NULL) ? ::GetLine(in) : GetLine();
+
+	  executeLine.clear(); // clear EOF (for executeLine)
+	  executeLine.str(executeLine.str() + cLine + "\n"); // append new line
+	}
+	
     //    lexer->Parser().interactive();
     theAST = lexer.Get()->Parser().getAST();
 
