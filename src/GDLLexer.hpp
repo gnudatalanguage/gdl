@@ -29,7 +29,7 @@
 #define debugParser 0
 //#include "dinterpreter.hpp"
 
-// defintion in dinterpreter.cpp
+// definition in dinterpreter.cpp
 void MemorizeCompileOptForMAINIfNeeded( unsigned int cOpt);
 
 class CUSTOM_API GDLLexer : public antlr::CharScanner, public GDLTokenTypes

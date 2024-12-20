@@ -22,6 +22,34 @@ header "post_include_cpp" {
 #include <errno.h>
 
 #include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <string>
+
+static void printLineErrorHelper(std::string filename, int line, int col) {
+  if (filename.size() > 0) {
+	std::ifstream ifs;
+	ifs.open(filename, std::ifstream::in);
+	int linenum = 0;
+	std::string str;
+	while (std::getline(ifs, str)) {
+	  linenum++;
+	  if (linenum == line) {
+		std::cerr << std::endl << str << std::endl; //skip one line, print line
+		break;
+	  }
+	}
+	ifs.close();
+  } else {
+	for (auto i = 0; i < SysVar::Prompt().size(); ++i) std::cerr << ' ';
+  }
+  for (auto i = 0; i < col; ++i) std::cerr << ' ';
+  std::cerr << '^';
+  std::cerr << '\n';
+  std::cerr << "% Syntax error.\n";
+  if ( filename.size() > 0)   std::cerr <<"  At: "<<filename<<", Line "<<line<<std::endl;
+  return;
+}
 }
 
 header {
@@ -45,7 +73,7 @@ header {
 #define debugParser 0
 //#include "dinterpreter.hpp"
 
-// defintion in dinterpreter.cpp
+// definition in dinterpreter.cpp
 void MemorizeCompileOptForMAINIfNeeded( unsigned int cOpt);
 }
 
@@ -309,18 +337,24 @@ translation_unit
         }
         catch [ antlr::NoViableAltException& e] 
         {
-            // PARSER SYNTAX ERROR
-            throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+e.getMessage());
+		  // this partially solves #59 (no line number in '@'-included files
+			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
+			// PARSER SYNTAX ERROR
+			throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+e.getMessage(), e.getFilename() );
         }
         catch [ antlr::NoViableAltForCharException& e] 
         {
-            // LEXER SYNTAX ERROR
-            throw GDLException( e.getLine(), e.getColumn(), "Lexer syntax error: "+e.getMessage());
+		  // this partially solves #59 (no line number in '@'-included files
+			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());				
+			// LEXER SYNTAX ERROR
+			throw GDLException( e.getLine(), e.getColumn(), "Lexer syntax error: "+e.getMessage(), e.getFilename() );
         }
         catch [ antlr::RecognitionException& e] 
         {
-            // SYNTAX ERROR
-            throw GDLException( e.getLine(), e.getColumn(), "Lexer/Parser syntax error: "+e.getMessage());
+		  // this partially solves #59 (no line number in '@'-included files
+			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());				
+			// SYNTAX ERROR
+			throw GDLException( e.getLine(), e.getColumn(), "Lexer/Parser syntax error: "+e.getMessage(), e.getFilename() );
         }
         catch [ antlr::TokenStreamIOException& e] 
         {
@@ -364,21 +398,24 @@ interactive
         }
         catch [ antlr::NoViableAltException& e] 
         {
+	  // here (interactive mode) the solving of #59 is delayed to the catching function (support for implied print and line continuation specifics! argh! all this an ANTLR2 problem) 
             // PARSER SYNTAX ERROR
             throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+
-                e.getMessage());
+                e.getMessage(), e.getFilename() );
         }
         catch [ antlr::NoViableAltForCharException& e] 
         {
+	  // here (interactive mode) the solving of #59 is delayed to the catching function (support for implied print and line continuation specifics! argh! all this an ANTLR2 problem) 
             // LEXER SYNTAX ERROR
             throw GDLException( e.getLine(), e.getColumn(), "Lexer syntax error: "+
-                e.getMessage());
+                e.getMessage(), e.getFilename() );
         }
         catch [ antlr::RecognitionException& e] 
         {
+	  // here (interactive mode) the solving of #59 is delayed to the catching function (support for implied print and line continuation specifics! argh! all this an ANTLR2 problem) 
             // SYNTAX ERROR
             throw GDLException( e.getLine(), e.getColumn(), 
-                "Lexer/Parser syntax error: "+e.getMessage());
+                "Lexer/Parser syntax error: "+e.getMessage(), e.getFilename() );
         }
         catch [ antlr::TokenStreamIOException& e] 
         {

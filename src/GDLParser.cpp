@@ -10,6 +10,34 @@
 #include <errno.h>
 
 #include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <string>
+
+static void printLineErrorHelper(std::string filename, int line, int col) {
+  if (filename.size() > 0) {
+	std::ifstream ifs;
+	ifs.open(filename, std::ifstream::in);
+	int linenum = 0;
+	std::string str;
+	while (std::getline(ifs, str)) {
+	  linenum++;
+	  if (linenum == line) {
+		std::cerr << std::endl << str << std::endl; //skip one line, print line
+		break;
+	  }
+	}
+	ifs.close();
+  } else {
+	for (auto i = 0; i < SysVar::Prompt().size(); ++i) std::cerr << ' ';
+  }
+  for (auto i = 0; i < col; ++i) std::cerr << ' ';
+  std::cerr << '^';
+  std::cerr << '\n';
+  std::cerr << "% Syntax error.\n";
+  if ( filename.size() > 0)   std::cerr <<"  At: "<<filename<<", Line "<<line<<std::endl;
+  return;
+}
 
 GDLParser::GDLParser(antlr::TokenBuffer& tokenBuf, int k)
 : antlr::LLkParser(tokenBuf,k)
@@ -870,8 +898,10 @@ void GDLParser::translation_unit() {
 	catch ( antlr::NoViableAltException& e) {
 		if (inputState->guessing==0) {
 			
-			// PARSER SYNTAX ERROR
-			throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+e.getMessage());
+					  // this partially solves #59 (no line number in '@'-included files
+						printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
+						// PARSER SYNTAX ERROR
+						throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+e.getMessage(), e.getFilename() );
 			
 		} else {
 			throw;
@@ -880,8 +910,10 @@ void GDLParser::translation_unit() {
 	catch ( antlr::NoViableAltForCharException& e) {
 		if (inputState->guessing==0) {
 			
-			// LEXER SYNTAX ERROR
-			throw GDLException( e.getLine(), e.getColumn(), "Lexer syntax error: "+e.getMessage());
+					  // this partially solves #59 (no line number in '@'-included files
+						printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());				
+						// LEXER SYNTAX ERROR
+						throw GDLException( e.getLine(), e.getColumn(), "Lexer syntax error: "+e.getMessage(), e.getFilename() );
 			
 		} else {
 			throw;
@@ -890,8 +922,10 @@ void GDLParser::translation_unit() {
 	catch ( antlr::RecognitionException& e) {
 		if (inputState->guessing==0) {
 			
-			// SYNTAX ERROR
-			throw GDLException( e.getLine(), e.getColumn(), "Lexer/Parser syntax error: "+e.getMessage());
+					  // this partially solves #59 (no line number in '@'-included files
+						printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());				
+						// SYNTAX ERROR
+						throw GDLException( e.getLine(), e.getColumn(), "Lexer/Parser syntax error: "+e.getMessage(), e.getFilename() );
 			
 		} else {
 			throw;
@@ -1633,9 +1667,10 @@ void GDLParser::interactive() {
 	catch ( antlr::NoViableAltException& e) {
 		if (inputState->guessing==0) {
 			
+				  // here (interactive mode) the solving of #59 is delayed to the catching function (support for implied print and line continuation specifics! argh! all this an ANTLR2 problem) 
 			// PARSER SYNTAX ERROR
 			throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+
-			e.getMessage());
+			e.getMessage(), e.getFilename() );
 			
 		} else {
 			throw;
@@ -1644,9 +1679,10 @@ void GDLParser::interactive() {
 	catch ( antlr::NoViableAltForCharException& e) {
 		if (inputState->guessing==0) {
 			
+				  // here (interactive mode) the solving of #59 is delayed to the catching function (support for implied print and line continuation specifics! argh! all this an ANTLR2 problem) 
 			// LEXER SYNTAX ERROR
 			throw GDLException( e.getLine(), e.getColumn(), "Lexer syntax error: "+
-			e.getMessage());
+			e.getMessage(), e.getFilename() );
 			
 		} else {
 			throw;
@@ -1655,9 +1691,10 @@ void GDLParser::interactive() {
 	catch ( antlr::RecognitionException& e) {
 		if (inputState->guessing==0) {
 			
+				  // here (interactive mode) the solving of #59 is delayed to the catching function (support for implied print and line continuation specifics! argh! all this an ANTLR2 problem) 
 			// SYNTAX ERROR
 			throw GDLException( e.getLine(), e.getColumn(), 
-			"Lexer/Parser syntax error: "+e.getMessage());
+			"Lexer/Parser syntax error: "+e.getMessage(), e.getFilename() );
 			
 		} else {
 			throw;

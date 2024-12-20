@@ -44,6 +44,30 @@
 
 #include <cassert>
 
+static void printLineErrorHelper(std::string filename, int line, int col) {
+  if (filename.size() > 0) {
+	std::ifstream ifs;
+	ifs.open(filename, std::ifstream::in);
+	int linenum = 0;
+	std::string str;
+	while (std::getline(ifs, str)) {
+	  linenum++;
+	  if (linenum == line) {
+		std::cerr << std::endl << str << std::endl; //skip one line, print line
+		break;
+	  }
+	}
+	ifs.close();
+  } else {
+	for (auto i = 0; i < SysVar::Prompt().size(); ++i) std::cerr << ' ';
+  }
+  for (auto i = 0; i < col; ++i) std::cerr << ' ';
+  std::cerr << '^';
+  std::cerr << '\n';
+  std::cerr << "% Syntax error.\n";
+  if (filename.size() > 0) std::cerr << "  At: " << filename << ", Line " << line << std::endl;
+  return;
+}
 // print out AST tree
 //#define GDL_DEBUG
 //#undef GDL_DEBUG
@@ -1202,70 +1226,77 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   executeLine.clear(); // clear EOF (for executeLine)
   executeLine.str( line + "\n"); // append new line
 
+  bool try_Autoprint=false;
+#ifdef  AUTO_PRINT_EXPR
+// Here we try to support implied_print: replay with "print,/implied_print," added
+  try_Autoprint=true;
+#endif
+  
+  
   RefDNode theAST;
   try { 
     Guard<GDLLexer> lexer;
 
-    // LineContinuation LC
-    // conactenate the strings and insert \n
-    // the resulting string can be fed to the lexer
+    // LineContinuation LC 'problem' with ANTLR2: WILL always return a parser error, 
+	// that has to be trapped here, compensated (we do the line concatenation and insert \n)
+	// and the resulting string can be fed to the lexer
    
     // print if expr parse ok 
     int lCNum = 0;
-    for(;;) 
-      {
-	lexer.Reset( new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
-	try {
-	  // works, but ugly -> depends from parser detecting an error
-	  // (which it always will due to missing END_U token in case of LC)
- 	  //lexer->Parser().SetCompileOpt(callStack.back()->CompileOpt());
- 	  lexer.Get()->Parser().interactive();
-	  break; // no error -> everything ok
-	}
-	catch( GDLException& e)
-	  {
-	    int lCNew = lexer.Get()->LineContinuation();
-	    if( lCNew == lCNum)
-// 	      throw; // no LC -> real error
-	{
-#ifdef 	AUTO_PRINT_EXPR
-#ifndef GDL_DEBUG 		
- 		try {
-// 			executeLine.clear(); // clear EOF (for executeLine)
-// 			lexer.reset( new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
-// 			lexer->Parser().expr();
-	
-			executeLine.clear(); // clear EOF (for executeLine)
-			executeLine.str( "print,/implied_print," + executeLine.str()); // append new line
-			
-			lexer.reset( new GDLLexer(executeLine, "", 2 )); //2 is HIDDEN //callStack.back()->CompileOpt()));
-			lexer->Parser().interactive();
-			
-			break; // no error -> everything ok
-		}
-		catch( GDLException& e2)
-#endif
-#endif
+	for (;;) {
+	  lexer.Reset(new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
+	  try {
+		// works, but ugly -> depends from parser detecting an error
+		// (which it always will due to missing END_U token in case of LC)
+		//lexer->Parser().SetCompileOpt(callStack.back()->CompileOpt());
+		lexer.Get()->Parser().interactive();
+		break; // no error -> everything ok
+	  } catch (GDLException& e) {
+		int lCNew = lexer.Get()->LineContinuation();
+		if (lCNew == lCNum)
+		  // 	      throw; // no LC -> real error
 		{
-			throw e;
-		}
-	}
+		  if (try_Autoprint) {
+			try {
+			  // 			executeLine.clear(); // clear EOF (for executeLine)
+			  // 			lexer.reset( new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
+			  // 			lexer->Parser().expr();
 
-	    lCNum = lCNew; // save number to see if next line also has LC
+			  executeLine.clear(); // clear EOF (for executeLine)
+			  executeLine.str("print,/implied_print," + executeLine.str()); // append new line
+
+			  lexer.reset(new GDLLexer(executeLine, "", 2)); //2 is HIDDEN //callStack.back()->CompileOpt()));
+			  lexer->Parser().interactive();
+
+			  break; // no error -> everything ok: will continue 
+			} catch (GDLException& e2) {
+			  printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());
+			  return CC_ABORT; // be silent //was: throw e2;
+			}
+		  } else { //no Autoprint: just throw
+			// in INTERACTIVE MODE, the exception "unexpected end of file" is trapped due to the impossibility to handle here the line continuation '$' in ANTLR2.
+			// see dinterpreter.cpp line 1227 and around.
+			// so in this particular case we need to throw.
+			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());
+			return CC_ABORT; //be silent //was: throw e;
+		  }
+		}
+
+		lCNum = lCNew; // save number to see if next line also has LC
 	  }
 
 
 
-	// line continuation -> get next line
-	if( in != NULL && !in->good())
-	  throw GDLException( "End of file encountered during line continuation.");
-	
-	string cLine = (in != NULL) ? ::GetLine(in) : GetLine();
+	  // line continuation -> get next line
+	  if (in != NULL && !in->good())
+		throw GDLException("End of file encountered during line continuation.");
 
-	executeLine.clear(); // clear EOF (for executeLine)
-	executeLine.str( executeLine.str() + cLine + "\n"); // append new line
-      } 
-    
+	  string cLine = (in != NULL) ? ::GetLine(in) : GetLine();
+
+	  executeLine.clear(); // clear EOF (for executeLine)
+	  executeLine.str(executeLine.str() + cLine + "\n"); // append new line
+	}
+	
     //    lexer->Parser().interactive();
     theAST = lexer.Get()->Parser().getAST();
 
