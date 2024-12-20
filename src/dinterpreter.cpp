@@ -524,7 +524,7 @@ int GDLInterpreter::GetProIx(ProgNodeP f)
     if (proIx != -1) return proIx;
 #ifdef 	AUTO_PRINT_EXPR
     //noInteractive: throw
-    if (noInteractive) throw GDLException(f, "Procedure not found: " + subName, true, false);
+    if (noInteractive) throw GDLException(f, "Attempt to call undefined procedure: " + subName, true, false);
     //attempts an implied print. All this should be done in the ANTLR stuff of course.
     //We are here because the text is interpreted as a procedure. It is not (otherwise it would have been found),
     //but it could just be one or a series of variable names, such as in "a=dist(3) & b=findgen(2) & a,b"
@@ -533,7 +533,7 @@ int GDLInterpreter::GetProIx(ProgNodeP f)
     //gather types of siblings. if they are not all "ref", do not tempt anything
     EnvStackT& callStack = ProgNode::interpreter->CallStack();
     DLong curlevnum = callStack.size();
-    if (curlevnum > 1) throw GDLException(f, "Procedure not found: " + subName, true, false);
+    if (curlevnum > 1) throw GDLException(f, "Attempt to call undefined procedure: " + subName, true, false);
     DSubUD* pro = static_cast<DSubUD*> (callStack[curlevnum - 1]->GetPro());
     bool ok = true;
     ProgNodeP test = f;
@@ -543,36 +543,23 @@ int GDLInterpreter::GetProIx(ProgNodeP f)
       BaseGDL** varPtr = pro->GetCommonVarPtr(what);
       if (varPtr == NULL) ok = false;
     }
-    while (ok) {
-      test = test->GetNextSibling();
-      if (!test) break;
-      string type = test->getText();
-      string varName = test->GetFirstChild()->getText();
-      ok = (type == "ref"); //only simple variables.
-      if (ok) { //test it is a REAL variable.
-        xI = pro->FindVar(varName);
-        if (xI == -1) {
-          BaseGDL** varPtr = pro->GetCommonVarPtr(varName);
-          if (varPtr == NULL) ok = false;
-        }
-      }
-      if (!ok) break;
-      what += "," + test->GetFirstChild()->getText(); //for "ref" firstChild contains the name to be printed
-    }
-    if (ok) { //only simple things like "a,b,c"
+    if (ok) { //try with autoprint
+		std::string s= ProgNode::interpreter->executeLine.str();
+		// if line has multiple sentences, we cannot risk just 'print' the line. better to throw.
+		if (s.find("&")!=std::string::npos) throw GDLException(f, "Unhandled compound expression.", false, false);
       try {
         ProgNode::interpreter->executeLine.clear(); // clear EOF (for executeLine)
-        ProgNode::interpreter->executeLine.str("print,/implied_print," + what);
+        ProgNode::interpreter->executeLine.str("print,/implied_print," + s);
         std::istream execute_me(ProgNode::interpreter->executeLine.rdbuf());
         ProgNode::interpreter->ExecuteLine(&execute_me, 0);
         ProgNode::interpreter->SetRetTree(f->GetLastSibling()->GetNextSibling());
         return proIx;
       } catch (GDLException& e) {
-        throw GDLException(f, "Procedure not found: " + subName, true, false);
+        throw GDLException(f, "Unhandled expression.", false, false);
       }
-    } else throw GDLException(f, "Procedure not found: " + subName, true, false);
+    } else throw GDLException(f, "Unknown variable: " + subName, true, false);
 #else      
-      throw GDLException(f, "Procedure not found: " + subName, true, false);
+      throw GDLException(f, "Attempt to call undefined procedure: " + subName, true, false);
 #endif    
   }
   return proIx;
