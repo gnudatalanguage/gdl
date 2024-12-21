@@ -22,6 +22,34 @@ header "post_include_cpp" {
 #include <errno.h>
 
 #include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <string>
+
+static void printLineErrorHelper(std::string filename, int line, int col) {
+  if (filename.size() > 0) {
+	std::ifstream ifs;
+	ifs.open(filename, std::ifstream::in);
+	int linenum = 0;
+	std::string str;
+	while (std::getline(ifs, str)) {
+	  linenum++;
+	  if (linenum == line) {
+		std::cerr << std::endl << str << std::endl; //skip one line, print line
+		break;
+	  }
+	}
+	ifs.close();
+  } else {
+	for (auto i = 0; i < SysVar::Prompt().size(); ++i) std::cerr << ' ';
+  }
+  for (auto i = 0; i < col; ++i) std::cerr << ' ';
+  std::cerr << '^';
+  std::cerr << '\n';
+  std::cerr << "% Syntax error.\n";
+  if ( filename.size() > 0)   std::cerr <<"  At: "<<filename<<", Line "<<line<<std::endl;
+  return;
+}
 }
 
 header {
@@ -45,7 +73,7 @@ header {
 #define debugParser 0
 //#include "dinterpreter.hpp"
 
-// defintion in dinterpreter.cpp
+// definition in dinterpreter.cpp
 void MemorizeCompileOptForMAINIfNeeded( unsigned int cOpt);
 }
 
@@ -309,18 +337,24 @@ translation_unit
         }
         catch [ antlr::NoViableAltException& e] 
         {
-            // PARSER SYNTAX ERROR
-            throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+e.getMessage());
+		  // this partially solves #59 (no line number in '@'-included files
+			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
+			// PARSER SYNTAX ERROR
+			throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+e.getMessage(), e.getFilename() );
         }
         catch [ antlr::NoViableAltForCharException& e] 
         {
-            // LEXER SYNTAX ERROR
-            throw GDLException( e.getLine(), e.getColumn(), "Lexer syntax error: "+e.getMessage());
+		  // this partially solves #59 (no line number in '@'-included files
+			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());				
+			// LEXER SYNTAX ERROR
+			throw GDLException( e.getLine(), e.getColumn(), "Lexer syntax error: "+e.getMessage(), e.getFilename() );
         }
         catch [ antlr::RecognitionException& e] 
         {
-            // SYNTAX ERROR
-            throw GDLException( e.getLine(), e.getColumn(), "Lexer/Parser syntax error: "+e.getMessage());
+		  // this partially solves #59 (no line number in '@'-included files
+			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());				
+			// SYNTAX ERROR
+			throw GDLException( e.getLine(), e.getColumn(), "Lexer/Parser syntax error: "+e.getMessage(), e.getFilename() );
         }
         catch [ antlr::TokenStreamIOException& e] 
         {
@@ -364,21 +398,24 @@ interactive
         }
         catch [ antlr::NoViableAltException& e] 
         {
+	  // here (interactive mode) the solving of #59 is delayed to the catching function (support for implied print and line continuation specifics! argh! all this an ANTLR2 problem) 
             // PARSER SYNTAX ERROR
             throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+
-                e.getMessage());
+                e.getMessage(), e.getFilename() );
         }
         catch [ antlr::NoViableAltForCharException& e] 
         {
+	  // here (interactive mode) the solving of #59 is delayed to the catching function (support for implied print and line continuation specifics! argh! all this an ANTLR2 problem) 
             // LEXER SYNTAX ERROR
             throw GDLException( e.getLine(), e.getColumn(), "Lexer syntax error: "+
-                e.getMessage());
+                e.getMessage(), e.getFilename() );
         }
         catch [ antlr::RecognitionException& e] 
         {
+	  // here (interactive mode) the solving of #59 is delayed to the catching function (support for implied print and line continuation specifics! argh! all this an ANTLR2 problem) 
             // SYNTAX ERROR
             throw GDLException( e.getLine(), e.getColumn(), 
-                "Lexer/Parser syntax error: "+e.getMessage());
+                "Lexer/Parser syntax error: "+e.getMessage(), e.getFilename() );
         }
         catch [ antlr::TokenStreamIOException& e] 
         {
@@ -1573,13 +1610,33 @@ arrayexpr_mfcall!
             #([DEREF,"deref"], #deref_arrayexpr_mfcall); if (debugParser) std::cout<<" deref_arrayexpr_mfcall : \""<<LT(0)->getText()<<"\""<<std::endl;}
     ;
 
-primary_expr_tail
+
+// only here a function call is ok also (all other places must be an array)
+primary_expr 
 {
     bool parent;
-    if (debugParser) std::cout << " -> primary_expr_tail -> ";
+    if (debugParser) std::cout << " -> primary_expr -> ";
     }
     : 
-         // a member function call starts with a deref_expr 
+        // with METHOD
+        (deref_dot_expr_keeplast baseclass_method)=>
+        d1:deref_dot_expr_keeplast baseclass_method formal_function_call
+        {
+        if (debugParser) std::cout << " d1:deref_dot_expr_keeplast baseclass_method formal_function_call "<< std::endl;
+            #primary_expr = #([MFCALL_PARENT, "mfcall::"], #primary_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+        }   
+    | 
+        // ambiguity (arrayexpr or mfcall)
+        (deref_dot_expr_keeplast (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE))=> arrayexpr_mfcall {if (debugParser) std::cout << " deref_dot_expr_keeplast (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE))=> arrayexpr_mfcall -> " /*<< std::endl */;}
+    | 
+        // not the above -> unambigous mfcall (or unambigous array expr handled below)
+        (deref_dot_expr_keeplast formal_function_call)=> 
+        d3:deref_dot_expr_keeplast 
+            // here it is impossible to decide about function call
+            // as we do not know the object type/struct tag
+            formal_function_call
+            { if (debugParser) std::cout << "  (deref_dot_expr_keeplast formal_function_call)=> d3:deref_dot_expr_keeplast formal_function_call -> " << std::endl; #primary_expr = #([MFCALL, "mfcall"], #primary_expr);}
+    |   // a member function call starts with a deref_expr 
          (deref_dot_expr)=>
         // same parsing as (deref_expr)=> see below
         deref_expr 
@@ -1587,13 +1644,13 @@ primary_expr_tail
             {
                 if( parent)
                 {
-                    #primary_expr_tail = #([MFCALL_PARENT, "mfcall::"], #primary_expr_tail);
-		    if (debugParser) std::cout << " (deref_dot_expr)=>deref_expr ( parent=true) -> mfcall" << std::endl;
+                    #primary_expr = #([MFCALL_PARENT, "mfcall::"], #primary_expr);
+		    if (debugParser) std::cout << " (deref_dot_expr)=>deref_expr ( parent=true) " << std::endl;
                 } 
                 else
                 {
-                    #primary_expr_tail = #([MFCALL, "mfcall"], #primary_expr_tail);
-		    if (debugParser) std::cout << " (deref_dot_expr)=>deref_expr -> primary_expr ->  mfcall" << std::endl;
+                    #primary_expr = #([MFCALL, "mfcall"], #primary_expr);
+		    if (debugParser) std::cout << " (deref_dot_expr)=>deref_expr -> primary_expr " << std::endl;
                 }
             }
         | { if (debugParser) std::cout << " | empty -> array expression -> "/* << std::endl */;}  // empty -> array expression
@@ -1607,27 +1664,27 @@ primary_expr_tail
             // (could be reordered, but this is conform to original)
             { IsFun(LT(1))}? formal_function_call
             { 
-             if (debugParser) std::cout << " (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE)=> formal_function_call : primary_expr : " /* << std::endl */;
-                   #primary_expr_tail = #([FCALL, "fcall"], #primary_expr_tail); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+             if (debugParser) std::cout << " (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE)=> formal_function_call " /* << std::endl */;
+                   #primary_expr = #([FCALL, "fcall"], #primary_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
             }
         | 
             // still ambiguity (arrayexpr or fcall)
         (var arrayindex_list)=> var arrayindex_list     // array_expr_fn
             { 
-             if (debugParser) std::cout << "(var arrayindex_list)=> var arrayindex_list -> primary_expr : " /* << std::endl */;
+             if (debugParser) std::cout << "(var arrayindex_list)=> var arrayindex_list -> " /* << std::endl */;
 
-                #primary_expr_tail = #([ARRAYEXPR_FCALL,"arrayexpr_fcall"], #primary_expr_tail); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                #primary_expr = #([ARRAYEXPR_FCALL,"arrayexpr_fcall"], #primary_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
 	    }
         |   // if arrayindex_list failed (due to to many indices)
             // this must be a function call
             formal_function_call
-            {  if (debugParser) std::cout << " (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE)=>formal_function_call -> primary_expr : " /* << std::endl */;
-                   #primary_expr_tail = #([FCALL, "fcall"], #primary_expr_tail); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+            {  if (debugParser) std::cout << " (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE)=>formal_function_call -> " /* << std::endl */;
+                   #primary_expr = #([FCALL, "fcall"], #primary_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
             }
         )
     |   // not the above => keyword parameter (or no args) => function call
          (formal_function_call)=> formal_function_call
-         { if (debugParser) std::cout << " (formal_function_call)=> formal_function_call -> primary_expr :" << std::endl; #primary_expr_tail = #([FCALL, "fcall"], #primary_expr_tail);}
+         { if (debugParser) std::cout << " (formal_function_call)=> formal_function_call -> " << std::endl; #primary_expr = #([FCALL, "fcall"], #primary_expr);}
 
     |   // a member function call starts with a deref_expr 
         // deref_dot_expr already failed
@@ -1637,229 +1694,36 @@ primary_expr_tail
             { 
                 if( parent)
                 {
-                    if (debugParser) std::cout << " (deref_expr)=> deref_expr ( parent=true) -> mfcall :" /* << std::endl */;
-                    #primary_expr_tail = #([MFCALL_PARENT, "mfcall::"], #primary_expr_tail); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                    if (debugParser) std::cout << " (deref_expr)=> deref_expr ( parent=true) -> " /* << std::endl */;
+                    #primary_expr = #([MFCALL_PARENT, "mfcall::"], #primary_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
                 }
                 else
                 {
-                    if (debugParser) std::cout << " (deref_expr)=> deref_expr ( parent=false) -> mfcall :" /* << std::endl */;
-                    #primary_expr_tail = #([MFCALL, "mfcall"], #primary_expr_tail); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                    if (debugParser) std::cout << " (deref_expr)=> deref_expr ( parent=false) -> " /* << std::endl */;
+                    #primary_expr = #([MFCALL, "mfcall"], #primary_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
                 }
             }
-        |{ if (debugParser) std::cout << " (deref_expr)=> deref_expr | empty -> array expression No 2! -> "/* << std::endl */;}  // empty -> array expression
+        |{ if (debugParser) std::cout << " (deref_expr)=> deref_expr | empty -> array expression No 2!"/* << std::endl */;}  // empty -> array expression
         )
 
+    |! sl:STRING_LITERAL // also a CONSTANT
+        { #primary_expr=#[CONSTANT,sl->getText()];
+            #primary_expr->Text2String();    
+            #primary_expr->SetLine( #sl->getLine());
+	    { if (debugParser) std::cout << "STRING_LITERAL" <<std::endl;}
+        }  
     | assign_expr 	   
+    | numeric_constant 	   
     | array_def 	   
     | struct_def 	   
     | ! ls:LSQUARE !RSQUARE
-        { #primary_expr_tail=#[GDLNULL,"GDLNULL[]"];
-            #primary_expr_tail->SetLine( #ls->getLine()); if (debugParser) std::cout << "NULL" << std::endl;
+        { #primary_expr=#[GDLNULL,"GDLNULL[]"];
+            #primary_expr->SetLine( #ls->getLine()); if (debugParser) std::cout << "NULL" << std::endl;
         }  
     | ! lc:LCURLY !RCURLY
-        { #primary_expr_tail=#[GDLNULL,"GDLNULL{}"];
-            #primary_expr_tail->SetLine( #lc->getLine()); if (debugParser) std::cout << "NULL" << std::endl;
+        { #primary_expr=#[GDLNULL,"GDLNULL{}"];
+            #primary_expr->SetLine( #lc->getLine()); if (debugParser) std::cout << "NULL" << std::endl;
         }  
-    ;
-
-primary_expr_deref
-{
-// the following needs to be updated if the symbols are rearranged (e. g. a symbol is inserted)
-// (it is taken from GDLParser.cpp: const antlr::BitSet GDLParser::_tokenSet_XX)
-const unsigned long _tokenSet_4_data_[] = { 0UL, 0UL, 268435456UL, 1048576UL, 536870912UL, 4UL, 4096UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
-// IDENTIFIER "inherits" LBRACE SYSVARNAME ASTERIX 
-const antlr::BitSet _tokenSet_4(_tokenSet_4_data_,16);
-const unsigned long _tokenSet_5_data_[] = { 0UL, 0UL, 268435456UL, 34603008UL, 536871296UL, 4294967253UL, 5013503UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
-// IDENTIFIER "inherits" "not" DEC INC LBRACE LSQUARE SYSVARNAME LCURLY 
-// CONSTANT_HEX_BYTE CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 CONSTANT_HEX_INT 
-// CONSTANT_HEX_I CONSTANT_HEX_ULONG CONSTANT_HEX_ULONG64 CONSTANT_HEX_UI 
-// CONSTANT_HEX_UINT CONSTANT_BYTE CONSTANT_LONG CONSTANT_LONG64 CONSTANT_INT 
-// CONSTANT_I CONSTANT_ULONG CONSTANT_ULONG64 CONSTANT_UI CONSTANT_UINT 
-// CONSTANT_OCT_BYTE CONSTANT_OCT_LONG CONSTANT_OCT_LONG64 CONSTANT_OCT_INT 
-// CONSTANT_OCT_I CONSTANT_OCT_ULONG CONSTANT_OCT_ULONG64 CONSTANT_OCT_UI 
-// CONSTANT_OCT_UINT CONSTANT_FLOAT CONSTANT_DOUBLE CONSTANT_BIN_BYTE CONSTANT_BIN_LONG 
-// CONSTANT_BIN_LONG64 CONSTANT_BIN_INT CONSTANT_BIN_I CONSTANT_BIN_ULONG 
-// CONSTANT_BIN_ULONG64 CONSTANT_BIN_UI CONSTANT_BIN_UINT ASTERIX DOT STRING_LITERAL 
-// PLUS MINUS LOG_NEG 
-const antlr::BitSet _tokenSet_5(_tokenSet_5_data_,16);
-const unsigned long _tokenSet_23_data_[] = { 0UL, 0UL, 268435456UL, 1048576UL, 536870912UL, 21UL, 4096UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
-// IDENTIFIER "inherits" LBRACE LSQUARE SYSVARNAME LCURLY ASTERIX 
-const antlr::BitSet _tokenSet_23(_tokenSet_23_data_,16);
-const unsigned long _tokenSet_24_data_[] = { 2UL, 0UL, 805306368UL, 2549424140UL, 4026532283UL, 4294967295UL, 67108863UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
-// EOF IDENTIFIER "and" "do" "else" "eq" "ge" "gt" "inherits" "le" "lt" 
-// "mod" "ne" "not" "of" "or" "then" "until" "xor" COMMA COLON END_U DEC 
-// INC MEMBER LBRACE RBRACE SLASH LSQUARE RSQUARE SYSVARNAME EXCLAMATION 
-// LCURLY RCURLY CONSTANT_HEX_BYTE CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 
-// CONSTANT_HEX_INT CONSTANT_HEX_I CONSTANT_HEX_ULONG CONSTANT_HEX_ULONG64 
-// CONSTANT_HEX_UI CONSTANT_HEX_UINT CONSTANT_BYTE CONSTANT_LONG CONSTANT_LONG64 
-// CONSTANT_INT CONSTANT_I CONSTANT_ULONG CONSTANT_ULONG64 CONSTANT_UI 
-// CONSTANT_UINT CONSTANT_OCT_BYTE CONSTANT_OCT_LONG CONSTANT_OCT_LONG64 
-// CONSTANT_OCT_INT CONSTANT_OCT_I CONSTANT_OCT_ULONG CONSTANT_OCT_ULONG64 
-// CONSTANT_OCT_UI CONSTANT_OCT_UINT CONSTANT_FLOAT CONSTANT_DOUBLE CONSTANT_BIN_BYTE 
-// CONSTANT_BIN_LONG CONSTANT_BIN_LONG64 CONSTANT_BIN_INT CONSTANT_BIN_I 
-// CONSTANT_BIN_ULONG CONSTANT_BIN_ULONG64 CONSTANT_BIN_UI CONSTANT_BIN_UINT 
-// ASTERIX DOT STRING_LITERAL POW MATRIX_OP1 MATRIX_OP2 PLUS MINUS LTMARK 
-// GTMARK LOG_NEG LOG_AND LOG_OR QUESTION 
-const antlr::BitSet _tokenSet_24(_tokenSet_24_data_,16);
-    bool parent;
-
-    bool skip;
-    int markIn = mark();
-
-	inputState->guessing++;
-
-    bool tailLa1La2 = (_tokenSet_23.member(LA(1))) && (_tokenSet_24.member(LA(2)));
-    bool derefLa1La2 = (_tokenSet_4.member(LA(1))) && (_tokenSet_5.member(LA(2))); 
-
-    if ( derefLa1La2) 
-    {
-        skip = false;
-        try {
-            deref_dot_expr_keeplast();
-        }
-        catch (antlr::RecognitionException& pe) {
-            skip = true;
-        }
-    }
-    else
-        skip = true;
-
-    if( skip && tailLa1La2)
-        {
-            rewind( markIn);
-            inputState->guessing--;
-
-            primary_expr_tail();
-            if (inputState->guessing==0) {
-                astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-            }
-            primary_expr_deref_AST = RefDNode(currentAST.root);
-            returnAST = primary_expr_deref_AST;
-            return;
-        }
-
-    bool arrayexpr_mfcallParse = false;
-    bool function_callParse = false;
-
-    int mark2nd = mark();
-
-    bool baseclass_methodParse = true;
-    try {
-        {
-        baseclass_method();
-        }
-    }
-    catch (antlr::RecognitionException& pe) {
-        baseclass_methodParse = false;
-    }
-
-    rewind( mark2nd);
-
-    if( !baseclass_methodParse)
-    {
-        int mark3rd = mark();
-
-        arrayexpr_mfcallParse = true;
-        try {
-                {
-    			match(IDENTIFIER);
-    			match(LBRACE);
-    			expr();
-    			{ // ( ... )*
-    			for (;;) {
-    				if ((LA(1) == COMMA)) {
-    					match(COMMA);
-    					expr();
-    				}
-    				else {
-                        break;
-    				}
-                }
-    			} // ( ... )*
-    			match(RBRACE);
-                }
-            }
-        catch (antlr::RecognitionException& pe) {
-            arrayexpr_mfcallParse = false;
-        }
-
-        rewind( mark3rd);
-
-        if( !arrayexpr_mfcallParse)
-        {
-            function_callParse = true;
-            try {
-                {
-                formal_function_call();
-                }
-            }
-            catch (antlr::RecognitionException& pe) {
-                 function_callParse = false;
-            }
-
-            if( !function_callParse && tailLa1La2)
-            {
-                rewind( markIn);
-                inputState->guessing--;
-
-                primary_expr_tail();
-                if (inputState->guessing==0) {
-                    astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-                }
-                primary_expr_deref_AST = RefDNode(currentAST.root);
-                returnAST = primary_expr_deref_AST;
-                return; 
-            }
-        }
-   }
-
-   rewind( markIn);
-   inputState->guessing--;
-}
-   :
-        // with METHOD
-
-//        (deref_dot_expr_keeplast baseclass_method)=>
-        {baseclass_methodParse}?
-        deref_dot_expr_keeplast baseclass_method formal_function_call
-        {
-            if (debugParser) std::cout << " d1:deref_dot_expr_keeplast baseclass_method formal_function_call "<< std::endl;
-            #primary_expr_deref = #([MFCALL_PARENT, "mfcall::"], #primary_expr_deref);
-            if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
-        }   
-    | 
-        // ambiguity (arrayexpr or mfcall)
-        {arrayexpr_mfcallParse}?
-       arrayexpr_mfcall
-       {if (debugParser) std::cout << " deref_dot_expr_keeplast (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE))=> arrayexpr_mfcall -> " /*<< std::endl */;}
-    | 
-        // not the above -> unambigous mfcall (or unambigous array expr handled below)
-
-  //      (deref_dot_expr_keeplast formal_function_call)=> 
-        {function_callParse}?
-       deref_dot_expr_keeplast 
-            // here it is impossible to decide about function call
-            // as we do not know the object type/struct tag
-            formal_function_call
-            { #primary_expr_deref = #([MFCALL, "mfcall"], #primary_expr_deref);
-              if (debugParser) std::cout << "  (deref_dot_expr_keeplast formal_function_call)=> d3:deref_dot_expr_keeplast formal_function_call -> " << std::endl; }
-     |
-        primary_expr_tail
-    ;
-
-
-
-// only here a function call is ok also (all other places must be an array)
-primary_expr 
-{    if (debugParser) std::cout << " -> primary_expr -> ";}
-    : 
-	 ! sl:STRING_LITERAL // also a CONSTANT
-		{ #primary_expr=#[CONSTANT,sl->getText()];
-            #primary_expr->Text2String();	
-            #primary_expr->SetLine( #sl->getLine());
-		}  
-	| numeric_constant
-    | primary_expr_deref
 	;
 
 // only one INC/DEC allowed per target

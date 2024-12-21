@@ -40,6 +40,7 @@ class GDLException: public antlr::ANTLRException
   DLong     errorCode;
   SizeT line;
   SizeT col;
+  std::string filename; //the filename (or "" for interactive $MAIN$) where the problem arised
   bool prefix;
   
   bool arrayexprIndexeeFailed;
@@ -82,6 +83,7 @@ public:
   GDLException(const std::string& s, bool pre = true, bool decorate=true);
   GDLException(const RefDNode eN, const std::string& s);
   GDLException(const ProgNodeP eN, const std::string& s, bool decorate=true, bool overWriteNode=true);
+  GDLException(SizeT l, SizeT c, const std::string& s, const std::string &file);
   GDLException(SizeT l, SizeT c, const std::string& s);
 
   GDLException(DLong eC, const std::string& s, bool pre = true, bool decorate=true);
@@ -97,7 +99,10 @@ public:
   {
 	  return msg;
   }
-
+  std::string getFilename() const
+  {
+	  return filename;
+  }
   SizeT getLine() const 
   { 
     if( line != 0) 
