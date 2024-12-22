@@ -179,7 +179,7 @@ EnvUDT::EnvUDT( ProgNodeP cN, BaseGDL* self,
   obj = true;
 
   DType selfType = self->Type();
-  if( selfType == GDL_STRUCT) throw GDLException( cN, "AutoPrint currently impossible on structure/objects elements.");
+  if( selfType == GDL_STRUCT) throw GDLException( cN, "AutoPrint currently impossible on pointers to structures (fixme!).");
   if( selfType != GDL_OBJ) 
     throw GDLException( cN, "Object reference type"
 			" required in this context: "+interpreter->Name(self));
@@ -236,7 +236,7 @@ EnvUDT::EnvUDT( BaseGDL* self, ProgNodeP cN, const string& parent, CallContext l
   obj = true;
 
   DType selfType = self->Type();
-  if( selfType == GDL_STRUCT) throw GDLException( cN, "AutoPrint currently impossible on structure/objects elements.");
+  if( selfType == GDL_STRUCT) throw GDLException( cN, "AutoPrint currently impossible on pointers to structures (fixme!).");
 
   if( selfType != GDL_OBJ) 
     throw GDLException( cN, "Object reference type"

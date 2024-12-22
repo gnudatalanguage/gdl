@@ -158,6 +158,7 @@ public:
 	public: void deref_dot_expr_keeplast();
 	public: void formal_procedure_call();
 	public: void deref_expr();
+	public: void formal_procedure_call_without_parameter_list();
 	public: void procedure_call();
 	public: void for_statement();
 	public: void foreach_statement();

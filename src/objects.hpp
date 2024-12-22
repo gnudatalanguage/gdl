@@ -130,6 +130,8 @@ int FunIx(const std::string& n);
 int LibProIx(const std::string& n);
 int LibFunIx(const std::string& n);
 
+void SetParentMember(antlr::RefToken r);
+bool IsMemberProWithoutArgs(antlr::RefToken rT1); // used by Lexer and Parser
 bool IsFun(antlr::RefToken); // used by Lexer and Parser
 bool IsRelaxed(); //tells if syntax is not strict (i.e. parenthesis for array indexes).
 void SetStrict(bool value);

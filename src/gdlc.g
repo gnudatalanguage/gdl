@@ -792,8 +792,8 @@ statement
 		if (debugParser) std::cout<<"statement : \""<<LT(0)->getText()<<"\""<<std::endl;
                 }
             )
-    | d3:deref_dot_expr_keeplast formal_procedure_call
-                { 
+    | d3:deref_dot_expr_keeplast formal_procedure_call_without_parameter_list
+               { IsMemberProWithoutArgs(LT(0))}? { 
                     #statement = #([MPCALL, "mpcall"], #statement);
                     #statement->SetLine( #d3->getLine()); if (debugParser) std::cout<<" statement : \""<<LT(0)->getText()<<"\""<<std::endl;
                 }
@@ -918,16 +918,18 @@ else_block
         { #else_block = #([BLOCK, "block"], #else_block); if (debugParser) std::cout<<std::endl;}
     ;
 
+formal_procedure_call_without_parameter_list
+{    if (debugParser) std::cout << " formal_procedure_call_without_parameter_list -> " /* << std::endl */; }
+    : IDENTIFIER
+    ;   
+ 
 formal_procedure_call
 {    if (debugParser) std::cout << " formal_procedure_call -> " /* << std::endl */; }
     : IDENTIFIER (COMMA! parameter_def_list)?
-    ;    
-
+    ; 
 // must handle RETURN, BREAK, CONTINUE also
 procedure_call!//
 {    if (debugParser) std::cout << " procedure_call! -> " /* << std::endl */; }
-// was:
-// formal_procedure_call
     : id:IDENTIFIER 
         ( {id->getText() == "RETURN"}?
             (COMMA! e:expr)?
@@ -1441,6 +1443,8 @@ tag_access_keeplast returns [int nDot]
     bool parent = false;
     nDot=1;
     if (debugParser) std::cout << " tag_access_keeplast -> " /* << std::endl */; 
+//SetParentMember() used to enable AutoPrint of non-object procedures see objects.cpp
+    SetParentMember(LT(0)); 
 }
     : DOT!
         (
@@ -1473,7 +1477,10 @@ deref_dot_expr_keeplast
             }        
 //      |   { #deref_dot_expr_keeplast = #a1; if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
         )
-    | ASTERIX! deref_dot_expr_keeplast
+    | ASTERIX! { 
+//SetParentMember() used to enable AutoPrint of non-object procedures see objects.cpp
+SetParentMember(LT(1));
+} deref_dot_expr_keeplast 
         { #deref_dot_expr_keeplast = 
             #([DEREF,"deref"], #deref_dot_expr_keeplast); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
     ;

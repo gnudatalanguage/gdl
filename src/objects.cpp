@@ -984,6 +984,76 @@ bool IsFun(antlr::RefToken rT1)
   return false;
 }
 
+static std::string parentmember;
+
+void SetParentMember(antlr::RefToken rT1) {
+antlr::Token& T1=*rT1;
+parentmember=StrUpCase(T1.getText());
+}
+bool IsMemberProWithoutArgs(antlr::RefToken rT1)
+{
+ if (parentmember.size()==0) return true; //default: old behaviour 
+  
+  antlr::Token& T1=*rT1;
+
+  string searchName=StrUpCase(T1.getText());
+//   cout << "IsMemberProWithoutArgs: Searching for the existence of an \"" << parentmember<<"."<<searchName<<"\" procedure"<< endl;
+  
+  //get (all) variables names, incl. system variables and common defined, at desired level.
+  EnvStackT& callStack = BaseGDL::interpreter->CallStack();
+  DLong curlevnum = callStack.size();
+  DSubUD* pro = static_cast<DSubUD*> (callStack[curlevnum - 1]->GetPro());
+
+  SizeT nVar = pro->Size(); // # var in GDL for desired level 
+//  SizeT nComm = pro->CommonsSize(); // # has commons?
+//  SizeT nTotVar = nVar + nComm; //All the variables availables at that lev.
+
+//  if (nTotVar > 0) {
+//	if (nComm > 0) {
+//	  DStringGDL* list = static_cast<DStringGDL*> (pro->GetCommonVarNameList());
+//	  for (SizeT i = 0; i < list->N_Elements(); ++i) {
+//		if ((*list)[i] == parentmember) {
+//		  if (pro->GetCommonVarPtr((*list)[i])
+//		  
+//		BaseGDL** var = pro->GetCommonVarPtr((*list)[i]);
+//		if (*var != NULL) varNameList.push(make_pair((*list)[i], *var));
+//	  }
+//	}
+	if (nVar > 0) {
+	  for (SizeT i = 0; i < nVar; ++i) {
+		if (pro->GetVarName(i) == parentmember) {
+		  BaseGDL* var = ((EnvT*) (callStack[curlevnum - 1]))->GetTheKW(i);
+		  if (var->Type() == GDL_OBJ) {
+			parentmember.clear();
+			return true;
+		  }
+		  if (var->Type() == GDL_PTR) {
+			//assume default
+			parentmember.clear();
+			return true;
+		  }
+		  parentmember.clear();
+		  return false;
+		}
+	  }
+	}
+//SYSVARs
+  for (SizeT v = 0; v < sysVarList.size(); ++v) {
+	if (std::string("!"+sysVarList[ v]->Name()) == parentmember) {
+	  DVar* var=sysVarList[ v];
+		  if (var->Data()->Type() != GDL_OBJ) { //probably always the case?
+			parentmember.clear();
+			return false;
+		  } else {
+			parentmember.clear();
+			return true;
+		  }	  
+      } 
+    }
+	parentmember.clear(); // no use anymore
+	return true; //default: old behaviour 
+  }
+
 int ProIx(const string& n)
 {
 SizeT nF=proList.size();
