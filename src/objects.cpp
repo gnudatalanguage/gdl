@@ -997,7 +997,7 @@ bool IsMemberProWithoutArgs(antlr::RefToken rT1)
   antlr::Token& T1=*rT1;
 
   string searchName=StrUpCase(T1.getText());
-//   cout << "IsMemberProWithoutArgs: Searching for the existence of an \"" << parentmember<<"."<<searchName<<"\" procedure"<< endl;
+   cout << "IsMemberProWithoutArgs: Searching for the existence of an \"" << parentmember<<"."<<searchName<<"\" procedure"<< endl;
   
   //get (all) variables names, incl. system variables and common defined, at desired level.
   EnvStackT& callStack = BaseGDL::interpreter->CallStack();
@@ -1023,14 +1023,16 @@ bool IsMemberProWithoutArgs(antlr::RefToken rT1)
 	  for (SizeT i = 0; i < nVar; ++i) {
 		if (pro->GetVarName(i) == parentmember) {
 		  BaseGDL* var = ((EnvT*) (callStack[curlevnum - 1]))->GetTheKW(i);
-		  if (var->Type() == GDL_OBJ) {
-			parentmember.clear();
-			return true;
-		  }
-		  if (var->Type() == GDL_PTR) {
-			//assume default
-			parentmember.clear();
-			return true;
+		  if (var != NULL) {
+			if (var->Type() == GDL_OBJ) {
+			  parentmember.clear();
+			  return true;
+			}
+			if (var->Type() == GDL_PTR) {
+			  //assume default
+			  parentmember.clear();
+			  return true;
+			}
 		  }
 		  parentmember.clear();
 		  return false;
@@ -1041,7 +1043,7 @@ bool IsMemberProWithoutArgs(antlr::RefToken rT1)
   for (SizeT v = 0; v < sysVarList.size(); ++v) {
 	if (std::string("!"+sysVarList[ v]->Name()) == parentmember) {
 	  DVar* var=sysVarList[ v];
-		  if (var->Data()->Type() != GDL_OBJ) { //probably always the case?
+		  if ( var->Data()!=NULL && var->Data()->Type() != GDL_OBJ) { //probably always the case?
 			parentmember.clear();
 			return false;
 		  } else {
