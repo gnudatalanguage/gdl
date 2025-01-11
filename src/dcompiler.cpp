@@ -249,7 +249,7 @@ void DCompiler::EndPro() // inserts in proList
 	  // newly compiled DPro. Remove from unknown list of procedures if was present
 	  for (UnknownProListT::iterator q = unknownProList.begin(); q != unknownProList.end(); ++q)
 		if ((*q) == name) {
-		  std::cerr << "removing PRO " << name<< std::endl;
+		  //std::cerr << "removing PRO " << name<< std::endl;
 		  unknownProList.erase(q);
 		  break;
 		}
@@ -323,7 +323,7 @@ void DCompiler::EndFun() // inserts in funList
 	// newly compiled DFun. Remove from unknown list of functions if was present
 	  for ( UnknownFunListT::iterator q=unknownFunList.begin(); q!=unknownFunList.end(); ++q)
  if( (*q) == name ) {
-	std::cerr<<"removing FUN "<<name<<std::endl;
+	//std::cerr<<"removing FUN "<<name<<std::endl;
 	unknownFunList.erase(q);
 	break;
   }
