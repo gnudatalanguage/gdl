@@ -56,6 +56,10 @@ VarListT      sysVarNoSaveList;
 FunListT      funList;
 ProListT      proList;
 
+// for RESOLVE_ALL via ROUTINE_INFO
+UnknownFunListT      unknownFunList;
+UnknownProListT      unknownProList;
+
 LibFunListT   libFunList;
 LibProListT   libProList;
 

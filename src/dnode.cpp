@@ -579,14 +579,15 @@ void DNode::initialize( RefDNode t )
 }
 
 void DNode::SetFunIx(const int ix) {
+  if (ix == -1) unknownFunList.insert(getText());
   funIx = ix;
   if (ix != -1 && funList[ix]->isObsolete()) 
     WarnAboutObsoleteRoutine(this, funList[ix]->Name());
 }
 
 void DNode::SetProIx(const int ix) {
+  if (ix == -1) unknownProList.insert(getText());
   proIx = ix;
-  if (ix != -1 && proList[ix]->isObsolete()) 
-    WarnAboutObsoleteRoutine(this, proList[ix]->Name());
+  if (ix != -1 && proList[ix]->isObsolete()) WarnAboutObsoleteRoutine(this, proList[ix]->Name());
 }
 

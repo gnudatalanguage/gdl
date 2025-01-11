@@ -245,8 +245,16 @@ void DCompiler::EndPro() // inserts in proList
 	  *p=static_cast<DPro*>(pro);
 	}
       else
-      {
-	(*searchList).push_back(static_cast<DPro*>(pro));
+{
+	  // newly compiled DPro. Remove from unknown list of procedures if was present
+	  for (UnknownProListT::iterator q = unknownProList.begin(); q != unknownProList.end(); ++q)
+		if ((*q) == name) {
+		  //std::cerr << "removing PRO " << name<< std::endl;
+		  unknownProList.erase(q);
+		  break;
+		}
+		
+	  (*searchList).push_back(static_cast<DPro*>(pro));
 	WarnAboutObsoleteRoutine(pro->ObjectName());
       }
     }
@@ -312,6 +320,13 @@ void DCompiler::EndFun() // inserts in funList
     }
   else
   {
+	// newly compiled DFun. Remove from unknown list of functions if was present
+	  for ( UnknownFunListT::iterator q=unknownFunList.begin(); q!=unknownFunList.end(); ++q)
+ if( (*q) == name ) {
+	//std::cerr<<"removing FUN "<<name<<std::endl;
+	unknownFunList.erase(q);
+	break;
+  }
     (*searchList).push_back(static_cast<DFun*>(pro));
     // sort list again, however item should be inserted at good position in fact (more tricky but would save sort time). TODO.
    sort( libFunList.begin(), libFunList.end(), CompLibFunName());

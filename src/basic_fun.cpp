@@ -7813,13 +7813,39 @@ namespace lib {
     bool functionsKW = e->KeywordSet(functionsIx);
     static int systemIx = e->KeywordIx("SYSTEM");
     bool systemKW = e->KeywordSet(systemIx);
-    static int disabledIx = e->KeywordIx("DISABLED");
-    bool disabledKW = e->KeywordSet(disabledIx);
+    
+	// All GDL routines are ENABLED so the ENABLED keyword is just tested as it implies "/SYS".
+    static int ENABLED = e->KeywordIx("ENABLED");
+    if (e->KeywordSet(ENABLED)) systemKW=true;
+	
+    static int DISABLED = e->KeywordIx("DISABLED");
+    // GDL does not have disabled routines. 
+    if (e->KeywordSet(DISABLED)) return new DStringGDL("");
+
     static int parametersIx = e->KeywordIx("PARAMETERS");
     bool parametersKW = e->KeywordSet(parametersIx);
     static int sourceIx = e->KeywordIx("SOURCE");
     bool sourceKW = e->KeywordSet(sourceIx);
+    static int VARIABLES = e->KeywordIx("VARIABLES");
+    bool variables = e->KeywordSet(VARIABLES);
+    static int UNRESOLVED = e->KeywordIx("UNRESOLVED");
+    bool unresolved = e->KeywordSet(UNRESOLVED);
 
+	if (unresolved) { 
+	  SizeT n=unknownProList.size();
+	  if (functionsKW) n=unknownFunList.size();
+	  if (n == 0) return new DStringGDL("");
+	  DStringGDL* res=new DStringGDL(dimension(n), BaseGDL::NOZERO);
+	  SizeT k=0;
+	  if (functionsKW) {
+	   for ( UnknownFunListT::iterator q=unknownFunList.begin(); q!=unknownFunList.end(); ++q) (*res)[k++]=(*q);
+	  } else {
+	   for ( UnknownProListT::iterator q=unknownProList.begin(); q!=unknownProList.end(); ++q) (*res)[k++]=(*q);
+	  }
+	  return res;
+	}
+	if (variables) return new DStringGDL("");
+    
     if (sourceKW) {
 
       // sanity checks
@@ -7905,7 +7931,7 @@ namespace lib {
 
     if (parametersKW) {
       // sanity checks
-      if (systemKW || disabledKW) e->Throw("Conflicting keywords.");
+      if (systemKW) e->Throw("Conflicting keywords.");
 
       // getting the routine name from the first parameter
       DString name;
@@ -7952,8 +7978,6 @@ namespace lib {
       return stru;
     }
 
-    // GDL does not have disabled routines
-    if (disabledKW) return new DStringGDL("");
 
     //    if( functionsKW || systemKW || nParam == 0)
     //      {
@@ -7972,7 +7996,6 @@ namespace lib {
       } else {
         SizeT n = funList.size();
         if (n == 0) {
-          Message("No FUNCTIONS compiled yet !");
           return new DStringGDL("");
         }
         for (SizeT i = 0; i < n; ++i)
@@ -7991,7 +8014,6 @@ namespace lib {
       } else {
         SizeT n = proList.size();
         if (n == 0) {
-          Message("No PROCEDURES compiled yet !");
           DStringGDL* res = new DStringGDL(1, BaseGDL::NOZERO);
           (*res)[0] = "$MAIN$";
           return res;
@@ -8006,8 +8028,7 @@ namespace lib {
     SizeT nS = subList.size();
 
     DStringGDL* res = new DStringGDL(dimension(nS), BaseGDL::NOZERO);
-    for (SizeT s = 0; s < nS; ++s)
-      (*res)[ s] = subList[ s];
+    for (SizeT s = 0; s < nS; ++s) (*res)[ s] = subList[ s];
 
     return res;
     //      }
