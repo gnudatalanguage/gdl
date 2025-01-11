@@ -48,6 +48,8 @@ extern VarListT      sysVarNoSaveList;
 
 extern FunListT      funList;
 extern ProListT      proList;
+extern UnknownFunListT      unknownFunList;
+extern UnknownProListT      unknownProList;
 extern LibFunListT   libFunList;
 extern LibProListT   libProList;
 

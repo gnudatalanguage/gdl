@@ -621,6 +621,9 @@ public:
 typedef std::vector<DFun*> FunListT;
 typedef std::vector<DPro*> ProListT;
 
+typedef std::set<std::string> UnknownFunListT;
+typedef std::set<std::string> UnknownProListT;
+
 typedef std::vector<DLibFun*> LibFunListT;
 typedef std::vector<DLibPro*> LibProListT;
 
