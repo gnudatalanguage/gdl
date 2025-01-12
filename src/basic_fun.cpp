@@ -4351,7 +4351,7 @@ namespace lib {
       return new DDoubleGDL(std::numeric_limits<double>::quiet_NaN());
     }
     static int evenIx = e->KeywordIx("EVEN");
-    int iseven = (((iEl + 1) % 2) == 0 && e->KeywordSet(evenIx));
+    int iseven = ((iEl % 2) == 0 && e->KeywordSet(evenIx));
     BaseGDL *res = new DDoubleGDL(quick_select_d(array, iEl, iseven));
     free(array);
     return res;
@@ -4410,7 +4410,7 @@ namespace lib {
       return new DFloatGDL(std::numeric_limits<float>::quiet_NaN());
     }
     static int evenIx = e->KeywordIx("EVEN");
-    int iseven = (((iEl + 1) % 2) == 0 && e->KeywordSet(evenIx));
+    int iseven = ((iEl % 2) == 0 && e->KeywordSet(evenIx));
     BaseGDL *res = new DFloatGDL(quick_select_f(array, iEl, iseven));
     free(array);
     return res;
