@@ -1282,9 +1282,82 @@ namespace lib {
       return res;
     }
   }
+  
+  template< typename T>
+  BaseGDL* signum_fun_template(BaseGDL* p0) {
+    T* p0C = static_cast<T*> (p0);
+    T* res = new T(p0C->Dim(), BaseGDL::NOZERO);
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      (*res)[0] = ((*p0C)[0] == 0)?0:signbit((*p0C)[0]);
+      return res;
+    }
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
+      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ((*p0C)[i] == 0)?0:signbit((*p0C)[ i]);
+    } else {
+      TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ((*p0C)[i] == 0)?0:signbit((*p0C)[ i]);
+    }
+    return res;
+  }
 
+  template< typename T>
+  BaseGDL* signum_fun_template_grab(BaseGDL* p0) {
+    T* p0C = static_cast<T*> (p0);
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      (*p0C)[0] = ((*p0C)[0] == 0)?0:signbit((*p0C)[0]);
+      return p0;
+    }
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
+      for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = ((*p0C)[i] == 0)?0:signbit((*p0C)[ i]);
+    } else {
+      TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+        for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = ((*p0C)[i] == 0)?0:signbit((*p0C)[ i]);
+    }
+    return p0;
+  }
 
-  //   BaseGDL* alog_fun( EnvT* e)
+   BaseGDL* signum_fun(BaseGDL* p0, bool isReference) {
+    SizeT nEl = p0->N_Elements();
+    DType p0Type = p0->Type();
+    if (!ConvertableType(p0Type)) throw GDLException("operation illegal with "+p0->TypeStr());
+     if (p0Type == GDL_FLOAT)
+      if (isReference) return signum_fun_template< DFloatGDL>(p0);
+      else return signum_fun_template_grab< DFloatGDL>(p0);
+     else if (p0Type == GDL_BYTE)
+      if (isReference) return signum_fun_template< DByteGDL>(p0);
+      else return signum_fun_template_grab< DByteGDL>(p0);
+     else if (p0Type == GDL_INT)
+      if (isReference) return signum_fun_template< DIntGDL>(p0);
+      else return signum_fun_template_grab< DIntGDL>(p0);
+     else if (p0Type == GDL_UINT)
+      if (isReference) return signum_fun_template< DUIntGDL>(p0);
+      else return signum_fun_template_grab< DUIntGDL>(p0);
+     else if (p0Type == GDL_LONG)
+      if (isReference) return signum_fun_template< DLongGDL>(p0);
+      else return signum_fun_template_grab< DLongGDL>(p0);
+     else if (p0Type == GDL_ULONG)
+      if (isReference) return signum_fun_template< DULongGDL>(p0);
+      else return signum_fun_template_grab< DULongGDL>(p0);
+     else if (p0Type == GDL_LONG64)
+      if (isReference) return signum_fun_template< DLong64GDL>(p0);
+      else return signum_fun_template_grab< DLong64GDL>(p0);
+     else if (p0Type == GDL_ULONG64)
+      if (isReference) return signum_fun_template< DULong64GDL>(p0);
+      else return signum_fun_template_grab< DULong64GDL>(p0);
+     else if (p0Type == GDL_STRING) {
+         BaseGDL* temp=p0->Convert2(GDL_FLOAT, BaseGDL::COPY);
+         Guard<BaseGDL>g;
+         g.reset(temp);
+         return signum_fun_template< DFloatGDL>(temp); //NOTE: no GRAB
+     }
+     else throw GDLException("forgotten "+p0->TypeStr()+" type in GDL code for SIGNUM, please report!");
+  }
+   
+   //   BaseGDL* alog_fun( EnvT* e)
 
   BaseGDL* alog_fun(BaseGDL* p0, bool isReference) {
     if (p0->Type() == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");

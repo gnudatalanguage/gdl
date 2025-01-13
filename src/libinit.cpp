@@ -528,7 +528,8 @@ void LibInit()
 
   new DLibFunRetNew(lib::replicate,string("REPLICATE"),9,NULL,NULL,true);
   new DLibPro(lib::replicate_inplace_pro,string("REPLICATE_INPLACE"),6,NULL,NULL,0,true);  //UsesThreadPOOL 
-
+  new DLibFunDirectTP(lib::signum_fun,string("SIGNUM"));  //UsesThreadPOOL 
+  
   new DLibFunDirectTP(lib::sin_fun,string("SIN"));  //UsesThreadPOOL 
   new DLibFunDirectTP(lib::cos_fun,string("COS"));  //UsesThreadPOOL 
   new DLibFunDirectTP(lib::tan_fun,string("TAN"));  //UsesThreadPOOL 

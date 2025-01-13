@@ -24,6 +24,8 @@ namespace lib {
 
   void svdc( EnvT* e);
 
+  BaseGDL* signum_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
+
   BaseGDL* sin_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
   BaseGDL* cos_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
   BaseGDL* tan_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
