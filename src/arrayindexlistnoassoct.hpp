@@ -275,7 +275,7 @@ public:
 
   void AssignAt( BaseGDL* var, BaseGDL* right)
   {
-    if (ignoreMe) return; //there was a !NULL argument for indexlist (a[!NULL]=33)
+    if (ignoreMe) {ignoreMe=false; return;}  //there was a !NULL argument for indexlist (a[!NULL]=33) //see also #1962
     // scalar case
     if( right->N_Elements() == 1 && //!var->IsAssoc() &&
 	ix->NIter( var->N_Elements()/*var->Size()*/) == 1)// && var->Type() != GDL_STRUCT) 
