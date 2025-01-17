@@ -67,6 +67,7 @@ namespace lib {
     // the following (isatty=> os = stdout) should probably be changed to something more clever when the /MORE option of OPENW  is supported .
     bool isatty = stdLun;
     if (!isatty) {
+      //
       //check lun is disguized tty as in scrn = filepath(/TERMINAL) & openw,lun,scrn,/more,/get_lun
       struct stat buffer;
       int status = stat((fileUnits[ lun - 1].Name()).c_str(), &buffer);

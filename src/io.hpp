@@ -303,7 +303,7 @@ public:
 #ifdef HAVE_EXT_STDIO_FILEBUF_H
 // GGH ggh hack to implement SPAWN keyword UNIT
   std::basic_streambuf<char> *get_stream_readbuf_bsrb();
-  int set_stream_readbuf_bsrb_from_frb(__gnu_cxx::stdio_filebuf<char> *frb_p);
+  int set_stream_readbuf_bsrb_from_frb(__gnu_cxx::stdio_filebuf<char> *frb_p, std::string newname="");
   int set_readbuf_frb_destroy_on_close(__gnu_cxx::stdio_filebuf<char> *frb_p);
   int set_readbuf_bsrb_destroy_on_close(std::basic_streambuf<char> *bsrb_p);
   int set_fd_close_on_close(int fd);

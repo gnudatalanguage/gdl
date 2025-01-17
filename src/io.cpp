@@ -917,8 +917,9 @@ std::basic_streambuf<char> *GDLStream::get_stream_readbuf_bsrb() {
   return anyStream->fStream->std::ios::rdbuf();
 }
 
-int GDLStream::set_stream_readbuf_bsrb_from_frb(__gnu_cxx::stdio_filebuf<char> *frb_p) {
+int GDLStream::set_stream_readbuf_bsrb_from_frb(__gnu_cxx::stdio_filebuf<char> *frb_p, std::string newName) {
   anyStream->fStream->std::ios::rdbuf(frb_p);
+  if (newName.size() > 0) this->name=newName;
   return 0;
 }
 
