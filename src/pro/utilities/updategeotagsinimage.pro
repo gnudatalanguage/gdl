@@ -471,7 +471,7 @@ pro updategeotagsinimage,filename,g
      for i=0,ntags-1 do begin
         if GeoMethod[tagidx[i]] eq 1 or TiffType[tagidx[i]] ne 2s then continue
         geotiff_writeOffsettedValueAscii,unit,offsettable,g,i,tagidx[i],number
-        number+=strlen(g.(i))+1
+        number+=strlen(g.(i))
      endfor
      addToAsciiSection=number mod 4 & if addToAsciiSection gt 0 then writeu,unit,replicate(0b,addToAsciiSection) ; hope it's OK
      point_lun,-unit,current
