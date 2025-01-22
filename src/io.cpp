@@ -184,9 +184,13 @@ const string StreamInfo(ios* searchStream) {
 }
 
 void AnyStream::Close() {
-  if (fStream != NULL && fStream->is_open()) {
-    fStream->close();
-    fStream->clear();
+  if (ifStream != NULL && ifStream->is_open()) {
+    ifStream->close();
+    ifStream->clear();
+  }
+  if (ofStream != NULL && ofStream->is_open()) {
+    ofStream->close();
+    ofStream->clear();
   }
   if (igzStream != NULL && igzStream->rdbuf()->is_open()) {
     igzStream->close();
@@ -197,14 +201,20 @@ void AnyStream::Close() {
     ogzStream->clear();
   }
 }
-
+#ifdef HAVE_EXT_STDIO_FILEBUF_H
+void AnyStream::Open(const std::string& name_,
+  ios_base::openmode mode_, bool compress_,__gnu_cxx::stdio_filebuf<char> *in, __gnu_cxx::stdio_filebuf<char> *out) {
+#else
 void AnyStream::Open(const std::string& name_,
   ios_base::openmode mode_, bool compress_) {
+#endif
   if (compress_) {
 
-    delete fStream;
-    fStream = NULL;
-
+    delete ifStream;
+    ifStream = NULL;
+    delete ofStream;
+    ofStream = NULL;
+    
     if ((mode_ & std::ios::out)) {
       if (ogzStream == NULL)
         ogzStream = new ogzstream();
@@ -240,46 +250,74 @@ void AnyStream::Open(const std::string& name_,
     igzStream = NULL;
     delete ogzStream;
     ogzStream = NULL;
+#ifdef HAVE_EXT_STDIO_FILEBUF_H
+    if (in != nullptr) //special case pipe magick
+    {
+      if (ifStream == NULL) ifStream = new fstream();
+      ifStream->open("/dev/null", ios_base::in);
+      if (ifStream->fail()) {
+        delete ifStream;
+        ifStream = NULL;
+        throw GDLIOException(-1, "Error opening special infile.");
+      }
+      ifStream->std::ios::rdbuf(in);
+      if (out != nullptr) {
+        if (ofStream == NULL) ofStream = new fstream();
+        ofStream->open("/dev/null", ios_base::out);
+        if (ofStream->fail()) {
+          delete ofStream;
+          ofStream = NULL;
+          throw GDLIOException(-1, "Error opening special outfile.");
+        }
+        ofStream->std::ios::rdbuf(out);
+      }      
+    } else
+#endif    
+    { //normal case use ifStream 
+      if (ifStream == NULL)
+        ifStream = new fstream();
 
-    if (fStream == NULL)
-      fStream = new fstream();
+      ifStream->open(name_.c_str(), mode_);
 
-    fStream->open(name_.c_str(), mode_);
-
-    if (fStream->fail()) {
-      delete fStream;
-      fStream = NULL;
-      if (((mode_ | ios_base::in) != 0) && ((mode_ | ios_base::out) == 0))
-        throw GDLIOException(-265, "Error opening file for reading.");
-      throw GDLIOException(-1, "Error opening file.");
+      if (ifStream->fail()) {
+        delete ifStream;
+        ifStream = NULL;
+        if (((mode_ | ios_base::in) != 0) && ((mode_ | ios_base::out) == 0))
+          throw GDLIOException(-265, "Error opening file for reading.");
+        throw GDLIOException(-1, "Error opening file.");
+      }
     }
   }
 }
 
 void AnyStream::ClearEof() {
-  if (fStream && fStream->eof()) fStream->clear();
+  if (ifStream && ifStream->eof()) ifStream->clear();
+  if (ofStream && ofStream->eof()) ofStream->clear();
   if (igzStream && igzStream->eof()) igzStream->clear();
   if (ogzStream && ogzStream->eof()) ogzStream->clear();
 }
 
 void AnyStream::Write(char* buf, std::streamsize nBytes) {
-  if (fStream != NULL) {
-    fStream->write(buf, nBytes);
+  if (ofStream != NULL) { //special case pipe: ofStream exists
+    std::cerr<<"writing to pipe"<<std::endl;
+    ofStream->write(buf, nBytes);
+  } else if (ifStream != NULL) {
+    ifStream->write(buf, nBytes);
   } else if (ogzStream != NULL) {
     ogzStream->write(buf, nBytes);
   } else assert(0);
 }
 
 void AnyStream::Read(char* buf, std::streamsize nBytes) {
-  if (fStream != NULL) {
-    fStream->read(buf, nBytes);
+  if (ifStream != NULL) {
+    ifStream->read(buf, nBytes);
   } else if (igzStream != NULL) {
     igzStream->read(buf, nBytes);
   } else assert(0);
 }
 std::streamsize AnyStream::Gcount() {
-  if (fStream != NULL) {
-    return fStream->gcount();
+  if (ifStream != NULL) {
+    return ifStream->gcount();
   } else if (igzStream != NULL) {
     return igzStream->gcount();
   } else assert(0);
@@ -287,8 +325,12 @@ std::streamsize AnyStream::Gcount() {
 }
 
 bool AnyStream::Good() {
-  if (fStream != NULL)
-    return fStream->good();
+  if (ifStream != NULL && ofStream != NULL)
+    return ifStream->good() && ofStream->good();
+  else if (ifStream != NULL)
+    return ifStream->good();
+  else if (ofStream != NULL)
+    return ofStream->good();
   else if (igzStream != NULL && ogzStream != NULL)
     return igzStream->good() && ogzStream->good();
   else if (igzStream != NULL)
@@ -302,8 +344,8 @@ bool AnyStream::Good() {
 }
 
 bool AnyStream::EofRaw() {
-  if (fStream != NULL) {
-    return fStream->eof();
+  if (ifStream != NULL) {
+    return ifStream->eof();
   }
   if (igzStream != NULL) {
     return igzStream->eof();
@@ -312,12 +354,12 @@ bool AnyStream::EofRaw() {
 }
 
 void AnyStream::SeekEof() {
-  if (fStream == NULL && igzStream == NULL && ogzStream == NULL)
+  if (ifStream == NULL && igzStream == NULL && ogzStream == NULL)
     throw GDLException("Inner file unit is not open.");
 
-  if (fStream != NULL) {
-    fStream->seekp(0, std::ios_base::end);
-    fStream->seekg(0, std::ios_base::end);
+  if (ifStream != NULL) {
+    ifStream->seekp(0, std::ios_base::end);
+    ifStream->seekg(0, std::ios_base::end);
   } else if (igzStream != NULL) {
     igzStream->seekg(0, std::ios_base::end);
   } else if (ogzStream != NULL) {
@@ -326,15 +368,14 @@ void AnyStream::SeekEof() {
 }
 
 bool AnyStream::Eof() {
-  if (fStream == NULL && igzStream == NULL && ogzStream == NULL)
-    throw GDLException("Inner file unit is not open.");
+  if (!InUse()) throw GDLException("Inner file unit is not open.");
 
-  if (fStream != NULL) {
-    fStream->clear(); // clear old EOF	
+  if (ifStream != NULL) {
+    ifStream->clear(); // clear old EOF	
 
-    fStream->peek(); // trigger EOF if at EOF
+    ifStream->peek(); // trigger EOF if at EOF
 
-    return fStream->eof();
+    return ifStream->eof();
   }
   if (igzStream != NULL) {
     igzStream->clear(); // clear old EOF	
@@ -347,14 +388,19 @@ bool AnyStream::Eof() {
 }
 
 void AnyStream::Seek(std::streampos pos) {
-  if (fStream == NULL && igzStream == NULL && ogzStream == NULL)
-    throw GDLException("inner file unit is not open.");
+  if (!InUse()) throw GDLException("inner file unit is not open.");
 
-  if (fStream != NULL) {
-    if (fStream->eof())
-      fStream->clear();
+  if (ifStream != NULL) {
+    if (ifStream->eof())
+      ifStream->clear();
 
-    fStream->rdbuf()->pubseekpos(pos, std::ios_base::in | std::ios_base::out);
+    ifStream->rdbuf()->pubseekpos(pos, std::ios_base::in | std::ios_base::out);
+  }
+  if (ofStream != NULL) {
+    if (ofStream->eof())
+      ofStream->clear();
+
+    ofStream->rdbuf()->pubseekpos(pos, std::ios_base::out);
   }
   if (igzStream != NULL) {
     if (igzStream->eof())
@@ -373,17 +419,16 @@ void AnyStream::Seek(std::streampos pos) {
 }
 
 DLong64 AnyStream::Skip(std::streampos pos, bool doThrow) {
-  if (fStream == NULL && igzStream == NULL && ogzStream == NULL)
-    throw GDLException("inner file unit is not open.");
+  if (!InUse()) throw GDLException("inner file unit is not open.");
 
-  if (fStream != NULL) {
-    if (fStream->eof())
-      fStream->clear();
+  if (ifStream != NULL) {
+    if (ifStream->eof())
+      ifStream->clear();
 
-    std::streampos  cur=fStream->tellg();
-    fStream->ignore(pos);
-    if ( doThrow && fStream->eof()) throw GDLException("End of file encountered.");
-    DLong64 ret=fStream->tellg()-cur;
+    std::streampos  cur=ifStream->tellg();
+    ifStream->ignore(pos);
+    if ( doThrow && ifStream->eof()) throw GDLException("End of file encountered.");
+    DLong64 ret=ifStream->tellg()-cur;
     return ret;
   }
   if (igzStream != NULL) {
@@ -400,15 +445,15 @@ DLong64 AnyStream::Skip(std::streampos pos, bool doThrow) {
 }
 
 DLong AnyStream::SkipLines(DLong nlines, bool doThrow) {
-  if (fStream == NULL && igzStream == NULL && ogzStream == NULL)
-    throw GDLException("inner file unit is not open.");
-  if (fStream != NULL) {
-    if (fStream->eof())
-      fStream->clear();
+  if (!InUse()) throw GDLException("inner file unit is not open.");
+
+  if (ifStream != NULL) {
+    if (ifStream->eof())
+      ifStream->clear();
     DLong i = 0;
     for (; i < nlines; ++i) {
-      fStream->ignore(std::numeric_limits<ptrdiff_t>::max(), '\n');
-      if (fStream->eof()) {
+      ifStream->ignore(std::numeric_limits<ptrdiff_t>::max(), '\n');
+      if (ifStream->eof()) {
         if (doThrow) throw GDLException("End of file encountered.");
         else break;
       }
@@ -433,10 +478,15 @@ DLong AnyStream::SkipLines(DLong nlines, bool doThrow) {
 }
 
 std::streampos AnyStream::Size() {
-  if (fStream != NULL) {
-    std::streampos cur = Tell();
-    std::streampos end = fStream->rdbuf()->pubseekoff(0, std::ios_base::end);
-    fStream->rdbuf()->pubseekpos(cur, std::ios_base::in | std::ios_base::out);
+  if (ifStream != NULL) {
+    std::streampos cur = ifStream->tellp(); 
+    std::streampos end = ifStream->rdbuf()->pubseekoff(0, std::ios_base::end);
+    ifStream->rdbuf()->pubseekpos(cur, std::ios_base::in | std::ios_base::out);
+    return end;
+  } else if (ofStream != NULL) {
+    std::streampos cur = ofStream->tellp(); 
+    std::streampos end = ofStream->rdbuf()->pubseekoff(0, std::ios_base::end);
+    ofStream->rdbuf()->pubseekpos(cur, std::ios_base::out);
     return end;
   } else {
     if (igzStream != NULL) {
@@ -458,7 +508,8 @@ std::streampos AnyStream::Size() {
 }
 
 std::streampos AnyStream::Tell() {
-  if (fStream != NULL) return fStream->tellp(); //openr
+  if (ifStream != NULL) return ifStream->tellp(); //openr
+  else if (ofStream != NULL) return ofStream->tellp(); //openr
   else if (igzStream != NULL)
     return igzStream->rdbuf()->getPosition(); 
   else if (ogzStream != NULL)
@@ -470,17 +521,24 @@ std::streampos AnyStream::Tell() {
 }
 
 void AnyStream::SeekPad(std::streampos pos) {
-  if (fStream == NULL && ogzStream == NULL)
-    throw GDLException("File unit is not open.");
-  if (fStream != NULL) {
-    if (fStream->eof())
-      fStream->clear();
+  if (ifStream == NULL && ofStream == NULL && ogzStream == NULL)  throw GDLException("File unit is not open.");
+  if (ofStream != NULL) {
+    if (ofStream->eof())
+      ofStream->clear();
 
     std::streampos fSize = Size();
     if (pos > fSize) Pad(pos - fSize);
 
-    fStream->rdbuf()->pubseekpos(pos, std::ios_base::in | std::ios_base::out);
-  } else  {
+    ofStream->rdbuf()->pubseekpos(pos, std::ios_base::out);
+  } else if (ifStream != NULL) {
+    if (ifStream->eof())
+      ifStream->clear();
+
+    std::streampos fSize = Size();
+    if (pos > fSize) Pad(pos - fSize);
+
+    ifStream->rdbuf()->pubseekpos(pos, std::ios_base::in | std::ios_base::out);
+  } else {
     if (ogzStream->eof())
       ogzStream->clear();
 
@@ -495,7 +553,11 @@ void GDLStream::Open(const string& name_,
   ios_base::openmode mode_,
   bool swapEndian_, bool dOC, bool xdr_,
   SizeT width_,
-  bool f77_, bool compress_) {
+  bool f77_, bool compress_
+#ifdef HAVE_EXT_STDIO_FILEBUF_H
+, __gnu_cxx::stdio_filebuf<char> *in, __gnu_cxx::stdio_filebuf<char> *out
+#endif
+) {
   string expName = name_;
   WordExp(expName);
 
@@ -515,7 +577,11 @@ void GDLStream::Open(const string& name_,
   mode = mode_;
   compress = compress_;
 
-  anyStream->Open(expName, mode_, compress_);
+  anyStream->Open(expName, mode_, compress_
+#ifdef HAVE_EXT_STDIO_FILEBUF_H
+  , in, out
+#endif
+  );
 
   swapEndian = swapEndian_;
   deleteOnClose = dOC;
@@ -577,8 +643,11 @@ void GDLStream::Socket(const string& host,
 }
 
 void AnyStream::Flush() {
-  if (fStream != NULL) {
-    fStream->flush();
+  if (ifStream != NULL) {
+    ifStream->flush();
+  }
+   if (ofStream != NULL) {
+    ofStream->flush();
   }
   if (ogzStream != NULL) {
     ogzStream->flush();
@@ -663,7 +732,7 @@ ogzstream& GDLStream::OgzStream() {
   return *anyStream->OgzStream();
 }
 
-fstream& GDLStream::IStream() {
+fstream& GDLStream::IStream() { //IStream is always iFStream (normal file)
   if (anyStream == NULL || anyStream->FStream() == NULL || !anyStream->IsOpen())
     throw GDLIOException("File unit is not open.");
   if (!(mode & ios::in))
@@ -671,7 +740,11 @@ fstream& GDLStream::IStream() {
   return *anyStream->FStream();
 }
 
-fstream& GDLStream::OStream() {
+fstream& GDLStream::OStream() { //OStream may be oFStream if oFStream is not NULL (different pipe)
+  if (anyStream->oFStream() != NULL) { //process special pipe
+    return *anyStream->oFStream();
+  }
+  // old behaviour for normal files
   if (anyStream == NULL || anyStream->FStream() == NULL || !anyStream->IsOpen())
     throw GDLIOException("File unit is not open.");
   if (!(mode & ios::out))
@@ -695,9 +768,12 @@ void AnyStream::Pad(std::streamsize nBytes) {
   static char buf[ bufSize];
   SizeT nBuf = nBytes / bufSize;
   std::streamsize lastBytes = nBytes % bufSize;
-  if (fStream != NULL) {
-    for (SizeT i = 0; i < nBuf; ++i) fStream->write(buf, bufSize);
-    if (lastBytes > 0) fStream->write(buf, lastBytes);
+  if (ofStream != NULL) {
+    for (SizeT i = 0; i < nBuf; ++i) ifStream->write(buf, bufSize);
+    if (lastBytes > 0) ofStream->write(buf, lastBytes);
+  } else if (ifStream != NULL) {
+    for (SizeT i = 0; i < nBuf; ++i) ifStream->write(buf, bufSize);
+    if (lastBytes > 0) ifStream->write(buf, lastBytes);
   } else if (ogzStream != NULL) {
     for (SizeT i = 0; i < nBuf; ++i) ogzStream->write(buf, bufSize);
     if (lastBytes > 0) ogzStream->write(buf, lastBytes);
@@ -914,11 +990,11 @@ void GDLStream::SeekPad(std::streampos pos) {
 // GGH ggh hack to implement SPAWN keyword UNIT
 
 std::basic_streambuf<char> *GDLStream::get_stream_readbuf_bsrb() {
-  return anyStream->fStream->std::ios::rdbuf();
+  return anyStream->ifStream->std::ios::rdbuf();
 }
 
 int GDLStream::set_stream_readbuf_bsrb_from_frb(__gnu_cxx::stdio_filebuf<char> *frb_p, std::string newName) {
-  anyStream->fStream->std::ios::rdbuf(frb_p);
+  anyStream->ifStream->std::ios::rdbuf(frb_p);
   if (newName.size() > 0) this->name=newName;
   return 0;
 }

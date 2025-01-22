@@ -46,7 +46,17 @@
 #include "semshm.hpp"
 
 #ifdef HAVE_EXT_STDIO_FILEBUF_H
-#include <ext/stdio_filebuf.h> // TODO: is it portable across compilers?
+#include <iostream>
+#include <ext/stdio_filebuf.h>// TODO: is it portable across compilers?
+
+using __gnu_cxx::stdio_filebuf;
+using std::istream;
+using std::ostream;
+using std::iostream;
+
+inline stdio_filebuf<char> * fileBufFromFD(int fd, std::_Ios_Openmode mode) {
+  return (new stdio_filebuf<char> (fd, mode));
+}
 #endif
 #include <signal.h>
 static bool trace_me(false);
@@ -1992,15 +2002,19 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
 //// As  the user probably know what he/she wants, do not mess with stderr keyword.
 //// The stderr and stdout outputs shall be returned as empty strings.
 ////find the last non-blank character in string and check.
-//    bool IS_A_Spawn=false;
-//    std::size_t found= cmd.find_last_not_of(" \t");
-////    if (found!=std::string::npos && cmd.substr(found,1)=="&") IS_A_Spawn=true;
+    bool RedirectedCoutToCerr=false;
+    std::size_t found= cmd.rfind("1>&2");
+    if (found!=std::string::npos) RedirectedCoutToCerr=true;
     const int bufSize = 1024;
     char buf[bufSize];
 
     if (nParam > 1) e->AssureGlobalPar(1);
     if (nParam > 2) e->AssureGlobalPar(2);
 
+    int cinP[2] = {0};
+    if (nParam > 1 || unitKeyword) {
+      if (pipe(cinP) == -1) return;
+    }
     int coutP[2] = {0};
     if (nParam > 1 || unitKeyword) {
       if (pipe(coutP) == -1) return;
@@ -2008,15 +2022,17 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
 
     int cerrP[2] = {0};
     if (nParam > 2 && stderrKeyword) e->Throw("STDERR option conflicts with "+e->GetParString(2));
-    if (nParam > 2 && !unitKeyword && pipe(cerrP) == -1) return;
+    if (nParam > 2 && pipe(cerrP) == -1) return;
     if (stderrKeyword /*&& !IS_A_Spawn*/) cmd+=" 2>&1";
     
     pid_t pid = fork(); // *** fork
     if (pid == -1) // error in fork
     {
+      close(cinP[0]);
+      close(cinP[1]);
       close(coutP[0]);
       close(coutP[1]);
-      if (nParam > 2 && !unitKeyword) {
+      if (nParam > 2 ) {
         close(cerrP[0]);
         close(cerrP[1]);
       }
@@ -2026,11 +2042,11 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     if (pid == 0) // we are child
     {
       if (unitKeyword) {
-        dup2(coutP[0], 0); // cout
-//        dup2(coutP[1], 1); // cout
-//        dup2(coutP[1], 2); // cout
+        dup2(cinP[0], 0); // cout
+        //check if stout is redirected to stderr, in which case we do not 'trap' stdout
+        if (RedirectedCoutToCerr) close(coutP[1]); else dup2(coutP[1], 1);
+        close(cinP[1]);
         close(coutP[0]);
-        close(coutP[1]);
       } else {
         if (nParam > 1) dup2(coutP[1], 1); // cout
         if (nParam > 2) dup2(cerrP[1], 2); // cerr
@@ -2065,25 +2081,21 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     {
       if (pidKeyword)
         e->SetKW(pidIx, new DLongGDL(pid));
-
+// no as the child will close the tty on the other side when exiting...      close (cinP[0]);
       if (nParam > 1 ) close(coutP[1]);
-      if (nParam > 2 && !unitKeyword) close(cerrP[1]);
+      if (nParam > 2 ) close(cerrP[1]);
 
-      if (unitKeyword /*|| IS_A_Spawn */) {
+      if (unitKeyword) {
 #ifdef HAVE_EXT_STDIO_FILEBUF_H
         // UNIT kw code based on the patch by Greg Huey:
 
-        if (unitKeyword) Warning("Warning: UNIT keyword to SPAWN may not yet be fully implemented (proceeding)");
+//        if (unitKeyword) Warning("Warning: UNIT keyword to SPAWN may not yet be fully implemented (proceeding)");
         // This is just code stolen from void get_lun( EnvT* e)
         // here lun is the GDL lun, not the internal one
         DLong unit_lun = GetLUN();
 
         if (unit_lun == 0)
           e->Throw("SPAWN: Failed to get new LUN: GetLUN says: All available logical units are currently in use.");
-
-//        FILE *coutF = nullptr;
-//        coutF = fdopen(coutP[0], "r");
-//        if (coutF == nullptr) close(coutP[0]);
 
         if (unitKeyword) {
           e->SetKW(unitIx, new DLongGDL(unit_lun)); //only if this sort of "spwan /nowait" was triggered by the UNIT
@@ -2095,22 +2107,13 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
         fileUnits[unit_lun - 1].PutVarLenVMS(false);
 
         // Here we invoke the black arts of converting from a C FILE*fd to an fstream object
-        __gnu_cxx::stdio_filebuf<char> *frb_p;
-        frb_p = new __gnu_cxx::stdio_filebuf<char>(coutP[1], std::ios_base::out);
+
+        stdio_filebuf<char> * in = fileBufFromFD(coutP[0], std::ios_base::in);
+        stdio_filebuf<char> * out = fileBufFromFD(cinP[1], std::ios_base::out);
 
         fileUnits[unit_lun - 1].Close();
-        fileUnits[unit_lun - 1].Open("/dev/tty", std::ios_base::out, 0, 0, 0, 0, 0, 0);
-
-        basic_streambuf<char> *bsrb_old_p;
-        bsrb_old_p = fileUnits[unit_lun - 1].get_stream_readbuf_bsrb();
-        fileUnits[unit_lun - 1].set_stream_readbuf_bsrb_from_frb(frb_p, cmd.c_str());
-        
-        std::cerr<<fileUnits[unit_lun - 1].IsReadable()<<","<<fileUnits[unit_lun - 1].IsWriteable()<<std::endl;
-        fileUnits[unit_lun - 1].set_readbuf_frb_destroy_on_close(frb_p);
-        fileUnits[unit_lun - 1].set_readbuf_bsrb_destroy_on_close(bsrb_old_p);
-        fileUnits[unit_lun - 1].set_fd_close_on_close(coutP[1]);
-        if (/*IS_A_Spawn && */ nParam > 1 ) e->SetPar(1, new DStringGDL(""));
-        if (/*IS_A_Spawn && */ nParam > 2 ) e->SetPar(2, new DStringGDL(""));
+        fileUnits[unit_lun - 1].Open("<"+cmd+">", std::ios_base::out|std::ios_base::in, 0, 0, 0, 0, 0, 0, in , out);
+//        std::cerr<<fileUnits[unit_lun - 1].IsReadable()<<","<<fileUnits[unit_lun - 1].IsWriteable()<<std::endl;
 #else
         e->Throw("UNIT kw. relies on GNU extensions to the std C++ library (that were not available during compilation?)");
 #endif

@@ -61,22 +61,29 @@ class AnyStream
 {
 // GGH ggh made all these public
 public:
-  std::fstream* fStream;
+  std::fstream* ifStream;
+  std::fstream* ofStream;
   igzstream* igzStream; // for gzip compressed input
   ogzstream* ogzStream; // for gzip compressed output
 //public:
   AnyStream()
-    : fStream(NULL) 
+    : ifStream(NULL) 
+    , ofStream(NULL) 
     , igzStream(NULL) 
     , ogzStream(NULL) {}
 
   void Flush() ;
   void Close();
-
+#ifdef HAVE_EXT_STDIO_FILEBUF_H
   void Open(const std::string& name_,
+	    std::ios_base::openmode mode_ , bool compress_, __gnu_cxx::stdio_filebuf<char> *in=NULL, __gnu_cxx::stdio_filebuf<char> *out=NULL);
+#else
+void Open(const std::string& name_,
 	    std::ios_base::openmode mode_ , bool compress_);
-  
-  std::fstream* FStream(){return fStream;}
+#endif  
+  std::fstream* iFStream(){return ifStream;}
+  std::fstream* oFStream(){return ofStream;}
+  std::fstream* FStream(){return ifStream;}
   igzstream* IgzStream(){return igzStream;} // for gzip compressed input
   ogzstream* OgzStream(){return ogzStream;} // for gzip compressed output
 
@@ -105,9 +112,9 @@ public:
 
  void SeekPad(std::streampos pos);
 
-  bool InUse() { return (fStream != NULL || igzStream != NULL || ogzStream != NULL);}
+  bool InUse() { return (ifStream != NULL || ofStream != NULL || igzStream != NULL || ogzStream != NULL);}
   bool IsOpen()
-  { return (fStream != NULL && fStream->is_open()) || (igzStream != NULL && igzStream->rdbuf()->is_open()) || (ogzStream != NULL && ogzStream->rdbuf()->is_open());} 
+  { return (ifStream != NULL && ifStream->is_open()) || (ofStream != NULL && ofStream->is_open()) || (igzStream != NULL && igzStream->rdbuf()->is_open()) || (ogzStream != NULL && ogzStream->rdbuf()->is_open());} 
 
   void Pad( std::streamsize nBytes);
 
@@ -213,7 +220,7 @@ public:
   void Open( const std::string& name_,
 	     std::ios_base::openmode,
 	     bool swapEndian_, bool deleteOnClose_, bool xdr_, 
-	     SizeT width, bool f77, bool compress);
+	     SizeT width, bool f77, bool compress,__gnu_cxx::stdio_filebuf<char> *in=NULL, __gnu_cxx::stdio_filebuf<char> *out=NULL);
   
   void Socket( const std::string& host,
 	       DUInt port, bool swapEndian_,
