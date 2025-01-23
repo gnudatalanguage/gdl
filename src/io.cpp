@@ -185,10 +185,20 @@ const string StreamInfo(ios* searchStream) {
 
 void AnyStream::Close() {
   if (ifStream != NULL && ifStream->is_open()) {
+    if (old_rdbuf_in != nullptr) {
+      std::basic_streambuf<char> *current=ifStream->std::ios::rdbuf();
+      ifStream->std::ios::rdbuf(old_rdbuf_in);
+      old_rdbuf_in=nullptr;
+    }
     ifStream->close();
     ifStream->clear();
   }
   if (ofStream != NULL && ofStream->is_open()) {
+    if (old_rdbuf_out != nullptr) {
+      std::basic_streambuf<char> *current=ofStream->std::ios::rdbuf();
+      ifStream->std::ios::rdbuf(old_rdbuf_out);
+      old_rdbuf_out=nullptr;
+    }
     ofStream->close();
     ofStream->clear();
   }
@@ -260,6 +270,7 @@ void AnyStream::Open(const std::string& name_,
         ifStream = NULL;
         throw GDLIOException(-1, "Error opening special infile.");
       }
+      old_rdbuf_in = ifStream->std::ios::rdbuf();
       ifStream->std::ios::rdbuf(in);
       if (out != nullptr) {
         if (ofStream == NULL) ofStream = new fstream();
@@ -269,6 +280,7 @@ void AnyStream::Open(const std::string& name_,
           ofStream = NULL;
           throw GDLIOException(-1, "Error opening special outfile.");
         }
+        old_rdbuf_out = ofStream->std::ios::rdbuf();
         ofStream->std::ios::rdbuf(out);
       }      
     } else

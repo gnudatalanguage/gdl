@@ -48,12 +48,7 @@
 #ifdef HAVE_EXT_STDIO_FILEBUF_H
 #include <iostream>
 #include <ext/stdio_filebuf.h>// TODO: is it portable across compilers?
-
 using __gnu_cxx::stdio_filebuf;
-using std::istream;
-using std::ostream;
-using std::iostream;
-
 inline stdio_filebuf<char> * fileBufFromFD(int fd, std::_Ios_Openmode mode) {
   return (new stdio_filebuf<char> (fd, mode));
 }

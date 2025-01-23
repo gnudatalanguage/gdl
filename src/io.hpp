@@ -65,12 +65,17 @@ public:
   std::fstream* ofStream;
   igzstream* igzStream; // for gzip compressed input
   ogzstream* ogzStream; // for gzip compressed output
-//public:
+  std::basic_streambuf<char> *old_rdbuf_in;
+  std::basic_streambuf<char> *old_rdbuf_out;
+ //public:
   AnyStream()
     : ifStream(NULL) 
     , ofStream(NULL) 
     , igzStream(NULL) 
-    , ogzStream(NULL) {}
+    , ogzStream(NULL)
+    , old_rdbuf_in(NULL)
+    , old_rdbuf_out(NULL)
+  {}
 
   void Flush() ;
   void Close();
@@ -217,11 +222,17 @@ public:
     delete iSocketStream;
   }  
 
+ #ifdef HAVE_EXT_STDIO_FILEBUF_H
   void Open( const std::string& name_,
 	     std::ios_base::openmode,
 	     bool swapEndian_, bool deleteOnClose_, bool xdr_, 
 	     SizeT width, bool f77, bool compress,__gnu_cxx::stdio_filebuf<char> *in=NULL, __gnu_cxx::stdio_filebuf<char> *out=NULL);
-  
+#else
+  void Open( const std::string& name_,
+	     std::ios_base::openmode,
+	     bool swapEndian_, bool deleteOnClose_, bool xdr_, 
+	     SizeT width, bool f77, bool compress);
+#endif  
   void Socket( const std::string& host,
 	       DUInt port, bool swapEndian_,
 	       DDouble c_timeout, DDouble r_timeout, DDouble w_timeout);
