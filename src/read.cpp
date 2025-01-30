@@ -29,39 +29,16 @@
 #include "dinterpreter.hpp"
 #include "gdlfpexceptions.hpp"
 
-//#include "format.g"
-
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #include <io.h>
 #define isatty _isatty
 #endif
 
-std::stringstream accept_comma_and_complex_default_format(std::stringstream & is, BaseGDL* parIn) {
-  if (parIn->Type() == GDL_STRING) return std::stringstream(is.str());
-
+std::stringstream accept_comma_and_complex_default_format(std::stringstream & is) {
   bool debug = false;
-  if (debug) std::cout << "the raw full input :" << is.str() << std::endl;
-
-  // for Complex, compting cases is complex since (12) eq (12,12) eq 12 ... count 1
-  int flag_cplx = 0;
-  if ((parIn->Type() == GDL_COMPLEX) || (parIn->Type() == GDL_COMPLEXDBL)) flag_cplx = 1;
-  //      int open_brace=0;
-  //int loop=0;
-
   std::stringstream temp;
   char c;
-  int loop = 0;
-  int open_brace = 0;
-  //repeat as many elements necessary, but no more!
-  //for (SizeT ielem=0; ielem < (*par)->N_Elements(); ++ielem ) {
-  if (debug) std::cout << "nb elems : " << parIn->N_Elements() << std::endl;
-
-  for (int ielem = 0; ielem < parIn->N_Elements(); ++ielem) {
-
-	loop++;
 	while (is.get(c)) { //remove starting blanks, commas, tabs, newlines
-	  if (c == '(') open_brace++;
-	  if (c == ')') open_brace--;
 	  if (c != ',' && c != ' ' && c != '\t' && c != '\n') {
 		temp.put(c);
 		break;
@@ -69,60 +46,25 @@ std::stringstream accept_comma_and_complex_default_format(std::stringstream & is
 	}
 	if (debug) std::cout << "after first while : " << temp.str() << std::endl;
 
-	while (is.get(c)) { //copy until new separator appears.
-	  if (c != ',' && c != ' ' && c != '\t' && c != '\n') {
-		if (c == '(') open_brace++;
-		if (c == ')') open_brace--;
+	while (is.get(c)) { //copy until new separator appears or we encounter end of line
+	  if (c == '\n'){
+		temp.put(c);
+		break;
+      } else if (c != ',' && c != ' ' && c != '\t') {
 		temp.put(c);
 	  } else {
-		is.unget();
-		break;
+		temp.put(32);
 	  }
 	}
-	if (debug) std::cout << "after second while : " << temp.str() << std::endl;
-	if (flag_cplx && (open_brace > 0)) ielem--;
-	if (debug) std::cout << "ielem : " << ielem << std::endl;
-
-	//	  if ((ielem > 10) || (ielem < -10)) break;
-
-	temp.put(' '); //put a spearator between values
-
-	// this is a security if the input is really badly formatted 
-	if (loop > 5 * parIn->N_Elements()) break;
-
-  } // for loop
-
-  // the way to output the content of "temp" :
   if (debug) std::cout << "what is transmitted to processing : " << temp.str() << std::endl;
-  //	cout << "what remaind to be processed : " << is.str() << endl;
 
   return temp;
 }
-std::stringstream accept_comma_and_complex_default_format(std::istream *is, BaseGDL* parIn) {
-  assert (parIn->Type() != GDL_STRING);
-
+std::stringstream accept_comma_and_complex_default_format(std::istream *is) {
   bool debug = false;
-
-  // for Complex, compting cases is complex since (12) eq (12,12) eq 12 ... count 1
-  int flag_cplx = 0;
-  if ((parIn->Type() == GDL_COMPLEX) || (parIn->Type() == GDL_COMPLEXDBL)) flag_cplx = 1;
-  //      int open_brace=0;
-  //int loop=0;
-
   std::stringstream temp;
   char c;
-  int loop = 0;
-  int open_brace = 0;
-  //repeat as many elements necessary, but no more!
-  //for (SizeT ielem=0; ielem < (*par)->N_Elements(); ++ielem ) {
-  if (debug) std::cout << "nb elems : " << parIn->N_Elements() << std::endl;
-
-  for (int ielem = 0; ielem < parIn->N_Elements(); ++ielem) {
-
-	loop++;
 	while (is->get(c)) { //remove starting blanks, commas, tabs, newlines
-	  if (c == '(') open_brace++;
-	  if (c == ')') open_brace--;
 	  if (c != ',' && c != ' ' && c != '\t' && c != '\n') {
 		temp.put(c);
 		break;
@@ -130,30 +72,16 @@ std::stringstream accept_comma_and_complex_default_format(std::istream *is, Base
 	}
 	if (debug) std::cout << "after first while : " << temp.str() << std::endl;
 
-	while (is->get(c)) { //copy until new separator appears.
-	  if (c != ',' && c != ' ' && c != '\t' && c != '\n') {
-		if (c == '(') open_brace++;
-		if (c == ')') open_brace--;
+	while (is->get(c)) { //copy until new separator appears or we encounter end of line
+	  if (c == '\n'){
+		temp.put(c);
+		break;
+      } else if (c != ',' && c != ' ' && c != '\t') {
 		temp.put(c);
 	  } else {
-		is->unget();
-		break;
+		temp.put(32);
 	  }
 	}
-	if (debug) std::cout << "after second while : " << temp.str() << std::endl;
-	if (flag_cplx && (open_brace > 0)) ielem--;
-	if (debug) std::cout << "ielem : " << ielem << std::endl;
-
-	//	  if ((ielem > 10) || (ielem < -10)) break;
-
-	temp.put(' '); //put a spearator between values
-
-	// this is a security if the input is really badly formatted 
-	if (loop > 5 * parIn->N_Elements()) break;
-
-  } // for loop
-
-  // the way to output the content of "temp" :
   if (debug) std::cout << "what is transmitted to processing : " << temp.str() << std::endl;
 
   return temp;
@@ -370,7 +298,7 @@ void read_is(istream* is, EnvT* e, int parOffset) {
 
 			stringstream iss(line + "\n");
 			if (parIn->Type() != GDL_STRING) { //special treatment for decoding commas
-			  std::stringstream temp=accept_comma_and_complex_default_format(iss,parIn);
+			  std::stringstream temp=accept_comma_and_complex_default_format(iss);
 			  parIn->FromStream(temp);
 			} else { //so much simpler
 			  parIn->FromStream(iss);
@@ -384,7 +312,7 @@ void read_is(istream* is, EnvT* e, int parOffset) {
 		  {
 
 			if (parIn->Type() != GDL_STRING) { //special treatment for decoding commas
-			  std::stringstream temp=accept_comma_and_complex_default_format(is,parIn);
+			  std::stringstream temp=accept_comma_and_complex_default_format(is);
 			  parIn->FromStream(temp);
 			} else { //so much simpler
 			  parIn->FromStream(*is);
@@ -464,7 +392,7 @@ void read_is(istream* is, EnvT* e, int parOffset) {
 		  }
 
 		  if (parIn->Type() != GDL_STRING) { //special treatment for decoding commas
-			std::stringstream temp=accept_comma_and_complex_default_format(is,parIn);
+			std::stringstream temp=accept_comma_and_complex_default_format(is);
 			parIn->FromStream(temp);
 		  } else { //so much simpler
 			parIn->FromStream(is);
