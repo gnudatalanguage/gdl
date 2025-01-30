@@ -711,7 +711,7 @@ namespace lib {
 	  return fileStatus; // OPEN tag is init to zero (SpDByte::GetInstance())
 
 	struct stat buffer;
-	int status = stat(actUnit.Name().c_str(), &buffer);
+	int status = fstat(lun, &buffer);
 
 	fileStatus->InitTag("NAME", DStringGDL( actUnit.Name()));
 	fileStatus->InitTag("OPEN", DByteGDL( 1)); 

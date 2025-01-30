@@ -72,7 +72,7 @@ namespace lib {
       //
       //check lun is disguized tty as in scrn = filepath(/TERMINAL) & openw,lun,scrn,/more,/get_lun
       struct stat buffer;
-      int status = stat((fileUnits[ lun - 1].Name()).c_str(), &buffer);
+      int status = fstat(lun, &buffer);
       if (status == 0) 
         is_a_tty = isatty(lun);
     }
@@ -107,6 +107,7 @@ namespace lib {
           os = &fileUnits[ lun - 1].OgzStream();
         else
           os = &fileUnits[ lun - 1].OStream();
+        os->exceptions(std::ofstream::failbit);
       } else
         os = &oss;
 

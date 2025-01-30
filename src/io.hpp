@@ -41,12 +41,6 @@
 
 #include "gdlexception.hpp"
 
-// GGH ggh hack to implement SPAWN keyword UNIT
-#ifdef HAVE_EXT_STDIO_FILEBUF_H
-#  include <ext/stdio_filebuf.h>
-#endif
-//#include <bits/basic_ios.h>
-
 
 // the file IO system consists of 128 GDLStream objects
 
@@ -59,7 +53,7 @@ const SizeT defaultStreamWidth = 80; // used by open_lun
 
 class AnyStream
 {
-// GGH ggh made all these public
+// GGH made all these public
 public:
   std::fstream* ifStream;
   std::fstream* ofStream;
@@ -79,13 +73,8 @@ public:
 
   void Flush() ;
   void Close();
-#ifdef HAVE_EXT_STDIO_FILEBUF_H
-  void Open(const std::string& name_,
-	    std::ios_base::openmode mode_ , bool compress_, __gnu_cxx::stdio_filebuf<char> *in=NULL, __gnu_cxx::stdio_filebuf<char> *out=NULL);
-#else
-void Open(const std::string& name_,
-	    std::ios_base::openmode mode_ , bool compress_);
-#endif  
+  void OpenAsPipes(const std::string& name_, const std::ios_base::openmode mode_, const int pipeInFd, const int pipeOutFd); 
+  void Open(const std::string& name_, std::ios_base::openmode mode_ , bool compress_);
   std::fstream* iFStream(){return ifStream;}
   std::fstream* oFStream(){return ofStream;}
   std::fstream* FStream(){return ifStream;}
@@ -140,11 +129,6 @@ class GDLStream
 
   AnyStream* anyStream;
 
-  //    std::fstream* fStream;
-  //    igzstream* igzStream; // for gzip compressed input
-  //    ogzstream* ogzStream; // for gzip compressed output
-
-
   bool f77; // FORTRAN unformatted
   bool swapEndian;
   bool deleteOnClose;
@@ -158,13 +142,6 @@ class GDLStream
   DDouble c_timeout;
   DDouble r_timeout;
   DDouble w_timeout;
-
-#ifdef HAVE_EXT_STDIO_FILEBUF_H
-// GGH ggh hack to implement SPAWN keyword UNIT
-  __gnu_cxx::stdio_filebuf<char> *readbuf_frb_destroy_on_close_p;
-  std::basic_streambuf<char> *readbuf_bsrb_destroy_on_close_p;
-  int fd_close_on_close;
-#endif
 
   SizeT width;
 
@@ -182,9 +159,6 @@ public:
     name(), 
     mode(), 
     anyStream(NULL), 
-    /*    fStream(NULL), 
-	  igzStream(NULL), 
-	  ogzStream(NULL), */
     f77(false),
     swapEndian(false),
     deleteOnClose(false),
@@ -204,13 +178,8 @@ public:
     lastRecord( 0),
     lastRecordStart( 0)
     {
-#ifdef HAVE_EXT_STDIO_FILEBUF_H
-      readbuf_frb_destroy_on_close_p = NULL;
-      readbuf_bsrb_destroy_on_close_p = NULL;
-      fd_close_on_close = -1;
-#endif
     }
-
+ 
   ~GDLStream() 
   {
     delete xdrs;
@@ -220,19 +189,14 @@ public:
 	  delete igzStream;
 	  delete ogzStream;*/
     delete iSocketStream;
-  }  
-
- #ifdef HAVE_EXT_STDIO_FILEBUF_H
-  void Open( const std::string& name_,
-	     std::ios_base::openmode,
-	     bool swapEndian_, bool deleteOnClose_, bool xdr_, 
-	     SizeT width, bool f77, bool compress,__gnu_cxx::stdio_filebuf<char> *in=NULL, __gnu_cxx::stdio_filebuf<char> *out=NULL);
-#else
+  }
+  bool CanOpenAsPipes();  
+  void OpenAsPipes(const std::string& name, const std::ios_base::openmode mode_, const int pipeInFd, const int pipeOutFd );
   void Open( const std::string& name_,
 	     std::ios_base::openmode,
 	     bool swapEndian_, bool deleteOnClose_, bool xdr_, 
 	     SizeT width, bool f77, bool compress);
-#endif  
+  
   void Socket( const std::string& host,
 	       DUInt port, bool swapEndian_,
 	       DDouble c_timeout, DDouble r_timeout, DDouble w_timeout);
@@ -316,17 +280,6 @@ public:
 
   DULong F77ReadStart();
   void   F77ReadEnd();
-
-
-#ifdef HAVE_EXT_STDIO_FILEBUF_H
-// GGH ggh hack to implement SPAWN keyword UNIT
-  std::basic_streambuf<char> *get_stream_readbuf_bsrb();
-  int set_stream_readbuf_bsrb_from_frb(__gnu_cxx::stdio_filebuf<char> *frb_p, std::string newname="");
-  int set_readbuf_frb_destroy_on_close(__gnu_cxx::stdio_filebuf<char> *frb_p);
-  int set_readbuf_bsrb_destroy_on_close(std::basic_streambuf<char> *bsrb_p);
-  int set_fd_close_on_close(int fd);
-#endif
-
 };
 
 
