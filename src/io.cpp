@@ -259,7 +259,7 @@ void AnyStream::OpenAsPipes(const std::string& name_, const std::ios_base::openm
     }
   }
 #else
-  e->Throw("This command relies on GNU extensions to the std C++ library that were not available during compilation on your system (?)");
+  throw GDLIOException(-1,"This command relies on GNU extensions to the std C++ library that were not available during compilation on your system (?)");
 #endif
 }
   void AnyStream::Open(const std::string& name_, ios_base::openmode mode_, bool compress_) {
