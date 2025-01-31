@@ -40,23 +40,22 @@ std::stringstream accept_comma_and_complex_default_format(std::stringstream & is
   if (parIn->Type() == GDL_STRING) return std::stringstream(is.str());
 
   bool debug = false;
-  if (debug) std::cout << "the raw full input :" << is.str() << std::endl;
+  if (debug) std::cout << "the raw full input (1):" << is.str() << std::endl;
 
-  // for Complex, compting cases is complex since (12) eq (12,12) eq 12 ... count 1
+  // for Complex, counting cases is complex since (12) eq (12,12) eq 12 ... count 1
   int flag_cplx = 0;
   if ((parIn->Type() == GDL_COMPLEX) || (parIn->Type() == GDL_COMPLEXDBL)) flag_cplx = 1;
-  //      int open_brace=0;
-  //int loop=0;
-
+  SizeT NToTransfer=parIn->N_Elements();
+  if (parIn->Type() == GDL_STRUCT) NToTransfer=parIn->ToTransfer();
   std::stringstream temp;
   char c;
   int loop = 0;
   int open_brace = 0;
   //repeat as many elements necessary, but no more!
   //for (SizeT ielem=0; ielem < (*par)->N_Elements(); ++ielem ) {
-  if (debug) std::cout << "nb elems : " << parIn->N_Elements() << std::endl;
+  if (debug) std::cout << "nb elems : " << NToTransfer << std::endl;
 
-  for (int ielem = 0; ielem < parIn->N_Elements(); ++ielem) {
+  for (int ielem = 0; ielem < NToTransfer; ++ielem) {
 
 	loop++;
 	while (is.get(c)) { //remove starting blanks, commas, tabs, newlines
@@ -88,7 +87,7 @@ std::stringstream accept_comma_and_complex_default_format(std::stringstream & is
 	temp.put(' '); //put a spearator between values
 
 	// this is a security if the input is really badly formatted 
-	if (loop > 5 * parIn->N_Elements()) break;
+	if (loop > 5 * NToTransfer) break;
 
   } // for loop
 
@@ -102,12 +101,14 @@ std::stringstream accept_comma_and_complex_default_format(std::istream *is, Base
   assert (parIn->Type() != GDL_STRING);
 
   bool debug = false;
+  if (debug) std::cout << "the raw full input (2):" << is << std::endl;
 
-  // for Complex, compting cases is complex since (12) eq (12,12) eq 12 ... count 1
+  // for Complex, counting cases is complex since (12) eq (12,12) eq 12 ... count 1
   int flag_cplx = 0;
   if ((parIn->Type() == GDL_COMPLEX) || (parIn->Type() == GDL_COMPLEXDBL)) flag_cplx = 1;
-  //      int open_brace=0;
-  //int loop=0;
+  SizeT NToTransfer=parIn->N_Elements();
+  if (parIn->Type() == GDL_STRUCT) NToTransfer=parIn->ToTransfer();
+
 
   std::stringstream temp;
   char c;
@@ -115,9 +116,9 @@ std::stringstream accept_comma_and_complex_default_format(std::istream *is, Base
   int open_brace = 0;
   //repeat as many elements necessary, but no more!
   //for (SizeT ielem=0; ielem < (*par)->N_Elements(); ++ielem ) {
-  if (debug) std::cout << "nb elems : " << parIn->N_Elements() << std::endl;
+  if (debug) std::cout << "nb elems : " << NToTransfer << std::endl;
 
-  for (int ielem = 0; ielem < parIn->N_Elements(); ++ielem) {
+  for (int ielem = 0; ielem < NToTransfer; ++ielem) {
 
 	loop++;
 	while (is->get(c)) { //remove starting blanks, commas, tabs, newlines
@@ -149,7 +150,7 @@ std::stringstream accept_comma_and_complex_default_format(std::istream *is, Base
 	temp.put(' '); //put a spearator between values
 
 	// this is a security if the input is really badly formatted 
-	if (loop > 5 * parIn->N_Elements()) break;
+	if (loop > 5 * NToTransfer) break;
 
   } // for loop
 
