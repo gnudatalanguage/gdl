@@ -465,6 +465,33 @@ end
 ;
 ; -------------------------------------
 ;
+pro TEST_READSTRUCT, cumul_errors, help=help, verbose=verbose, no_exit=no_exit, test=test
+errors=0
+;
+  rcd = {index: 0l, $
+         catalogue: 0l, $
+         date: 0.d}
+
+expected={index: 9l, $
+         catalogue: 145l, $
+         date: 97843.973284d}
+
+;
+data='9 145 97843.973284'
+READS,data, rcd
+; problem #1970 was that even the first structure read was not filled correctly.
+if  ~ICI_ARRAY_EQUAL(expected.date, rcd.date, debug=debug) then ERRORS_ADD, errors, 'case read structure'
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, 'TEST_READS_MIXING_TYPES', errors, /status
+ERRORS_CUMUL, cumul_errors, errors
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
+; -------------------------------------
+;
 pro TEST_READS, help=help, verbose=verbose, no_exit=no_exit, test=test
 ;
 if KEYWORD_SET(help) then begin
@@ -488,6 +515,7 @@ TEST_READS_STRING, errors, verbose=verbose, test=test
 TEST_READS_MIXED, errors, verbose=verbose, test=test
 ;
 TEST_READS_MIXING_TYPES, errors, verbose=verbose, test=test
+TEST_READSTRUCT, errors, verbose=verbose, test=test
 ;
 ; ----------------- final message ----------
 ;
