@@ -41,12 +41,6 @@
 
 #include "gdlexception.hpp"
 
-// GGH ggh hack to implement SPAWN keyword UNIT
-#ifdef HAVE_EXT_STDIO_FILEBUF_H
-#  include <ext/stdio_filebuf.h>
-#endif
-//#include <bits/basic_ios.h>
-
 
 // the file IO system consists of 128 GDLStream objects
 
@@ -59,24 +53,31 @@ const SizeT defaultStreamWidth = 80; // used by open_lun
 
 class AnyStream
 {
-// GGH ggh made all these public
+// GGH made all these public
 public:
-  std::fstream* fStream;
+  std::fstream* ifStream;
+  std::fstream* ofStream;
   igzstream* igzStream; // for gzip compressed input
   ogzstream* ogzStream; // for gzip compressed output
-//public:
+  std::basic_streambuf<char> *old_rdbuf_in;
+  std::basic_streambuf<char> *old_rdbuf_out;
+ //public:
   AnyStream()
-    : fStream(NULL) 
+    : ifStream(NULL) 
+    , ofStream(NULL) 
     , igzStream(NULL) 
-    , ogzStream(NULL) {}
+    , ogzStream(NULL)
+    , old_rdbuf_in(NULL)
+    , old_rdbuf_out(NULL)
+  {}
 
   void Flush() ;
   void Close();
-
-  void Open(const std::string& name_,
-	    std::ios_base::openmode mode_ , bool compress_);
-  
-  std::fstream* FStream(){return fStream;}
+  void OpenAsPipes(const std::string& name_, const std::ios_base::openmode mode_, const int pipeInFd, const int pipeOutFd); 
+  void Open(const std::string& name_, std::ios_base::openmode mode_ , bool compress_);
+  std::fstream* iFStream(){return ifStream;}
+  std::fstream* oFStream(){return ofStream;}
+  std::fstream* FStream(){return ifStream;}
   igzstream* IgzStream(){return igzStream;} // for gzip compressed input
   ogzstream* OgzStream(){return ogzStream;} // for gzip compressed output
 
@@ -105,9 +106,9 @@ public:
 
  void SeekPad(std::streampos pos);
 
-  bool InUse() { return (fStream != NULL || igzStream != NULL || ogzStream != NULL);}
+  bool InUse() { return (ifStream != NULL || ofStream != NULL || igzStream != NULL || ogzStream != NULL);}
   bool IsOpen()
-  { return (fStream != NULL && fStream->is_open()) || (igzStream != NULL && igzStream->rdbuf()->is_open()) || (ogzStream != NULL && ogzStream->rdbuf()->is_open());} 
+  { return (ifStream != NULL && ifStream->is_open()) || (ofStream != NULL && ofStream->is_open()) || (igzStream != NULL && igzStream->rdbuf()->is_open()) || (ogzStream != NULL && ogzStream->rdbuf()->is_open());} 
 
   void Pad( std::streamsize nBytes);
 
@@ -128,11 +129,6 @@ class GDLStream
 
   AnyStream* anyStream;
 
-  //    std::fstream* fStream;
-  //    igzstream* igzStream; // for gzip compressed input
-  //    ogzstream* ogzStream; // for gzip compressed output
-
-
   bool f77; // FORTRAN unformatted
   bool swapEndian;
   bool deleteOnClose;
@@ -146,13 +142,6 @@ class GDLStream
   DDouble c_timeout;
   DDouble r_timeout;
   DDouble w_timeout;
-
-#ifdef HAVE_EXT_STDIO_FILEBUF_H
-// GGH ggh hack to implement SPAWN keyword UNIT
-  __gnu_cxx::stdio_filebuf<char> *readbuf_frb_destroy_on_close_p;
-  std::basic_streambuf<char> *readbuf_bsrb_destroy_on_close_p;
-  int fd_close_on_close;
-#endif
 
   SizeT width;
 
@@ -170,9 +159,6 @@ public:
     name(), 
     mode(), 
     anyStream(NULL), 
-    /*    fStream(NULL), 
-	  igzStream(NULL), 
-	  ogzStream(NULL), */
     f77(false),
     swapEndian(false),
     deleteOnClose(false),
@@ -192,13 +178,8 @@ public:
     lastRecord( 0),
     lastRecordStart( 0)
     {
-#ifdef HAVE_EXT_STDIO_FILEBUF_H
-      readbuf_frb_destroy_on_close_p = NULL;
-      readbuf_bsrb_destroy_on_close_p = NULL;
-      fd_close_on_close = -1;
-#endif
     }
-
+ 
   ~GDLStream() 
   {
     delete xdrs;
@@ -208,8 +189,9 @@ public:
 	  delete igzStream;
 	  delete ogzStream;*/
     delete iSocketStream;
-  }  
-
+  }
+  bool CanOpenAsPipes();  
+  void OpenAsPipes(const std::string& name, const std::ios_base::openmode mode_, const int pipeInFd, const int pipeOutFd );
   void Open( const std::string& name_,
 	     std::ios_base::openmode,
 	     bool swapEndian_, bool deleteOnClose_, bool xdr_, 
@@ -298,17 +280,6 @@ public:
 
   DULong F77ReadStart();
   void   F77ReadEnd();
-
-
-#ifdef HAVE_EXT_STDIO_FILEBUF_H
-// GGH ggh hack to implement SPAWN keyword UNIT
-  std::basic_streambuf<char> *get_stream_readbuf_bsrb();
-  int set_stream_readbuf_bsrb_from_frb(__gnu_cxx::stdio_filebuf<char> *frb_p);
-  int set_readbuf_frb_destroy_on_close(__gnu_cxx::stdio_filebuf<char> *frb_p);
-  int set_readbuf_bsrb_destroy_on_close(std::basic_streambuf<char> *bsrb_p);
-  int set_fd_close_on_close(int fd);
-#endif
-
 };
 
 
