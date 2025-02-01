@@ -927,12 +927,11 @@ DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
 	  }
 	}
 
-//  if( retAll) 
-//    Warning( "Compiled a main program while inside a procedure. "
-//	     "Returning.");
-
+	// GD see issue #1969: this is the only difference with CmdCompile: process the
+	// eventual $MAIN$ commands that are at the end of 'argstr'.pro when CmdCompile
+	// would just ignore these non-procedure commands.
   // actual run is perfomed in InterpreterLoop()
-  if( retAll) RetAll( RetAllException::RUN); // throws (always)
+  RetAll( RetAllException::RUN); // difference is here.
   return CC_OK; //avoid warnings
 }
 
