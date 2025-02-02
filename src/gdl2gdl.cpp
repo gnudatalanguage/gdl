@@ -436,7 +436,7 @@ messageBoxHandle StartIndividualClientMessageChannel(std::string & name){
      
   name=G2G_SERVER_QUEUE_BASENAME+i2s(getpid())+"_"+i2s(++ClientSessionNumber);
   messageBoxHandle h;
-  if ((h = mq_open(name.c_str(), O_RDONLY | O_CREAT, QUEUE_PERMISSIONS, &attr)) == -1) {
+  if ((h = mq_open(name.c_str(), O_RDONLY | O_CREAT, QUEUE_PERMISSIONS, &attr)) == (messageBoxHandle)-1) {
    throw GDLException("Server: mq_open (client) :"+string(strerror(errno)));
   }
   return h;
@@ -447,7 +447,7 @@ void gdl_ipc_ClientClosesMailBox(){
 }
 void gdl_ipc_ClientGetsMailboxAddress(std::string & s) {
   g2gClientMailbox=s;
-  if ((gdl2gdlMessageBoxHandle = mq_open(g2gClientMailbox.c_str(), O_WRONLY)) == -1) {
+  if ((gdl2gdlMessageBoxHandle = mq_open(g2gClientMailbox.c_str(), O_WRONLY)) == (messageBoxHandle)-1) {
    throw GDLException("Server: mq_open (server) :"+string(strerror(errno)));
   }
   //here is a good point to start to be absolutely silent
