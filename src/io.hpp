@@ -55,6 +55,7 @@ class AnyStream
 {
 // GGH made all these public
 public:
+  bool ispipe;
   std::fstream* ifStream;
   std::fstream* ofStream;
   igzstream* igzStream; // for gzip compressed input
@@ -63,7 +64,8 @@ public:
   std::basic_streambuf<char> *old_rdbuf_out;
  //public:
   AnyStream()
-    : ifStream(NULL) 
+    : ispipe(false)
+    , ifStream(NULL) 
     , ofStream(NULL) 
     , igzStream(NULL) 
     , ogzStream(NULL)

@@ -202,6 +202,7 @@ void AnyStream::Close() {
       std::basic_streambuf<char> *current=ifStream->std::ios::rdbuf();
       ifStream->std::ios::rdbuf(old_rdbuf_in);
       old_rdbuf_in=nullptr;
+      ispipe = false;
     }
     ifStream->close();
     ifStream->clear();
@@ -211,6 +212,7 @@ void AnyStream::Close() {
       std::basic_streambuf<char> *current=ofStream->std::ios::rdbuf();
       ifStream->std::ios::rdbuf(old_rdbuf_out);
       old_rdbuf_out=nullptr;
+      ispipe = false;
     }
     ofStream->close();
     ofStream->clear();
@@ -243,6 +245,7 @@ void AnyStream::OpenAsPipes(const std::string& name_, const std::ios_base::openm
     }
     old_rdbuf_in = ifStream->std::ios::rdbuf();
     ifStream->std::ios::rdbuf(in);
+    ispipe=true;
   }
   if (mode_ & std::ios_base::out) {
     stdio_filebuf<char> * out = fileBufFromFD(pipeOutFd, std::ios_base::out);
@@ -256,6 +259,7 @@ void AnyStream::OpenAsPipes(const std::string& name_, const std::ios_base::openm
       }
       old_rdbuf_out = ofStream->std::ios::rdbuf();
       ofStream->std::ios::rdbuf(out);
+      ispipe=true;
     }
   }
 #else
@@ -403,9 +407,11 @@ bool AnyStream::Eof() {
   if (ifStream != NULL) {
     ifStream->clear(); // clear old EOF	
 
-    ifStream->peek(); // trigger EOF if at EOF
-
-    return ifStream->eof();
+    if (ispipe) return true;
+    else {
+      ifStream->peek(); // trigger EOF if at EOF
+      return ifStream->eof();
+    }
   }
   if (igzStream != NULL) {
     igzStream->clear(); // clear old EOF	

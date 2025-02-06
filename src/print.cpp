@@ -72,7 +72,7 @@ namespace lib {
       //
       //check lun is disguized tty as in scrn = filepath(/TERMINAL) & openw,lun,scrn,/more,/get_lun
       struct stat buffer;
-      int status = fstat(lun, &buffer);
+      int status = stat((fileUnits[ lun - 1].Name()).c_str(), &buffer);
       if (status == 0) 
         is_a_tty = isatty(lun);
     }
