@@ -711,7 +711,8 @@ namespace lib {
 	  return fileStatus; // OPEN tag is init to zero (SpDByte::GetInstance())
 
 	struct stat buffer;
-	int status = fstat(lun, &buffer);
+    // int status = //status will be bad on the units used by SPAWN, UNIT=XXX; Do not check status
+    stat(actUnit.Name().c_str(), &buffer); 
 
 	fileStatus->InitTag("NAME", DStringGDL( actUnit.Name()));
 	fileStatus->InitTag("OPEN", DByteGDL( 1)); 
