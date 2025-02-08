@@ -60,24 +60,20 @@ tokens {
 {
 // class extensions
 }
-
-format [ int repeat] // mark last format for format reversion 
-    : LBRACE! qfq (COMMA! qfq)* RBRACE!
+// original work by Marc was missing things as print,"a","b","c",format='(/a/,a,/,a/)'
+//based on https://www.antlr3.org/grammar/1183077163756/f77-antlr2.g GD changed to this:
+format  [ int repeat] // mark last format for format reversion
+    : LBRACE! (f | q (f)?)  ( q (f)? | 	COMMA! (f | q (f)?) )* RBRACE!
         {
             #format = #( [FORMAT,"FORMAT"], #format);
             #format->setRep( repeat);
-        }
-    ;
-
-qfq
-    : q (f q) ? // q (f q)* produces nondeterminism 
-    ;
+        } ;
 
 q!
 {
     int n1 = 0;
 }
-    : (SLASH { n1++;})*
+    : (SLASH { n1++;})
         {
             if( n1 > 0) 
             {

@@ -2261,7 +2261,7 @@ CONSTANT_OR_STRING_LITERAL
     // could be a string, but octals have priority
     // but "012345" is a string because of ending \"
     :
-        ("0x"(H)+ ( 's' | 'l' | 'u' )?) =>  //NOT 'b' as B is part of (H) : ex: 0x3BAFB 
+      ("0x"(H)+ ( 's' | 'l' | 'u' )?) =>  //NOT 'b' as B is part of (H) : ex: 0x3BAFB 
       ("0x"! (H)+          { _ttype=CONSTANT_HEX_I; } // DEFINT32
             ( 's'!        { _ttype=CONSTANT_HEX_INT; }
         | 'u'!        { _ttype=CONSTANT_HEX_UI; }   // DEFINT32
@@ -2272,19 +2272,37 @@ CONSTANT_OR_STRING_LITERAL
         | "ul"!           { _ttype=CONSTANT_HEX_ULONG; }
         | "ull"!    { _ttype=CONSTANT_HEX_ULONG64; }
             )?)
-    |('\"'(O)+ ( 'b' | 's' | 'l' | 'u' | "\"")?) => 
-        ('\"'! (O)+        { _ttype=CONSTANT_OCT_I; }  // DEFINT32
-            ( 's'!        { _ttype=CONSTANT_OCT_INT; }
-            | 'b'!        { _ttype=CONSTANT_OCT_BYTE; }
-            | 'u'!         { _ttype=CONSTANT_OCT_UI; }   // DEFINT32
-            | "us"!        { _ttype=CONSTANT_OCT_UINT; } 
-            | "ub"!        { _ttype=CONSTANT_OCT_BYTE; }
-            | 'l'!         { _ttype=CONSTANT_OCT_LONG; }
-            | "ll"!        { _ttype=CONSTANT_OCT_LONG64; }
-            | "ul"!        { _ttype=CONSTANT_OCT_ULONG; }
-            | "ull"!    { _ttype=CONSTANT_OCT_ULONG64; }
-            | "\""!            { _ttype=STRING_LITERAL; }
-            )?)
+	    
+  |('\"'(O)+ ( "ull"  | "us" | "ub" | "ll" | "ul" | 'b' | 's' | 'l' | 'u' | WHITESPACE |END_MARKER| END_OF_LINE )) => 
+      ('\"'! (O)+ //       { _ttype=CONSTANT_OCT_I; }  // DEFINT32
+          ( 's'!        { _ttype=CONSTANT_OCT_INT; }
+          | 'b'!        { _ttype=CONSTANT_OCT_BYTE; }
+          | 'u'!         { _ttype=CONSTANT_OCT_UI; }   // DEFINT32
+          | "us"!        { _ttype=CONSTANT_OCT_UINT; } 
+          | "ub"!        { _ttype=CONSTANT_OCT_BYTE; }
+          | 'l'!         { _ttype=CONSTANT_OCT_LONG; }
+          | "ll"!        { _ttype=CONSTANT_OCT_LONG64; }
+          | "ul"!        { _ttype=CONSTANT_OCT_ULONG; }
+          | "ull"!    { _ttype=CONSTANT_OCT_ULONG64; }
+	  |  { _ttype=CONSTANT_OCT_I; }
+          )
+	  )
+//  | '\"'! (L|D)+  '\"'!   { _ttype=STRING_LITERAL; } 
+
+
+//    |('\"'(O)+ ( 'b' | 's' | 'l' | 'u' | "\"")?) => 
+//        ('\"'! (O)+        { _ttype=CONSTANT_OCT_I; }  // DEFINT32
+//            ( 's'!        { _ttype=CONSTANT_OCT_INT; }
+//            | 'b'!        { _ttype=CONSTANT_OCT_BYTE; }
+//            | 'u'!         { _ttype=CONSTANT_OCT_UI; }   // DEFINT32
+//            | "us"!        { _ttype=CONSTANT_OCT_UINT; } 
+//            | "ub"!        { _ttype=CONSTANT_OCT_BYTE; }
+//            | 'l'!         { _ttype=CONSTANT_OCT_LONG; }
+//            | "ll"!        { _ttype=CONSTANT_OCT_LONG64; }
+//            | "ul"!        { _ttype=CONSTANT_OCT_ULONG; }
+//            | "ull"!    { _ttype=CONSTANT_OCT_ULONG64; }
+//            | "." (O)* "\""!            { _ttype=STRING_LITERAL; }
+//            )?)
     | ('\''(H)+'\'' ( 'x' | "xs" | "xb" | "xl" | "xu" | "xus" | "xub" | "xul" )) =>
         ('\''! (H)+ '\''! 'x'!
           (                  { _ttype=CONSTANT_HEX_I; } // DEFINT32
