@@ -206,6 +206,12 @@ antlr::RefToken GDLLexer::nextToken()
 				theRetToken=_returnToken;
 				break;
 			}
+			case 0x3b /* ';' */ :
+			{
+				mCOMMENT(true);
+				theRetToken=_returnToken;
+				break;
+			}
 			case 0x9 /* '\t' */ :
 			case 0xc /* '\14' */ :
 			case 0x20 /* ' ' */ :
@@ -214,22 +220,16 @@ antlr::RefToken GDLLexer::nextToken()
 				theRetToken=_returnToken;
 				break;
 			}
+			case 0x24 /* '$' */ :
+			{
+				mCONT_STATEMENT(true);
+				theRetToken=_returnToken;
+				break;
+			}
 			case 0xa /* '\n' */ :
 			case 0xd /* '\r' */ :
 			{
 				mEND_OF_LINE(true);
-				theRetToken=_returnToken;
-				break;
-			}
-			case 0x3b /* ';' */ :
-			{
-				mCOMMENT(true);
-				theRetToken=_returnToken;
-				break;
-			}
-			case 0x24 /* '$' */ :
-			{
-				mCONT_STATEMENT(true);
 				theRetToken=_returnToken;
 				break;
 			}
@@ -378,12 +378,12 @@ antlr::RefToken GDLLexer::nextToken()
 					mLTMARK(true);
 					theRetToken=_returnToken;
 				}
-				else if ((LA(1) == 0x26 /* '&' */ ) && (true)) {
-					mEND_MARKER(true);
-					theRetToken=_returnToken;
-				}
 				else if ((_tokenSet_1.member(LA(1))) && (true) && (true)) {
 					mIDENTIFIER(true);
+					theRetToken=_returnToken;
+				}
+				else if ((LA(1) == 0x26 /* '&' */ ) && (true)) {
+					mEND_MARKER(true);
 					theRetToken=_returnToken;
 				}
 			else {
@@ -2705,49 +2705,19 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 								match('s' /* charlit */ );
 								break;
 							}
-							case 0x9 /* '\t' */ :
-							case 0xc /* '\14' */ :
-							case 0x20 /* ' ' */ :
+							case 0x6c /* 'l' */ :
 							{
-								mWHITESPACE(false);
+								match('l' /* charlit */ );
 								break;
 							}
-							case 0x26 /* '&' */ :
+							case 0x75 /* 'u' */ :
 							{
-								mEND_MARKER(false);
-								break;
-							}
-							case 0xa /* '\n' */ :
-							case 0xd /* '\r' */ :
-							{
-								mEND_OF_LINE(false);
+								match('u' /* charlit */ );
 								break;
 							}
 							default:
-								if ((LA(1) == 0x75 /* 'u' */ ) && (LA(2) == 0x6c /* 'l' */ ) && (LA(3) == 0x6c /* 'l' */ )) {
-									match("ull");
+								{
 								}
-								else if ((LA(1) == 0x75 /* 'u' */ ) && (LA(2) == 0x73 /* 's' */ )) {
-									match("us");
-								}
-								else if ((LA(1) == 0x75 /* 'u' */ ) && (LA(2) == 0x62 /* 'b' */ )) {
-									match("ub");
-								}
-								else if ((LA(1) == 0x6c /* 'l' */ ) && (LA(2) == 0x6c /* 'l' */ )) {
-									match("ll");
-								}
-								else if ((LA(1) == 0x75 /* 'u' */ ) && (LA(2) == 0x6c /* 'l' */ ) && (true)) {
-									match("ul");
-								}
-								else if ((LA(1) == 0x6c /* 'l' */ ) && (true)) {
-									match('l' /* charlit */ );
-								}
-								else if ((LA(1) == 0x75 /* 'u' */ ) && (true)) {
-									match('u' /* charlit */ );
-								}
-							else {
-								throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());
-							}
 							}
 							}
 							}
@@ -3926,71 +3896,6 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 	_saveIndex=0;
 }
 
-void GDLLexer::mWHITESPACE(bool _createToken) {
-	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
-	_ttype = WHITESPACE;
-	std::string::size_type _saveIndex;
-	
-	{ // ( ... )+
-	int _cnt497=0;
-	for (;;) {
-		if ((LA(1) == 0x9 /* '\t' */  || LA(1) == 0xc /* '\14' */  || LA(1) == 0x20 /* ' ' */ )) {
-			mW(false);
-		}
-		else {
-			if ( _cnt497>=1 ) { goto _loop497; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
-		}
-		
-		_cnt497++;
-	}
-	_loop497:;
-	}  // ( ... )+
-	if ( inputState->guessing==0 ) {
-		_ttype=antlr::Token::SKIP;
-	}
-	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
-	   _token = makeToken(_ttype);
-	   _token->setText(text.substr(_begin, text.length()-_begin));
-	}
-	_returnToken = _token;
-	_saveIndex=0;
-}
-
-void GDLLexer::mEND_MARKER(bool _createToken) {
-	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
-	_ttype = END_MARKER;
-	std::string::size_type _saveIndex;
-	
-	match('&' /* charlit */ );
-	if ( inputState->guessing==0 ) {
-		_ttype=END_U;
-	}
-	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
-	   _token = makeToken(_ttype);
-	   _token->setText(text.substr(_begin, text.length()-_begin));
-	}
-	_returnToken = _token;
-	_saveIndex=0;
-}
-
-void GDLLexer::mEND_OF_LINE(bool _createToken) {
-	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
-	_ttype = END_OF_LINE;
-	std::string::size_type _saveIndex;
-	
-	mEOL(false);
-	mSKIP_LINES(false);
-	if ( inputState->guessing==0 ) {
-		_ttype=END_U;
-	}
-	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
-	   _token = makeToken(_ttype);
-	   _token->setText(text.substr(_begin, text.length()-_begin));
-	}
-	_returnToken = _token;
-	_saveIndex=0;
-}
-
 void GDLLexer::mCOMMENT(bool _createToken) {
 	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
 	_ttype = COMMENT;
@@ -4307,6 +4212,24 @@ void GDLLexer::mCONT_STATEMENT(bool _createToken) {
 		++lineContinuation;
 		_ttype=antlr::Token::SKIP; 
 		
+	}
+	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
+	   _token = makeToken(_ttype);
+	   _token->setText(text.substr(_begin, text.length()-_begin));
+	}
+	_returnToken = _token;
+	_saveIndex=0;
+}
+
+void GDLLexer::mEND_OF_LINE(bool _createToken) {
+	int _ttype; antlr::RefToken _token; std::string::size_type _begin = text.length();
+	_ttype = END_OF_LINE;
+	std::string::size_type _saveIndex;
+	
+	mEOL(false);
+	mSKIP_LINES(false);
+	if ( inputState->guessing==0 ) {
+		_ttype=END_U;
 	}
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
