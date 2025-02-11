@@ -184,6 +184,46 @@ public:
 	public: void ntag_def();
 	public: void ntag_defs();
 	public: void named_tag_def_entry();
+	public: void constant_hex_byte();
+	public: void constant_hex_long();
+	public: void constant_hex_long64();
+	public: void constant_hex_int();
+	public: void constant_hex_i();
+	public: void constant_hex_ulong();
+	public: void constant_hex_ulong64();
+	public: void constant_hex_ui();
+	public: void constant_hex_uint();
+	public: void constant_byte();
+	public: void constant_long();
+	public: void constant_long64();
+	public: void constant_int();
+	public: void constant_i();
+	public: void constant_ulong();
+	public: void constant_ulong64();
+	public: void constant_ui();
+	public: void constant_uint();
+	public: void constant_oct_byte();
+	public: void constant_oct_long();
+	public: void constant_oct_long64();
+	public: void constant_oct_int();
+	public: void constant_oct_i();
+	public: void constant_oct_ulong();
+	public: void constant_oct_ulong64();
+	public: void constant_oct_ui();
+	public: void constant_oct_uint();
+	public: void constant_float();
+	public: void constant_double();
+	public: void constant_bin_byte();
+	public: void constant_bin_long();
+	public: void constant_bin_long64();
+	public: void constant_bin_int();
+	public: void constant_bin_i();
+	public: void constant_bin_ulong();
+	public: void constant_bin_ulong64();
+	public: void constant_bin_ui();
+	public: void constant_bin_uint();
+	public: void constant_cmplx_i();
+	public: void constant_cmplxdbl_i();
 	public: void numeric_constant();
 	public: void arrayindex_list();
 	public: void arrayindex();
@@ -224,10 +264,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 238;
+	static const int NUM_TOKENS = 240;
 #else
 	enum {
-		NUM_TOKENS = 238
+		NUM_TOKENS = 240
 	};
 #endif
 	

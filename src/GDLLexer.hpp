@@ -245,6 +245,8 @@ public:
 	protected: void mCONSTANT_OCT_UINT(bool _createToken);
 	protected: void mCONSTANT_FLOAT(bool _createToken);
 	protected: void mCONSTANT_DOUBLE(bool _createToken);
+	protected: void mCONSTANT_CMPLX_I(bool _createToken);
+	protected: void mCONSTANT_CMPLXDBL_I(bool _createToken);
 	protected: void mSTRING_LITERAL(bool _createToken);
 	protected: void mDOT(bool _createToken);
 	public: void mCONSTANT_OR_STRING_LITERAL(bool _createToken);

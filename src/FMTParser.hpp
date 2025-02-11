@@ -52,9 +52,8 @@ public:
 	public: void format(
 		 int repeat
 	);
-	public: void qfq();
-	public: void q();
 	public: void f();
+	public: void q();
 	public: void f_csubcode();
 	public: void cstring();
 	public: void cformat();

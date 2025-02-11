@@ -23,7 +23,7 @@
 #include "accessdesc.hpp"
 #include "initsysvar.hpp"
 #include "gdljournal.hpp"
-//#include "nullgdl.hpp"
+#include "nullgdl.hpp"
 
 //class ProgNode;
 //typedef ProgNode* ProgNodeP;
@@ -989,10 +989,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 238;
+	static const int NUM_TOKENS = 240;
 #else
 	enum {
-		NUM_TOKENS = 238
+		NUM_TOKENS = 240
 	};
 #endif
 	
