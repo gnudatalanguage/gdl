@@ -2317,7 +2317,7 @@ CONSTANT_OR_STRING_LITERAL
     // could be a string, but octals have priority
     // but "012345" is a string because of ending \"
     :
-        ("0x"(H)+ ( 's' | 'l' | 'u' )?) =>  //NOT 'b' as B is part of (H) : ex: 0x3BAFB 
+      ("0x"(H)+ ( 's' | 'l' | 'u' )?) =>  //NOT 'b' as B is part of (H) : ex: 0x3BAFB 
       ("0x"! (H)+          { _ttype=CONSTANT_HEX_I; } // DEFINT32
         ( 's'!        { _ttype=CONSTANT_HEX_INT; }
         | 'u'!        { _ttype=CONSTANT_HEX_UI; }   // DEFINT32
