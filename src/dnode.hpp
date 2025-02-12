@@ -226,6 +226,8 @@ public:
   void Text2ULong64(int base);
   void Text2Float();
   void Text2Double();
+  void Text2ComplexDblI();
+  void Text2ComplexI();
   void Text2String();
 
   void SetNumBranch(const int nB) { numBranch=nB;} 

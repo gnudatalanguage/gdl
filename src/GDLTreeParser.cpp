@@ -7302,7 +7302,7 @@ void GDLTreeParser::tag_array_expr(RefDNode _t) {
 
 void GDLTreeParser::initializeASTFactory( antlr::ASTFactory& factory )
 {
-	factory.setMaxNodeType(237);
+	factory.setMaxNodeType(239);
 }
 const char* GDLTreeParser::tokenNames[] = {
 	"<0>",
@@ -7509,6 +7509,8 @@ const char* GDLTreeParser::tokenNames[] = {
 	"CONSTANT_BIN_ULONG64",
 	"CONSTANT_BIN_UI",
 	"CONSTANT_BIN_UINT",
+	"CONSTANT_CMPLX_I",
+	"CONSTANT_CMPLXDBL_I",
 	"ASTERIX",
 	"DOT",
 	"STRING_LITERAL",
@@ -7554,7 +7556,7 @@ const unsigned long GDLTreeParser::_tokenSet_0_data_[] = { 2271215648UL, 3145730
 // MATRIX_OP2_EQ MINUS_EQ MOD_OP_EQ NE_OP_EQ OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ 
 // XOR_OP_EQ 
 const antlr::BitSet GDLTreeParser::_tokenSet_0(_tokenSet_0_data_,12);
-const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 1478233632UL, 1111494784UL, 599785856UL, 333783040UL, 2415918978UL, 0UL, 67088384UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLTreeParser::_tokenSet_1_data_[] = { 1478233632UL, 1111494784UL, 599785856UL, 333783040UL, 2415918978UL, 0UL, 268353536UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // ASSIGN ARRAYDEF ARRAYDEF_CONST ARRAYDEF_GENERALIZED_INDGEN ARRAYEXPR 
 // ARRAYEXPR_FCALL ARRAYEXPR_MFCALL CONSTANT DEREF EXPR FCALL GDLNULL MFCALL 
 // MFCALL_PARENT NSTRUC_REF POSTDEC POSTINC STRUC SYSVAR UMINUS VAR "and" 

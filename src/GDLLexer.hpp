@@ -245,17 +245,19 @@ public:
 	protected: void mCONSTANT_OCT_UINT(bool _createToken);
 	protected: void mCONSTANT_FLOAT(bool _createToken);
 	protected: void mCONSTANT_DOUBLE(bool _createToken);
+	protected: void mCONSTANT_CMPLX_I(bool _createToken);
+	protected: void mCONSTANT_CMPLXDBL_I(bool _createToken);
 	protected: void mSTRING_LITERAL(bool _createToken);
 	protected: void mDOT(bool _createToken);
 	public: void mCONSTANT_OR_STRING_LITERAL(bool _createToken);
-	public: void mWHITESPACE(bool _createToken);
-	public: void mEND_MARKER(bool _createToken);
-	public: void mEND_OF_LINE(bool _createToken);
 	public: void mCOMMENT(bool _createToken);
 	public: void mIDENTIFIER(bool _createToken);
 	public: void mSYSVARNAME(bool _createToken);
+	public: void mEND_MARKER(bool _createToken);
+	public: void mWHITESPACE(bool _createToken);
 	protected: void mSKIP_LINES(bool _createToken);
 	public: void mCONT_STATEMENT(bool _createToken);
+	public: void mEND_OF_LINE(bool _createToken);
 	protected: void mMAX_TOKEN_NUMBER(bool _createToken);
 private:
 	

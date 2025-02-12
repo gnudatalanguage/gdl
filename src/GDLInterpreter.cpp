@@ -14,7 +14,7 @@
     // gets inserted after the antlr generated includes in the cpp file
 #include "dinterpreter.hpp"
 #include "prognodeexpr.hpp"
-#include "gdleventhandler.hpp"
+
 #include <cassert>
 
 // tweaking ANTLR
@@ -3739,6 +3739,8 @@ const char* GDLInterpreter::tokenNames[] = {
 	"CONSTANT_BIN_ULONG64",
 	"CONSTANT_BIN_UI",
 	"CONSTANT_BIN_UINT",
+	"CONSTANT_CMPLX_I",
+	"CONSTANT_CMPLXDBL_I",
 	"ASTERIX",
 	"DOT",
 	"STRING_LITERAL",

@@ -1075,233 +1075,285 @@ named_tag_def_list
     : named_tag_def_entry ( COMMA! named_tag_def_entry)*
     ;    
 
-numeric_constant!//
-{    if (debugParser) std::cout << " numeric_constant. " << std::endl; }
-    :  ( c1:CONSTANT_HEX_BYTE    
-        { #numeric_constant=#[CONSTANT,c1->getText()];
-          #numeric_constant->Text2Byte(16);    
-          #numeric_constant->SetLine( c1->getLine());    
-        }  
-    | c2:CONSTANT_HEX_LONG 
-        { #numeric_constant=#[CONSTANT,c2->getText()];
-          #numeric_constant->Text2Long(16);    
-          #numeric_constant->SetLine( c2->getLine());    
-        }  
-    | c3:CONSTANT_HEX_LONG64 
-        { #numeric_constant=#[CONSTANT,c3->getText()];
-          #numeric_constant->Text2Long64(16);    
-          #numeric_constant->SetLine( c3->getLine());    
-        }  
-    | c4:CONSTANT_HEX_INT 
-        { #numeric_constant=#[CONSTANT,c4->getText()];
-          #numeric_constant->Text2Int(16);    
-          #numeric_constant->SetLine( c4->getLine());    
-        }  
-    | c44:CONSTANT_HEX_I 
+
+constant_hex_byte!    : c1:CONSTANT_HEX_BYTE^    
+        { #constant_hex_byte=#[CONSTANT,c1->getText()];
+          #constant_hex_byte->Text2Byte(16);    
+          #constant_hex_byte->SetLine( c1->getLine());    
+        }  ;
+constant_hex_long! : c2:CONSTANT_HEX_LONG^ 
+        { #constant_hex_long=#[CONSTANT,c2->getText()];
+          #constant_hex_long->Text2Long(16);    
+          #constant_hex_long->SetLine( c2->getLine());    
+        }  ;
+constant_hex_long64! :  c3:CONSTANT_HEX_LONG64^ 
+        { #constant_hex_long64=#[CONSTANT,c3->getText()];
+          #constant_hex_long64->Text2Long64(16);    
+          #constant_hex_long64->SetLine( c3->getLine());    
+        }  ;
+constant_hex_int! :  c4:CONSTANT_HEX_INT^ 
+        { #constant_hex_int=#[CONSTANT,c4->getText()];
+          #constant_hex_int->Text2Int(16);    
+          #constant_hex_int->SetLine( c4->getLine());    
+        }  ;
+constant_hex_i! :  c44:CONSTANT_HEX_I^ 
         // DEFINT32
-        { #numeric_constant=#[CONSTANT,c44->getText()];
+        { #constant_hex_i=#[CONSTANT,c44->getText()];
             if( compileOpt & DEFINT32)
-                #numeric_constant->Text2Long(16,true);    
+                #constant_hex_i->Text2Long(16,true);    
             else
-                #numeric_constant->Text2Int(16,true);    
-          #numeric_constant->SetLine( c44->getLine());    
-        }  
-    | c5:CONSTANT_HEX_ULONG 
-        { #numeric_constant=#[CONSTANT,c5->getText()];
-          #numeric_constant->Text2ULong(16);    
-          #numeric_constant->SetLine( c5->getLine());    
-        }  
-    | c6:CONSTANT_HEX_ULONG64 
-        { #numeric_constant=#[CONSTANT,c6->getText()];
-          #numeric_constant->Text2ULong64(16);    
-          #numeric_constant->SetLine( c6->getLine());    
-        }  
-    | c77:CONSTANT_HEX_UI
+                #constant_hex_i->Text2Int(16,true);    
+          #constant_hex_i->SetLine( c44->getLine());    
+        }  ;
+constant_hex_ulong! :  c5:CONSTANT_HEX_ULONG^ 
+        { #constant_hex_ulong=#[CONSTANT,c5->getText()];
+          #constant_hex_ulong->Text2ULong(16);    
+          #constant_hex_ulong->SetLine( c5->getLine());    
+        }  ;
+constant_hex_ulong64! :  c6:CONSTANT_HEX_ULONG64^
+        { #constant_hex_ulong64=#[CONSTANT,c6->getText()];
+          #constant_hex_ulong64->Text2ULong64(16);    
+          #constant_hex_ulong64->SetLine( c6->getLine());    
+        }  ;
+constant_hex_ui!:  c77:CONSTANT_HEX_UI^
         // DEFINT32
-        { #numeric_constant=#[CONSTANT,c77->getText()];
+        { #constant_hex_ui=#[CONSTANT,c77->getText()];
             if( compileOpt & DEFINT32)
-                #numeric_constant->Text2ULong(16,true);    
+                #constant_hex_ui->Text2ULong(16,true);    
             else
-                #numeric_constant->Text2UInt(16,true);    
-          #numeric_constant->SetLine( c77->getLine());    
-        }  
-    | c7:CONSTANT_HEX_UINT
-        { #numeric_constant=#[CONSTANT,c7->getText()];
-          #numeric_constant->Text2UInt(16);    
-          #numeric_constant->SetLine( c7->getLine());    
-        }  
-    | c8:CONSTANT_BYTE  
-        { #numeric_constant=#[CONSTANT,c8->getText()];
-          #numeric_constant->Text2Byte(10);    
-          #numeric_constant->SetLine( c8->getLine());    
-        }  
-    | c9:CONSTANT_LONG 
-        { #numeric_constant=#[CONSTANT,c9->getText()];
-          #numeric_constant->Text2Long(10);    
-          #numeric_constant->SetLine( c9->getLine());    
-        }  
-    | c10:CONSTANT_LONG64 
-        { #numeric_constant=#[CONSTANT,c10->getText()];
-          #numeric_constant->Text2Long64(10);    
-          #numeric_constant->SetLine( c10->getLine());    
-        }  
-    | c11:CONSTANT_INT
-        { #numeric_constant=#[CONSTANT,c11->getText()];
-          #numeric_constant->Text2Int(10);    
-          #numeric_constant->SetLine( c11->getLine());    
-        }  
-    | c111:CONSTANT_I
+                #constant_hex_ui->Text2UInt(16,true);    
+          #constant_hex_ui->SetLine( c77->getLine());    
+        }  ;
+constant_hex_uint!:  c7:CONSTANT_HEX_UINT^
+        { #constant_hex_uint=#[CONSTANT,c7->getText()];
+          #constant_hex_uint->Text2UInt(16);    
+          #constant_hex_uint->SetLine( c7->getLine());    
+        }  ;
+constant_byte!  :  c8:CONSTANT_BYTE^  
+        { #constant_byte=#[CONSTANT,c8->getText()];
+          #constant_byte->Text2Byte(10);    
+          #constant_byte->SetLine( c8->getLine());    
+        }  ;
+constant_long! :  c9:CONSTANT_LONG^ 
+        { #constant_long=#[CONSTANT,c9->getText()];
+          #constant_long->Text2Long(10);    
+          #constant_long->SetLine( c9->getLine());    
+        } ; 
+constant_long64! :  c10:CONSTANT_LONG64^ 
+        { #constant_long64=#[CONSTANT,c10->getText()];
+          #constant_long64->Text2Long64(10);    
+          #constant_long64->SetLine( c10->getLine());    
+        }  ;
+constant_int!:  c11:CONSTANT_INT^
+        { #constant_int=#[CONSTANT,c11->getText()];
+          #constant_int->Text2Int(10);    
+          #constant_int->SetLine( c11->getLine());    
+        }  ;
+constant_i!:  c111:CONSTANT_I^
         // DEFINT32
-        { #numeric_constant=#[CONSTANT,c111->getText()];
+        { #constant_i=#[CONSTANT,c111->getText()];
             if( compileOpt & DEFINT32)
-                #numeric_constant->Text2Long(10,true);    
+                #constant_i->Text2Long(10,true);    
             else
-                #numeric_constant->Text2Int(10,true);    
-          #numeric_constant->SetLine( c111->getLine());    
-        }  
-    | c12:CONSTANT_ULONG 
-        { #numeric_constant=#[CONSTANT,c12->getText()];
-          #numeric_constant->Text2ULong(10);    
-          #numeric_constant->SetLine( c12->getLine());    
-        }  
-    | c13:CONSTANT_ULONG64 
-        { #numeric_constant=#[CONSTANT,c13->getText()];
-          #numeric_constant->Text2ULong64(10);    
-          #numeric_constant->SetLine( c13->getLine());    
-        }  
-    | c144:CONSTANT_UI
+                #constant_i->Text2Int(10,true);    
+          #constant_i->SetLine( c111->getLine());    
+        }  ;
+constant_ulong! :  c12:CONSTANT_ULONG^ 
+        { #constant_ulong=#[CONSTANT,c12->getText()];
+          #constant_ulong->Text2ULong(10);    
+          #constant_ulong->SetLine( c12->getLine());    
+        }  ;
+constant_ulong64! :  c13:CONSTANT_ULONG64^ 
+        { #constant_ulong64=#[CONSTANT,c13->getText()];
+          #constant_ulong64->Text2ULong64(10);    
+          #constant_ulong64->SetLine( c13->getLine());    
+        } ; 
+constant_ui!:  c144:CONSTANT_UI^
         // DEFINT32
-        { #numeric_constant=#[CONSTANT,c144->getText()];
+        { #constant_ui=#[CONSTANT,c144->getText()];
             if( compileOpt & DEFINT32)
-                #numeric_constant->Text2ULong(10,true);    
+                #constant_ui->Text2ULong(10,true);    
             else
-                #numeric_constant->Text2UInt(10,true);    
-          #numeric_constant->SetLine( c144->getLine());    
-        }  
-    | c14:CONSTANT_UINT
-        { #numeric_constant=#[CONSTANT,c14->getText()];
-          #numeric_constant->Text2UInt(10);    
-          #numeric_constant->SetLine( c14->getLine());    
-        }  
-    | c15:CONSTANT_OCT_BYTE  
-        { #numeric_constant=#[CONSTANT,c15->getText()];
-          #numeric_constant->Text2Byte(8);    
-          #numeric_constant->SetLine( c15->getLine());    
-        }  
-    | c16:CONSTANT_OCT_LONG 
-        { #numeric_constant=#[CONSTANT,c16->getText()];
-          #numeric_constant->Text2Long(8);    
-          #numeric_constant->SetLine( c16->getLine());    
-        }  
-    | c17:CONSTANT_OCT_LONG64 
-        { #numeric_constant=#[CONSTANT,c17->getText()];
-          #numeric_constant->Text2Long64(8);    
-          #numeric_constant->SetLine( c17->getLine());    
-        }  
-    | c18:CONSTANT_OCT_INT
-        { #numeric_constant=#[CONSTANT,c18->getText()];
-          #numeric_constant->Text2Int(8);    
-          #numeric_constant->SetLine( c18->getLine());    
-        }  
-    | c188:CONSTANT_OCT_I
+                #constant_ui->Text2UInt(10,true);    
+          #constant_ui->SetLine( c144->getLine());    
+        }  ;
+constant_uint!:  c14:CONSTANT_UINT^
+        { #constant_uint=#[CONSTANT,c14->getText()];
+          #constant_uint->Text2UInt(10);    
+          #constant_uint->SetLine( c14->getLine());    
+        }  ;
+constant_oct_byte!  :  c15:CONSTANT_OCT_BYTE^  
+        { #constant_oct_byte=#[CONSTANT,c15->getText()];
+          #constant_oct_byte->Text2Byte(8);    
+          #constant_oct_byte->SetLine( c15->getLine());    
+        }  ;
+constant_oct_long! :  c16:CONSTANT_OCT_LONG^ 
+        { #constant_oct_long=#[CONSTANT,c16->getText()];
+          #constant_oct_long->Text2Long(8);    
+          #constant_oct_long->SetLine( c16->getLine());    
+        }  ;
+constant_oct_long64! :  c17:CONSTANT_OCT_LONG64^ 
+        { #constant_oct_long64=#[CONSTANT,c17->getText()];
+          #constant_oct_long64->Text2Long64(8);    
+          #constant_oct_long64->SetLine( c17->getLine());    
+        }  ;
+constant_oct_int!:  c18:CONSTANT_OCT_INT^
+        { #constant_oct_int=#[CONSTANT,c18->getText()];
+          #constant_oct_int->Text2Int(8);    
+          #constant_oct_int->SetLine( c18->getLine());    
+        }  ;
+constant_oct_i!:  c188:CONSTANT_OCT_I^
         // DEFINT32
-        { #numeric_constant=#[CONSTANT,c188->getText()];
+        { #constant_oct_i=#[CONSTANT,c188->getText()];
             if( compileOpt & DEFINT32)
-                #numeric_constant->Text2Long(8,true);    
+                #constant_oct_i->Text2Long(8,true);    
             else
-                #numeric_constant->Text2Int(8,true);    
-          #numeric_constant->SetLine( c188->getLine());    
-        }  
-    | c19:CONSTANT_OCT_ULONG 
-        { #numeric_constant=#[CONSTANT,c19->getText()];
-          #numeric_constant->Text2ULong(8);    
-          #numeric_constant->SetLine( c19->getLine());    
-        }  
-    | c20:CONSTANT_OCT_ULONG64 
-        { #numeric_constant=#[CONSTANT,c20->getText()];
-          #numeric_constant->Text2ULong64(8);    
-          #numeric_constant->SetLine( c20->getLine());    
-        }  
-    | c211:CONSTANT_OCT_UI
+                #constant_oct_i->Text2Int(8,true);    
+          #constant_oct_i->SetLine( c188->getLine());    
+        }  ;
+constant_oct_ulong! :  c19:CONSTANT_OCT_ULONG^ 
+        { #constant_oct_ulong=#[CONSTANT,c19->getText()];
+          #constant_oct_ulong->Text2ULong(8);    
+          #constant_oct_ulong->SetLine( c19->getLine());    
+        }  ;
+constant_oct_ulong64! :  c20:CONSTANT_OCT_ULONG64^ 
+        { #constant_oct_ulong64=#[CONSTANT,c20->getText()];
+          #constant_oct_ulong64->Text2ULong64(8);    
+          #constant_oct_ulong64->SetLine( c20->getLine());    
+        } ; 
+constant_oct_ui!:  c211:CONSTANT_OCT_UI^
         // DEFINT32
-        { #numeric_constant=#[CONSTANT,c211->getText()];
+        { #constant_oct_ui=#[CONSTANT,c211->getText()];
             if( compileOpt & DEFINT32)
-                #numeric_constant->Text2ULong(8,true);    
+                #constant_oct_ui->Text2ULong(8,true);    
             else
-                #numeric_constant->Text2UInt(8,true);    
-          #numeric_constant->SetLine( c211->getLine());    
-        }  
-    | c21:CONSTANT_OCT_UINT
-        { #numeric_constant=#[CONSTANT,c21->getText()];
-          #numeric_constant->Text2UInt(8);    
-          #numeric_constant->SetLine( c21->getLine());    
-        }  
-    | c22:CONSTANT_FLOAT     
-        { #numeric_constant=#[CONSTANT,c22->getText()];
-          #numeric_constant->Text2Float();    
-          #numeric_constant->SetLine( c22->getLine());    
-        }  
-    | c23:CONSTANT_DOUBLE
-        { #numeric_constant=#[CONSTANT,c23->getText()];
-          #numeric_constant->Text2Double();    
-          #numeric_constant->SetLine( c23->getLine());    
-        }  
-    | c24:CONSTANT_BIN_BYTE  
-        { #numeric_constant=#[CONSTANT,c24->getText()];
-          #numeric_constant->Text2Byte(2);    
-          #numeric_constant->SetLine( c24->getLine());    
-        }  
-    | c25:CONSTANT_BIN_LONG 
-        { #numeric_constant=#[CONSTANT,c25->getText()];
-          #numeric_constant->Text2Long(2);    
-          #numeric_constant->SetLine( c25->getLine());    
-        }  
-    | c26:CONSTANT_BIN_LONG64 
-        { #numeric_constant=#[CONSTANT,c26->getText()];
-          #numeric_constant->Text2Long64(2);    
-          #numeric_constant->SetLine( c26->getLine());    
-        }  
-    | c27:CONSTANT_BIN_INT
-        { #numeric_constant=#[CONSTANT,c27->getText()];
-          #numeric_constant->Text2Int(2);    
-          #numeric_constant->SetLine( c27->getLine());    
-        }  
-    | c277:CONSTANT_BIN_I
+                #constant_oct_ui->Text2UInt(8,true);    
+          #constant_oct_ui->SetLine( c211->getLine());    
+        }  ;
+constant_oct_uint!:  c21:CONSTANT_OCT_UINT^
+        { #constant_oct_uint=#[CONSTANT,c21->getText()];
+          #constant_oct_uint->Text2UInt(8);    
+          #constant_oct_uint->SetLine( c21->getLine());    
+        } ; 
+constant_float!     :  c22:CONSTANT_FLOAT^     
+        { #constant_float=#[CONSTANT,c22->getText()];
+          #constant_float->Text2Float();    
+          #constant_float->SetLine( c22->getLine());    
+        }  ;
+constant_double!:  c23:CONSTANT_DOUBLE^
+        { #constant_double=#[CONSTANT,c23->getText()];
+          #constant_double->Text2Double();    
+          #constant_double->SetLine( c23->getLine());    
+        }  ;
+constant_bin_byte!  :  c24:CONSTANT_BIN_BYTE^  
+        { #constant_bin_byte=#[CONSTANT,c24->getText()];
+          #constant_bin_byte->Text2Byte(2);    
+          #constant_bin_byte->SetLine( c24->getLine());    
+        }  ;
+constant_bin_long! :  c25:CONSTANT_BIN_LONG^ 
+        { #constant_bin_long=#[CONSTANT,c25->getText()];
+          #constant_bin_long->Text2Long(2);    
+          #constant_bin_long->SetLine( c25->getLine());    
+        }  ;
+constant_bin_long64! :  c26:CONSTANT_BIN_LONG64^ 
+        { #constant_bin_long64=#[CONSTANT,c26->getText()];
+          #constant_bin_long64->Text2Long64(2);    
+          #constant_bin_long64->SetLine( c26->getLine());    
+        } ; 
+constant_bin_int!:  c27:CONSTANT_BIN_INT^
+        { #constant_bin_int=#[CONSTANT,c27->getText()];
+          #constant_bin_int->Text2Int(2);    
+          #constant_bin_int->SetLine( c27->getLine());    
+        }  ;
+constant_bin_i!:  c277:CONSTANT_BIN_I^
         // DEFINT32
-        { #numeric_constant=#[CONSTANT,c277->getText()];
+        { #constant_bin_i=#[CONSTANT,c277->getText()];
             if( compileOpt & DEFINT32)
-                #numeric_constant->Text2Long(2,true);    
+                #constant_bin_i->Text2Long(2,true);    
             else
-                #numeric_constant->Text2Int(2,true);    
-          #numeric_constant->SetLine( c277->getLine());    
-        }  
-    | c28:CONSTANT_BIN_ULONG 
-        { #numeric_constant=#[CONSTANT,c28->getText()];
-          #numeric_constant->Text2ULong(2);    
-          #numeric_constant->SetLine( c28->getLine());    
-        }  
-    | c29:CONSTANT_BIN_ULONG64 
-        { #numeric_constant=#[CONSTANT,c29->getText()];
-          #numeric_constant->Text2ULong64(2);    
-          #numeric_constant->SetLine( c29->getLine());    
-        }  
-    | c300:CONSTANT_BIN_UI
+                #constant_bin_i->Text2Int(2,true);    
+          #constant_bin_i->SetLine( c277->getLine());    
+        }  ;
+constant_bin_ulong! :  c28:CONSTANT_BIN_ULONG^ 
+        { #constant_bin_ulong=#[CONSTANT,c28->getText()];
+          #constant_bin_ulong->Text2ULong(2);    
+          #constant_bin_ulong->SetLine( c28->getLine());    
+        }  ;
+constant_bin_ulong64! :  c29:CONSTANT_BIN_ULONG64^ 
+        { #constant_bin_ulong64=#[CONSTANT,c29->getText()];
+          #constant_bin_ulong64->Text2ULong64(2);    
+          #constant_bin_ulong64->SetLine( c29->getLine());    
+        } ; 
+constant_bin_ui!:  c300:CONSTANT_BIN_UI^
         // DEFINT32
-        { #numeric_constant=#[CONSTANT,c300->getText()];
+        { #constant_bin_ui=#[CONSTANT,c300->getText()];
             if( compileOpt & DEFINT32)
-                #numeric_constant->Text2ULong(2,true);    
+                #constant_bin_ui->Text2ULong(2,true);    
             else
-                #numeric_constant->Text2UInt(2,true);    
-          #numeric_constant->SetLine( c300->getLine());    
+                #constant_bin_ui->Text2UInt(2,true);    
+          #constant_bin_ui->SetLine( c300->getLine());    
+        } ; 
+constant_bin_uint!:  c30:CONSTANT_BIN_UINT^
+        { #constant_bin_uint=#[CONSTANT,c30->getText()];
+          #constant_bin_uint->Text2UInt(2);    
+          #constant_bin_uint->SetLine( c30->getLine());    
+        };
+constant_cmplx_i!:  c31:CONSTANT_CMPLX_I^
+        { #constant_cmplx_i=#[CONSTANT,c31->getText()];
+          #constant_cmplx_i->Text2ComplexI();    
+          #constant_cmplx_i->SetLine( c31->getLine());    
+        };
+constant_cmplxdbl_i!:  c32:CONSTANT_CMPLXDBL_I^
+        { #constant_cmplxdbl_i=#[CONSTANT,c32->getText()];
+          #constant_cmplxdbl_i->Text2ComplexDblI();    
+          #constant_cmplxdbl_i->SetLine( c32->getLine());    
         }  
-    | c30:CONSTANT_BIN_UINT
-        { #numeric_constant=#[CONSTANT,c30->getText()];
-          #numeric_constant->Text2UInt(2);    
-          #numeric_constant->SetLine( c30->getLine());    
-        }
-	) {if (debugParser) std::cout<<" numeric_constant : \""<<LT(0)->getText()<<"\""<<std::endl;}
     ;
 
+numeric_constant
+    :
+    ( constant_i
+    | constant_float     
+    | constant_double
+    | constant_long 
+    | constant_hex_byte    
+    | constant_hex_long 
+    | constant_hex_long64 
+    | constant_hex_int 
+    | constant_hex_i 
+    | constant_hex_ulong 
+    | constant_hex_ulong64 
+    | constant_hex_ui
+    | constant_hex_uint
+    | constant_byte  
+    | constant_long64 
+    | constant_int
+    | constant_ulong 
+    | constant_ulong64 
+    | constant_ui
+    | constant_uint
+    | constant_oct_byte  
+    | constant_oct_long 
+    | constant_oct_long64 
+    | constant_oct_int
+    | constant_oct_i
+    | constant_oct_ulong 
+    | constant_oct_ulong64 
+    | constant_oct_ui
+    | constant_oct_uint
+    | constant_bin_byte  
+    | constant_bin_long 
+    | constant_bin_long64 
+    | constant_bin_int
+    | constant_bin_i
+    | constant_bin_ulong 
+    | constant_bin_ulong64 
+    | constant_bin_ui
+    | constant_bin_uint
+    | constant_cmplx_i
+    | constant_cmplxdbl_i
+    )
+;
 arrayindex_list
 {        
     int rank = 1;
@@ -2252,6 +2304,10 @@ CONSTANT_FLOAT:;
 protected
 CONSTANT_DOUBLE:;
 protected
+CONSTANT_CMPLX_I:;
+protected
+CONSTANT_CMPLXDBL_I:;
+protected
 STRING_LITERAL:;
 protected
 DOT:;
@@ -2263,7 +2319,7 @@ CONSTANT_OR_STRING_LITERAL
     :
       ("0x"(H)+ ( 's' | 'l' | 'u' )?) =>  //NOT 'b' as B is part of (H) : ex: 0x3BAFB 
       ("0x"! (H)+          { _ttype=CONSTANT_HEX_I; } // DEFINT32
-            ( 's'!        { _ttype=CONSTANT_HEX_INT; }
+        ( 's'!        { _ttype=CONSTANT_HEX_INT; }
         | 'u'!        { _ttype=CONSTANT_HEX_UI; }   // DEFINT32
         | "us"!        { _ttype=CONSTANT_HEX_UINT; } 
         | "ub"!        { _ttype=CONSTANT_HEX_BYTE; }
@@ -2271,10 +2327,38 @@ CONSTANT_OR_STRING_LITERAL
         | "ll"!        { _ttype=CONSTANT_HEX_LONG64; }
         | "ul"!           { _ttype=CONSTANT_HEX_ULONG; }
         | "ull"!    { _ttype=CONSTANT_HEX_ULONG64; }
-            )?)
+        )?
+      )
+    |  ("0o"(O)+ ( "ull"  | "us" | "ub" | "ll" | "ul" | 'b' | 's' | 'l' | 'u')? ) => 
+      ("0o"! (O)+          { _ttype=CONSTANT_OCT_I; } // DEFINT32
+        ( 's'!        { _ttype=CONSTANT_OCT_INT; }
+        | 'u'!        { _ttype=CONSTANT_OCT_UI; }   // DEFINT32
+        | "us"!        { _ttype=CONSTANT_OCT_UINT; } 
+        | "ub"!        { _ttype=CONSTANT_OCT_BYTE; }
+        | "b"!        { _ttype=CONSTANT_OCT_BYTE; }
+        | 'l'!            { _ttype=CONSTANT_OCT_LONG; }
+        | "ll"!        { _ttype=CONSTANT_OCT_LONG64; }
+        | "ul"!           { _ttype=CONSTANT_OCT_ULONG; }
+        | "ull"!    { _ttype=CONSTANT_OCT_ULONG64; }
+        )?
+      )
+
+    |  ("0b"(B)+ ( "ull"  | "us" | "ub" | "ll" | "ul" | 'b' | 's' | 'l' | 'u' )? ) => 
+      ("0b"! (B)+          { _ttype=CONSTANT_BIN_I; } // DEFINT32
+        ( 's'!        { _ttype=CONSTANT_BIN_INT; }
+        | 'u'!        { _ttype=CONSTANT_BIN_UI; }   // DEFINT32
+        | "us"!        { _ttype=CONSTANT_BIN_UINT; } 
+        | "ub"!        { _ttype=CONSTANT_BIN_BYTE; }
+        | "b"!        { _ttype=CONSTANT_BIN_BYTE; }
+        | 'l'!            { _ttype=CONSTANT_BIN_LONG; }
+        | "ll"!        { _ttype=CONSTANT_BIN_LONG64; }
+        | "ul"!           { _ttype=CONSTANT_BIN_ULONG; }
+        | "ull"!    { _ttype=CONSTANT_BIN_ULONG64; }
+        )?
+      )
 	    
-  |('\"'(O)+ ( "ull"  | "us" | "ub" | "ll" | "ul" | 'b' | 's' | 'l' | 'u' | WHITESPACE |END_MARKER| END_OF_LINE )) => 
-      ('\"'! (O)+ //       { _ttype=CONSTANT_OCT_I; }  // DEFINT32
+  |('\"'(O)+ ( "ull"  | "us" | "ub" | "ll" | "ul" | 'b' | 's' | 'l' | 'u' | '\"' )? ) => 
+      ('\"'! (O)+        { _ttype=CONSTANT_OCT_I; }  // DEFINT32
           ( 's'!        { _ttype=CONSTANT_OCT_INT; }
           | 'b'!        { _ttype=CONSTANT_OCT_BYTE; }
           | 'u'!         { _ttype=CONSTANT_OCT_UI; }   // DEFINT32
@@ -2284,25 +2368,9 @@ CONSTANT_OR_STRING_LITERAL
           | "ll"!        { _ttype=CONSTANT_OCT_LONG64; }
           | "ul"!        { _ttype=CONSTANT_OCT_ULONG; }
           | "ull"!    { _ttype=CONSTANT_OCT_ULONG64; }
-	  |  { _ttype=CONSTANT_OCT_I; }
-          )
-	  )
-//  | '\"'! (L|D)+  '\"'!   { _ttype=STRING_LITERAL; } 
-
-
-//    |('\"'(O)+ ( 'b' | 's' | 'l' | 'u' | "\"")?) => 
-//        ('\"'! (O)+        { _ttype=CONSTANT_OCT_I; }  // DEFINT32
-//            ( 's'!        { _ttype=CONSTANT_OCT_INT; }
-//            | 'b'!        { _ttype=CONSTANT_OCT_BYTE; }
-//            | 'u'!         { _ttype=CONSTANT_OCT_UI; }   // DEFINT32
-//            | "us"!        { _ttype=CONSTANT_OCT_UINT; } 
-//            | "ub"!        { _ttype=CONSTANT_OCT_BYTE; }
-//            | 'l'!         { _ttype=CONSTANT_OCT_LONG; }
-//            | "ll"!        { _ttype=CONSTANT_OCT_LONG64; }
-//            | "ul"!        { _ttype=CONSTANT_OCT_ULONG; }
-//            | "ull"!    { _ttype=CONSTANT_OCT_ULONG64; }
-//            | "." (O)* "\""!            { _ttype=STRING_LITERAL; }
-//            )?)
+          | "\""!            { _ttype=STRING_LITERAL; }
+          )?
+       )
     | ('\''(H)+'\'' ( 'x' | "xs" | "xb" | "xl" | "xu" | "xus" | "xub" | "xul" )) =>
         ('\''! (H)+ '\''! 'x'!
           (                  { _ttype=CONSTANT_HEX_I; } // DEFINT32
@@ -2310,11 +2378,11 @@ CONSTANT_OR_STRING_LITERAL
             | 'b'!        { _ttype=CONSTANT_HEX_BYTE; }
             | 'u'!        { _ttype=CONSTANT_HEX_UI; }   // DEFINT32
             | "us"!        { _ttype=CONSTANT_HEX_UINT; } 
-                    | "ub"!        { _ttype=CONSTANT_HEX_BYTE; }
+            | "ub"!        { _ttype=CONSTANT_HEX_BYTE; }
             | 'l'!            { _ttype=CONSTANT_HEX_LONG; }
             | "ll"!        { _ttype=CONSTANT_HEX_LONG64; }
             | "ul"!           { _ttype=CONSTANT_HEX_ULONG; }
-              | "ull"!    { _ttype=CONSTANT_HEX_ULONG64; }
+            | "ull"!    { _ttype=CONSTANT_HEX_ULONG64; }
             ))
     | ('\''(O)+'\''    ( 'o' | "os" | "ol" | "ou" | "oul")) =>
         ('\''! (O)+ '\''! 'o'!
@@ -2351,36 +2419,26 @@ CONSTANT_OR_STRING_LITERAL
         ( '\''!
         |         
         )                  { _ttype=STRING_LITERAL; }
-    | (((D)+ (DBL | '.'(D)*(DBL))) | '.'(D)+(DBL)) =>
-        (
-            (
-                (D)+ 
-                ( DBL 
-                | '.'(D)*(DBL)
-                )
-            ) 
-        | '.'(D)+(DBL)) 
-                        { _ttype=CONSTANT_DOUBLE; }
-    | (((D)+ (EXP | '.'(D)*(EXP)?)) | '.'(D)+(EXP)?) =>
-        (
-            (
-                (D)+ 
-                ( EXP 
-                | '.'(D)*(EXP)?
-                )
-            ) 
-        | '.'(D)+(EXP)?) 
-        { _ttype=CONSTANT_FLOAT; }
+    | (((D)+ (DBL | '.'(D)*(DBL))) | '.'(D)+(DBL)) => (((D)+ (DBL | '.'(D)*(DBL))) | '.'(D)+(DBL))
+           ( ('i' |'j') { _ttype=CONSTANT_CMPLXDBL_I; }
+           |  { _ttype=CONSTANT_DOUBLE; }
+           )
+    | (((D)+ (EXP | '.'(D)*(EXP)?)) | '.'(D)+(EXP)?) => (((D)+ (EXP | '.'(D)*(EXP)?)) | '.'(D)+(EXP)?)
+           ( ('i' |'j') { _ttype=CONSTANT_CMPLX_I; }
+           |  { _ttype=CONSTANT_FLOAT; }
+           ) 
     | '.'                 { _ttype=DOT; }
     | (D)+                   { _ttype=CONSTANT_I; }
         ( 's'!          { _ttype=CONSTANT_INT; }
         | 'b'!            { _ttype=CONSTANT_BYTE; }
-        | 'u'!('s'!)?    { _ttype=CONSTANT_UINT; }
+        | "us"!    { _ttype=CONSTANT_UINT; }
+        | 'u'!    { _ttype=CONSTANT_UI; }
         | "ub"!            { _ttype=CONSTANT_BYTE; }
         | 'l'!            { _ttype=CONSTANT_LONG; }
         | "ll"!            { _ttype=CONSTANT_LONG64; }
         | "ul"!            { _ttype=CONSTANT_ULONG; }
         | "ull"!           { _ttype=CONSTANT_ULONG64; }
+        | ('i'! |'j'!)     { _ttype=CONSTANT_CMPLX_I; }
         )?    
     ;    
 
