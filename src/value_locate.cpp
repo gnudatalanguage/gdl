@@ -97,7 +97,7 @@ namespace lib {
     BaseGDL* p0 = e->GetParDefined(0);
     BaseGDL* p1 = e->GetParDefined(1);
 
-    if (!NumericType(p0->Type())) e->Throw(p0->TypeStr() + " expression not allowed in this context:" + e->GetParString(0));
+    if (!ConvertableType(p0->Type())) e->Throw(p0->TypeStr() + " expression not allowed in this context:" + e->GetParString(0));
     if (ComplexType(p0->Type())) e->Throw(p0->TypeStr() + " expression not allowed in this context:" + e->GetParString(0));
     SizeT nEl = p0->N_Elements();
     SizeT nEl1 = p1->N_Elements();
@@ -125,7 +125,9 @@ namespace lib {
           VALUE_LOCATE_HELPER64(DFloatGDL, DFloat)
         case GDL_DOUBLE:
           VALUE_LOCATE_HELPER64(DDoubleGDL, DDouble)
-        default:
+        case GDL_STRING:
+          VALUE_LOCATE_HELPER64(DStringGDL, DString)
+         default:
           assert(false);
           return NULL; //pacify
         }
@@ -152,6 +154,8 @@ namespace lib {
           VALUE_LOCATE_HELPER_MULTI64(DFloatGDL, DFloat)
         case GDL_DOUBLE:
           VALUE_LOCATE_HELPER_MULTI64(DDoubleGDL, DDouble)
+        case GDL_STRING:
+          VALUE_LOCATE_HELPER_MULTI64(DStringGDL, DString)
         default:
           assert(false);
           return NULL; //pacify
@@ -179,6 +183,8 @@ namespace lib {
           VALUE_LOCATE_HELPER(DFloatGDL, DFloat)
         case GDL_DOUBLE:
           VALUE_LOCATE_HELPER(DDoubleGDL, DDouble)
+        case GDL_STRING:
+          VALUE_LOCATE_HELPER(DStringGDL, DString)
         default:
           assert(false);
           return NULL; //pacify
@@ -206,6 +212,8 @@ namespace lib {
           VALUE_LOCATE_HELPER_MULTI(DFloatGDL, DFloat)
         case GDL_DOUBLE:
           VALUE_LOCATE_HELPER_MULTI(DDoubleGDL, DDouble)
+        case GDL_STRING:
+          VALUE_LOCATE_HELPER_MULTI(DStringGDL, DString)
         default:
           assert(false);
           return NULL; //pacify
