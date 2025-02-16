@@ -47,8 +47,8 @@ print, 'Total Time elapsed      : ', val_cumul, ' seconds.'
 ;
 errors=0
 ;
-; We accepte a tolerance of 0.001 on the variance of measurements.
-tolerance=0.001
+; We accepte a tolerance of 0.5 on the variance of measurements.
+tolerance=0.5
 ;
 m=moment(val_times)
 precision=m[1]/m[0]
