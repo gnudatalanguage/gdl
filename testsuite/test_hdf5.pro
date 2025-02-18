@@ -76,7 +76,10 @@ pro TEST_HDF5_STRING, cumul_errors, test=test
       if(i eq 0) then expected='Peter is great.' $
       else expected = [ ['a','bc', 'def'], ['ghij','klmno','pqrstu'] ]
 
-      if ~ARRAY_EQUAL(mystring, expected) then errors=1
+      if ~ARRAY_EQUAL(mystring, expected) then errors+=1
+
+      H5D_CLOSE, data_id
+      H5F_CLOSE, file_id
 
    endfor
 
