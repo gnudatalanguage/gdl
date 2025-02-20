@@ -6,9 +6,10 @@ on:
   push:
     branches:
       - master
-      - '1.0'
     tags:
       - v**
+  release:
+    types: [published]
   pull_request:
   workflow_dispatch:
     inputs:
