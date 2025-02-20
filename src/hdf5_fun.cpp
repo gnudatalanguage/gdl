@@ -863,39 +863,51 @@ namespace lib {
 
     } else if (ourType == GDL_STRING) {
 
-      bool isVarLenStr = H5Tis_variable_str(elem_dtype) > 0;
-      if (debug) printf(isVarLenStr ? "variable-length string dataset\n" : "fixed-length string dataset\n");
-
-      // string length (terminator included)
-      SizeT str_len = H5Tget_size(elem_dtype);
+      bool isVarLenStr = (H5Tis_variable_str(elem_dtype) > 0);
+      if (debug) printf(isVarLenStr ? "variable-length string dataset\n"
+                                    : "fixed-length string dataset\n");
 
       // total number of array elements
       SizeT num_elems=1;
       for(int i=0; i<rank_s; i++) num_elems *= count_s[i];
 
-      if (num_elems == 1 && isVarLenStr) {
-        char* raw = nullptr;
-        hdf5_basic_read( loc_id, datatype, ms_id, fs_id, &raw, e );
-
-        // create GDL variable
-        res = new DStringGDL(raw);
-
-        H5Dvlen_reclaim (ms_id, fs_id, H5P_DEFAULT, &raw);
-
-        return res;
-      }
-      // allocate & read raw buffer
-      char* raw = (char*) malloc(num_elems*str_len*sizeof(char));
-      hdf5_name_guard raw_guard = hdf5_name_guard(raw);
-      hdf5_basic_read( loc_id, datatype, ms_id, fs_id, raw, e );
-
       // create GDL variable
       dimension flat_dim(&num_elems, 1);
       res = new DStringGDL(flat_dim);
 
-      // assign array pointers
-      for (size_t i=0; i<num_elems; i++)
-        (*(static_cast<DStringGDL*> (res)))[i] = raw + str_len*i;
+      if (isVarLenStr) {        // variable-length strings
+
+        // allocate memory for reading the strings
+        char **raw = (char **) malloc(num_elems * sizeof(char *));
+        hdf5_basic_read( loc_id, datatype, ms_id, fs_id, &raw[0], e );
+
+        // assign array pointers
+        for (size_t i=0; i<num_elems; i++) {
+
+          int len = strlen(raw[i]);
+          char *str = (char*) malloc((len+1)*sizeof(char));
+          strncpy(str, raw[i], len+1);
+          if(debug) printf("str[%ld]='%s' is of length %d\n", i, str, len);
+          (*(static_cast<DStringGDL*> (res)))[i] = str;
+        }
+
+        // reclaim data buffers
+        H5Dvlen_reclaim (datatype, ms_id, H5P_DEFAULT, &raw[0]);
+
+      } else {                  // fixed-length strings
+
+        // string length (terminator included)
+        SizeT str_len = H5Tget_size(elem_dtype);
+
+        // allocate & read raw buffer
+        char* raw = (char*) malloc(num_elems*str_len*sizeof(char));
+        hdf5_name_guard raw_guard = hdf5_name_guard(raw);
+        hdf5_basic_read( loc_id, datatype, ms_id, fs_id, raw, e );
+
+        // assign array pointers
+        for (size_t i=0; i<num_elems; i++)
+          (*(static_cast<DStringGDL*> (res)))[i] = raw + str_len*i;
+      }
 
       // re-shape array to match dataset
       (static_cast<BaseGDL*>(res))->SetDim(dim);
@@ -969,9 +981,9 @@ hid_t
     hid_t hdf5_id;
 
 #if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
-	DLong64 temp=0;
+        DLong64 temp=0;
     e->AssureLongScalarKW(position, temp);
-	hdf5_id=temp;
+        hdf5_id=temp;
 #else
     e->AssureLongScalarKW(position, hdf5_id);
 #endif
@@ -984,9 +996,9 @@ hid_t
     hid_t hdf5_id;
 
 #if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
-	DLong64 temp=0;
+        DLong64 temp=0;
     e->AssureLongScalarPar(position, temp);
-	hdf5_id=temp;
+        hdf5_id=temp;
 #else
     e->AssureLongScalarPar(position, hdf5_id);
 #endif
