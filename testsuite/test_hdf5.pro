@@ -52,34 +52,44 @@ end
 ;
 pro TEST_HDF5_STRING, cumul_errors, test=test
 ;
-; Test provided by R. Parker (Univ. Leicester)
+; Test provided by R. Parker (Univ. Leicester), amended by O. Gressel (AIP)
 ;
-errors=0
-;
-file='string.h5'
-fullfile=FILE_SEARCH_FOR_TESTSUITE(file, /warning)
-if (STRLEN(fullfile) EQ 0) then begin
-    cumul_errors++
-    return
-endif
-;
-file_id = H5F_OPEN(fullfile)
-data_id = H5D_OPEN(file_id, 'mystring')
-;
-mystring=''
-ok=EXECUTE('mystring=H5D_READ(data_id)')
-;
-expected='Peter is great.'
-;
-if ~ARRAY_EQUAL(mystring, expected) then errors=1
-;
-BANNER_FOR_TESTSUITE, 'TEST_HDF5_STRING', errors, /short
-;
-if KEYWORD_SET(test) then STOP
-;
-if ~ISA(cumul_errors) then cumul_errors=0
-cumul_errors=cumul_errors+errors
-;
+   errors=0
+
+   files=['string.h5', 'vlen_strings.h5']
+   names=['mystring', 'vlen_strings']
+
+   for i=0,1 do begin
+      file=files[i]
+      fullfile=FILE_SEARCH_FOR_TESTSUITE(file, /warning)
+      if (STRLEN(fullfile) EQ 0) then begin
+         cumul_errors++
+         return
+      endif
+
+      file_id = H5F_OPEN(fullfile)
+      data_id = H5D_OPEN(file_id, names[i])
+
+      mystring=''
+      ok=EXECUTE('mystring=H5D_READ(data_id)')
+
+      if(i eq 0) then expected='Peter is great.' $
+      else expected = [ ['a','bc', 'def'], ['ghij','klmno','pqrstu'] ]
+
+      if ~ARRAY_EQUAL(mystring, expected) then errors+=1
+
+      H5D_CLOSE, data_id
+      H5F_CLOSE, file_id
+
+   endfor
+
+   BANNER_FOR_TESTSUITE, 'TEST_HDF5_STRING', errors, /short
+
+   if KEYWORD_SET(test) then STOP
+
+   if ~ISA(cumul_errors) then cumul_errors=0
+   cumul_errors=cumul_errors+errors
+
 end
 ;
 ; -----------------------------------------------
