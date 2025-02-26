@@ -56,7 +56,9 @@ class AnyStream
 // GGH made all these public
 public:
   bool ispipe;
-  std::fstream* ifStream;
+  int pin_fd; //pipe in fd
+  int pout_fd; //pipe out fd
+  std::fstream* fStream;
   std::fstream* ofStream;
   igzstream* igzStream; // for gzip compressed input
   ogzstream* ogzStream; // for gzip compressed output
@@ -65,21 +67,22 @@ public:
  //public:
   AnyStream()
     : ispipe(false)
-    , ifStream(NULL) 
+    , fStream(NULL) 
     , ofStream(NULL) 
     , igzStream(NULL) 
     , ogzStream(NULL)
     , old_rdbuf_in(NULL)
     , old_rdbuf_out(NULL)
+    , pin_fd(-1)
+    , pout_fd(-1)
   {}
 
   void Flush() ;
   void Close();
   void OpenAsPipes(const std::string& name_, const std::ios_base::openmode mode_, const int pipeInFd, const int pipeOutFd); 
   void Open(const std::string& name_, std::ios_base::openmode mode_ , bool compress_);
-  std::fstream* iFStream(){return ifStream;}
   std::fstream* oFStream(){return ofStream;}
-  std::fstream* FStream(){return ifStream;}
+  std::fstream* FStream(){return fStream;}
   igzstream* IgzStream(){return igzStream;} // for gzip compressed input
   ogzstream* OgzStream(){return ogzStream;} // for gzip compressed output
 
@@ -108,9 +111,9 @@ public:
 
  void SeekPad(std::streampos pos);
 
-  bool InUse() { return (ifStream != NULL || ofStream != NULL || igzStream != NULL || ogzStream != NULL);}
+  bool InUse() { return (fStream != NULL || ofStream != NULL || igzStream != NULL || ogzStream != NULL);}
   bool IsOpen()
-  { return (ifStream != NULL && ifStream->is_open()) || (ofStream != NULL && ofStream->is_open()) || (igzStream != NULL && igzStream->rdbuf()->is_open()) || (ogzStream != NULL && ogzStream->rdbuf()->is_open());} 
+  { return (fStream != NULL && fStream->is_open()) || (ofStream != NULL && ofStream->is_open()) || (igzStream != NULL && igzStream->rdbuf()->is_open()) || (ogzStream != NULL && ogzStream->rdbuf()->is_open());} 
 
   void Pad( std::streamsize nBytes);
 
