@@ -24,8 +24,8 @@
 ; -- add "-L" for Curl
 ; -- better management of keyword filename= & string_array=
 ; -- tested with current (in 2018) QuerySimbad,'GAL045.45+00.06' in astrolib
-; 2020-Jan-10 : GD
-; support most options for Get() etc.
+; 2020-Jan-10 : GD  support most options for Get() etc.
+; 2025-Feb-20 : GD  Added PUT
 ; ----------------------------------------------------
 ;
 ;
@@ -262,9 +262,9 @@ no_callback:
      return, response
   endif else if KEYWORD_SET(string_array) then begin
      n=file_lines(filename)
-     resp=strarr(n)
+     s="" & resp=strarr(n)
      openr,lun,filename,/get
-     for i=0,n-1 do readf,lun,resp[i]
+     for i=0,n-1 do begin & readf,lun,s & resp[i]=s & end
      free_lun,lun
      file_delete,filename
      return, resp
@@ -415,9 +415,9 @@ function idlneturl::Put, data, BUFFER=buffer, FILENAME=filename, POST=post, STRI
 ; return:     
   if KEYWORD_SET(string_array) then begin
      n=file_lines(oufile)
-     resp=strarr(n)
+     resp=strarr(n) & s=''
      openr,lun,oufile,/get
-     for i=0,n-1 do readf,lun,resp[i]
+     for i=0,n-1 do readf,lun,s & resp[i]=s
      free_lun,lun
      file_delete,oufile
      return, resp
