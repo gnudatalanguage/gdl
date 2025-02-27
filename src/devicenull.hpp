@@ -17,13 +17,45 @@
 
 #ifndef DEVICENULL_HPP_
 #define DEVICENULL_HPP_
-
+#include "gdlnullstream.hpp"
 class DeviceNULL : public GraphicsDevice
 {
-  //  std::string      fileName;
-  //  GDLNULLStream*     actStream;
-  // void InitStream()  {  }
+   GDLNULLStream*   actStream;
+  void DeleteStream()
+  {
+    delete actStream; actStream = NULL;
+  }
 
+  void InitStream()
+  {
+    DeleteStream();
+
+    // always allocate the buffer with creating a new stream
+    actStream = new GDLNULLStream( 100, 100);
+    actStream->Init();
+    // need to be called initially. permit to fix things
+    actStream->plstream::ssub(1, 1); // plstream below stays with ONLY ONE page
+    actStream->plstream::adv(0); //-->this one is the 1st and only pladv
+    // load font
+    actStream->plstream::font(1);
+    actStream->plstream::vpor(0, 1, 0, 1);
+    actStream->plstream::wind(0, 1, 0, 1);
+
+    actStream->ssub(1, 1);
+    actStream->SetPageDPMM();
+    actStream->DefaultCharSize();
+    actStream->adv(0); //this is for us (counters) //needs DefaultCharSize
+  }
+  
+  GDLGStream* GetStream( bool open=true)
+  {
+    if( actStream == NULL) 
+      {
+	InitStream();
+      }
+    return actStream;
+  }
+  
 public:
   //  DeviceNULL(): GraphicsDevice(), fileName( "gdl.null"), actStream( NULL)
   DeviceNULL(): GraphicsDevice()
@@ -54,8 +86,11 @@ public:
     dStruct->InitTag("ORIGIN",     origin); 
     dStruct->InitTag("ZOOM",       zoom); 
   }
-  
-  ~DeviceNULL() {}
+  ~DeviceNULL()
+  {
+    DeleteStream();
+  }
+
  
 };
 
