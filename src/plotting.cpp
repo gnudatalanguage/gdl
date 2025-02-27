@@ -547,7 +547,6 @@ namespace lib
     void plotting_routine_call::call(EnvT* e, SizeT n_params_required) {
       // when !d.name == Null  we do nothing !
       DString name = (*static_cast<DStringGDL*> (SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("NAME"), 0)))[0];
-      if (name == "NULL") return;
 
       _nParam = e->NParam(n_params_required);
 
@@ -573,7 +572,10 @@ namespace lib
         return;
       }
 
-      applyGraphics(e, actStream);
+// NULL Device exists, but better NOT TO SEND graphics commands to it
+// If a 'save' command (like saving modified !X.CRANGE values) is present in the 'applyGraphics()' code (it should not!)
+// then this command will not be saved, and this will be a bug. NO 'save' commands should appear in applyGraphics()
+      if (name!="NULL") applyGraphics(e, actStream);
 
 //      restoreDrawArea(actStream); //doing this would mess the /NOERASE logic when MULTI
 
