@@ -952,6 +952,10 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command) {
 
   // AC: Continue before Compile to have ".c" giving ".continue"
   if (cmd("CONTINUE")) {
+    if (command.find(" ", 0) != string::npos) {
+      cout <<  SysVar::MsgPrefix() << "Unexpected arguments to executive command: .continue." << endl;
+      return CC_OK;
+    }
     return CC_CONTINUE;
   } else if (cmd("COMPILE")) {
     return CmdCompile(command);
@@ -1575,9 +1579,11 @@ else
 
  RetCode DInterpreter::InnerInterpreterLoop(SizeT lineOffset) {
   ProgNodeP retTreeSave = _retTree;
+  
   for (;;) {
 
-    DInterpreter::CommandCode ret = ExecuteLine(NULL, lineOffset);
+    inInnerInterpreterLoop=true;
+    DInterpreter::CommandCode ret = ExecuteLine(NULL, lineOffset);  //catched errors will be while inInnerInterpreterLoop==true .
 
     _retTree = retTreeSave; // on return, _retTree should be kept
 
@@ -1601,6 +1607,7 @@ else
     else if (ret == CC_RETURN) return RC_RETURN;
     else if (ret == CC_CONTINUE) return RC_OK;
     else if (ret == CC_STEP) return RC_OK;
+    inInnerInterpreterLoop=false;
   }
 }
 
@@ -1868,23 +1875,22 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
         stepCount = 0;
         debugMode = DEBUG_CLEAR;
 
-        if (ret == CC_SKIP) {
-          Message("Can't continue from this point.");
-        }
-        else if (ret == CC_CONTINUE) {
-          if (static_cast<DSubUD*>
-            (callStack.back()->GetPro())->GetTree() != NULL) {
-            if (continueCmd)
-              runCmd = true;
-            else {
+          if (ret == CC_CONTINUE) {
+            if (static_cast<DSubUD*>
+                (callStack.back()->GetPro())->GetTree() != NULL) {
+              if (continueCmd)
+                runCmd = true;
+              else {
+                cout << SysVar::MsgPrefix() <<
+                    "Starting at: $MAIN$" << endl;
+                continueCmd = true;
+              }
+            } else
               cout << SysVar::MsgPrefix() <<
-                "Starting at: $MAIN$" << endl;
-              continueCmd = true;
-            }
-          } else
-            cout << SysVar::MsgPrefix() <<
-            "Cannot continue from this point." << endl;
-        }
+              "Cannot continue from this point." << endl;
+          } else if (ret != CC_OK) {
+            Message("Can't continue from this point.");
+          }
 		}
       }
     }    catch (RetAllException& retAllEx) {
