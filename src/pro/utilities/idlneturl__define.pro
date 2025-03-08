@@ -29,12 +29,12 @@
 ; ----------------------------------------------------
 ;
 ;
-function get_percent
-  openr,lun,"/tmp/pb",/get
+function get_percent,lun
+  if eof(lun) then return,0
   a=''
   readf,lun,a,format='(A)'
-  percent=0.01*strmid(a,5,5,/rever)
-  free_lun,lun
+  if strlen(a) lt 5 then return,0
+  percent=0.01*strmid(a,5,5,/rev)
   return, percent
 end
 
@@ -54,7 +54,7 @@ function idlneturl::format_response_header,stringarray,response_header_size
   if n_elements(stringarray) gt 4+n then response=stringarray[n:-5] else response=''
   return, response
 end
-
+; create response header
 pro idlneturl::copy_header_to_response_header,header_filename
 ;;;    linefeed=string([10b,13b]) ; HTTP/1.1 defines the sequence CR LF as the end-of-line marker for all protocol elements except the entity-body
   self.response_header=''
@@ -68,6 +68,20 @@ pro idlneturl::copy_header_to_response_header,header_filename
 end
 
 function idlneturl::Get,       BUFFER=buffer, FILENAME=filename,            STRING_ARRAY=string_array, FTP_EXPLICIT_SSL=ftp_explicit_ssl, URL=url
+  echocode='; echo $? '
+  nowait="&"
+  iswindows=0
+  if !version.os_family eq 'Windows' then begin
+     echocode='& echo %ERRORLEVEL%'
+     nowait=""
+     iswindows=1
+  endif
+  
+  TMPDIR=getenv("IDL_TMPDIR") ; contains path_sep();  returns ok even on windows.
+  mycurl='curl'
+  if getenv("IDLNETURL_CODE") ne ""  then mycurl='curl --libcurl '+TMPDIR+'libcurl-code.c '
+  verbose=getenv("IDLNETURL_VERBOSE") ne ""
+
   if n_elements(filename) eq 0  then filename='idl.dat'
   if (STRLEN(self.URL_QUERY) GT 0) then filename=self.URL_QUERY
 
@@ -143,10 +157,10 @@ function idlneturl::Get,       BUFFER=buffer, FILENAME=filename,            STRI
 ; asynchronously, we would have to wait until the entire file has
 ; been downloaded. When we write this function directly in GDL using
 ; libcurl, things will be way esaier.
-  curl_asyn_get_headers='curl -LI --silent --show-error --include '                                                             ; will get only headers
+  curl_asyn_get_headers=mycurl+' -LI --silent --show-error --include '                                                             ; will get only headers
   curl_asyn_get_headers+='--write-out "%{size_header}\n%{content_type}\n%{response_code}\n%{size_download}\n" '    ; we get some useful values
-  cmd=curl_asyn_get_headers+id_cmd+'; echo $? '
-  if self.verbose then print, cmd
+  cmd=curl_asyn_get_headers+id_cmd+echocode
+  if verbose then print, cmd
   SPAWN, cmd, result, errResult
   return_code=long(result[-1])
   if return_code ne 0 then begin ; something went wrong, get the curl return value "$?"
@@ -197,41 +211,49 @@ function idlneturl::Get,       BUFFER=buffer, FILENAME=filename,            STRI
 ; number of bytes downloaded at each instant, aka progress_info[2]
 ; of course if the transfer encoding is not 'chunked'.
 
-     curl_asyn_get_all='curl -L --progress-bar -o "'+filename+'" ' ; will use progressbar values, but alas need output in external file.
-; remove /tmp/pb
-     file_delete,'/tmp/pb',/allow_nonexistent,/quiet,/noexpand_path
+     curl_asyn_get_all=mycurl+' -L --progress-bar -o "'+filename+'" ' ; will use progressbar values, but alas need output in external file.
+     pb=TMPDIR+'pb' ; progressbar
+; remove progressbar sort of
+     file_delete,pb,/allow_nonexistent,/quiet,/noexpand_path
      
-     cmd=curl_asyn_get_all+id_cmd+" 2>/tmp/pb &"
-; will send data to filename and have the progressbar in /tmp/pb
-     if self.verbose then  print, cmd
+     cmd=curl_asyn_get_all+id_cmd+' 2>'+pb+nowait
+; will send data to filename and have the progressbar in pb
+     if verbose then  print, cmd
      
-     SPAWN, cmd 
+     if iswindows then SPAWN, cmd, /nowait else SPAWN, cmd 
      StatusInfo="Downloading..."
      time=0d
-     while (file_test('/tmp/pb') eq 0 and time le 1 ) do begin
+     while (file_test(pb) eq 0 and time le 5 ) do begin
         wait,0.1
         time+=0.1
      end
-     if (time ge 1) then goto,done ; curl did not even create the progressbar (? to fast or problem?) , skip callback
+     if (time ge 5) then goto,done ; curl did not even create the progressbar (? to fast or problem?) , skip callback
+     openr,lun,pb,/get
      ProgressInfo=[1LL,content_length,0LL,0LL,0LL]
      while 1 do begin
-        wait,1
-        percent=get_percent()
-        if percent ge 1 then ProgressInfo[2]=content_length else ProgressInfo[2]=percent*content_length
-        if call_function(self.CALLBACK_FUNCTION, StatusInfo, ProgressInfo, Callback_Data ) eq 0 then break ;
-        if  percent ge 1 then break                                                                        ;
-     end
+        percent=get_percent(lun)
+        if percent ge 1 then break                                                                        ;
+        ProgressInfo[2]=percent*content_length
+        if call_function(self.CALLBACK_FUNCTION, StatusInfo, ProgressInfo, Callback_Data ) eq 0 then begin
+           free_lun,lun
+           goto, fin
+        endif
+        wait,0.1
+     endwhile
+     free_lun,lun
 done:
+     ProgressInfo[2]=content_length
+     ret=call_function(self.CALLBACK_FUNCTION, StatusInfo, ProgressInfo, Callback_Data )
   endif else begin
 no_callback:
 ; GD:
 ; if there is no callback function, directly get the file as we do not
 ; need to be asynchronous. Best is to create the 'filename' directly.
 
-     curl_syn='curl -L --dump-header "/tmp/idlneturl_header.txt" --silent --show-error -o "'+filename+'" ' 
+     curl_syn=mycurl+' -L --dump-header "'+TMPDIR+'idlneturl_header.txt" --silent --show-error -o "'+filename+'" ' 
      curl_syn+='--write-out "%{content_type}\n%{response_code}\n" '    ; we get some useful values
-     cmd=curl_syn+curl_cmd+id_cmd+'; echo $? '
-     if self.verbose then print, cmd
+     cmd=curl_syn+curl_cmd+id_cmd+echocode
+     if verbose then print, cmd
      SPAWN, cmd, result, errResult, count=nblines
      return_code=long(result[-1])
      if return_code ne 0 then begin ; something went wrong, get the curl return value "$?"
@@ -242,9 +264,9 @@ no_callback:
      endif
      self.content_type=result[0]
      self.response_code=long(result[1])
-     self->idlneturl::copy_header_to_response_header,"/tmp/idlneturl_header.txt" ; will be destroyed when this procedure is run
+     self->idlneturl::copy_header_to_response_header,TMPDIR+'idlneturl_header.txt' ; will be destroyed when this procedure is run
   endelse
-  
+fin:  
 ; clear headers property as specified in documentation
   self->idlneturl::SetProperty,HEADERS = ''
      
@@ -261,7 +283,9 @@ no_callback:
      file_delete,filename
      return, response
   endif else if KEYWORD_SET(string_array) then begin
-     n=file_lines(filename)
+     n=1
+     istext=strpos('text/',self.content_type) ge 0
+     if istext then n=file_lines(filename)
      s="" & resp=strarr(n)
      openr,lun,filename,/get
      for i=0,n-1 do begin & readf,lun,s & resp[i]=s & end
@@ -313,6 +337,13 @@ end
 
 
 function idlneturl::Put, data, BUFFER=buffer, FILENAME=filename, POST=post, STRING_ARRAY=string_array, FTP_EXPLICIT_SSL=ftp_explicit_ssl, URL=url
+  echocode='; echo $? '
+  if !version.os_family eq 'Windows' then echocode='& echo %ERRORLEVEL%'
+  mycurl='curl'
+  
+  TMPDIR=getenv("IDL_TMPDIR") ; contains path_sep();  returns ok even on windows.
+  if getenv("IDLNETURL_CODE") ne ""  then mycurl='curl --libcurl '+TMPDIR+'libcurl-code.c '
+  verbose=getenv("IDLNETURL_VERBOSE") ne ""
 ; data is?
   action=" "                                                                                   ; send raw data
   if ~KEYWORD_SET(post) then action=" --request PUT "+action ; POST is by default
@@ -325,17 +356,17 @@ function idlneturl::Put, data, BUFFER=buffer, FILENAME=filename, POST=post, STRI
            action+="' "
          endelse
      endif else begin
-        openw,lun,"/tmp/binary",/get
+        openw,lun,TMPDIR+'binary',/get
         writeu,lun,data
         free_lun,lun
         action+=' -H "Content-Type: application/octet-stream" --data-binary '
-        action+="@/tmp/binary" ; send as filename
+        action+='@'+TMPDIR+'binary' ; send as filename
      endelse
   endif else begin
      action+="'"+"@"+string(data)+"' " ; send as filename or not
   endelse
   ; if string_array is not set, we'll get the data in this file
-  oufile='/tmp/idl.dat'
+  oufile=TMPDIR+'idl.dat'
   if (STRLEN(self.URL_QUERY) GT 0) then oufile=self.URL_QUERY
   
   if n_elements(url) gt 0 then begin
@@ -394,11 +425,11 @@ function idlneturl::Put, data, BUFFER=buffer, FILENAME=filename, POST=post, STRI
 ; timeout
   if self.timeout gt 0 then curl_cmd+='--max-time '+strtrim(self.timeout,2)+' '
 
-  curl_syn='curl -L --dump-header "/tmp/idlneturl_header.txt" --silent --show-error '                                                        ; will get only headers
+  curl_syn=mycurl+' -L --dump-header "'+TMPDIR+'idlneturl_header.txt" --silent --show-error '                                                        ; will get only headers
   curl_syn+='--write-out "%{content_type}\n%{response_code}\n" '    ; we get some useful values
   curl_syn+=' -o "'+oufile+'" ' ; we always ask for a file to separate contents from '--write-out' header
-  cmd=curl_syn+curl_cmd+action+id_cmd+'; echo $? '
-  if self.verbose then print, cmd
+  cmd=curl_syn+curl_cmd+action+id_cmd+echocode
+  if verbose then print, cmd
   SPAWN, cmd, result, errResult
   return_code=long(result[-1])
   if return_code ne 0 then begin ; something went wrong, get the curl return value "$?"
@@ -409,12 +440,14 @@ function idlneturl::Put, data, BUFFER=buffer, FILENAME=filename, POST=post, STRI
   endif
   self.content_type=result[0]
   self.response_code=long(result[1])
-  self->idlneturl::copy_header_to_response_header,"/tmp/idlneturl_header.txt" ; will be destroyed when this procedure is run
+  self->idlneturl::copy_header_to_response_header,TMPDIR+'idlneturl_header.txt' ; will be destroyed when this procedure is run
 ; clear headers property as specified in documentation
   self->idlneturl::SetProperty,HEADERS = ''
 ; return:     
   if KEYWORD_SET(string_array) then begin
-     n=file_lines(oufile)
+     n=1
+     istext=strpos('text/',self.content_type) ge 0
+     if istext then n=file_lines(filename)
      resp=strarr(n) & s=''
      openr,lun,oufile,/get
      for i=0,n-1 do readf,lun,s & resp[i]=s

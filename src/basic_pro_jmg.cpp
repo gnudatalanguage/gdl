@@ -21,7 +21,7 @@
 #include <string>
 #include <fstream>
 #include <limits>
-
+#include "gdleventhandler.hpp"
 #include "dinterpreter.hpp"
 #include "basic_pro_jmg.hpp"
 
@@ -548,6 +548,7 @@ namespace lib {
       retval=nanosleep(&tv,NULL);
     }
 #endif
+    GDLEventHandler(); //this is probably not OK, but is at the moment needed to permit delivery of callback functions in idlneturl__define.pro where a waiting loop uses teh WAIT command.
   }
 
 

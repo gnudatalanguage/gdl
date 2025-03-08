@@ -1018,7 +1018,7 @@ namespace SysVar
     ver->NewTag("OS_NAME", new DStringGDL(SysName));
 #endif
 
-    ver->NewTag("RELEASE", new DStringGDL( "7.0")); //Reasonable value as we do not have the new graphic functions.
+    ver->NewTag("RELEASE", new DStringGDL( "8.4")); //Reasonable value to attain some day (for example, we do not have the new graphic functions).
     ver->NewTag("BUILD_DATE", new DStringGDL(BUILD_DATE));
     ver->NewTag("MEMORY_BITS", new DIntGDL( sizeof(BaseGDL*)*8));
     ver->NewTag("FILE_OFFSET_BITS", new DIntGDL( sizeof(SizeT)*8));
