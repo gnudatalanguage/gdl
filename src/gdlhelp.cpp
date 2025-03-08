@@ -1220,7 +1220,7 @@ void help_help(EnvT* e)
 
 	if ((nParam == 0 and !isKWSetMemory) or isKWSetFunctions or isKWSetProcedures) {
 
-	  if (nParam == 0 and !isKWSetFunctions and !isKWSetProcedures and !routinesKW)	SimpleDumpStack(e, *ostrp);
+	  if (nParam == 0 and !isKWSetFunctions and !isKWSetProcedures and !routinesKW and !isKWSetNames)	SimpleDumpStack(e, *ostrp);
 
 	  if (isKWSetProcedures or routinesKW) {
 		*ostrp << "Compiled Procedures:\n$MAIN$\n";
