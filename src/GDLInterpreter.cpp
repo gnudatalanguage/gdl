@@ -83,36 +83,21 @@ GDLInterpreter::GDLInterpreter()
 		
 		//optimize speed: differentiate inner loops to avoid one externally implicit comparison on controlc for each loop (if possible)
 		if (interruptEnable) { //will test for sigControlC
-		{
 			do {
 			  last = _retTree;
 			  callStack.back()->SetLineNumber(last->getLine()); // track actual line number
 			  retCode = last->Run(); // Run() sets _retTree
 			} while (_retTree != NULL && retCode == RC_OK && !(sigControlC) && (debugMode <= DEBUG_RETURN)); //loops if debug_clear or debug_return
 			if (_retTree != NULL) last = _retTree; //this is OK see https://github.com/gnudatalanguage/gdl/issues/1403#issuecomment-1326490113
-			goto afterStatement;
-		}
 		} else { //will not test for sigControlC 
-		{
 			do {
-			  last = _retTree;
+			   last = _retTree;
 			  callStack.back()->SetLineNumber(last->getLine()); // track actual line number
 			  retCode = last->Run(); // Run() sets _retTree
-			} while (_retTree != NULL && retCode == RC_OK && (debugMode <= DEBUG_RETURN)); //loops if debug_clear or debug_return
-			if (_retTree != NULL) last = _retTree; //this is OK see https://github.com/gnudatalanguage/gdl/issues/1403#issuecomment-1326490113
-			goto afterStatement;
-		}
-		}
-		// original single loop with all checks    
-		//    {
-		//      do {
-		//	last = _retTree;
-		//	callStack.back()->SetLineNumber(last->getLine()); // track actual line number
-		//	retCode = last->Run(); // Run() sets _retTree
-		//      } while (_retTree != NULL && retCode == RC_OK && !(sigControlC && interruptEnable) && (debugMode <= DEBUG_RETURN)); //loops if debug_clear or debug_return
-		//      if (_retTree != NULL) last = _retTree; //this is OK see https://github.com/gnudatalanguage/gdl/issues/1403#issuecomment-1326490113
-		//      goto afterStatement;
-		//    }
+			  } while (_retTree != NULL && retCode == RC_OK && (debugMode <= DEBUG_RETURN)); //loops if debug_clear or debug_return
+			  if (_retTree != NULL) last = _retTree; //this is OK see https://github.com/gnudatalanguage/gdl/issues/1403#issuecomment-1326490113
+			}
+		goto afterStatement;
 		
 		// The following code (up to afterStatement is never executed - here only because ANTLR code needs it, although it should not (not optimized parser) 
 		
@@ -422,7 +407,12 @@ GDLInterpreter::GDLInterpreter()
 			debugMode = DEBUG_CLEAR;
 			retCode = NewInterpreterInstance(last->getLine()); //-1);
 		} else {
-			retCode = RC_ABORT;
+		if (debugMode == DEBUG_PROCESS_STOP) {
+		debugMode = DEBUG_CLEAR;
+		retCode = NewInterpreterInstance(last->getLine());
+		} else {
+		retCode = RC_ABORT;
+		}
 		}
 		}
 		return retCode;
