@@ -135,13 +135,6 @@ namespace lib {
     //Voigt ( scalar , array )
     if (nElp0 == 1 && nElp1 > 1)
       {
-	/* obsolete !!	if ((A->Rank() > 0) && (SysVar::GDL_Warning())) {
-	  Warning ( "You are using a case where IDL and GDL don't work similarly:");
-	  Warning ( "in Voigt(A,U), A is a singleton array and U a true array: check your code !");
-	  Warning ( "in GDL: Voigt(1,[0,1,2]) == Voigt([1],[0,1,2]) == Voigt([1,1,1],[0,1,2]).");
-	  Warning ( "You can turn OFF this warning changing !GDL_WARNING to 0.");
-	  }
-	*/
 
 	for (i=0;i<nElp;++i)
 	  {
@@ -165,14 +158,6 @@ namespace lib {
     // Voigt ( array , scalar)   
     if (nElp0 > 1 && nElp1 == 1)
       {
-	/* obsolete !!
-	if ((U->Rank() > 0) && (SysVar::GDL_Warning())) {
-	  Warning ( "You are using a case where IDL and GDL don't work similarly:");
-	  Warning ( "in Voigt(A,U), U is a singleton array and A a true array: check your code !");
-	  Warning ( "in GDL: Voigt([0,1,2], 1) == Voigt([0,1,2],[1]) == Voigt([0,1,2],[1,1,1]).");
-	  Warning ( "You can turn OFF this warning changing !GDL_WARNING to 0.");
-	  }
-	*/
        
 	for (i=0;i<nElp;++i)
 	  { 
