@@ -284,7 +284,7 @@ fin:
      return, response
   endif else if KEYWORD_SET(string_array) then begin
      n=1
-     istext=strpos('text/',self.content_type) ge 0
+     istext=strpos(self.content_type,'text/') ge 0
      if istext then n=file_lines(filename)
      s="" & resp=strarr(n)
      openr,lun,filename,/get
@@ -446,7 +446,7 @@ function idlneturl::Put, data, BUFFER=buffer, FILENAME=filename, POST=post, STRI
 ; return:     
   if KEYWORD_SET(string_array) then begin
      n=1
-     istext=strpos('text/',self.content_type) ge 0
+     istext=strpos(self.content_type,'text/') ge 0
      if istext then n=file_lines(filename)
      resp=strarr(n) & s=''
      openr,lun,oufile,/get
