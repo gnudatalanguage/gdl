@@ -348,7 +348,7 @@ pro test_widgets,table,help=help,nocanvas=nocanvas,notree=notree,block=block,fon
   green_bmp= bytarr(7,7,3)& green_bmp[*,*,1] = 255& & green_bmp[0,0,1] = 254
   red_bmp= bytarr(7,7,3)& red_bmp[*,*,0] = 255& & red_bmp[0,0,0] = 254
   if (n_elements(select) gt 0) then present=select
-  if (n_elements(present) eq 0) then present=['TEXT','LIST','DRAW','SLIDER','BUTTON','TABLE','TREE','LABEL','DROPLIST','COMBOBOX','BASE']
+  if (n_elements(present) gt 0) then present=strupcase(temporary(present)) else present=['TEXT','LIST','DRAW','SLIDER','BUTTON','TABLE','TREE','LABEL','DROPLIST','COMBOBOX','BASE']
 count=0
 title='GDL Widget Examples'
 DEFSYSV, '!gdl', exists=isGDL
@@ -753,8 +753,6 @@ widget_control, labeltoupdate, set_value="Text2 has been replaced with widget_co
 
 ; overwrite buttons;
    for iRow=0,nRows-1 do widget_control,fileButtons[iRow], set_value="Y"
-;;
-
 
 endif
 
@@ -799,5 +797,5 @@ endif
 ; create a timer event --- otherwise will not be active and thus not catched in eventloop
 widget_control,progressbar,timer=0
 
-xmanager,"handle",base,cleanup="cleanup_xmanager";,no_block=~block
+xmanager,"handle",base,cleanup="cleanup_xmanager",no_block=~block
 end

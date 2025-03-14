@@ -1244,7 +1244,7 @@ void GDLWidget::SendWidgetTimerEvent(int millisecs) {
       m_windowTimer = new wxTimer(w->GetEventHandler(), widgetID);
     }
 #ifdef GDL_DEBUG_WIDGETS
-    std::cerr << "sending event," << widgetID << "," << m_windowTimer << std::endl;
+    std::cerr << "SendWidgetTimerEvent: " << widgetID << "," << m_windowTimer << std::endl;
 #endif
     m_windowTimer->StartOnce(millisecs);
   }
@@ -1269,12 +1269,12 @@ void GDLWidget::HandleUnblockedWidgetEvents()
         GDLDelete( ev );
         ev = NULL;
       }
-	  CallWXEventLoop(); // eneble results of above in the widgets
+	  CallWXEventLoop(); // enable results of above in the widgets
     }
     if (wxIsBusy()) wxEndBusyCursor( );
   }
 
-void GDLWidget::PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev) {
+void GDLWidget::PushEvent(DStructGDL* ev) {
       widgetEventQueue.PushBack( ev );
 }
 
@@ -1628,7 +1628,8 @@ void GDLWidget::SetFocus() //gives focus to the CHILD of the panel.
   wxWindow *me=dynamic_cast<wxWindow*>(this->GetWxWidget()); if (me!=NULL) me->SetFocus(); else cerr<<"Setting Focus for unknown widget!\n";
 }
   void GDLWidget::SetWidgetPosition(DLong posx, DLong posy){
-  // -1: not set ---> keep the same
+ START_CHANGESIZE_NOEVENT
+     // -1: not set ---> keep the same
     wxWindow* me=static_cast<wxWindow*>(theWxContainer);
     if (me) {
       wxPoint where=me->GetPosition();
@@ -1636,7 +1637,7 @@ void GDLWidget::SetFocus() //gives focus to the CHILD of the panel.
       if (posy >= 0) where.y=posy;
       me->Move(where);
     } else cerr<<"set offset on non-existent widget!"<<endl;
-
+END_CHANGESIZE_NOEVENT
     UpdateGui();
 
   }

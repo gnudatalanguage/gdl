@@ -272,7 +272,7 @@ void CallEventPro( const std::string& p, BaseGDL* p0, BaseGDL* p1 ) {
 #endif      
 }
 
-DStructGDL* CallEventHandler( DStructGDL* ev ) {
+DStructGDL* CallEventHandler( DStructGDL* ev,  bool recursive ) {
   // Must work in good harmony with WIDGET_EVENT requirements.
   // for one event, start from the originating widget and go through the list of parents, 
   // and process the first event-related procedure associated.
@@ -281,7 +281,6 @@ DStructGDL* CallEventHandler( DStructGDL* ev ) {
   // If the top of the hierarchy is attained without ev being swallowed by an event handler, return ev.
   // Empty events (success) are returned in any other case.
 #ifdef HAVE_LIBWXWIDGETS
-  
 
   static int idIx = 0 ; //ev->Desc( )->TagIndex( "ID" ); // 0
   static int topIx = 1; //ev->Desc( )->TagIndex( "TOP" ); // 1
@@ -323,7 +322,6 @@ DStructGDL* CallEventHandler( DStructGDL* ev ) {
       return NULL;
     }
     
-    static int handlerIx = ev->Desc( )->TagIndex( "HANDLER" );
     DLong handlerCode = (*static_cast<DLongGDL*> (ev->GetTag( handlerIx, 0 )))[0];
 
     GDLDelete( ev );
@@ -338,9 +336,6 @@ DStructGDL* CallEventHandler( DStructGDL* ev ) {
 
     return NULL; //= OK 
   }
-  
-  //No handler yet: set value to 0
-  (*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0] = 0;
   do {
 #ifdef GDL_DEBUG_WIDGETS          
     std::cout << "searching event handler with: " + i2s(actID) << std::endl;
@@ -358,27 +353,32 @@ DStructGDL* CallEventHandler( DStructGDL* ev ) {
 #ifdef GDL_DEBUG_WIDGETS          
       std::cout << "CallEventPro: " + eventHandlerPro + " on " + i2s(actID) << std::endl;
 #endif
-      CallEventPro(eventHandlerPro, ev->Dup()); // swallows ev according to the doc, thus:
-      break; // out of while
+      CallEventPro(eventHandlerPro, ev); // swallows ev according to the doc, thus:
+      return NULL; // out of while
     }
     DString eventHandlerFun = widget->GetEventFun();
     if (eventHandlerFun != "") {
-      //this a posteriori (not issued in gdlwidgeteventhandler, where handler=topFrame is the default) will define me (actID) as the handler of this event,
-      //which is OK as long as the ID of the originating event is eitehr me or one of my children..
-      (*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0] = actID; //handler ID marked.
 #ifdef GDL_DEBUG_WIDGETS
       std::cout << "CallEventFunc: " + eventHandlerFun + " on " + i2s(actID) << std::endl;
 #endif
-	  DStructGDL* evstart=(DStructGDL*)(ev)->Dup();
+      (*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0] = actID;
       BaseGDL* retVal = CallEventFunc(eventHandlerFun, ev); // grabs ev
 	  //will test if ev is unchanged:
-      if (retVal->Type() == GDL_STRUCT) {
+      if (recursive && retVal->Type() == GDL_STRUCT) {
         ev = static_cast<DStructGDL*> (retVal);
         if (ev->Desc()->TagIndex("ID") != idIx || ev->Desc()->TagIndex("TOP") != topIx || ev->Desc()->TagIndex("HANDLER") != handlerIx) {
           GDLDelete(ev);
           throw GDLException(eventHandlerFun + ": Event handler return struct must contain ID, TOP, HANDLER as first tags.");
         }
-		GDLDelete(evstart);
+        (*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0] = actID;
+//        if ( ev->Desc()->Name() == evstart->Desc()->Name() ) return ev; //stop looking up
+//        actID=(*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0]; //get returned ev id
+//        if (actID == GDLWidget::NullID) return NULL; //swallowed
+//        if (actID == widget->GetWidgetID()) return ev;
+//		bool doReturn = ( (*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0] == (*static_cast<DLongGDL*> (evstart->GetTag(handlerIx, 0)))[0] );
+//        eventHandlerFun = widget->GetEventFun();
+//        if (doReturn) doReturn=(initialEventHandlerFun==eventHandlerFun); //handler did not change the handler fun
+//		if (doReturn) return ev; //apparently, this is a case where a function should return, at least this patch solves PLOTMAN's panel problem see #1685
       } else { //not a struct, same as a procedure, has swallowed the event
         ev = NULL;
         return ev; 
@@ -388,7 +388,7 @@ DStructGDL* CallEventHandler( DStructGDL* ev ) {
     }
     actID = widget->GetParentID(); //go upper in hierarchy
   } while (actID != GDLWidget::NullID);
-  // if we arrve here, all the hierarchy has been traversed 
+  // if we arrive here, all the hierarchy has been traversed 
   (*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0] = 0;
 #endif
   return ev;
@@ -2538,20 +2538,19 @@ BaseGDL* widget_info( EnvT* e ) {
 	  } //end inner loop
 	  //here we got a real event, process it, walking back the hierachy (in CallEventHandler()) for modified ev in case of function handlers.
 	endwait:
-	  if (blockedByXmanager && ev->Desc()->Name() == "*TOPLEVEL_DESTROYED*") {
+	  if (/* blockedByXmanager && */ ev->Desc()->Name() == "*TOPLEVEL_DESTROYED*") {
 		// deleted widgets list are hopefully handled internally by xmanager 
 		GDLDelete(ev);
 		return defaultRes;
 	  }
-	  ev = CallEventHandler(ev); //process it recursively (going up hierarchy) in eventHandler. Should block waiting for xmanager.
-	  // examine return:
-	  if (ev == NULL) { //swallowed by a procedure or non-event-stucture returning function 
+	  ev = CallEventHandler(ev, true); //true: process it recursively (going up hierarchy) in eventHandler. Should block waiting for xmanager.
+    // examine return:
+	  if (ev == NULL) { //swallowed by a procedure or non-event-stucture returning function : looping wait for another event
 		if (nowait) return defaultRes; //else will loop again
 	  } else { // untreated or modified by a function
 		return ev;
 	  }
 	  GDLWidget::CallWXEventLoop();
-
 	} while (infinity);
     return NULL; //pacifier.
 #endif //HAVE_LIBWXWIDGETS
@@ -3164,14 +3163,7 @@ void widget_control( EnvT* e ) {
       if ((val1->Type() != GDL_LONG) || (val2->Type() != GDL_LONG) || (val3->Type() != GDL_LONG)) {
         e->Throw("Invalid SEND_EVENT value.");
       }
-      DLongGDL* lval1 = static_cast<DLongGDL*> (val1);
-      DLongGDL* lval2 = static_cast<DLongGDL*> (val2);
-      DLongGDL* lval3 = static_cast<DLongGDL*> (val3);
-      WidgetIDT baseWidgetID = widget->GetBaseId(widgetID);
-      if ((*lval1)[0] == 0) (*lval1)[0] = widgetID;
-      if ((*lval2)[0] == 0) (*lval2)[0] = baseWidgetID;
-      if ((*lval3)[0] == 0) (*lval3)[0] = baseWidgetID;
-      GDLWidget::PushEvent(baseWidgetID, ev);
+      GDLWidget::PushEvent(ev);
     }
     
   if (clear_events) widget->ClearEvents();
@@ -3384,7 +3376,8 @@ void widget_control( EnvT* e ) {
        DStringGDL* tlbTitle=e->GetKWAs<DStringGDL>( tlbsettitleIx );
        wxString tlbName = wxString( (*tlbTitle)[0].c_str( ), wxConvUTF8 );
        topFrame->SetTitle(tlbName);
-     }
+     } else {
+       topFrame->SetEvtHandlerEnabled(false);
      if (settlbxoffset) {
        DLongGDL* xoffset=e->GetKWAs<DLongGDL>( tlbsetxoffsetIx );
        if (unitsGiven) {
@@ -3398,6 +3391,8 @@ void widget_control( EnvT* e ) {
          wxRealPoint fact=GetRequestedUnitConversionFactor(e);
          topFrame->Move(topFrame->GetPosition().x, (*yoffset)[0]*fact.y  );
        } else  topFrame->Move(topFrame->GetPosition().x, (*yoffset)[0]  );
+        }
+        topFrame->SetEvtHandlerEnabled(true);
      }
   }
 
