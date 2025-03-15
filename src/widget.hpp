@@ -50,5 +50,5 @@ namespace lib {
 
 BaseGDL* CallEventFunc( const std::string& f, BaseGDL* ev);
 void CallEventPro( const std::string& p, BaseGDL* p0, BaseGDL* p1 = NULL);
-DStructGDL* CallEventHandler( DStructGDL* ev, bool recursive=false);
+DStructGDL* CallEventHandler(DStructGDL* ev, bool recursive=false, DLong topRecurs=0);
 #endif

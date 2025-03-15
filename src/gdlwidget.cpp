@@ -1243,7 +1243,7 @@ void GDLWidget::SendWidgetTimerEvent(int millisecs) {
     if (m_windowTimer == NULL) {
       m_windowTimer = new wxTimer(w->GetEventHandler(), widgetID);
     }
-#ifdef GDL_DEBUG_WIDGETS
+#ifdef GDL_DEBUG_WIDGETS_TIMER
     std::cerr << "SendWidgetTimerEvent: " << widgetID << "," << m_windowTimer << std::endl;
 #endif
     m_windowTimer->StartOnce(millisecs);
@@ -1262,7 +1262,7 @@ void GDLWidget::HandleUnblockedWidgetEvents()
     DStructGDL* ev = NULL;
     while( (ev = GDLWidget::widgetEventQueue.Pop()) != NULL)
     {
-      ev = CallEventHandler( ev );
+      ev = CallEventHandler(ev);
 
       if( ev != NULL)
       {

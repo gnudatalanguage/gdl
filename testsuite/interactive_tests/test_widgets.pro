@@ -467,10 +467,10 @@ endif
        draw3 = WIDGET_DRAW(xoff=200,yoff=offy,draw_base,/BUTTON_EVENTS, xsize=100,ysize=100,tooltip="WIGDET_DRAW",EVENT_PRO = 'draw_context',uname='drawToBeDeleted')  & offy+=100 ;
        contextBase = WIDGET_BASE(yoff=offy,draw3, /CONTEXT_MENU,col=2,TITLE="ZZZZZZZZZZZZZZ",UNAME = 'drawContext') & offy+=10;
        b1 = WIDGET_BUTTON(yoff=offy,contextBase, VALUE = 'Delete this draw widget', /SEPARATOR, EVENT_PRO = 'DeleteDraw') 
-       b2 = WIDGET_BUTTON(contextBase, VALUE = 'just an entry') & offy+=10;
-       b2 = WIDGET_BUTTON(contextBase, VALUE = 'just an entry, checked', /check) & offy+=10 ;
+       b2 = WIDGET_BUTTON(contextBase, VALUE = 'deleting this widget (above)') & offy+=10;
+       b2 = WIDGET_BUTTON(contextBase, VALUE = 'will generate an error', /check) & offy+=10 ;
        widget_control,b2,/set_button
-       b2 = WIDGET_BUTTON(contextBase, VALUE = 'just an entry') & offy+=10;
+       b2 = WIDGET_BUTTON(contextBase, VALUE = 'when deleting the other, this is normal.') & offy+=10;
        b3 = WIDGET_BUTTON(contextBase, VALUE = 'a menu', /menu) & offy+=10;
        b4 = WIDGET_BUTTON(b3         , VALUE = 'an item.') & offy+=10;
        b5 = WIDGET_BUTTON(b3         , VALUE = 'Delete this draw widget (again)', /SEPARATOR, EVENT_PRO = 'DeleteDraw')

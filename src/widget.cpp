@@ -272,7 +272,7 @@ void CallEventPro( const std::string& p, BaseGDL* p0, BaseGDL* p1 ) {
 #endif      
 }
 
-DStructGDL* CallEventHandler( DStructGDL* ev,  bool recursive ) {
+DStructGDL* CallEventHandler(DStructGDL* ev,  bool recursive , DLong topRecurs) {
   // Must work in good harmony with WIDGET_EVENT requirements.
   // for one event, start from the originating widget and go through the list of parents, 
   // and process the first event-related procedure associated.
@@ -337,6 +337,7 @@ DStructGDL* CallEventHandler( DStructGDL* ev,  bool recursive ) {
     return NULL; //= OK 
   }
   do {
+    (*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0] = actID;
 #ifdef GDL_DEBUG_WIDGETS          
     std::cout << "searching event handler with: " + i2s(actID) << std::endl;
 #endif
@@ -370,24 +371,14 @@ DStructGDL* CallEventHandler( DStructGDL* ev,  bool recursive ) {
           GDLDelete(ev);
           throw GDLException(eventHandlerFun + ": Event handler return struct must contain ID, TOP, HANDLER as first tags.");
         }
-        (*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0] = actID;
-//        if ( ev->Desc()->Name() == evstart->Desc()->Name() ) return ev; //stop looking up
-//        actID=(*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0]; //get returned ev id
-//        if (actID == GDLWidget::NullID) return NULL; //swallowed
-//        if (actID == widget->GetWidgetID()) return ev;
-//		bool doReturn = ( (*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0] == (*static_cast<DLongGDL*> (evstart->GetTag(handlerIx, 0)))[0] );
-//        eventHandlerFun = widget->GetEventFun();
-//        if (doReturn) doReturn=(initialEventHandlerFun==eventHandlerFun); //handler did not change the handler fun
-//		if (doReturn) return ev; //apparently, this is a case where a function should return, at least this patch solves PLOTMAN's panel problem see #1685
       } else { //not a struct, same as a procedure, has swallowed the event
         ev = NULL;
         return ev; 
       }
-      // returned struct is a new ev:
-      // FUNCTION --> no break, will go up to the top or exit if consumed.!
+      // FUNCTION --> no break, will go up to the topRecurs or exit if consumed.!
     }
     actID = widget->GetParentID(); //go upper in hierarchy
-  } while (actID != GDLWidget::NullID);
+  } while (actID >= topRecurs);
   // if we arrive here, all the hierarchy has been traversed 
   (*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0] = 0;
 #endif
@@ -803,7 +794,10 @@ BaseGDL* widget_draw( EnvT* e ) {
     else if (val==1)  {eventFlags |=  GDLWidget::EV_KEYBOARD;}
   }
   DStringGDL* tooltipgdl=NULL;
-  if (e->KeywordPresentAndDefined(TOOLTIP)) tooltipgdl = e->GetKWAs<DStringGDL>(TOOLTIP) ;
+  if (e->KeywordPresentAndDefined(TOOLTIP)) {
+    tooltipgdl = e->GetKWAs<DStringGDL>(TOOLTIP) ;
+    if (tooltipgdl->N_Elements() > 1) e->Throw("Expression must be a scalar or 1 element array in this context: " + e->GetString(TOOLTIP));
+  }
   GDLWidgetDraw* draw=new GDLWidgetDraw( parentID, e, -1, x_scroll_size, y_scroll_size, app_scroll, eventFlags, tooltipgdl);
   if (e->KeywordPresent(COLOR_MODEL)) static_cast<gdlwxDrawPanel*>(draw->GetWxWidget())->SetUndecomposed(); 
   if (draw->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN ) draw->SetWidgetType( GDLWidget::WIDGET_DRAW );
@@ -1139,8 +1133,10 @@ BaseGDL* widget_draw( EnvT* e ) {
 
   DStringGDL* tooltipgdl = NULL;
   GDLWidgetButton* button;
-  if (e->KeywordPresentAndDefined(TOOLTIP)) tooltipgdl = e->GetKWAs<DStringGDL>(TOOLTIP);  
-  
+    if (e->KeywordPresentAndDefined(TOOLTIP)) {
+      tooltipgdl = e->GetKWAs<DStringGDL>(TOOLTIP);
+      if (tooltipgdl->N_Elements() > 1) e->Throw("Expression must be a scalar or 1 element array in this context: " + e->GetString(TOOLTIP));
+    }
   
   DString strvalue = "button"+i2s(buttonNumber++); //tested default!
 
@@ -2296,7 +2292,7 @@ BaseGDL* widget_info( EnvT* e ) {
         else if (dropevents) return new DLongGDL(thisTreeItem->GetDroppableValue());
         else if (dragnotify) return new DStringGDL(thisTreeItem->GetDragNotifyValue()); //other not implemented!
       } else {
-        if (treebitmap) e->Throw("Expression must be a scalar in this context.");
+        if (treebitmap) e->Throw("Expression must be a scalar in this context: "+e->GetString(TREE_BITMAP));
         BaseGDL* myres;
         bool atLeastOneFound = false;
         // Array Input
@@ -2439,7 +2435,8 @@ BaseGDL* widget_info( EnvT* e ) {
     if (dobadid) e->AssureGlobalKW(badidIx);
 
     SizeT nParam = e->NParam();
-    std::vector<WidgetIDT> widgetIDList;
+    std::vector<WidgetIDT> TrappedWidgetIDList;
+    std::vector<WidgetIDT> TopWidgetIDList;
     std::vector<bool> has_children;
     DLongGDL* p0L = NULL;
     SizeT nEl = 0;
@@ -2459,7 +2456,8 @@ BaseGDL* widget_info( EnvT* e ) {
             e->Throw("Invalid widget identifier:" + i2s((*p0L)[i]));
           }
         }
-        widgetIDList.push_back((*p0L)[i]);
+        TrappedWidgetIDList.push_back((*p0L)[i]);
+        TopWidgetIDList.push_back((*p0L)[i]);
         if (widget->NChildren() > 0) has_children.push_back(true); //NChildren() is more general than IsContainer().
           //At some point, remove the discrepancy between Containers and Menus/Submenus.
           //The latter having a problem wrt the general structure of widgets in that they are on the stack and cannot be treated as "permanent" widgets,
@@ -2467,23 +2465,27 @@ BaseGDL* widget_info( EnvT* e ) {
         else has_children.push_back(false);
       }
       //loop on this list, and add recursively all children when widget is a container.
-      SizeT currentVectorSize = widgetIDList.size();
+      SizeT currentVectorSize = TrappedWidgetIDList.size();
       while (1) {
         for (SizeT i = 0; i < currentVectorSize; i++) {
           if (has_children.at(i)) {
+            WidgetIDT top=TopWidgetIDList.at(i);
             has_children.at(i) = false;
-            GDLWidget *widget = GDLWidget::GetWidget(widgetIDList.at(i));
+            GDLWidget *widget = GDLWidget::GetWidget(TrappedWidgetIDList.at(i));
             DLongGDL* list = static_cast<GDLWidgetContainer*> (widget)->GetChildrenList();
             for (SizeT j = 0; j < list->N_Elements(); j++) {
-              widgetIDList.push_back((*list)[j]);
+              TrappedWidgetIDList.push_back((*list)[j]);
+              TopWidgetIDList.push_back(top);
               if (GDLWidget::GetWidget((*list)[j])->NChildren() > 0) has_children.push_back(true);
               else has_children.push_back(false);
             }
           }
         }
-        if (widgetIDList.size() == currentVectorSize) break; //no changes
-        currentVectorSize = widgetIDList.size();
+        if (TrappedWidgetIDList.size() == currentVectorSize) break; //no changes
+        currentVectorSize = TrappedWidgetIDList.size();
       }
+      assert(currentVectorSize==has_children.size());
+      assert(currentVectorSize==TopWidgetIDList.size());
     } else { //return default zero struct if there is no MANAGED widget on screen
        DLongGDL* res = static_cast<DLongGDL*>( GDLWidget::GetWidgetsList( ) );
        Guard<BaseGDL> guard(res);
@@ -2502,17 +2504,21 @@ BaseGDL* widget_info( EnvT* e ) {
     DLong id;
     int infinity = (nowait) ? 0 : 1;
     DStructGDL* ev;
-
+        
+    WidgetIDT top=-1;
+    
 	do { // outer while loop, will run once if NOWAIT
 	  while (1) { //inner loop, catch controlC, default return if no event trapped in nowait mode
 		GDLWidget::CallWXEventLoop();
+        top=GDLWidget::NullID;
 		if (!all) {
 		  //specific widget(s)
 		  while ((ev = GDLWidget::widgetEventQueue.Pop()) != NULL) { // get event
 			static int idIx = ev->Desc()->TagIndex("ID");
 			id = (*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0]; // get its id
-			for (SizeT i = 0; i < widgetIDList.size(); i++) { //is ID corresponding to any widget in list?
-			  if (widgetIDList.at(i) == id) { //if yes
+			for (SizeT i = 0; i < TrappedWidgetIDList.size(); i++) { //is ID corresponding to any widget in list?
+			  if (TrappedWidgetIDList.at(i) == id) { //if yes
+                top=TopWidgetIDList.at(i);
 				goto endwait;
 			  }
 			}
@@ -2543,7 +2549,7 @@ BaseGDL* widget_info( EnvT* e ) {
 		GDLDelete(ev);
 		return defaultRes;
 	  }
-	  ev = CallEventHandler(ev, true); //true: process it recursively (going up hierarchy) in eventHandler. Should block waiting for xmanager.
+	  ev = CallEventHandler(ev, true, top); //true: process it recursively (going up hierarchy) in eventHandler. Should block waiting for xmanager.
     // examine return:
 	  if (ev == NULL) { //swallowed by a procedure or non-event-stucture returning function : looping wait for another event
 		if (nowait) return defaultRes; //else will loop again
@@ -3538,7 +3544,7 @@ void widget_control( EnvT* e ) {
     static int SET_DROPLIST_SELECT = e->KeywordIx( "SET_DROPLIST_SELECT" );
     if (e->KeywordPresentAndDefined(SET_DROPLIST_SELECT)) {
       DLongGDL* droplistSelection =  e->GetKWAs<DLongGDL>(SET_DROPLIST_SELECT);
-      if (droplistSelection->N_Elements() > 1) e->Throw( "Expression must be a scalar or 1 element array in this context:");
+      if (droplistSelection->N_Elements() > 1) e->Throw( "Expression must be a scalar or 1 element array in this context: " + e->GetString(SET_DROPLIST_SELECT));
       droplist->SelectEntry((*droplistSelection)[0]);
     }    
   }
@@ -3576,7 +3582,7 @@ void widget_control( EnvT* e ) {
     static int SET_COMBOBOX_SELECT = e->KeywordIx( "SET_COMBOBOX_SELECT" );
     if (e->KeywordPresentAndDefined(SET_COMBOBOX_SELECT)) {
       DLongGDL* comboSelection =  e->GetKWAs<DLongGDL>(SET_COMBOBOX_SELECT);
-      if (comboSelection->N_Elements() > 1) e->Throw( "Expression must be a scalar or 1 element array in this context:");
+      if (comboSelection->N_Elements() > 1) e->Throw( "Expression must be a scalar or 1 element array in this context: " + e->GetString(SET_COMBOBOX_SELECT));
       combo->SelectEntry((*comboSelection)[0]);
     }
     static int COMBOBOX_ADDITEM = e->KeywordIx( "COMBOBOX_ADDITEM" );
