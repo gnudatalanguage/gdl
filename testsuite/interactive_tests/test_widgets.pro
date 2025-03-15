@@ -348,7 +348,7 @@ pro test_widgets,table,help=help,nocanvas=nocanvas,notree=notree,block=block,fon
   green_bmp= bytarr(7,7,3)& green_bmp[*,*,1] = 255& & green_bmp[0,0,1] = 254
   red_bmp= bytarr(7,7,3)& red_bmp[*,*,0] = 255& & red_bmp[0,0,0] = 254
   if (n_elements(select) gt 0) then present=select
-  if (n_elements(present) eq 0) then present=['TEXT','LIST','DRAW','SLIDER','BUTTON','TABLE','TREE','LABEL','DROPLIST','COMBOBOX','BASE']
+  if (n_elements(present) gt 0) then present=strupcase(temporary(present)) else present=['TEXT','LIST','DRAW','SLIDER','BUTTON','TABLE','TREE','LABEL','DROPLIST','COMBOBOX','BASE']
 count=0
 title='GDL Widget Examples'
 DEFSYSV, '!gdl', exists=isGDL
@@ -467,10 +467,10 @@ endif
        draw3 = WIDGET_DRAW(xoff=200,yoff=offy,draw_base,/BUTTON_EVENTS, xsize=100,ysize=100,tooltip="WIGDET_DRAW",EVENT_PRO = 'draw_context',uname='drawToBeDeleted')  & offy+=100 ;
        contextBase = WIDGET_BASE(yoff=offy,draw3, /CONTEXT_MENU,col=2,TITLE="ZZZZZZZZZZZZZZ",UNAME = 'drawContext') & offy+=10;
        b1 = WIDGET_BUTTON(yoff=offy,contextBase, VALUE = 'Delete this draw widget', /SEPARATOR, EVENT_PRO = 'DeleteDraw') 
-       b2 = WIDGET_BUTTON(contextBase, VALUE = 'just an entry') & offy+=10;
-       b2 = WIDGET_BUTTON(contextBase, VALUE = 'just an entry, checked', /check) & offy+=10 ;
+       b2 = WIDGET_BUTTON(contextBase, VALUE = 'deleting this widget (above)') & offy+=10;
+       b2 = WIDGET_BUTTON(contextBase, VALUE = 'will generate an error', /check) & offy+=10 ;
        widget_control,b2,/set_button
-       b2 = WIDGET_BUTTON(contextBase, VALUE = 'just an entry') & offy+=10;
+       b2 = WIDGET_BUTTON(contextBase, VALUE = 'when deleting the other, this is normal.') & offy+=10;
        b3 = WIDGET_BUTTON(contextBase, VALUE = 'a menu', /menu) & offy+=10;
        b4 = WIDGET_BUTTON(b3         , VALUE = 'an item.') & offy+=10;
        b5 = WIDGET_BUTTON(b3         , VALUE = 'Delete this draw widget (again)', /SEPARATOR, EVENT_PRO = 'DeleteDraw')
@@ -753,8 +753,6 @@ widget_control, labeltoupdate, set_value="Text2 has been replaced with widget_co
 
 ; overwrite buttons;
    for iRow=0,nRows-1 do widget_control,fileButtons[iRow], set_value="Y"
-;;
-
 
 endif
 
@@ -799,5 +797,5 @@ endif
 ; create a timer event --- otherwise will not be active and thus not catched in eventloop
 widget_control,progressbar,timer=0
 
-xmanager,"handle",base,cleanup="cleanup_xmanager";,no_block=~block
+xmanager,"handle",base,cleanup="cleanup_xmanager",no_block=~block
 end

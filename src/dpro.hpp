@@ -318,7 +318,7 @@ public:
   bool RetConstant() { return this->retConstant;}
 };
 // direct call functions must have:
-// ony one parameter, no keywords
+// only one parameter, no keywords
 // these functions are called "direct", no environment is created
 class DLibFunDirect: public DLibFunRetNew
 {

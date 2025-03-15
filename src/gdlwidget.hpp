@@ -21,6 +21,7 @@
 
 #ifdef HAVE_LIBWXWIDGETS
 // #define GDL_DEBUG_WIDGETS
+// #define GDL_DEBUG_WIDGETS_TIMER //only to show when a timer event is EMITTED.
 // #define GDL_DEBUG_WIDGETS_COLORIZE
 
 // use "plain menubars" instead of 'taskbars used as menubars'. taskbars permit to change font in bar, put pixmaps instead of text, and will work
@@ -397,7 +398,7 @@ public:
   static wxFont systemFont;
   static GDLEventQueue BlockingEventQueue;
   static GDLEventQueue widgetEventQueue;
-  static void PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev);
+  static void PushEvent(DStructGDL* ev);
   static void InformAuthorities(const std::string& message);
   
   static void HandleUnblockedWidgetEvents();
@@ -710,7 +711,11 @@ public:
     }
    }
   
-  const DString& GetEventPro() const { return eventPro;};
+  const DString& GetEventPro() const {
+#ifdef GDL_DEBUG_WIDGETS
+    wxMessageOutputStderr().Printf(_T("GetEventPro: \"%s\" for %d\n"),eventPro, widgetID);
+#endif
+	return eventPro;};
   
   void SetEventFun( const DString& eFun) {
     eventFun = StrUpCase(eFun);
@@ -721,7 +726,11 @@ public:
       bool found = GDLInterpreter::SearchCompilePro(eventFun, false); // false -> search for function
     }
   }
-  const DString& GetEventFun() const { return eventFun;}
+  const DString& GetEventFun() const { 
+#ifdef GDL_DEBUG_WIDGETS
+    wxMessageOutputStderr().Printf(_T("GetEventFun: \"%s\" for %d\n"),eventFun, widgetID);
+#endif
+return eventFun;}
   void SetNotifyRealize( const DString& eNR) { notifyRealize = StrUpCase( eNR);}
   const DString& GetNotifyRealize() const { return notifyRealize;}
   void SetKillNotify( const DString& eKN) { killNotify = StrUpCase( eKN);}
