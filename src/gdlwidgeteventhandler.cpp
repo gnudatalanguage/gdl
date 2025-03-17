@@ -145,7 +145,7 @@ void wxTextCtrlGDL::OnChar(wxKeyEvent& event ) {
       widg->InitTag( "CH", DByteGDL( 10 ) );
       GDLWidget::PushEvent(widg);
       if (txt->IsMultiline()) event.Skip( );
-      return;
+        return;
       }
       event.Skip( );
       return;
@@ -202,6 +202,8 @@ void wxTextCtrlGDL::OnChar(wxKeyEvent& event ) {
         return;
         break;
       case WXK_TAB:
+        //On UNIX,For single-line text widgets, the value of the TAB_MODE keyword is ignored, keypress events are not generated for the Tab key, and tab characters are not inserted into the text field. 
+        if (!(txt->IsMultiline())) return; 
         widg = new DStructGDL( "WIDGET_TEXT_CH" );
         widg->InitTag( "ID", DLongGDL( event.GetId( ) ) );
         widg->InitTag( "HANDLER", DLongGDL( event.GetId( ) ) );
@@ -210,8 +212,11 @@ void wxTextCtrlGDL::OnChar(wxKeyEvent& event ) {
         widg->InitTag( "OFFSET", DLongGDL( from ) );
         widg->InitTag( "CH", DByteGDL( 9 ) );
         GDLWidget::PushEvent(widg);
-        //if (!edit) event.Skip( ); //do NOT skip
-        if (edit) this->WriteText("\t"); //necessary!
+        if (edit) {
+          this->SetEvtHandlerEnabled(false);
+          this->WriteText("\t"); //necessary!
+          this->SetEvtHandlerEnabled(true);
+        }
         return;
         break;
       case WXK_RETURN: //important, *DL returns CH=10 instead of 13 for <CR>
@@ -223,8 +228,11 @@ void wxTextCtrlGDL::OnChar(wxKeyEvent& event ) {
         widg->InitTag( "OFFSET", DLongGDL( from ) );
         widg->InitTag( "CH", DByteGDL( 10 ) );
         GDLWidget::PushEvent(widg);
-	  if (edit) this->WriteText("\n"); //necessary!
-        if (edit) event.Skip( );
+	    if (edit && txt->IsMultiline()) {
+          this->SetEvtHandlerEnabled(false);
+          this->WriteText("\n"); //necessary!
+          this->SetEvtHandlerEnabled(true);
+        }
         return;
         break;
     }

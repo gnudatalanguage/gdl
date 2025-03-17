@@ -426,6 +426,8 @@ if total(strcmp('TEXT',present,/fold)) then begin
                      xsize=20, ysize=5,/wrap,/all_events) & offy+=50 ;
    label=widget_label(yoff=offy,text_base,value='Is EDITABLE + ALL_EVENTS: input change widget content and events are generated') & offy+=20    ;
    text1=widget_text(yoff=offy,text_base,VALUE=["EDITABLE, all_events","Line 2","line 3","line 4","line 5"],/EDITABLE,/ALL_EVENTS,ysize=3) & offy+=30   ;
+   label=widget_label(yoff=offy,text_base,value='As above but ony one line: TAB events are not generated') & offy+=20    ;
+   text1=widget_text(yoff=offy,text_base,VALUE=["EDITABLE, all_events but one line"],/EDITABLE,/ALL_EVENTS) & offy+=30   ;
    label=widget_label(yoff=offy,text_base,value='Is NOT EDITABLE + ALL_EVENTS: no change but events are generated') & offy+=20                  ;
    text1=widget_text(yoff=offy,text_base,VALUE=["NOT EDITABLE, all_events","Line 2","line 3","line 4","line 5"],EDITABLE=0,/ALL_EVENTS) & offy+=30 ;
    label=widget_label(yoff=offy,text_base,value='Is only EDITABLE: input change widget content and <Return> generates an event.') & offy+=20       ;
