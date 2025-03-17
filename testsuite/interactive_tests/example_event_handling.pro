@@ -1,3 +1,7 @@
+; this example shows 3 different event 'history':
+; - an event_pro, exit immediately when 'treated'
+; - an event_func, passed from level while reporting the level
+; - an event_func as above, but changed to event_pro at some level
 pro tlb_catch_final_event,ev
   print,"tlb_catch_final_event called at "+strtrim(ev.handler,2)
 ;  help,ev
@@ -48,6 +52,6 @@ b4=widget_button(bases[n-1],value="exit",event_pro="done")
 
 ;foreach i,[2L,3,4,5] do  widget_control,bases[i],event_func=""     
 widget_control,bases[0],/realize
-;z=widget_event(bases[0])
-xmanager,"report_procedure",bases[0]
+z=widget_event(bases[0])
+;xmanager,"report_procedure",bases[0]
 end
