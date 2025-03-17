@@ -598,18 +598,18 @@ public:
    this->setFont();
    this->SetSensitive(sensitive);
 //   if (this->GetRealized()) this->RefreshWidget();
-    if (eventPro.size() > 0 ) {
-#ifdef GDL_DEBUG_WIDGETS
-      wxMessageOutputStderr().Printf(_T("Realize: SetEventPro: \"%s\" for %d\n"), eventPro, widgetID);
-#endif
-      bool found=GDLInterpreter::SearchCompilePro(eventPro, true); // true -> search for procedure
-    }
-    if (eventFun.size() > 0 ) {
-#ifdef GDL_DEBUG_WIDGETS
-      wxMessageOutputStderr().Printf(_T("Realize: SetEventFun: \"%s\" for %d\n"), eventFun, widgetID);
-#endif
-      bool found=GDLInterpreter::SearchCompilePro(eventFun, false); // false -> search for function
-    }
+//    if (eventPro.size() > 0 ) {
+//#ifdef GDL_DEBUG_WIDGETS
+//      wxMessageOutputStderr().Printf(_T("Realize: SetEventPro: \"%s\" for %d\n"), eventPro, widgetID);
+//#endif
+//      bool found=GDLInterpreter::SearchCompilePro(eventPro, true); // true -> search for procedure
+//    }
+//    if (eventFun.size() > 0 ) {
+//#ifdef GDL_DEBUG_WIDGETS
+//      wxMessageOutputStderr().Printf(_T("Realize: SetEventFun: \"%s\" for %d\n"), eventFun, widgetID);
+//#endif
+//      bool found=GDLInterpreter::SearchCompilePro(eventFun, false); // false -> search for function
+//    }
    if( notifyRealize != "") { //insure it is called once only for this.
       std::string note=notifyRealize;
       notifyRealize.clear();
@@ -706,9 +706,9 @@ public:
 #ifdef GDL_DEBUG_WIDGETS
       wxMessageOutputStderr().Printf(_T("SetEventPro: \"%s\" for %d\n"), eventPro, widgetID);
 #endif
-    if (eventPro.size() > 0) {
-      bool found = GDLInterpreter::SearchCompilePro(eventPro, true); // true -> search for procedure
-    }
+//    if (eventPro.size() > 0) {
+//      bool found = GDLInterpreter::SearchCompilePro(eventPro, true); // true -> search for procedure
+//    }
    }
   
   const DString& GetEventPro() const {
@@ -722,9 +722,9 @@ public:
 #ifdef GDL_DEBUG_WIDGETS
     wxMessageOutputStderr().Printf(_T("SetEventFun: \"%s\" for %d\n"),eventFun, widgetID);
 #endif
-    if (eventFun.size() > 0) {
-      bool found = GDLInterpreter::SearchCompilePro(eventFun, false); // false -> search for function
-    }
+//    if (eventFun.size() > 0) {
+//      bool found = GDLInterpreter::SearchCompilePro(eventFun, false); // false -> search for function
+//    }
   }
   const DString& GetEventFun() const { 
 #ifdef GDL_DEBUG_WIDGETS

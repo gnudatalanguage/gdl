@@ -1259,18 +1259,18 @@ void GDLWidget::HandleUnblockedWidgetEvents()
   //make one loop for wxWidgets Events. Forcibly, as HandleUnblockedWidgetEvents() is called by the readline eventLoop, we are in a non-blocked case.
   CallWXEventLoop();
   //treat our GDL events...
-    DStructGDL* ev = NULL;
-    while( (ev = GDLWidget::widgetEventQueue.Pop()) != NULL)
-    {
-      ev = CallEventHandler(ev);
-
-      if( ev != NULL)
-      {
-        GDLDelete( ev );
-        ev = NULL;
-      }
-	  CallWXEventLoop(); // enable results of above in the widgets
-    }
+//    DStructGDL* ev = NULL;
+//    while( (ev = GDLWidget::widgetEventQueue.Pop()) != NULL)
+//    {
+//      ev = CallEventHandler(ev);
+//
+//      if( ev != NULL)
+//      {
+//        GDLDelete( ev );
+//        ev = NULL;
+//      }
+//	  CallWXEventLoop(); // enable results of above in the widgets
+//    }
     if (wxIsBusy()) wxEndBusyCursor( );
   }
 
