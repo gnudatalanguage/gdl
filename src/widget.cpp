@@ -364,18 +364,30 @@ DStructGDL* CallEventHandler(DStructGDL* ev,  bool recursive , DLong topRecurs) 
 #endif
       (*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0] = actID;
       BaseGDL* retVal = CallEventFunc(eventHandlerFun, ev); // grabs ev
-	  //will test if ev is unchanged:
-      if (recursive && retVal->Type() == GDL_STRUCT) {
-        ev = static_cast<DStructGDL*> (retVal);
+      if (!recursive) {
+        GDLDelete(retVal);
+        return NULL; 
+      } 
+      // recursive
+      if (retVal == NULL) return NULL; //same as a procedure, has swallowed the event
+      //will test if ev is unchanged:
+      if (retVal->Type() == GDL_STRUCT) {
+        ev = dynamic_cast<DStructGDL*> (retVal);
+        if (ev == NULL) { //no struct
+          GDLDelete(retVal);
+          return NULL; 
+        } 
+        //struct
         if (ev->Desc()->TagIndex("ID") != idIx || ev->Desc()->TagIndex("TOP") != topIx || ev->Desc()->TagIndex("HANDLER") != handlerIx) {
           GDLDelete(ev);
           throw GDLException(eventHandlerFun + ": Event handler return struct must contain ID, TOP, HANDLER as first tags.");
         }
-      } else { //not a struct, same as a procedure, has swallowed the event
-        ev = NULL;
-        return ev; 
+        //struct passed to parent
+      } else { //not a struct or no recusrsivity, same as a procedure, has swallowed the event
+        GDLDelete(retVal);
+        return NULL; 
       }
-      // FUNCTION --> no break, will go up to the topRecurs or exit if consumed.!
+        // FUNCTION --> no break, will go up to the topRecurs or exit if consumed.!
     }
     actID = widget->GetParentID(); //go upper in hierarchy
   } while (actID >= topRecurs);
@@ -2436,7 +2448,8 @@ BaseGDL* widget_info( EnvT* e ) {
 
     SizeT nParam = e->NParam();
     std::vector<WidgetIDT> TrappedWidgetIDList;
-    std::vector<WidgetIDT> TopWidgetIDList;
+    std::vector<WidgetIDT> AncestorWidgetIDList;
+    std::vector<WidgetIDT> TopBaseWidgetIDList; //to trap toplevel_destroyed events in a specifc wait loop
     std::vector<bool> has_children;
     DLongGDL* p0L = NULL;
     SizeT nEl = 0;
@@ -2457,7 +2470,8 @@ BaseGDL* widget_info( EnvT* e ) {
           }
         }
         TrappedWidgetIDList.push_back((*p0L)[i]);
-        TopWidgetIDList.push_back((*p0L)[i]);
+        AncestorWidgetIDList.push_back((*p0L)[i]);
+        TopBaseWidgetIDList.push_back( GDLWidget::GetIdOfTopLevelBase((*p0L)[i]));
         if (widget->NChildren() > 0) has_children.push_back(true); //NChildren() is more general than IsContainer().
           //At some point, remove the discrepancy between Containers and Menus/Submenus.
           //The latter having a problem wrt the general structure of widgets in that they are on the stack and cannot be treated as "permanent" widgets,
@@ -2469,13 +2483,15 @@ BaseGDL* widget_info( EnvT* e ) {
       while (1) {
         for (SizeT i = 0; i < currentVectorSize; i++) {
           if (has_children.at(i)) {
-            WidgetIDT top=TopWidgetIDList.at(i);
+            WidgetIDT ancestor=AncestorWidgetIDList.at(i);
+            WidgetIDT topbase=TopBaseWidgetIDList.at(i);
             has_children.at(i) = false;
             GDLWidget *widget = GDLWidget::GetWidget(TrappedWidgetIDList.at(i));
             DLongGDL* list = static_cast<GDLWidgetContainer*> (widget)->GetChildrenList();
             for (SizeT j = 0; j < list->N_Elements(); j++) {
               TrappedWidgetIDList.push_back((*list)[j]);
-              TopWidgetIDList.push_back(top);
+              AncestorWidgetIDList.push_back(ancestor);
+              TopBaseWidgetIDList.push_back(topbase);
               if (GDLWidget::GetWidget((*list)[j])->NChildren() > 0) has_children.push_back(true);
               else has_children.push_back(false);
             }
@@ -2484,8 +2500,6 @@ BaseGDL* widget_info( EnvT* e ) {
         if (TrappedWidgetIDList.size() == currentVectorSize) break; //no changes
         currentVectorSize = TrappedWidgetIDList.size();
       }
-      assert(currentVectorSize==has_children.size());
-      assert(currentVectorSize==TopWidgetIDList.size());
     } else { //return default zero struct if there is no MANAGED widget on screen
        DLongGDL* res = static_cast<DLongGDL*>( GDLWidget::GetWidgetsList( ) );
        Guard<BaseGDL> guard(res);
@@ -2505,6 +2519,7 @@ BaseGDL* widget_info( EnvT* e ) {
     int infinity = (nowait) ? 0 : 1;
     DStructGDL* ev;
         
+    WidgetIDT ancestor=-1;
     WidgetIDT top=-1;
     
 	do { // outer while loop, will run once if NOWAIT
@@ -2514,14 +2529,25 @@ BaseGDL* widget_info( EnvT* e ) {
 		if (!all) {
 		  //specific widget(s)
 		  while ((ev = GDLWidget::widgetEventQueue.Pop()) != NULL) { // get event
-			static int idIx = ev->Desc()->TagIndex("ID");
+            static int idIx = ev->Desc()->TagIndex("ID");
 			id = (*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0]; // get its id
-			for (SizeT i = 0; i < TrappedWidgetIDList.size(); i++) { //is ID corresponding to any widget in list?
+            //check TLW destroyed here
+            if (ev->Desc()->Name() == "*TOPLEVEL_DESTROYED*") {
+              for (SizeT i = 0; i < TrappedWidgetIDList.size(); i++) { //is ID corresponding to a TLB of any widget in list?
+                WidgetIDT top=TopBaseWidgetIDList.at(i);
+                if (top == id) { //if yes, all is consumed.
+                   GDLDelete(ev);
+                   return defaultRes;
+                 }
+              }
+            }
+            for (SizeT i = 0; i < TrappedWidgetIDList.size(); i++) { //is ID corresponding to any widget in list?
 			  if (TrappedWidgetIDList.at(i) == id) { //if yes
-                top=TopWidgetIDList.at(i);
+                ancestor=AncestorWidgetIDList.at(i);
 				goto endwait;
 			  }
 			}
+ 
 			GDLWidget::widgetEventQueue.PushBack(ev);
 			GDLWidget::CallWXEventLoop();
 			// avoid looping like crazy
