@@ -2547,8 +2547,8 @@ BaseGDL* widget_info( EnvT* e ) {
 				goto endwait;
 			  }
 			}
- 
-			GDLWidget::widgetEventQueue.PushBack(ev);
+// GD 2025: suppress mouse movements while in this loop (if they have been not trapped above)
+            if (ev->Desc()->Name() !=  "WIDGET_DRAW" ) GDLWidget::widgetEventQueue.PushBack(ev);
 			GDLWidget::CallWXEventLoop();
 			// avoid looping like crazy
 #ifdef _WIN32 

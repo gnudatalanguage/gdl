@@ -81,27 +81,25 @@ pro exit_gui,ev
   widget_control,ev.top,/DESTROY
 end
 pro cleanup_xmanager, id
-  print,"Cleaning up called by xmanager..."
+  print,"Cleaning up "+string(id)+" called by xmanager..."
   widget_control,id,/DESTROY
 end
 pro cleanup, id
-  print,"Cleaning up called by base widget..."
+  print,"Cleaning up "+string(id)+" called by base widget..."
   widget_control,id,/DESTROY
 end
 pro cleanup_control, id
-  print,"Cleaning up called by widget_control..."
+  print,"Cleaning up "+string(id)+" called by widget_control..."
   widget_control,id,/DESTROY
 end
 pro i_am_realized, id
   print,"Widget "+string(id)+" is realized now."
 end
-pro base_event_base, id
-  print,"event in bases base"
-  help,id
+pro base_event_base, ev
+  print,"event in bases base from id="+strtrim(ev.id,2)
 end
-pro base_event, id
-  print,"event in top base"
-  help,id
+pro base_event, ev
+  print,"event in top base from id="+strtrim(ev.id,2)
 end
 pro slider_killed,id
   print,"slider "+string(id)+" was killed"
@@ -384,7 +382,7 @@ ev = {vEv,type:'',pos:[0,0]}
 
 ;Create a base widget.
  
-base = WIDGET_BASE(/col,MBAR=mbar,title=title,event_pro='base_event_nok',kill_notify='cleanup',/tlb_kill_request_events,/tlb_size_events) ; ---> PROBLEM: ,/tlb_size_events) ;,/scroll)
+base = WIDGET_BASE(/col,MBAR=mbar,title=title,event_pro='base_event',kill_notify='cleanup',/tlb_kill_request_events,/tlb_size_events,/tracking_events) ; ---> PROBLEM: ,/tlb_size_events) ;,/scroll)
 doMbar,mbar,fontname
 ;mysize=widget_info(base,string_size='012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234')
 ; add a progress bar to test timer
@@ -514,7 +512,7 @@ endif
     button_base00 = widget_base( tabbed_base, TITLE="BUTTONs", COL=2, $
        SPACE=10, XPAD=10, YPAD=10) & offy=10
 
-    button_base01 = widget_base(button_base00, TITLE="BUTTONs",/COL, event_func='catch_passed_event_example') & offy=10
+    button_base01 = widget_base(button_base00, TITLE="BUTTON+EVENT",/COL, event_func='catch_passed_event_example') & offy=10
     button_base02 = widget_base(button_base00, TITLE="BUTTONs",/COL) & offy=10
 ; BUTTONs
     tmp=widget_label(yoff=offy,button_base01,value="Simple ON/OFF Button") & offy+=10           ;
@@ -526,7 +524,7 @@ endif
     tmp=widget_label(yoff=offy,button_base01,value="Bitmap Simple Button") & offy+=10           ;
     tmp=widget_button(yoff=offy,button_base01,value=myBitmap()) & offy+=10 ;
     tmp=widget_label(yoff=offy,button_base01,value="Fancy Simple Button") & offy+=10           ;
-    tmp=widget_button(yoff=offy,button_base01,value="Fancy Button",font=fontname, event_func='test_func_button') & offy+=10 ;
+    tmp=widget_button(yoff=offy,button_base01,value="Fancy Button+Event",font=fontname, event_func='test_func_button') & offy+=10 ;
     tmp=widget_label(yoff=offy,button_base01,value="Exclusive base, framed 30") & offy+=10  ;
     radio=widget_base(yoff=offy,button_base01,/EXCLUSIVE,COL=1,frame=30) & offy+=150         ;
     rb1=widget_button(radio,VALUE="button in EXCLUSIVE base 1",uvalue={vEv,'rb1',[8,0]}, font=fontname)
