@@ -435,23 +435,25 @@ endif
  if total(strcmp('LIST',present,/fold)) then begin  
 ;LIST
     list_base = widget_base( tabbed_base, TITLE="LISTs",_extra=extra) & offy=0                                                                                     ;
-
+    textlist=["Lorem ipsum dolor sit amet,", "consectetur adipiscing elit,", "sed do eiusmod tempor", "ut labore et dolore magna.", "Ut enim ad minim,", "quis nostrud exercita", "ullamco laboris", "ex ea commodo."]
     label=widget_label(yoff=offy,list_base,value='3 lines, placement inherited') & offy+=10                                                                         ;
-    list=widget_list(yoff=offy,list_base,value=["Simple rather long text of widget_list, ysize=3","created","with","WIDGET_LIST","widget_list, ysize=3","created","with","WIDGET_LIST", "ysize=3","created","with","WIDGET_LIST","widget_list, ysize=3","created","with","WIDGET_LIST","widget_list, ysize=3","created","with","WIDGET_LIST","widget_list, ysize=3","created","with","WIDGET_LIST", "ysize=3","created","with","WIDGET_LIST","widget_list, ysize=3","created","with","WIDGET_LIST"],/multiple,YSIZE=3) & offy+=100 ;
-    label=widget_label(yoff=offy,list_base,value='idem,fancy,framed(32 pix)') & offy+=10 ;
-    list=widget_list(yoff=offy,list_base,value=["FANCY FONT long text widget_list, ysize=3","created","with","WIDGET_LIST","widget_list, ysize=3","created","with","WIDGET_LIST", "ysize=3","created","with","WIDGET_LIST","widget_list, ysize=3","created","with","WIDGET_LIST"],/multiple,YSIZE=3,frame=32,font=fontname) & offy+=200 ;
-    label=widget_label(yoff=offy,list_base,value='3 lines, placement inherited, xsize=12 chars (scroll)') & offy+=10                       ;
-    list=widget_list(yoff=offy,list_base,value=["widget_list, ysize=3","created","with","WIDGET_LIST"],/multiple,YSIZE=3,xsize=12) & offy+=150 ;
-    label=widget_label(yoff=offy,list_base,value='1 line, placement inherited, xsize=2 chars (scroll)') & offy+=10                             ;
-    list=widget_list(yoff=offy,list_base,value=["widget_list, ysize=3","created","with","WIDGET_LIST"],/multiple,xsize=2) & offy+=150          ;
-    label=widget_label(yoff=offy,list_base,value='no size,fancy,framed(32 pix)') & offy+=10                                                    ;
-    list=widget_list(yoff=offy,list_base,value=["widget_list","(no YSIZE, frame=32)"],frame=32,font=fontname) & offy+=50                       ;
-    label=widget_label(yoff=offy,list_base,value='centered,frame=1',/align_center) & offy+=10                                                  ;
-    list=widget_list(yoff=offy,list_base,value=["(centered)"," frame=1"],/align_center,frame=1) & offy+=50                                     ;
+    list=widget_list(yoff=offy,list_base,value=textlist,/multiple,YSIZE=3) & offy+=100 ;
+    label=widget_label(yoff=offy,list_base,value='idem,fancy,framed(32 pix)->scrollbar') & offy+=10 ;
+    list=widget_list(yoff=offy,list_base,value=textlist,/multiple,XSIZE=20,YSIZE=3,frame=32,font=fontname) & offy+=200 ;
+    label=widget_label(yoff=offy,list_base,value='3 lines, placement inherited') & offy+=10                       ;
+    list=widget_list(yoff=offy,list_base,value=textlist,/multiple,YSIZE=3) & offy+=150 ;
+    label=widget_label(yoff=offy,list_base,value='1 line, placement inherited, xsize=32  (ignored)') & offy+=10                             ;
+    list=widget_list(yoff=offy,list_base,value=textlist,/multiple,xsize=32, ysize=1) & offy+=150          ;
+    label=widget_label(yoff=offy,list_base,value='no size,fancy,framed(32 pix) -> scrollbar') & offy+=10                                                    ;
+    list=widget_list(yoff=offy,list_base,value=textlist,frame=32,font=fontname) & offy+=50                       ;
+    label=widget_label(yoff=offy,list_base,value='centered,ysize=1,xsize=40,frame=1 ->scrollbar',/align_center) & offy+=10                                                  ;
+    list=widget_list(yoff=offy,list_base,value=textlist,ysize=1,xsize=40,/align_center,frame=1) & offy+=50                                     ;
+    label=widget_label(yoff=offy,list_base,value='centered,ysize=1,no xsize,frame=1 ->scrollbar',/align_center) & offy+=10                                                  ;
+    list=widget_list(yoff=offy,list_base,value=textlist,ysize=1,/align_center,frame=1) & offy+=50                                     ;
     label=widget_label(yoff=offy,list_base,value='basic') & offy+=10                                                                           ;
-    list=widget_list(yoff=offy,list_base,value=["default"," basic"]) & offy+=50                                                                ;
+    list=widget_list(yoff=offy,list_base,value=textlist) & offy+=50                                                                ;
     label=widget_label(yoff=offy,list_base,value='centered,basic',/align_center) & offy+=10                                                    ;
-    list=widget_list(yoff=offy,list_base,value=["(centered)","basic"],/align_center) & offy+=10                                                ;
+    list=widget_list(yoff=offy,list_base,value=textlist,/align_center) & offy+=10                                                ;
  endif
  
   if total(strcmp('DRAW',present,/fold)) then begin     

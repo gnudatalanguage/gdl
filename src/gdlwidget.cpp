@@ -937,9 +937,6 @@ inline wxSize GDLWidgetList::computeWidgetSize()
     widgetSize.y = lineHeight;
   }
 
-  if (wSize.x > 0 && maxlinelength > wSize.x) widgetSize.y += gdlSCROLL_HEIGHT_X;
-  if (nlines > wSize.y) widgetSize.x += gdlSCROLL_WIDTH_Y;
-  widgetSize.y += 10;
   //but..
   if (wScreenSize.x > 0 ) widgetSize.x = wScreenSize.x;  //we need an integer value
   if (wScreenSize.y > 0) widgetSize.y = wScreenSize.y;
@@ -5884,6 +5881,7 @@ GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DLong value_
 
   const wxString s=wxString( title.c_str( ), wxConvUTF8 );
   wxSlider* slider;
+  wxSize minsize=(vertical)?wxSize(-1,100):wxSize(100,-1);
 
 //get defined sizes if any
   wSize=computeWidgetSize( );
@@ -5899,6 +5897,7 @@ GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DLong value_
     theWxContainer = comboPanel; //else stays as panel_if_framed.
     comboPanel->SetFont(font); //enable fancy font
     slider= new wxSlider( comboPanel, widgetID, value, minimum, maximum, wxDefaultPosition, wxDefaultSize, style);
+    slider->SetMinSize(minsize);
     combosz->Add(slider,DONOTALLOWSTRETCH,wxEXPAND|wxALL,gdlSPACE);
     int w=0;
     int h=0;
@@ -5916,7 +5915,7 @@ GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DLong value_
   } else {
     slider= new wxSlider( widgetPanel, widgetID, value, minimum, maximum, wxDefaultPosition, wxDefaultSize, style);
     slider->SetSize(wSize);
-    slider->SetMinSize(wSize);
+    slider->SetMinSize(minsize);
     theWxContainer = theWxWidget=slider;
   }
   widgetPanel->Fit();
@@ -6468,14 +6467,14 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style,
     }
     choices.Add( wxString( (*val)[i].c_str( ), wxConvUTF8 ) );
   }
-  wxListBox * list=new wxListBox();
-  theWxContainer = theWxWidget = list;
-  //ok now size can be computed
-  list->Create(widgetPanel, widgetID, wxDefaultPosition, wxDefaultSize , choices, style|wxLB_NEEDED_SB|wxLB_SINGLE); //|wxLB_MULTIPLE );
   this->setFont(); //set fancy font before computing sizes!
-  wSize=computeWidgetSize();
-  list->SetClientSize(wSize);
-  list->SetMinClientSize(wSize);
+  style |= wxLB_SINGLE;
+  wxSize wLocalSize = computeWidgetSize();
+  if ((frameWidth > 0) && (wLocalSize.y > 2*gdlSCROLL_HEIGHT_X)) //IDL seems to do that
+    style|=wxLB_ALWAYS_SB; else   style|=wxLB_NO_SB;
+
+  wxListBox * list=new wxListBox(widgetPanel, widgetID, wxDefaultPosition, wLocalSize , choices, style);
+  theWxContainer = theWxWidget = list;
   list->SetSelection(wxNOT_FOUND);//necessary to avoid spurious event on first click.
   this->AddToDesiredEvents( wxEVT_COMMAND_LISTBOX_DOUBLECLICKED,wxCommandEventHandler(gdlwxFrame::OnListBoxDoubleClicked),list);
   this->AddToDesiredEvents( wxEVT_COMMAND_LISTBOX_SELECTED,wxCommandEventHandler(gdlwxFrame::OnListBox),list);
