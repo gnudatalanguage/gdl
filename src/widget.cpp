@@ -228,23 +228,20 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
 // these reside here because gdlwidget.hpp is only included if wxWidgets are used
 // and hence putting them there would cause a compiler error without wxWidgets
 
-//GD not sure if the environment at the end of called PRO or FUNC is OK (nested procedures?) TBC.
-BaseGDL* CallEventFunc( const std::string& f, BaseGDL* ev)
-{
-  StackGuard<EnvStackT> guard( BaseGDL::interpreter->CallStack( ) );
-
-  int funIx = GDLInterpreter::GetFunIx( f );
-
-  ProgNodeP callingNode = NULL; //BaseGDL::interpreter->GetRetTree();
-
-  EnvUDT* newEnv = new EnvUDT( callingNode, funList[ funIx], NULL );
-  newEnv->SetNextPar( ev ); // pass as local
-
-  BaseGDL::interpreter->CallStack( ).push_back( newEnv );
+BaseGDL* CallEventFunc( const std::string& f, BaseGDL* ev) {
+  DInterpreter* myInterpreter = ev->interpreter;
+  int funIx = myInterpreter->GetFunIx(f);
+  StackGuard<EnvStackT> guard(myInterpreter->CallStack());
+  // GD: The function is called as LRFUNCTION to permit functions returning NULL (undefined) values,
+  // which are the equivalent of a procedure and terminate the upward-transmission of events in the widget_event loop.
+  // This seems an undocumented feature
+  // Calling with another CallContext will not permit this (particular?) behaviour.
+  EnvUDT* newEnv = new EnvUDT(myInterpreter->GetRetTree(), funList[ funIx], EnvUDT::LRFUNCTION);
+  newEnv->SetNextPar(ev); // pass as local
+  ev->interpreter->CallStack().push_back(newEnv);
 
   // make the call
-  newEnv->SetCallContext( EnvUDT::RFUNCTION );
-  BaseGDL* res = BaseGDL::interpreter->call_fun( static_cast<DSubUD*> (newEnv->GetPro( ))->GetTree( ) );
+  BaseGDL* res = myInterpreter->call_fun(funList[funIx]->GetTree());
   return res;
 }
 
@@ -2576,7 +2573,7 @@ BaseGDL* widget_info( EnvT* e ) {
 		return defaultRes;
 	  }
 	  ev = CallEventHandler(ev, true, top); //true: process it recursively (going up hierarchy) in eventHandler. Should block waiting for xmanager.
-    // examine return:
+      // examine return:
 	  if (ev == NULL) { //swallowed by a procedure or non-event-stucture returning function : looping wait for another event
 		if (nowait) return defaultRes; //else will loop again
 	  } else { // untreated or modified by a function

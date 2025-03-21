@@ -1259,15 +1259,21 @@ void GDLWidget::HandleUnblockedWidgetEvents()
     DStructGDL* ev = NULL;
     while( (ev = GDLWidget::widgetEventQueue.Pop()) != NULL)
     {
-        ev = CallEventHandler(ev);
+      static int idIx = ev->Desc()->TagIndex("TOP");
+      WidgetIDT top=(*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0]; // get its id
+      GDLWidget* w=GDLWidget::GetWidget(top);
+         if (w && w->GetManaged()) { //w may be already dead
 
-        if( ev != NULL)
-        {
-          GDLDelete( ev );
-          ev = NULL;
-        }
-      
-	  CallWXEventLoop(); // enable results of above in the widgets
+          ev = CallEventHandler(ev, true, top);
+
+          if( ev != NULL)
+          {
+            GDLDelete( ev );
+            ev = NULL;
+          }
+
+           CallWXEventLoop(); // enable results of above in the widgets
+         } 
     }
     if (wxIsBusy()) wxEndBusyCursor( );
   }
