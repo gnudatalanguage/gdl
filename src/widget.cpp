@@ -269,7 +269,7 @@ void CallEventPro( const std::string& p, BaseGDL* p0, BaseGDL* p1 ) {
 #endif      
 }
 
-DStructGDL* CallEventHandler(DStructGDL* ev,  bool recursive , DLong topRecurs) {
+DStructGDL* CallEventHandler(DStructGDL* ev) {
   // Must work in good harmony with WIDGET_EVENT requirements.
   // for one event, start from the originating widget and go through the list of parents, 
   // and process the first event-related procedure associated.
@@ -284,7 +284,7 @@ DStructGDL* CallEventHandler(DStructGDL* ev,  bool recursive , DLong topRecurs) 
   static int handlerIx = 2; //ev->Desc( )->TagIndex( "HANDLER" ); // 2
 
   DLong actID = (*static_cast<DLongGDL*> (ev->GetTag( idIx, 0 )))[0];
-
+  DLong topRecurs = (*static_cast<DLongGDL*> (ev->GetTag( topIx, 0 )))[0];
   //run-time errors (throws by interpreter etc but in widget's loop)
   if (ev->Desc( )->Name( ) == "*WIDGET_RUNTIME_ERROR*" ) {
 #ifdef GDL_DEBUG_WIDGETS
@@ -361,11 +361,6 @@ DStructGDL* CallEventHandler(DStructGDL* ev,  bool recursive , DLong topRecurs) 
 #endif
       (*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0] = actID;
       BaseGDL* retVal = CallEventFunc(eventHandlerFun, ev); // grabs ev
-      if (!recursive) {
-        GDLDelete(retVal);
-        return NULL; 
-      } 
-      // recursive
       if (retVal == NULL) return NULL; //same as a procedure, has swallowed the event
       //will test if ev is unchanged:
       if (retVal->Type() == GDL_STRUCT) {
@@ -2546,6 +2541,10 @@ BaseGDL* widget_info( EnvT* e ) {
 			}
 // GD 2025: suppress mouse movements while in this loop (if they have been not trapped above)
             if (ev->Desc()->Name() !=  "WIDGET_DRAW" ) GDLWidget::widgetEventQueue.PushBack(ev);
+            else {
+              DInt type = (*static_cast<DIntGDL*> (ev->GetTag( 3, 0 )))[0]; //TYPE Tag
+              if (type != 2) GDLWidget::widgetEventQueue.PushBack(ev);  //remove unhandled mouse MOVEMENTS
+            }
 			GDLWidget::CallWXEventLoop();
 			// avoid looping like crazy
 #ifdef _WIN32 
@@ -2572,7 +2571,7 @@ BaseGDL* widget_info( EnvT* e ) {
 		GDLDelete(ev);
 		return defaultRes;
 	  }
-	  ev = CallEventHandler(ev, true, top); //true: process it recursively (going up hierarchy) in eventHandler. Should block waiting for xmanager.
+	  ev = CallEventHandler(ev); //process it recursively (going up hierarchy up to ev.top or before if so programmed) in eventHandler.
       // examine return:
 	  if (ev == NULL) { //swallowed by a procedure or non-event-stucture returning function : looping wait for another event
 		if (nowait) return defaultRes; //else will loop again

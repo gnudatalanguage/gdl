@@ -1257,25 +1257,35 @@ void GDLWidget::HandleUnblockedWidgetEvents()
   CallWXEventLoop();
   //treat our GDL events...
     DStructGDL* ev = NULL;
-    while( (ev = GDLWidget::widgetEventQueue.Pop()) != NULL)
-    {
-      static int idIx = ev->Desc()->TagIndex("TOP");
-      WidgetIDT top=(*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0]; // get its id
-      GDLWidget* w=GDLWidget::GetWidget(top);
-         if (w && w->GetManaged()) { //w may be already dead
-
-          ev = CallEventHandler(ev, true, top);
-
-          if( ev != NULL)
-          {
-            GDLDelete( ev );
-            ev = NULL;
-          }
-
-           CallWXEventLoop(); // enable results of above in the widgets
-         } 
+    while( (ev = GDLWidget::widgetEventQueue.Pop()) != NULL) {
+    //check event's TOP base is either not managed or is tagged interactive (done in xmanager.pro with "undocumented" keyword /XMANAGER_ACTIVE_COMMAND)
+    static int topIx = ev->Desc()->TagIndex("TOP");
+    WidgetIDT top = (*static_cast<DLongGDL*> (ev->GetTag(topIx, 0)))[0]; // get its id
+    GDLWidget* w = GDLWidget::GetWidget(top);
+    if (w //exists
+        && (
+        (w->GetManaged() == false) // not managed at all
+        || (w->IsUsingInteractiveEventLoop()))) //managed but with a nonblocking xmanager
+      {
+        ev = CallEventHandler(ev);
+        if (ev != NULL) {
+          GDLDelete(ev);
+              ev = NULL;
+        }
+        CallWXEventLoop(); // enable results of above in the widgets
+    // avoid looping like crazy
+#ifdef _WIN32 
+      Sleep(10); // this just to quiet down the character input from readline. 2 was not enough. 20 was ok.
+#else
+      const long SLEEP = 10000000; // 10ms
+      struct timespec delay;
+      delay.tv_sec = 0;
+      delay.tv_nsec = SLEEP; // 20ms
+      nanosleep(&delay, NULL);
+#endif
     }
-    if (wxIsBusy()) wxEndBusyCursor( );
+    if (wxIsBusy()) wxEndBusyCursor();
+    }
   }
 
 void GDLWidget::PushEvent(DStructGDL* ev) {
