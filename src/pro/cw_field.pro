@@ -387,6 +387,7 @@ info.theText = theText
    ; Set the actual value of the compound widget.
 
 *info.theValue = Df_Cw_Field_ReturnValue(info.theText, info.dataType)
+
 Widget_Control, info_carrier, Set_UValue=info, /No_Copy
 END ;----------------------------------------------------------------------------
 
@@ -518,34 +519,34 @@ if info.classic then begin
    dtype=0
    case info.datatype  of
       'STRING':dtype=0
-      'INT':dtype=1
+      'INT':dtype=2
       'LONG':dtype=3
-      'FLOAT':dtype=2
+      'FLOAT':dtype=1
       'DOUBLE':dtype=5
    endcase
    if (info.positive) then begin
       dtype=4
       val=fix(val,/ULONG)
    endif
+   if isa(val,/NULL) then val=0
    thisEvent = {id:info.cw_tlb, top:event.top, handler:0L, value:val, type:dtype, update:cr_event eq 1}
 endif else thisEvent = {Df_Cw_Field, info.cw_tlb, event.top, 0L, info.theValue, info.dataType}
 
 IF info.cr_only THEN BEGIN
-   IF info.event_func NE "" THEN BEGIN
+;   IF info.event_func NE "" THEN BEGIN
       IF cr_event THEN Widget_Control, info.cw_tlb, Send_Event=thisEvent
-   ENDIF
-
-   IF info.event_pro NE "" THEN BEGIN
-      IF cr_event THEN Widget_Control, info.cw_tlb, Send_Event=thisEvent
-   ENDIF
+;   ENDIF
+;   IF info.event_pro NE "" THEN BEGIN
+;      IF cr_event THEN Widget_Control, info.cw_tlb, Send_Event=thisEvent
+;   ENDIF
 ENDIF ELSE BEGIN
-   IF info.event_func NE "" THEN BEGIN
+;   IF info.event_func NE "" THEN BEGIN
       Widget_Control, info.cw_tlb, Send_Event=thisEvent
-   ENDIF
-
-   IF info.event_pro NE "" THEN BEGIN
-      Widget_Control, info.cw_tlb, Send_Event=thisEvent
-   ENDIF
+;   ENDIF
+;
+;   IF info.event_pro NE "" THEN BEGIN
+;      Widget_Control, info.cw_tlb, Send_Event=thisEvent
+;   ENDIF
 ENDELSE
 
    ; Out of here.
@@ -584,7 +585,6 @@ Function Df_Cw_Field, $          ; The compound widget Df_Cw_Field.
    textID=textID, $
    floating=floating,$
    noedit=noedit,$
-   return_events=return_events,$
    classic=classic
 
    ; A parent is required.
@@ -706,7 +706,7 @@ positive=0
 IF Keyword_Set(stringvalue) THEN dataType = 'STRING'
 IF Keyword_Set(integervalue) THEN dataType = 'INT'
 IF Keyword_Set(longvalue) THEN dataType = 'LONG'
-IF Keyword_Set(longvalue) THEN begin & dataType = 'LONG' & positive=1 & end
+IF Keyword_Set(ulongvalue) THEN begin & dataType = 'LONG' & positive=1 & end
 IF Keyword_Set(floatvalue) THEN dataType = 'FLOAT'
 IF Keyword_Set(doublevalue) THEN dataType = 'DOUBLE'
 IF Keyword_set(return_events) THEN cr_Only=1
@@ -741,7 +741,6 @@ return,Df_Cw_Field( $           ; The compound widget Df_Cw_Field.
    textID=textID, $
    floating=floating,$
    noedit=noedit,$     
-   return_events=return_events,$
    classic=1)
 end
 
