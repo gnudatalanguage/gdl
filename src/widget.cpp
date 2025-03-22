@@ -1824,20 +1824,6 @@ BaseGDL* widget_info( EnvT* e ) {
   static int STRING_SIZE=e->KeywordIx("STRING_SIZE"); bool getStringSize=e->KeywordPresent(STRING_SIZE);
   static int SIBLING=e->KeywordIx("SIBLING"); bool sibling=e->KeywordPresent(SIBLING);
 
-  //find a string, return a long
-  if (findbyuname) {
-    DStringGDL* myUname = e->GetKWAs<DStringGDL>(findbyunameIx);
-    if (myUname == NULL) return new DLongGDL( 0 );
-    DLongGDL* list = static_cast<DLongGDL*>( GDLWidget::GetWidgetsList( ) );
-    Guard<BaseGDL> guard_list(list);
-    for (SizeT i=0; i< list->N_Elements(); ++i) {
-      GDLWidget* widget = GDLWidget::GetWidget( (*list)[i] );
-      if ( widget != NULL ){
-        if ((*myUname)[0] == widget->GetUname() ) return new DLongGDL(widget->GetWidgetID());
-      }
-    }
-    return new DLongGDL( 0 );
-  }
   
   if ( nParam > 0 ) {
     p0L = e->GetParAs<DLongGDL>(0);
@@ -1923,8 +1909,24 @@ BaseGDL* widget_info( EnvT* e ) {
         (*res)[i]=os.str();
       }
       return res;
-  }
-  
+    }
+    //find a string, return a long
+    if (findbyuname) {
+      DStringGDL* myUname = e->GetKWAs<DStringGDL>(findbyunameIx);
+      if (myUname == NULL) return new DLongGDL(0);
+      WidgetIDT widgetID = (*p0L)[0];
+      GDLWidget *widget = GDLWidget::GetWidget( widgetID );
+      DLongGDL* list = widget->GetAllHeirs();
+      Guard<BaseGDL> guard_list(list);
+      for (SizeT i = 0; i < list->N_Elements(); ++i) {
+        GDLWidget* widget = GDLWidget::GetWidget((*list)[i]);
+        if (widget != NULL) {
+          if ((*myUname)[0] == widget->GetUname()) return new DLongGDL(widget->GetWidgetID());
+        }
+      }
+      return new DLongGDL(0);
+    }
+
   // Returns a String, empty if no result:
   // UNAME, FONTNAME keywords
   if ( uname || fontname || name ||eventpro || eventfun) {
