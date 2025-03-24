@@ -186,7 +186,7 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
   DDouble sy=wxGetDisplaySizeMM().y;
   sx=wxGetDisplaySize().x/sx; //pix per mm
   sy=wxGetDisplaySize().y/sy;
-    
+
   if (the_units==0) unitConversionFactor=wxRealPoint(1,1);
   if (the_units==1) unitConversionFactor=wxRealPoint(sx*25.4,sy*25.4);
   if (the_units==2) unitConversionFactor=wxRealPoint(sx*10.0,sy*10.0);
@@ -2538,24 +2538,23 @@ BaseGDL* widget_info( EnvT* e ) {
               DInt type = (*static_cast<DIntGDL*> (ev->GetTag( 3, 0 )))[0]; //TYPE Tag
               if (type != 2) GDLWidget::widgetEventQueue.PushBack(ev);  //remove unhandled mouse MOVEMENTS
             }
-			GDLWidget::CallWXEventLoop();
-			// avoid looping like crazy
-#ifdef _WIN32 
-			Sleep(10); // this just to quiet down the character input from readline. 2 was not enough. 20 was ok.
-#else
-			const long SLEEP = 10000000; // 10ms
-			struct timespec delay;
-			delay.tv_sec = 0;
-			delay.tv_nsec = SLEEP; // 20ms
-			nanosleep(&delay, NULL);
-#endif
 		  }
 		} else {
-		  //wait for ALL . This is the case of /XMANAGER_BLOCK for example.
+		  //wait for ALL . This is the case  /XMANAGER_BLOCK for example.
 		  if ((ev = GDLWidget::widgetEventQueue.Pop()) != NULL) goto endwait;
 		}
 		if (nowait) return defaultRes;
 		if (sigControlC) return defaultRes;
+        // avoid looping like crazy
+#ifdef _WIN32 
+        Sleep(1); // this just to quiet down the character input from readline. 2 was not enough. 20 was ok.
+#else
+        const long SLEEP = 1000000; // 1ms
+        struct timespec delay;
+        delay.tv_sec = 0;
+        delay.tv_nsec = SLEEP;
+        nanosleep(&delay, NULL);
+#endif
 	  } //end inner loop
 	  //here we got a real event, process it, walking back the hierachy (in CallEventHandler()) for modified ev in case of function handlers.
 	endwait:
@@ -2564,7 +2563,6 @@ BaseGDL* widget_info( EnvT* e ) {
 		GDLDelete(ev);
 		return defaultRes;
 	  }
-
 	  ev = CallEventHandler(ev); //process it recursively (going up hierarchy up to ev.top or before if so programmed) in eventHandler.
       // examine return:
 	  if (ev == NULL) { //swallowed by a procedure or non-event-stucture returning function : looping wait for another event
@@ -2572,7 +2570,6 @@ BaseGDL* widget_info( EnvT* e ) {
 	  } else { // untreated or modified by a function
 		return ev;
 	  }
-	  GDLWidget::CallWXEventLoop();
 	} while (infinity);
     return NULL; //pacifier.
 #endif //HAVE_LIBWXWIDGETS

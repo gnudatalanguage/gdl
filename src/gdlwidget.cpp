@@ -1273,18 +1273,20 @@ void GDLWidget::HandleUnblockedWidgetEvents()
               ev = NULL;
         }
         CallWXEventLoop(); // enable results of above in the widgets
-    // avoid looping like crazy
-#ifdef _WIN32 
-      Sleep(10); // this just to quiet down the character input from readline. 2 was not enough. 20 was ok.
-#else
-      const long SLEEP = 10000000; // 10ms
-      struct timespec delay;
-      delay.tv_sec = 0;
-      delay.tv_nsec = SLEEP; // 20ms
-      nanosleep(&delay, NULL);
-#endif
+
     }
     if (wxIsBusy()) wxEndBusyCursor();
+    // avoid looping like crazy
+#ifdef _WIN32 
+    Sleep(1); // this just to quiet down the character input from readline. 2 was not enough. 20 was ok.
+#else
+      const long SLEEP = 1000000; // 1ms
+      struct timespec delay;
+      delay.tv_sec = 0;
+      delay.tv_nsec = SLEEP;
+      nanosleep(&delay, NULL);
+#endif
+
     }
   }
 
@@ -2185,15 +2187,13 @@ GDLWidgetBase::GDLWidgetBase(WidgetIDT parentID, EnvT* e, ULong eventFlags_,
   wSize = computeWidgetSize();
 //get immediately rid of scroll sizes in case of scroll or not... Here is the logic:
 
-  if (x_scroll_size > 0) {scrolled=true;x_scroll_size*=unitConversionFactor.x;x_scroll_size+=gdlSCROLL_WIDTH_Y;} 
-  if (y_scroll_size > 0) {scrolled=true;y_scroll_size*=unitConversionFactor.y;y_scroll_size+=gdlSCROLL_HEIGHT_X;}
+  if (x_scroll_size > 0) {scrolled=true;x_scroll_size*=unitConversionFactor.x;x_scroll_size+=gdlSCROLL_WIDTH_Y;} else xfree=true;
+  if (y_scroll_size > 0) {scrolled=true;y_scroll_size*=unitConversionFactor.y;y_scroll_size+=gdlSCROLL_HEIGHT_X;} else yfree=true;
   if (scrolled) {
     if (x_scroll_size < 1) x_scroll_size = gdlDEFAULT_XSIZE+gdlSCROLL_WIDTH_Y;
     if (y_scroll_size < 1) y_scroll_size = gdlDEFAULT_YSIZE+gdlSCROLL_HEIGHT_X;
   }
   wScrollSize = scrolled ? wxSize(x_scroll_size , y_scroll_size ) : wSize; //y_scroll_size + gdlSCROLL_HEIGHT_X);
-  xfree=(wScrollSize.x <= 0);
-  yfree=(wScrollSize.y <= 0);  
   // Set exclusiveMode
   // If exclusive then set to -1 to signal first radiobutton
   if ( exclusiveMode_ == BGEXCLUSIVE )
@@ -2224,7 +2224,7 @@ GDLWidgetBase::GDLWidgetBase(WidgetIDT parentID, EnvT* e, ULong eventFlags_,
 void GDLWidgetBase::CreateBase(wxWindow* parent){
 //the container is a ScrollPanel
 //  bool doFrame=true; //!(this->IsTopBase()); //IDL Prevents topBases to be framed (?).
-  if (frameWidth > 0) {
+    if (frameWidth > 0) {
     wxPanel* frame = new wxPanel(parent, wxID_ANY, wOffset, wxDefaultSize, gdlBORDER_EXT); 
     theWxContainer=frame;
     wxBoxSizer* panelsz = new wxBoxSizer(wxVERTICAL);
@@ -2270,7 +2270,7 @@ void GDLWidgetBase::CreateBase(wxWindow* parent){
       //Just Enable scrollBars if scrolling is necessary
       if (scrolled) {
         padxpady->SetScrollbars(gdlSCROLL_RATE, gdlSCROLL_RATE, wSize.x / gdlSCROLL_RATE, wSize.y / gdlSCROLL_RATE);
-        padxpady->ShowScrollbars(wxSHOW_SB_ALWAYS, wxSHOW_SB_ALWAYS);
+        padxpady->ShowScrollbars((xfree)?wxSHOW_SB_DEFAULT:wxSHOW_SB_ALWAYS, (yfree)?wxSHOW_SB_DEFAULT:wxSHOW_SB_ALWAYS);
       }
       sz_inside->Add(padxpady, FRAME_ALLOWSTRETCH, wxALL | wxEXPAND, newframewidth);//gdlFRAME_MARGIN);
       sz_inside->Fit(padxpady);
@@ -2284,10 +2284,11 @@ void GDLWidgetBase::CreateBase(wxWindow* parent){
       //    widgetPanel->SetVirtualSize(wSize);
       widgetPanel->SetSize(wScrollSize);
       widgetPanel->SetMinSize(wScrollSize);
+      widgetPanel->SetMaxSize(wScrollSize);
       //Just Enable scrollBars if scrolling is necessary
       if (scrolled) {
         widgetPanel->SetScrollbars(gdlSCROLL_RATE, gdlSCROLL_RATE, wSize.x / gdlSCROLL_RATE, wSize.y / gdlSCROLL_RATE);
-        widgetPanel->ShowScrollbars(wxSHOW_SB_ALWAYS, wxSHOW_SB_ALWAYS);
+        widgetPanel->ShowScrollbars((xfree)?wxSHOW_SB_DEFAULT:wxSHOW_SB_ALWAYS, (yfree)?wxSHOW_SB_DEFAULT:wxSHOW_SB_ALWAYS);
       }
       sz_inside->Add(widgetPanel, FRAME_ALLOWSTRETCH, wxALL | wxEXPAND, newframewidth);//gdlFRAME_MARGIN);
       sz_inside->Fit(widgetPanel);
@@ -2325,13 +2326,14 @@ void GDLWidgetBase::CreateBase(wxWindow* parent){
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
       widgetPanel->SetBackgroundColour(RandomWxColour());
 #endif
-//        widgetPanel->SetVirtualSize(wSize);
+        widgetPanel->SetVirtualSize(wSize);
       widgetPanel->SetSize(wScrollSize);
       widgetPanel->SetMinSize(wScrollSize);
+      widgetPanel->SetMaxSize(wScrollSize);
       //Just Enable scrollBars if scrolling is necessary
       if (scrolled) {
         widgetPanel->SetScrollbars(gdlSCROLL_RATE, gdlSCROLL_RATE, wSize.x / gdlSCROLL_RATE, wSize.y / gdlSCROLL_RATE);
-        widgetPanel->ShowScrollbars(wxSHOW_SB_ALWAYS, wxSHOW_SB_ALWAYS);
+        widgetPanel->ShowScrollbars((xfree)?wxSHOW_SB_DEFAULT:wxSHOW_SB_ALWAYS, (yfree)?wxSHOW_SB_DEFAULT:wxSHOW_SB_ALWAYS);
       }
     }
     
@@ -2349,7 +2351,7 @@ void GDLWidgetBase::CreateBase(wxWindow* parent){
   }
 
   wxSizer* parentSizer = parent->GetSizer();
-  if (parentSizer) parentSizer->Add(static_cast<wxWindow*>(theWxContainer), ALLOWSTRETCH, wxALL | widgetAlignment(), gdlSPACE);
+  if (parentSizer) parentSizer->Add(static_cast<wxWindow*>(theWxContainer), ALLOWSTRETCH, wxALL | widgetAlignment(), gdlSPACE); 
   }
 
  void GDLWidgetBase::SetWidgetSize(DLong sizex, DLong sizey) 
