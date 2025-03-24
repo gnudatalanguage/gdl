@@ -53,6 +53,9 @@ See:
 - [GDL on BSD](https://github.com/gnudatalanguage/gdl/wiki/GDL-on-BSD)
 - [GDL on Windows](https://github.com/gnudatalanguage/gdl/wiki/GDL-on-Windows)
 
+To download a tarball with GDL source code, including git submodules and auto-generated `version.hpp` file, please 
+pick the `gdl-unstable-*.tar.gz` file from the weekly release at: https://github.com/gnudatalanguage/gdl/releases/tag/weekly-release
+
 Find specific information on GDL
 -------------------------------------
 - Browse the [WIKI](https://github.com/gnudatalanguage/gdl/wiki)
