@@ -2441,7 +2441,7 @@ long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wx
     if (wOffset.x < 0) wOffset.x =x.x+x.width/2;
     if (wOffset.y < 0) wOffset.y =x.y+x.height/2;
   }
-  topFrame = new gdlwxFrame(NULL, this, widgetID, titleWxString, wOffset, wxDefaultSize, style, modal);
+  topFrame = new gdlwxFrame(NULL, this, widgetID, titleWxString, unitConversionFactor, wOffset, wxDefaultSize, style, modal);
 
 #ifdef __WXMAC__
 //does not work.
@@ -7376,14 +7376,17 @@ void GDLWidgetLabel::SetLabelValue(const DString& value_) {
 #endif
 // GDL widgets =====================================================
 // GDLFrame ========================================================
-gdlwxFrame::gdlwxFrame( wxWindow* parent, GDLWidgetTopBase* gdlOwner_, wxWindowID id, const wxString& title , const wxPoint& pos, const wxSize& size, long style, bool modal)
+gdlwxFrame::gdlwxFrame( wxWindow* parent, GDLWidgetTopBase* gdlOwner_, wxWindowID id, const wxString& title , const wxRealPoint& conv, const wxRealPoint& pos, const wxSize& size, long style, bool modal)
 : wxFrame()
 , mapped( false )
 , frameSize(size)
 , gdlOwner( gdlOwner_),
   m_windowDisabler(NULL)
 {
-  Create ( parent, id, title, pos, size, style );
+  wxPoint posint;
+  posint.x=pos.x*conv.x;
+  posint.y=pos.y*conv.y;
+  Create ( parent, id, title, posint, size, style );
   m_resizeTimer = new wxTimer(this,RESIZE_TIMER);
   if (modal) m_windowDisabler = new wxWindowDisabler(this);
 }

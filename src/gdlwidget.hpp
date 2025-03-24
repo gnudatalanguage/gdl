@@ -287,7 +287,7 @@ class gdlwxFrame : public wxFrame {
 public:
 
  // ctor(s)
- gdlwxFrame(wxWindow* parent, GDLWidgetTopBase* gdlOwner_, wxWindowID id, const wxString& title, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style=wxDEFAULT_FRAME_STYLE, bool modal=false);
+ gdlwxFrame(wxWindow* parent, GDLWidgetTopBase* gdlOwner_, wxWindowID id, const wxString& title, const wxRealPoint& conv, const wxRealPoint& pos, const wxSize& size = wxDefaultSize, long style=wxDEFAULT_FRAME_STYLE, bool modal=false);
  ~gdlwxFrame();
  // called from ~GDLWidgetBase
  void NullGDLOwner() {
@@ -465,7 +465,7 @@ protected:
   wxObject* theWxContainer; //the external wx Container (wxFrame mostly) that contains everything wx that must be destroyed, or created, and is what is seen. 
   //theWxContainer is subject to framing (AddFrame) and scrolling (AddScroll)
   //position & size 
-  wxPoint      wOffset;
+  wxRealPoint      wOffset;
   wxSize       wSize;
   wxSize       wScreenSize;
   
