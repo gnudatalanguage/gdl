@@ -1001,12 +1001,12 @@ inline wxSize GDLWidget::computeWidgetSize()
 //here is a good place to make dynamic widgets static, since dynamic_resize is permitted only if size is not given.
   if (wSize.x > 0 || wSize.y > 0 || wScreenSize.x > 0 || wScreenSize.y > 0) dynamicResize=-1;
   wxSize widgetSize;
-  if ( wSize.x > 0 ) widgetSize.x = wSize.x*unitConversionFactor.x;
+  if ( wSize.x > 0 ) widgetSize.x = wSize.x;
   else widgetSize.x = wxDefaultSize.x;
 //but..
   if (wScreenSize.x > 0) widgetSize.x=wScreenSize.x;
   
-  if ( wSize.y > 0 )  widgetSize.y = wSize.y * unitConversionFactor.y; 
+  if ( wSize.y > 0 )  widgetSize.y = wSize.y; 
   else widgetSize.y = wxDefaultSize.y;
 //but..
    if (wScreenSize.y > 0) widgetSize.y=wScreenSize.y;  
@@ -2183,12 +2183,11 @@ GDLWidgetBase::GDLWidgetBase(WidgetIDT parentID, EnvT* e, ULong eventFlags_,
 , ypad(ypad_)
 , doMap(mapWid) {
   // All bases can receive events: EV_CONTEXT, EV_KBRD_FOCUS, EV_TRACKING
-
   wSize = computeWidgetSize();
 //get immediately rid of scroll sizes in case of scroll or not... Here is the logic:
 
-  if (x_scroll_size > 0) {scrolled=true;x_scroll_size*=unitConversionFactor.x;x_scroll_size+=gdlSCROLL_WIDTH_Y;} else xfree=true;
-  if (y_scroll_size > 0) {scrolled=true;y_scroll_size*=unitConversionFactor.y;y_scroll_size+=gdlSCROLL_HEIGHT_X;} else yfree=true;
+  if (x_scroll_size > 0) {scrolled=true;x_scroll_size+=gdlSCROLL_WIDTH_Y;} else xfree=true;
+  if (y_scroll_size > 0) {scrolled=true;y_scroll_size+=gdlSCROLL_HEIGHT_X;} else yfree=true;
   if (scrolled) {
     if (x_scroll_size < 1) x_scroll_size = gdlDEFAULT_XSIZE+gdlSCROLL_WIDTH_Y;
     if (y_scroll_size < 1) y_scroll_size = gdlDEFAULT_YSIZE+gdlSCROLL_HEIGHT_X;
@@ -2671,14 +2670,14 @@ DStructGDL* GDLWidgetBase::GetGeometry(wxRealPoint fact) {
     xoffset = panel_xoff+margin;
     yoffset = panel_yoff+margin;
   } else {
-    xoffset = z.x+margin;
-    yoffset = z.y+margin;
+    xoffset = 0;
+    yoffset = 0;
   }
-  iscr_xsize = z.width-2*margin;
-  iscr_ysize = z.height-2*margin;
+  iscr_xsize = z.width;//-2*margin;
+  iscr_ysize = z.height;//-2*margin;
   wxSize s = w->GetClientSize();
-  ixsize = s.x-2*margin;
-  iysize = s.y-2*margin;
+  ixsize = s.x;//-2*margin;
+  iysize = s.y;//-2*margin;
   //size is in pixels, pass in requested units (1.0 default)
   xsize = ixsize / fact.x;
   ysize = iysize / fact.y;
@@ -6767,12 +6766,12 @@ inline wxSize GDLWidgetComboBox::computeWidgetSize() {
   //here is a good place to make dynamic widgets static, since dynamic_resize is permitted only if size is not given.
   if (wSize.x > 0 || wSize.y > 0 || wScreenSize.x > 0 || wScreenSize.y > 0) dynamicResize = -1;
   wxSize widgetSize;
-  if (wSize.x > 0) widgetSize.x = wSize.x * unitConversionFactor.x;
+  if (wSize.x > 0) widgetSize.x = wSize.x;
   else widgetSize.x = wxDefaultSize.x;
   //but..
   if (wScreenSize.x > 0) widgetSize.x = wScreenSize.x;
 
-  if (wSize.y > 0) widgetSize.y = wSize.y * unitConversionFactor.y;
+  if (wSize.y > 0) widgetSize.y = wSize.y;
   else widgetSize.y = wxDefaultSize.y;
   //but..
   if (wScreenSize.y > 0) widgetSize.y = wScreenSize.y;
@@ -7605,8 +7604,8 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e, int windowIndex,
   //get immediately rid of scroll sizes in case of scroll or not... Here is the logic:
   // Note that IDL reports wrong dimensions when size and scr_xsize are used simultaneously for at least widget_draw. 
 
-  if (x_scroll_size > 0) {scrolled=true;x_scroll_size*=unitConversionFactor.x;x_scroll_size+=gdlSCROLL_WIDTH_Y;} 
-  if (y_scroll_size > 0) {scrolled=true;y_scroll_size*=unitConversionFactor.y;y_scroll_size+=gdlSCROLL_HEIGHT_X;}
+  if (x_scroll_size > 0) {scrolled=true;x_scroll_size+=gdlSCROLL_WIDTH_Y;} 
+  if (y_scroll_size > 0) {scrolled=true;y_scroll_size+=gdlSCROLL_HEIGHT_X;}
   if (scrolled) {
     if (x_scroll_size < 1) x_scroll_size = gdlDEFAULT_XSIZE+gdlSCROLL_WIDTH_Y;
     if (y_scroll_size < 1) y_scroll_size = gdlDEFAULT_YSIZE+gdlSCROLL_HEIGHT_X;

@@ -85,8 +85,8 @@
 #define gdlCOMBOBOX_ARROW_WIDTH sysComboboxArrow 
 #define gdlDEFAULT_SCROLL_SIZE 100 //gdlDEFAULT_XSIZE+gdlSCROLL_HEIGHT_X
 #define gdlFRAME_MARGIN 0
-#define gdlPAD 0 //3 //default padding
-#define gdlSPACE 0
+#define gdlPAD 0 //default padding
+#define gdlSPACE 3
 #define gdlLABEL_SPACE 2
 #define gdlTEXT_SPACE 4
 #define gdlBUTTON_SPACE 4
@@ -908,9 +908,9 @@ public:
   bool IsContainer() const final { return true;} 
   bool IsScrolled() const { return scrolled;}
   long getChildrenAlignment(){return childrenAlignment;}
-  long getSpace(){return space;}
-  long getXPad(){return xpad;}
-  long getYPad(){return ypad;}
+  int getSpace(){return space;}
+  int getXPad(){return xpad;}
+  int getYPad(){return ypad;}
   virtual void mapBase(bool val);
   DStructGDL* GetGeometry(wxRealPoint fact=wxRealPoint(1.0,1.0)) final;
 //  wxScrolled<wxPanel>* AddBaseFrame(wxScrolled<wxPanel>* wxParent, int width=0);

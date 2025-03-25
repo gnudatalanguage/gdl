@@ -81,7 +81,7 @@ wxBitmap * GetBitmapFromPassedBytes(EnvT* e, DByteGDL* passedBytes, bool doMask=
 
 wxRealPoint GetRequestedUnitConversionFactor( EnvT* e){
   int the_units = 0;
-  static int unitsIx = e->KeywordIx( "UNITS" );
+  int unitsIx = e->KeywordIx( "UNITS" ); //not static as the calling finction may change
   e->AssureLongScalarKWIfPresent( unitsIx, the_units );
   //convert unit to the factor in pixels
   DDouble sx=wxGetDisplaySizeMM().x;
@@ -98,7 +98,7 @@ wxRealPoint GetRequestedUnitConversionFactor( EnvT* e){
 void GDLWidget::ChangeUnitConversionFactor( EnvT* e)
 {
   int the_units = 0;
-  static int unitsIx = e->KeywordIx( "UNITS" );
+  int unitsIx = e->KeywordIx( "UNITS" ); //not static as the calling finction may change
   e->AssureLongScalarKWIfPresent( unitsIx, the_units );
   //convert unit to the factor in pixels
   DDouble sx=wxGetDisplaySizeMM().x;
@@ -190,11 +190,24 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
   if (the_units==0) unitConversionFactor=wxRealPoint(1,1);
   if (the_units==1) unitConversionFactor=wxRealPoint(sx*25.4,sy*25.4);
   if (the_units==2) unitConversionFactor=wxRealPoint(sx*10.0,sy*10.0);
+  double widget_xsize=-1;
+  double widget_ysize=-1;
+  double widget_screen_xsize=-1;
+  double widget_screen_ysize=-1;
+  e->AssureDoubleScalarKWIfPresent( scr_xsizeIx, widget_screen_xsize ); 
+  e->AssureDoubleScalarKWIfPresent( scr_ysizeIx, widget_screen_xsize ); 
+  wScreenSize.x=widget_screen_xsize*unitConversionFactor.x;
+  wScreenSize.y=widget_screen_ysize*unitConversionFactor.y;
+  if (wScreenSize.x<=0) wScreenSize.x=wxDefaultSize.x;
+  if (wScreenSize.y<=0) wScreenSize.y=wxDefaultSize.y;
+  
+  e->AssureDoubleScalarKWIfPresent( xsizeIx, widget_xsize);
+  e->AssureDoubleScalarKWIfPresent( ysizeIx, widget_ysize );
+  wSize.x=widget_xsize*unitConversionFactor.x;
+  wSize.y=widget_ysize*unitConversionFactor.y;
+  if (wSize.x<=0) wSize.x=wxDefaultSize.x;
+  if (wSize.y<=0) wSize.y=wxDefaultSize.y;
 
-  e->AssureLongScalarKWIfPresent( scr_xsizeIx, wScreenSize.x ); if (wScreenSize.x<=0) wScreenSize.x=wxDefaultSize.x;
-  e->AssureLongScalarKWIfPresent( xsizeIx, wSize.x );           if (wSize.x<=0) wSize.x=wxDefaultSize.x;
-  e->AssureLongScalarKWIfPresent( scr_ysizeIx, wScreenSize.y ); if (wScreenSize.y<=0) wScreenSize.y=wxDefaultSize.y;
-  e->AssureLongScalarKWIfPresent( ysizeIx, wSize.y );           if (wSize.y<=0) wSize.y=wxDefaultSize.y;
   e->AssureDoubleScalarKWIfPresent( xoffsetIx, wOffset.x );       if (wOffset.x<=0) wOffset.x=wxDefaultPosition.x;
   e->AssureDoubleScalarKWIfPresent( yoffsetIx, wOffset.y );       if (wOffset.y<=0) wOffset.y=wxDefaultPosition.y;
 
@@ -555,11 +568,15 @@ BaseGDL* widget_table( EnvT* e)
   if (e->KeywordSet(ROW_MAJOR)) majority = GDLWidgetTable::ROW_MAJOR; //order of preference
 
   static int x_scroll_sizeIx = e->KeywordIx( "X_SCROLL_SIZE" );
-  DLong x_scroll_size = 0;
-  e->AssureLongScalarKWIfPresent( x_scroll_sizeIx, x_scroll_size );
+  DLong x_scroll_size = -1;
+  double dx_scroll_size = -1;
+  e->AssureDoubleScalarKWIfPresent( x_scroll_sizeIx, dx_scroll_size );
+  x_scroll_size=dx_scroll_size*GetRequestedUnitConversionFactor(e).x;
   static int y_scroll_sizeIx = e->KeywordIx( "Y_SCROLL_SIZE" );
-  DLong y_scroll_size = 0;
-  e->AssureLongScalarKWIfPresent( y_scroll_sizeIx, y_scroll_size );
+  DLong y_scroll_size = -1;
+  double dy_scroll_size = -1;
+  e->AssureDoubleScalarKWIfPresent( y_scroll_sizeIx, dy_scroll_size );
+  y_scroll_size=dy_scroll_size*GetRequestedUnitConversionFactor(e).y;
 
   //common for all widgets
   static int TRACKING_EVENTS = e->KeywordIx( "TRACKING_EVENTS" );
@@ -752,10 +769,15 @@ BaseGDL* widget_draw( EnvT* e ) {
   bool app_scroll = e->KeywordSet(APP_SCROLL);
   static int x_scroll_sizeIx = e->KeywordIx( "X_SCROLL_SIZE" );
   DLong x_scroll_size = -1;
-  e->AssureLongScalarKWIfPresent( x_scroll_sizeIx, x_scroll_size );
+  double dx_scroll_size= -1;
+  e->AssureDoubleScalarKWIfPresent( x_scroll_sizeIx, dx_scroll_size );
+  x_scroll_size=dx_scroll_size*GetRequestedUnitConversionFactor(e).x;
+      
   static int y_scroll_sizeIx = e->KeywordIx( "Y_SCROLL_SIZE" );
   DLong y_scroll_size = -1;
-  e->AssureLongScalarKWIfPresent( y_scroll_sizeIx, y_scroll_size );
+  double dy_scroll_size = -1;
+  e->AssureDoubleScalarKWIfPresent( y_scroll_sizeIx, dy_scroll_size );
+  y_scroll_size=dy_scroll_size*GetRequestedUnitConversionFactor(e).y;
 
   static int TOOLTIP = e->KeywordIx( "TOOLTIP" );
   
@@ -902,10 +924,14 @@ BaseGDL* widget_draw( EnvT* e ) {
   DLong frame_attr=0;
   e->AssureLongScalarKWIfPresent( tlb_frame_attrIx, frame_attr );
   DLong x_scroll_size = -1;
-  e->AssureLongScalarKWIfPresent( x_scroll_sizeIx, x_scroll_size );
+  double dx_scroll_size = -1;
+  e->AssureDoubleScalarKWIfPresent( x_scroll_sizeIx, dx_scroll_size );
+  x_scroll_size=dx_scroll_size*GetRequestedUnitConversionFactor(e).x;
   DLong y_scroll_size = -1;
-  e->AssureLongScalarKWIfPresent( y_scroll_sizeIx, y_scroll_size );
-
+  double dy_scroll_size = -1;
+  e->AssureDoubleScalarKWIfPresent( y_scroll_sizeIx, dy_scroll_size );
+  y_scroll_size=dy_scroll_size*GetRequestedUnitConversionFactor(e).y;
+  
   bool mbarPresent = e->KeywordPresent( mbarIx )||e->KeywordPresent( obsolete_app_mbarIx );
 
   // consistency
@@ -918,9 +944,9 @@ BaseGDL* widget_draw( EnvT* e ) {
 
   DLong space=gdlSPACE;
   if ( e->KeywordPresent(spaceIx) && !nonexclusive && !exclusive ) e->AssureLongScalarKWIfPresent( spaceIx, space );
-  DLong xpad = space;
+  DLong xpad = 0;
   if ( !nonexclusive && !exclusive ) e->AssureLongScalarKWIfPresent( xpadIx, xpad );
-  DLong ypad = space;
+  DLong ypad = 0;
   if ( !nonexclusive && !exclusive ) e->AssureLongScalarKWIfPresent( ypadIx, ypad );
   
   DLong column = 0;
@@ -2954,31 +2980,20 @@ void widget_control( EnvT* e ) {
   
   if (hasScr_xsize || hasScr_ysize) { //simple: direct sizing in pixels or UNITS for ALL widgets
     DLong xsize=-1, ysize=-1;
-    if (hasScr_xsize) {xsize= (*e->GetKWAs<DLongGDL>(SCR_XSIZE))[0]; if (xsize<0) e->Throw("Illegal keyword value for SCR_XSIZE.");}
-    if (hasScr_ysize) {ysize= (*e->GetKWAs<DLongGDL>(SCR_YSIZE))[0]; if (ysize<0) e->Throw("Illegal keyword value for SCR_YSIZE.");}
+    if (hasScr_xsize) {xsize= (*e->GetKWAs<DDoubleGDL>(SCR_XSIZE))[0]*GetRequestedUnitConversionFactor(e).x; if (xsize<0) e->Throw("Illegal keyword value for SCR_XSIZE.");}
+    if (hasScr_ysize) {ysize= (*e->GetKWAs<DDoubleGDL>(SCR_YSIZE))[0]*GetRequestedUnitConversionFactor(e).y; if (ysize<0) e->Throw("Illegal keyword value for SCR_YSIZE.");}
 
     wxWindow* me=dynamic_cast<wxWindow*>(widget->GetWxWidget());
     if (me==NULL) e->Throw("Geometry request not allowed for menubar or pulldown menus.");
-
-    wxRealPoint fact = wxRealPoint(1.,1.);
-    if ( unitsGiven ) {
-      fact = GetRequestedUnitConversionFactor( e );
-      if (hasScr_xsize) xsize*=fact.x;
-      if (hasScr_ysize) ysize*=fact.y;
-    }    
+  
     widget->SetWidgetScreenSize(xsize,ysize);
   }
   
   if ( (hasDraw_xsize || hasDraw_ysize ) && widget->IsDraw() ) {
     DLong xsize=-1, ysize=-1;
-    if (hasDraw_xsize) {xsize= (*e->GetKWAs<DLongGDL>(DRAW_XSIZE))[0]; if (xsize<0) e->Throw("Illegal keyword value for DRAW_XSIZE.");}
-    if (hasDraw_ysize) {ysize= (*e->GetKWAs<DLongGDL>(DRAW_YSIZE))[0]; if (ysize<0) e->Throw("Illegal keyword value for DRAW_YSIZE.");}
-    wxRealPoint fact = wxRealPoint(1.,1.);
-    if ( unitsGiven ) {
-      fact = GetRequestedUnitConversionFactor( e );
-      if (hasDraw_xsize) xsize*=fact.x;
-      if (hasDraw_ysize) ysize*=fact.y;
-    } 
+    if (hasDraw_xsize) {xsize= (*e->GetKWAs<DDoubleGDL>(DRAW_XSIZE))[0]*GetRequestedUnitConversionFactor(e).x; if (xsize<0) e->Throw("Illegal keyword value for DRAW_XSIZE.");}
+    if (hasDraw_ysize) {ysize= (*e->GetKWAs<DDoubleGDL>(DRAW_YSIZE))[0]*GetRequestedUnitConversionFactor(e).y; if (ysize<0) e->Throw("Illegal keyword value for DRAW_YSIZE.");}
+
     widget->SetWidgetVirtualSize(xsize,ysize);   
    }
   
@@ -2989,20 +3004,17 @@ void widget_control( EnvT* e ) {
       if (whatSortofBut->IsMenu() || whatSortofBut->IsEntry()) e->Throw("Geometry request not allowed for menubar or pulldown menus.");
     }
     DLong xsize=-1, ysize=-1;
-    if (hasXsize) {xsize= (*e->GetKWAs<DLongGDL>(XSIZE))[0]; if (xsize<0) e->Throw("Illegal keyword value for XSIZE.");}
-    if (hasYsize) {ysize= (*e->GetKWAs<DLongGDL>(YSIZE))[0]; if (ysize<0) e->Throw("Illegal keyword value for YSIZE.");}
 
     wxWindow* me=dynamic_cast<wxWindow*>(widget->GetWxWidget());
     if (!me) e->Throw("Geometry request not allowed for menubar or pulldown menus.");
     
     if (!(widget->IsList() || widget->IsTable() || widget->IsText())) {
-    wxRealPoint fact = wxRealPoint(1.,1.);
-      if ( unitsGiven ) {
-        fact = GetRequestedUnitConversionFactor( e );
-        if (hasXsize) xsize*=fact.x;
-        if (hasYsize) ysize*=fact.y;
-      }     
-    } 
+    if (hasXsize) {xsize= (*e->GetKWAs<DDoubleGDL>(XSIZE))[0]*GetRequestedUnitConversionFactor(e).x; if (xsize<0) e->Throw("Illegal keyword value for XSIZE.");}
+    if (hasYsize) {ysize= (*e->GetKWAs<DDoubleGDL>(YSIZE))[0]*GetRequestedUnitConversionFactor(e).y; if (ysize<0) e->Throw("Illegal keyword value for YSIZE.");}
+    } else {
+      if (hasXsize) {xsize= (*e->GetKWAs<DLongGDL>(XSIZE))[0]; if (xsize<0) e->Throw("Illegal keyword value for XSIZE.");}
+      if (hasYsize) {ysize= (*e->GetKWAs<DDoubleGDL>(YSIZE))[0]; if (ysize<0) e->Throw("Illegal keyword value for YSIZE.");}
+    }
     widget->SetWidgetSize(xsize,ysize);
   }
 
