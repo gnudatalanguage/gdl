@@ -1829,7 +1829,22 @@ bool GDLWidget::IsRealized() {
   }
   
   wxPanel* p=static_cast<wxPanel*> (theWxContainer);
-  if (p) {
+  if (p) { //there is a container.
+    if (theWxWidget != theWxContainer) {
+      // from theWxWidget to theWxContainer, fit all intermediate containers
+      wxWindow* w = static_cast<wxWindow*> (theWxWidget);
+//      std::cerr << " start from theWxWidget: " << theWxWidget << ",";
+      while (w && w != p) {
+        wxSizer* ws = w->GetSizer();
+        if (ws == NULL) {
+          break;
+        }
+        ws->Fit(w);
+        w = w->GetParent();
+//        std::cerr << ", upwards: " << w << ",";
+      }
+//      std::cerr << std::endl;
+    }
     wxSizer* s = p->GetSizer();
     if (s) s->Fit(p);
     else {
@@ -1857,9 +1872,9 @@ bool GDLWidget::IsRealized() {
       }
     }
   }
-#ifdef GDL_DEBUG_WIDGETS
+//#ifdef GDL_DEBUG_WIDGETS
     else wxMessageOutputStderr().Printf(_T("Unknown Container for (%s) widget ID %d\n"), widgetName, widgetID);
-#endif
+//#endif
 
   if (notifyRealize != "") { //insure it is called once only for this.
    std::string note = notifyRealize;
@@ -2220,33 +2235,37 @@ GDLWidgetBase::GDLWidgetBase(WidgetIDT parentID, EnvT* e, ULong eventFlags_,
 // NOTE: a=widget_base(/base_align_center, /scroll,xsize=300,ysize=300) will NOT produce a blank 300x300 panel inside a 100x100 scolled window, as we use only ONE
 // panel, and the internal size (the VirtualSize) will be determined by what WILL BE created as childrens (there exist no 
 // This is completely different from IDL's Motif widgets, and there is no SetMinVirtualSize()
-void GDLWidgetBase::CreateBase(wxWindow* parent){
-//the container is a ScrollPanel
-//  bool doFrame=true; //!(this->IsTopBase()); //IDL Prevents topBases to be framed (?).
-    if (frameWidth > 0) {
-    wxPanel* frame = new wxPanel(parent, wxID_ANY, wOffset, wxDefaultSize, gdlBORDER_EXT); 
-    theWxContainer=frame;
+
+void GDLWidgetBase::CreateBase(wxWindow* parent) {
+  //the container is a ScrollPanel
+  if (scrolled && frameWidth < 1) frameWidth=1;
+  if (frameWidth > 0) {
+    wxPanel* frame = new wxPanel(parent, wxID_ANY, wOffset, wxDefaultSize, gdlBORDER_EXT);
+//    std::cerr<<" frame panel: "<<frame<<",";
+    theWxContainer = frame;
     wxBoxSizer* panelsz = new wxBoxSizer(wxVERTICAL);
     frame->SetSizer(panelsz);
 
-    wxBoxSizer* sz_inside=panelsz;
-    wxPanel* frame_inside=frame;
-    DLong newframewidth=frameWidth;
-// Fancy variant:
-    if (frameWidth > 1 /*&&  tryToMimicOriginalWidgets*/ ) {
-      newframewidth=frameWidth/2;
-//      frame->SetBackgroundColour(*wxBLACK); //will show a strong frame as does IDL
-      frame->SetBackgroundColour(wxColour(127,127,127)); //will show a strong frame as does IDL
+    wxBoxSizer* sz_inside = panelsz;
+    wxPanel* frame_inside = frame;
+    DLong newframewidth = frameWidth;
+    // Fancy variant:
+    if (frameWidth > 1 /*&&  tryToMimicOriginalWidgets*/) {
+      newframewidth = frameWidth / 2;
+      //      frame->SetBackgroundColour(*wxBLACK); //will show a strong frame as does IDL
+      frame->SetBackgroundColour(wxColour(127, 127, 127)); //will show a strong frame as does IDL
       int mode = wxBORDER_NONE;
       frame_inside = new wxPanel(frame, wxID_ANY, wxDefaultPosition, wxDefaultSize, mode);
+//      std::cerr<<" frame_inside : "<<frame_inside<<",";
+      panelsz->Add(frame_inside, FRAME_ALLOWSTRETCH, wxALL | wxEXPAND, newframewidth);
       frame_inside->SetBackgroundColour(*wxLIGHT_GREY);
-      panelsz->Add(frame_inside, FRAME_ALLOWSTRETCH, wxALL|wxEXPAND, newframewidth);
-
       sz_inside = new wxBoxSizer(wxVERTICAL);
       frame_inside->SetSizer(sz_inside);
-    } 
+    }
     if (xpad > 0 || ypad > 0) {
-      wxScrolled<wxPanel>* padxpady = new wxScrolled<wxPanel>(frame_inside);
+      wxScrolled<wxPanel>* padxpady = new wxScrolled<wxPanel>(frame_inside);//, wxID_ANY,  wxDefaultPosition, wxDefaultSize, scrollmode);
+//      std::cerr<<" padxpady: "<<padxpady<<",";
+      sz_inside->Add(padxpady,FRAME_ALLOWSTRETCH, wxALL | wxEXPAND, newframewidth);//gdlFRAME_MARGIN);
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
       padxpady->SetBackgroundColour(wxColour(0xa7, 0x3d, 0x0f)); //orange fonce
 #else
@@ -2258,61 +2277,55 @@ void GDLWidgetBase::CreateBase(wxWindow* parent){
       if (xpad > 1) sz->Add(0, 0, wxGBPosition(1, 2));
       if (ypad > 1) sz->Add(0, 0, wxGBPosition(2, 1));
 
-      widgetPanel = new wxScrolled<wxPanel>(padxpady, widgetID, wOffset, wxDefaultSize); 
+      widgetPanel = new wxScrolled<wxPanel>(padxpady, widgetID, wOffset, wxDefaultSize);
+//      std::cerr<<" widgetPanel: "<<widgetPanel<<",";
       sz->Add(widgetPanel, wxGBPosition(1, 1));
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
       widgetPanel->SetBackgroundColour(RandomWxColour());
 #endif
-      //    widgetPanel->SetVirtualSize(wSize);
-      padxpady->SetSize(wScrollSize);
       padxpady->SetMinSize(wScrollSize);
       //Just Enable scrollBars if scrolling is necessary
       if (scrolled) {
         padxpady->SetScrollbars(gdlSCROLL_RATE, gdlSCROLL_RATE, wSize.x / gdlSCROLL_RATE, wSize.y / gdlSCROLL_RATE);
-        padxpady->ShowScrollbars((xfree)?wxSHOW_SB_DEFAULT:wxSHOW_SB_ALWAYS, (yfree)?wxSHOW_SB_DEFAULT:wxSHOW_SB_ALWAYS);
+        padxpady->ShowScrollbars((xfree) ? wxSHOW_SB_DEFAULT : wxSHOW_SB_ALWAYS, (yfree) ? wxSHOW_SB_DEFAULT : wxSHOW_SB_ALWAYS);
       }
-      sz_inside->Add(padxpady, FRAME_ALLOWSTRETCH, wxALL | wxEXPAND, newframewidth);//gdlFRAME_MARGIN);
-      sz_inside->Fit(padxpady);
     } else {
-      widgetPanel = new wxScrolled<wxPanel>(frame_inside, widgetID, wOffset, wxDefaultSize);
+      widgetPanel = new wxScrolled<wxPanel>(frame_inside, widgetID, wOffset);//, wxDefaultSize, scrollmode);
+//     std::cerr<<" widgetPanel: "<<widgetPanel<<",";
+     sz_inside->Add(widgetPanel,FRAME_ALLOWSTRETCH, wxALL | wxEXPAND, newframewidth);//gdlFRAME_MARGIN);
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
       widgetPanel->SetBackgroundColour(RandomWxColour());
 #else
       if (frameWidth > 1 /*&&  tryToMimicOriginalWidgets*/) widgetPanel->SetBackgroundColour(wxColour(sysPanelDefaultColour));
 #endif
-      //    widgetPanel->SetVirtualSize(wSize);
-      widgetPanel->SetSize(wScrollSize);
       widgetPanel->SetMinSize(wScrollSize);
-      widgetPanel->SetMaxSize(wScrollSize);
       //Just Enable scrollBars if scrolling is necessary
       if (scrolled) {
         widgetPanel->SetScrollbars(gdlSCROLL_RATE, gdlSCROLL_RATE, wSize.x / gdlSCROLL_RATE, wSize.y / gdlSCROLL_RATE);
-        widgetPanel->ShowScrollbars((xfree)?wxSHOW_SB_DEFAULT:wxSHOW_SB_ALWAYS, (yfree)?wxSHOW_SB_DEFAULT:wxSHOW_SB_ALWAYS);
+        widgetPanel->ShowScrollbars((xfree) ? wxSHOW_SB_DEFAULT : wxSHOW_SB_ALWAYS, (yfree) ? wxSHOW_SB_DEFAULT : wxSHOW_SB_ALWAYS);
       }
-      sz_inside->Add(widgetPanel, FRAME_ALLOWSTRETCH, wxALL | wxEXPAND, newframewidth);//gdlFRAME_MARGIN);
-      sz_inside->Fit(widgetPanel);
     }
     theWxWidget = widgetPanel;
   } else {
-    if (xpad > 0 || ypad > 0 ) {
-      wxScrolled<wxPanel>* padxpady = new wxScrolled<wxPanel>(parent);
+    if (xpad > 0 || ypad > 0) {
+      wxScrolled<wxPanel>* padxpady = new wxScrolled<wxPanel>(parent);//, wxID_ANY, wxDefaultPosition, wxDefaultSize, scrollmode);
+//      std::cerr<<" padxpady: "<<padxpady<<",";
       theWxContainer = padxpady;
-  #ifdef GDL_DEBUG_WIDGETS_COLORIZE
+#ifdef GDL_DEBUG_WIDGETS_COLORIZE
       padxpady->SetBackgroundColour(wxColour(0xa7, 0x3d, 0x0f)); //orange fonce
-  #endif
+#endif
       wxGridBagSizer* sz = new wxGridBagSizer(ypad, xpad);
       padxpady->SetSizer(sz);
       sz->SetEmptyCellSize(wxSize(0, 0));
       if (xpad > 1) sz->Add(0, 0, wxGBPosition(1, 2));
       if (ypad > 1) sz->Add(0, 0, wxGBPosition(2, 1));
 
-      widgetPanel = new wxScrolled<wxPanel>(padxpady, widgetID, wOffset, wxDefaultSize); 
-      sz->Add(widgetPanel, wxGBPosition(1, 1));     
+      widgetPanel = new wxScrolled<wxPanel>(padxpady, widgetID, wOffset, wxDefaultSize);
+//      std::cerr<<" widgetPanel: "<<widgetPanel<<",";
+      sz->Add(widgetPanel, wxGBPosition(1, 1));
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
       widgetPanel->SetBackgroundColour(RandomWxColour());
 #endif
-      //    widgetPanel->SetVirtualSize(wSize);
-      padxpady->SetSize(wScrollSize);
       padxpady->SetMinSize(wScrollSize);
       //Just Enable scrollBars if scrolling is necessary
       if (scrolled) {
@@ -2320,38 +2333,35 @@ void GDLWidgetBase::CreateBase(wxWindow* parent){
         padxpady->ShowScrollbars(wxSHOW_SB_ALWAYS, wxSHOW_SB_ALWAYS);
       }
     } else {
-      widgetPanel = new wxScrolled<wxPanel>(parent, widgetID, wOffset, wxDefaultSize); 
+      widgetPanel = new wxScrolled<wxPanel>(parent, widgetID, wOffset);//, wxDefaultSize, scrollmode);
       theWxContainer = widgetPanel;
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
       widgetPanel->SetBackgroundColour(RandomWxColour());
 #endif
-        widgetPanel->SetVirtualSize(wSize);
-      widgetPanel->SetSize(wScrollSize);
       widgetPanel->SetMinSize(wScrollSize);
-      widgetPanel->SetMaxSize(wScrollSize);
       //Just Enable scrollBars if scrolling is necessary
       if (scrolled) {
         widgetPanel->SetScrollbars(gdlSCROLL_RATE, gdlSCROLL_RATE, wSize.x / gdlSCROLL_RATE, wSize.y / gdlSCROLL_RATE);
-        widgetPanel->ShowScrollbars((xfree)?wxSHOW_SB_DEFAULT:wxSHOW_SB_ALWAYS, (yfree)?wxSHOW_SB_DEFAULT:wxSHOW_SB_ALWAYS);
+        widgetPanel->ShowScrollbars((xfree) ? wxSHOW_SB_DEFAULT : wxSHOW_SB_ALWAYS, (yfree) ? wxSHOW_SB_DEFAULT : wxSHOW_SB_ALWAYS);
       }
     }
-    
+
     theWxWidget = widgetPanel;
   }
 
-
-//define inside sizer.  
+//if (theWxWidget != theWxContainer) std::cerr<<std::endl;
+  //define inside sizer.  
   widgetSizer = AddABaseSizer(ncols, nrows, grid, space);
-  if (widgetSizer) widgetPanel->SetSizer(widgetSizer); 
+  if (widgetSizer) widgetPanel->SetSizer(widgetSizer);
   else if (scrolled) { //no col or row but scroll: need a sizer otherwise the content size will not be propagated to the scrolled window.
-    widgetSizer=new wxBoxSizer(wxHORIZONTAL);
+    widgetSizer = new wxBoxSizer(wxHORIZONTAL);
     widgetPanel->SetSizer(widgetSizer);
-    nrows=1; //do not forget as there would be problems with alignment checks afterwards
+    nrows = 1; //do not forget as there would be problems with alignment checks afterwards
   }
 
   wxSizer* parentSizer = parent->GetSizer();
-  if (parentSizer) parentSizer->Add(static_cast<wxWindow*>(theWxContainer), ALLOWSTRETCH, wxALL | widgetAlignment(), gdlSPACE); 
-  }
+  if (parentSizer) parentSizer->Add(static_cast<wxWindow*> (theWxContainer), ALLOWSTRETCH, wxALL | widgetAlignment(), gdlSPACE);
+}
 
  void GDLWidgetBase::SetWidgetSize(DLong sizex, DLong sizey) 
 {

@@ -940,21 +940,30 @@ BaseGDL* widget_draw( EnvT* e ) {
   //besides, SPACE, XPAD and YPAD are ignored.
   //according to doc, Exclusive and non-exclusive base admit only button widget children, but simple tests show it is not the case for IDL up to now.
 
-  //xpad, ypad and space default to gdlPAD if not precised:
+    DLong column = 0;
+    e->AssureLongScalarKWIfPresent(columnIx, column);
+    DLong row = 0;
+    e->AssureLongScalarKWIfPresent(rowIx, row);
 
-  DLong space=gdlSPACE;
-  if ( e->KeywordPresent(spaceIx) && !nonexclusive && !exclusive ) e->AssureLongScalarKWIfPresent( spaceIx, space );
-  DLong xpad = 0;
-  if ( !nonexclusive && !exclusive ) e->AssureLongScalarKWIfPresent( xpadIx, xpad );
-  DLong ypad = 0;
-  if ( !nonexclusive && !exclusive ) e->AssureLongScalarKWIfPresent( ypadIx, ypad );
+    if (column > 0 && row > 0) e->Throw("Conflicting keywords: row vs. col");
+
+    //xpad, ypad and space are subject to UNITS too
+
+    DLong space = 0;
+    DLong xpad = 0;
+    DLong ypad = 0;
+    if (!nonexclusive && !exclusive) {
+      DDouble dspace = 0;
+      DDouble dxpad = 0;
+      DDouble dypad = 0;
+      e->AssureDoubleScalarKWIfPresent(spaceIx, dspace);
+      space = (column > 0) ? dspace * GetRequestedUnitConversionFactor(e).y: dspace * GetRequestedUnitConversionFactor(e).x;
+      e->AssureDoubleScalarKWIfPresent(xpadIx, dxpad);
+      xpad = dxpad * GetRequestedUnitConversionFactor(e).x;
+      e->AssureDoubleScalarKWIfPresent(ypadIx, dypad);
+      ypad = dypad * GetRequestedUnitConversionFactor(e).y;
+    }
   
-  DLong column = 0;
-  e->AssureLongScalarKWIfPresent( columnIx, column );
-  DLong row = 0;
-  e->AssureLongScalarKWIfPresent( rowIx, row );
-
-  if (column>0 && row>0) e->Throw( "Conflicting keywords: row vs. col" );
 
   DString resource_name = "";
   DString rname_mbar = "";
