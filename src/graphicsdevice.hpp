@@ -226,7 +226,7 @@ public:
   virtual DString GetCurrentFont()                 {return "__$";}
   virtual DLong GetGraphicsFunction()                 { return -1;}
   virtual DIntGDL* GetPageSize()                      { return NULL;}
-  virtual DLong GetPixelDepth()                       { return -1;}
+  virtual DInt GetPixelDepth()                       { return -1;}
   virtual bool SetPixelDepth(DInt depth)               { return false;}
   virtual DDoubleGDL* GetScreenResolution(char* disp=NULL)  //fake a basic screen if not implemented:
   {
@@ -237,10 +237,9 @@ public:
     return res;
   }
 //  virtual DFloatGDL* GetScreenSize(char* disp=NULL)     { return NULL;}
-  virtual DLongGDL* GetScreenSize(char* disp=NULL) //fake a basic screen if not implemented:
+  virtual DIntGDL* GetScreenSize(char* disp=NULL) //fake a basic screen if not implemented:
   {
-    DLongGDL* res;
-    res = new DLongGDL(2, BaseGDL::NOZERO);
+    DIntGDL* res = new DIntGDL(2, BaseGDL::NOZERO);
     (*res)[0]=640;
     (*res)[1]=480;
     return res;

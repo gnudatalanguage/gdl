@@ -93,14 +93,11 @@ namespace SysVar
   void Suppress_Edit_Input();
   DLong Quiet();
   void Make_Quiet();
-  DLong GDL_Warning();
-
+  DInt More();
+  
   // get and set !JOURNAL (journal file LUN)
   DLong JournalLUN();
   void JournalLUN( DLong jLUN);
-
-  // get and set USERSYM
-  DStructGDL* USYM();
 
   // get the !ORDER variable
   DLong TV_ORDER();

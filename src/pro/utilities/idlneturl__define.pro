@@ -224,7 +224,7 @@ function idlneturl::Get,       BUFFER=buffer, FILENAME=filename,            STRI
      StatusInfo="Downloading..."
      time=0d
      while (file_test(pb) eq 0 and time le 5 ) do begin
-        wait,0.1
+        gdlwait_responsive,0.1   ;special wait command, never use elsewhere
         time+=0.1
      end
      if (time ge 5) then goto,done ; curl did not even create the progressbar (? to fast or problem?) , skip callback
@@ -238,7 +238,7 @@ function idlneturl::Get,       BUFFER=buffer, FILENAME=filename,            STRI
            free_lun,lun
            goto, fin
         endif
-        wait,0.1
+        gdlwait_responsive,0.1  ;special wait command, never use elsewhere
      endwhile
      free_lun,lun
 done:
@@ -284,7 +284,7 @@ fin:
      return, response
   endif else if KEYWORD_SET(string_array) then begin
      n=1
-     istext=strpos('text/',self.content_type) ge 0
+     istext=strpos(self.content_type,'text/') ge 0
      if istext then n=file_lines(filename)
      s="" & resp=strarr(n)
      openr,lun,filename,/get
@@ -446,7 +446,7 @@ function idlneturl::Put, data, BUFFER=buffer, FILENAME=filename, POST=post, STRI
 ; return:     
   if KEYWORD_SET(string_array) then begin
      n=1
-     istext=strpos('text/',self.content_type) ge 0
+     istext=strpos(self.content_type,'text/') ge 0
      if istext then n=file_lines(filename)
      resp=strarr(n) & s=''
      openr,lun,oufile,/get

@@ -160,8 +160,8 @@ void OutFixed(std::ostream& os, const T &val, const int w, const int d, const in
   if (std::isfinite(val)) {
    std::ostringstream oss;
   if ( code & fmtSHOWPOS ) oss << std::showpos;
-   oss << std::fixed << std::setprecision(d) << val;
-   if (d==0) oss << ".";
+   oss << std::fixed << std::showpoint << std::setprecision(d) << val;
+//   if (d==0) oss << ".";
    if( w <= 0)
      os << oss.str();
    else if( oss.tellp() > w)
@@ -192,7 +192,8 @@ void OutScientific(std::ostream& os, const T &val, const int w, const int d, con
   // TODO: IDL handles both lower and upper case "E" (tracker item no. 3147155)
   if ( code & fmtSHOWPOS ) oss << std::showpos;
   if ( code & fmtUPPER ) oss << std::uppercase ;
-  oss << std::scientific << std::setprecision(d) << val;
+  //IDL uses the showpoint mode
+  oss << std::scientific<< std::showpoint  << std::setprecision(d) << val;
   if (w == 0 )
    os << oss.str();
   else if (oss.tellp() > w)

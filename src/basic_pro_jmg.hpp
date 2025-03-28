@@ -35,6 +35,7 @@ namespace lib {
   void unlinksymbol( EnvT* e );
   void ResetDLLs( void );
   void wait_pro( EnvT* e);
+  void gdlwait_responsive( EnvT* e);
 
   void kwtest( EnvT* e);
 

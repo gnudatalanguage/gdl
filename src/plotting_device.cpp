@@ -124,11 +124,11 @@ namespace lib {
     {
       static int get_pixel_depthIx = e->KeywordIx("GET_PIXEL_DEPTH");
       if (e->KeywordPresent(get_pixel_depthIx)) {
-        DLong value = actDevice->GetPixelDepth();
+        DInt value = actDevice->GetPixelDepth();
         if (value == -1)
           e->Throw("Keyword GET_PIXEL_DEPTH not allowed for call to: DEVICE");
         else
-          e->SetKW(get_pixel_depthIx, new DLongGDL(value));
+          e->SetKW(get_pixel_depthIx, new DIntGDL(value));
       }
     }
 
@@ -136,7 +136,7 @@ namespace lib {
     {
       static int get_screen_sizeIx = e->KeywordIx("GET_SCREEN_SIZE");
       if (e->KeywordPresent(get_screen_sizeIx)) {
-        DLongGDL* fvalue = actDevice->GetScreenSize();
+        DIntGDL* fvalue = actDevice->GetScreenSize();
         if (fvalue == NULL)
           e->Throw("Keyword GET_SCREEN_SIZE not allowed for call to: DEVICE");
         else {

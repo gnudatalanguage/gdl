@@ -247,6 +247,7 @@ void LibInit_jmg()
   new DLibPro( lib::unlinksymbol, string("UNLINKSYMBOL"), 2, unlinksymbolKey, NULL, 2 );
 
   new DLibPro(lib::wait_pro,string("WAIT"),1);
+  new DLibPro(lib::gdlwait_responsive,string("GDLWAIT_RESPONSIVE"),1);
 
 #if defined(USE_HDF)
   new DLibFunRetNew(lib::hdf_ishdf,string("HDF_ISHDF"),1);

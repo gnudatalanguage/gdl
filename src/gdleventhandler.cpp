@@ -45,11 +45,15 @@ int GDLEventHandler()
   if (useWxWidgets) GDLWidget::HandleUnblockedWidgetEvents();
 #endif
   GraphicsDevice::HandleEvents();
-
 #ifdef _WIN32 
-  Sleep(10);  // this just to quiet down the character input from readline. 2 was not enough. 20 was ok.
-#endif
-  
+    Sleep(10); // this just to quiet down the character input from readline. 2 was not enough. 20 was ok.
+#else
+    const long SLEEP = 10000000; // 10ms
+    struct timespec delay;
+    delay.tv_sec = 0;
+    delay.tv_nsec = SLEEP;
+    nanosleep(&delay, NULL);
+#endif  
   return 0;
 }
 
