@@ -745,13 +745,15 @@ return eventFun;}
 
  wxSizer* GetParentSizer() {
   GDLWidget* gdlParent = GetWidget(parentID);
-  return gdlParent->GetSizer();
+  if (gdlParent) return gdlParent->GetSizer();
+  return NULL;
  }
   wxSizer* GetSizer() { return widgetSizer;}
 
  wxScrolled<wxPanel>* GetParentPanel() {
   GDLWidget* gdlParent = GetWidget(parentID);
-  return gdlParent->GetPanel();
+  if (gdlParent) return gdlParent->GetPanel();
+  return NULL;
  }
   wxScrolled<wxPanel>* GetPanel() { return widgetPanel;}
 
@@ -917,6 +919,7 @@ public:
   wxScrolled<wxPanel>* AddXYPad(wxScrolled<wxPanel>* wxParent, int xpad=0, int ypad=0);
 //Apparently children of a base are plotted in reverse order in IDL (last first)
   void DoReorderColWidgets(int code=0,int style=0, int border=0);
+  void invertStack();
   void ReorderWidgets();
   void ReorderForANewWidget(wxWindow* w, int code,int style, int border);
 //  int widgetAlignment();
@@ -1650,8 +1653,8 @@ class GDLWidgetTable: public GDLWidget
   DLongGDL* rowHeights;
   DStringGDL* rowLabels;
 //  DLong tabMode;
-  DLong x_scroll_size_columns;
-  DLong y_scroll_size_rows;
+  DLong x_scroll_column;
+  DLong y_scroll_row;
   bool         updating; //widget is modified by program (avoid sending events)
 
 public:
@@ -1679,8 +1682,8 @@ public:
 		  DStringGDL* rowLabels_,
 //		  DLong tabMode_,
 		  BaseGDL* value_,
-		  DLong xScrollSize_,
-		  DLong yScrollSize_,
+		  DLong xScrollColumn_,
+		  DLong yScrollRow_,
       DStringGDL* valueAsStrings,
       DULong eventFlags_
   );
@@ -1738,14 +1741,18 @@ public:
   void SetSelection(DLongGDL* selection);
 
   int GetDataNCols(){
-    if ( majority == NONE_MAJOR) return vValue->Dim(0);
-    else if ( majority == COLUMN_MAJOR) return vValue->Dim(0);
+	  SizeT dim0=vValue->Dim(0); if (dim0==0) dim0=1;
+	  SizeT dim1=vValue->Dim(1); if (dim1==0) dim1=1;
+    if ( majority == NONE_MAJOR) return dim0;
+    else if ( majority == COLUMN_MAJOR) return dim1;
     else  return static_cast<DStructGDL*>(vValue)->NTags();
   }
   int GetDataNRows(){
-    if ( majority == NONE_MAJOR) return vValue->Dim(1);
+	  SizeT dim0=vValue->Dim(0); if (dim0==0) dim0=1;
+	  SizeT dim1=vValue->Dim(1); if (dim1==0) dim1=1;
+    if ( majority == NONE_MAJOR) return dim1;
     else if ( majority == COLUMN_MAJOR) return static_cast<DStructGDL*>(vValue)->NTags();
-    else  return vValue->Dim(0);
+    else  return dim0;
   }
   template<typename T1, typename T2>
   DString GetRawEditingValue(T1* value, const int nEl, const int n) {

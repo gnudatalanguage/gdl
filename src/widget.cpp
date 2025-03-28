@@ -195,18 +195,24 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
   double widget_screen_xsize=-1;
   double widget_screen_ysize=-1;
   e->AssureDoubleScalarKWIfPresent( scr_xsizeIx, widget_screen_xsize ); 
-  e->AssureDoubleScalarKWIfPresent( scr_ysizeIx, widget_screen_xsize ); 
+  e->AssureDoubleScalarKWIfPresent( scr_ysizeIx, widget_screen_ysize ); 
   wScreenSize.x=widget_screen_xsize*unitConversionFactor.x;
   wScreenSize.y=widget_screen_ysize*unitConversionFactor.y;
   if (wScreenSize.x<=0) wScreenSize.x=wxDefaultSize.x;
   if (wScreenSize.y<=0) wScreenSize.y=wxDefaultSize.y;
   
+  //check ProName as XSIZE and YSIZE  are not in UNITS if WIDGET_LIST, WIDGET_TABLE, or WIDGET_TEXT
+  bool useScale=true;
+  std::string proname=e->GetProName();
+  if (proname == "WIDGET_TABLE") useScale=false;
+  if (proname == "WIDGET_LIST") useScale=false;
+  if (proname == "WIDGET_TEXT") useScale=false;
   e->AssureDoubleScalarKWIfPresent( xsizeIx, widget_xsize);
   e->AssureDoubleScalarKWIfPresent( ysizeIx, widget_ysize );
-  wSize.x=widget_xsize*unitConversionFactor.x;
-  wSize.y=widget_ysize*unitConversionFactor.y;
-  if (wSize.x<=0) wSize.x=wxDefaultSize.x;
-  if (wSize.y<=0) wSize.y=wxDefaultSize.y;
+  wSize.x=widget_xsize*(useScale?unitConversionFactor.x:1);
+  wSize.y=widget_ysize*(useScale?unitConversionFactor.y:1);
+  if (wSize.x<=0) wSize.x=-1;
+  if (wSize.y<=0) wSize.y=-1;
 
   e->AssureDoubleScalarKWIfPresent( xoffsetIx, wOffset.x );       if (wOffset.x<=0) wOffset.x=wxDefaultPosition.x;
   e->AssureDoubleScalarKWIfPresent( yoffsetIx, wOffset.y );       if (wOffset.y<=0) wOffset.y=wxDefaultPosition.y;
@@ -567,16 +573,12 @@ BaseGDL* widget_table( EnvT* e)
   if (e->KeywordSet(COLUMN_MAJOR)) majority = GDLWidgetTable::COLUMN_MAJOR; //
   if (e->KeywordSet(ROW_MAJOR)) majority = GDLWidgetTable::ROW_MAJOR; //order of preference
 
-  static int x_scroll_sizeIx = e->KeywordIx( "X_SCROLL_SIZE" );
-  DLong x_scroll_size = -1;
-  double dx_scroll_size = -1;
-  e->AssureDoubleScalarKWIfPresent( x_scroll_sizeIx, dx_scroll_size );
-  x_scroll_size=dx_scroll_size*GetRequestedUnitConversionFactor(e).x;
-  static int y_scroll_sizeIx = e->KeywordIx( "Y_SCROLL_SIZE" );
-  DLong y_scroll_size = -1;
-  double dy_scroll_size = -1;
-  e->AssureDoubleScalarKWIfPresent( y_scroll_sizeIx, dy_scroll_size );
-  y_scroll_size=dy_scroll_size*GetRequestedUnitConversionFactor(e).y;
+  static int x_scroll_columnIx = e->KeywordIx( "X_SCROLL_SIZE" ); //the scroll size is in COLUMNS
+  DLong x_scroll_column = -1;
+  e->AssureLongScalarKWIfPresent( x_scroll_columnIx, x_scroll_column );
+  static int y_scroll_rowIx = e->KeywordIx( "Y_SCROLL_SIZE" ); //the scroll size is in ROWS
+  DLong y_scroll_row = -1;
+  e->AssureLongScalarKWIfPresent( y_scroll_rowIx, y_scroll_row );
 
   //common for all widgets
   static int TRACKING_EVENTS = e->KeywordIx( "TRACKING_EVENTS" );
@@ -620,8 +622,8 @@ BaseGDL* widget_table( EnvT* e)
   rowLabels,
 //  tabMode,
   value,
-  x_scroll_size,
-  y_scroll_size,
+  x_scroll_column,
+  y_scroll_row,
   valueAsStrings,
   eventFlags
   );

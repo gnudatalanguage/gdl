@@ -1830,21 +1830,21 @@ bool GDLWidget::IsRealized() {
   
   wxPanel* p=static_cast<wxPanel*> (theWxContainer);
   if (p) { //there is a container.
-    if (theWxWidget != theWxContainer) {
-      // from theWxWidget to theWxContainer, fit all intermediate containers
-      wxWindow* w = static_cast<wxWindow*> (theWxWidget);
-//      std::cerr << " start from theWxWidget: " << theWxWidget << ",";
-      while (w && w != p) {
-        wxSizer* ws = w->GetSizer();
-        if (ws == NULL) {
-          break;
-        }
-        ws->Fit(w);
-        w = w->GetParent();
-//        std::cerr << ", upwards: " << w << ",";
-      }
-//      std::cerr << std::endl;
-    }
+//    if (theWxWidget != theWxContainer) {
+//      // from theWxWidget to theWxContainer, fit all intermediate containers
+//      wxWindow* w = static_cast<wxWindow*> (theWxWidget);
+////      std::cerr << " start from theWxWidget: " << theWxWidget << ",";
+//      while (w && w != p) {
+//        wxSizer* ws = w->GetSizer();
+//        if (ws == NULL) {
+//          break;
+//        }
+//        ws->Fit(w);
+//        w = w->GetParent();
+////        std::cerr << ", upwards: " << w << ",";
+//      }
+////      std::cerr << std::endl;
+//    }
     wxSizer* s = p->GetSizer();
     if (s) s->Fit(p);
     else {
@@ -2815,6 +2815,25 @@ DStructGDL* GDLWidgetBase::GetGeometry(wxRealPoint fact) {
     if (me) me->Show(val); else {cerr<<"Warning: GDLWidgetTabbedBase::mapBase(): Non-existent widget!\n"; return;}
   }
   // Order in which widgets are plotted is different btw wxWindow and IDL if one does not do the following tricks:
+  //DOES NOT WORK
+  void GDLWidgetBase::invertStack() {
+  wxScrolled<wxPanel>* parent=this->GetParentPanel();
+  if (parent == NULL) return;
+  int nchild = this->NChildren();
+  if (nchild < 2) return;
+  std::vector<wxWindow*> windowlist;
+   //get children list...
+  DLongGDL* gdlwList= GetChildrenList();
+    for (int i = 0; i < nchild; ++i) {
+    GDLWidget* g=GetWidget((*gdlwList)[i]);
+    wxWindow* w=static_cast<wxWindow*>(g->GetWxContainer());
+    windowlist.push_back(w);
+    }
+   GDLDelete(gdlwList);
+   //THEN DO SOMETHING !
+   //for (auto i = nchild; i>0; --i) DO SOMETHING
+ }
+  // Order in which widgets are plotted is different btw wxWindow and IDL if one does not do the following tricks:
   void GDLWidgetBase::DoReorderColWidgets(int code,int style, int border) {
   int nchild = this->NChildren();
   //get children list...
@@ -2900,8 +2919,8 @@ void GDLWidgetBase::ReorderWidgets()
 {
   // NULL widget Sizer means 1) no row no col was asked for (so, no sizer) or, if col>1, we have to create the sizer here and add children in specific order.
   // do *not* forget to give back the sizer pointer instead of the previous NULL to the base widget!
-  if (widgetSizer == NULL) return;
-  if (ncols > 1) DoReorderColWidgets(0,0,space); //need to reorder widget for /COL only
+  if (widgetSizer == NULL) return; //invertStack(); else 
+    if (ncols > 1) DoReorderColWidgets(0,0,space); //need to reorder widget for /COL only
 }
 
 void GDLWidgetBase::ReorderForANewWidget(wxWindow* w, int code,int style, int border)
@@ -3037,8 +3056,8 @@ DLongGDL* rowHeights_,
 DStringGDL* rowLabels_,
 //DLong tabMode_,
 BaseGDL* value_,
-DLong xScrollSize_,
-DLong yScrollSize_,
+DLong xScrollColumn_,
+DLong yScrollRow_,
 DStringGDL* valueAsStrings,
 DULong eventFlags_
 )
@@ -3063,8 +3082,8 @@ DULong eventFlags_
 , rowHeights( rowHeights_ )
 , rowLabels( rowLabels_ )
 //, tabMode( tabMode_ )
-, x_scroll_size_columns( xScrollSize_ )
-, y_scroll_size_rows( yScrollSize_)
+, x_scroll_column( xScrollColumn_ )
+, y_scroll_row( yScrollRow_)
 , updating(false) {
   GDLWidget* gdlParent = GetWidget(parentID);
   widgetPanel = GetParentPanel();
@@ -3202,58 +3221,68 @@ DULong eventFlags_
   ////Not Useful?
   //grid->SetInitialSize(wClientSize);
 
-  //Size will be WindowSize, as wSize is in columns.
-  wxSize windowSize(100, 100); //default value, avoids warnings in GTK
-  //wxSize in columns, transform to units
-  int xsize_columns = wSize.x;
-  int ysize_rows = wSize.y;
+  //Size will be WindowSize, as wSize and ScrollSize are is in columns.
+  int xsize_columns = grid_ncols;
+  int ysize_rows = grid_nrows;
+  wxSize windowSize;
+  // size of value is the default size:
+  { // no 'if'
+  int windowsizex = currentRowLabelWidth;
+  for (SizeT i = 0; i < xsize_columns; ++i) windowsizex += (i < grid_ncols) ? grid->GetColSize(i) : grid->GetDefaultColSize();
+  windowSize.x = windowsizex;
+  }
+  { // no 'if'
+  int windowsizey = currentColLabelHeight;
+  for (SizeT j = 0; j < ysize_rows; ++j) windowsizey += (j < grid_nrows) ? grid->GetRowHeight(j) : grid->GetDefaultRowSize();
+  windowSize.y = windowsizey;
+  }
+
+  //then xsize, ysize in columns, win on above values
+  xsize_columns = wSize.x;
+  ysize_rows = wSize.y;
   if (xsize_columns > 0) { //defined
-	int windowsizex = currentRowLabelWidth;
-	for (SizeT i = 0; i < xsize_columns; ++i) windowsizex += (i < grid_ncols) ? grid->GetColSize(i) : grid->GetDefaultColSize();
-	windowSize = wxSize(windowsizex, windowSize.y);
+    int windowsizex = currentRowLabelWidth;
+    for (SizeT i = 0; i < xsize_columns; ++i) windowsizex += (i < grid_ncols) ? grid->GetColSize(i) : grid->GetDefaultColSize();
+    windowSize.x = windowsizex;
   }
   if (ysize_rows > 0) { //defined
-	int windowsizey = currentColLabelHeight;
-	for (SizeT j = 0; j < ysize_rows; ++j) windowsizey += (j < grid_nrows) ? grid->GetRowHeight(j) : grid->GetDefaultRowSize();
-	windowSize = wxSize(windowSize.x, windowsizey);
+    int windowsizey = currentColLabelHeight;
+    for (SizeT j = 0; j < ysize_rows; ++j) windowsizey += (j < grid_nrows) ? grid->GetRowHeight(j) : grid->GetDefaultRowSize();
+    windowSize.y = windowsizey;
+  }
+  
+  //then scroll in columns, win on above value if SMALLER 
+  xsize_columns = x_scroll_column;
+  ysize_rows = y_scroll_row;
+  if (xsize_columns > 0) { //defined
+    scrolled = true; //sets scrolling
+    if (xsize_columns < windowSize.x) {
+      int windowsizex = currentRowLabelWidth;
+      for (SizeT i = 0; i < xsize_columns; ++i) windowsizex += (i < grid_ncols) ? grid->GetColSize(i) : grid->GetDefaultColSize();
+      windowSize.x = windowsizex;
+    }
+  }
+  if (ysize_rows > 0) { //defined
+    scrolled = true;//sets scrolling
+    if (ysize_rows < windowSize.y) {
+      int windowsizey = currentColLabelHeight;
+      for (SizeT j = 0; j < ysize_rows; ++j) windowsizey += (j < grid_nrows) ? grid->GetRowHeight(j) : grid->GetDefaultRowSize();
+      windowSize.y = windowsizey;
+    }
   }
 
-  //Scrolled?
-  x_scroll_size_columns = (x_scroll_size_columns > grid_ncols) ? grid_ncols : x_scroll_size_columns;
-  y_scroll_size_rows = (y_scroll_size_rows > grid_nrows) ? grid_nrows : y_scroll_size_rows;
-  if (x_scroll_size_columns > 0) { //scroll size is in columns
-	scrolled = true;
-  }
-  if (y_scroll_size_rows > 0) { //rows
-	scrolled = true;
-  }
-  if (scrolled) { //size to pass is given by scrolled 
-	if (x_scroll_size_columns > 0) { //scroll size is in columns
-	  int scrollsizex = currentRowLabelWidth + gdlSCROLL_WIDTH_Y;
-	  for (SizeT i = 0; i < x_scroll_size_columns; ++i) scrollsizex += (i < grid_ncols) ? grid->GetColSize(i) : grid->GetDefaultColSize();
-	  windowSize = wxSize(scrollsizex, windowSize.y);
-	}
-	if (y_scroll_size_rows > 0) { //rows
-	  int scrollsizey = currentColLabelHeight + gdlSCROLL_HEIGHT_X;
-	  for (SizeT j = 0; j < y_scroll_size_rows; ++j) scrollsizey += (j < grid_nrows) ? grid->GetRowHeight(j) : grid->GetDefaultRowSize();
-	  windowSize = wxSize(windowSize.x, scrollsizey);
-	}
-  }
-
-  //scr_xsize or ysize: replaces value in windowSize:
-  if (wScreenSize.x > 0) windowSize = wxSize(wScreenSize.x, windowSize.y);
-  if (wScreenSize.y > 0) windowSize = wxSize(windowSize.x, wScreenSize.y);
-
+  //scr_xsize or ysize: replaces value in windowSize, these are IN PIXELS, after using UNITS.
+  if (wScreenSize.x > 0) windowSize.x = wScreenSize.x;
+  if (wScreenSize.y > 0) windowSize.y = wScreenSize.y;
   //wxGrid IS a scrolled window
   if (scrolled) {
-	//  int visibx=x_scroll_size>0?wxSHOW_SB_ALWAYS:wxSHOW_SB_NEVER;
-	//  int visiby=y_scroll_size>0?wxSHOW_SB_ALWAYS:wxSHOW_SB_NEVER;
-	grid->ShowScrollbars(wxSHOW_SB_ALWAYS, wxSHOW_SB_ALWAYS);
+	grid->ShowScrollbars(wxSHOW_SB_DEFAULT, wxSHOW_SB_DEFAULT);
   }
   grid->SetScrollLineX(grid->GetColSize(0));
   grid->SetScrollLineY(grid->GetRowHeight(0));
   grid->SetSize(windowSize);
   grid->SetMinSize(windowSize);
+  grid->SetMaxSize(windowSize);
 #if wxCHECK_VERSION(3,1,4)
   grid->SetDefaultCellFitMode(wxGridFitMode::Clip());
 #endif
@@ -3273,6 +3302,8 @@ DULong eventFlags_
 std::vector<int> GDLWidgetTable::GetSortedSelectedRowsOrColsList(DLongGDL* selection, bool doCol = true) {
   wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
   assert(grid != NULL);
+  int ncolsmax = this->GetDataNCols();
+  int nrowsmax = this->GetDataNRows();
   std::vector<int> list;
   if (selection == NULL) {
 	std::vector<wxPoint> wxList = grid->GetSelectedDisjointCellsList();
@@ -3302,9 +3333,19 @@ std::vector<int> GDLWidgetTable::GetSortedSelectedRowsOrColsList(DLongGDL* selec
 	  int index = 0;
 	  for (SizeT n = 0, l = 0; n < MAX(selection->Dim(1), 1); ++n) {
 		index = (*selection)[l++];
-		if (doCol) allRowsOrCols.push_back(index);
+		if (doCol) {
+          if (index == -1) {
+            for (auto i=0; i< ncolsmax; ++i) allRowsOrCols.push_back(i); //all cols
+          }
+          else allRowsOrCols.push_back(index);
+        }
 		index = (*selection)[l++];
-		if (!doCol) allRowsOrCols.push_back(index);
+		if (!doCol) {
+          if (index == -1) {
+            for (auto i=0; i< nrowsmax; ++i) allRowsOrCols.push_back(i); //all cols
+          }
+          else allRowsOrCols.push_back(index);
+        }
 	  }
 	  std::sort(allRowsOrCols.begin(), allRowsOrCols.end());
 	  int theRowOrCol = -1;
@@ -3315,8 +3356,8 @@ std::vector<int> GDLWidgetTable::GetSortedSelectedRowsOrColsList(DLongGDL* selec
 		}
 	  }
 	} else { //4 values, cols are contiguous, easy.
-	  int colTL = (*selection)[0];
-	  int colBR = (*selection)[2];
+	  int colTL = (*selection)[0]; if (colTL==-1) colTL=0;
+	  int colBR = (*selection)[2]; if (colBR==-1) colBR=ncolsmax-1;
 	  int count = colBR - colTL + 1;
 	  for (auto i = colTL; i < colBR + 1; ++i) list.push_back(i);
 	}
@@ -3848,18 +3889,18 @@ bool GDLWidgetTable::GetValidTableSelection(DLongGDL* &selection) {
 	for (auto j = 0; j < MAX(selection->Dim(1), 1); ++j) {
 	  DLong col = (*selection)[j * 2 + 0];
 	  DLong row = (*selection)[j * 2 + 1];
-	  if (col < 0 || col > ncolsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
-	  if (row < 0 || row > nrowsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	  if ((col < 0 && col != -1) || col > ncolsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	  if ((row < 0 && row != -1)|| row > nrowsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
 	}
   } else { //4 values
 	DLong val = (*selection)[0];
-	if (val < 0 || val > ncolsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	if ((val < 0 && val != -1) || val > ncolsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
 	val = (*selection)[1];
-	if (val < 0 || val > nrowsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	if ((val < 0 && val != -1) || val > nrowsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
 	val = (*selection)[2];
-	if (val < 0 || val > ncolsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	if ((val < 0  && val != -1) || val > ncolsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
 	val = (*selection)[3];
-	if (val < 0 || val > nrowsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	if ((val < 0  && val != -1) || val > nrowsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
   }
   return true;
 }
@@ -5216,6 +5257,8 @@ void GDLWidgetTable::SetSelection(DLongGDL* selection) {
   assert(grid != NULL);
   grid->BeginBatch();
   updating = true; //prevent sending unwanted events
+  int ncolsmax = grid->GetNumberCols();
+  int nrowsmax = grid->GetNumberRows();
   grid->ClearSelection();
   wxPoint firstVisible = wxPoint(0, 0);
   if (disjointSelection) { //pairs lists
@@ -5223,10 +5266,14 @@ void GDLWidgetTable::SetSelection(DLongGDL* selection) {
 	for (SizeT i = 0; i < MAX(selection->Dim(1), 1); ++i) {
 	  int col = (*selection)[k++];
 	  int row = (*selection)[k++];
-	  grid->SelectBlock(row, col, row, col, true);
+      int rowmin=(row==-1)?0:row;
+      int rowmax=(row==-1)?nrowsmax-1:row;
+      int colmin=(col==-1)?0:col;
+      int colmax=(col==-1)?ncolsmax-1:col;
+	  grid->SelectBlock(rowmin, colmin, rowmax, colmax, true);
 	  if (k == 2) {
-		firstVisible.x = row;
-		firstVisible.y = col;
+		firstVisible.x = rowmin;
+		firstVisible.y = colmin;
 	  }
 	}
   } else {
@@ -5234,9 +5281,13 @@ void GDLWidgetTable::SetSelection(DLongGDL* selection) {
 	int rowTL = (*selection)[1];
 	int colBR = (*selection)[2];
 	int rowBR = (*selection)[3];
-	grid->SelectBlock(rowTL, colTL, rowBR, colBR, false);
-	firstVisible.x = rowTL;
-	firstVisible.y = colTL;
+    int rowmin=(rowTL==-1)?0:rowTL;
+    int rowmax=(rowBR==-1)?nrowsmax-1:rowBR;
+    int colmin=(colTL==-1)?0:colTL;
+    int colmax=(colBR==-1)?ncolsmax-1:colBR;
+	grid->SelectBlock(rowmin, colmin, rowmax, colmax, false);
+    firstVisible.x = rowmin;
+    firstVisible.y = colmin;
   }
   grid->EndBatch();
   grid->MakeCellVisible(firstVisible.x, firstVisible.y);
