@@ -2575,6 +2575,7 @@ BaseGDL* widget_info( EnvT* e ) {
               DInt type = (*static_cast<DIntGDL*> (ev->GetTag( 3, 0 )))[0]; //TYPE Tag
               if (type != 2) GDLWidget::widgetEventQueue.PushBack(ev);  //remove unhandled mouse MOVEMENTS
             }
+		GDLWidget::CallWXEventLoop();
 		  }
 		} else {
 		  //wait for ALL . This is the case  /XMANAGER_BLOCK for example.
