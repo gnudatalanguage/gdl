@@ -220,7 +220,7 @@ public:
       memBuffer[i] = bColor;
   }
 
-  DLong GetPixelDepth() { return 24;}  
+  DInt GetPixelDepth() { return 24;}  
   
   bool SetPixelDepth(DInt value) {
    static int displayed=0;

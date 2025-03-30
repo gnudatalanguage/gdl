@@ -231,9 +231,8 @@ if(hide) {
         return gcFunction;
     }
 
-    DLongGDL* GetScreenSize(char* disp) {
-        DLongGDL* res;
-        res = new DLongGDL(2, BaseGDL::NOZERO);
+    DIntGDL* GetScreenSize(char* disp) {
+        DIntGDL* res = new DIntGDL(2, BaseGDL::NOZERO);
         (*res)[0] = wxSystemSettings::GetMetric(wxSYS_SCREEN_X);
         (*res)[1] = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y);
         return res;

@@ -73,8 +73,10 @@ namespace lib {
       //check lun is disguized tty as in scrn = filepath(/TERMINAL) & openw,lun,scrn,/more,/get_lun
       struct stat buffer;
       int status = stat((fileUnits[ lun - 1].Name()).c_str(), &buffer);
-      if (status == 0) 
-        is_a_tty = isatty(lun);
+      // hopefully this is robust even when lun -> fileUnits[ lun - 1]::GDLStream,
+      // which is a C++ fstream -> may be in a special case used in SPAWN,UNIT=xxx using PIPES and there is a redirection in the spawned command,
+      // the example being " SPAWN, 'bc 1>&2', unit=u "      
+      if (status == 0) is_a_tty = ((buffer.st_mode & S_IFMT) == S_IFCHR);
     }
 
     SizeT width;

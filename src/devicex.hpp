@@ -182,10 +182,9 @@ public:
     return gcFunction;
   }
   
-    DLongGDL* GetScreenSize(char* disp) { 
+    DIntGDL* GetScreenSize(char* disp) { 
       Display* display = XOpenDisplay(disp);
       int screen_num, screen_width, screen_height;
-      DLongGDL* res;
 
       if (display == NULL) {
          screen_width = 0;
@@ -196,7 +195,7 @@ public:
          screen_height = DisplayHeight(display, screen_num);
          XCloseDisplay(display);
       }
-      res = new DLongGDL(2, BaseGDL::NOZERO);
+      DIntGDL* res = new DIntGDL(2, BaseGDL::NOZERO);
       (*res)[0]= screen_width;
       (*res)[1]= screen_height;
       return res;

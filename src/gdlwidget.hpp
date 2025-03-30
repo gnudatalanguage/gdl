@@ -21,6 +21,7 @@
 
 #ifdef HAVE_LIBWXWIDGETS
 // #define GDL_DEBUG_WIDGETS
+// #define GDL_DEBUG_WIDGETS_TIMER //only to show when a timer event is EMITTED.
 // #define GDL_DEBUG_WIDGETS_COLORIZE
 
 // use "plain menubars" instead of 'taskbars used as menubars'. taskbars permit to change font in bar, put pixmaps instead of text, and will work
@@ -84,8 +85,8 @@
 #define gdlCOMBOBOX_ARROW_WIDTH sysComboboxArrow 
 #define gdlDEFAULT_SCROLL_SIZE 100 //gdlDEFAULT_XSIZE+gdlSCROLL_HEIGHT_X
 #define gdlFRAME_MARGIN 0
-#define gdlPAD 0 //3 //default padding
-#define gdlSPACE 0
+#define gdlPAD 0 //default padding
+#define gdlSPACE 3
 #define gdlLABEL_SPACE 2
 #define gdlTEXT_SPACE 4
 #define gdlBUTTON_SPACE 4
@@ -286,7 +287,7 @@ class gdlwxFrame : public wxFrame {
 public:
 
  // ctor(s)
- gdlwxFrame(wxWindow* parent, GDLWidgetTopBase* gdlOwner_, wxWindowID id, const wxString& title, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style=wxDEFAULT_FRAME_STYLE, bool modal=false);
+ gdlwxFrame(wxWindow* parent, GDLWidgetTopBase* gdlOwner_, wxWindowID id, const wxString& title, const wxRealPoint& conv, const wxRealPoint& pos, const wxSize& size = wxDefaultSize, long style=wxDEFAULT_FRAME_STYLE, bool modal=false);
  ~gdlwxFrame();
  // called from ~GDLWidgetBase
  void NullGDLOwner() {
@@ -395,9 +396,8 @@ private:
 public:
   static wxFont defaultFont;
   static wxFont systemFont;
-  static GDLEventQueue BlockingEventQueue;
   static GDLEventQueue widgetEventQueue;
-  static void PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev);
+  static void PushEvent(DStructGDL* ev);
   static void InformAuthorities(const std::string& message);
   
   static void HandleUnblockedWidgetEvents();
@@ -465,7 +465,7 @@ protected:
   wxObject* theWxContainer; //the external wx Container (wxFrame mostly) that contains everything wx that must be destroyed, or created, and is what is seen. 
   //theWxContainer is subject to framing (AddFrame) and scrolling (AddScroll)
   //position & size 
-  wxPoint      wOffset;
+  wxRealPoint      wOffset;
   wxSize       wSize;
   wxSize       wScreenSize;
   
@@ -597,18 +597,18 @@ public:
    this->setFont();
    this->SetSensitive(sensitive);
 //   if (this->GetRealized()) this->RefreshWidget();
-    if (eventPro.size() > 0 ) {
-#ifdef GDL_DEBUG_WIDGETS
-      wxMessageOutputStderr().Printf(_T("Realize: SetEventPro: \"%s\" for %d\n"), eventPro, widgetID);
-#endif
-      bool found=GDLInterpreter::SearchCompilePro(eventPro, true); // true -> search for procedure
-    }
-    if (eventFun.size() > 0 ) {
-#ifdef GDL_DEBUG_WIDGETS
-      wxMessageOutputStderr().Printf(_T("Realize: SetEventFun: \"%s\" for %d\n"), eventFun, widgetID);
-#endif
-      bool found=GDLInterpreter::SearchCompilePro(eventFun, false); // false -> search for function
-    }
+//    if (eventPro.size() > 0 ) {
+//#ifdef GDL_DEBUG_WIDGETS
+//      wxMessageOutputStderr().Printf(_T("Realize: SetEventPro: \"%s\" for %d\n"), eventPro, widgetID);
+//#endif
+//      bool found=GDLInterpreter::SearchCompilePro(eventPro, true); // true -> search for procedure
+//    }
+//    if (eventFun.size() > 0 ) {
+//#ifdef GDL_DEBUG_WIDGETS
+//      wxMessageOutputStderr().Printf(_T("Realize: SetEventFun: \"%s\" for %d\n"), eventFun, widgetID);
+//#endif
+//      bool found=GDLInterpreter::SearchCompilePro(eventFun, false); // false -> search for function
+//    }
    if( notifyRealize != "") { //insure it is called once only for this.
       std::string note=notifyRealize;
       notifyRealize.clear();
@@ -705,23 +705,31 @@ public:
 #ifdef GDL_DEBUG_WIDGETS
       wxMessageOutputStderr().Printf(_T("SetEventPro: \"%s\" for %d\n"), eventPro, widgetID);
 #endif
-    if (eventPro.size() > 0) {
-      bool found = GDLInterpreter::SearchCompilePro(eventPro, true); // true -> search for procedure
-    }
+//    if (eventPro.size() > 0) {
+//      bool found = GDLInterpreter::SearchCompilePro(eventPro, true); // true -> search for procedure
+//    }
    }
   
-  const DString& GetEventPro() const { return eventPro;};
+  const DString& GetEventPro() const {
+#ifdef GDL_DEBUG_WIDGETS
+    wxMessageOutputStderr().Printf(_T("GetEventPro: \"%s\" for %d\n"),eventPro, widgetID);
+#endif
+	return eventPro;};
   
   void SetEventFun( const DString& eFun) {
     eventFun = StrUpCase(eFun);
 #ifdef GDL_DEBUG_WIDGETS
     wxMessageOutputStderr().Printf(_T("SetEventFun: \"%s\" for %d\n"),eventFun, widgetID);
 #endif
-    if (eventFun.size() > 0) {
-      bool found = GDLInterpreter::SearchCompilePro(eventFun, false); // false -> search for function
-    }
+//    if (eventFun.size() > 0) {
+//      bool found = GDLInterpreter::SearchCompilePro(eventFun, false); // false -> search for function
+//    }
   }
-  const DString& GetEventFun() const { return eventFun;}
+  const DString& GetEventFun() const { 
+#ifdef GDL_DEBUG_WIDGETS
+    wxMessageOutputStderr().Printf(_T("GetEventFun: \"%s\" for %d\n"),eventFun, widgetID);
+#endif
+return eventFun;}
   void SetNotifyRealize( const DString& eNR) { notifyRealize = StrUpCase( eNR);}
   const DString& GetNotifyRealize() const { return notifyRealize;}
   void SetKillNotify( const DString& eKN) { killNotify = StrUpCase( eKN);}
@@ -737,13 +745,15 @@ public:
 
  wxSizer* GetParentSizer() {
   GDLWidget* gdlParent = GetWidget(parentID);
-  return gdlParent->GetSizer();
+  if (gdlParent) return gdlParent->GetSizer();
+  return NULL;
  }
   wxSizer* GetSizer() { return widgetSizer;}
 
  wxScrolled<wxPanel>* GetParentPanel() {
   GDLWidget* gdlParent = GetWidget(parentID);
-  return gdlParent->GetPanel();
+  if (gdlParent) return gdlParent->GetPanel();
+  return NULL;
  }
   wxScrolled<wxPanel>* GetPanel() { return widgetPanel;}
 
@@ -900,15 +910,16 @@ public:
   bool IsContainer() const final { return true;} 
   bool IsScrolled() const { return scrolled;}
   long getChildrenAlignment(){return childrenAlignment;}
-  long getSpace(){return space;}
-  long getXPad(){return xpad;}
-  long getYPad(){return ypad;}
+  int getSpace(){return space;}
+  int getXPad(){return xpad;}
+  int getYPad(){return ypad;}
   virtual void mapBase(bool val);
   DStructGDL* GetGeometry(wxRealPoint fact=wxRealPoint(1.0,1.0)) final;
 //  wxScrolled<wxPanel>* AddBaseFrame(wxScrolled<wxPanel>* wxParent, int width=0);
   wxScrolled<wxPanel>* AddXYPad(wxScrolled<wxPanel>* wxParent, int xpad=0, int ypad=0);
 //Apparently children of a base are plotted in reverse order in IDL (last first)
   void DoReorderColWidgets(int code=0,int style=0, int border=0);
+  void invertStack();
   void ReorderWidgets();
   void ReorderForANewWidget(wxWindow* w, int code,int style, int border);
 //  int widgetAlignment();
@@ -1642,8 +1653,8 @@ class GDLWidgetTable: public GDLWidget
   DLongGDL* rowHeights;
   DStringGDL* rowLabels;
 //  DLong tabMode;
-  DLong x_scroll_size_columns;
-  DLong y_scroll_size_rows;
+  DLong x_scroll_column;
+  DLong y_scroll_row;
   bool         updating; //widget is modified by program (avoid sending events)
 
 public:
@@ -1671,8 +1682,8 @@ public:
 		  DStringGDL* rowLabels_,
 //		  DLong tabMode_,
 		  BaseGDL* value_,
-		  DLong xScrollSize_,
-		  DLong yScrollSize_,
+		  DLong xScrollColumn_,
+		  DLong yScrollRow_,
       DStringGDL* valueAsStrings,
       DULong eventFlags_
   );
@@ -1730,14 +1741,18 @@ public:
   void SetSelection(DLongGDL* selection);
 
   int GetDataNCols(){
-    if ( majority == NONE_MAJOR) return vValue->Dim(0);
-    else if ( majority == COLUMN_MAJOR) return vValue->Dim(0);
+	  SizeT dim0=vValue->Dim(0); if (dim0==0) dim0=1;
+	  SizeT dim1=vValue->Dim(1); if (dim1==0) dim1=1;
+    if ( majority == NONE_MAJOR) return dim0;
+    else if ( majority == COLUMN_MAJOR) return dim1;
     else  return static_cast<DStructGDL*>(vValue)->NTags();
   }
   int GetDataNRows(){
-    if ( majority == NONE_MAJOR) return vValue->Dim(1);
+	  SizeT dim0=vValue->Dim(0); if (dim0==0) dim0=1;
+	  SizeT dim1=vValue->Dim(1); if (dim1==0) dim1=1;
+    if ( majority == NONE_MAJOR) return dim1;
     else if ( majority == COLUMN_MAJOR) return static_cast<DStructGDL*>(vValue)->NTags();
-    else  return vValue->Dim(0);
+    else  return dim0;
   }
   template<typename T1, typename T2>
   DString GetRawEditingValue(T1* value, const int nEl, const int n) {

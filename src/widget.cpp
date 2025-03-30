@@ -81,7 +81,7 @@ wxBitmap * GetBitmapFromPassedBytes(EnvT* e, DByteGDL* passedBytes, bool doMask=
 
 wxRealPoint GetRequestedUnitConversionFactor( EnvT* e){
   int the_units = 0;
-  static int unitsIx = e->KeywordIx( "UNITS" );
+  int unitsIx = e->KeywordIx( "UNITS" ); //not static as the calling finction may change
   e->AssureLongScalarKWIfPresent( unitsIx, the_units );
   //convert unit to the factor in pixels
   DDouble sx=wxGetDisplaySizeMM().x;
@@ -98,7 +98,7 @@ wxRealPoint GetRequestedUnitConversionFactor( EnvT* e){
 void GDLWidget::ChangeUnitConversionFactor( EnvT* e)
 {
   int the_units = 0;
-  static int unitsIx = e->KeywordIx( "UNITS" );
+  int unitsIx = e->KeywordIx( "UNITS" ); //not static as the calling finction may change
   e->AssureLongScalarKWIfPresent( unitsIx, the_units );
   //convert unit to the factor in pixels
   DDouble sx=wxGetDisplaySizeMM().x;
@@ -186,17 +186,36 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
   DDouble sy=wxGetDisplaySizeMM().y;
   sx=wxGetDisplaySize().x/sx; //pix per mm
   sy=wxGetDisplaySize().y/sy;
-    
+
   if (the_units==0) unitConversionFactor=wxRealPoint(1,1);
   if (the_units==1) unitConversionFactor=wxRealPoint(sx*25.4,sy*25.4);
   if (the_units==2) unitConversionFactor=wxRealPoint(sx*10.0,sy*10.0);
+  double widget_xsize=-1;
+  double widget_ysize=-1;
+  double widget_screen_xsize=-1;
+  double widget_screen_ysize=-1;
+  e->AssureDoubleScalarKWIfPresent( scr_xsizeIx, widget_screen_xsize ); 
+  e->AssureDoubleScalarKWIfPresent( scr_ysizeIx, widget_screen_ysize ); 
+  wScreenSize.x=widget_screen_xsize*unitConversionFactor.x;
+  wScreenSize.y=widget_screen_ysize*unitConversionFactor.y;
+  if (wScreenSize.x<=0) wScreenSize.x=wxDefaultSize.x;
+  if (wScreenSize.y<=0) wScreenSize.y=wxDefaultSize.y;
+  
+  //check ProName as XSIZE and YSIZE  are not in UNITS if WIDGET_LIST, WIDGET_TABLE, or WIDGET_TEXT
+  bool useScale=true;
+  std::string proname=e->GetProName();
+  if (proname == "WIDGET_TABLE") useScale=false;
+  if (proname == "WIDGET_LIST") useScale=false;
+  if (proname == "WIDGET_TEXT") useScale=false;
+  e->AssureDoubleScalarKWIfPresent( xsizeIx, widget_xsize);
+  e->AssureDoubleScalarKWIfPresent( ysizeIx, widget_ysize );
+  wSize.x=widget_xsize*(useScale?unitConversionFactor.x:1);
+  wSize.y=widget_ysize*(useScale?unitConversionFactor.y:1);
+  if (wSize.x<=0) wSize.x=-1;
+  if (wSize.y<=0) wSize.y=-1;
 
-  e->AssureLongScalarKWIfPresent( scr_xsizeIx, wScreenSize.x ); if (wScreenSize.x<=0) wScreenSize.x=wxDefaultSize.x;
-  e->AssureLongScalarKWIfPresent( xsizeIx, wSize.x );           if (wSize.x<=0) wSize.x=wxDefaultSize.x;
-  e->AssureLongScalarKWIfPresent( scr_ysizeIx, wScreenSize.y ); if (wScreenSize.y<=0) wScreenSize.y=wxDefaultSize.y;
-  e->AssureLongScalarKWIfPresent( ysizeIx, wSize.y );           if (wSize.y<=0) wSize.y=wxDefaultSize.y;
-  e->AssureLongScalarKWIfPresent( xoffsetIx, wOffset.x );       if (wOffset.x<=0) wOffset.x=wxDefaultPosition.x;
-  e->AssureLongScalarKWIfPresent( yoffsetIx, wOffset.y );       if (wOffset.y<=0) wOffset.y=wxDefaultPosition.y;
+  e->AssureDoubleScalarKWIfPresent( xoffsetIx, wOffset.x );       if (wOffset.x<=0) wOffset.x=wxDefaultPosition.x;
+  e->AssureDoubleScalarKWIfPresent( yoffsetIx, wOffset.y );       if (wOffset.y<=0) wOffset.y=wxDefaultPosition.y;
 
   uValue = e->GetKW( uvalueIx ); //IDL: a !NULL uvalue is ignored.
   if ( uValue != NULL ) {
@@ -228,23 +247,20 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
 // these reside here because gdlwidget.hpp is only included if wxWidgets are used
 // and hence putting them there would cause a compiler error without wxWidgets
 
-//GD not sure if the environment at the end of called PRO or FUNC is OK (nested procedures?) TBC.
-BaseGDL* CallEventFunc( const std::string& f, BaseGDL* ev)
-{
-  StackGuard<EnvStackT> guard( BaseGDL::interpreter->CallStack( ) );
-
-  int funIx = GDLInterpreter::GetFunIx( f );
-
-  ProgNodeP callingNode = NULL; //BaseGDL::interpreter->GetRetTree();
-
-  EnvUDT* newEnv = new EnvUDT( callingNode, funList[ funIx], NULL );
-  newEnv->SetNextPar( ev ); // pass as local
-
-  BaseGDL::interpreter->CallStack( ).push_back( newEnv );
+BaseGDL* CallEventFunc( const std::string& f, BaseGDL* ev) {
+  DInterpreter* myInterpreter = ev->interpreter;
+  int funIx = myInterpreter->GetFunIx(f);
+  StackGuard<EnvStackT> guard(myInterpreter->CallStack());
+  // GD: The function is called as LRFUNCTION to permit functions returning NULL (undefined) values,
+  // which are the equivalent of a procedure and terminate the upward-transmission of events in the widget_event loop.
+  // This seems an undocumented feature
+  // Calling with another CallContext will not permit this (particular?) behaviour.
+  EnvUDT* newEnv = new EnvUDT(myInterpreter->GetRetTree(), funList[ funIx], EnvUDT::LRFUNCTION);
+  newEnv->SetNextPar(ev); // pass as local
+  ev->interpreter->CallStack().push_back(newEnv);
 
   // make the call
-  newEnv->SetCallContext( EnvUDT::RFUNCTION );
-  BaseGDL* res = BaseGDL::interpreter->call_fun( static_cast<DSubUD*> (newEnv->GetPro( ))->GetTree( ) );
+  BaseGDL* res = myInterpreter->call_fun(funList[funIx]->GetTree());
   return res;
 }
 
@@ -272,7 +288,7 @@ void CallEventPro( const std::string& p, BaseGDL* p0, BaseGDL* p1 ) {
 #endif      
 }
 
-DStructGDL* CallEventHandler( DStructGDL* ev ) {
+DStructGDL* CallEventHandler(DStructGDL* ev) {
   // Must work in good harmony with WIDGET_EVENT requirements.
   // for one event, start from the originating widget and go through the list of parents, 
   // and process the first event-related procedure associated.
@@ -281,14 +297,9 @@ DStructGDL* CallEventHandler( DStructGDL* ev ) {
   // If the top of the hierarchy is attained without ev being swallowed by an event handler, return ev.
   // Empty events (success) are returned in any other case.
 #ifdef HAVE_LIBWXWIDGETS
-  
 
-  static int idIx = 0 ; //ev->Desc( )->TagIndex( "ID" ); // 0
-  static int topIx = 1; //ev->Desc( )->TagIndex( "TOP" ); // 1
-  static int handlerIx = 2; //ev->Desc( )->TagIndex( "HANDLER" ); // 2
-
-  DLong actID = (*static_cast<DLongGDL*> (ev->GetTag( idIx, 0 )))[0];
-
+  DLong actID = (*static_cast<DLongGDL*> (ev->GetTag( 0, 0 )))[0];
+  DLong topRecurs = (*static_cast<DLongGDL*> (ev->GetTag( 1, 0 )))[0];
   //run-time errors (throws by interpreter etc but in widget's loop)
   if (ev->Desc( )->Name( ) == "*WIDGET_RUNTIME_ERROR*" ) {
 #ifdef GDL_DEBUG_WIDGETS
@@ -323,8 +334,7 @@ DStructGDL* CallEventHandler( DStructGDL* ev ) {
       return NULL;
     }
     
-    static int handlerIx = ev->Desc( )->TagIndex( "HANDLER" );
-    DLong handlerCode = (*static_cast<DLongGDL*> (ev->GetTag( handlerIx, 0 )))[0];
+    DLong handlerCode = (*static_cast<DLongGDL*> (ev->GetTag( 2, 0 )))[0];
 
     GDLDelete( ev );
 
@@ -338,10 +348,8 @@ DStructGDL* CallEventHandler( DStructGDL* ev ) {
 
     return NULL; //= OK 
   }
-  
-  //No handler yet: set value to 0
-  (*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0] = 0;
   do {
+    (*static_cast<DLongGDL*> (ev->GetTag(2, 0)))[0] = actID; //handler ID marked.
 #ifdef GDL_DEBUG_WIDGETS          
     std::cout << "searching event handler with: " + i2s(actID) << std::endl;
 #endif
@@ -354,42 +362,42 @@ DStructGDL* CallEventHandler( DStructGDL* ev ) {
     }
     DString eventHandlerPro = widget->GetEventPro();
     if (eventHandlerPro != "") {
-      (*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0] = actID; //handler ID marked.
 #ifdef GDL_DEBUG_WIDGETS          
       std::cout << "CallEventPro: " + eventHandlerPro + " on " + i2s(actID) << std::endl;
 #endif
-      CallEventPro(eventHandlerPro, ev->Dup()); // swallows ev according to the doc, thus:
-      break; // out of while
+      CallEventPro(eventHandlerPro, ev); // swallows ev according to the doc, thus:
+      return NULL; // out of while
     }
     DString eventHandlerFun = widget->GetEventFun();
     if (eventHandlerFun != "") {
-      //this a posteriori (not issued in gdlwidgeteventhandler, where handler=topFrame is the default) will define me (actID) as the handler of this event,
-      //which is OK as long as the ID of the originating event is eitehr me or one of my children..
-      (*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0] = actID; //handler ID marked.
 #ifdef GDL_DEBUG_WIDGETS
       std::cout << "CallEventFunc: " + eventHandlerFun + " on " + i2s(actID) << std::endl;
 #endif
-	  DStructGDL* evstart=(DStructGDL*)(ev)->Dup();
       BaseGDL* retVal = CallEventFunc(eventHandlerFun, ev); // grabs ev
-	  //will test if ev is unchanged:
+      if (retVal == NULL) return NULL; //same as a procedure, has swallowed the event
+      //will test if ev is unchanged:
       if (retVal->Type() == GDL_STRUCT) {
-        ev = static_cast<DStructGDL*> (retVal);
-        if (ev->Desc()->TagIndex("ID") != idIx || ev->Desc()->TagIndex("TOP") != topIx || ev->Desc()->TagIndex("HANDLER") != handlerIx) {
+        ev = dynamic_cast<DStructGDL*> (retVal);
+        if (ev == NULL) { //no struct
+          GDLDelete(retVal);
+          return NULL; 
+        } 
+        //struct
+        if (ev->Desc()->TagIndex("ID") != 0 || ev->Desc()->TagIndex("TOP") != 1 || ev->Desc()->TagIndex("HANDLER") != 2) {
           GDLDelete(ev);
           throw GDLException(eventHandlerFun + ": Event handler return struct must contain ID, TOP, HANDLER as first tags.");
         }
-		GDLDelete(evstart);
-      } else { //not a struct, same as a procedure, has swallowed the event
-        ev = NULL;
-        return ev; 
+        // here ev struct is passed to parent until top is reached
+      } else { //not a struct or no recusrsivity, same as a procedure, has swallowed the event
+        GDLDelete(retVal);
+        return NULL; 
       }
-      // returned struct is a new ev:
-      // FUNCTION --> no break, will go up to the top or exit if consumed.!
+        // FUNCTION --> no break, will go up to the topRecurs or exit if consumed.!
     }
     actID = widget->GetParentID(); //go upper in hierarchy
-  } while (actID != GDLWidget::NullID);
-  // if we arrve here, all the hierarchy has been traversed 
-  (*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0] = 0;
+  } while (actID >= topRecurs);  // not good if for some reason the increasing ID logic is changed one day.
+  // if we arrive here, all the hierarchy has been traversed 
+  (*static_cast<DLongGDL*> (ev->GetTag(2, 0)))[0] = 0;
 #endif
   return ev;
 }
@@ -565,12 +573,12 @@ BaseGDL* widget_table( EnvT* e)
   if (e->KeywordSet(COLUMN_MAJOR)) majority = GDLWidgetTable::COLUMN_MAJOR; //
   if (e->KeywordSet(ROW_MAJOR)) majority = GDLWidgetTable::ROW_MAJOR; //order of preference
 
-  static int x_scroll_sizeIx = e->KeywordIx( "X_SCROLL_SIZE" );
-  DLong x_scroll_size = 0;
-  e->AssureLongScalarKWIfPresent( x_scroll_sizeIx, x_scroll_size );
-  static int y_scroll_sizeIx = e->KeywordIx( "Y_SCROLL_SIZE" );
-  DLong y_scroll_size = 0;
-  e->AssureLongScalarKWIfPresent( y_scroll_sizeIx, y_scroll_size );
+  static int x_scroll_columnIx = e->KeywordIx( "X_SCROLL_SIZE" ); //the scroll size is in COLUMNS
+  DLong x_scroll_column = -1;
+  e->AssureLongScalarKWIfPresent( x_scroll_columnIx, x_scroll_column );
+  static int y_scroll_rowIx = e->KeywordIx( "Y_SCROLL_SIZE" ); //the scroll size is in ROWS
+  DLong y_scroll_row = -1;
+  e->AssureLongScalarKWIfPresent( y_scroll_rowIx, y_scroll_row );
 
   //common for all widgets
   static int TRACKING_EVENTS = e->KeywordIx( "TRACKING_EVENTS" );
@@ -614,8 +622,8 @@ BaseGDL* widget_table( EnvT* e)
   rowLabels,
 //  tabMode,
   value,
-  x_scroll_size,
-  y_scroll_size,
+  x_scroll_column,
+  y_scroll_row,
   valueAsStrings,
   eventFlags
   );
@@ -763,10 +771,15 @@ BaseGDL* widget_draw( EnvT* e ) {
   bool app_scroll = e->KeywordSet(APP_SCROLL);
   static int x_scroll_sizeIx = e->KeywordIx( "X_SCROLL_SIZE" );
   DLong x_scroll_size = -1;
-  e->AssureLongScalarKWIfPresent( x_scroll_sizeIx, x_scroll_size );
+  double dx_scroll_size= -1;
+  e->AssureDoubleScalarKWIfPresent( x_scroll_sizeIx, dx_scroll_size );
+  x_scroll_size=dx_scroll_size*GetRequestedUnitConversionFactor(e).x;
+      
   static int y_scroll_sizeIx = e->KeywordIx( "Y_SCROLL_SIZE" );
   DLong y_scroll_size = -1;
-  e->AssureLongScalarKWIfPresent( y_scroll_sizeIx, y_scroll_size );
+  double dy_scroll_size = -1;
+  e->AssureDoubleScalarKWIfPresent( y_scroll_sizeIx, dy_scroll_size );
+  y_scroll_size=dy_scroll_size*GetRequestedUnitConversionFactor(e).y;
 
   static int TOOLTIP = e->KeywordIx( "TOOLTIP" );
   
@@ -803,7 +816,10 @@ BaseGDL* widget_draw( EnvT* e ) {
     else if (val==1)  {eventFlags |=  GDLWidget::EV_KEYBOARD;}
   }
   DStringGDL* tooltipgdl=NULL;
-  if (e->KeywordPresentAndDefined(TOOLTIP)) tooltipgdl = e->GetKWAs<DStringGDL>(TOOLTIP) ;
+  if (e->KeywordPresentAndDefined(TOOLTIP)) {
+    tooltipgdl = e->GetKWAs<DStringGDL>(TOOLTIP) ;
+    if (tooltipgdl->N_Elements() > 1) e->Throw("Expression must be a scalar or 1 element array in this context: " + e->GetString(TOOLTIP));
+  }
   GDLWidgetDraw* draw=new GDLWidgetDraw( parentID, e, -1, x_scroll_size, y_scroll_size, app_scroll, eventFlags, tooltipgdl);
   if (e->KeywordPresent(COLOR_MODEL)) static_cast<gdlwxDrawPanel*>(draw->GetWxWidget())->SetUndecomposed(); 
   if (draw->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN ) draw->SetWidgetType( GDLWidget::WIDGET_DRAW );
@@ -910,10 +926,14 @@ BaseGDL* widget_draw( EnvT* e ) {
   DLong frame_attr=0;
   e->AssureLongScalarKWIfPresent( tlb_frame_attrIx, frame_attr );
   DLong x_scroll_size = -1;
-  e->AssureLongScalarKWIfPresent( x_scroll_sizeIx, x_scroll_size );
+  double dx_scroll_size = -1;
+  e->AssureDoubleScalarKWIfPresent( x_scroll_sizeIx, dx_scroll_size );
+  x_scroll_size=dx_scroll_size*GetRequestedUnitConversionFactor(e).x;
   DLong y_scroll_size = -1;
-  e->AssureLongScalarKWIfPresent( y_scroll_sizeIx, y_scroll_size );
-
+  double dy_scroll_size = -1;
+  e->AssureDoubleScalarKWIfPresent( y_scroll_sizeIx, dy_scroll_size );
+  y_scroll_size=dy_scroll_size*GetRequestedUnitConversionFactor(e).y;
+  
   bool mbarPresent = e->KeywordPresent( mbarIx )||e->KeywordPresent( obsolete_app_mbarIx );
 
   // consistency
@@ -922,21 +942,30 @@ BaseGDL* widget_draw( EnvT* e ) {
   //besides, SPACE, XPAD and YPAD are ignored.
   //according to doc, Exclusive and non-exclusive base admit only button widget children, but simple tests show it is not the case for IDL up to now.
 
-  //xpad, ypad and space default to gdlPAD if not precised:
+    DLong column = 0;
+    e->AssureLongScalarKWIfPresent(columnIx, column);
+    DLong row = 0;
+    e->AssureLongScalarKWIfPresent(rowIx, row);
 
-  DLong space=gdlSPACE;
-  if ( e->KeywordPresent(spaceIx) && !nonexclusive && !exclusive ) e->AssureLongScalarKWIfPresent( spaceIx, space );
-  DLong xpad = space;
-  if ( !nonexclusive && !exclusive ) e->AssureLongScalarKWIfPresent( xpadIx, xpad );
-  DLong ypad = space;
-  if ( !nonexclusive && !exclusive ) e->AssureLongScalarKWIfPresent( ypadIx, ypad );
+    if (column > 0 && row > 0) e->Throw("Conflicting keywords: row vs. col");
+
+    //xpad, ypad and space are subject to UNITS too
+
+    DLong space = 0;
+    DLong xpad = 0;
+    DLong ypad = 0;
+    if (!nonexclusive && !exclusive) {
+      DDouble dspace = 0;
+      DDouble dxpad = 0;
+      DDouble dypad = 0;
+      e->AssureDoubleScalarKWIfPresent(spaceIx, dspace);
+      space = (column > 0) ? dspace * GetRequestedUnitConversionFactor(e).y: dspace * GetRequestedUnitConversionFactor(e).x;
+      e->AssureDoubleScalarKWIfPresent(xpadIx, dxpad);
+      xpad = dxpad * GetRequestedUnitConversionFactor(e).x;
+      e->AssureDoubleScalarKWIfPresent(ypadIx, dypad);
+      ypad = dypad * GetRequestedUnitConversionFactor(e).y;
+    }
   
-  DLong column = 0;
-  e->AssureLongScalarKWIfPresent( columnIx, column );
-  DLong row = 0;
-  e->AssureLongScalarKWIfPresent( rowIx, row );
-
-  if (column>0 && row>0) e->Throw( "Conflicting keywords: row vs. col" );
 
   DString resource_name = "";
   DString rname_mbar = "";
@@ -1139,8 +1168,10 @@ BaseGDL* widget_draw( EnvT* e ) {
 
   DStringGDL* tooltipgdl = NULL;
   GDLWidgetButton* button;
-  if (e->KeywordPresentAndDefined(TOOLTIP)) tooltipgdl = e->GetKWAs<DStringGDL>(TOOLTIP);  
-  
+    if (e->KeywordPresentAndDefined(TOOLTIP)) {
+      tooltipgdl = e->GetKWAs<DStringGDL>(TOOLTIP);
+      if (tooltipgdl->N_Elements() > 1) e->Throw("Expression must be a scalar or 1 element array in this context: " + e->GetString(TOOLTIP));
+    }
   
   DString strvalue = "button"+i2s(buttonNumber++); //tested default!
 
@@ -1824,20 +1855,6 @@ BaseGDL* widget_info( EnvT* e ) {
   static int STRING_SIZE=e->KeywordIx("STRING_SIZE"); bool getStringSize=e->KeywordPresent(STRING_SIZE);
   static int SIBLING=e->KeywordIx("SIBLING"); bool sibling=e->KeywordPresent(SIBLING);
 
-  //find a string, return a long
-  if (findbyuname) {
-    DStringGDL* myUname = e->GetKWAs<DStringGDL>(findbyunameIx);
-    if (myUname == NULL) return new DLongGDL( 0 );
-    DLongGDL* list = static_cast<DLongGDL*>( GDLWidget::GetWidgetsList( ) );
-    Guard<BaseGDL> guard_list(list);
-    for (SizeT i=0; i< list->N_Elements(); ++i) {
-      GDLWidget* widget = GDLWidget::GetWidget( (*list)[i] );
-      if ( widget != NULL ){
-        if ((*myUname)[0] == widget->GetUname() ) return new DLongGDL(widget->GetWidgetID());
-      }
-    }
-    return new DLongGDL( 0 );
-  }
   
   if ( nParam > 0 ) {
     p0L = e->GetParAs<DLongGDL>(0);
@@ -1923,8 +1940,24 @@ BaseGDL* widget_info( EnvT* e ) {
         (*res)[i]=os.str();
       }
       return res;
-  }
-  
+    }
+    //find a string, return a long
+    if (findbyuname) {
+      DStringGDL* myUname = e->GetKWAs<DStringGDL>(findbyunameIx);
+      if (myUname == NULL) return new DLongGDL(0);
+      WidgetIDT widgetID = (*p0L)[0];
+      GDLWidget *widget = GDLWidget::GetWidget( widgetID );
+      DLongGDL* list = widget->GetAllHeirs();
+      Guard<BaseGDL> guard_list(list);
+      for (SizeT i = 0; i < list->N_Elements(); ++i) {
+        GDLWidget* widget = GDLWidget::GetWidget((*list)[i]);
+        if (widget != NULL) {
+          if ((*myUname)[0] == widget->GetUname()) return new DLongGDL(widget->GetWidgetID());
+        }
+      }
+      return new DLongGDL(0);
+    }
+
   // Returns a String, empty if no result:
   // UNAME, FONTNAME keywords
   if ( uname || fontname || name ||eventpro || eventfun) {
@@ -2296,7 +2329,7 @@ BaseGDL* widget_info( EnvT* e ) {
         else if (dropevents) return new DLongGDL(thisTreeItem->GetDroppableValue());
         else if (dragnotify) return new DStringGDL(thisTreeItem->GetDragNotifyValue()); //other not implemented!
       } else {
-        if (treebitmap) e->Throw("Expression must be a scalar in this context.");
+        if (treebitmap) e->Throw("Expression must be a scalar in this context: "+e->GetString(TREE_BITMAP));
         BaseGDL* myres;
         bool atLeastOneFound = false;
         // Array Input
@@ -2439,7 +2472,8 @@ BaseGDL* widget_info( EnvT* e ) {
     if (dobadid) e->AssureGlobalKW(badidIx);
 
     SizeT nParam = e->NParam();
-    std::vector<WidgetIDT> widgetIDList;
+    std::vector<WidgetIDT> WatchedWidgetIDList;
+    std::vector<WidgetIDT> TopWidgetIDList; //upward-looking for handler will stop here
     std::vector<bool> has_children;
     DLongGDL* p0L = NULL;
     SizeT nEl = 0;
@@ -2459,7 +2493,8 @@ BaseGDL* widget_info( EnvT* e ) {
             e->Throw("Invalid widget identifier:" + i2s((*p0L)[i]));
           }
         }
-        widgetIDList.push_back((*p0L)[i]);
+        WatchedWidgetIDList.push_back((*p0L)[i]);
+        TopWidgetIDList.push_back((*p0L)[i]);
         if (widget->NChildren() > 0) has_children.push_back(true); //NChildren() is more general than IsContainer().
           //At some point, remove the discrepancy between Containers and Menus/Submenus.
           //The latter having a problem wrt the general structure of widgets in that they are on the stack and cannot be treated as "permanent" widgets,
@@ -2467,22 +2502,24 @@ BaseGDL* widget_info( EnvT* e ) {
         else has_children.push_back(false);
       }
       //loop on this list, and add recursively all children when widget is a container.
-      SizeT currentVectorSize = widgetIDList.size();
+      SizeT currentVectorSize = WatchedWidgetIDList.size();
       while (1) {
         for (SizeT i = 0; i < currentVectorSize; i++) {
           if (has_children.at(i)) {
+            WidgetIDT topbase=TopWidgetIDList.at(i);
             has_children.at(i) = false;
-            GDLWidget *widget = GDLWidget::GetWidget(widgetIDList.at(i));
+            GDLWidget *widget = GDLWidget::GetWidget(WatchedWidgetIDList.at(i));
             DLongGDL* list = static_cast<GDLWidgetContainer*> (widget)->GetChildrenList();
             for (SizeT j = 0; j < list->N_Elements(); j++) {
-              widgetIDList.push_back((*list)[j]);
+              WatchedWidgetIDList.push_back((*list)[j]);
+              TopWidgetIDList.push_back(topbase);
               if (GDLWidget::GetWidget((*list)[j])->NChildren() > 0) has_children.push_back(true);
               else has_children.push_back(false);
             }
           }
         }
-        if (widgetIDList.size() == currentVectorSize) break; //no changes
-        currentVectorSize = widgetIDList.size();
+        if (WatchedWidgetIDList.size() == currentVectorSize) break; //no changes
+        currentVectorSize = WatchedWidgetIDList.size();
       }
     } else { //return default zero struct if there is no MANAGED widget on screen
        DLongGDL* res = static_cast<DLongGDL*>( GDLWidget::GetWidgetsList( ) );
@@ -2502,56 +2539,75 @@ BaseGDL* widget_info( EnvT* e ) {
     DLong id;
     int infinity = (nowait) ? 0 : 1;
     DStructGDL* ev;
-
+        
+    WidgetIDT top=-1;
+    
 	do { // outer while loop, will run once if NOWAIT
 	  while (1) { //inner loop, catch controlC, default return if no event trapped in nowait mode
 		GDLWidget::CallWXEventLoop();
+        top=GDLWidget::NullID;
 		if (!all) {
 		  //specific widget(s)
 		  while ((ev = GDLWidget::widgetEventQueue.Pop()) != NULL) { // get event
-			static int idIx = ev->Desc()->TagIndex("ID");
+            static int idIx = ev->Desc()->TagIndex("ID");
 			id = (*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0]; // get its id
-			for (SizeT i = 0; i < widgetIDList.size(); i++) { //is ID corresponding to any widget in list?
-			  if (widgetIDList.at(i) == id) { //if yes
+            //check TLW destroyed here
+            if (ev->Desc()->Name() == "*TOPLEVEL_DESTROYED*") {
+              for (SizeT i = 0; i < WatchedWidgetIDList.size(); i++) { //is ID corresponding to a TLB of any widget in list?
+                WidgetIDT top=TopWidgetIDList.at(i);
+                if (top == id) { //if yes, all is consumed.
+                   GDLDelete(ev);
+                   return defaultRes;
+                 }
+              }
+            }
+            for (SizeT i = 0; i < WatchedWidgetIDList.size(); i++) { //is ID corresponding to any widget in list?
+			  if (WatchedWidgetIDList.at(i) == id) { //if yes
+                WidgetIDT top=TopWidgetIDList.at(i);
+                // top must be the TOP of the event, as we look for top and children here
+                (*static_cast<DLongGDL*> (ev->GetTag(1, 0)))[0] = top ; //1:TOP
 				goto endwait;
 			  }
 			}
-			GDLWidget::widgetEventQueue.PushBack(ev);
-			GDLWidget::CallWXEventLoop();
-			// avoid looping like crazy
-#ifdef _WIN32 
-			Sleep(10); // this just to quiet down the character input from readline. 2 was not enough. 20 was ok.
-#else
-			const long SLEEP = 10000000; // 10ms
-			struct timespec delay;
-			delay.tv_sec = 0;
-			delay.tv_nsec = SLEEP; // 20ms
-			nanosleep(&delay, NULL);
-#endif
+// GD 2025: suppress mouse movements while in this loop (if they have been not trapped above)
+            if (ev->Desc()->Name() !=  "WIDGET_DRAW" ) GDLWidget::widgetEventQueue.PushBack(ev);
+            else {
+              DInt type = (*static_cast<DIntGDL*> (ev->GetTag( 3, 0 )))[0]; //TYPE Tag
+              if (type != 2) GDLWidget::widgetEventQueue.PushBack(ev);  //remove unhandled mouse MOVEMENTS
+            }
+		GDLWidget::CallWXEventLoop();
 		  }
 		} else {
-		  //wait for ALL . This is the case of /XMANAGER_BLOCK for example.
+		  //wait for ALL . This is the case  /XMANAGER_BLOCK for example.
 		  if ((ev = GDLWidget::widgetEventQueue.Pop()) != NULL) goto endwait;
 		}
 		if (nowait) return defaultRes;
 		if (sigControlC) return defaultRes;
+        // avoid looping like crazy
+#ifdef _WIN32 
+        Sleep(1); // this just to quiet down the character input from readline. 2 was not enough. 20 was ok.
+#else
+        const long SLEEP = 1000000; // 1ms
+        struct timespec delay;
+        delay.tv_sec = 0;
+        delay.tv_nsec = SLEEP;
+        nanosleep(&delay, NULL);
+#endif
 	  } //end inner loop
 	  //here we got a real event, process it, walking back the hierachy (in CallEventHandler()) for modified ev in case of function handlers.
 	endwait:
-	  if (blockedByXmanager && ev->Desc()->Name() == "*TOPLEVEL_DESTROYED*") {
+	  if (/* blockedByXmanager && */ ev->Desc()->Name() == "*TOPLEVEL_DESTROYED*") {
 		// deleted widgets list are hopefully handled internally by xmanager 
 		GDLDelete(ev);
 		return defaultRes;
 	  }
-	  ev = CallEventHandler(ev); //process it recursively (going up hierarchy) in eventHandler. Should block waiting for xmanager.
-	  // examine return:
-	  if (ev == NULL) { //swallowed by a procedure or non-event-stucture returning function 
+	  ev = CallEventHandler(ev); //process it recursively (going up hierarchy up to ev.top or before if so programmed) in eventHandler.
+      // examine return:
+	  if (ev == NULL) { //swallowed by a procedure or non-event-stucture returning function : looping wait for another event
 		if (nowait) return defaultRes; //else will loop again
 	  } else { // untreated or modified by a function
 		return ev;
 	  }
-	  GDLWidget::CallWXEventLoop();
-
 	} while (infinity);
     return NULL; //pacifier.
 #endif //HAVE_LIBWXWIDGETS
@@ -2936,31 +2992,20 @@ void widget_control( EnvT* e ) {
   
   if (hasScr_xsize || hasScr_ysize) { //simple: direct sizing in pixels or UNITS for ALL widgets
     DLong xsize=-1, ysize=-1;
-    if (hasScr_xsize) {xsize= (*e->GetKWAs<DLongGDL>(SCR_XSIZE))[0]; if (xsize<0) e->Throw("Illegal keyword value for SCR_XSIZE.");}
-    if (hasScr_ysize) {ysize= (*e->GetKWAs<DLongGDL>(SCR_YSIZE))[0]; if (ysize<0) e->Throw("Illegal keyword value for SCR_YSIZE.");}
+    if (hasScr_xsize) {xsize= (*e->GetKWAs<DDoubleGDL>(SCR_XSIZE))[0]*GetRequestedUnitConversionFactor(e).x; if (xsize<0) e->Throw("Illegal keyword value for SCR_XSIZE.");}
+    if (hasScr_ysize) {ysize= (*e->GetKWAs<DDoubleGDL>(SCR_YSIZE))[0]*GetRequestedUnitConversionFactor(e).y; if (ysize<0) e->Throw("Illegal keyword value for SCR_YSIZE.");}
 
     wxWindow* me=dynamic_cast<wxWindow*>(widget->GetWxWidget());
     if (me==NULL) e->Throw("Geometry request not allowed for menubar or pulldown menus.");
-
-    wxRealPoint fact = wxRealPoint(1.,1.);
-    if ( unitsGiven ) {
-      fact = GetRequestedUnitConversionFactor( e );
-      if (hasScr_xsize) xsize*=fact.x;
-      if (hasScr_ysize) ysize*=fact.y;
-    }    
+  
     widget->SetWidgetScreenSize(xsize,ysize);
   }
   
   if ( (hasDraw_xsize || hasDraw_ysize ) && widget->IsDraw() ) {
     DLong xsize=-1, ysize=-1;
-    if (hasDraw_xsize) {xsize= (*e->GetKWAs<DLongGDL>(DRAW_XSIZE))[0]; if (xsize<0) e->Throw("Illegal keyword value for DRAW_XSIZE.");}
-    if (hasDraw_ysize) {ysize= (*e->GetKWAs<DLongGDL>(DRAW_YSIZE))[0]; if (ysize<0) e->Throw("Illegal keyword value for DRAW_YSIZE.");}
-    wxRealPoint fact = wxRealPoint(1.,1.);
-    if ( unitsGiven ) {
-      fact = GetRequestedUnitConversionFactor( e );
-      if (hasDraw_xsize) xsize*=fact.x;
-      if (hasDraw_ysize) ysize*=fact.y;
-    } 
+    if (hasDraw_xsize) {xsize= (*e->GetKWAs<DDoubleGDL>(DRAW_XSIZE))[0]*GetRequestedUnitConversionFactor(e).x; if (xsize<0) e->Throw("Illegal keyword value for DRAW_XSIZE.");}
+    if (hasDraw_ysize) {ysize= (*e->GetKWAs<DDoubleGDL>(DRAW_YSIZE))[0]*GetRequestedUnitConversionFactor(e).y; if (ysize<0) e->Throw("Illegal keyword value for DRAW_YSIZE.");}
+
     widget->SetWidgetVirtualSize(xsize,ysize);   
    }
   
@@ -2971,20 +3016,17 @@ void widget_control( EnvT* e ) {
       if (whatSortofBut->IsMenu() || whatSortofBut->IsEntry()) e->Throw("Geometry request not allowed for menubar or pulldown menus.");
     }
     DLong xsize=-1, ysize=-1;
-    if (hasXsize) {xsize= (*e->GetKWAs<DLongGDL>(XSIZE))[0]; if (xsize<0) e->Throw("Illegal keyword value for XSIZE.");}
-    if (hasYsize) {ysize= (*e->GetKWAs<DLongGDL>(YSIZE))[0]; if (ysize<0) e->Throw("Illegal keyword value for YSIZE.");}
 
     wxWindow* me=dynamic_cast<wxWindow*>(widget->GetWxWidget());
     if (!me) e->Throw("Geometry request not allowed for menubar or pulldown menus.");
     
     if (!(widget->IsList() || widget->IsTable() || widget->IsText())) {
-    wxRealPoint fact = wxRealPoint(1.,1.);
-      if ( unitsGiven ) {
-        fact = GetRequestedUnitConversionFactor( e );
-        if (hasXsize) xsize*=fact.x;
-        if (hasYsize) ysize*=fact.y;
-      }     
-    } 
+    if (hasXsize) {xsize= (*e->GetKWAs<DDoubleGDL>(XSIZE))[0]*GetRequestedUnitConversionFactor(e).x; if (xsize<0) e->Throw("Illegal keyword value for XSIZE.");}
+    if (hasYsize) {ysize= (*e->GetKWAs<DDoubleGDL>(YSIZE))[0]*GetRequestedUnitConversionFactor(e).y; if (ysize<0) e->Throw("Illegal keyword value for YSIZE.");}
+    } else {
+      if (hasXsize) {xsize= (*e->GetKWAs<DLongGDL>(XSIZE))[0]; if (xsize<0) e->Throw("Illegal keyword value for XSIZE.");}
+      if (hasYsize) {ysize= (*e->GetKWAs<DDoubleGDL>(YSIZE))[0]; if (ysize<0) e->Throw("Illegal keyword value for YSIZE.");}
+    }
     widget->SetWidgetSize(xsize,ysize);
   }
 
@@ -3164,14 +3206,7 @@ void widget_control( EnvT* e ) {
       if ((val1->Type() != GDL_LONG) || (val2->Type() != GDL_LONG) || (val3->Type() != GDL_LONG)) {
         e->Throw("Invalid SEND_EVENT value.");
       }
-      DLongGDL* lval1 = static_cast<DLongGDL*> (val1);
-      DLongGDL* lval2 = static_cast<DLongGDL*> (val2);
-      DLongGDL* lval3 = static_cast<DLongGDL*> (val3);
-      WidgetIDT baseWidgetID = widget->GetBaseId(widgetID);
-      if ((*lval1)[0] == 0) (*lval1)[0] = widgetID;
-      if ((*lval2)[0] == 0) (*lval2)[0] = baseWidgetID;
-      if ((*lval3)[0] == 0) (*lval3)[0] = baseWidgetID;
-      GDLWidget::PushEvent(baseWidgetID, ev);
+      GDLWidget::PushEvent(ev);
     }
     
   if (clear_events) widget->ClearEvents();
@@ -3384,7 +3419,8 @@ void widget_control( EnvT* e ) {
        DStringGDL* tlbTitle=e->GetKWAs<DStringGDL>( tlbsettitleIx );
        wxString tlbName = wxString( (*tlbTitle)[0].c_str( ), wxConvUTF8 );
        topFrame->SetTitle(tlbName);
-     }
+     } else {
+       topFrame->SetEvtHandlerEnabled(false);
      if (settlbxoffset) {
        DLongGDL* xoffset=e->GetKWAs<DLongGDL>( tlbsetxoffsetIx );
        if (unitsGiven) {
@@ -3398,6 +3434,8 @@ void widget_control( EnvT* e ) {
          wxRealPoint fact=GetRequestedUnitConversionFactor(e);
          topFrame->Move(topFrame->GetPosition().x, (*yoffset)[0]*fact.y  );
        } else  topFrame->Move(topFrame->GetPosition().x, (*yoffset)[0]  );
+        }
+        topFrame->SetEvtHandlerEnabled(true);
      }
   }
 
@@ -3543,7 +3581,7 @@ void widget_control( EnvT* e ) {
     static int SET_DROPLIST_SELECT = e->KeywordIx( "SET_DROPLIST_SELECT" );
     if (e->KeywordPresentAndDefined(SET_DROPLIST_SELECT)) {
       DLongGDL* droplistSelection =  e->GetKWAs<DLongGDL>(SET_DROPLIST_SELECT);
-      if (droplistSelection->N_Elements() > 1) e->Throw( "Expression must be a scalar or 1 element array in this context:");
+      if (droplistSelection->N_Elements() > 1) e->Throw( "Expression must be a scalar or 1 element array in this context: " + e->GetString(SET_DROPLIST_SELECT));
       droplist->SelectEntry((*droplistSelection)[0]);
     }    
   }
@@ -3581,7 +3619,7 @@ void widget_control( EnvT* e ) {
     static int SET_COMBOBOX_SELECT = e->KeywordIx( "SET_COMBOBOX_SELECT" );
     if (e->KeywordPresentAndDefined(SET_COMBOBOX_SELECT)) {
       DLongGDL* comboSelection =  e->GetKWAs<DLongGDL>(SET_COMBOBOX_SELECT);
-      if (comboSelection->N_Elements() > 1) e->Throw( "Expression must be a scalar or 1 element array in this context:");
+      if (comboSelection->N_Elements() > 1) e->Throw( "Expression must be a scalar or 1 element array in this context: " + e->GetString(SET_COMBOBOX_SELECT));
       combo->SelectEntry((*comboSelection)[0]);
     }
     static int COMBOBOX_ADDITEM = e->KeywordIx( "COMBOBOX_ADDITEM" );
