@@ -198,6 +198,7 @@ const string StreamInfo(ios* searchStream) {
 
 void AnyStream::Close() {
   if (fStream != NULL && fStream->is_open()) {
+    fStream->flush();
     if (old_rdbuf_in != nullptr) {
       std::basic_streambuf<char> *current=fStream->std::ios::rdbuf();
       fStream->std::ios::rdbuf(old_rdbuf_in);
@@ -208,11 +209,14 @@ void AnyStream::Close() {
     }
     fStream->close();
     fStream->clear();
+    delete fStream;
+    fStream = NULL;
   }
   if (ofStream != NULL && ofStream->is_open()) {
+    ofStream->flush();
     if (old_rdbuf_out != nullptr) {
       std::basic_streambuf<char> *current=ofStream->std::ios::rdbuf();
-      fStream->std::ios::rdbuf(old_rdbuf_out);
+      ofStream->std::ios::rdbuf(old_rdbuf_out);
       old_rdbuf_out=nullptr;
       ispipe = false;
       close(pout_fd);
@@ -220,6 +224,8 @@ void AnyStream::Close() {
     }
     ofStream->close();
     ofStream->clear();
+    delete ofStream;
+    ofStream = NULL;
   }
   if (igzStream != NULL && igzStream->rdbuf()->is_open()) {
     igzStream->close();
