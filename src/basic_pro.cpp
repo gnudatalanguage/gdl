@@ -2008,7 +2008,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     if (nParam > 2 && pipe(cerrP) == -1) return;
     if (stderrKeyword && !RedirectedCoutToCerr && !RedirectedCerrToCout) cmd+=" 2>&1";
     
-    pid_t pid = fork(); // *** fork
+    pid_t pid = vfork(); // *** fork
     if (pid == -1) // error in fork
     {
       close(cinP[0]);
@@ -2081,7 +2081,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
         if (RedirectedCoutToCerr) {close(coutP[0]); mode=std::ios_base::out;}
         fileUnits[unit_lun - 1].OpenAsPipes("<"+cmd+">", mode, coutP[0] , cinP[1]);
       } else {
-        // no as the child will close the tty on the other side when exiting...      close (cinP[0]);
+        close (cinP[0]);
         if (nParam > 1) close(coutP[1]);
         if (nParam > 2) close(cerrP[1]);
 
@@ -2106,7 +2106,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
             outStr.emplace_back(buf);
           }
           fclose(coutF);
-        }
+      }
 
         // read cerr
         if (nParam > 2 && cerrF != nullptr) {
