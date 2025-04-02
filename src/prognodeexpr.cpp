@@ -4168,7 +4168,7 @@ BaseGDL* ARRAYEXPRNode::Eval()
         ex.SetArrayexprIndexeeFailed( true);
         throw ex;
     }
-
+    if (r==nullptr) throw GDLException("Variable is undefined");
     ProgNodeP ixListNode = _t->getNextSibling();
 
     if( r->Type() == GDL_OBJ && r->StrictScalar())
