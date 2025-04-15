@@ -1996,16 +1996,16 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
 
     int cinP[2] = {0};
     if (nParam > 1 || unitKeyword) {
-      if (pipe(cinP) == -1) return;
+      if (pipe(cinP) == -1) e->Throw("GDL internal error: no more PIPE resources ");
     }
     int coutP[2] = {0};
     if (nParam > 1 || unitKeyword) {
-      if (pipe(coutP) == -1) return;
+      if (pipe(coutP) == -1) e->Throw("GDL internal error: no more PIPE resources. ");
     }
 
     int cerrP[2] = {0};
     if (nParam > 2 && stderrKeyword) e->Throw("STDERR option conflicts with "+e->GetParString(2));
-    if (nParam > 2 && pipe(cerrP) == -1) return;
+    if (nParam > 2 && pipe(cerrP) == -1) e->Throw("GDL internal error: no more PIPE resources. ");
     if (stderrKeyword && !RedirectedCoutToCerr && !RedirectedCerrToCout) cmd+=" 2>&1";
     
     pid_t pid = vfork(); // *** fork
@@ -2019,6 +2019,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
         close(cerrP[0]);
         close(cerrP[1]);
       }
+      e->Throw("GDL internal error: cannot vfork(). ");
       return;
     }
 
@@ -2031,9 +2032,11 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
         close(cinP[1]);
         close(coutP[0]);
       } else {
+        dup2(cinP[0], 0); // cin
         if (nParam > 1) dup2(coutP[1], 1); // cout
         if (nParam > 2) dup2(cerrP[1], 2); // cerr
 
+        close(cinP[1]);
         if (nParam > 1) {
           close(coutP[0]);
           close(coutP[1]);
@@ -2060,32 +2063,38 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
 
       Warning("SPAWN: Error managing child process.");
       _exit(1); // error in exec
-    } else // we are parent
-    {
+    } 
+    
+    else // we are parent
+ {
       if (pidKeyword)
         e->SetKW(pidIx, new DLongGDL(pid));
-     if (unitKeyword) {
+      if (unitKeyword) {
         close(cinP[0]);
         close(coutP[1]);
         // UNIT kw code based on the patch by Greg Huey, revised by GD.
         DLong unit_lun = GetLUN();
 
-        if (unit_lun == 0) e->Throw("SPAWN: Failed to get new LUN: GetLUN says: All available logical units are currently in use.");
+        if (unit_lun == 0) e->Throw("All available logical units are currently in use.");
 
         e->SetKW(unitIx, new DLongGDL(unit_lun)); //only if this sort of "spwan /nowait" was triggered by the UNIT
         // keyword and not by the presence of a terminal ampersand that indicates under unix that the process is detached.
         bool stdLun = check_lun(e, unit_lun);
         if (stdLun) e->Throw("SPAWN: Failed to open new LUN: Unit already open. Unit: " + i2s(unit_lun));
         fileUnits[unit_lun - 1].Close();
-        std::ios_base::openmode mode=std::ios_base::out|std::ios_base::in;
-        if (RedirectedCoutToCerr) {close(coutP[0]); mode=std::ios_base::out;}
-        fileUnits[unit_lun - 1].OpenAsPipes("<"+cmd+">", mode, coutP[0] , cinP[1]);
+        std::ios_base::openmode mode = std::ios_base::out | std::ios_base::in;
+        if (RedirectedCoutToCerr) {
+          close(coutP[0]);
+          mode = std::ios_base::out;
+        }
+        fileUnits[unit_lun - 1].OpenAsPipes("<" + cmd + ">", mode, coutP[0], cinP[1]);
       } else {
-        close (cinP[0]);
+        if (nParam > 1) close (cinP[1]);
+        if (nParam > 1) close (cinP[0]);
         if (nParam > 1) close(coutP[1]);
         if (nParam > 2) close(cerrP[1]);
 
-        FILE *coutF=nullptr, *cerrF=nullptr;
+        FILE *coutF = nullptr, *cerrF = nullptr;
         if (nParam > 1) {
           coutF = fdopen(coutP[0], "r");
           if (coutF == nullptr) close(coutP[0]);
@@ -2106,7 +2115,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
             outStr.emplace_back(buf);
           }
           fclose(coutF);
-      }
+        }
 
         // read cerr
         if (nParam > 2 && cerrF != nullptr) {
@@ -2155,7 +2164,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
         }
       }
       //restore handler that was current before this call:
-      signal(SIGCHLD,oldsig);
+      signal(SIGCHLD, oldsig);
     }
   }
 #endif
