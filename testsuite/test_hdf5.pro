@@ -10,6 +10,15 @@
 ;
 ; -----------------------------------------------
 ;
+; Modifications history :
+; 
+; - since 2021 thanks to O. Gressel for all the contributions.
+;
+; - 2025-04-15 : AC. adding test for h5dump and h5diff +
+;   small rewriting
+;
+; -----------------------------------------------
+;
 pro TEST_HDF5_BYTE_ARRAY, cumul_errors, test=test
 ;
 errors=0
@@ -17,8 +26,8 @@ errors=0
 file='byte_array.h5'
 fullfile=FILE_SEARCH_FOR_TESTSUITE(file, /warning)
 if (STRLEN(fullfile) EQ 0) then begin
-    cumul_errors++
-    return
+   ERRORS_CUMUL, cumul_errors, 1
+   return
 endif
 ;
 file_id = H5F_OPEN(fullfile)
@@ -30,21 +39,14 @@ ok=EXECUTE('vector = H5D_READ(data_id)')
 expected=BYTE([127,1, 23])
 ;
 ; we have to test the values but also the TYPE
-if ~ARRAY_EQUAL(vector, expected) then begin
-    MESSAGE, /continue, 'Bad values ...'
-    errors++
-endif
-if (TYPENAME(vector) NE 'BYTE') then begin
-    MESSAGE, /continue, 'Bad TYPE ...'
-    errors++
-endif
+if ~ARRAY_EQUAL(vector, expected) then ERRORS_ADD, errors, 'Bad values ...'
+
+if (TYPENAME(vector) NE 'BYTE') then ERRORS_ADD, errors, 'Bad TYPE ...'
 ;
 BANNER_FOR_TESTSUITE, 'TEST_HDF5_BYTE_ARRAY', errors, /short
+ERRORS_CUMUL, cumul_errors, errors
 ;
 if KEYWORD_SET(test) then STOP
-;
-if ~ISA(cumul_errors) then cumul_errors=0
-cumul_errors=cumul_errors+errors
 ;
 end
 ;
@@ -63,7 +65,7 @@ pro TEST_HDF5_STRING, cumul_errors, test=test
       file=files[i]
       fullfile=FILE_SEARCH_FOR_TESTSUITE(file, /warning)
       if (STRLEN(fullfile) EQ 0) then begin
-         cumul_errors++
+         ERRORS_CUMUL, cumul_errors, 1
          return
       endif
 
@@ -84,24 +86,22 @@ pro TEST_HDF5_STRING, cumul_errors, test=test
    endfor
 
    BANNER_FOR_TESTSUITE, 'TEST_HDF5_STRING', errors, /short
+   ERRORS_CUMUL, cumul_errors, errors
 
    if KEYWORD_SET(test) then STOP
-
-   if ~ISA(cumul_errors) then cumul_errors=0
-   cumul_errors=cumul_errors+errors
 
 end
 ;
 ; -----------------------------------------------
 ;
-pro TEST_HDF5_OBJ_INFO, cumul_errors, create=create
+pro TEST_HDF5_OBJ_INFO, cumul_errors, create=create, test=test
 
    errors=0
 
    file_name = "hdf5-obj-info-test.h5"
    full_file_name = file_search_for_testsuite(file_name, /warning)
    if (STRLEN(full_file_name) eq 0) then begin
-      cumul_errors++
+      ERRORS_CUMUL, cumul_errors, 1
       return
    endif
 
@@ -164,23 +164,22 @@ pro TEST_HDF5_OBJ_INFO, cumul_errors, create=create
 
    ; --- print banner
 
-   banner_for_testsuite, 'TEST_HDF5_OBJ_INFO', errors, /short
-
-   if ~isa(cumul_errors) then cumul_errors=0
-   cumul_errors=cumul_errors+errors
+   BANNER_FOR_TESTSUITE, 'TEST_HDF5_OBJ_INFO', errors, /short
+   ERRORS_CUMUL, cumul_errors, errors
+   if KEYWORD_SET(test) then STOP
 
 end
 ;
 ; -----------------------------------------------
 ;
-pro TEST_HDF5_EXTEND, cumul_errors, create=create
+pro TEST_HDF5_EXTEND, cumul_errors, create=create, test=test
 
    errors=0
 
    file_name = "hdf5-extend-test.h5"
    full_file_name = file_search_for_testsuite(file_name, /warning)
    if (STRLEN(full_file_name) eq 0) then begin
-      cumul_errors++
+      ERRORS_CUMUL, cumul_errors, 1
       return
    endif
 
@@ -211,23 +210,22 @@ pro TEST_HDF5_EXTEND, cumul_errors, create=create
 
    ; --- print banner
 
-   banner_for_testsuite, 'TEST_HDF5_EXTEND', errors, /short
-
-   if ~isa(cumul_errors) then cumul_errors=0
-   cumul_errors=cumul_errors+errors
+   BANNER_FOR_TESTSUITE, 'TEST_HDF5_EXTEND', errors, /short
+   ERRORS_CUMUL, cumul_errors, errors
+   if KEYWORD_SET(test) then STOP
 
 end
 ;
 ; -----------------------------------------------
 ;
-pro TEST_HDF5_ATTR, cumul_errors, create=create
+pro TEST_HDF5_ATTR, cumul_errors, create=create, test=test
 
    errors=0
 
    file_name = "hdf5-attr-test.h5"
    full_file_name = file_search_for_testsuite(file_name, /warning)
    if (strlen(full_file_name) eq 0) then begin
-      cumul_errors++
+      ERRORS_CUMUL, cumul_errors, 1
       return
    endif
 
@@ -357,24 +355,22 @@ pro TEST_HDF5_ATTR, cumul_errors, create=create
 
    h5f_close, f_id
 
-   banner_for_testsuite, 'TEST_HDF5_ATTR', errors, /short
+   BANNER_FOR_TESTSUITE, 'TEST_HDF5_ATTR', errors, /short
+   ERRORS_CUMUL, cumul_errors, errors
+   if KEYWORD_SET(test) then STOP
 
-   if ~isa(cumul_errors) then cumul_errors=0
-   cumul_errors = cumul_errors + errors
-
-   return
 end
 ;
 ; -----------------------------------------------
 ;
-pro TEST_HDF5_DATA, cumul_errors, create=create
+pro TEST_HDF5_DATA, cumul_errors, create=create, test=test
 
    errors=0
 
    file_name = "hdf5-data-test.h5"
    full_file_name = file_search_for_testsuite(file_name, /warning)
    if (strlen(full_file_name) eq 0) then begin
-      cumul_errors++
+      ERRORS_CUMUL, cumul_errors, 1
       return
    endif
 
@@ -473,7 +469,7 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
 
    f_id = h5f_open(full_file_name)
 
-   for idx=0,n_elements(mock_data)-1 do begin
+   for idx=0, n_elements(mock_data)-1 do begin
 
       d_id = h5d_open(f_id,string(idx, fo='(%"dset-%02d")'))
 
@@ -493,7 +489,7 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
 
    ; --- read full HDF5 datasets once more, using explicit data spaces
 
-   for idx=0,n_elements(mock_data)-1 do begin
+   for idx=0, n_elements(mock_data)-1 do begin
 
       d_id = h5d_open(f_id,string(idx, fo='(%"dset-%02d")'))
 
@@ -516,10 +512,11 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
       ;;; help, mock_data[idx], read_mock_data
 
       if ( not array_equal(size(mock_data[idx]),size(read_mock_data)) ) then $
-         errors++
+         ERRORS_ADD, errors, 'index mock_data[idx]'
 
       if ( not array_equal(mock_data[idx],read_mock_data,/no_typeconv) ) then $
-         errors++
+         ERRORS_ADD, errors, 'read_mock_data'
+
 
    endfor
 
@@ -581,33 +578,31 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
       ;;; help, slab, read_mock_data
 
       if ( not array_equal(size(slab),size(read_mock_data)) ) then $
-         errors++
+         ERRORS_ADD, errors, 'size(slab),size(read_mock_data)'
 
       if ( not array_equal(slab,read_mock_data,/no_typeconv) ) then $
-         errors++
+         ERRORS_ADD, errors, 'slab, read_mock_data'
 
    endfor
 
    h5f_close, f_id
 
-   banner_for_testsuite, 'TEST_HDF5_DATA', errors, /short
+   BANNER_FOR_TESTSUITE, 'TEST_HDF5_DATA', errors, /short
+   ERRORS_CUMUL, cumul_errors, errors
+   if KEYWORD_SET(test) then STOP
 
-   if ~isa(cumul_errors) then cumul_errors=0
-   cumul_errors = cumul_errors + errors
-
-   return
 end
 ;
 ; -----------------------------------------------
 ;
-pro TEST_HDF5_GROUP, cumul_errors, create=create
+pro TEST_HDF5_GROUP, cumul_errors, create=create, test=test
 
    errors=0
 
    file_name = "hdf5-group-test.h5"
    full_file_name = file_search_for_testsuite(file_name, /warning)
    if (strlen(full_file_name) eq 0) then begin
-      cumul_errors++
+      ERRORS_CUMUL, cumul_errors, 1
       return
    endif
 
@@ -674,24 +669,22 @@ pro TEST_HDF5_GROUP, cumul_errors, create=create
 
    ; --- output summary
 
-   banner_for_testsuite, 'TEST_HDF5_GROUP', errors, /short
+   BANNER_FOR_TESTSUITE, 'TEST_HDF5_GROUP', errors, /short
+   ERRORS_CUMUL, cumul_errors, errors
+   if KEYWORD_SET(test) then STOP
 
-   if ~isa(cumul_errors) then cumul_errors=0
-   cumul_errors = cumul_errors + errors
-
-   return
 end
 ;
 ; -----------------------------------------------
 ;
-pro TEST_HDF5_COMP, cumul_errors, create=create
-
+pro TEST_HDF5_COMP, cumul_errors, create=create, test=test
+  
    errors=0
 
    file_name = "hdf5-struct-test.h5"
    full_file_name = file_search_for_testsuite(file_name, /warning)
    if (not keyword_set(create) and strlen(full_file_name) eq 0) then begin
-      cumul_errors++
+      ERRORS_CUMUL, cumul_errors, 1
       return
    endif
 
@@ -777,17 +770,17 @@ pro TEST_HDF5_COMP, cumul_errors, create=create
       if(tag eq "SUB") then continue
 
       void = execute("is_string_tag=isa(MAIN."+tag+",'String')")
-      test = (is_string_tag) ? 'STRCMP' : 'ARRAY_EQUAL'
+      test_str = (is_string_tag) ? 'STRCMP' : 'ARRAY_EQUAL'
       test_kw = (is_string_tag) ? '' : ', /no_typeconv'
 
       ; --- test dataset
-      cmd = "result = "+test+"( MAIN."+tag+","+" READ_DATA."+tag+test_kw+" )"
+      cmd = "result = "+test_str+"( MAIN."+tag+","+" READ_DATA."+tag+test_kw+" )"
       void=execute(cmd)
 
       errors += total(result eq 0)
 
       ; --- test attribute
-      cmd = "result = "+test+"( MAIN."+tag+","+" READ_ATTR."+tag+test_kw+" )"
+      cmd = "result = "+test_str+"( MAIN."+tag+","+" READ_ATTR."+tag+test_kw+" )"
       void=execute(cmd)
 
       errors += total(result eq 0)
@@ -797,16 +790,14 @@ pro TEST_HDF5_COMP, cumul_errors, create=create
    ;;; FIXME: check result for reading 'a_compund_dataset_array' ;;;
 
    banner_for_testsuite, 'TEST_HDF5_COMP', errors, /short
-
-   if ~isa(cumul_errors) then cumul_errors=0
-   cumul_errors = cumul_errors + errors
-
-   return
+   ERRORS_CUMUL, cumul_errors, errors
+   if KEYWORD_SET(test) then STOP
+   
 end
 ;
 ; -----------------------------------------------
 ;
-pro TEST_HDF5_INTER, cumul_errors
+pro TEST_HDF5_INTER, cumul_errors, test=test
 
    errors=0
 
@@ -844,12 +835,10 @@ pro TEST_HDF5_INTER, cumul_errors
 
    spawn, 'rm -f '+file_name
 
-   banner_for_testsuite, 'TEST_HDF5_INTER', errors, /short
+   BANNER_FOR_TESTSUITE, 'TEST_HDF5_INTER', errors, /short
+   ERRORS_CUMUL, cumul_errors, errors
+   if KEYWORD_SET(test) then STOP
 
-   if ~isa(cumul_errors) then cumul_errors=0
-   cumul_errors = cumul_errors + errors
-
-   return
 end
 ;
 ; -----------------------------------------------
@@ -866,12 +855,26 @@ endif
 DEFSYSV, '!gdl', exists=is_it_gdl
 ;
 if (is_it_gdl EQ 1) then begin
-    ok=EXECUTE('resu=HDF5_EXISTS()')
-    if (resu EQ 0) then begin
-        MESSAGE, /continue, "GDL was compiled without HDF5 support."
-        MESSAGE, /con, "You must have HDF5 support to use this functionaly."
-        EXIT, status=77
-    endif
+   ok=EXECUTE('resu=HDF5_EXISTS()')
+   if (resu EQ 0) then begin
+      MESSAGE, /continue, "GDL was compiled without HDF5 support."
+      MESSAGE, /con, "You must have HDF5 support to use this functionaly."
+      EXIT, status=77
+   endif
+endif
+;
+; Do we have h5diff & h5diff (external exe codes)
+; (provided by "hdf5-tools" on Debian/Ubuntu)
+;
+missing_tools=0
+spawn, "h5diff -V", res1
+if STRLEN(res1) EQ 0 then MESSAGE,/con, "Missing third party code >>h5diff<<"
+spawn, "h5dump -V", res2
+if STRLEN(res2) EQ 0 then MESSAGE,/con, "Missing third party code >>h5dump<<"
+if ((STRLEN(res1) EQ 0) or (STRLEN(res2) EQ 0)) then begin
+   MESSAGE,/con, "Limited tests on HDF5"
+   MESSAGE,/con, "Please consider install package : hdf5-tools"
+   missing_tools=1
 endif
 ;
 cumul_errors=0
@@ -893,6 +896,10 @@ TEST_HDF5_COMP, cumul_errors
 TEST_HDF5_INTER, cumul_errors
 ;
 BANNER_FOR_TESTSUITE, 'TEST_HDF5', cumul_errors
+;
+if missing_tools then begin
+   BANNER_FOR_TESTSUITE, 'TEST_HDF5', 'Please re-run after install *hdf5-tools*"
+endif
 ;
 if (cumul_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
