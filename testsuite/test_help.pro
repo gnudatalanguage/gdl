@@ -45,7 +45,7 @@ common bcommon,  bcom_a,bcom_b
 help,names='*com_*',out=comstr & ncs=n_elements(comstr)
 ;
 ; if output lines are modified, the #14 will also need to be
-if ncs ne 15 then begin & err++ &$
+if ncs ne 8 then begin & err++ &$
 		stop,' ncs check fails: ',ncs  &$
 		if ~keyword_set(noexit) then exit, status=1  &$
 		endif
