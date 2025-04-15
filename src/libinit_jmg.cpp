@@ -24,6 +24,7 @@
 
 #include "basic_fun_jmg.hpp"
 #include "math_fun_jmg.hpp"
+#include "poly_2d.hpp" //replace old function that was in math_fun_jmg.hpp
 #include "basic_pro_jmg.hpp"
 
 #include "gsl_fun.hpp"
@@ -218,7 +219,7 @@ void LibInit_jmg()
   const string trigridWarnKey[]={"EXTRAPOLATE","QUINTIC",KLISTEND};
   new DLibFunRetNew(lib::trigrid_fun,string("TRIGRID"),6,trigridKey,trigridWarnKey);
 
-  const string poly_2dKey[]={"CUBIC","MISSING",KLISTEND};
+  const string poly_2dKey[]={"CUBIC","MISSING","PIXEL_CENTER", KLISTEND};
   new DLibFunRetNewTP(lib::poly_2d_fun,string("POLY_2D"),6,poly_2dKey);  //UsesThreadPOOL 
 
   const string make_arrayKey[]={"DIMENSION", "INCREMENT", "INDEX", "NOZERO",
@@ -246,6 +247,7 @@ void LibInit_jmg()
   new DLibPro( lib::unlinksymbol, string("UNLINKSYMBOL"), 2, unlinksymbolKey, NULL, 2 );
 
   new DLibPro(lib::wait_pro,string("WAIT"),1);
+  new DLibPro(lib::gdlwait_responsive,string("GDLWAIT_RESPONSIVE"),1);
 
 #if defined(USE_HDF)
   new DLibFunRetNew(lib::hdf_ishdf,string("HDF_ISHDF"),1);

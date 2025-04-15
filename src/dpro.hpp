@@ -318,7 +318,7 @@ public:
   bool RetConstant() { return this->retConstant;}
 };
 // direct call functions must have:
-// ony one parameter, no keywords
+// only one parameter, no keywords
 // these functions are called "direct", no environment is created
 class DLibFunDirect: public DLibFunRetNew
 {
@@ -620,6 +620,9 @@ public:
 
 typedef std::vector<DFun*> FunListT;
 typedef std::vector<DPro*> ProListT;
+
+typedef std::set<std::string> UnknownFunListT;
+typedef std::set<std::string> UnknownProListT;
 
 typedef std::vector<DLibFun*> LibFunListT;
 typedef std::vector<DLibPro*> LibProListT;

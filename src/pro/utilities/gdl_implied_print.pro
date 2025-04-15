@@ -17,9 +17,10 @@
 ;
 ;-
 ;
-function pretty_serialize,value,tagname=tagname,arrayIdentifier=arrayIdentifier
-common json_serialize_gdl_level, level, types
-COMPILE_OPT idl2, HIDDEN
+function pretty_serialize,value,tagname=tagname,flat=flat
+common json_serialize_gdl_level, level
+  ; warning as this is directly compiled within the $MAIN$ interpretor there must be no COMPILE_OPT here.
+;COMPILE_OPT HIDDEN
 ON_ERROR,2
    ;; CATCH, Error_status
    ;; IF Error_status NE 0 THEN BEGIN
@@ -32,12 +33,21 @@ if (n_elements(level) eq 0) then begin
 endif
 space=''
 for i=0,level do space+='    '
-braceright=string(10B)+space+'}'
-XXright=string(10B)+space+']'
-braceleft='{'+string(10B)
-XXleft='['+string(10B)
-comma=','+string(10B)
-arrayIdentifier=keyword_set(arrayIdentifier)
+if keyword_set(flat) then begin
+   braceright='}'
+   SquareBraceright=']'
+   braceleft='{'
+   SquareBraceleft='['
+   comma=','
+endif else begin
+   braceright=string(10B)+space+'}'
+   SquareBraceright=string(10B)+space+']'
+   braceleft='{'+string(10B)
+   SquareBraceleft='['+string(10B)
+   comma=','+string(10B)
+endelse
+
+
   ret=size(value)
   ndim=ret[0]
   type=ret[ndim+1]
@@ -56,30 +66,30 @@ endif else tmpstr=''
       case type of
         8: begin
            tagn=tag_names(value)
-        tmpstr+=braceleft & level++
-        for j=0,n_tags(value)-1 do begin
-           tmpstr+=pretty_serialize(tagname=tagn[j],value.(j),/arrayIdentifier)
-           if j lt n_tags(value)-1  then tmpstr+=comma
+           tmpstr+=braceleft & level++
+           for j=0,n_tags(value)-1 do begin
+              tmpstr+=pretty_serialize(tagname=tagn[j],value.(j), /flat)
+              if j lt n_tags(value)-1  then tmpstr+=comma
+           endfor
+           tmpstr+=braceright & level--
         end
-        tmpstr+=braceright & level--
-     end
         
      11: begin                  ; more tricky depending on single value of array
         mytype=typename(value)
         if (mytype eq 'LIST') then begin
-           tmpstr+=XXleft & level++
+           tmpstr+=SquareBraceleft & level++
            nn=value.Count()
            for j=0,nn-1 do begin
               tmpstr+=pretty_serialize(value[j])
               if (j lt nn-1) then tmpstr+=comma
            endfor
-           tmpstr+=XXright & level --
+           tmpstr+=SquareBraceright & level --
         endif else begin
            tmpstr+=braceleft & level++
            nn=value.Count()
            keys=value.Keys()
            for j=0,nn-1 do begin
-              tmpstr+=pretty_serialize(tagname=keys[j],value[keys[j]])
+              tmpstr+=pretty_serialize(tagname=keys[j],value[keys[j]],/flat)
               if (j lt nn-1) then tmpstr+=comma
            endfor
            tmpstr+=braceright & level--
@@ -98,36 +108,36 @@ endif else tmpstr=''
 
 
   endif else begin
-   if (arrayIdentifier) then  tmpstr+="["
-       nel=n_elements(value)
+     nel=n_elements(value)
+     if nel gt 1 then tmpstr+='['
        for i=0,nel-1 do begin
         case type of
            8: begin
               tagn=tag_names(value[i])
-              tmpstr+='{'
+              tmpstr+=braceleft & level++
               for j=0,n_tags(value[i])-1 do begin
-                 tmpstr+=pretty_serialize(tagname=tagn[j],value[i].(j),/arrayIdentifier)
+                 tmpstr+=pretty_serialize(tagname=tagn[j],value[i].(j),/flat)
                  if (j lt n_tags(value[i])-1 ) then tmpstr+=comma
               end
-              tmpstr+='}'
+              tmpstr+=braceright & level--
            end
            
            11: begin            ; more tricky depending on single value of array
               mytype=typename(value[i])
               if (mytype eq 'LIST') then begin
-                 tmpstr+='['
+                 tmpstr+=SquareBraceleft & level++
                  nn=value[i].Count()
                  for j=0,nn-1 do begin
                     tmpstr+=pretty_serialize((value[i])[j])
                     if (j lt nn-1) then tmpstr+=comma
                  endfor
-                 tmpstr+=']'
+                 tmpstr+=SquareBraceright & level--
               endif else begin
                  tmpstr+=braceleft & level++
                  nn=value[i].Count()
                  keys=value[i].Keys()
                  for j=0,nn-1 do begin
-                    tmpstr+=pretty_serialize(tagname=keys[j],(value[i])[keys[j]])
+                    tmpstr+=pretty_serialize(tagname=keys[j],(value[i])[keys[j]],/flat)
                     if (j lt nn-1) then tmpstr+=comma
                  endfor
                  tmpstr+=braceright & level--
@@ -142,15 +152,16 @@ endif else tmpstr=''
            0:  tmpstr+="!NULL"
            ELSE: tmpstr+=strtrim(string(value[i]),2)
         endcase
-        if (i lt nel-1) then tmpstr+=', '
+        if (i lt nel-1) then tmpstr+=(comma+space)
        endfor
-   if (arrayIdentifier) then tmpstr+="]"
+       if nel gt 1 then tmpstr+=']'
  endelse
   return,tmpstr
 end
 
 pro gdl_implied_print,out,value
-COMPILE_OPT idl2, HIDDEN
+  ; warning as this is directly compiled within the $MAIN$ interpretor there must be no COMPILE_OPT here.
+;COMPILE_OPT HIDDEN
 ON_ERROR, 2
 ; get info on out
 info=fstat(out)
@@ -176,11 +187,12 @@ if (count gt 0) then begin
   ndim=ret[0]
   type=ret[ndim+1]
   n=n_elements(value)
+  n_firstdim=ret[1]
   case type of  ; define special formats
-    4: begin & w=16 & n=fix(width/w,/print) & fmt=start+strtrim(n,2)+fmtflt & break &end
-    5: begin & w=25 & n=fix(width/w,/print) & fmt=start+strtrim(n,2)+fmtdbl & break &end
-    6: begin & w=35 & n=fix(width/w,/print) & fmt=start+strtrim(n,2)+fmtcplx & break &end
-    9: begin & w=53 & n=fix(width/w,/print) & fmt=start+strtrim(n,2)+fmtcplxdbl & break &end
+    4: begin & w=16 & n=fix(width/w,/print) & if n_firstdim lt n then n=n_firstdim & fmt=start+strtrim(n,2)+fmtflt & break &end
+    5: begin & w=25 & n=fix(width/w,/print) & if n_firstdim lt n then n=n_firstdim & fmt=start+strtrim(n,2)+fmtdbl & break &end
+    6: begin & w=35 & n=fix(width/w,/print) & if n_firstdim lt n then n=n_firstdim & fmt=start+strtrim(n,2)+fmtcplx & break &end
+    9: begin & w=53 & n=fix(width/w,/print) & if n_firstdim lt n then n=n_firstdim & fmt=start+strtrim(n,2)+fmtcplxdbl & break &end
     ELSE:  begin &  printf,out,value & return & end ; just print and return
     endcase
   ; only special formats left
@@ -194,6 +206,8 @@ if (count gt 0) then begin
 endif
 
 text=pretty_serialize(value)
+
 printf,out,text
+
 end
 

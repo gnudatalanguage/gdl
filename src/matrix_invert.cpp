@@ -278,6 +278,7 @@ namespace lib {
 	  f32_2[0] = (float) f64_2[0];
 	  f32_2[1] = (float) f64_2[1];
 
+// attention: « void* memcpy(void*, const void*, size_t) » copie un objet du type non trivial « Data_<SpDComplex>::Ty » {aka « struct std::complex<float> »} depuis un tableau de « float » [-Wclass-memaccess]
 	  memcpy(&(*res)[i], &f32_2[0], szflt*2);
 	}
 
@@ -313,7 +314,7 @@ namespace lib {
 	  if (abs(det) * LOG10E < 1e-5) singular = 2;
 	}
 	else singular = 1;
-
+//attention: « void* memcpy(void*, const void*, size_t) » copie un objet du type non trivial « Data_<SpDComplexDbl>::Ty » {aka « struct std::complex<double> »} depuis un tableau de « double » [-Wclass-memaccess]
 	memcpy(&(*res)[0], inverse->data, nEl*szdbl*2);
 
 	// 	gsl_permutation_free(perm);

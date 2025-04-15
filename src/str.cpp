@@ -376,6 +376,41 @@ void WordExp(std::string& s)
 
 #ifndef _WIN32
 
+// this is probably not a polished full expansion of environment variables under unix.
+void ExpandShellVariables(std::string& s)
+{
+  if (s.length() == 0) return;
+  bool trace_me = false; //lib::trace_arg();
+
+  std::string sEsc = "";
+  int i = 0;
+  for (; i < s.length(); ++i) {
+    char achar = s[i];
+    if (achar != '$') sEsc.push_back(achar);
+    else { // $
+      std::string name = "";
+	  bool inside=false;
+      for (int ind = i + 1; i < s.length(); ++ind, ++i) {
+        char tchar = s[ind];
+		if (tchar == '{' ) {inside= true; continue;} //ignore {
+		if (inside) {
+		  if (isalnum(tchar) || tchar=='_' ) name.push_back(tchar);
+		  else if (tchar == '}' ) {inside= false; continue;}
+		  else throw GDLException("Bad environment variable substitution syntax.");
+        } else {
+		  if (isalnum(tchar) || tchar=='_' ) name.push_back(tchar);
+		  else break;
+		}
+	  }
+      char* subst = getenv(name.c_str());
+      if (subst != NULL) {
+        sEsc += std::string(subst);
+      } else sEsc.push_back(achar);
+    }
+  }
+  s=std::string(sEsc);
+}
+
 void WordExp(std::string& s)
 {
   //AC 2018-04-25 : because crash of :  // openr, unit, '', ERROR=error,/get_lun

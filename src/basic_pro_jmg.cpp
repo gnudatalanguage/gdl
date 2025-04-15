@@ -21,7 +21,7 @@
 #include <string>
 #include <fstream>
 #include <limits>
-
+#include "gdleventhandler.hpp" //for gdlwait_responsive
 #include "dinterpreter.hpp"
 #include "basic_pro_jmg.hpp"
 
@@ -481,6 +481,76 @@ namespace lib {
   
   void ResetDLLs( void ) {
     DllContainer::clear();
+  }
+  
+  //idem WAIT_PRO, but needed in idlneturl as we wait while some widgets events must happen.
+  //should NEVER be used elsewhere (the idlneturl.pro procedure should disappear in favor of a pure C/C++ use of the CURL library)
+  //The real WAIT blocks absolutely anything --- as it should.
+  void gdlwait_responsive(EnvT* e) {
+    e->NParam(1); //, "WAIT");
+
+    DDouble waittime;
+    e->AssureDoubleScalarPar(0, waittime);
+
+    if (waittime < 0)
+      throw GDLException(e->CallingNode(),
+        "WAIT: Argument must be non-negative"
+        + e->GetParString(0));
+
+#ifdef _WIN32
+    LARGE_INTEGER Frequency;
+    LARGE_INTEGER BeginTime;
+    LARGE_INTEGER Endtime;
+    LARGE_INTEGER elapsed;
+    LARGE_INTEGER waittime_us;
+    waittime_us.QuadPart = waittime * 1e6;
+
+    QueryPerformanceFrequency(&Frequency);
+    QueryPerformanceCounter(&BeginTime);
+
+    while (1) {
+      QueryPerformanceCounter(&Endtime);
+      elapsed.QuadPart = (Endtime.QuadPart - BeginTime.QuadPart) / (Frequency.QuadPart / 1000000);
+      if (elapsed.QuadPart >= waittime_us.QuadPart) break;
+      else if (elapsed.QuadPart > 100) Sleep(80);
+    }
+#else
+    int old_version = 0;
+
+    if (waittime <= 0.005) old_version = 1;
+
+    // AC 2010-09-16
+    // this version is OK and very accurate for small durations
+    // but used 100% of one CPU :((
+    if (old_version == 1) {
+      struct timeval tval;
+      struct timezone tzone;
+
+      // derivated from the current version of SYSTIME()
+      gettimeofday(&tval, &tzone);
+      double t_start = tval.tv_sec + tval.tv_usec / 1e+6; // time in UTC seconds
+      double t_current = 0.0;
+
+      double diff = 0.0;
+      while (diff < waittime) {
+
+        gettimeofday(&tval, &tzone);
+        t_current = tval.tv_sec + tval.tv_usec / 1e+6;
+        diff = t_current - t_start;
+      }
+    }
+
+    // AC 2010-09-16 this version should used much less CPU !
+    if (old_version == 0) {
+      //cout << floor(waittime) << " " <<  waittime-floor(waittime) << endl;
+      struct timespec tv;
+      tv.tv_sec = floor(waittime);
+      tv.tv_nsec = (waittime - floor(waittime))*1e9;
+      int retval;
+      retval = nanosleep(&tv, NULL);
+    }
+#endif
+   GDLEventHandler(); //this is probably not OK, but is at the moment needed to permit delivery of callback functions in idlneturl__define.pro where a waiting loop uses teh WAIT command.  
   }
   
   void wait_pro( EnvT* e) 

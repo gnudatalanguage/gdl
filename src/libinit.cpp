@@ -141,7 +141,7 @@ void LibInit()
   new DLibFunRetNew(lib::terminal_size_fun,string("TERMINAL_SIZE"),2);
 
   const string routine_infoKey[]={"FUNCTIONS","SYSTEM","DISABLED","ENABLED",
-				  "PARAMETERS","SOURCE", KLISTEND};
+				  "PARAMETERS","SOURCE","UNRESOLVED","VARIABLES", KLISTEND};
   new DLibFunRetNew(lib::routine_info,string("ROUTINE_INFO"),1,routine_infoKey);
 
   new DLibFunRetNew(lib::routine_name_fun,string("ROUTINE_NAME_INTERNALGDL"),1);
@@ -316,9 +316,8 @@ void LibInit()
 			  "INTERNAL_LIB_GDL","KEYS","LAST_MESSAGE","LIB","MEMORY","NAMES",
 		"OBJECTS","OUTPUT","PATH_CACHE","PREFERENCES","PROCEDURES",
 			  "RECALL_COMMANDS","ROUTINES","SOURCE_FILES","STRUCTURES",
-              "SYSTEM_VARIABLES","TRACEBACK", "COMMON","LEVEL", "SHARED_MEMORY", KLISTEND};
-  const string helpWarnKey[]={"BREAKPOINTS","DLM", "MESSAGES", KLISTEND};
-  new DLibPro(lib::help_pro,string("HELP"),-1,helpKey,helpWarnKey);
+              "SYSTEM_VARIABLES","TRACEBACK", "COMMON","LEVEL", "SHARED_MEMORY", "BREAKPOINTS","DLM", "MESSAGES", "LAMBDA", KLISTEND};
+  new DLibPro(lib::help_pro,string("HELP"),-1,helpKey);
 
   new DLibPro(lib::delvar_pro,string("DELVAR"),-1,NULL,NULL);
   DLibPro* hide = new DLibPro(lib::findvar_pro,string("FINDVAR"),-1,NULL,NULL);
@@ -528,7 +527,8 @@ void LibInit()
 
   new DLibFunRetNew(lib::replicate,string("REPLICATE"),9,NULL,NULL,true);
   new DLibPro(lib::replicate_inplace_pro,string("REPLICATE_INPLACE"),6,NULL,NULL,0,true);  //UsesThreadPOOL 
-
+  new DLibFunDirectTP(lib::signum_fun,string("SIGNUM"));  //UsesThreadPOOL 
+  
   new DLibFunDirectTP(lib::sin_fun,string("SIN"));  //UsesThreadPOOL 
   new DLibFunDirectTP(lib::cos_fun,string("COS"));  //UsesThreadPOOL 
   new DLibFunDirectTP(lib::tan_fun,string("TAN"));  //UsesThreadPOOL 

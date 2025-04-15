@@ -535,6 +535,23 @@ void DNode::Text2Float()
 #endif
   cData=new DFloatGDL(val);
 }
+void DNode::Text2ComplexI()
+{
+  const char* cStr=text.c_str();
+#ifdef _MSC_VER
+  DFloat val=strtod(cStr,NULL);
+#else
+  DFloat val=strtof(cStr,NULL);
+#endif
+  cData=new DComplexGDL(std::complex<float>(0,val));
+}
+
+void DNode::Text2ComplexDblI()
+{
+  const char* cStr=text.c_str();
+  DDouble val=strtod(cStr,NULL);
+  cData=new DComplexDblGDL(std::complex<double>(0,val));
+}
 void DNode::Text2Double()
 {
   const char*  cStr=text.c_str();
@@ -579,14 +596,15 @@ void DNode::initialize( RefDNode t )
 }
 
 void DNode::SetFunIx(const int ix) {
+  if (ix == -1) unknownFunList.insert(getText());
   funIx = ix;
   if (ix != -1 && funList[ix]->isObsolete()) 
     WarnAboutObsoleteRoutine(this, funList[ix]->Name());
 }
 
 void DNode::SetProIx(const int ix) {
+  if (ix == -1) unknownProList.insert(getText());
   proIx = ix;
-  if (ix != -1 && proList[ix]->isObsolete()) 
-    WarnAboutObsoleteRoutine(this, proList[ix]->Name());
+  if (ix != -1 && proList[ix]->isObsolete()) WarnAboutObsoleteRoutine(this, proList[ix]->Name());
 }
 

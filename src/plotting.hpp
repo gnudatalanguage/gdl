@@ -321,7 +321,7 @@ namespace lib {
   private:
     virtual bool handle_args(EnvT*) = 0; // return value = overplot
     virtual bool prepareDrawArea(EnvT*, GDLGStream*) = 0;
-    virtual void applyGraphics(EnvT*, GDLGStream*) = 0;
+    virtual void applyGraphics(EnvT*, GDLGStream*) = 0;  //Should *NOT* contain any 'save' commands able to change !X,!Y,!Z,!P,!D values !!!! 
     virtual void post_call(EnvT*, GDLGStream*) = 0;
 
     // all steps combined (virtual methods cannot be called from ctor)

@@ -10,11 +10,13 @@
 
 
 #include <fstream>
-#include "basegdl.hpp"
-//#include "str.hpp"
-//#include "dnodefactory.hpp"
+
+#include "GDLParser.hpp"
+
+#include "str.hpp"
+#include "dnodefactory.hpp"
 #include "objects.hpp"
-//#include "initsysvar.hpp"
+#include "initsysvar.hpp"
 
 #include <antlr/TokenStreamSelector.hpp>
 
@@ -27,8 +29,8 @@
 #define debugParser 0
 //#include "dinterpreter.hpp"
 
-// defintion in dinterpreter.cpp
-//void SetActualCompileOpt( unsigned int cOpt);
+// definition in dinterpreter.cpp
+void MemorizeCompileOptForMAINIfNeeded( unsigned int cOpt);
 
 class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
 {
@@ -67,7 +69,7 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
         else if( opt == "STATIC")            compileOpt |= STATIC;
         else if( opt == "NOSAVE")            compileOpt |= NOSAVE;
         else throw GDLException("Unrecognised COMPILE_OPT option: "+opt);
-//        SetActualCompileOpt( compileOpt);
+        MemorizeCompileOptForMAINIfNeeded( compileOpt);
     }
 
     std::string subName; // name of procedure function to be compiled ("" -> all file)
@@ -182,6 +184,46 @@ public:
 	public: void ntag_def();
 	public: void ntag_defs();
 	public: void named_tag_def_entry();
+	public: void constant_hex_byte();
+	public: void constant_hex_long();
+	public: void constant_hex_long64();
+	public: void constant_hex_int();
+	public: void constant_hex_i();
+	public: void constant_hex_ulong();
+	public: void constant_hex_ulong64();
+	public: void constant_hex_ui();
+	public: void constant_hex_uint();
+	public: void constant_byte();
+	public: void constant_long();
+	public: void constant_long64();
+	public: void constant_int();
+	public: void constant_i();
+	public: void constant_ulong();
+	public: void constant_ulong64();
+	public: void constant_ui();
+	public: void constant_uint();
+	public: void constant_oct_byte();
+	public: void constant_oct_long();
+	public: void constant_oct_long64();
+	public: void constant_oct_int();
+	public: void constant_oct_i();
+	public: void constant_oct_ulong();
+	public: void constant_oct_ulong64();
+	public: void constant_oct_ui();
+	public: void constant_oct_uint();
+	public: void constant_float();
+	public: void constant_double();
+	public: void constant_bin_byte();
+	public: void constant_bin_long();
+	public: void constant_bin_long64();
+	public: void constant_bin_int();
+	public: void constant_bin_i();
+	public: void constant_bin_ulong();
+	public: void constant_bin_ulong64();
+	public: void constant_bin_ui();
+	public: void constant_bin_uint();
+	public: void constant_cmplx_i();
+	public: void constant_cmplxdbl_i();
 	public: void numeric_constant();
 	public: void arrayindex_list();
 	public: void arrayindex();
@@ -201,8 +243,6 @@ public:
 	protected: bool  member_function_call();
 	public: void member_function_call_dot();
 	public: void arrayexpr_mfcall();
-	public: void primary_expr_tail();
-	public: void primary_expr_deref();
 	public: void primary_expr();
 	public: void decinc_expr();
 	public: void exponential_expr();
@@ -224,10 +264,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 238;
+	static const int NUM_TOKENS = 240;
 #else
 	enum {
-		NUM_TOKENS = 238
+		NUM_TOKENS = 240
 	};
 #endif
 	
@@ -281,10 +321,6 @@ private:
 	static const antlr::BitSet _tokenSet_23;
 	static const unsigned long _tokenSet_24_data_[];
 	static const antlr::BitSet _tokenSet_24;
-	static const unsigned long _tokenSet_25_data_[];
-	static const antlr::BitSet _tokenSet_25;
-	static const unsigned long _tokenSet_26_data_[];
-	static const antlr::BitSet _tokenSet_26;
 };
 
 #endif /*INC_GDLParser_hpp_*/

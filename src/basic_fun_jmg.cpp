@@ -22,6 +22,9 @@
 #include <memory>
 #include <sys/stat.h>
 
+#include <fcntl.h>
+#include <unistd.h>
+
 #include "envt.hpp"
 #include "basic_fun.hpp"
 #include "dinterpreter.hpp"
@@ -684,10 +687,10 @@ namespace lib {
 	int status = fstat(-lun, &buffer);
 	fileStatus->InitTag("NAME", DStringGDL( names[-lun]));
 	fileStatus->InitTag("OPEN", DByteGDL( 1 )); 
-        DByte isatty=((buffer.st_mode & S_IFMT) == S_IFCHR);
-	fileStatus->InitTag("ISATTY", DByteGDL( isatty )); 
+        DByte is_a_tty=isatty(lun);
+	fileStatus->InitTag("ISATTY", DByteGDL( is_a_tty )); 
 	fileStatus->InitTag("ISAGUI", DByteGDL( 0)); 
-	fileStatus->InitTag("INTERACTIVE", DByteGDL( isatty ));
+	fileStatus->InitTag("INTERACTIVE", DByteGDL( is_a_tty ));
 //	fileStatus->InitTag("XDR", DByteGDL( 0 )); 
 //	fileStatus->InitTag("COMPRESS",DByteGDL( 0 ));
 	fileStatus->InitTag("READ", DByteGDL( rval[-lun] )); 
@@ -708,16 +711,17 @@ namespace lib {
 	  return fileStatus; // OPEN tag is init to zero (SpDByte::GetInstance())
 
 	struct stat buffer;
-	int status = stat(actUnit.Name().c_str(), &buffer);
+    // int status = //status will be bad on the units used by SPAWN, UNIT=XXX; Do not check status
+    stat(actUnit.Name().c_str(), &buffer); 
 
 	fileStatus->InitTag("NAME", DStringGDL( actUnit.Name()));
 	fileStatus->InitTag("OPEN", DByteGDL( 1)); 
 	if (big) fileStatus->InitTag("SIZE", DLong64GDL( buffer.st_size));//size)); 
 	else fileStatus->InitTag("SIZE", DLongGDL( buffer.st_size));//size));
-        DByte isatty=((buffer.st_mode & S_IFMT) == S_IFCHR);
-	fileStatus->InitTag("ISATTY", DByteGDL( isatty )); 
+        DByte is_a_tty=isatty(lun);
+	fileStatus->InitTag("ISATTY", DByteGDL( is_a_tty )); 
 	fileStatus->InitTag("ISAGUI", DByteGDL( 0)); 
-	fileStatus->InitTag("INTERACTIVE", DByteGDL( isatty )); 
+	fileStatus->InitTag("INTERACTIVE", DByteGDL( is_a_tty )); 
 	fileStatus->InitTag("XDR", DByteGDL( (actUnit.Xdr()==NULL)?0:1)); 
 	fileStatus->InitTag("COMPRESS",DByteGDL( actUnit.Compress()));
 	fileStatus->InitTag("READ", DByteGDL( actUnit.IsReadable()?1:0)); 

@@ -77,7 +77,7 @@ public:
   char* NoReadline(const std::string&);
 
 private:
-
+  bool inInnerInterpreterLoop=false;
   // execute GDL command (.run, .step, ...)
   CommandCode ExecuteCommand(const std::string& command);
   CommandCode CmdCompile(const std::string& command);
@@ -121,6 +121,8 @@ public:
   RetCode InnerInterpreterLoop(SizeT lineOffset);
 
   bool IsInBatchProcedureAtMain(){return InBatchProcedureAtMain;}
+  bool IsInnerInterpreterLoop(){ return inInnerInterpreterLoop;}
+  void SetInnerInterpeterLoop(bool b){inInnerInterpreterLoop=b;}
 };
 
 #endif

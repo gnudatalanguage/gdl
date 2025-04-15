@@ -219,12 +219,45 @@ namespace lib {
       delete e->GetParGlobal(nParam-1);
       e->GetParGlobal(nParam-1)=temp;
     }
+    else if (att_type == NC_STRING) {
+// Read NC_STRING
+      char **stemp = new char*[length];
+// Read the (possible array of) strings - nc_get_att_string allocates memory for the strings themselves
+      status = nc_get_att_string(cdfid, varid, attname.c_str(), stemp);
+      ncdf_handle_error(e, status, "NCDF_ATTGET");
+      delete e->GetParGlobal(nParam-1);
+// This will only copy first string of array to the returned variable...
+      e->GetParGlobal(nParam-1)=new DStringGDL(stemp[0]);
+// Free the string data from the stemp (having copied the string to the output)
+      status = nc_free_string(length, stemp);
+      ncdf_handle_error(e, status, "NCDF_ATTGET");
+    }
     else 
     {
       dimension dim(length);
       BaseGDL* temp;
       switch (att_type)
       {
+        case NC_INT64 :
+        {
+          long long int *i64p = new long long int[length];
+          status=nc_get_att_longlong(cdfid, varid, attname.c_str(), i64p);
+          ncdf_att_handle_error(e, status, "NCDF_ATTGET", i64p);
+          temp = length == 1 ? new DLong64GDL(BaseGDL::NOZERO) : new DLong64GDL(dim, BaseGDL::NOZERO);
+          memcpy(&(*static_cast<DLong64GDL*>(temp))[0], &(*i64p), length * sizeof(long long int));	      
+          delete[] i64p;
+          break;
+        }
+        case NC_UINT64 :
+        {
+          unsigned long long int *ui64p = new unsigned long long int[length];
+          status=nc_get_att_ulonglong(cdfid, varid, attname.c_str(), ui64p);
+          ncdf_att_handle_error(e, status, "NCDF_ATTGET", ui64p);
+          temp = length == 1 ? new DULong64GDL(BaseGDL::NOZERO) : new DULong64GDL(dim, BaseGDL::NOZERO);
+          memcpy(&(*static_cast<DULong64GDL*>(temp))[0], &(*ui64p), length * sizeof(unsigned long long int));	      
+          delete[] ui64p;
+          break;
+        }
         case NC_INT :
         {
           int *ip = new int[length];
@@ -235,6 +268,16 @@ namespace lib {
           delete[] ip;
           break;
         }
+        case NC_UINT :
+        {
+          unsigned int *uip = new unsigned int[length];
+          status=nc_get_att_uint(cdfid, varid, attname.c_str(), uip);
+          ncdf_att_handle_error(e, status, "NCDF_ATTGET", uip);
+          temp = length == 1 ? new DULongGDL(BaseGDL::NOZERO) : new DULongGDL(dim, BaseGDL::NOZERO);
+          memcpy(&(*static_cast<DULongGDL*>(temp))[0], &(*uip), length * sizeof(unsigned int));	      
+          delete[] uip;
+          break;
+        }
         case NC_SHORT : 
         {
           short *sp = new short[length];
@@ -243,6 +286,16 @@ namespace lib {
           temp = length == 1 ? new DIntGDL(BaseGDL::NOZERO) : new DIntGDL(dim, BaseGDL::NOZERO);
           memcpy(&(*static_cast<DIntGDL*>(temp))[0], &(*sp), length * sizeof(DInt));	      
           delete[] sp;
+          break;
+        }
+        case NC_USHORT : 
+        {
+          unsigned short *usp = new unsigned short[length];
+          status = nc_get_att_ushort(cdfid, varid, attname.c_str(), usp);
+          ncdf_att_handle_error(e, status, "NCDF_ATTGET", usp);
+          temp = length == 1 ? new DIntGDL(BaseGDL::NOZERO) : new DIntGDL(dim, BaseGDL::NOZERO);
+          memcpy(&(*static_cast<DUIntGDL*>(temp))[0], &(*usp), length * sizeof(DUInt));	      
+          delete[] usp;
           break;
         }
         case NC_FLOAT :
@@ -266,9 +319,15 @@ namespace lib {
           break;
         }
         case NC_BYTE :
+        case NC_UBYTE :
         {
           unsigned char *bp = new unsigned char[length];
           status = nc_get_att_uchar(cdfid, varid, attname.c_str(), bp);
+          if (status == NC_ERANGE) {
+// just warn on NC_ERANGE (probably intended to if idl char used to represent signed byte)
+             //Warning("Warning in NCDF_ATTGET: NC_ERANGE while reading BYTE");
+             status=NC_NOERR;
+          }
           ncdf_att_handle_error(e, status, "NCDF_ATTGET", bp);
           temp = length == 1 ? new DByteGDL(BaseGDL::NOZERO) : new DByteGDL(dim, BaseGDL::NOZERO);
           memcpy(&(*static_cast<DByteGDL*>(temp))[0], &(*bp), length * sizeof(DByte));	      	 
@@ -330,10 +389,16 @@ namespace lib {
     if (val->Type() == GDL_BYTE) xtype=NC_BYTE;
     if (val->Type() == GDL_STRING) xtype=NC_CHAR;
     if (val->Type() == GDL_INT) xtype=NC_SHORT;
+    if (val->Type() == GDL_UINT) xtype=NC_USHORT;
     if (val->Type() == GDL_LONG) xtype=NC_INT;
+    if (val->Type() == GDL_ULONG) xtype=NC_UINT;
+    if (val->Type() == GDL_LONG64) xtype=NC_INT64;
+    if (val->Type() == GDL_ULONG64) xtype=NC_UINT64;
     if (val->Type() == GDL_FLOAT) xtype=NC_FLOAT;
     if (val->Type() == GDL_DOUBLE) xtype=NC_DOUBLE;
     // SA: TODO: GDL_UINT, GDL_ULONG, GDL_COMPLEX, GDL_PTR... 
+    //
+    // "BYTE","CHAR","DOUBLE","FLOAT","LONG","SHORT","UBYTE","ULONG","USHORT","INT64","UINT64","STRING"
 
     if(e->KeywordSet(2)) //GDL_BYTE
       xtype=NC_BYTE;
@@ -347,6 +412,18 @@ namespace lib {
       xtype=NC_INT;
     else if(e->KeywordSet(7)) //SHORT
       xtype=NC_SHORT;
+    else if(e->KeywordSet(8)) 
+      xtype=NC_UBYTE;
+    else if(e->KeywordSet(9))
+      xtype=NC_UINT;
+    else if(e->KeywordSet(10))
+      xtype=NC_USHORT;
+    else if(e->KeywordSet(11))
+      xtype=NC_INT64;
+    else if(e->KeywordSet(12))
+      xtype=NC_UINT64;
+    else if(e->KeywordSet(13))
+      xtype=NC_STRING;
 
     // LENGTH keyword support 
     DLong length;
@@ -367,6 +444,11 @@ namespace lib {
 				attname.c_str(),xtype,
 				(size_t)length,
 				(const unsigned char *)&(*bvar)[0]);
+        if (status == NC_ERANGE) {
+// just warn on NC_ERANGE (probably intended to if idl char used to represent signed byte)
+          //Warning("Warning in NCDF_ATTPUT: NC_ERANGE while writing BYTE");
+	  status=NC_NOERR;
+        }
       }
     else if(val->Type() == GDL_STRING)
       {
@@ -375,12 +457,17 @@ namespace lib {
 
         length = cvar.length();
         e->AssureLongScalarKWIfPresent(1, length);
-        if (length > cvar.length()) e->Throw("LENGTH keyword value (" + i2s(length) +
-          ") exceedes the data length (" + i2s(cvar.length()) + ")");
-        if (length < cvar.length()) cvar.resize(length);
-
-	status=nc_put_att_text(cdfid,varid, attname.c_str(),
+        if ( xtype == NC_STRING ) {
+	    char *tmp = (char *)cvar.c_str();
+	    status=nc_put_att_string(cdfid,varid, attname.c_str(),
+				1, (const char**)&tmp);
+	} else {
+            if (length > cvar.length()) e->Throw("LENGTH keyword value (" + i2s(length) +
+              ") exceedes the data length (" + i2s(cvar.length()) + ")");
+            if (length < cvar.length()) cvar.resize(length);
+	    status=nc_put_att_text(cdfid,varid, attname.c_str(),
 				cvar.length(), (char *)cvar.c_str());
+	}
       }
     else if(val->Type() == GDL_INT)
       {
@@ -389,12 +476,40 @@ namespace lib {
 				  attname.c_str(), xtype,
 				  (size_t)length, &(*ivar)[0]);
       }
+    else if(val->Type() == GDL_UINT)
+      {
+	DUIntGDL * uivar=static_cast<DUIntGDL*>(val);
+	status=nc_put_att_ushort(cdfid,varid,
+				  attname.c_str(), xtype,
+				  (size_t)length, &(*uivar)[0]);
+      }
     else if(val->Type() == GDL_LONG)
       {
       DLongGDL * lvar=static_cast<DLongGDL*>(val);
       status=nc_put_att_int(cdfid,varid,
 			      attname.c_str(),xtype,
 				(size_t)length, &(*lvar)[0]);
+      }
+    else if(val->Type() == GDL_ULONG)
+      {
+      DULongGDL * ulvar=static_cast<DULongGDL*>(val);
+      status=nc_put_att_uint(cdfid,varid,
+			      attname.c_str(),xtype,
+				(size_t)length, &(*ulvar)[0]);
+      }
+    else if(val->Type() == GDL_LONG64)
+      {
+      DLong64GDL * l64var=static_cast<DLong64GDL*>(val);
+      status=nc_put_att_longlong(cdfid,varid,
+			      attname.c_str(),xtype,
+				(size_t)length, &(*l64var)[0]);
+      }
+    else if(val->Type() == GDL_ULONG64)
+      {
+      DULong64GDL * ul64var=static_cast<DULong64GDL*>(val);
+      status=nc_put_att_ulonglong(cdfid,varid,
+			      attname.c_str(),xtype,
+				(size_t)length, &(*ul64var)[0]);
       }
     else if(val->Type() == GDL_FLOAT)
       {
@@ -410,7 +525,6 @@ namespace lib {
 				   attname.c_str(),xtype,
 				   (size_t)length, &(*dvar)[0]);
       }
-    
     ncdf_handle_error(e, status,"NCDF_ATTPUT");
 
 return;

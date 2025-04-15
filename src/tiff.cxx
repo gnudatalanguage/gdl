@@ -77,8 +77,13 @@ namespace lib
                 case 64: pixelType = GDL_LONG64;    break;
                 default: printf(BPS_ERR_FMT, "CINT", bitsPerSample);
                 } break;
-            case TIFF::Directory::SampleFormat::Untyped:
             case TIFF::Directory::SampleFormat::ComplexFloatingPoint:
+                switch(bitsPerSample) {
+                case 64: pixelType = GDL_COMPLEX;      break;
+                case 128: pixelType = GDL_COMPLEXDBL;    break;
+                default: printf(BPS_ERR_FMT, "CINT", bitsPerSample);
+                } break;
+            case TIFF::Directory::SampleFormat::Untyped:
             default:;
             }
 
@@ -277,6 +282,8 @@ namespace lib
             case GDL_LONG64:    addScanline = createScanlineFn(image, new DLong64GDL(dim));     break;
             case GDL_FLOAT:     addScanline = createScanlineFn(image, new DFloatGDL(dim));      break;
             case GDL_DOUBLE:    addScanline = createScanlineFn(image, new DDoubleGDL(dim));     break;
+            case GDL_COMPLEX:    addScanline = createScanlineFn(image, new DComplexGDL(dim));     break;
+            case GDL_COMPLEXDBL:    addScanline = createScanlineFn(image, new DComplexDblGDL(dim));     break;
 
             default:
                 fprintf(stderr, "Unsupported PIXEL_TYPE: %d\n", dir.PixelType());

@@ -24,6 +24,8 @@
 #include "dinterpreter.hpp"
 #include <sys/stat.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #ifndef MSG_NOSIGNAL
 #define MSG_NOSIGNAL 0x2000
@@ -65,12 +67,16 @@ namespace lib {
     bool stdLun = check_lun(e, lun);
 
     // the following (isatty=> os = stdout) should probably be changed to something more clever when the /MORE option of OPENW  is supported .
-    bool isatty = stdLun;
-    if (!isatty) {
+    bool is_a_tty = stdLun;
+    if (!is_a_tty) {
+      //
       //check lun is disguized tty as in scrn = filepath(/TERMINAL) & openw,lun,scrn,/more,/get_lun
       struct stat buffer;
       int status = stat((fileUnits[ lun - 1].Name()).c_str(), &buffer);
-      if (status == 0) isatty = ((buffer.st_mode & S_IFMT) == S_IFCHR);
+      // hopefully this is robust even when lun -> fileUnits[ lun - 1]::GDLStream,
+      // which is a C++ fstream -> may be in a special case used in SPAWN,UNIT=xxx using PIPES and there is a redirection in the spawned command,
+      // the example being " SPAWN, 'bc 1>&2', unit=u "      
+      if (status == 0) is_a_tty = ((buffer.st_mode & S_IFMT) == S_IFCHR);
     }
 
     SizeT width;
@@ -84,7 +90,7 @@ namespace lib {
       os = (lun == -1) ? &cout : &cerr;
 
       width = TermWidth();
-    } else if (isatty) {
+    } else if (is_a_tty) {
       os = &cout;
       width = TermWidth();
     } else {
@@ -103,6 +109,7 @@ namespace lib {
           os = &fileUnits[ lun - 1].OgzStream();
         else
           os = &fileUnits[ lun - 1].OStream();
+        os->exceptions(std::ofstream::failbit);
       } else
         os = &oss;
 

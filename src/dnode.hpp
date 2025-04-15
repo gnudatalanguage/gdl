@@ -226,6 +226,8 @@ public:
   void Text2ULong64(int base);
   void Text2Float();
   void Text2Double();
+  void Text2ComplexDblI();
+  void Text2ComplexI();
   void Text2String();
 
   void SetNumBranch(const int nB) { numBranch=nB;} 
@@ -296,6 +298,9 @@ private:
   ArrayIndexListT* arrIxListNoAssoc; // ptr to array index list
 //  ArrayIndexT*     arrIx;     // ptr to array index (1-dim)
 
+  int labelStart; // for loops to determine if to bail out
+  int labelEnd; // for loops to determine if to bail out
+
   union {
     int        initInt;    // for c-i not actually used
     
@@ -316,8 +321,6 @@ private:
     int        compileOpt; // for PRO and FUNCTION nodes
   };
 
-  int labelStart; // for loops to determine if to bail out
-  int labelEnd; // for loops to determine if to bail out
 
   friend class ProgNode;
   friend class DCompiler;

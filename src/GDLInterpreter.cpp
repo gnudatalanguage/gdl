@@ -14,12 +14,12 @@
     // gets inserted after the antlr generated includes in the cpp file
 #include "dinterpreter.hpp"
 #include "prognodeexpr.hpp"
-#include "gdleventhandler.hpp"
+
 #include <cassert>
 
 // tweaking ANTLR
-#define ASTNULL          NULLProgNodeP
-#define ProgNodeP( xxx ) NULL             /* ProgNodeP(antlr::nullAST) */
+#define ASTNULL  NULLProgNodeP
+#define ProgNodeP( xxx ) NULL    /* ProgNodeP(antlr::nullAST) */
 #define RefAST( xxx)     ConvertAST( xxx) /* antlr::RefAST( Ref type)  */
 #define match( a, b)     /* remove from source */
 
@@ -35,7 +35,7 @@ GDLInterpreter::GDLInterpreter()
 	
 		for (; _t != NULL;) {
 	
-	//_t->setLine(0);
+		//_t->setLine(0);
 			retCode=statement(_t);
 			_t = _retTree;
 				
@@ -55,8 +55,8 @@ GDLInterpreter::GDLInterpreter()
 			retCode=statement(_t);
 			_t = _retTree;
 			
-			if( retCode != RC_OK) break; // break out if non-regular
-			
+					if( retCode != RC_OK) break; // break out if non-regular
+				
 		}
 		else {
 			if ( _cnt3>=1 ) { goto _loop3; } else {throw antlr::NoViableAltException(antlr::RefAST(_t));}
@@ -74,7 +74,6 @@ GDLInterpreter::GDLInterpreter()
 	 RetCode retCode;
 	ProgNodeP statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
-	
 	assert( _t != NULL);
 	ProgNodeP last;
 	_retTree = _t;
@@ -82,39 +81,24 @@ GDLInterpreter::GDLInterpreter()
 	
 	try {      // for error handling
 		
-		//optimize speed: differentiate inner loops to avoid one externally implicit comparison on controlc for each loop (if possible)
-		if (interruptEnable) { //will test for sigControlC
-		{
-		do {
-		last = _retTree;
-		callStack.back()->SetLineNumber(last->getLine()); // track actual line number
-		retCode = last->Run(); // Run() sets _retTree
-		} while (_retTree != NULL && retCode == RC_OK && !(sigControlC) && (debugMode <= DEBUG_RETURN)); //loops if debug_clear or debug_return
-		if (_retTree != NULL) last = _retTree; //this is OK see https://github.com/gnudatalanguage/gdl/issues/1403#issuecomment-1326490113
-		goto afterStatement;
-		}
-		} else { //will not test for sigControlC 
-		{
-		do {
-		last = _retTree;
-		callStack.back()->SetLineNumber(last->getLine()); // track actual line number
-		retCode = last->Run(); // Run() sets _retTree
-		} while (_retTree != NULL && retCode == RC_OK && (debugMode <= DEBUG_RETURN)); //loops if debug_clear or debug_return
-		if (_retTree != NULL) last = _retTree; //this is OK see https://github.com/gnudatalanguage/gdl/issues/1403#issuecomment-1326490113
-		goto afterStatement;
-		}
-		}
-		// original single loop with all checks    
-		//    {
-		//      do {
-		//        last = _retTree;
-		//        callStack.back()->SetLineNumber(last->getLine()); // track actual line number
-		//        retCode = last->Run(); // Run() sets _retTree
-		//      } while (_retTree != NULL && retCode == RC_OK && !(sigControlC && interruptEnable) && (debugMode <= DEBUG_RETURN)); //loops if debug_clear or debug_return
-		//      if (_retTree != NULL) last = _retTree; //this is OK see https://github.com/gnudatalanguage/gdl/issues/1403#issuecomment-1326490113
-		//      goto afterStatement;
-		//    }
+			//optimize speed: differentiate inner loops to avoid one externally implicit comparison on controlc for each loop (if possible)
+			if (interruptEnable) { //will test for sigControlC
+				do {
+					last = _retTree;
+					callStack.back()->SetLineNumber(last->getLine()); // track actual line number
+					retCode = last->Run(); // Run() sets _retTree
+				} while (_retTree != NULL && retCode == RC_OK && !(sigControlC) && (debugMode <= DEBUG_RETURN)); //loops if debug_clear or debug_return
+			} else { //will not test for sigControlC 
+				do {
+					last = _retTree;
+					callStack.back()->SetLineNumber(last->getLine()); // track actual line number
+					retCode = last->Run(); // Run() sets _retTree
+				} while (_retTree != NULL && retCode == RC_OK && (debugMode <= DEBUG_RETURN)); //loops if debug_clear or debug_return
+			}
+			if (_retTree != NULL && debugMode != DEBUG_RETURN ) last = _retTree;
+			goto afterStatement;
 		
+		// The following code (up to afterStatement is never executed - here only because ANTLR code needs it, although it should not (not optimized parser) 
 		
 		{
 		if (_t == ProgNodeP(antlr::nullAST) )
@@ -358,280 +342,290 @@ GDLInterpreter::GDLInterpreter()
 		}
 		}
 		
-		afterStatement:
-		// possible optimization: make sigControlC a debugMode 
-		if (interruptEnable && sigControlC) {
-		DebugMsg(last, "Interrupted at: ");
-		sigControlC = false;
-		retCode = NewInterpreterInstance(last->getLine()); //-1);
-			} else if (interruptEnable && _retTree == NULL && (debugMode == DEBUG_RETURN || debugMode == DEBUG_OUT)) {
-		if (debugMode == DEBUG_RETURN) {
-		if (callStack.back()->GetProName() == MyProName) {
-		DebugMsg(last, "Return encountered: ");
-		debugMode = DEBUG_CLEAR;
-		return NewInterpreterInstance(last->getLine()); //-1);
-		}
-		} else { //DEBUG_OUT --> just do an additional .step if we are at MyProName
-		if (callStack.back()->GetProName() == MyProName) {
-		debugMode = DEBUG_STEP;
-		stepCount=1;
-		return retCode; //continue 
-		}
-		} 
-		} else if (debugMode != DEBUG_CLEAR) {
-		if (debugMode == DEBUG_STOP) {
-		DebugMsg(last, "Stop encountered: ");
-		if (!interruptEnable) debugMode = DEBUG_PROCESS_STOP;
-		} else if (debugMode == DEBUG_STOP_SILENT) {
-		if (!interruptEnable) debugMode = DEBUG_PROCESS_STOP;
-		}
-		
-		if (debugMode == DEBUG_STEP) {
-		if (stepCount == 1) {
-		stepCount = 0;
-		DebugMsg(last, "Stepped to: ");
-		
-		debugMode = DEBUG_CLEAR;
-		
-		retCode = NewInterpreterInstance(last->getLine()); //-1);
-		} else {
-		--stepCount;
+				afterStatement:
+				// tested a possible optimization:  make CtrlCHandler produce a DEBUG_STOP, and do not test sigControlC here at all.
+				// Apparently does not perform noticeably better and has adverse effects. Forget it.
+				if (interruptEnable && sigControlC) {
+					DebugMsg(last, "Interrupted at: ");
+					sigControlC = false;
+					retCode = NewInterpreterInstance(last->getLine()); //-1);
+				} else if (interruptEnable && _retTree == NULL && (debugMode == DEBUG_RETURN || debugMode == DEBUG_OUT)) {
+					if (debugMode == DEBUG_RETURN) {
+						if (callStack.back()->GetProName() == MyProName) {
+							DebugMsg(last, "Return encountered: ");
+							debugMode = DEBUG_STOP_SILENT;
+							return retCode;	
+						}
+					} else { //DEBUG_OUT --> just do an additional .step if we are at MyProName
+						if (callStack.back()->GetProName() == MyProName) {
+							debugMode = DEBUG_STEP;
+							stepCount=1;
+							return retCode; //continue 
+						}
+					} 
+				} else if (debugMode != DEBUG_CLEAR) {
+					if (debugMode == DEBUG_STOP) {
+					DebugMsg(last, "Stop encountered: ");
+					if (!interruptEnable) debugMode = DEBUG_PROCESS_STOP;
+				} else if (debugMode == DEBUG_STOP_SILENT) {
+					if (!interruptEnable) debugMode = DEBUG_PROCESS_STOP;
+				}
+				if (debugMode == DEBUG_STEP) {
+					if (stepCount == 1) {
+						stepCount = 0;
+						DebugMsg(last, "Stepped to: ");
+						debugMode = DEBUG_CLEAR;
+						retCode = NewInterpreterInstance(last->getLine()); //-1);
+					} else {
+						--stepCount;
 		#ifdef GDL_DEBUG
-		std::cout << "stepCount-- = " << stepCount << std::endl;
+						std::cout << "stepCount-- = " << stepCount << std::endl;
 		#endif
-		}
-		} else if (debugMode == DEBUG_STEPOVER) {
-		if (callStack.back()->GetProName() == MyProName) { //we count only in current level
-		if (stepCount == 1) {
-		stepCount = 0;
-		DebugMsg(last, "Stepped to: ");
-		
-		debugMode = DEBUG_CLEAR;
-		MyProName="";
-		retCode = NewInterpreterInstance(last->getLine()); //-1);
-		} else {
-		--stepCount;
+					}
+				} else if (debugMode == DEBUG_STEPOVER) {
+					if (callStack.back()->GetProName() == MyProName) { //we count only in current level
+						if (stepCount == 1) {
+							stepCount = 0;
+							DebugMsg(last, "Stepped to: ");
+							debugMode = DEBUG_CLEAR;
+							MyProName="";
+							retCode = NewInterpreterInstance(last->getLine()); //-1);
+						} else {
+							--stepCount;
 		#ifdef GDL_DEBUG
-		std::cout << "stepCount-- = " << stepCount << std::endl;
+							std::cout << "stepCount-- = " << stepCount << std::endl;
 		#endif
-		}
-		}
-		} else if (interruptEnable) {
-		if (debugMode == DEBUG_PROCESS_STOP) DebugMsg(last, "Stepped to: ");
-		debugMode = DEBUG_CLEAR;
-		retCode = NewInterpreterInstance(last->getLine()); //-1);
-		} else {
-		retCode = RC_ABORT;
-		}
+						}
+					}
+				} else if (interruptEnable) {
+					if (debugMode == DEBUG_PROCESS_STOP) DebugMsg(last, "Stepped to: ");
+					debugMode = DEBUG_CLEAR;
+					retCode = NewInterpreterInstance(last->getLine()); //-1);
+				} else {
+					if (debugMode == DEBUG_PROCESS_STOP) {
+						debugMode = DEBUG_CLEAR;
+						retCode = NewInterpreterInstance(last->getLine());
+					} else {
+						retCode = RC_ABORT;
+					}
+				}
 		}
 		return retCode;
 		
 	}
 	catch ( GDLException& e) {
 		
-		// reset _retTree to last statement
-		// (might otherwise be inside an expression in which case 
-		// .CONTINUE does not work)
-		_retTree = last; 
+		// errors while typing commands in inner loop (called via Control-C, STOP, error) should be ignored.
+		if (e.Interpreter()->IsInnerInterpreterLoop()) {
+		e.Interpreter()->SetInnerInterpeterLoop(false);
+		_retTree=NULL;
+		debugMode=DEBUG_CLEAR;
+		throw e; //signal we made a (typing ?) error see #1855
+		return RC_OK;
+		}
+			// reset _retTree to last statement
+			// (might otherwise be inside an expression in which case 
+			// .CONTINUE does not work)
+			_retTree = last; 
 		
-		if( last->IsWrappedNode())
-		throw e; // WRAPPED_... nodes should not stop inside
+			if( last->IsWrappedNode())
+			    throw e; // WRAPPED_... nodes should not stop inside
 		
-		// set !ERROR_STATE sys var 
-		DStructDesc* errorStateDesc = SysVar::Error_State()->Desc();   //MUST NOT BE STATIC, due to .reset 
-		static unsigned nameTag = errorStateDesc->TagIndex( "NAME");
-		static unsigned codeTag = errorStateDesc->TagIndex( "CODE");
-		static unsigned msgTag = errorStateDesc->TagIndex( "MSG");
+			// set !ERROR_STATE sys var 
+			DStructDesc* errorStateDesc = SysVar::Error_State()->Desc();   //MUST NOT BE STATIC, due to .reset 
+			static unsigned nameTag = errorStateDesc->TagIndex( "NAME");
+			static unsigned codeTag = errorStateDesc->TagIndex( "CODE");
+			static unsigned msgTag = errorStateDesc->TagIndex( "MSG");
 		
-		if( e.IsIOException())
-		{
+			if( e.IsIOException())
+			    {
 		//		assert( dynamic_cast< GDLIOException*>( &e) != NULL);  //removed. for some reason dynamic_cast returns NULL on bona fide GDLIOException objects.
-		// set the jump target - also logs the jump
-		ProgNodeP onIOErr = 
-		static_cast<EnvUDT*>(callStack.back())->GetIOError();
-		if( onIOErr != NULL)
-		{
-		DStructGDL* errorState = SysVar::Error_State();
-		(*static_cast<DStringGDL*>( errorState->GetTag( nameTag)))[0] = 
-		"IDL_M_FAILURE";
-		(*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 
-		e.ErrorCode();
-		SysVar::SetErrError( e.ErrorCode());
-		(*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0] = 
-		e.getMessage();
-		SysVar::SetErr_String( e.getMessage());
+				// set the jump target - also logs the jump
+				ProgNodeP onIOErr = 
+				    static_cast<EnvUDT*>(callStack.back())->GetIOError();
+				if( onIOErr != NULL)
+				    {
+			DStructGDL* errorState = SysVar::Error_State();
+			(*static_cast<DStringGDL*>( errorState->GetTag( nameTag)))[0] = 
+			    "IDL_M_FAILURE";
+			(*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 
+			    e.ErrorCode();
+			SysVar::SetErrError( e.ErrorCode());
+			(*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0] = 
+			    e.getMessage();
+			SysVar::SetErr_String( e.getMessage());
 		
-		_retTree = onIOErr;
-		return RC_OK;
-		}
-		}
+					_retTree = onIOErr;
+					return RC_OK;
+				    }
+			    }
 		
-		// handle CATCH
-		ProgNodeP catchNode = callStack.back()->GetCatchNode();
-		if( catchNode != NULL)
-		{
-		DStructGDL* errorState = SysVar::Error_State();
-		(*static_cast<DStringGDL*>( errorState->GetTag( nameTag)))[0] = 
-		"IDL_M_FAILURE";
-		(*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 
-		e.ErrorCode();
-		SysVar::SetErrError( e.ErrorCode());
-		(*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0] = 
-		e.getMessage();
-		SysVar::SetErr_String( e.getMessage());
+			// handle CATCH
+			ProgNodeP catchNode = callStack.back()->GetCatchNode();
+			if( catchNode != NULL)
+			    {
+			DStructGDL* errorState = SysVar::Error_State();
+			(*static_cast<DStringGDL*>( errorState->GetTag( nameTag)))[0] = 
+			    "IDL_M_FAILURE";
+			(*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 
+			    e.ErrorCode();
+			SysVar::SetErrError( e.ErrorCode());
+			(*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0] = 
+			    e.getMessage();
+			SysVar::SetErr_String( e.getMessage());
 		
-		BaseGDL** catchVar = callStack.back()->GetCatchVar();
-		GDLDelete(*catchVar);
-		*catchVar = new DLongGDL( e.ErrorCode());
-		_retTree = catchNode;
-		return RC_OK;
-		}
+				BaseGDL** catchVar = callStack.back()->GetCatchVar();
+				GDLDelete(*catchVar);
+				*catchVar = new DLongGDL( e.ErrorCode());
+				_retTree = catchNode;
+				return RC_OK;
+			    }
 		
-		EnvUDT* targetEnv = e.GetTargetEnv();
-		if( targetEnv == NULL)
-		{
-		// initial exception, set target env
+			EnvUDT* targetEnv = e.GetTargetEnv();
+			if( targetEnv == NULL)
+			{
+			    // initial exception, set target env
+			    
+			// set !ERROR_STATE here
+			DStructGDL* errorState = SysVar::Error_State();
+			(*static_cast<DStringGDL*>( errorState->GetTag( nameTag)))[0] = 
+			    "IDL_M_FAILURE";
+			(*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 
+			    e.ErrorCode();
+			SysVar::SetErrError( e.ErrorCode());
+			(*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0] = 
+			    e.getMessage();
+			SysVar::SetErr_String( e.getMessage());
 		
-		// set !ERROR_STATE here
-		DStructGDL* errorState = SysVar::Error_State();
-		(*static_cast<DStringGDL*>( errorState->GetTag( nameTag)))[0] = 
-		"IDL_M_FAILURE";
-		(*static_cast<DLongGDL*>( errorState->GetTag( codeTag)))[0] = 
-		e.ErrorCode();
-		SysVar::SetErrError( e.ErrorCode());
-		(*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0] = 
-		e.getMessage();
-		SysVar::SetErr_String( e.getMessage());
+			    // look if ON_ERROR is set somewhere
+			    // for( EnvStackT::reverse_iterator i = callStack.rbegin();
+			    //     i != callStack.rend(); ++i)
+			    for( long ix = callStack.size() - 1; ix>=0; --ix)
+			    {
+				EnvUDT** i = &callStack[ ix];
+				DLong oE = -1;
+				EnvUDT* envUD = dynamic_cast<EnvUDT*>(*i);
+				if( envUD != NULL)
+				    oE = envUD->GetOnError();
+				
+				if( oE != -1) 
+				{ // oE was set
+				    
+				    // 0 -> stop here
+				    if( oE == 0) 
+				    targetEnv = static_cast<EnvUDT*>(callStack.back()); 
+				    // 1 -> $MAIN$
+				    else if( oE == 1) 
+				    {
+					EnvUDT* cS_begin = 
+					static_cast<EnvUDT*>(callStack[0]);
+					// static_cast<EnvUDT*>(*callStack.begin());
+					targetEnv = cS_begin;  
+				    }
+				    // 2 -> caller of routine which called ON_ERROR
+				    else if( oE == 2)
+				    {
+					// set to caller, handle nested
+					while( ix > 0 && static_cast<EnvUDT*>(callStack[--ix])->GetOnError() == 2)
+					    ; // just set ix
 		
-		// look if ON_ERROR is set somewhere
-		// for( EnvStackT::reverse_iterator i = callStack.rbegin();
-		//     i != callStack.rend(); ++i)
-		for( long ix = callStack.size() - 1; ix>=0; --ix)
-		{
-		EnvUDT** i = &callStack[ ix];
-		DLong oE = -1;
-		EnvUDT* envUD = dynamic_cast<EnvUDT*>(*i);
-		if( envUD != NULL)
-		oE = envUD->GetOnError();
-		
-		if( oE != -1) 
-		{ // oE was set
-		
-		// 0 -> stop here
-		if( oE == 0) 
-		targetEnv = static_cast<EnvUDT*>(callStack.back()); 
-		// 1 -> $MAIN$
-		else if( oE == 1) 
-		{
-		EnvUDT* cS_begin = 
-		static_cast<EnvUDT*>(callStack[0]);
-		// static_cast<EnvUDT*>(*callStack.begin());
-		targetEnv = cS_begin;  
-		}
-		// 2 -> caller of routine which called ON_ERROR
-		else if( oE == 2)
-		{
-		// set to caller, handle nested
-		while( ix > 0 && static_cast<EnvUDT*>(callStack[--ix])->GetOnError() == 2)
-		; // just set ix
-		
-		EnvUDT* iUDT = static_cast<EnvUDT*>(callStack[ix]);
-		targetEnv = iUDT;
-		
-		
-		// while( static_cast<EnvUDT*>(*(++i))->GetOnError() == 2 
-		//        && i != callStack.rend());
-		// if( i == callStack.rend())
-		// {
-		//     EnvUDT* cS_begin = 
-		//     static_cast<EnvUDT*>(*callStack.begin());
-		//     targetEnv = cS_begin;
-		// }
-		// else
-		// {
-		//     EnvUDT* iUDT = static_cast<EnvUDT*>(*i);
-		//     targetEnv = iUDT;
-		// }
-		}   
-		// 3 -> routine which called ON_ERROR
-		else if( oE == 3)
-		{
-		EnvUDT* iUDT = static_cast<EnvUDT*>(callStack[ix]);
-		// EnvUDT* iUDT = static_cast<EnvUDT*>(*i);
-		targetEnv = iUDT;
-		}
+					EnvUDT* iUDT = static_cast<EnvUDT*>(callStack[ix]);
+					targetEnv = iUDT;
 		
 		
-		// State where error occured
-		//                     if( e.getLine() == 0 && _t != NULL)
-		//                         e.SetLine( _t->getLine());
-		//                     if( e.getLine() == 0 && _retTree != NULL)
-		//                         e.SetLine( _retTree->getLine());
-		if( e.getLine() == 0 && last != NULL)
-		e.SetLine( last->getLine()); //probably false -- see ReportError, was obliged to replace e.getLine() by callStack.back()->GetLineNumber()
+					// while( static_cast<EnvUDT*>(*(++i))->GetOnError() == 2 
+					//	&& i != callStack.rend());
+					// if( i == callStack.rend())
+					// {
+					//     EnvUDT* cS_begin = 
+					//     static_cast<EnvUDT*>(*callStack.begin());
+					//     targetEnv = cS_begin;
+					// }
+					// else
+					// {
+					//     EnvUDT* iUDT = static_cast<EnvUDT*>(*i);
+					//     targetEnv = iUDT;
+					// }
+				    }   
+				    // 3 -> routine which called ON_ERROR
+				    else if( oE == 3)
+				    {
+					EnvUDT* iUDT = static_cast<EnvUDT*>(callStack[ix]);
+					// EnvUDT* iUDT = static_cast<EnvUDT*>(*i);
+					targetEnv = iUDT;
+				    }
+				    
+				    
+				    // State where error occured
+		//		     if( e.getLine() == 0 && _t != NULL)
+		//			 e.SetLine( _t->getLine());
+		//		     if( e.getLine() == 0 && _retTree != NULL)
+		//			 e.SetLine( _retTree->getLine());
+				    if( e.getLine() == 0 && last != NULL)
+					e.SetLine( last->getLine()); //probably false -- see ReportError, was obliged to replace e.getLine() by callStack.back()->GetLineNumber()
 		
-		if( interruptEnable)
-		ReportError(e, "Error occurred at:");
+				    if( interruptEnable)
+					ReportError(e, "Error occurred at:");
 		
-		// remeber where to stop
-		e.SetTargetEnv( targetEnv);
+				    // remeber where to stop
+				    e.SetTargetEnv( targetEnv);
+				    
+				    if( targetEnv->GetLineNumber() != 0)
+					e.SetLine( targetEnv->GetLineNumber());		    
 		
-		if( targetEnv->GetLineNumber() != 0)
-		e.SetLine( targetEnv->GetLineNumber());                    
+		//		     ProgNodeP errorNodeP = targetEnv->CallingNode();
+		//		     e.SetErrorNodeP( errorNodeP);
 		
-		//                     ProgNodeP errorNodeP = targetEnv->CallingNode();
-		//                     e.SetErrorNodeP( errorNodeP);
+				    // break on first occurence of set oE
+				    break;
+				}
+			    }
+			}
+			
+			if( targetEnv != NULL && targetEnv != callStack.back())
+			{
+			    throw e; // rethrow
+			}
+			lib::write_journal( GetClearActualLine());
 		
-		// break on first occurence of set oE
-		break;
-		}
-		}
-		}
+			// many low level routines don't have errorNode info
+			// set line number here in this case
+		//	 if( e.getLine() == 0 && _t != NULL)
+		//	     e.SetLine( _t->getLine());
+		//	 if( e.getLine() == 0 && _retTree != NULL)
+		//	     e.SetLine( _retTree->getLine());
+		//	if( e.getLine() == 0 && actPos != NULL)
+		//	    e.SetLine( actPos->getLine());
 		
-		if( targetEnv != NULL && targetEnv != callStack.back())
-		{
-		throw e; // rethrow
-		}
-		lib::write_journal( GetClearActualLine());
+			if( interruptEnable)
+			    {
+				if( e.getLine() == 0 && last != NULL)
+				    e.SetLine( last->getLine());
 		
-		// many low level routines don't have errorNode info
-		// set line number here in this case
-		//         if( e.getLine() == 0 && _t != NULL)
-		//             e.SetLine( _t->getLine());
-		//         if( e.getLine() == 0 && _retTree != NULL)
-		//             e.SetLine( _retTree->getLine());
-		//        if( e.getLine() == 0 && actPos != NULL)
-		//            e.SetLine( actPos->getLine());
+				// tell where we are
+				ReportError(e, "Execution halted at:", targetEnv == NULL); 
 		
-		if( interruptEnable)
-		{
-		if( e.getLine() == 0 && last != NULL)
-		e.SetLine( last->getLine());
+				retCode = NewInterpreterInstance(e.getLine());//-1);
+			    }    
+			else
+			    {
 		
-		// tell where we are
-		ReportError(e, "Execution halted at:", targetEnv == NULL); 
+				DString msgPrefix = SysVar::MsgPrefix();
+				if( e.Prefix())
+				    {
+					std::cerr << msgPrefix << e.toString() << std::endl;
+					lib::write_journal_comment(msgPrefix+e.toString());
+				    }
+				else
+				    {
+					std::cerr << e.toString() << std::endl;
+					lib::write_journal_comment(e.toString());
+				    }
 		
-		retCode = NewInterpreterInstance(e.getLine());//-1);
-		}    
-		else
-		{
+				retCode = RC_ABORT;
+			    }
 		
-		DString msgPrefix = SysVar::MsgPrefix();
-		if( e.Prefix())
-		{
-		std::cerr << msgPrefix << e.toString() << std::endl;
-		lib::write_journal_comment(msgPrefix+e.toString());
-		}
-		else
-		{
-		std::cerr << e.toString() << std::endl;
-		lib::write_journal_comment(e.toString());
-		}
-		
-		retCode = RC_ABORT;
-		}
-		
-		return retCode;
+			return retCode;
 		
 	}
 	_retTree = _t;
@@ -704,19 +698,19 @@ GDLInterpreter::GDLInterpreter()
 		for (; _t != NULL;) {
 	
 				retCode=statement(_t);
-	_t = _retTree;
+		    _t = _retTree;
 				
 	// 			if( retCode == RC_RETURN) 
 				if( retCode >= RC_RETURN) 
 				{
-	res=returnValue;
-	returnValue=NULL;
-	// already done in RETFNode::Run() :
-	// if( returnValueL != NULL)
-	//     {
-	//         callStack.back()->SetPtrToReturnValue( returnValueL);
-	//         returnValueL = NULL;
-	//     }
+			res=returnValue;
+			returnValue=NULL;
+			// already done in RETFNode::Run() :
+			// if( returnValueL != NULL)
+			//     {
+			//	 callStack.back()->SetPtrToReturnValue( returnValueL);
+			//	 returnValueL = NULL;
+			//     }
 				break;
 				}					
 		}
@@ -760,22 +754,22 @@ GDLInterpreter::GDLInterpreter()
 	
 		for (; _t != NULL;) 
 	{
-	retCode=statement(_t);
-	_t = _retTree;
+		retCode=statement(_t);
+		_t = _retTree;
 				
-	if( retCode >= RC_RETURN) 
+		if( retCode >= RC_RETURN) 
 				{
-	res=returnValueL;
-	returnValueL=NULL;
-	break;
-	}
+			res=returnValueL;
+			returnValueL=NULL;
+			break;
+		    }
 	}
 		
 		// res must be defined here
 		if( res == NULL)
-	throw GDLException( in, "Function "+callStack.back()->GetProName()+
-	" must return a global left-value in this context.",
-	false,false);
+		throw GDLException( in, "Function "+callStack.back()->GetProName()+
+				    " must return a global left-value in this context.",
+				    false,false);
 		_retTree = _t;
 		return res;
 		//NOTE: *** code below is not active ***
@@ -845,44 +839,44 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 	ProgNodeP evalExpr = _t->getFirstChild();
 	if( NonCopyNode( evalExpr->getType()))
 	{
-	e1 = evalExpr->EvalNC();
+		   e1 = evalExpr->EvalNC();
 	}
 	else
 	{
-	BaseGDL** ref = evalExpr->EvalRefCheck(e1);
-	if( ref == NULL)
-	{
-	// use new env if set (during parameter parsing)
-	EnvBaseT* actEnv = DInterpreter::CallStackBack()->GetNewEnv();
-	if( actEnv == NULL) actEnv = DInterpreter::CallStackBack();
-	assert( actEnv != NULL);
-	// this is crucial, a guard does not work here as a temporary
-	// ptr will be cleaned up at return from this function
-	actEnv->DeleteAtExit( e1);
-	}
-	else
-	e1 = *ref;
+		   BaseGDL** ref = evalExpr->EvalRefCheck(e1);
+		   if( ref == NULL)
+		       {
+			   // use new env if set (during parameter parsing)
+			   EnvBaseT* actEnv = DInterpreter::CallStackBack()->GetNewEnv();
+			   if( actEnv == NULL) actEnv = DInterpreter::CallStackBack();
+			   assert( actEnv != NULL);
+			   // this is crucial, a guard does not work here as a temporary
+			   // ptr will be cleaned up at return from this function
+			   actEnv->DeleteAtExit( e1);
+		       }
+		   else
+		       e1 = *ref;
 	}
 	
 	if( e1 == NULL || e1->Type() != GDL_PTR)
-	throw GDLException( evalExpr, "Pointer type required in this context: "+Name(e1),true,false);
+		throw GDLException( evalExpr, "Pointer type required in this context: "+Name(e1),true,false);
 	
 	DPtrGDL* ptr=static_cast<DPtrGDL*>(e1);
 	
 	DPtr sc; 
 	if( !ptr->Scalar(sc))
-	throw GDLException( _t, "Expression must be a scalar in this context: "+Name(e1),true,false);
+		throw GDLException( _t, "Expression must be a scalar in this context: "+Name(e1),true,false);
 	if( sc == 0)
-	throw GDLException( _t, "Unable to dereference NULL pointer: "+Name(e1),true,false);
+		throw GDLException( _t, "Unable to dereference NULL pointer: "+Name(e1),true,false);
 	
 	try
-	{
-	res = &GetHeap(sc);
-	}
+		{
+		    res = &GetHeap(sc);
+		}
 	catch( HeapException)
-	{
-	throw GDLException( _t, "Invalid pointer: "+Name(e1),true,false);
-	}
+		{
+		    throw GDLException( _t, "Invalid pointer: "+Name(e1),true,false);
+		}
 	
 		_retTree = retTree;
 		return res;
@@ -905,7 +899,7 @@ BaseGDL**  GDLInterpreter::l_decinc_indexable_expr(ProgNodeP _t,
 	e = _t->LEval();
 	res = *e;
 	if( res == NULL)
-	throw GDLException( _t, "Variable is undefined: "+Name(e),true,false);
+		throw GDLException( _t, "Variable is undefined: "+Name(e),true,false);
 	return e;
 		//NOTE: *** code below is not active ***
 	
@@ -1008,14 +1002,14 @@ BaseGDL**  GDLInterpreter::l_defined_simple_var(ProgNodeP _t) {
 	res = _t->LEval();
 	_retTree = _t->getNextSibling();
 		if( *res == NULL)
-	{
-	if( _t->getType() == VAR)
-	throw GDLException( _t, "Variable is undefined: "+
-	callStack.back()->GetString(_t->varIx),true,false);
-	else
-	throw GDLException( _t, "Common block variable is undefined: "+
-	callStack.back()->GetString( *res),true,false);
-	}
+		{
+		    if( _t->getType() == VAR)
+			throw GDLException( _t, "Variable is undefined: "+
+					    callStack.back()->GetString(_t->varIx),true,false);
+		    else
+			throw GDLException( _t, "Common block variable is undefined: "+
+					    callStack.back()->GetString( *res),true,false);
+		}
 	return res;
 		//NOTE: *** code below is not active ***
 	
@@ -1084,10 +1078,10 @@ BaseGDL**  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
 			_t = _t->getFirstChild();
 	
 			BaseGDL** tmp =_t->LEval();// l_decinc_indexable_expr(_t, res);
-	res = *tmp;
-	if( res == NULL)
-	throw GDLException( _t, "Variable is undefined: " + Name(tmp),
-	true,false);
+		res = *tmp;
+		if( res == NULL)
+		    throw GDLException( _t, "Variable is undefined: " + Name(tmp),
+					true,false);
 			_t = _t->getNextSibling();
 	
 			aL=arrayindex_list(_t,!res->IsAssoc());
@@ -1099,13 +1093,13 @@ BaseGDL**  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
 			
 			if( dec_inc == DECSTATEMENT) 
 			{
-	res->DecAt( aL); 
-	return NULL;
+		    res->DecAt( aL); 
+		    return NULL;
 			}
 			if( dec_inc == INCSTATEMENT)
 			{
-	res->IncAt( aL);
-	return NULL;
+		    res->IncAt( aL);
+		    return NULL;
 			}
 			
 			if( dec_inc == DEC || dec_inc == DEC_REF_CHECK) 
@@ -1119,28 +1113,28 @@ BaseGDL**  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
 			if( dec_inc == POSTDEC) resBefore->DecAt( aL);
 			else if( dec_inc == POSTINC) resBefore->IncAt( aL);
 			
-	return NULL;
+		return NULL;
 		}
 	else
 	{
 			e =_t->LEval();// l_decinc_indexable_expr(_t, res);
-	res = *e;
-	if( res == NULL)
-	throw GDLException( _t, "Variable is undefined: " + Name(e),
-	true,false);
+		res = *e;
+		if( res == NULL)
+		    throw GDLException( _t, "Variable is undefined: " + Name(e),
+					true,false);
 			_retTree = _t->getNextSibling();
 			// e=l_decinc_indexable_expr(_t, res);
 			// _t = _retTree;
 			
 			if( dec_inc == DECSTATEMENT || dec_inc == DEC_REF_CHECK) 
 			{
-	res->Dec(); 
-	return e;
+		    res->Dec(); 
+		    return e;
 			}
 			if( dec_inc == INCSTATEMENT || dec_inc == INC_REF_CHECK)
 			{
-	res->Inc();
-	return e;
+		    res->Inc();
+		    return e;
 			}
 			
 			if( dec_inc == DEC) res->Dec();
@@ -1152,7 +1146,7 @@ BaseGDL**  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
 			if( dec_inc == POSTDEC) resBefore->Dec();
 			else if( dec_inc == POSTINC) resBefore->Inc();
 			
-	return e;
+		return e;
 		}
 	assert(false);
 		return e;
@@ -1212,28 +1206,28 @@ BaseGDL*  GDLInterpreter::l_decinc_dot_expr(ProgNodeP _t,
 		_t = _retTree;
 	
 	while( _t != NULL)
-	{
-	tag_array_expr(_t, aD.Get());
+		{
+		    tag_array_expr(_t, aD.Get());
 				_t = _retTree;
 			}
 	
 		_retTree = dot->getNextSibling();
 		
 		if( dec_inc == DECSTATEMENT) 
-	{
-	aD.Get()->Dec(); 
-	return NULL;
-	}   
+		{
+		    aD.Get()->Dec(); 
+		    return NULL;
+		}   
 		if( dec_inc == INCSTATEMENT)
-	{
-	aD.Get()->Inc();
-	return NULL; 
-	}
+		{
+		    aD.Get()->Inc();
+		    return NULL; 
+		}
 		
 		if( dec_inc == DEC || dec_inc == DEC_REF_CHECK) 
-	aD.Get()->Dec(); //*** aD->Assign( dec_inc);
+		aD.Get()->Dec(); //*** aD->Assign( dec_inc);
 		else if( dec_inc == INC || dec_inc == INC_REF_CHECK) 
-	aD.Get()->Inc();
+		aD.Get()->Inc();
 		
 		res=aD.Get()->ADResolve();
 		
@@ -1276,18 +1270,18 @@ BaseGDL**  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		e1=expr(_t);
 		_t = _retTree;
 		
-		Guard<BaseGDL> e1_guard(e1);
+				Guard<BaseGDL> e1_guard(e1);
 		
-		if( e1->True())
-		{
-		refRet=l_decinc_expr(_t, dec_inc, res);
-		}
-		else
-		{
-		_t=_t->GetNextSibling(); // jump over 1st expression
-		refRet=l_decinc_expr(_t, dec_inc, res);
-		}
-		
+				if( e1->True())
+				{
+				    refRet=l_decinc_expr(_t, dec_inc, res);
+				}
+				else
+				{
+				    _t=_t->GetNextSibling(); // jump over 1st expression
+				    refRet=l_decinc_expr(_t, dec_inc, res);
+				}
+			
 		_t = __t24;
 		_t = _t->getNextSibling();
 		break;
@@ -1299,8 +1293,8 @@ BaseGDL**  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		match(antlr::RefAST(_t),ASSIGN);
 		_t = _t->getFirstChild();
 		
-		Guard<BaseGDL> r_guard;
-		
+				Guard<BaseGDL> r_guard;
+			
 		{
 		if (_t == ProgNodeP(antlr::nullAST) )
 			_t = ASTNULL;
@@ -1347,10 +1341,10 @@ BaseGDL**  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 			e1=lib_function_call_internal(_t);
 			_t = _retTree;
 			
-			// if( !callStack.back()->Contains( e1)) 
-			if( callStack.back()->GetPtrToReturnValueNull() == NULL) 
-			r_guard.Init( e1); // guard if no global data
-			
+					    // if( !callStack.back()->Contains( e1)) 
+					    if( callStack.back()->GetPtrToReturnValueNull() == NULL) 
+						r_guard.Init( e1); // guard if no global data
+					
 			break;
 		}
 		default:
@@ -1360,15 +1354,15 @@ BaseGDL**  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		}
 		}
 		
-		ProgNodeP l = _t;
+				ProgNodeP l = _t;
 		
-		BaseGDL** tmp;
-		
+				BaseGDL** tmp;
+			
 		tmp=l_expr_internal(_t, e1);
 		_t = _retTree;
 		
-		_t = l;
-		
+				_t = l;
+			
 		refRet=l_decinc_expr(_t,dec_inc, res);
 		_t = _retTree;
 		_t = __t25;
@@ -1382,8 +1376,8 @@ BaseGDL**  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		match(antlr::RefAST(_t),ASSIGN_ARRAYEXPR_MFCALL);
 		_t = _t->getFirstChild();
 		
-		Guard<BaseGDL> r_guard;
-		
+				Guard<BaseGDL> r_guard;
+			
 		{
 		if (_t == ProgNodeP(antlr::nullAST) )
 			_t = ASTNULL;
@@ -1430,10 +1424,10 @@ BaseGDL**  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 			e1=lib_function_call_internal(_t);
 			_t = _retTree;
 			
-			// if( !callStack.back()->Contains( e1)) 
-			if( callStack.back()->GetPtrToReturnValueNull() == NULL) 
-			r_guard.Init( e1); // guard if no global data
-			
+					    // if( !callStack.back()->Contains( e1)) 
+					    if( callStack.back()->GetPtrToReturnValueNull() == NULL) 
+						r_guard.Init( e1); // guard if no global data
+					
 			break;
 		}
 		default:
@@ -1443,43 +1437,43 @@ BaseGDL**  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		}
 		}
 		
-		ProgNodeP l = _t;
+				ProgNodeP l = _t;
 		
-		BaseGDL** tmp;
+				BaseGDL** tmp;
 		
-		// try MFCALL
-		try
-		{
+				// try MFCALL
+				try
+				{
 		
-		tmp=l_arrayexpr_mfcall_as_mfcall(l);
+				    tmp=l_arrayexpr_mfcall_as_mfcall(l);
 		
-		if( e1 != (*tmp))
-		{
-		delete *tmp;
+				    if( e1 != (*tmp))
+				    {
+					delete *tmp;
 		
-		if( r_guard.Get() == e1)
-		*tmp = r_guard.release();
-		else          
-		*tmp = e1->Dup();
-		}
+					if( r_guard.Get() == e1)
+					    *tmp = r_guard.release();
+					else	  
+					    *tmp = e1->Dup();
+				    }
 		
-		refRet=l_decinc_expr( l, dec_inc, res);
-		}
-		catch( GDLException& ex)
-		{
-		// try ARRAYEXPR
-		try
-			                {
-		tmp=l_arrayexpr_mfcall_as_arrayexpr(l, e1);
-			                }
-		catch( GDLException& ex2)
-		{
-		throw GDLException(ex.toString() + " or "+ex2.toString());
-		}
+				    refRet=l_decinc_expr( l, dec_inc, res);
+				}
+				catch( GDLException& ex)
+				{
+				// try ARRAYEXPR
+				    try
+					{
+					tmp=l_arrayexpr_mfcall_as_arrayexpr(l, e1);
+					}
+				    catch( GDLException& ex2)
+				    {
+					throw GDLException(ex.toString() + " or "+ex2.toString());
+				    }
 		
-		refRet=l_decinc_expr( l, dec_inc, res);
-		}
-		
+				    refRet=l_decinc_expr( l, dec_inc, res);
+				}
+			
 		_t = __t27;
 		_t = _t->getNextSibling();
 		break;
@@ -1491,8 +1485,8 @@ BaseGDL**  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		match(antlr::RefAST(_t),ASSIGN_REPLACE);
 		_t = _t->getFirstChild();
 		
-		Guard<BaseGDL> r_guard;
-		
+				Guard<BaseGDL> r_guard;
+			
 		{
 		if (_t == ProgNodeP(antlr::nullAST) )
 			_t = ASTNULL;
@@ -1527,8 +1521,8 @@ BaseGDL**  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 			e1=tmp_expr(_t);
 			_t = _retTree;
 			
-			r_guard.Init( e1);
-			
+					    r_guard.Init( e1);
+					
 			break;
 		}
 		case FCALL_LIB:
@@ -1536,10 +1530,10 @@ BaseGDL**  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 			e1=lib_function_call_internal(_t);
 			_t = _retTree;
 			
-			// if( !callStack.back()->Contains( e1)) 
-			if( callStack.back()->GetPtrToReturnValueNull() == NULL) 
-			r_guard.Init( e1);
-			
+					    // if( !callStack.back()->Contains( e1)) 
+					    if( callStack.back()->GetPtrToReturnValueNull() == NULL) 
+						r_guard.Init( e1);
+					
 			break;
 		}
 		default:
@@ -1549,10 +1543,10 @@ BaseGDL**  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		}
 		}
 		
-		ProgNodeP l = _t;
+				ProgNodeP l = _t;
 		
-		BaseGDL** tmp;
-		
+				BaseGDL** tmp;
+			
 		{
 		if (_t == ProgNodeP(antlr::nullAST) )
 			_t = ASTNULL;
@@ -1586,19 +1580,19 @@ BaseGDL**  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		}
 		}
 		
-		if( e1 != (*tmp))
-		{
-		delete *tmp;
+				if( e1 != (*tmp))
+				    {
+					delete *tmp;
 		
-		if( r_guard.Get() == e1)
-		*tmp = r_guard.release();
-		else  
-		*tmp = e1->Dup();
-		}
+					if( r_guard.Get() == e1)
+					    *tmp = r_guard.release();
+					else  
+					    *tmp = e1->Dup();
+				    }
+			
 		
-		
-		_t = l;
-		
+				_t = l;
+			
 		refRet=l_decinc_expr(_t,dec_inc, res);
 		_t = _retTree;
 		_t = __t29;
@@ -1626,76 +1620,76 @@ BaseGDL**  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		match(antlr::RefAST(_t),ARRAYEXPR_MFCALL);
 		_t = _t->getFirstChild();
 		
-		ProgNodeP mark = _t;
-		_t = _t->getNextSibling(); // step over DOT
+			    ProgNodeP mark = _t;
+			    _t = _t->getNextSibling(); // step over DOT
 		
-		BaseGDL* self;
-		
+			    BaseGDL* self;
+			
 		self=expr(_t);
 		_t = _retTree;
 		mp2 = _t;
 		match(antlr::RefAST(_t),IDENTIFIER);
 		_t = _t->getNextSibling();
 		
-		Guard<BaseGDL> self_guard(self);
+				Guard<BaseGDL> self_guard(self);
+			
+				EnvUDT* newEnv;
 		
-		EnvUDT* newEnv;
+				DObjGDL* selfObj = NULL;
+				if( self->Type() == GDL_OBJ)
+				    selfObj = static_cast<DObjGDL*>( self);
+				try {
+				    newEnv=new EnvUDT( selfObj, mp2, "", EnvUDT::LFUNCTION);
+				    self_guard.release();
+				}
+				catch( GDLException& ex)
+				{
+				    _t = mark;
 		
-		DObjGDL* selfObj = NULL;
-		if( self->Type() == GDL_OBJ)
-		selfObj = static_cast<DObjGDL*>( self);
-		try {
-		newEnv=new EnvUDT( selfObj, mp2, "", EnvUDT::LFUNCTION);
-		self_guard.release();
-		}
-		catch( GDLException& ex)
-		{
-		_t = mark;
+				    res=l_decinc_dot_expr(_t, dec_inc);
 		
-		res=l_decinc_dot_expr(_t, dec_inc);
-		
-		_retTree = startNode->getNextSibling();
-		return refRet;
-		}   
-		
+				    _retTree = startNode->getNextSibling();
+				    return refRet;
+				}   
+			
 		parameter_def(_t, newEnv);
 		_t = _retTree;
 		
-		// push environment onto call stack
-		callStack.push_back(newEnv);
+			    // push environment onto call stack
+			    callStack.push_back(newEnv);
+			    
+			    // make the call
+			    BaseGDL** ee=call_lfun(static_cast<DSubUD*>(
+						  newEnv->GetPro())->GetTree());
 		
-		// make the call
-		BaseGDL** ee=call_lfun(static_cast<DSubUD*>(
-		newEnv->GetPro())->GetTree());
+			    BaseGDL* e = *ee;
+			    if( e == NULL)
+				throw GDLException( _t, "Variable is undefined: "+Name(ee),true,false);
 		
-		BaseGDL* e = *ee;
-		if( e == NULL)
-		throw GDLException( _t, "Variable is undefined: "+Name(ee),true,false);
+			    if( dec_inc == DECSTATEMENT || dec_inc == DEC_REF_CHECK) 
+				{
+				    e->Dec(); 
+				    _retTree = startNode->getNextSibling();
+				    return ee;
+				}
+			    if( dec_inc == INCSTATEMENT || dec_inc == INC_REF_CHECK)
+				{
+				    e->Inc();
+				    _retTree = startNode->getNextSibling();
+				    return ee;
+				}
 		
-		if( dec_inc == DECSTATEMENT || dec_inc == DEC_REF_CHECK) 
-		{
-		e->Dec(); 
-		_retTree = startNode->getNextSibling();
-		return ee;
-		}
-		if( dec_inc == INCSTATEMENT || dec_inc == INC_REF_CHECK)
-		{
-		e->Inc();
-		_retTree = startNode->getNextSibling();
-		return ee;
-		}
+			    if( dec_inc == DEC) e->Dec();
+			    else if( dec_inc == INC) e->Inc();
+		//	  
+			    res = e->Dup();
+			    
+			    if( dec_inc == POSTDEC) e->Dec();
+			    else if( dec_inc == POSTINC) e->Inc();
 		
-		if( dec_inc == DEC) e->Dec();
-		else if( dec_inc == INC) e->Inc();
-		//          
-		res = e->Dup();
-		
-		if( dec_inc == POSTDEC) e->Dec();
-		else if( dec_inc == POSTINC) e->Inc();
-		
-		_retTree = startNode->getNextSibling();
-		return ee;
-		
+			    _retTree = startNode->getNextSibling();
+			    return ee;
+			
 		_t = __t32;
 		_t = _t->getNextSibling();
 		break;
@@ -1720,10 +1714,10 @@ BaseGDL**  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		e1=r_expr(_t);
 		_t = _retTree;
 		
-		delete e1;
-		throw GDLException( _t, 
-		"Expression not allowed with decrement/increment operator.",true,false);
-		
+			    delete e1;
+			    throw GDLException( _t, 
+				"Expression not allowed with decrement/increment operator.",true,false);
+			
 		break;
 	}
 	case CONSTANT:
@@ -1732,9 +1726,9 @@ BaseGDL**  GDLInterpreter::l_decinc_expr(ProgNodeP _t,
 		match(antlr::RefAST(_t),CONSTANT);
 		_t = _t->getNextSibling();
 		
-		throw GDLException( _t, 
-		"Constant not allowed with decrement/increment operator.",true,false);
-		
+			    throw GDLException( _t, 
+				"Constant not allowed with decrement/increment operator.",true,false);
+			
 		break;
 	}
 	default:
@@ -2253,47 +2247,47 @@ void GDLInterpreter::parameter_def(ProgNodeP _t,
 	
 	try{
 	
-	_retTree = _t;
-	if( _retTree != NULL)
-	{
-	int nPar = _retTree->GetNParam();
-	int nSub = actEnv->GetPro()->NPar();
-	// // variable number of parameters
-	// if( nSub == -1)
-	//     {
-	//         // _retTree != NULL, save one check
-	//         static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
-	//         while(_retTree != NULL) 
-	//             static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
-	//     }
-	// // fixed number of parameters
-	if( nSub != -1 && nPar > nSub) // check here
-	{
-	throw GDLException( _t, actEnv->GetProName() +
-	": Incorrect number of arguments.",
-	false, false);
-	}
-	else
-	{
-	// _retTree != NULL, save one check
-	static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
-	// Parameter does no checking
-	while(_retTree != NULL) 
-	static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
-	}    
-	actEnv->ResolveExtra(); // expand _EXTRA        
-	}
+		_retTree = _t;
+		if( _retTree != NULL)
+		    {
+			int nPar = _retTree->GetNParam();
+			int nSub = actEnv->GetPro()->NPar();
+			// // variable number of parameters
+			// if( nSub == -1)
+			//     {
+			//	 // _retTree != NULL, save one check
+			//	 static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+			//	 while(_retTree != NULL) 
+			//	     static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+			//     }
+			// // fixed number of parameters
+			if( nSub != -1 && nPar > nSub) // check here
+			    {
+			    throw GDLException( _t, actEnv->GetProName() +
+						": Incorrect number of arguments.",
+						false, false);
+			    }
+			else
+			    {
+				// _retTree != NULL, save one check
+				static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+				// Parameter does no checking
+				while(_retTree != NULL) 
+				    static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+			    }    
+			actEnv->ResolveExtra(); // expand _EXTRA	
+		    }
 	} 
 	catch( GDLException& e)
-	{
-	callerEnv->SetNewEnv( oldNewEnv);
-	// update line number, currently set to caller->CallingNode()
-	// because actEnv is not on the stack yet, 
-	// report caller->Pro()'s name is ok, because we are not inside
-	// the call yet
-	e.SetErrorNodeP( actEnv->CallingNode());
-	throw e;
-	}
+		{
+		    callerEnv->SetNewEnv( oldNewEnv);
+		    // update line number, currently set to caller->CallingNode()
+		    // because actEnv is not on the stack yet, 
+		    // report caller->Pro()'s name is ok, because we are not inside
+		    // the call yet
+		    e.SetErrorNodeP( actEnv->CallingNode());
+		    throw e;
+		}
 	callerEnv->SetNewEnv( oldNewEnv);
 	
 		guard.release();
@@ -2431,17 +2425,17 @@ BaseGDL**  GDLInterpreter::l_indexable_expr(ProgNodeP _t) {
 	
 	res = _t->LEval();
 	if( *res == NULL) 
-	{
-	// check not needed for SYSVAR 
-	assert( _t->getType() != SYSVAR);
-	if( _t->getType() == VARPTR)
-	throw GDLException( _t, "Common block variable is undefined: "+
-	callStack.back()->GetString( *res),true,false);
-	if( _t->getType() == VAR)
-	throw GDLException( _t, "Variable is undefined: "+
-	callStack.back()->GetString(_t->varIx),true,false);
-	throw GDLException( _t, "Heap variable is undefined: "+Name(res),true,false);
-	}
+		{
+		    // check not needed for SYSVAR 
+		    assert( _t->getType() != SYSVAR);
+		    if( _t->getType() == VARPTR)
+			throw GDLException( _t, "Common block variable is undefined: "+
+					    callStack.back()->GetString( *res),true,false);
+		    if( _t->getType() == VAR)
+			throw GDLException( _t, "Variable is undefined: "+
+				       callStack.back()->GetString(_t->varIx),true,false);
+		    throw GDLException( _t, "Heap variable is undefined: "+Name(res),true,false);
+		}
 	_retTree = _t->getNextSibling();
 		return res;
 		//NOTE: *** code below is not active ***
@@ -2516,32 +2510,32 @@ BaseGDL**  GDLInterpreter::l_indexable_expr(ProgNodeP _t) {
 	match(antlr::RefAST(_t),ARRAYEXPR_MFCALL);
 	_t = _t->getFirstChild();
 	
-	_t = _t->getNextSibling(); // skip DOT
-	
+			   _t = _t->getNextSibling(); // skip DOT
+			
 	self=expr(_t);
 	_t = _retTree;
 	mp2 = _t;
 	match(antlr::RefAST(_t),IDENTIFIER);
 	_t = _t->getNextSibling();
 	
-	Guard<BaseGDL> self_guard(self);
+			    Guard<BaseGDL> self_guard(self);
+			    
+			    newEnv=new EnvUDT( self, mp2, "", EnvUDT::LFUNCTION);
 	
-	newEnv=new EnvUDT( self, mp2, "", EnvUDT::LFUNCTION);
-	
-	self_guard.release();
-	
+			    self_guard.release();
+			
 	parameter_def(_t, newEnv);
 	_t = _retTree;
 	_t = __t79;
 	_t = _t->getNextSibling();
 	
-	// push environment onto call stack
-	callStack.push_back(newEnv);
-	
-	// make the call
-	res=call_lfun(static_cast<DSubUD*>(
-	newEnv->GetPro())->GetTree());
-	
+		    // push environment onto call stack
+		    callStack.push_back(newEnv);
+		    
+		    // make the call
+		    res=call_lfun(static_cast<DSubUD*>(
+			    newEnv->GetPro())->GetTree());
+		
 	_retTree = _t;
 	return res;
 }
@@ -2586,48 +2580,48 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t,
 		_t = _t->getFirstChild();
 		
 	if( noAssoc)
-	aL = ax->arrIxListNoAssoc;
+		aL = ax->arrIxListNoAssoc;
 	else
-	aL = ax->arrIxList; 
+		aL = ax->arrIxList; 
 		assert( aL != NULL);
 	
 		nExpr = aL->NParam();
 		if( nExpr == 0)
 		{
-	aL->Init();
-	_retTree = ax->getNextSibling();//retTree;
-	return aL;
+		aL->Init();
+		_retTree = ax->getNextSibling();//retTree;
+		return aL;
 		}
 		
 	IxExprListT* cleanupList = aL->GetCleanupIx(); // for cleanup
 		while( true) {
 	
-	assert( _t != NULL);
-	if( NonCopyNode( _t->getType()))
-	{
-	s = _t->EvalNC(); 
-	}
-	else
-	{
-	BaseGDL** ref =_t->EvalRefCheck( s); 
-	if( ref == NULL)
-	cleanupList->push_back( s);
-	else
-	s = *ref;
-	}
+		assert( _t != NULL);
+		if( NonCopyNode( _t->getType()))
+		    {
+			s = _t->EvalNC(); 
+		    }
+		else
+		    {
+			BaseGDL** ref =_t->EvalRefCheck( s); 
+			if( ref == NULL)
+			    cleanupList->push_back( s);
+			else
+			    s = *ref;
+		    }
 				
-	assert( s != NULL);
+		assert( s != NULL);
 	if (s == NullGDL::GetSingleInstance()) { //return an empty arraylist, to be checked further as to not apply any posterior 'AssignAt' function.
-		     aL->Init();                            //as an array assigment containing '!NULL' is to be ignored.
-	aL->SetIgnore();
+		     aL->Init();			    //as an array assigment containing '!NULL' is to be ignored.
+		 aL->SetIgnore();
 		     _retTree = ax->getNextSibling();//retTree;
 		     return aL;
 		   }
-	ixExprList.push_back( s);
-	if( ixExprList.size() == nExpr)
-	break; // allows some manual tuning
+		ixExprList.push_back( s);
+		if( ixExprList.size() == nExpr)
+		    break; // allows some manual tuning
 	
-	_t = _t->getNextSibling();
+		_t = _t->getNextSibling();
 		}
 	
 		aL->Init( ixExprList);//, &cleanupList);
@@ -2650,7 +2644,7 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 	ProgNodeP l_dot_array_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 	ArrayIndexListT* aL;
-	BaseGDL**        rP;
+	BaseGDL**	rP;
 		
 		if( _t->getType() == ARRAYEXPR)
 		{
@@ -2659,8 +2653,8 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 			aL=arrayindex_list(_retTree,!(*rP)->IsAssoc());
 	
 			_retTree = _t->getNextSibling();
-	
-	SetRootL( _t, aD, *rP, aL); 
+		
+		SetRootL( _t, aD, *rP, aL); 
 		}
 	else
 		// case ARRAYEXPR_MFCALL:
@@ -2676,7 +2670,7 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 		{
 			rP=l_indexable_expr(_t);
 	
-	SetRootL( _t, aD, *rP, NULL); 
+		SetRootL( _t, aD, *rP, NULL); 
 		}
 	return;
 	//	_retTree = _t;
@@ -2743,52 +2737,52 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall(ProgNodeP _t,
 	match(antlr::RefAST(_t),ARRAYEXPR_MFCALL);
 	_t = _t->getFirstChild();
 	
-	ProgNodeP mark = _t;
-	_t = _t->getNextSibling(); // skip DOT
-	
+		    ProgNodeP mark = _t;
+		    _t = _t->getNextSibling(); // skip DOT
+		
 	self=expr(_t);
 	_t = _retTree;
 	mp2 = _t;
 	match(antlr::RefAST(_t),IDENTIFIER);
 	_t = _t->getNextSibling();
 	
-	Guard<BaseGDL> self_guard(self);
-	
-	try {
-	newEnv=new EnvUDT( self, mp2, "", EnvUDT::LFUNCTION);
-	self_guard.release();
-	}
-	catch( GDLException& ex)
-	{
-	goto tryARRAYEXPR;
-	}
-	
+		    Guard<BaseGDL> self_guard(self);
+		
+		    try {
+			newEnv=new EnvUDT( self, mp2, "", EnvUDT::LFUNCTION);
+			self_guard.release();
+		    }
+		    catch( GDLException& ex)
+		    {
+			goto tryARRAYEXPR;
+		    }
+		
 	parameter_def(_t, newEnv);
 	_t = _retTree;
 	_t = __t69;
 	_t = _t->getNextSibling();
 	
-	// push environment onto call stack
-	callStack.push_back(newEnv);
+		    // push environment onto call stack
+		    callStack.push_back(newEnv);
+		    
+		    // make the call
+		    res=call_lfun(static_cast<DSubUD*>(
+			    newEnv->GetPro())->GetTree());
 	
-	// make the call
-	res=call_lfun(static_cast<DSubUD*>(
-	newEnv->GetPro())->GetTree());
+		    _retTree = startNode->getNextSibling();
+		    return res;
 	
-	_retTree = startNode->getNextSibling();
-	return res;
-	
-	tryARRAYEXPR:;
-	_t = mark;
-	
+		    tryARRAYEXPR:;
+		    _t = mark;
+		
 	ProgNodeP __t70 = _t;
 	dot = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	match(antlr::RefAST(_t),DOT);
 	_t = _t->getFirstChild();
 	
-	SizeT nDot=dot->nDot;
-	Guard<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
-	
+			SizeT nDot=dot->nDot;
+			Guard<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
+		
 	l_dot_array_expr(_t, aD.Get());
 	_t = _retTree;
 	{ // ( ... )+
@@ -2811,18 +2805,18 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall(ProgNodeP _t,
 	_t = __t70;
 	_t = _t->getNextSibling();
 	
-	if( right == NULL)
-	throw GDLException( _t, 
-	"Struct expression not allowed in this context.",
-	true,false);
+		    if( right == NULL)
+		    throw GDLException( _t, 
+					"Struct expression not allowed in this context.",
+					true,false);
+		    
+		    aD.Get()->ADAssign( right);
 	
-	aD.Get()->ADAssign( right);
+		    res=NULL;
 	
-	res=NULL;
-	
-	_retTree = startNode->getNextSibling();
-	return res;
-	
+		    _retTree = startNode->getNextSibling();
+		    return res;
+		
 	_retTree = _t;
 	return res;
 }
@@ -2845,8 +2839,8 @@ void GDLInterpreter::tag_expr(ProgNodeP _t,
 			SizeT tagIx;
 			int ret=e->Scalar2Index(tagIx);
 			if( ret < 1) // this is a return code, not the index
-	throw GDLException( tIn, "Expression must be a scalar"
-	" >= 0 in this context: "+Name(e),true,false);
+		    throw GDLException( tIn, "Expression must be a scalar"
+					" >= 0 in this context: "+Name(e),true,false);
 			aD->ADAdd( tagIx);
 	
 			_retTree = tIn->getNextSibling();
@@ -2854,7 +2848,7 @@ void GDLInterpreter::tag_expr(ProgNodeP _t,
 	else
 		// case IDENTIFIER:
 		{
-	assert( _t->getType() == IDENTIFIER);
+		assert( _t->getType() == IDENTIFIER);
 			std::string tagName=_t->getText();
 	
 			aD->ADAdd( tagName);
@@ -2903,7 +2897,7 @@ void GDLInterpreter::tag_array_expr(ProgNodeP _t,
 			_t = _t->getFirstChild();
 			tag_expr(_t, aD);
 			_t = _retTree;
-	// noAssoc==true, as assoc vars cannot be struct members
+		// noAssoc==true, as assoc vars cannot be struct members
 			aL=arrayindex_list(_t,true); 
 			//_t = _retTree;
 			aD->ADAddIx(aL);
@@ -2967,7 +2961,7 @@ BaseGDL*  GDLInterpreter::r_dot_indexable_expr(ProgNodeP _t,
 			ProgNodeP tIn = _t;
 			_t = _t->getFirstChild();
 			//res=expr(_t);
-	res = _t->Eval();
+		res = _t->Eval();
 			aD->SetOwner( true);
 			_retTree = tIn->getNextSibling();
 			break;
@@ -2990,8 +2984,8 @@ BaseGDL*  GDLInterpreter::r_dot_indexable_expr(ProgNodeP _t,
 		}
 		case SYSVAR:
 		{
-	res = _t->EvalNC();
-	_retTree = _t->getNextSibling();
+		res = _t->EvalNC();
+		_retTree = _t->getNextSibling();
 			//res=sys_var_nocopy(_t);
 			//_t = _retTree;
 			break;
@@ -3048,7 +3042,7 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 ) {
 	ProgNodeP r_dot_array_expr_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
-	BaseGDL*         r;
+	BaseGDL*	 r;
 	ArrayIndexListT* aL;
 		
 		if( _t->getType() == ARRAYEXPR)
@@ -3222,12 +3216,12 @@ BaseGDL*  GDLInterpreter::simple_var(ProgNodeP _t) {
 		assert( _t != NULL);
 	BaseGDL* vData = _t->EvalNC();
 		if( vData == NULL)
-	{
-	if( _t->getType() == VAR)
-	throw GDLException( _t, "Variable is undefined: "+_t->getText(),true,false);
-	else // VARPTR
-	throw GDLException( _t, "Common block variable is undefined.",true,false);
-	}
+		{
+		if( _t->getType() == VAR)
+		    throw GDLException( _t, "Variable is undefined: "+_t->getText(),true,false);
+		else // VARPTR
+		    throw GDLException( _t, "Common block variable is undefined.",true,false);
+		}
 		_retTree = _t->getNextSibling();
 		return vData->Dup();
 		//NOTE: *** code below is not active ***
@@ -3292,9 +3286,9 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall_as_arrayexpr(ProgNodeP _t,
 	match(antlr::RefAST(_t),DOT);
 	_t = _t->getFirstChild();
 	
-	SizeT nDot=dot->nDot;
-	Guard<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
-	
+			SizeT nDot=dot->nDot;
+			Guard<DotAccessDescT> aD( new DotAccessDescT(nDot+1));
+		
 	l_dot_array_expr(_t, aD.Get());
 	_t = _retTree;
 	{ // ( ... )+
@@ -3319,15 +3313,15 @@ BaseGDL**  GDLInterpreter::l_arrayexpr_mfcall_as_arrayexpr(ProgNodeP _t,
 	_t = __t74;
 	_t = _t->getNextSibling();
 	
-	if( right == NULL)
-	throw GDLException( _t, 
-	"Struct expression not allowed in this context.",
-	true,false);
+		    if( right == NULL)
+		    throw GDLException( _t, 
+					"Struct expression not allowed in this context.",
+					true,false);
+		    
+		    aD.Get()->ADAssign( right);
 	
-	aD.Get()->ADAssign( right);
-	
-	res=NULL;
-	
+		    res=NULL;
+		
 	_retTree = _t;
 	return res;
 }
@@ -3341,60 +3335,60 @@ void GDLInterpreter::parameter_def_n_elements(ProgNodeP _t,
 	_retTree = _t;
 	//     bool interruptEnableIn = interruptEnable;
 	if( _retTree != NULL)
-	{
-	int nPar = _retTree->GetNParam();
-	//int nSub = actEnv->GetPro()->NPar();
-	assert(  actEnv->GetPro()->NPar() == 1); // N_ELEMENTS
-	// fixed number of parameters
-	if( nPar > 1)//nSub) // check here
-	{
-	throw GDLException( _t, actEnv->GetProName() +
-	": Incorrect number of arguments.",
-	false, false);
-	}
+		{
+		    int nPar = _retTree->GetNParam();
+		    //int nSub = actEnv->GetPro()->NPar();
+		    assert(  actEnv->GetPro()->NPar() == 1); // N_ELEMENTS
+		    // fixed number of parameters
+		    if( nPar > 1)//nSub) // check here
+			{
+			    throw GDLException( _t, actEnv->GetProName() +
+						": Incorrect number of arguments.",
+						false, false);
+			}
 	
-	if( _retTree->getType() == REF ||
-	_retTree->getType() == REF_EXPR ||
-	_retTree->getType() == REF_CHECK ||
-	_retTree->getType() == PARAEXPR)
-	{
-	try
-	{
-	//                     interruptEnable = false;
-	static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
-	//                     interruptEnable = interruptEnableIn;
-	} 
-	catch( GDLException& e)
-	{
-	// an error occured -> parameter is undefined 
-	//                         interruptEnable = interruptEnableIn;
-	if( actEnv->NParam() == 0) // not set yet
-	{
-	BaseGDL* nullP = NULL;
-	actEnv->SetNextPar( nullP);
-	}
-	}
-	}
-	else // used for error handling: keywords are checked only here in Parameter()
-	{
-	try
-	{
-	// as N_ELEMENTS has no keywords this should throw always
-	static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
-	assert( 0);
-	}
-	catch( GDLException& e)
-	{
-	// update line number, currently set to caller->CallingNode()
-	// because actEnv is not on the stack yet, 
-	// report caller->Pro()'s name is ok, because we are not inside
-	// the call yet
-	e.SetErrorNodeP( actEnv->CallingNode());
-	throw e;
-	}
-	}
-	// actEnv->Extra(); // expand _EXTRA
-	} // if( _retTree != NULL)
+		    if( _retTree->getType() == REF ||
+			_retTree->getType() == REF_EXPR ||
+			_retTree->getType() == REF_CHECK ||
+			_retTree->getType() == PARAEXPR)
+			{
+			    try
+				{
+				    //		     interruptEnable = false;
+				    static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+				    //		     interruptEnable = interruptEnableIn;
+				} 
+			    catch( GDLException& e)
+				{
+				    // an error occured -> parameter is undefined 
+				    //			 interruptEnable = interruptEnableIn;
+				    if( actEnv->NParam() == 0) // not set yet
+					{
+					    BaseGDL* nullP = NULL;
+					    actEnv->SetNextPar( nullP);
+					}
+				}
+			}
+		    else // used for error handling: keywords are checked only here in Parameter()
+			{
+			    try
+				{
+				    // as N_ELEMENTS has no keywords this should throw always
+				    static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+				    assert( 0);
+				}
+			    catch( GDLException& e)
+				{
+				    // update line number, currently set to caller->CallingNode()
+				    // because actEnv is not on the stack yet, 
+				    // report caller->Pro()'s name is ok, because we are not inside
+				    // the call yet
+				    e.SetErrorNodeP( actEnv->CallingNode());
+				    throw e;
+				}
+			}
+		    // actEnv->Extra(); // expand _EXTRA
+		} // if( _retTree != NULL)
 	
 		guard.release();
 		
@@ -3425,28 +3419,28 @@ void GDLInterpreter::parameter_def_nocheck(ProgNodeP _t,
 	
 	try{
 	
-	if( _t != NULL)
-	{
-	_retTree = _t;
-	// _retTree != NULL, save one check // 'if' is needed already for Extra()
-	static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
-	// Parameter does no checking
-	while(_retTree != NULL) 
-	static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+		if( _t != NULL)
+		    {
+			_retTree = _t;
+			// _retTree != NULL, save one check // 'if' is needed already for Extra()
+			static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
+			// Parameter does no checking
+			while(_retTree != NULL) 
+			     static_cast<ParameterNode*>(_retTree)->Parameter( actEnv);
 	
-	actEnv->ResolveExtra(); // expand _EXTRA        
-	}
+			actEnv->ResolveExtra(); // expand _EXTRA	
+		    }
 	} 
 	catch( GDLException& e)
-	{
-	callerEnv->SetNewEnv( oldNewEnv);
-	// update line number, currently set to caller->CallingNode()
-	// because actEnv is not on the stack yet, 
-	// report caller->Pro()'s name is ok, because we are not inside
-	// the call yet
-	e.SetErrorNodeP( actEnv->CallingNode());
-	throw e;
-	}
+		{
+		    callerEnv->SetNewEnv( oldNewEnv);
+		    // update line number, currently set to caller->CallingNode()
+		    // because actEnv is not on the stack yet, 
+		    // report caller->Pro()'s name is ok, because we are not inside
+		    // the call yet
+		    e.SetErrorNodeP( actEnv->CallingNode());
+		    throw e;
+		}
 	callerEnv->SetNewEnv( oldNewEnv);
 	
 		guard.release();
@@ -3486,35 +3480,35 @@ void GDLInterpreter::arrayindex_list_overload(ProgNodeP _t,
 		nExpr = aL->NParam();
 		if( nExpr == 0)
 		{
-	aL->InitAsOverloadIndex( ixExprList, /* NULL,*/ indexList);
-	_retTree = ax->getNextSibling();//retTree;
-	return;
+		aL->InitAsOverloadIndex( ixExprList, /* NULL,*/ indexList);
+		_retTree = ax->getNextSibling();//retTree;
+		return;
 		}
 		
 	IxExprListT* cleanupList = aL->GetCleanupIx();
 		
 		while( true) {
-	assert( _t != NULL);
-	if( NonCopyNode( _t->getType()))
-	{
-	s= _t->EvalNCNull(); // in this case (overload) NULL is ok
-	//_t = _retTree;
-	}
+		assert( _t != NULL);
+		if( NonCopyNode( _t->getType()))
+		    {
+			s= _t->EvalNCNull(); // in this case (overload) NULL is ok
+			//_t = _retTree;
+		    }
 	else
-	{
-	BaseGDL** ref=_t->EvalRefCheck( s); //indexable_tmp_expr(_t);
-	//_t = _retTree;
-	if( ref == NULL)
+		    {
+			BaseGDL** ref=_t->EvalRefCheck( s); //indexable_tmp_expr(_t);
+			//_t = _retTree;
+			if( ref == NULL)
 			  cleanupList->push_back( s);
 			else
 			  s = *ref;
-	}
+		    }
 				
-	ixExprList.push_back( s);
-	if( ixExprList.size() == nExpr)
-	break; // allows some manual tuning
+		ixExprList.push_back( s);
+		if( ixExprList.size() == nExpr)
+		    break; // allows some manual tuning
 	
-	_t = _t->getNextSibling();
+		_t = _t->getNextSibling();
 		}
 	
 	aL->InitAsOverloadIndex( ixExprList, /*&cleanupList,*/ indexList);
@@ -3739,6 +3733,8 @@ const char* GDLInterpreter::tokenNames[] = {
 	"CONSTANT_BIN_ULONG64",
 	"CONSTANT_BIN_UI",
 	"CONSTANT_BIN_UINT",
+	"CONSTANT_CMPLX_I",
+	"CONSTANT_CMPLXDBL_I",
 	"ASTERIX",
 	"DOT",
 	"STRING_LITERAL",

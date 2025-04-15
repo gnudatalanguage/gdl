@@ -577,7 +577,8 @@ endif else begin ; not interrupted
                                 ;alpha is the rotation angle for
                                 ;oblique cylindric. alpha=0 for
                                 ;transverse projections
-         val=80
+; RS fix for standard map projection which should not be cut at 80deg lat
+         if index eq 27 then val=90 else val=80
          ; remove poles
          map_clip_set, map=myMap, clip_plane=[myMap.pole[4:6],sin(deg2rad*val)]
          map_clip_set, map=myMap, clip_plane=[-1*myMap.pole[4:6],sin(deg2rad*val)]

@@ -138,14 +138,14 @@ struct CompProName: public std::function<bool(DPro*, DPro*)>
   }
 };
 
-static bool CompareWithJokers(string names, string sourceFiles) {
+static bool CompareWithJokers(string theString, string thePattern) {
 
 #ifdef _WIN32
   WCHAR wnames[MAX_PATH];
   WCHAR wsourceFiles[MAX_PATH];
 
-  const char* cnames = names.c_str();
-  const char* csourceFiles = sourceFiles.c_str();
+  const char* cnames = theString.c_str();
+  const char* csourceFiles = thePattern.c_str();
 
   MultiByteToWideChar(CP_UTF8, 0, cnames, -1,
     (LPWSTR) wnames, MAX_PATH);
@@ -153,7 +153,11 @@ static bool CompareWithJokers(string names, string sourceFiles) {
     (LPWSTR) wsourceFiles, MAX_PATH);
   int match = 1 - PathMatchSpecW(wsourceFiles, wnames);
 #else
-  int match = fnmatch(names.c_str(), sourceFiles.c_str(), 0 );
+  int flags=0;
+#ifdef __GNUC__
+  flags=FNM_CASEFOLD;
+#endif
+  int match = fnmatch(theString.c_str(), thePattern.c_str(), flags );
 #endif
   if ( match == 0) 	return true;
   else 		return false;
@@ -803,6 +807,13 @@ void help_help(EnvT* e)
   }
 
   void help_pro(EnvT* e) {
+    //unsupported: just return
+    //BREAKPOINTS","DLM", "MESSAGES", "LAMBDA",
+	static int BREAKPOINTS = e->KeywordIx("BREAKPOINTS"); if (e->KeywordPresent(BREAKPOINTS)) { Message("Unsupported Keyword."); return;}
+	static int DLM = e->KeywordIx("DLM"); if (e->KeywordPresent(DLM)) { Message("Unsupported Keyword."); return;}
+	static int MESSAGES = e->KeywordIx("MESSAGES"); if (e->KeywordPresent(MESSAGES)) { Message("Unsupported Keyword."); return;}
+	static int LAMBDA = e->KeywordIx("LAMBDA"); if (e->KeywordPresent(LAMBDA)) { Message("Unsupported Keyword."); return;}
+    
 	// in order of priority
 	bool kw = false;
 	static int lastmKWIx = e->KeywordIx("LAST_MESSAGE");
@@ -832,6 +843,15 @@ void help_help(EnvT* e)
 	if (e->KeywordSet(helpIx)) {
 	  help_help(e);
 	  return;
+	}
+
+	static int namesIx = e->KeywordIx("NAMES");
+	bool isKWSetNames = e->KeywordPresent(namesIx);
+	DString names = "";
+	if (isKWSetNames) {
+	  e->AssureStringScalarKWIfPresent(namesIx, names);
+	  // since routines and var. are stored in Maj, we convert ...
+	  names = StrUpCase(names);
 	}
 
 	static int allkeysIx = e->KeywordIx("ALL_KEYS");
@@ -892,7 +912,7 @@ void help_help(EnvT* e)
 	  return;
 	}
 
-	static int heapIx = e->KeywordIx("HEAP");
+	static int heapIx = e->KeywordIx("HEAP_VARIABLES");
 	if (e->KeywordSet(heapIx)) {
 	  help_heap_obj_ptr_head(e, *ostrp);
 	  if (briefKW) return;
@@ -911,9 +931,7 @@ void help_help(EnvT* e)
 #endif	  
 	  return;
 	}
-	static int namesIx = e->KeywordIx("NAMES");
-	bool isKWSetNames = e->KeywordPresent(namesIx);
-
+    
 	static int sysvarIx = e->KeywordIx("SYSTEM_VARIABLES");
 	if (e->KeywordSet(sysvarIx)) {
 	  help_sysvar(*ostrp, briefKW);
@@ -962,12 +980,6 @@ void help_help(EnvT* e)
 	  return;
 	}
 
-	DString names = "";
-	if (isKWSetNames) {
-	  e->AssureStringScalarKWIfPresent(namesIx, names);
-	  // since routines and var. are stored in Maj, we convert ...
-	  names = StrUpCase(names);
-	}
 
 	static int sourceFilesKWIx = e->KeywordIx("SOURCE_FILES");
 	bool sourceFilesKW = e->KeywordPresent(sourceFilesKWIx);
@@ -1153,6 +1165,7 @@ void help_help(EnvT* e)
 	  } else { //bug 1628
 		char ctmp;
 		int nb_lines = TermHeight();
+        if (SysVar::More() == 0) nb_lines=10000; 
 		*ostrp << "Recall buffer length: " << nEl2 << '\n';
 		for (SizeT i = 0; i < nEl2; ++i) {
 		  if (isKWSetNames and !CompareWithJokers(names, (*previous_commands)[i])) continue;
@@ -1207,7 +1220,7 @@ void help_help(EnvT* e)
 
 	if ((nParam == 0 and !isKWSetMemory) or isKWSetFunctions or isKWSetProcedures) {
 
-	  if (nParam == 0 and !isKWSetFunctions and !isKWSetProcedures and !routinesKW)	SimpleDumpStack(e, *ostrp);
+	  if (nParam == 0 and !isKWSetFunctions and !isKWSetProcedures and !routinesKW and !isKWSetNames)	SimpleDumpStack(e, *ostrp);
 
 	  if (isKWSetProcedures or routinesKW) {
 		*ostrp << "Compiled Procedures:\n$MAIN$\n";
@@ -1456,7 +1469,7 @@ void help_help(EnvT* e)
 	if (routinesKW and briefKW) kw = true;
 
 	if (nParam == 0 and !kw) {
-	  routinesKW = true;
+	  routinesKW = !isKWSetNames; //when "NAMES" is present, ROUTINES ARE NOT GIVEN.
 	  briefKW = true;
 
 	  // list all variables of caller

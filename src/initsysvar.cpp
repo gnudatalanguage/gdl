@@ -59,7 +59,7 @@ namespace SysVar
   }
   // the index of some system variables
   UInt nullIx, trueIx, falseIx, pathIx, helppathIx, promptIx, edit_inputIx, quietIx, moreIx,
-    dIx, pIx, xIx, yIx, zIx, vIx, gdlWarningIx, gdlIx, cIx, MouseIx,
+    dIx, pIx, xIx, yIx, zIx, vIx, gdlIx, cIx, MouseIx,
     errorStateIx, errorIx, errIx, err_stringIx, valuesIx,
     journalIx, exceptIx, mapIx, cpuIx, dirIx, stimeIx,
     warnIx, usersymIx, orderIx, MakeDllIx, colorIx;
@@ -225,18 +225,18 @@ namespace SysVar
     return static_cast<DLongGDL&>(*qSysVar.Data())[0];
   }
   
+  DInt More()
+  {
+    DVar& qSysVar=*sysVarList[moreIx];
+    return static_cast<DIntGDL&>(*qSysVar.Data())[0];
+  }
+  
   void Make_Quiet()
   {
     DVar& qSysVar=*sysVarList[quietIx];
     static_cast<DLongGDL&>(*qSysVar.Data())[0]=1;
   }
   
-  DLong GDL_Warning()
-  {
-    DVar& gwSysVar=*sysVarList[gdlWarningIx];
-    return static_cast<DLongGDL&>(*gwSysVar.Data())[0];
-  }
-
   void SetC( DLong cVal)
   {
     DVar& cSysVar=*sysVarList[cIx];
@@ -657,14 +657,6 @@ namespace SysVar
     orderIx     = sysVarList.size();
     sysVarList.push_back( order);
 
-    // !GDL_WARNING (to be used in VOIGT() and BeselIJKY() to warm on
-    // different behaviour between IDL and GDL
-    DLongGDL *gdlWarningData = new DLongGDL( 1 );
-    DVar *gdlWarning = new DVar( "GDL_WARNING", gdlWarningData);
-    gdlWarningIx     = sysVarList.size();
-    sysVarList.push_back( gdlWarning);
-    sysVarNoSaveList.push_back( gdlWarning);
-
     // !GDL (to allow distinguish IDL/GDL with DEFSYSV, '!gdl', exists=exists )
     DStructGDL*  gdlStruct = new DStructGDL( "!GNUDATALANGUAGE");
     gdlStruct->NewTag("RELEASE", new DStringGDL( (char*)VERSION + (VERSION[0] == 'v' ? 1 : 0)));
@@ -1018,7 +1010,7 @@ namespace SysVar
     ver->NewTag("OS_NAME", new DStringGDL(SysName));
 #endif
 
-    ver->NewTag("RELEASE", new DStringGDL( "8.2")); //we are at least 6.4
+    ver->NewTag("RELEASE", new DStringGDL( "8.4")); //Reasonable value to attain some day (for example, we do not have the new graphic functions).
     ver->NewTag("BUILD_DATE", new DStringGDL(BUILD_DATE));
     ver->NewTag("MEMORY_BITS", new DIntGDL( sizeof(BaseGDL*)*8));
     ver->NewTag("FILE_OFFSET_BITS", new DIntGDL( sizeof(SizeT)*8));

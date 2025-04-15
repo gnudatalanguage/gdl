@@ -198,6 +198,32 @@ GDLException::GDLException(DLong eC, const ProgNodeP eN, const string& s, bool d
    cerr << s << endl;
 #endif
 }
+GDLException::GDLException(SizeT l, SizeT c, const string& s, const string& file): 
+  ANTLRException(s),
+  errorNode(static_cast<RefDNode>(antlr::nullAST)),
+  errorNodeP( NULL),
+  errorCode(-1),
+  line( l), col( c), filename(file),
+  prefix( true),
+  arrayexprIndexeeFailed(false),
+  ioException( false),
+  targetEnv( NULL)
+{
+  if(interpreter!=NULL && interpreter->CallStack().size()>0) 
+  {
+    EnvBaseT* e = interpreter->CallStack().back();
+    errorNodeP = e->CallingNode();
+    msg = e->GetProName();
+    if( msg != "$MAIN$") msg +=  ": "+ s; else msg = s;
+  }
+  else
+  {
+    msg = s;
+  }
+#ifdef GDL_DEBUG
+   cerr << s << endl;
+#endif
+}
 
 GDLException::GDLException(SizeT l, SizeT c, const string& s): 
   ANTLRException(s),

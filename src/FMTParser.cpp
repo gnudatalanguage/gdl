@@ -39,46 +39,6 @@ void FMTParser::format(
 	RefFMTNode format_AST = RefFMTNode(antlr::nullAST);
 	
 	match(LBRACE);
-	qfq();
-	astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-	{ // ( ... )*
-	for (;;) {
-		if ((LA(1) == COMMA)) {
-			match(COMMA);
-			qfq();
-			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-		}
-		else {
-			goto _loop3;
-		}
-		
-	}
-	_loop3:;
-	} // ( ... )*
-	match(RBRACE);
-	format_AST = RefFMTNode(currentAST.root);
-	
-	format_AST = RefFMTNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(FORMAT,"FORMAT")))->add(antlr::RefAST(format_AST))));
-	format_AST->setRep( repeat);
-	
-	currentAST.root = format_AST;
-	if ( format_AST!=RefFMTNode(antlr::nullAST) &&
-		format_AST->getFirstChild() != RefFMTNode(antlr::nullAST) )
-		  currentAST.child = format_AST->getFirstChild();
-	else
-		currentAST.child = format_AST;
-	currentAST.advanceChildToEnd();
-	format_AST = RefFMTNode(currentAST.root);
-	returnAST = format_AST;
-}
-
-void FMTParser::qfq() {
-	returnAST = RefFMTNode(antlr::nullAST);
-	antlr::ASTPair currentAST;
-	RefFMTNode qfq_AST = RefFMTNode(antlr::nullAST);
-	
-	q();
-	astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 	{
 	switch ( LA(1)) {
 	case CSTR:
@@ -126,13 +86,73 @@ void FMTParser::qfq() {
 	{
 		f();
 		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-		q();
-		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		break;
 	}
-	case COMMA:
-	case RBRACE:
+	case SLASH:
 	{
+		q();
+		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+		{
+		switch ( LA(1)) {
+		case CSTR:
+		case CD:
+		case CSE:
+		case CE:
+		case CI:
+		case CF:
+		case CSG:
+		case CG:
+		case CO:
+		case CB:
+		case CS:
+		case CX:
+		case CZ:
+		case PM:
+		case MP:
+		case PLUS:
+		case MOINS:
+		case CNUMBER:
+		case LBRACE:
+		case STRING:
+		case TERM:
+		case NONL:
+		case Q:
+		case CSTRING:
+		case TL:
+		case TR:
+		case T:
+		case X:
+		case A:
+		case F:
+		case D:
+		case E:
+		case SE:
+		case G:
+		case SG:
+		case I:
+		case O:
+		case B:
+		case Z:
+		case ZZ:
+		case C:
+		case NUMBER:
+		{
+			f();
+			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+			break;
+		}
+		case COMMA:
+		case RBRACE:
+		case SLASH:
+		{
+			break;
+		}
+		default:
+		{
+			throw antlr::NoViableAltException(LT(1), getFilename());
+		}
+		}
+		}
 		break;
 	}
 	default:
@@ -141,49 +161,226 @@ void FMTParser::qfq() {
 	}
 	}
 	}
-	qfq_AST = RefFMTNode(currentAST.root);
-	returnAST = qfq_AST;
-}
-
-void FMTParser::q() {
-	returnAST = RefFMTNode(antlr::nullAST);
-	antlr::ASTPair currentAST;
-	RefFMTNode q_AST = RefFMTNode(antlr::nullAST);
-	
-	int n1 = 0;
-	
-	
 	{ // ( ... )*
 	for (;;) {
-		if ((LA(1) == SLASH)) {
-			RefFMTNode tmp4_AST = RefFMTNode(antlr::nullAST);
-			tmp4_AST = astFactory->create(LT(1));
-			match(SLASH);
-			n1++;
+		switch ( LA(1)) {
+		case SLASH:
+		{
+			q();
+			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+			{
+			switch ( LA(1)) {
+			case CSTR:
+			case CD:
+			case CSE:
+			case CE:
+			case CI:
+			case CF:
+			case CSG:
+			case CG:
+			case CO:
+			case CB:
+			case CS:
+			case CX:
+			case CZ:
+			case PM:
+			case MP:
+			case PLUS:
+			case MOINS:
+			case CNUMBER:
+			case LBRACE:
+			case STRING:
+			case TERM:
+			case NONL:
+			case Q:
+			case CSTRING:
+			case TL:
+			case TR:
+			case T:
+			case X:
+			case A:
+			case F:
+			case D:
+			case E:
+			case SE:
+			case G:
+			case SG:
+			case I:
+			case O:
+			case B:
+			case Z:
+			case ZZ:
+			case C:
+			case NUMBER:
+			{
+				f();
+				astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+				break;
+			}
+			case COMMA:
+			case RBRACE:
+			case SLASH:
+			{
+				break;
+			}
+			default:
+			{
+				throw antlr::NoViableAltException(LT(1), getFilename());
+			}
+			}
+			}
+			break;
 		}
-		else {
+		case COMMA:
+		{
+			match(COMMA);
+			{
+			switch ( LA(1)) {
+			case CSTR:
+			case CD:
+			case CSE:
+			case CE:
+			case CI:
+			case CF:
+			case CSG:
+			case CG:
+			case CO:
+			case CB:
+			case CS:
+			case CX:
+			case CZ:
+			case PM:
+			case MP:
+			case PLUS:
+			case MOINS:
+			case CNUMBER:
+			case LBRACE:
+			case STRING:
+			case TERM:
+			case NONL:
+			case Q:
+			case CSTRING:
+			case TL:
+			case TR:
+			case T:
+			case X:
+			case A:
+			case F:
+			case D:
+			case E:
+			case SE:
+			case G:
+			case SG:
+			case I:
+			case O:
+			case B:
+			case Z:
+			case ZZ:
+			case C:
+			case NUMBER:
+			{
+				f();
+				astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+				break;
+			}
+			case SLASH:
+			{
+				q();
+				astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+				{
+				switch ( LA(1)) {
+				case CSTR:
+				case CD:
+				case CSE:
+				case CE:
+				case CI:
+				case CF:
+				case CSG:
+				case CG:
+				case CO:
+				case CB:
+				case CS:
+				case CX:
+				case CZ:
+				case PM:
+				case MP:
+				case PLUS:
+				case MOINS:
+				case CNUMBER:
+				case LBRACE:
+				case STRING:
+				case TERM:
+				case NONL:
+				case Q:
+				case CSTRING:
+				case TL:
+				case TR:
+				case T:
+				case X:
+				case A:
+				case F:
+				case D:
+				case E:
+				case SE:
+				case G:
+				case SG:
+				case I:
+				case O:
+				case B:
+				case Z:
+				case ZZ:
+				case C:
+				case NUMBER:
+				{
+					f();
+					astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+					break;
+				}
+				case COMMA:
+				case RBRACE:
+				case SLASH:
+				{
+					break;
+				}
+				default:
+				{
+					throw antlr::NoViableAltException(LT(1), getFilename());
+				}
+				}
+				}
+				break;
+			}
+			default:
+			{
+				throw antlr::NoViableAltException(LT(1), getFilename());
+			}
+			}
+			}
+			break;
+		}
+		default:
+		{
 			goto _loop8;
 		}
-		
+		}
 	}
 	_loop8:;
 	} // ( ... )*
-	q_AST = RefFMTNode(currentAST.root);
+	match(RBRACE);
+	format_AST = RefFMTNode(currentAST.root);
 	
-	if( n1 > 0) 
-	{
-	q_AST = RefFMTNode(astFactory->make((new antlr::ASTArray(1))->add(antlr::RefAST(astFactory->create(SLASH,"/")))));
-	q_AST->setRep( n1);
-	}           
+	format_AST = RefFMTNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(FORMAT,"FORMAT")))->add(antlr::RefAST(format_AST))));
+	format_AST->setRep( repeat);
 	
-	currentAST.root = q_AST;
-	if ( q_AST!=RefFMTNode(antlr::nullAST) &&
-		q_AST->getFirstChild() != RefFMTNode(antlr::nullAST) )
-		  currentAST.child = q_AST->getFirstChild();
+	currentAST.root = format_AST;
+	if ( format_AST!=RefFMTNode(antlr::nullAST) &&
+		format_AST->getFirstChild() != RefFMTNode(antlr::nullAST) )
+		  currentAST.child = format_AST->getFirstChild();
 	else
-		currentAST.child = q_AST;
+		currentAST.child = format_AST;
 	currentAST.advanceChildToEnd();
-	returnAST = q_AST;
+	format_AST = RefFMTNode(currentAST.root);
+	returnAST = format_AST;
 }
 
 void FMTParser::f() {
@@ -207,36 +404,36 @@ void FMTParser::f() {
 	switch ( LA(1)) {
 	case TERM:
 	{
-		RefFMTNode tmp5_AST = RefFMTNode(antlr::nullAST);
-		tmp5_AST = astFactory->create(LT(1));
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp5_AST));
+		RefFMTNode tmp4_AST = RefFMTNode(antlr::nullAST);
+		tmp4_AST = astFactory->create(LT(1));
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp4_AST));
 		match(TERM);
 		f_AST = RefFMTNode(currentAST.root);
 		break;
 	}
 	case NONL:
 	{
-		RefFMTNode tmp6_AST = RefFMTNode(antlr::nullAST);
-		tmp6_AST = astFactory->create(LT(1));
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp6_AST));
+		RefFMTNode tmp5_AST = RefFMTNode(antlr::nullAST);
+		tmp5_AST = astFactory->create(LT(1));
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp5_AST));
 		match(NONL);
 		f_AST = RefFMTNode(currentAST.root);
 		break;
 	}
 	case Q:
 	{
-		RefFMTNode tmp7_AST = RefFMTNode(antlr::nullAST);
-		tmp7_AST = astFactory->create(LT(1));
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp7_AST));
+		RefFMTNode tmp6_AST = RefFMTNode(antlr::nullAST);
+		tmp6_AST = astFactory->create(LT(1));
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp6_AST));
 		match(Q);
 		f_AST = RefFMTNode(currentAST.root);
 		break;
 	}
 	case CSTRING:
 	{
-		RefFMTNode tmp8_AST = RefFMTNode(antlr::nullAST);
-		tmp8_AST = astFactory->create(LT(1));
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp8_AST));
+		RefFMTNode tmp7_AST = RefFMTNode(antlr::nullAST);
+		tmp7_AST = astFactory->create(LT(1));
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp7_AST));
 		match(CSTRING);
 		f_AST = RefFMTNode(currentAST.root);
 		break;
@@ -383,6 +580,38 @@ void FMTParser::f() {
 	returnAST = f_AST;
 }
 
+void FMTParser::q() {
+	returnAST = RefFMTNode(antlr::nullAST);
+	antlr::ASTPair currentAST;
+	RefFMTNode q_AST = RefFMTNode(antlr::nullAST);
+	
+	int n1 = 0;
+	
+	
+	{
+	RefFMTNode tmp8_AST = RefFMTNode(antlr::nullAST);
+	tmp8_AST = astFactory->create(LT(1));
+	match(SLASH);
+	n1++;
+	}
+	q_AST = RefFMTNode(currentAST.root);
+	
+	if( n1 > 0) 
+	{
+	q_AST = RefFMTNode(astFactory->make((new antlr::ASTArray(1))->add(antlr::RefAST(astFactory->create(SLASH,"/")))));
+	q_AST->setRep( n1);
+	}           
+	
+	currentAST.root = q_AST;
+	if ( q_AST!=RefFMTNode(antlr::nullAST) &&
+		q_AST->getFirstChild() != RefFMTNode(antlr::nullAST) )
+		  currentAST.child = q_AST->getFirstChild();
+	else
+		currentAST.child = q_AST;
+	currentAST.advanceChildToEnd();
+	returnAST = q_AST;
+}
+
 void FMTParser::f_csubcode() {
 	returnAST = RefFMTNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
@@ -441,7 +670,7 @@ void FMTParser::cstring() {
 	RefFMTNode s_AST = RefFMTNode(antlr::nullAST);
 	
 	{ // ( ... )+
-	int _cnt12=0;
+	int _cnt14=0;
 	for (;;) {
 		switch ( LA(1)) {
 		case CSTR:
@@ -477,12 +706,12 @@ void FMTParser::cstring() {
 		}
 		default:
 		{
-			if ( _cnt12>=1 ) { goto _loop12; } else {throw antlr::NoViableAltException(LT(1), getFilename());}
+			if ( _cnt14>=1 ) { goto _loop14; } else {throw antlr::NoViableAltException(LT(1), getFilename());}
 		}
 		}
-		_cnt12++;
+		_cnt14++;
 	}
-	_loop12:;
+	_loop14:;
 	}  // ( ... )+
 	cstring_AST = RefFMTNode(currentAST.root);
 	returnAST = cstring_AST;
@@ -1341,11 +1570,11 @@ void FMTParser::calendar_string() {
 				astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 			}
 			else {
-				goto _loop31;
+				goto _loop33;
 			}
 			
 		}
-		_loop31:;
+		_loop33:;
 		} // ( ... )*
 		}
 		break;

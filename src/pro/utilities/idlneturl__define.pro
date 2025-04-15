@@ -24,22 +24,22 @@
 ; -- add "-L" for Curl
 ; -- better management of keyword filename= & string_array=
 ; -- tested with current (in 2018) QuerySimbad,'GAL045.45+00.06' in astrolib
-; 2020-Jan-10 : GD
-; support most options for Get() etc.
+; 2020-Jan-10 : GD  support most options for Get() etc.
+; 2025-Feb-20 : GD  Added PUT
 ; ----------------------------------------------------
 ;
 ;
-function get_percent
-  openr,lun,"/tmp/pb",/get
+function get_percent,lun
+  if eof(lun) then return,0
   a=''
   readf,lun,a,format='(A)'
-  percent=0.01*strmid(a,5,5,/rever)
-  free_lun,lun
+  if strlen(a) lt 5 then return,0
+  percent=0.01*strmid(a,5,5,/rev)
   return, percent
 end
 
 function idlneturl::format_response_header,stringarray,response_header_size
-  linefeed=string(10b)
+    linefeed=string(10b) ; HTTP/1.1 defines the sequence CR LF as the end-of-line marker for all protocol elements except the entity-body
 ; we have the header size in bytes.
 ;find the number of lines in the stringarray that give
 ;response_header_size bytes. A zero-length response header does not
@@ -54,28 +54,57 @@ function idlneturl::format_response_header,stringarray,response_header_size
   if n_elements(stringarray) gt 4+n then response=stringarray[n:-5] else response=''
   return, response
 end
+; create response header
+pro idlneturl::copy_header_to_response_header,header_filename
+;;;    linefeed=string([10b,13b]) ; HTTP/1.1 defines the sequence CR LF as the end-of-line marker for all protocol elements except the entity-body
+  self.response_header=''
+     openr,lun,header_filename,/get
+     sz=(fstat(lun)).size
+     response=bytarr(sz)
+     readu, lun, response
+     free_lun,lun
+     self.response_header=string(response)
+     file_delete,header_filename
+end
 
-function idlneturl::Get, buffer=buffer, filename=filename, string_array=string_array, ftp_explicit_ssl=ftp_explicit_ssl, url=url, test=test, verbose=verbose
+function idlneturl::Get,       BUFFER=buffer, FILENAME=filename,            STRING_ARRAY=string_array, FTP_EXPLICIT_SSL=ftp_explicit_ssl, URL=url
+  echocode='; echo $? '
+  nowait="&"
+  iswindows=0
+  if !version.os_family eq 'Windows' then begin
+     echocode='& echo %ERRORLEVEL%'
+     nowait=""
+     iswindows=1
+  endif
+  
+  TMPDIR=getenv("IDL_TMPDIR") ; contains path_sep();  returns ok even on windows.
+  mycurl='curl'
+  if getenv("IDLNETURL_CODE") ne ""  then mycurl='curl --libcurl '+TMPDIR+'libcurl-code.c '
+  verbose=getenv("IDLNETURL_VERBOSE") ne ""
 
   if n_elements(filename) eq 0  then filename='idl.dat'
   if (STRLEN(self.URL_QUERY) GT 0) then filename=self.URL_QUERY
 
+  scheme=self.URL_SCHEME
+  if strlen(scheme) eq 0 then scheme='http'
 
+  userpass=""
+  if STRLEN(self.URL_USERNAME) GT 0 then userpass=' -u '+self.URL_USERNAME
+  if STRLEN(self.URL_PASSWORD) GT 0 then userpass+=':'+self.URL_PASSWORD
+  userpass+=' '
+
+  id_cmd=userpass
   if n_elements(url) gt 0 then begin
-     id_cmd=url
+     id_cmd+=url
   endif else begin
-     id_cmd=''
-     if STRLEN(self.URL_USERNAME) GT 0 then id_cmd=' -u '+self.URL_USERNAME
-     if STRLEN(self.URL_PASSWORD) GT 0 then id_cmd=id_cmd+':'+self.URL_PASSWORD+' '
-     id_cmd=id_cmd+self.URL_SCHEME+'://'+self.URL_HOSTNAME
-     if STRLEN(self.URL_PORT) GT 0 then id_cmd=id_cmd+':'+strtrim(self.URL_PORT,2)
+     id_cmd+=self.URL_SCHEME+'://'+self.URL_HOSTNAME
+     if STRLEN(self.URL_PORT) GT 0 then id_cmd+=':'+strtrim(self.URL_PORT,2)
      where=self.URL_PATH
      if strlen(where) gt 0 then id_cmd+='/'+where
      if STRLEN(self.URL_QUERY) GT 0 then id_cmd=id_cmd+'?'+strtrim(self.URL_QUERY,2)
   endelse
 ;
-; AC, 2018-sep-20 : we need option -L in curl (in vizier, the /viz-bin was moved into a /cgi-bin ...
-;
+; AC, 2018-sep-20 : added -L to follow redirections
 ;
 ; string curl_cmd contains all the common parameters between the to approaches:
   curl_cmd=""
@@ -88,7 +117,7 @@ function idlneturl::Get, buffer=buffer, filename=filename, string_array=string_a
      endcase
   endif
 ; connect timeout  
-  curl_cmd+='--connect-timeout '+strtrim(self.connect_timeout,2)+' ' 
+  if self.connect_timeout gt 0 then curl_cmd+='--connect-timeout '+strtrim(self.connect_timeout,2)+' ' 
   
 ; encode
   if self.encode GT 0 then curl_cmd+='--tr-encoding ' 
@@ -119,29 +148,37 @@ function idlneturl::Get, buffer=buffer, filename=filename, string_array=string_a
      curl_cmd+=proxy_cmd
   endif
 ; timeout
-  curl_cmd+='--max-time '+strtrim(self.timeout,2)+' '
+  if self.timeout gt 0 then curl_cmd+='--max-time '+strtrim(self.timeout,2)+' '
 
+  if strlen(self.CALLBACK_FUNCTION) gt 0 then begin
 ; GD:
 ; first, get the response header and treat it, eventually sending some
 ; data to the callback. This because we cannot send the headers
 ; asynchronously, we would have to wait until the entire file has
 ; been downloaded. When we write this function directly in GDL using
 ; libcurl, things will be way esaier.
-  curl_asyn_get_headers='curl -LI --silent --show-error --include '                                                             ; will get only headers
-  curl_asyn_get_headers+='--write-out "\n%{size_header}\n%{content_type}\n%{response_code}\n%{size_download}" '    ; we get some useful values
-  cmd=curl_asyn_get_headers+id_cmd
-  if KEYWORD_SET(verbose) then print, cmd
-  SPAWN, cmd, result, blahblah
-; last 4 lines of result are the header size, the content_type, response_code and size_download respectively
-  response_header_size=result[-4]
-  if response_header_size eq 0 then begin ; in error and blahblah is curl's error, throw on it
-     message,"CCurlException:  Error: Http Get Request Failed. Error ="+blahblah
+  curl_asyn_get_headers=mycurl+' -LI --silent --show-error --include '                                                             ; will get only headers
+  curl_asyn_get_headers+='--write-out "%{size_header}\n%{content_type}\n%{response_code}\n%{size_download}\n" '    ; we get some useful values
+  cmd=curl_asyn_get_headers+id_cmd+echocode
+  if verbose then print, cmd
+  SPAWN, cmd, result, errResult
+  return_code=long(result[-1])
+  if return_code ne 0 then begin ; something went wrong, get the curl return value "$?"
+     self.content_type=""
+     self.response_code=return_code
+     self.response_filename=""
+     return,""
   endif
-  self.content_type=result[-3]
-  self.response_code=fix(result[-2])
-  downloaded=long64(result[-1]) ; should be zero as this is the data downloaded, not the header.
+; first 4 lines of result are the header size, the content_type, response_code and size_download respectively
+  response_header_size=result[-5]
+  if response_header_size eq 0 then begin ; in error and errResult is curl's error, throw on it
+      message,"CCurlException:  Error: Http Get Request Failed. Error ="+errResult
+  endif
+  self.content_type=result[-4]
+  self.response_code=long(result[-3])
+  downloaded=long64(result[-2]) ; should be zero as this is the data downloaded, not the header.
                                 ; header of query is response without the last 4 lines
-  if n_elements(result) gt 4 then headers=result[0:-5] else headers=''     
+  if n_elements(result) gt 5 then headers=result[0:-6] else headers=''     
                                 ; set response header property
   response=self->idlneturl::format_response_header(result,response_header_size)
   
@@ -156,8 +193,7 @@ function idlneturl::Get, buffer=buffer, filename=filename, string_array=string_a
 ;callback by looking at the "progressbar"
   if content_length eq 0 then goto, no_callback
   
-  
-  if strlen(self.CALLBACK_FUNCTION) gt 0 then begin
+  ; insure callback here
      if ptr_valid(self.Callback_Data) then callback_data= *(self.Callback_Data)
 
 ;set progressinfo and pass to callback, it's up to it to
@@ -175,43 +211,62 @@ function idlneturl::Get, buffer=buffer, filename=filename, string_array=string_a
 ; number of bytes downloaded at each instant, aka progress_info[2]
 ; of course if the transfer encoding is not 'chunked'.
 
-     curl_asyn_get_all='curl -L --progress-bar -o "'+filename+'" ' ; will use progressbar values, but alas need output in external file.
-; remove /tmp/pb
-     file_delete,'/tmp/pb',/allow_nonexistent,/quiet,/noexpand_path
+     curl_asyn_get_all=mycurl+' -L --progress-bar -o "'+filename+'" ' ; will use progressbar values, but alas need output in external file.
+     pb=TMPDIR+'pb' ; progressbar
+; remove progressbar sort of
+     file_delete,pb,/allow_nonexistent,/quiet,/noexpand_path
      
-     cmd=curl_asyn_get_all+id_cmd+" 2>/tmp/pb &"
-; will send data to filename and have the progressbar in /tmp/pb
-if KEYWORD_SET(verbose) then  print, cmd
+     cmd=curl_asyn_get_all+id_cmd+' 2>'+pb+nowait
+; will send data to filename and have the progressbar in pb
+     if verbose then  print, cmd
      
-     SPAWN, cmd 
+     if iswindows then SPAWN, cmd, /nowait else SPAWN, cmd 
      StatusInfo="Downloading..."
      time=0d
-     while (file_test('/tmp/pb') eq 0 and time le 1 ) do begin
-        wait,0.1
+     while (file_test(pb) eq 0 and time le 5 ) do begin
+        gdlwait_responsive,0.1   ;special wait command, never use elsewhere
         time+=0.1
      end
-     if (time ge 1) then goto,done ; curl did not even create the progressbar (? to fast or problem?) , skip callback
+     if (time ge 5) then goto,done ; curl did not even create the progressbar (? to fast or problem?) , skip callback
+     openr,lun,pb,/get
      ProgressInfo=[1LL,content_length,0LL,0LL,0LL]
      while 1 do begin
-        wait,1
-        percent=get_percent()
-        if percent ge 1 then ProgressInfo[2]=content_length else ProgressInfo[2]=percent*content_length
-        if call_function(self.CALLBACK_FUNCTION, StatusInfo, ProgressInfo, Callback_Data ) eq 0 then break ;
-        if  percent ge 1 then break                                                                        ;
-     end
+        percent=get_percent(lun)
+        if percent ge 1 then break                                                                        ;
+        ProgressInfo[2]=percent*content_length
+        if call_function(self.CALLBACK_FUNCTION, StatusInfo, ProgressInfo, Callback_Data ) eq 0 then begin
+           free_lun,lun
+           goto, fin
+        endif
+        gdlwait_responsive,0.1  ;special wait command, never use elsewhere
+     endwhile
+     free_lun,lun
 done:
+     ProgressInfo[2]=content_length
+     ret=call_function(self.CALLBACK_FUNCTION, StatusInfo, ProgressInfo, Callback_Data )
   endif else begin
 no_callback:
 ; GD:
 ; if there is no callback function, directly get the file as we do not
 ; need to be asynchronous. Best is to create the 'filename' directly.
 
-     curl_syn='curl -L --silent --show-error -o "'+filename+'" ' 
-     cmd=curl_syn+curl_cmd+id_cmd
-     if KEYWORD_SET(verbose) then print, cmd
-     SPAWN, cmd, result, blahblah
+     curl_syn=mycurl+' -L --dump-header "'+TMPDIR+'idlneturl_header.txt" --silent --show-error -o "'+filename+'" ' 
+     curl_syn+='--write-out "%{content_type}\n%{response_code}\n" '    ; we get some useful values
+     cmd=curl_syn+curl_cmd+id_cmd+echocode
+     if verbose then print, cmd
+     SPAWN, cmd, result, errResult, count=nblines
+     return_code=long(result[-1])
+     if return_code ne 0 then begin ; something went wrong, get the curl return value "$?"
+        self.content_type=""
+        self.response_code=return_code
+        self.response_filename=""
+        return,""
+     endif
+     self.content_type=result[0]
+     self.response_code=long(result[1])
+     self->idlneturl::copy_header_to_response_header,TMPDIR+'idlneturl_header.txt' ; will be destroyed when this procedure is run
   endelse
-  
+fin:  
 ; clear headers property as specified in documentation
   self->idlneturl::SetProperty,HEADERS = ''
      
@@ -219,15 +274,27 @@ no_callback:
 ; filename exists, so the filename case is easy.
   if ~KEYWORD_SET(string_array) and ~KEYWORD_SET(buffer) then return,FILE_SEARCH(filename, /full)
 ; else, read, convert, delete          
-  if KEYWORD_SET(string_array) or KEYWORD_SET(buffer) then begin
+  if KEYWORD_SET(buffer) then begin
      openr,lun,filename,/get
      sz=(fstat(lun)).size
      response=bytarr(sz)
      readu, lun, response
      free_lun,lun
+     file_delete,filename
+     return, response
+  endif else if KEYWORD_SET(string_array) then begin
+     n=1
+     istext=strpos(self.content_type,'text/') ge 0
+     if istext then n=file_lines(filename)
+     s="" & resp=strarr(n)
+     openr,lun,filename,/get
+     for i=0,n-1 do begin & readf,lun,s & resp[i]=s & end
+     free_lun,lun
+     file_delete,filename
+     return, resp
   endif
-  if KEYWORD_SET(buffer) then return,response
-  return,fix(response,type=7)   ;as string array
+
+  return,"" ; not happening anyway
 ;
 end
 ;
@@ -248,10 +315,146 @@ end
 function idlneturl::GetFtpDirList, FTP_EXPLICIT_SSL=z , URL=url, SHORT=short
   message,/info,"idlneturl::GetFtpDirList not yet implemented, FIXME"
 end
-function idlneturl::Put, data, BUFFER=buf, FILENAME=file, FTP_EXPLICIT_SSL=z, POST=post, STRING_ARRAY=str, URL=url
-; clears headers property
-self->idlneturl::SetProperty,HEADERS = ''
-  message,/info,"idlneturl::Put not yet implemented, FIXME"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function idlneturl::Put, data, BUFFER=buffer, FILENAME=filename, POST=post, STRING_ARRAY=string_array, FTP_EXPLICIT_SSL=ftp_explicit_ssl, URL=url
+  echocode='; echo $? '
+  if !version.os_family eq 'Windows' then echocode='& echo %ERRORLEVEL%'
+  mycurl='curl'
+  
+  TMPDIR=getenv("IDL_TMPDIR") ; contains path_sep();  returns ok even on windows.
+  if getenv("IDLNETURL_CODE") ne ""  then mycurl='curl --libcurl '+TMPDIR+'libcurl-code.c '
+  verbose=getenv("IDLNETURL_VERBOSE") ne ""
+; data is?
+  action=" "                                                                                   ; send raw data
+  if ~KEYWORD_SET(post) then action=" --request PUT "+action ; POST is by default
+  if KEYWORD_SET(buffer) then begin
+     if ISA(data,/string) then begin
+        if n_elements(data) eq 1 then action+="--data '"+data+"' "  else begin
+           linefeed=string(10b)
+           action+="--data '"+data[0]
+           for i=0,n_elements(data-2) do action+=linefeed+data[i]
+           action+="' "
+         endelse
+     endif else begin
+        openw,lun,TMPDIR+'binary',/get
+        writeu,lun,data
+        free_lun,lun
+        action+=' -H "Content-Type: application/octet-stream" --data-binary '
+        action+='@'+TMPDIR+'binary' ; send as filename
+     endelse
+  endif else begin
+     action+="'"+"@"+string(data)+"' " ; send as filename or not
+  endelse
+  ; if string_array is not set, we'll get the data in this file
+  oufile=TMPDIR+'idl.dat'
+  if (STRLEN(self.URL_QUERY) GT 0) then oufile=self.URL_QUERY
+  
+  if n_elements(url) gt 0 then begin
+     id_cmd=url
+  endif else begin
+     id_cmd=''
+     if STRLEN(self.URL_USERNAME) GT 0 then id_cmd=' -u '+self.URL_USERNAME
+     if STRLEN(self.URL_PASSWORD) GT 0 then id_cmd=id_cmd+':'+self.URL_PASSWORD+' '
+     id_cmd=id_cmd+self.URL_SCHEME+'://'+self.URL_HOSTNAME
+     if STRLEN(self.URL_PORT) GT 0 then id_cmd=id_cmd+':'+strtrim(self.URL_PORT,2)
+     where=self.URL_PATH
+     if strlen(where) gt 0 then id_cmd+='/'+where
+     if STRLEN(self.URL_QUERY) GT 0 then id_cmd=id_cmd+'?'+strtrim(self.URL_QUERY,2)
+  endelse
+;
+; string curl_cmd contains all the common parameters between the to approaches:
+  curl_cmd=""
+; authentification
+  if self.authentication GT 0 then begin
+     case self.authentication of
+        1:  curl_cmd+='--basic ' 
+        2:  curl_cmd+='--digest ' 
+        3:  curl_cmd+='-u --negotiate ' 
+     endcase
+  endif
+; connect timeout  
+  if self.connect_timeout gt 0 then curl_cmd+='--connect-timeout '+strtrim(self.connect_timeout,2)+' ' 
+  
+; encode
+  if self.encode GT 0 then curl_cmd+='--tr-encoding ' 
+  if self.ftp_connection_mode EQ 0 then curl_cmd+='--ftp-pasv '
+; headers
+  if ptr_valid(self.headers) and n_elements(*(self.headers)) gt 0 then begin
+     for i=0,n_elements(*(self.headers))-1 do begin ; note below curl under Windows accept only "-quote see #1465
+        if strlen((*self.headers)[i]) gt 0 then curl_cmd+='-H "'+strtrim((*self.headers)[i],2)+'" ' ; was: if strlen((*self.headers)[i]) gt 0 then curl_cmd+="-H '"+strtrim((*self.headers)[i],2)+"' "
+     endfor
+  endif
+; proxy hostname, untested.
+  proxy_cmd=''
+  if STRLEN(self.PROXY_HOSTNAME) GT 0 then begin
+     proxy_cmd=' -x '+strtrim(self.PROXY_HOSTNAME,2)
+     if self.PROXY_PORT ne 80 then proxy_cmd+=':'+strtrim(self.PROXY_PORT,2)+' ' else proxy_cmd+=' '
+     if STRLEN(self.PROXY_USERNAME) GT 0 then proxy_cmd+=' --proxy-user '+strtrim(self.PROXY_USERNAME,2)
+     if STRLEN(self.PROXY_PASSWORD) GT 0 then proxy_cmd+=':'+strtrim(self.PROXY_PASSWORD,2)
+     proxy_cmd+=' '
+; proxy authentication
+     if self.proxy_authentication GT 0 then begin
+        case self.proxy_authentication of
+           1:  proxy_cmd+='--proxy-basic ' 
+           2:  proxy_cmd+='--proxy-digest ' 
+           3:  proxy_cmd+='--proxy-anyauth ' 
+        endcase
+     endif
+     curl_cmd+=proxy_cmd
+  endif
+; timeout
+  if self.timeout gt 0 then curl_cmd+='--max-time '+strtrim(self.timeout,2)+' '
+
+  curl_syn=mycurl+' -L --dump-header "'+TMPDIR+'idlneturl_header.txt" --silent --show-error '                                                        ; will get only headers
+  curl_syn+='--write-out "%{content_type}\n%{response_code}\n" '    ; we get some useful values
+  curl_syn+=' -o "'+oufile+'" ' ; we always ask for a file to separate contents from '--write-out' header
+  cmd=curl_syn+curl_cmd+action+id_cmd+echocode
+  if verbose then print, cmd
+  SPAWN, cmd, result, errResult
+  return_code=long(result[-1])
+  if return_code ne 0 then begin ; something went wrong, get the curl return value "$?"
+     self.content_type=""
+     self.response_code=return_code
+     self.response_filename=""
+     return,""
+  endif
+  self.content_type=result[0]
+  self.response_code=long(result[1])
+  self->idlneturl::copy_header_to_response_header,TMPDIR+'idlneturl_header.txt' ; will be destroyed when this procedure is run
+; clear headers property as specified in documentation
+  self->idlneturl::SetProperty,HEADERS = ''
+; return:     
+  if KEYWORD_SET(string_array) then begin
+     n=1
+     istext=strpos(self.content_type,'text/') ge 0
+     if istext then n=file_lines(filename)
+     resp=strarr(n) & s=''
+     openr,lun,oufile,/get
+     for i=0,n-1 do readf,lun,s & resp[i]=s
+     free_lun,lun
+     file_delete,oufile
+     return, resp
+   endif else return,FILE_SEARCH(oufile, /full)
 end
 function idlneturl::URLDecode,String
   message,/info,"idlneturl::URLDecode not yet implemented, FIXME"
@@ -420,18 +623,18 @@ function idlneturl::Init,$
    TIMEOUT=TIMEOUT,_extra=extra
 
 IF ~KEYWORD_SET(URL_SCHEME) then URL_SCHEME='http'
-IF ~KEYWORD_SET(URL_PORT) then URL_PORT=80
-IF ~KEYWORD_SET(VERBOSE) then VERBOSE=0b
-IF ~KEYWORD_SET(CONNECT_TIMEOUT) then CONNECT_TIMEOUT=180
-IF ~KEYWORD_SET(ENCODE) then ENCODE=3
-IF ~KEYWORD_SET(FTP_CONNECTION_MODE) then FTP_CONNECTION_MODE=1
-IF ~KEYWORD_SET(PROXY_AUTHENTICATION) then PROXY_AUTHENTICATION=0
-IF ~KEYWORD_SET(PROXY_PORT) then PROXY_PORT=80
+IF ~KEYWORD_SET(URL_PORT) then URL_PORT=80L
+IF ~KEYWORD_SET(VERBOSE) then VERBOSE=0L
+IF ~KEYWORD_SET(CONNECT_TIMEOUT) then CONNECT_TIMEOUT=180L
+IF ~KEYWORD_SET(ENCODE) then ENCODE=3L
+IF ~KEYWORD_SET(FTP_CONNECTION_MODE) then FTP_CONNECTION_MODE=1L
+IF ~KEYWORD_SET(PROXY_AUTHENTICATION) then PROXY_AUTHENTICATION=0L
+IF ~KEYWORD_SET(PROXY_PORT) then PROXY_PORT=80L
 ;IF ~KEYWORD_SET(SSL_CERTIFICATE_FILE) then SSL_CERTIFICATE_FILE='/usr/share/openvpn/sample-keys/client.crt'
-IF ~KEYWORD_SET(SSL_VERIFY_HOST) then SSL_VERIFY_HOST=1
-IF ~KEYWORD_SET(SSL_VERIFY_PEER) then SSL_VERIFY_PEER=1
-IF ~KEYWORD_SET(SSL_VERSION) then SSL_VERSION=0
-IF ~KEYWORD_SET(TIMEOUT) then TIMEOUT=1800
+IF ~KEYWORD_SET(SSL_VERIFY_HOST) then SSL_VERIFY_HOST=1L
+IF ~KEYWORD_SET(SSL_VERIFY_PEER) then SSL_VERIFY_PEER=1L
+IF ~KEYWORD_SET(SSL_VERSION) then SSL_VERSION=0L
+IF ~KEYWORD_SET(TIMEOUT) then TIMEOUT=1800L
 IF ~KEYWORD_SET(HEADERS) then HEADERS=''
   
 ;
@@ -476,28 +679,28 @@ pro idlneturl__define
             URL_USERNAME: '',$
             IDLNETURL_BOTTOM : 0Ll,$
             URL_PASSWORD  : '',$
-            AUTHENTICATION: 3,$
+            AUTHENTICATION: 3L,$
             CALLBACK_DATA: ptr_new(/allo),$
             CALLBACK_FUNCTION: '',$
-            CONNECT_TIMEOUT: 180,$
+            CONNECT_TIMEOUT: 180L,$
             CONTENT_TYPE: '',$
-            ENCODE: 0,$
-            FTP_CONNECTION_MODE: 1,$
+            ENCODE: 0L,$
+            FTP_CONNECTION_MODE: 1L,$
             HEADERS : ptr_new(/ALLO),$   ;HEADERS: '',$
-            PROXY_AUTHENTICATION: 3,$
+            PROXY_AUTHENTICATION: 3L,$
             PROXY_HOSTNAME: '',$
             PROXY_PASSWORD : '',$
             PROXY_PORT: '80',$
             PROXY_USERNAME: '',$
-            RESPONSE_CODE: 0,$
+            RESPONSE_CODE: 0L,$
             RESPONSE_FILENAME: '',$
             RESPONSE_HEADER: '',$
             SSL_CERTIFICATE_FILE: '',$
-            SSL_VERIFY_HOST: 1,$
-            SSL_VERIFY_PEER: 1,$
-            SSL_VERSION: 0,$
-            TIMEOUT: 1800,$
-            VERBOSE: 0}
+            SSL_VERIFY_HOST: 1L,$
+            SSL_VERIFY_PEER: 1L,$
+            SSL_VERSION: 0L,$
+            TIMEOUT: 1800L,$
+            VERBOSE: 0L}
   return
 end
 

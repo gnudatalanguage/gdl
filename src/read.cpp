@@ -36,6 +36,129 @@
 #define isatty _isatty
 #endif
 
+std::stringstream accept_comma_and_complex_default_format(std::stringstream & is, BaseGDL* parIn) {
+  if (parIn->Type() == GDL_STRING) return std::stringstream(is.str());
+
+  bool debug = false;
+  if (debug) std::cout << "the raw full input (1):" << is.str() << std::endl;
+
+  // for Complex, counting cases is complex since (12) eq (12,12) eq 12 ... count 1
+  int flag_cplx = 0;
+  if ((parIn->Type() == GDL_COMPLEX) || (parIn->Type() == GDL_COMPLEXDBL)) flag_cplx = 1;
+  SizeT NToTransfer=parIn->N_Elements();
+  if (parIn->Type() == GDL_STRUCT) NToTransfer=parIn->ToTransfer();
+  std::stringstream temp;
+  char c;
+  int loop = 0;
+  int open_brace = 0;
+  //repeat as many elements necessary, but no more!
+  //for (SizeT ielem=0; ielem < (*par)->N_Elements(); ++ielem ) {
+  if (debug) std::cout << "nb elems : " << NToTransfer << std::endl;
+
+  for (int ielem = 0; ielem < NToTransfer; ++ielem) {
+
+	loop++;
+	while (is.get(c)) { //remove starting blanks, commas, tabs, newlines
+	  if (c == '(') open_brace++;
+	  if (c == ')') open_brace--;
+	  if (c != ',' && c != ' ' && c != '\t' && c != '\n') {
+		temp.put(c);
+		break;
+	  }
+	}
+	if (debug) std::cout << "after first while : " << temp.str() << std::endl;
+
+	while (is.get(c)) { //copy until new separator appears.
+	  if (c != ',' && c != ' ' && c != '\t' && c != '\n') {
+		if (c == '(') open_brace++;
+		if (c == ')') open_brace--;
+		temp.put(c);
+	  } else {
+		is.unget();
+		break;
+	  }
+	}
+	if (debug) std::cout << "after second while : " << temp.str() << std::endl;
+	if (flag_cplx && (open_brace > 0)) ielem--;
+	if (debug) std::cout << "ielem : " << ielem << std::endl;
+
+	//	  if ((ielem > 10) || (ielem < -10)) break;
+
+	temp.put(' '); //put a spearator between values
+
+	// this is a security if the input is really badly formatted 
+	if (loop > 5 * NToTransfer) break;
+
+  } // for loop
+
+  // the way to output the content of "temp" :
+  if (debug) std::cout << "what is transmitted to processing : " << temp.str() << std::endl;
+  //	cout << "what remaind to be processed : " << is.str() << endl;
+
+  return temp;
+}
+std::stringstream accept_comma_and_complex_default_format(std::istream *is, BaseGDL* parIn) {
+  assert (parIn->Type() != GDL_STRING);
+
+  bool debug = false;
+  if (debug) std::cout << "the raw full input (2):" << is << std::endl;
+
+  // for Complex, counting cases is complex since (12) eq (12,12) eq 12 ... count 1
+  int flag_cplx = 0;
+  if ((parIn->Type() == GDL_COMPLEX) || (parIn->Type() == GDL_COMPLEXDBL)) flag_cplx = 1;
+  SizeT NToTransfer=parIn->N_Elements();
+  if (parIn->Type() == GDL_STRUCT) NToTransfer=parIn->ToTransfer();
+
+
+  std::stringstream temp;
+  char c;
+  int loop = 0;
+  int open_brace = 0;
+  //repeat as many elements necessary, but no more!
+  //for (SizeT ielem=0; ielem < (*par)->N_Elements(); ++ielem ) {
+  if (debug) std::cout << "nb elems : " << NToTransfer << std::endl;
+
+  for (int ielem = 0; ielem < NToTransfer; ++ielem) {
+
+	loop++;
+	while (is->get(c)) { //remove starting blanks, commas, tabs, newlines
+	  if (c == '(') open_brace++;
+	  if (c == ')') open_brace--;
+	  if (c != ',' && c != ' ' && c != '\t' && c != '\n') {
+		temp.put(c);
+		break;
+	  }
+	}
+	if (debug) std::cout << "after first while : " << temp.str() << std::endl;
+
+	while (is->get(c)) { //copy until new separator appears.
+	  if (c != ',' && c != ' ' && c != '\t' && c != '\n') {
+		if (c == '(') open_brace++;
+		if (c == ')') open_brace--;
+		temp.put(c);
+	  } else {
+		is->unget();
+		break;
+	  }
+	}
+	if (debug) std::cout << "after second while : " << temp.str() << std::endl;
+	if (flag_cplx && (open_brace > 0)) ielem--;
+	if (debug) std::cout << "ielem : " << ielem << std::endl;
+
+	//	  if ((ielem > 10) || (ielem < -10)) break;
+
+	temp.put(' '); //put a spearator between values
+
+	// this is a security if the input is really badly formatted 
+	if (loop > 5 * NToTransfer) break;
+
+  } // for loop
+
+  // the way to output the content of "temp" :
+  if (debug) std::cout << "what is transmitted to processing : " << temp.str() << std::endl;
+
+  return temp;
+}
 namespace lib {
   
   using namespace std;
@@ -246,9 +369,13 @@ void read_is(istream* is, EnvT* e, int parOffset) {
 			  StrTrim(strTrimLine);
 			} while (strTrimLine == "" && parIn->Type() != GDL_STRING);
 
-			istringstream iss(line + "\n");
-
-			parIn->FromStream(iss);
+			stringstream iss(line + "\n");
+			if (parIn->Type() != GDL_STRING) { //special treatment for decoding commas
+			  std::stringstream temp=accept_comma_and_complex_default_format(iss,parIn);
+			  parIn->FromStream(temp);
+			} else { //so much simpler
+			  parIn->FromStream(iss);
+			}
 
 			if (sigControlC)
 			  return;
@@ -256,11 +383,14 @@ void read_is(istream* is, EnvT* e, int parOffset) {
 		  else
 #endif
 		  {
-			// 		posBeforeLast = is->tellg();
 
-			parIn->FromStream(*is);
-
-			lastParIsString = parIn->Type() == GDL_STRING;
+			if (parIn->Type() != GDL_STRING) { //special treatment for decoding commas
+			  std::stringstream temp=accept_comma_and_complex_default_format(is,parIn);
+			  parIn->FromStream(temp);
+			} else { //so much simpler
+			  parIn->FromStream(*is);
+			}
+			lastParIsString = ( parIn->Type() == GDL_STRING );
 		  }
 		}
 	  }
@@ -334,64 +464,8 @@ void read_is(istream* is, EnvT* e, int parOffset) {
 			parIn = *par;
 		  }
 
-		  bool debug = false;
-		  if (debug) cout << "the raw full input :" << is.str() << endl;
-
-		  // for Complex, compting cases is complex since (12) eq (12,12) eq 12 ... count 1
-		  int flag_cplx = 0;
-		  if (((*par)->Type() == GDL_COMPLEX) || ((*par)->Type() == GDL_COMPLEXDBL)) flag_cplx = 1;
-		  //      int open_brace=0;
-		  //int loop=0;
-
-		  if ((*par)->Type() != GDL_STRING) { //special treatment for decoding commas
-			stringstream temp;
-			char c;
-			int loop = 0;
-			int open_brace = 0;
-			//repeat as many elements necessary, but no more!
-			//for (SizeT ielem=0; ielem < (*par)->N_Elements(); ++ielem ) {
-			if (debug) cout << "nb elems : " << (*par)->N_Elements() << endl;
-
-			for (int ielem = 0; ielem < (*par)->N_Elements(); ++ielem) {
-
-			  loop++;
-			  while (is.get(c)) { //remove starting blanks, commas, tabs, newlines
-				if (c == '(') open_brace++;
-				if (c == ')') open_brace--;
-				if (c != ',' && c != ' ' && c != '\t' && c != '\n') {
-				  temp.put(c);
-				  break;
-				}
-			  }
-			  if (debug) cout << "after first while : " << temp.str() << endl;
-
-			  while (is.get(c)) { //copy until new separator appears.
-				if (c != ',' && c != ' ' && c != '\t' && c != '\n') {
-				  if (c == '(') open_brace++;
-				  if (c == ')') open_brace--;
-				  temp.put(c);
-				} else {
-				  is.unget();
-				  break;
-				}
-			  }
-			  if (debug) cout << "after second while : " << temp.str() << endl;
-			  if (flag_cplx && (open_brace > 0)) ielem--;
-			  if (debug) cout << "ielem : " << ielem << endl;
-
-			  //	  if ((ielem > 10) || (ielem < -10)) break;
-
-			  temp.put(' '); //put a spearator between values
-
-			  // this is a security if the input is really badly formatted 
-			  if (loop > 5 * (*par)->N_Elements()) break;
-
-			} // for loop
-
-			// the way to output the content of "temp" :
-			if (debug) cout << "what is transmitted to processing : " << temp.str() << endl;
-			//	cout << "what remaind to be processed : " << is.str() << endl;
-
+		  if (parIn->Type() != GDL_STRING) { //special treatment for decoding commas
+			std::stringstream temp=accept_comma_and_complex_default_format(is,parIn);
 			parIn->FromStream(temp);
 		  } else { //so much simpler
 			parIn->FromStream(is);

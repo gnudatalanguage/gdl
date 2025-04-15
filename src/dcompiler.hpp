@@ -98,7 +98,7 @@ public:
   {
     bool operator() ( DLibFun* f1, DLibFun* f2) const
     { return f1->ObjectName() < f2->ObjectName();}
-  };
+  };  
 };
 
 #endif

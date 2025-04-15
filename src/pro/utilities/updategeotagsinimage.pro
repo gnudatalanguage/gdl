@@ -277,7 +277,7 @@ pro geotiff_writeOffsettedValueAscii,unit,offsettable,geostruct,i,geoindex,numbe
    val=geostruct.(i) 
    count=long(n_elements(val))
    case TiffType[geoIndex] of
-      2s: writeu,unit,val,'7c'xb ; '|'
+      2s: writeu,unit,val,'7c'xb ; write string + '|'
       else: message,"Internal error, please report."
    endcase
    point_lun,-unit,current
@@ -422,7 +422,6 @@ pro updategeotagsinimage,filename,g
         totaltextsize+=textnbytes
      endfor
      totaltextsize+=1           ; for ending NULL
-     addToAsciiSection=totaltextsize mod 4 & totaltextsize+=addToAsciiSection
      writeu,unit, GeoTiffAsciiParams,Ascii,long(totaltextsize)
                                 ;memorize and GeoDouble offset:
      point_lun,-unit,posGeoAscii & writeu,unit,0L
@@ -472,9 +471,9 @@ pro updategeotagsinimage,filename,g
      for i=0,ntags-1 do begin
         if GeoMethod[tagidx[i]] eq 1 or TiffType[tagidx[i]] ne 2s then continue
         geotiff_writeOffsettedValueAscii,unit,offsettable,g,i,tagidx[i],number
-        number+=strlen(g.(i))+1
+        number+=strlen(g.(i))
      endfor
-     if addToAsciiSection gt 0 then writeu,unit,replicate(0b,addToAsciiSection) ; hope it's OK
+     addToAsciiSection=number mod 4 & if addToAsciiSection gt 0 then writeu,unit,replicate(0b,addToAsciiSection) ; hope it's OK
      point_lun,-unit,current
      pad=current mod 4 & if pad gt 0 then writeu,unit,replicate(0b,pad)
   endif

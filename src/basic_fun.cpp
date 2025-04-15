@@ -2800,7 +2800,7 @@ namespace lib {
       downgradeDoubleResult = !doublePrecision;
     }
 
-    bool nan = e->KeywordSet(nanIx);
+    bool nan = e->BooleanKeywordAbsentOrSet(nanIx);
     bool preserve = e->KeywordSet(preserveIx);
 
     DLong sumDim = 0;
@@ -3531,7 +3531,7 @@ namespace lib {
     static int intIx = e->KeywordIx("INTEGER");
     static int preIx = e->KeywordIx("PRESERVE_TYPE");
     bool KwCumul = e->KeywordSet(cumIx);
-    bool KwNaN = e->KeywordSet(nanIx);
+    bool KwNaN = e->BooleanKeywordAbsentOrSet(nanIx);
     bool KwInt = e->KeywordSet(intIx);
     bool KwPre = e->KeywordSet(preIx);
     bool nanInt = false;
@@ -3916,7 +3916,7 @@ namespace lib {
     BaseGDL* searchArr = e->GetParDefined(0);
 
     static int omitNaNIx = e->KeywordIx("NAN");
-    bool omitNaN = e->KeywordSet(omitNaNIx);
+    bool omitNaN = e->BooleanKeywordAbsentOrSet(omitNaNIx);
 
     static int subIx = e->KeywordIx("SUBSCRIPT_MAX");
     bool subMax = e->WriteableKeywordPresent(subIx); //insure the output variable exist and is of 'good' type
@@ -4017,7 +4017,7 @@ namespace lib {
     BaseGDL* searchArr = e->GetParDefined(0);
 
     static int omitNaNIx = e->KeywordIx("NAN");
-    bool omitNaN = e->KeywordSet(omitNaNIx);
+    bool omitNaN = e->BooleanKeywordAbsentOrSet(omitNaNIx);
 
     static int subIx = e->KeywordIx("SUBSCRIPT_MIN");
     bool subMin = e->WriteableKeywordPresent(subIx);
@@ -4351,7 +4351,7 @@ namespace lib {
       return new DDoubleGDL(std::numeric_limits<double>::quiet_NaN());
     }
     static int evenIx = e->KeywordIx("EVEN");
-    int iseven = (((iEl + 1) % 2) == 0 && e->KeywordSet(evenIx));
+    int iseven = ((iEl % 2) == 0 && e->KeywordSet(evenIx));
     BaseGDL *res = new DDoubleGDL(quick_select_d(array, iEl, iseven));
     free(array);
     return res;
@@ -4410,7 +4410,7 @@ namespace lib {
       return new DFloatGDL(std::numeric_limits<float>::quiet_NaN());
     }
     static int evenIx = e->KeywordIx("EVEN");
-    int iseven = (((iEl + 1) % 2) == 0 && e->KeywordSet(evenIx));
+    int iseven = ((iEl % 2) == 0 && e->KeywordSet(evenIx));
     BaseGDL *res = new DFloatGDL(quick_select_f(array, iEl, iseven));
     free(array);
     return res;
@@ -5502,7 +5502,7 @@ namespace lib {
       p0->Type() == GDL_FLOAT ||
       p0->Type() == GDL_COMPLEX ||
       p0->Type() == GDL_COMPLEXDBL);
-    bool omitNaN = (e->KeywordPresent(nanIx) && possibleNaN);
+    bool omitNaN = (e->BooleanKeywordAbsentOrSet(nanIx) && possibleNaN);
 
     //DIMENSION Kw
     static int dimIx = e->KeywordIx("DIMENSION");
@@ -6076,7 +6076,7 @@ namespace lib {
       p0->Type() == GDL_FLOAT ||
       p0->Type() == GDL_COMPLEX ||
       p0->Type() == GDL_COMPLEXDBL);
-    bool omitNaN = (e->KeywordPresent(nanIx) && possibleNaN);
+    bool omitNaN = (e->BooleanKeywordAbsentOrSet(nanIx) && possibleNaN);
 
     //DIMENSION Kw
     static int dimIx = e->KeywordIx("DIMENSION");
@@ -7154,7 +7154,11 @@ namespace lib {
     static int maxIx = e->KeywordIx("MAX");
     static int topIx = e->KeywordIx("TOP");
     static int nanIx = e->KeywordIx("NAN");
-    bool omitNaN = e->KeywordPresent(nanIx);
+    bool possibleNaN = (p0->Type() == GDL_DOUBLE ||
+      p0->Type() == GDL_FLOAT ||
+      p0->Type() == GDL_COMPLEX ||
+      p0->Type() == GDL_COMPLEXDBL);
+    bool omitNaN = (e->BooleanKeywordAbsentOrSet(nanIx) && possibleNaN);
 
     //the following is going to be wrong in cases where TOP is so negative that a Long does not suffice.
     //Besides, a template version for each different type would be faster and probably the only solution to get the
@@ -7809,13 +7813,39 @@ namespace lib {
     bool functionsKW = e->KeywordSet(functionsIx);
     static int systemIx = e->KeywordIx("SYSTEM");
     bool systemKW = e->KeywordSet(systemIx);
-    static int disabledIx = e->KeywordIx("DISABLED");
-    bool disabledKW = e->KeywordSet(disabledIx);
+    
+	// All GDL routines are ENABLED so the ENABLED keyword is just tested as it implies "/SYS".
+    static int ENABLED = e->KeywordIx("ENABLED");
+    if (e->KeywordSet(ENABLED)) systemKW=true;
+	
+    static int DISABLED = e->KeywordIx("DISABLED");
+    // GDL does not have disabled routines. 
+    if (e->KeywordSet(DISABLED)) return new DStringGDL("");
+
     static int parametersIx = e->KeywordIx("PARAMETERS");
     bool parametersKW = e->KeywordSet(parametersIx);
     static int sourceIx = e->KeywordIx("SOURCE");
     bool sourceKW = e->KeywordSet(sourceIx);
+    static int VARIABLES = e->KeywordIx("VARIABLES");
+    bool variables = e->KeywordSet(VARIABLES);
+    static int UNRESOLVED = e->KeywordIx("UNRESOLVED");
+    bool unresolved = e->KeywordSet(UNRESOLVED);
 
+	if (unresolved) { 
+	  SizeT n=unknownProList.size();
+	  if (functionsKW) n=unknownFunList.size();
+	  if (n == 0) return new DStringGDL("");
+	  DStringGDL* res=new DStringGDL(dimension(n), BaseGDL::NOZERO);
+	  SizeT k=0;
+	  if (functionsKW) {
+	   for ( UnknownFunListT::iterator q=unknownFunList.begin(); q!=unknownFunList.end(); ++q) (*res)[k++]=(*q);
+	  } else {
+	   for ( UnknownProListT::iterator q=unknownProList.begin(); q!=unknownProList.end(); ++q) (*res)[k++]=(*q);
+	  }
+	  return res;
+	}
+	if (variables) return new DStringGDL("");
+    
     if (sourceKW) {
 
       // sanity checks
@@ -7901,7 +7931,7 @@ namespace lib {
 
     if (parametersKW) {
       // sanity checks
-      if (systemKW || disabledKW) e->Throw("Conflicting keywords.");
+      if (systemKW) e->Throw("Conflicting keywords.");
 
       // getting the routine name from the first parameter
       DString name;
@@ -7948,8 +7978,6 @@ namespace lib {
       return stru;
     }
 
-    // GDL does not have disabled routines
-    if (disabledKW) return new DStringGDL("");
 
     //    if( functionsKW || systemKW || nParam == 0)
     //      {
@@ -7968,7 +7996,6 @@ namespace lib {
       } else {
         SizeT n = funList.size();
         if (n == 0) {
-          Message("No FUNCTIONS compiled yet !");
           return new DStringGDL("");
         }
         for (SizeT i = 0; i < n; ++i)
@@ -7987,7 +8014,6 @@ namespace lib {
       } else {
         SizeT n = proList.size();
         if (n == 0) {
-          Message("No PROCEDURES compiled yet !");
           DStringGDL* res = new DStringGDL(1, BaseGDL::NOZERO);
           (*res)[0] = "$MAIN$";
           return res;
@@ -8002,8 +8028,7 @@ namespace lib {
     SizeT nS = subList.size();
 
     DStringGDL* res = new DStringGDL(dimension(nS), BaseGDL::NOZERO);
-    for (SizeT s = 0; s < nS; ++s)
-      (*res)[ s] = subList[ s];
+    for (SizeT s = 0; s < nS; ++s) (*res)[ s] = subList[ s];
 
     return res;
     //      }

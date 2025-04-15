@@ -32,6 +32,11 @@
 ; (tested on IDL 7.0, 7.1, 8.2, 8.4, 8.5, 8.7)
 ; We wrote a simple code to see it directly (pro TEST_BYTSCL_DIFF_GDL_IDL)
 ;
+; GD, Dec 2024: since 8.5.1 IDL treats the absence of /NAN as if it was present (i.e., takes care of NANs in all cases)
+; GDL was changed on 14/12/2024 to reflext this and it's !Version.release updated to 8.5.1
+; As this is only a GDL test, I just change the GDL parts to get the test pass with this new paradigm.
+; I note that GDL has the "good" answer for complex values and thus there is no need to
+; complicate things more than they already are.
 ; ------------------------------------------------
 ;
 pro TEST_BYTSCL_DIFF_GDL_IDL
@@ -147,14 +152,14 @@ FOREACH itype, no_int do begin
    ramp_nan_inf[5]=!values.f_nan
    ramp_nan_inf[6]=!values.f_infinity
    ;;
-   ;; without /nan flag
-   resu_nan=BYTSCL(ramp_nan_inf)
+   ;; with nan=0 flag
+   resu_nan=BYTSCL(ramp_nan_inf, NAN=0)
    if ARRAY_EQUAL(expected_nan, resu_nan) NE 1 then begin
       ERRORS_ADD, nb_errors, 'pb in TYPE : '+STRING(itype)
    endif
    ;; 
-   ;; with /nan flag
-   resu_nan_flag=BYTSCL(ramp_nan_inf,/nan)
+   ;; without nan flag (or with /NAN flag) 
+   resu_nan_flag=BYTSCL(ramp_nan_inf)
    if ARRAY_EQUAL(expected_nan_flag, resu_nan_flag) NE 1 then begin
       ERRORS_ADD, nb_errors, 'pb in TYPE + /NAN flag: '+STRING(itype)
    endif
@@ -267,7 +272,9 @@ end
 ; ------------------------------------------------
 ;
 pro TEST_BYTSCL, help=help, verbose=verbose, no_exit=no_exit, test=test
-if ( version.arch eq "arm64" ) then exit  ; suppress this test on ARM64
+
+if (!version.release lt '8.5.1' ) then exit ; new tests are not adapated to these old versions
+
 ;
 if KEYWORD_SET(help) then begin
    print, 'pro TEST_BYTSCL, help=help, verbose=verbose, $'
@@ -291,7 +298,8 @@ TEST_BYTSCL_RAMPS_NAN, nb_errors, test=test
 ; IDL don't pass this test for COMPLEX & DCOMPLEX
 ; FL don't pass this test for COMPLEX & DCOMPLEX + top below zero
 ;
-TEST_BYTSCL_IDL_PROBLEM, nb_errors, test=test, verbose=verbose
+; removed by GD: who cares?
+;  TEST_BYTSCL_IDL_PROBLEM, nb_errors, test=test, verbose=verbose
 ;
 ; ----------------- final message ----------
 ;

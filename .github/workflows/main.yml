@@ -6,9 +6,10 @@ on:
   push:
     branches:
       - master
-      - '1.0'
     tags:
       - v**
+  release:
+    types: [published]
   pull_request:
   workflow_dispatch:
     inputs:
@@ -26,7 +27,7 @@ on:
  
 jobs:
   prelude:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     outputs:
       matrix-windows: ${{ steps.set-matrix-windows.outputs.matrix_windows }}
       matrix-others: ${{ steps.set-matrix-others.outputs.matrix_others }}
@@ -44,9 +45,9 @@ jobs:
       id: set-matrix-others
       run: |
         if [[ '${{ github.event_name }}' == "schedule" || '${{ github.event.inputs.type }}' == "release" || '${{ github.ref }}' == "refs/tags/v"* ]]; then 
-            matrix="{os: ['ubuntu-latest', 'macos-13', 'macos-15'], deps: ['standard', 'headless'], configuration: ['Release']}"
+            matrix="{os: ['ubuntu-22.04', 'macos-13', 'macos-15'], deps: ['standard', 'headless'], configuration: ['Release']}"
         else
-            matrix="{os: ['ubuntu-latest', 'macos-13', 'macos-15'], deps: ['debug'], configuration: ['Debug']}"
+            matrix="{os: ['ubuntu-22.04', 'macos-13', 'macos-15'], deps: ['debug'], configuration: ['Debug']}"
         fi
         echo "matrix_others=$matrix" >> $GITHUB_OUTPUT
     - name: Remove Release (scheduled build only)
@@ -58,7 +59,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   upload-source-code:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: prelude
     steps:
       - name: Checkout GDL
@@ -127,13 +128,13 @@ jobs:
       - name: Install Dependencies
         run: |
           scripts/build_gdl.sh prep
-      - name: Set HDF path on macOS usin brew
-        # https://stackoverflow.com/questions/66741778/how-to-install-h5py-needed-for-keras-on-macos-with-m1
-        if: contains(matrix.os, 'macos')
-        run: echo HDF5_DIR="$(brew --prefix hdf5)" >> $GITHUB_ENV
-      - name: Disable OpenMP for Apple Silicon (FIXME!)
-        if: matrix.os == 'macos-14'
-        run: echo WITH_OPENMP=OFF >> $GITHUB_ENV
+#      - name: Set HDF path on macOS usin brew
+#        # https://stackoverflow.com/questions/66741778/how-to-install-h5py-needed-for-keras-on-macos-with-m1
+#        if: contains(matrix.os, 'macos')
+#        run: echo HDF5_DIR="$(brew --prefix hdf5)" >> $GITHUB_ENV
+#      - name: Disable OpenMP for Apple Silicon (FIXME!)
+#        if: matrix.os == 'macos-14'
+#        run: echo WITH_OPENMP=OFF >> $GITHUB_ENV
       - name: Build GDL
         run: |
           scripts/build_gdl.sh configure

@@ -50,6 +50,7 @@ inline void AppendIfNeeded(std::string &s, const std::string& a)
   if( s.substr(s.size()-a.size(),a.size()) != a) s += a;
 }
 
+void ExpandShellVariables(std::string& s);
 // wrapper for wordexp
 void WordExp( std::string& s);
 

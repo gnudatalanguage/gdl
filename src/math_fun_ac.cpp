@@ -92,14 +92,6 @@
 									\
   const double dzero = 0.0000000000000000000 ;				\
 
-  //  cout << "helo " << t1 << " " << (*p1_float)[0] << " " << nElp1 << endl; \
-  //									\
-  //    throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(1)); 
-  									
-  //  DType t1 = e->GetParDefined(1)->Type();				\
-  //  if (t1 == GDL_COMPLEX || t1 == GDL_COMPLEXDBL)			\
-  // e->Throw("Complex not implemented (GSL limitation). ");
-
 
 // change by Alain C., June 1st 2015 : IDL 8.4 behavior
 #define GM_DF2()							\

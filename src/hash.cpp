@@ -1525,14 +1525,10 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
       DLong leftIx = -1;
       DLong rightIx = -1;
       // advance both to 1st
-      if( nCountL > 0)
-    while( (*static_cast<DPtrGDL*>(hashTableL->GetTag( pKeyTag, ++leftIx)))[0] == 0);
-      if( leftIx == -1)
-    leftIx = nSizeL;
-      if( nCountR > 0)
-    while( (*static_cast<DPtrGDL*>(hashTableR->GetTag( pKeyTag, ++rightIx)))[0] == 0);
-      if( rightIx == -1)
-    rightIx = nSizeR;
+      if( nCountL > 0)     while( (*static_cast<DPtrGDL*>(hashTableL->GetTag( pKeyTag, ++leftIx)))[0] == 0);
+      if( leftIx == -1)    leftIx = nSizeL;
+      if( nCountR > 0)    while( (*static_cast<DPtrGDL*>(hashTableR->GetTag( pKeyTag, ++rightIx)))[0] == 0);
+      if( rightIx == -1)    rightIx = nSizeR;
       
       DLong nCount = nCountMax;
       for( SizeT el=0; el<nCount; ++el)

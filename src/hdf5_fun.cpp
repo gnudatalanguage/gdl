@@ -155,10 +155,10 @@ namespace lib {
      // { H5T_NATIVE_LDOUBLE }, //not until LDOUBLE Is handled everywhere!!
 
           /* GDL_DOUBLE */
-        { H5T_NATIVE_DOUBLE },
+        { H5T_NATIVE_DOUBLE,H5T_IEEE_F64BE,H5T_IEEE_F64LE,H5T_INTEL_F64,H5T_MIPS_F64,H5T_ALPHA_F64},
 
           /* GDL_FLOAT */
-        { H5T_NATIVE_FLOAT },
+        { H5T_NATIVE_FLOAT,H5T_ALPHA_F32,H5T_IEEE_F32BE, H5T_IEEE_F32LE,H5T_INTEL_F32,H5T_MIPS_F32},
 
           /* GDL_ULONG64 */
         { H5T_NATIVE_ULLONG, H5T_ALPHA_U64, H5T_INTEL_U64, H5T_MIPS_U64,
@@ -166,12 +166,12 @@ namespace lib {
           H5T_STD_U64BE, H5T_STD_U64LE },
 
           /* GDL_LONG64 */
-        { H5T_NATIVE_LLONG, H5T_IEEE_F64BE, H5T_IEEE_F64LE, H5T_INTEL_B64,
-          H5T_INTEL_F64, H5T_INTEL_I64, H5T_MIPS_B64, H5T_MIPS_F64,
+        { H5T_NATIVE_LLONG, H5T_INTEL_B64,
+          H5T_INTEL_I64, H5T_MIPS_B64,
           H5T_MIPS_I64, H5T_NATIVE_B64, H5T_NATIVE_INT64, H5T_NATIVE_INT_FAST64,
           H5T_NATIVE_INT_LEAST64, H5T_STD_B64BE, H5T_STD_B64LE, H5T_STD_I64BE,
           H5T_STD_I64LE, H5T_UNIX_D64BE, H5T_UNIX_D64LE, H5T_ALPHA_B64,
-          H5T_ALPHA_F64, H5T_ALPHA_I64 },
+          H5T_ALPHA_I64 },
 
           /* GDL_ULONG */
         { H5T_NATIVE_ULONG, H5T_ALPHA_U32, H5T_INTEL_U32, H5T_MIPS_U32,
@@ -181,9 +181,9 @@ namespace lib {
           /* GDL_LONG */
         { /// H5T_NATIVE_HBOOL,
           /// ^--- disabled as it matches against 'H5T_STD_U8LE' (GDL_BYTE)
-          H5T_NATIVE_LONG, H5T_ALPHA_B32, H5T_ALPHA_F32,
-          H5T_ALPHA_I32, H5T_IEEE_F32BE, H5T_IEEE_F32LE, H5T_INTEL_B32,
-          H5T_INTEL_F32, H5T_INTEL_I32, H5T_MIPS_B32, H5T_MIPS_F32,
+          H5T_NATIVE_LONG, H5T_ALPHA_B32, 
+          H5T_ALPHA_I32, H5T_INTEL_B32,
+          H5T_INTEL_I32, H5T_MIPS_B32,
           H5T_MIPS_I32, H5T_NATIVE_B32, H5T_NATIVE_INT32, H5T_NATIVE_INT_FAST32,
           H5T_NATIVE_INT_LEAST32, H5T_STD_B32BE, H5T_STD_B32LE, H5T_STD_I32BE,
           H5T_STD_I32LE, H5T_UNIX_D32BE, H5T_UNIX_D32LE },
@@ -863,27 +863,51 @@ namespace lib {
 
     } else if (ourType == GDL_STRING) {
 
-      if (debug) printf("fixed-length string dataset\n");
-
-      // string length (terminator included)
-      SizeT str_len = H5Tget_size(elem_dtype);
+      bool isVarLenStr = (H5Tis_variable_str(elem_dtype) > 0);
+      if (debug) printf(isVarLenStr ? "variable-length string dataset\n"
+                                    : "fixed-length string dataset\n");
 
       // total number of array elements
       SizeT num_elems=1;
       for(int i=0; i<rank_s; i++) num_elems *= count_s[i];
 
-      // allocate & read raw buffer
-      char* raw = (char*) malloc(num_elems*str_len*sizeof(char));
-      hdf5_name_guard raw_guard = hdf5_name_guard(raw);
-      hdf5_basic_read( loc_id, datatype, ms_id, fs_id, raw, e );
-
       // create GDL variable
       dimension flat_dim(&num_elems, 1);
       res = new DStringGDL(flat_dim);
 
-      // assign array pointers
-      for (size_t i=0; i<num_elems; i++)
-        (*(static_cast<DStringGDL*> (res)))[i] = raw + str_len*i;
+      if (isVarLenStr) {        // variable-length strings
+
+        // allocate memory for reading the strings
+        char **raw = (char **) malloc(num_elems * sizeof(char *));
+        hdf5_basic_read( loc_id, datatype, ms_id, fs_id, &raw[0], e );
+
+        // assign array pointers
+        for (size_t i=0; i<num_elems; i++) {
+
+          int len = strlen(raw[i]);
+          char *str = (char*) malloc((len+1)*sizeof(char));
+          strncpy(str, raw[i], len+1);
+          if(debug) printf("str[%ld]='%s' is of length %d\n", i, str, len);
+          (*(static_cast<DStringGDL*> (res)))[i] = str;
+        }
+
+        // reclaim data buffers
+        H5Dvlen_reclaim (datatype, ms_id, H5P_DEFAULT, &raw[0]);
+
+      } else {                  // fixed-length strings
+
+        // string length (terminator included)
+        SizeT str_len = H5Tget_size(elem_dtype);
+
+        // allocate & read raw buffer
+        char* raw = (char*) malloc(num_elems*str_len*sizeof(char));
+        hdf5_name_guard raw_guard = hdf5_name_guard(raw);
+        hdf5_basic_read( loc_id, datatype, ms_id, fs_id, raw, e );
+
+        // assign array pointers
+        for (size_t i=0; i<num_elems; i++)
+          (*(static_cast<DStringGDL*> (res)))[i] = raw + str_len*i;
+      }
 
       // re-shape array to match dataset
       (static_cast<BaseGDL*>(res))->SetDim(dim);
@@ -957,9 +981,9 @@ hid_t
     hid_t hdf5_id;
 
 #if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
-	DLong64 temp=0;
+        DLong64 temp=0;
     e->AssureLongScalarKW(position, temp);
-	hdf5_id=temp;
+        hdf5_id=temp;
 #else
     e->AssureLongScalarKW(position, hdf5_id);
 #endif
@@ -972,9 +996,9 @@ hid_t
     hid_t hdf5_id;
 
 #if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
-	DLong64 temp=0;
+        DLong64 temp=0;
     e->AssureLongScalarPar(position, temp);
-	hdf5_id=temp;
+        hdf5_id=temp;
 #else
     e->AssureLongScalarPar(position, hdf5_id);
 #endif
