@@ -213,7 +213,8 @@ ${SOURCES}
 ${WX_RC}
 )
 endif(HAVE_LIBWXWIDGETS AND WIN32)
-
+set_source_files_properties(magick_cl.cpp PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
+set_source_files_properties(libinit_cl.cpp PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
 #whereami
 add_library(whereami STATIC ${CMAKE_SOURCE_DIR}/src/whereami/src/whereami.c)
 add_subdirectory(antlr)
