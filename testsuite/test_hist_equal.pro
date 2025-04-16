@@ -8,6 +8,14 @@
 ; -- skewness of the image is roughly 0
 ; This should describe a Uniform distribution
 ;
+; ---------------------------------
+; 
+; Modifications history :
+;
+; - 2025-04-15 : AC. using standard ERRORS_ADD/BANNER ...
+;
+; ---------------------------------
+;
 pro TEST_HIST_EQUAL, samples=samples, test=test, verbose=verbose, help=help
 ;
 if KEYWORD_SET(help) then begin
@@ -16,17 +24,19 @@ if KEYWORD_SET(help) then begin
     return
 endif
 ;
+nb_errors=0
+;
 if N_ELEMENTS(samples) eq 0 then samples=100
 ;
 ; We will calculate an image from a random normal distribution.
 ; This should (roughly) have a skewness of 0 and a kurtosis of 0.
-img = RANDOMN(sd, samples,samples)
+img = RANDOMN(sd, samples, samples)
 ;
 ; compute the histogram equalisation on the image
 scl = HIST_EQUAL(img)
 ;
 ; compute the moment of the raw image and the scaled image
-m_raw    = MOMENT(img)
+m_raw = MOMENT(img)
 m_scl = MOMENT(scl)
 ;
 ; The more samples used in the image creation, the closer the
@@ -34,16 +44,13 @@ m_scl = MOMENT(scl)
 ; As such, some variation will be expected, so an error of 0.1
 ; should suffice.
 err = 0.1
-total_pb = 0
 ;
 if (ABS(m_scl[3] + 1.2) ge err) then begin
-    if KEYWORD_SET(verbose) then MESSAGE, 'pb with kurtosis ofimage', /continue
-    total_pb = total_pb + 1
+   ERRORS_ADD, nb_errors, 'pb with kurtosis of image'
 endif
 ;
 if (ABS(m_scl[2]) ge err) then begin
-    if KEYWORD_SET(verbose) then MESSAGE, 'pb with skewness of image', /continue
-    total_pb = total_pb + 1
+   ERRORS_ADD, nb_errors, 'pb with skewness of image'
 endif
 ;
 if KEYWORD_SET(verbose) then begin
@@ -57,14 +64,16 @@ endif
 ;
 if KEYWORD_SET(test) then stop
 ;
-if (total_pb gt 0) then begin
-    if KEYWORD_SET(no_exit) then begin
-        MESSAGE, 'Tests failed. Increase sample SIZE?', /continue
-    endif else begin
-        EXIT, status=1
-    endelse
-endif else begin
-    MESSAGE, 'Tests successful.', /continue
-endelse
+if (nb_errors gt 0) then begin
+   MESSAGE, 'Tests failed. Increase sample SIZE?', /continue
+endif
+;
+; ----------------- final message ----------
+;
+BANNER_FOR_TESTSUITE, 'TEST_HIST_EQUAL', nb_errors
+;
+if (nb_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+;
+if KEYWORD_SET(test) then STOP
 ;
 end
