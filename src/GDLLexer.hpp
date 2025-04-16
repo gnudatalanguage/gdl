@@ -285,6 +285,12 @@ private:
 	static const antlr::BitSet _tokenSet_10;
 	static const unsigned long _tokenSet_11_data_[];
 	static const antlr::BitSet _tokenSet_11;
+	static const unsigned long _tokenSet_12_data_[];
+	static const antlr::BitSet _tokenSet_12;
+	static const unsigned long _tokenSet_13_data_[];
+	static const antlr::BitSet _tokenSet_13;
+	static const unsigned long _tokenSet_14_data_[];
+	static const antlr::BitSet _tokenSet_14;
 };
 
 #endif /*INC_GDLLexer_hpp_*/

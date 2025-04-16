@@ -1919,7 +1919,7 @@ options {
     testLiterals =false;
     caseSensitiveLiterals=false;
     exportVocab=GDL;
-    k=3;
+    k=4;
     defaultErrorHandler = false;
 //    defaultErrorHandler = true;
 //      analyzerDebug=true;
@@ -2140,7 +2140,7 @@ INCLUDE!
         }
     ;
 
-AND_OP_EQ: { LA(4) == '='}? "and="; 
+AND_OP_EQ: "and="; 
 ASTERIX_EQ:"*=";
 EQ_OP_EQ:"eq=";
 GE_OP_EQ:"ge=";
@@ -2152,13 +2152,13 @@ LT_OP_EQ:"lt=";
 MATRIX_OP1_EQ:"#=";
 MATRIX_OP2_EQ:"##=";
 MINUS_EQ:"-=";
-MOD_OP_EQ: { LA(4) == '='}? "mod=";
+MOD_OP_EQ: "mod=";
 NE_OP_EQ:"ne=";
 OR_OP_EQ:"or=";
 PLUS_EQ:"+=";
 POW_EQ:"^=";
 SLASH_EQ:"/=";
-XOR_OP_EQ: { LA(4) == '='}? "xor=";
+XOR_OP_EQ: "xor=";
 
 MATRIX_OP1:'#';
 MATRIX_OP2:"##";
