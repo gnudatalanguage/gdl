@@ -2,7 +2,7 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: String.cpp,v 1.1.1.1 2004-12-09 15:10:20 m_schellens Exp $
+ * $Id: //depot/code/org.antlr/release/antlr-2.7.7/lib/cpp/src/String.cpp#2 $
  */
 
 #include "antlr/String.hpp"
@@ -18,12 +18,27 @@
 #ifdef ANTLR_CXX_SUPPORTS_NAMESPACE
 namespace antlr {
 #endif
+
+// wh: hack for Borland C++ 5.6
+#if __BORLANDC__
+  using std::sprintf;
+#endif
+
+
+// RK: should be using snprintf actually... (or stringstream)
 ANTLR_C_USING(sprintf)
 
 ANTLR_USE_NAMESPACE(std)string operator+( const ANTLR_USE_NAMESPACE(std)string& lhs, const int rhs )
 {
 	char tmp[100];
-	snprintf(tmp,100,"%d",rhs);
+	sprintf(tmp,"%d",rhs);
+	return lhs+tmp;
+}
+
+ANTLR_USE_NAMESPACE(std)string operator+( const ANTLR_USE_NAMESPACE(std)string& lhs, size_t rhs )
+{
+	char tmp[100];
+	sprintf(tmp,"%u",rhs);
 	return lhs+tmp;
 }
 
@@ -37,6 +52,8 @@ ANTLR_USE_NAMESPACE(std)string charName(int ch)
 	{
 		ANTLR_USE_NAMESPACE(std)string s;
 
+		// when you think you've seen it all.. an isprint that crashes...
+		ch = ch & 0xFF;
 #ifdef ANTLR_CCTYPE_NEEDS_STD
 		if( ANTLR_USE_NAMESPACE(std)isprint( ch ) )
 #else

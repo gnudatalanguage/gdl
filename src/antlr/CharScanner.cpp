@@ -2,7 +2,7 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: CharScanner.cpp,v 1.1.1.1 2004-12-09 15:10:20 m_schellens Exp $
+ * $Id: //depot/code/org.antlr/release/antlr-2.7.7/lib/cpp/src/CharScanner.cpp#2 $
  */
 
 #include <iostream>
@@ -49,46 +49,6 @@ CharScanner::CharScanner( const LexerSharedInputState& state, bool case_sensitiv
 	, traceDepth(0)
 {
 	setTokenObjectFactory(&CommonToken::factory);
-}
-
-void CharScanner::consume()
-{
-	if (inputState->guessing == 0)
-	{
-		int c = LA(1);
-		if (caseSensitive)
-		{
-			append(c);
-		}
-		else
-		{
-			// use input.LA(), not LA(), to get original case
-			// CharScanner.LA() would toLower it.
-			append(inputState->getInput().LA(1));
-		}
-
-		// RK: in a sense I don't like this automatic handling.
-		if (c == '\t')
-			tab();
-		else
-			inputState->column++;
-	}
-	inputState->getInput().consume();
-}
-
-//bool CharScanner::getCaseSensitiveLiterals() const
-//{ return caseSensitiveLiterals; }
-
-void CharScanner::panic()
-{
-	ANTLR_USE_NAMESPACE(std)cerr << "CharScanner: panic" << ANTLR_USE_NAMESPACE(std)endl;
-	exit(1);
-}
-
-void CharScanner::panic(const ANTLR_USE_NAMESPACE(std)string& s)
-{
-	ANTLR_USE_NAMESPACE(std)cerr << "CharScanner: panic: " << s.c_str() << ANTLR_USE_NAMESPACE(std)endl;
-	exit(1);
 }
 
 /** Report exception errors caught in nextToken() */

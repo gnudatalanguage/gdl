@@ -5,12 +5,13 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: CircularQueue.hpp,v 1.1.1.1 2004-12-09 15:10:20 m_schellens Exp $
+ * $Id: //depot/code/org.antlr/release/antlr-2.7.7/lib/cpp/antlr/CircularQueue.hpp#2 $
  */
 
 #include <antlr/config.hpp>
 #include <antlr/Token.hpp>
 #include <vector>
+#include <cassert>
 
 #ifdef ANTLR_CXX_SUPPORTS_NAMESPACE
 namespace antlr {
@@ -39,7 +40,7 @@ public:
 	}
 
 	/// @todo this should use at or should have a check
-	inline T elementAt( unsigned int idx ) const
+	inline T elementAt( size_t idx ) const
 	{
 		return storage[idx+m_offset];
 	}
@@ -53,8 +54,20 @@ public:
 		else
 			++m_offset;
 	}
-	inline void removeItems( unsigned int nb )
+	inline void removeItems( size_t nb )
 	{
+		// it would be nice if we would not get called with nb > entries
+		// (or to be precise when entries() == 0)
+		// This case is possible when lexer/parser::recover() calls
+		// consume+consumeUntil when the queue is empty.
+		// In recover the consume says to prepare to read another
+		// character/token. Then in the subsequent consumeUntil the
+		// LA() call will trigger
+		// syncConsume which calls this method *before* the same queue
+		// has been sufficiently filled.
+		if( nb > entries() )
+			nb = entries();
+
 		if (m_offset >= OFFSET_MAX_RESIZE)
 		{
 			storage.erase( storage.begin(), storage.begin() + m_offset + nb );
@@ -67,14 +80,14 @@ public:
 	{
 		storage.push_back(t);
 	}
-	inline unsigned int entries() const
+	inline size_t entries() const
 	{
 		return storage.size() - m_offset;
 	}
 
 private:
-	typename ANTLR_USE_NAMESPACE(std)vector<T> storage;
-	unsigned int m_offset;
+	ANTLR_USE_NAMESPACE(std)vector<T> storage;
+	size_t m_offset;
 
 	CircularQueue(const CircularQueue&);
 	const CircularQueue& operator=(const CircularQueue&);

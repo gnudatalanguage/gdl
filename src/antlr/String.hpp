@@ -5,7 +5,7 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: String.hpp,v 1.1.1.1 2004-12-09 15:10:20 m_schellens Exp $
+ * $Id: //depot/code/org.antlr/release/antlr-2.7.7/lib/cpp/antlr/String.hpp#2 $
  */
 
 #include <antlr/config.hpp>
@@ -15,9 +15,10 @@
 namespace antlr {
 #endif
 
-ANTLR_API ANTLR_USE_NAMESPACE(std)string operator+(const ANTLR_USE_NAMESPACE(std)string& lhs,const int rhs);
+ANTLR_API ANTLR_USE_NAMESPACE(std)string operator+( const ANTLR_USE_NAMESPACE(std)string& lhs, const int rhs );
+ANTLR_API ANTLR_USE_NAMESPACE(std)string operator+( const ANTLR_USE_NAMESPACE(std)string& lhs, size_t rhs );
 
-ANTLR_API ANTLR_USE_NAMESPACE(std)string charName(int ch);
+ANTLR_API ANTLR_USE_NAMESPACE(std)string charName( int ch );
 
 #ifdef ANTLR_CXX_SUPPORTS_NAMESPACE
 }

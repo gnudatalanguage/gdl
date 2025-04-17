@@ -5,7 +5,7 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: TreeParser.hpp,v 1.1.1.1 2004-12-09 15:10:21 m_schellens Exp $
+ * $Id: //depot/code/org.antlr/release/antlr-2.7.7/lib/cpp/antlr/TreeParser.hpp#2 $
  */
 
 #include <antlr/config.hpp>
@@ -13,6 +13,7 @@
 #include <antlr/ASTFactory.hpp>
 #include <antlr/BitSet.hpp>
 #include <antlr/RecognitionException.hpp>
+#include <antlr/MismatchedTokenException.hpp>
 #include <antlr/TreeParserSharedInputState.hpp>
 
 #ifdef ANTLR_CXX_SUPPORTS_NAMESPACE
@@ -21,18 +22,37 @@ namespace antlr {
 
 class ANTLR_API TreeParser {
 public:
-	TreeParser();
-	TreeParser(const TreeParserSharedInputState& state);
-	virtual ~TreeParser();
+	TreeParser()
+	: astFactory(0)
+	, inputState(new TreeParserInputState())
+	, traceDepth(0)
+	{
+	}
+
+	TreeParser(const TreeParserSharedInputState& state)
+	: astFactory(0)
+	, inputState(state)
+	, traceDepth(0)
+	{
+	}
+
+	virtual ~TreeParser()
+	{
+	}
 
 	/// Get the AST return value squirreled away in the parser
 	virtual RefAST getAST() = 0;
 
 	/** Make sure current lookahead symbol matches the given set
-	 * Throw an exception upon mismatch, which is catch by either the
-	 * error handler or by the syntactic predicate.
+	 * Throw an exception upon mismatch, which is caught by either the
+	 * error handler or by a syntactic predicate.
 	 */
-	virtual void match(RefAST t, const BitSet& b);
+	virtual void match(RefAST t, const BitSet& b)
+	{
+		if ( !t || t==ASTNULL || !b.member(t->getType()) )
+			throw MismatchedTokenException( getTokenNames(), getNumTokens(),
+													  t, b, false );
+	}
 
 	/** Specify the AST factory to be used during tree building. (Compulsory)
 	 * Setting the factory is compulsory (if you intend to modify
@@ -62,10 +82,6 @@ public:
 	virtual void reportError(const ANTLR_USE_NAMESPACE(std)string& s);
 	/// Parser warning-reporting function can be overridden in subclass
 	virtual void reportWarning(const ANTLR_USE_NAMESPACE(std)string& s);
-	/** Give panic message and exit the program. can be overridden in subclass
-	 * @deprecated this method is unused and will dissappear in the next release
-	 */
-	virtual void panic();
 
 	/// These are used during when traceTreeParser commandline option is passed.
 	virtual void traceIndent();
@@ -80,13 +96,20 @@ public:
 	static RefAST ASTNULL;
 
 protected:
-	virtual void match(RefAST t, int ttype);
-	virtual void matchNot(RefAST t, int ttype);
+	virtual void match(RefAST t, int ttype)
+	{
+		if (!t || t == ASTNULL || t->getType() != ttype )
+			throw MismatchedTokenException( getTokenNames(), getNumTokens(),
+													  t, ttype, false );
+	}
 
-	/* Where did this rule leave off parsing; avoids a return parameter */
-	//RefAST _retTree;
-	/* AST return value for a rule is squirreled away here */
-	//RefAST returnAST;
+	virtual void matchNot(RefAST t, int ttype)
+	{
+		if ( !t || t == ASTNULL || t->getType() == ttype )
+			throw MismatchedTokenException( getTokenNames(), getNumTokens(),
+													  t, ttype, true );
+	}
+
 	/** AST support code; parser and treeparser delegate to this object */
 	ASTFactory* astFactory;
 
