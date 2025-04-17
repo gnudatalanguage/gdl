@@ -69,9 +69,6 @@ header {
 #include <antlr/TokenStreamIOException.hpp>
 #include <antlr/CharInputBuffer.hpp>
 
-// GD: set to 1 to traceout what the Parser does.
-#define debugParser 0
-//#include "dinterpreter.hpp"
 
 // definition in dinterpreter.cpp
 void MemorizeCompileOptForMAINIfNeeded( unsigned int cOpt);
@@ -308,7 +305,6 @@ translation_unit
 { 
     subReached=false;
     compileOpt=NONE; // reset compileOpt    
-    if (debugParser) std::cout << " translation_unit" << std::endl;
 }
     :   ( options {greedy=true;}: end_unit
         | forward_function end_unit
@@ -370,7 +366,6 @@ translation_unit
 // to give a more precise error message
 // interactive compilation is not allowed
 interactive_compile!
-{    if (debugParser) std::cout << " interactive_compile! " << std::endl; }
     : (FUNCTION | PRO)
         IDENTIFIER 
         {
@@ -384,8 +379,6 @@ interactive_compile!
 
 // interactive usage
 interactive
-{    if (debugParser) std::cout << " interactive " << std::endl; }
-
     :   ( end_unit (end_mark)? 
         | interactive_statement
         | interactive_compile
@@ -431,7 +424,6 @@ interactive
 // compound statements in the original don't care about the specific end_mark
 // in interactive mode end need not to be there and labels are ignored
 interactive_statement
-{    if (debugParser) std::cout << " interactive_statement " << std::endl; }
   :  (BEGIN! | IDENTIFIER! COLON!)* 
     statement end_unit
   ;
@@ -443,7 +435,6 @@ interactive_statement
 switch_statement
 {
     int numBranch=0;
-    if (debugParser) std::cout  << " switch_statement " << std::endl; 
 }
     : SWITCH^ expr OF! (end_unit)? 
         (switch_body
@@ -458,21 +449,19 @@ switch_statement
     ;
 
 switch_body
-{    if (debugParser) std::cout  << " switch_body " << std::endl; }
     : expr COLON! 
         ( statement
         | BEGIN! statement_list endswitch_mark)? end_unit
-        { #switch_body = #([BLOCK, "block"], #switch_body); if (debugParser) std::cout<<std::endl;}
+        { #switch_body = #([BLOCK, "block"], #switch_body);}
     | ELSE! COLON! 
         ( statement
         | BEGIN! statement_list endswitchelse_mark)? end_unit
-        { #switch_body = #([ELSEBLK, "elseblk"], #switch_body); if (debugParser) std::cout<<std::endl;}
+        { #switch_body = #([ELSEBLK, "elseblk"], #switch_body); }
     ;    
 
 case_statement
 {
     int numBranch=0;
-    if (debugParser) std::cout  << " case_statement " << std::endl; 
 }
     : CASE^ expr OF! (end_unit)? 
         (case_body
@@ -482,55 +471,49 @@ case_statement
         )*
         endcase_mark
         {
-        #CASE->SetNumBranch(numBranch); if (debugParser) std::cout<<std::endl;
+        #CASE->SetNumBranch(numBranch); 
         }
     ;
 
 case_body
-{    if (debugParser) std::cout  << " case_body " << std::endl; }
     : expr COLON! 
         (statement
         | BEGIN! statement_list endcase_mark)? end_unit
-        { #case_body = #([BLOCK, "block"], #case_body); if (debugParser) std::cout<<std::endl;}
+        { #case_body = #([BLOCK, "block"], #case_body); }
     | ELSE! COLON! 
         (statement
         | BEGIN! statement_list endcaseelse_mark)? end_unit
-        { #case_body = #([ELSEBLK, "elseblk"], #case_body); if (debugParser) std::cout<<std::endl;}
+        { #case_body = #([ELSEBLK, "elseblk"], #case_body); }
     ;
 
 // whereever one END_U is there might be more
 // end_unit is syntactical necessary, but not for the AST
 end_unit!
-{    if (debugParser) std::cout  << " end_unit!" << std::endl; }
     : (options {greedy=true;}: END_U)+
     ;
 
 
 forward_function
-{    if (debugParser) std::cout  << " forward_function -> " /* << std::endl */; }
   : FORWARD^ identifier_list
   ;
 
 
 parameter_declaration
-{    if (debugParser) std::cout  << " parameter_declaration -> " /* << std::endl */; }
     : (IDENTIFIER | keyword_declaration) 
         (COMMA! (IDENTIFIER | keyword_declaration))*
         { #parameter_declaration = 
-            #([PARADECL,"paradecl"], #parameter_declaration); if (debugParser) std::cout<<std::endl;}
+            #([PARADECL,"paradecl"], #parameter_declaration); }
     ;
     
     
 keyword_declaration
-{    if (debugParser) std::cout  << " keyword_declaration -> " /* << std::endl */; }
     : IDENTIFIER EQUAL! IDENTIFIER
         { #keyword_declaration =
-            #([KEYDECL,"keydecl"], #keyword_declaration); if (debugParser) std::cout<<std::endl;}
+            #([KEYDECL,"keydecl"], #keyword_declaration); }
     ;
 
 protected
 object_name! returns [std::string name] // !//
-{    if (debugParser) std::cout  << " object_name! -> " /* << std::endl */; }
       : i1:IDENTIFIER m:METHOD i2:IDENTIFIER
         { 
         // here we translate IDL_OBECT to GDL_OBJECT for source code compatibility
@@ -542,14 +525,13 @@ object_name! returns [std::string name] // !//
         }
 
             #object_name = #(NULL, i2, m, i1); // NULL -> no root
-            name= std::string( i1->getText()+"__"+i2->getText()); if (debugParser) std::cout<<std::endl;
+            name= std::string( i1->getText()+"__"+i2->getText()); 
         }
       ;    
 
 procedure_def
 {
     std::string name;
-    if (debugParser) std::cout  << " procedure_def -> " /* << std::endl */; 
 }
     : p:PRO^
         ( n:IDENTIFIER { name=n->getText(); }
@@ -559,14 +541,13 @@ procedure_def
         (statement_list)? END!
         { 
             if( subName == name && searchForPro == true) subReached=true;
-            #p->SetCompileOpt( compileOpt); if (debugParser) std::cout<<std::endl;
+            #p->SetCompileOpt( compileOpt); 
         }
   ;
 
 function_def
 {
     std::string name;
-    if (debugParser) std::cout  << " function_def -> " /* << std::endl */; 
 }
     : f:FUNCTION^
         ( n:IDENTIFIER { name=n->getText(); }
@@ -576,13 +557,12 @@ function_def
         (statement_list)? END!
         { 
             if( subName == name && searchForPro == false) subReached=true;
-            #f->SetCompileOpt( compileOpt); if (debugParser) std::cout<<std::endl;
+            #f->SetCompileOpt( compileOpt); 
         }
     ;
 
 // change defaultbehaviour of the compiling
 compile_opt!
-{    if (debugParser) std::cout  << " compile_opt! -> " /* << std::endl */; }
     : COMPILE_OPT i:IDENTIFIER 
         {
             AddCompileOpt( i->getText());
@@ -595,23 +575,20 @@ compile_opt!
     ;
 
 common_block
-{    if (debugParser) std::cout  << " common_block -> " /* << std::endl */; }
     : COMMON! IDENTIFIER 
         (
-            { #common_block = #([COMMONDECL,"commondecl"], #common_block); if (debugParser) std::cout<<std::endl;}
+            { #common_block = #([COMMONDECL,"commondecl"], #common_block); }
         | COMMA! identifier_list
-            { #common_block = #([COMMONDEF,"commondef"], #common_block); if (debugParser) std::cout<<std::endl;}
+            { #common_block = #([COMMONDEF,"commondef"], #common_block); }
         )
     ;
 
 identifier_list
-{    if (debugParser) std::cout  << " identifier_list -> " /* << std::endl */; }
     : IDENTIFIER (COMMA! IDENTIFIER)*
     ;
 
 // no ASTs for end marks
 end_mark!
-{    if (debugParser) std::cout  << " end_mark! -> " /* << std::endl */; }
     : END
     | ENDIF
     | ENDELSE
@@ -624,82 +601,67 @@ end_mark!
     ;
 
 endforeach_mark!
-{    if (debugParser) std::cout  << " endforeach_mark! " << std::endl; }
     : ENDFOREACH | END
     ;
 
 endfor_mark!
-{    if (debugParser) std::cout  << " endfor_mark! " << std::endl; }
     : ENDFOR | END
     ;
 
 endrep_mark!
-{    if (debugParser) std::cout  << " endrep_mark! " << std::endl; }
     : ENDREP | END
     ;
 
 endwhile_mark!
-{    if (debugParser) std::cout  << " endwhile_mark! " << std::endl; }
     : ENDWHILE | END
     ;
 
 endif_mark!
-{    if (debugParser) std::cout  << " endif_mark! " << std::endl; }
     : ENDIF    | END
     ;
 
 endelse_mark!
-{    if (debugParser) std::cout  << " endelse_mark! " << std::endl; }
     : ENDELSE | END
     ;
 
 endcase_mark!
-{    if (debugParser) std::cout  << " endcase_mark! " << std::endl; }
     : ENDCASE | END
     ;
 
 endcaseelse_mark!
-{    if (debugParser) std::cout  << " endcaseelse_mark! " << std::endl; }
     : endcase_mark | ENDELSE
     ;
 
 endswitch_mark!
-{    if (debugParser) std::cout  << " endswitch_mark! " << std::endl; }
     : ENDSWITCH | END
     ;
 
 endswitchelse_mark!
-{    if (debugParser) std::cout  << " endswitchelse_mark! " << std::endl; }
     : endswitch_mark | ENDELSE
     ;
 
 statement_list
-{    if (debugParser) std::cout  << " statement_list -> " /* << std::endl */; }
     : (end_unit 
         | compound_statement end_unit 
         | label_statement end_unit)+
     ;
 
 label
-{    if (debugParser) std::cout  << " label -> " /* << std::endl */; }
       : IDENTIFIER^ COLON
       ;
 
 label_statement
-{    if (debugParser) std::cout  << " label_statement -> " /* << std::endl */; }
     : (label)+ (compound_statement)?
     ;
 
 // compound statements don't care about the specific end_mark
 compound_statement
-{    if (debugParser) std::cout  << " compound_statement -> " /* << std::endl */; }
     : statement
     | BEGIN! statement_list end_mark
-        { #compound_statement = #([BLOCK, "block"], #compound_statement); if (debugParser) std::cout<<std::endl;}
+        { #compound_statement = #([BLOCK, "block"], #compound_statement); }
     ;
 
 baseclass_method
-{    if (debugParser) std::cout  << " baseclass_method -> " /* << std::endl */; }
     : s:IDENTIFIER METHOD!
         // here we translate IDL_OBECT to GDL_OBJECT for source code compatibility
         {
@@ -714,22 +676,20 @@ statement
 // assignment and member_procedure_call starting with deref_expr
 {
     bool parent=false;
-    if (debugParser) std::cout << " statement -> " /* << std::endl */; 
 }
     : (assign_expr)=> assign_expr (DEC^ | INC^)?
     | (deref_dot_expr_keeplast IDENTIFIER COMMA)=>
         d1:deref_dot_expr_keeplast formal_procedure_call
                 { 
                         #statement = #([MPCALL, "mpcall"], #statement);
-                        #statement->SetLine( #d1->getLine()); if (debugParser) std::cout<<" statement : \""<<LT(0)->getText()<<"\""<<std::endl;
-
+                        #statement->SetLine( #d1->getLine());
                 }
     | (deref_dot_expr_keeplast baseclass_method)=>
         d2:deref_dot_expr_keeplast baseclass_method formal_procedure_call
                 { 
                         #statement = #([MPCALL_PARENT, "mpcall::"], 
                                         #statement);
-                        #statement->SetLine( #d2->getLine()); if (debugParser) std::cout<<" statement : \""<<LT(0)->getText()<<"\""<<std::endl;
+                        #statement->SetLine( #d2->getLine());
                 }
     | ( deref_expr
                 ( EQUAL
@@ -759,7 +719,7 @@ statement
       )=>
         deref_expr
             (EQUAL! expr             
-                { #statement = #([ASSIGN,":="], #statement); if (debugParser) std::cout<<" statement : \""<<LT(0)->getText()<<"\""<<std::endl;}
+                { #statement = #([ASSIGN,":="], #statement);}
             |   ( AND_OP_EQ^ 
                 | ASTERIX_EQ^ 
                 | EQ_OP_EQ^ 
@@ -789,13 +749,12 @@ statement
                                         #statement); 
                     else
                         #statement = #([MPCALL, "mpcall"], #statement);
-		if (debugParser) std::cout<<"statement : \""<<LT(0)->getText()<<"\""<<std::endl;
                 }
             )
     | d3:deref_dot_expr_keeplast formal_procedure_call
                 { 
                     #statement = #([MPCALL, "mpcall"], #statement);
-                    #statement->SetLine( #d3->getLine()); if (debugParser) std::cout<<" statement : \""<<LT(0)->getText()<<"\""<<std::endl;
+                    #statement->SetLine( #d3->getLine());
                 }
     | (DEC^ | INC^) expr
     | procedure_call // next two handled by procedure_call also
@@ -816,7 +775,6 @@ statement
 
 
 repeat_statement
-{    if (debugParser) std::cout << " repeat_statement " << std::endl; }
     : REPEAT^ 
         repeat_block
         UNTIL! expr
@@ -824,16 +782,14 @@ repeat_statement
 
 
 repeat_block
-{    if (debugParser) std::cout << " repeat_block " << std::endl; }
     : st:statement
-        { #repeat_block = #([BLOCK, "block"], #st); if (debugParser) std::cout<<std::endl;}
+        { #repeat_block = #([BLOCK, "block"], #st); }
     | BEGIN! stl:statement_list endrep_mark
-        { #repeat_block = #([BLOCK, "block"], #stl); if (debugParser) std::cout<<std::endl;}
+        { #repeat_block = #([BLOCK, "block"], #stl); }
     ;
 
 
 while_statement
-{    if (debugParser) std::cout << " while_statement " << std::endl; }
     : WHILE^
         expr DO! 
         while_block
@@ -841,15 +797,13 @@ while_statement
 
 
 while_block
-{    if (debugParser) std::cout << " while_block " << std::endl; }
     : statement 
     | BEGIN! statement_list endwhile_mark
-        { #while_block = #([BLOCK, "block"], #while_block); if (debugParser) std::cout<<std::endl;}
+        { #while_block = #([BLOCK, "block"], #while_block); }
     ;
 
 
 for_statement
-{    if (debugParser) std::cout << " for_statement " << std::endl; }
     : FOR^ IDENTIFIER EQUAL! expr COMMA! expr 
         (COMMA! expr)? DO!
         for_block
@@ -857,35 +811,30 @@ for_statement
 
 // GD reverted (below) to historical version as the following, while permitting #52 creates #1599 and #1608
 //for_block
-//{    if (debugParser) std::cout << " for_block " << std::endl; }
 //    :
-//      (BEGIN statement)=> (BEGIN! stb:statement) { #for_block = #([BLOCK, "block"], #stb); if (debugParser) std::cout<<std::endl;}
-//    |  BEGIN! stl:statement_list endfor_mark { #for_block = #([BLOCK, "block"], #stl); if (debugParser) std::cout<<std::endl;}
-//    |  st:statement { #for_block = #([BLOCK, "block"], #st); if (debugParser) std::cout<<std::endl;}
+//      (BEGIN statement)=> (BEGIN! stb:statement) { #for_block = #([BLOCK, "block"], #stb); }
+//    |  BEGIN! stl:statement_list endfor_mark { #for_block = #([BLOCK, "block"], #stl); }
+//    |  st:statement { #for_block = #([BLOCK, "block"], #st); }
 //    ;    
 
 for_block
-{    if (debugParser) std::cout << " for_block " << std::endl; }
-    :  st:statement { #for_block = #([BLOCK, "block"], #st); if (debugParser) std::cout<<std::endl;}
-    |  BEGIN! stl:statement_list endfor_mark { #for_block = #([BLOCK, "block"], #stl); if (debugParser) std::cout<<std::endl;}
+    :  st:statement { #for_block = #([BLOCK, "block"], #st); }
+    |  BEGIN! stl:statement_list endfor_mark { #for_block = #([BLOCK, "block"], #stl); }
     ;    
 
 foreach_statement
-{    if (debugParser) std::cout << " foreach_statement " << std::endl; }
     : FOREACH^ IDENTIFIER COMMA! expr (COMMA! IDENTIFIER)? DO!
         foreach_block
     ;
 
 foreach_block
-{    if (debugParser) std::cout << " foreach_block " << std::endl; }
     : st:statement
-        { #foreach_block = #([BLOCK, "block"], #st); if (debugParser) std::cout<<std::endl;}
+        { #foreach_block = #([BLOCK, "block"], #st); }
     | BEGIN! stl:statement_list endforeach_mark
-        { #foreach_block = #([BLOCK, "block"], #stl); if (debugParser) std::cout<<std::endl;}
+        { #foreach_block = #([BLOCK, "block"], #stl); }
     ;    
 
 jump_statement
-{    if (debugParser) std::cout << " jump_statement " << std::endl; }
     : GOTO^ COMMA! IDENTIFIER
 // now handled as a procedure_call because RETURN is no reserved word
 //    | RETURN^ (COMMA! expr)?
@@ -894,7 +843,6 @@ jump_statement
 
 // the classical greedy case (match ELSE as soon as possible)
 if_statement
-{    if (debugParser) std::cout << " if_statement " << std::endl; }
     : IF^ expr THEN!
         if_block
         ( options {greedy=true;}: ELSE! 
@@ -904,28 +852,24 @@ if_statement
 
 
 if_block
-{    if (debugParser) std::cout << " if_block " << std::endl; }
     : statement 
     | BEGIN! statement_list endif_mark
-        { #if_block = #([BLOCK, "block"], #if_block); if (debugParser) std::cout<<std::endl;}
+        { #if_block = #([BLOCK, "block"], #if_block); }
     ;
 
 
 else_block
-{    if (debugParser) std::cout << " else_block " << std::endl; }
     : statement
     | BEGIN! statement_list endelse_mark
-        { #else_block = #([BLOCK, "block"], #else_block); if (debugParser) std::cout<<std::endl;}
+        { #else_block = #([BLOCK, "block"], #else_block); }
     ;
 
 formal_procedure_call
-{    if (debugParser) std::cout << " formal_procedure_call -> " /* << std::endl */; }
     : IDENTIFIER (COMMA! parameter_def_list)?
     ;    
 
 // must handle RETURN, BREAK, CONTINUE also
 procedure_call!//
-{    if (debugParser) std::cout << " procedure_call! -> " /* << std::endl */; }
 // was:
 // formal_procedure_call
     : id:IDENTIFIER 
@@ -934,21 +878,21 @@ procedure_call!//
             { 
                 #id->setType(RETURN); // text is already "return"
                 #procedure_call = #( #id, #e); // make root
-             if (debugParser) std::cout<<" procedure_call : \""<<LT(0)->getText()<<"\""<<std::endl;}
+            }
         | {id->getText() == "BREAK"}?
             {
                 #id->setType(BREAK); // text is already "break"
-                #procedure_call = #id; if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                #procedure_call = #id;
             }
         | {id->getText() == "CONTINUE"}?
             {
                 #id->setType(CONTINUE); // text is already "continue"
-                #procedure_call = #id; if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                #procedure_call = #id;
             }
         | (COMMA! pa:parameter_def_list)? 
         { 
             #procedure_call = #([PCALL, "pcall"], #id, #pa);
-            #procedure_call->SetLine(id->getLine()); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+            #procedure_call->SetLine(id->getLine());
         }
         )
     ;    
@@ -957,15 +901,13 @@ procedure_call!//
 // but as arrays got priority, only real function calls need
 // to be handled here
 formal_function_call
-{    if (debugParser) std::cout << " formal_function_call -> " /* << std::endl */; }
     : IDENTIFIER LBRACE! (parameter_def_list)? RBRACE!
     ;
 
 parameter_def
-{    if (debugParser) std::cout << " parameter_def -> " /* << std::endl */; }
 //    : IDENTIFIER EQUAL! expr
     : identifier EQUAL! expr
-        { #parameter_def = #([KEYDEF,"!=!"], #parameter_def); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+        { #parameter_def = #([KEYDEF,"!=!"], #parameter_def);}
     | expr
 //    | SLASH! id:IDENTIFIER
     | SLASH! id:identifier
@@ -973,12 +915,11 @@ parameter_def
             RefDNode c=static_cast<RefDNode>( #[CONSTANT,"1"]);
             c->Text2Int(10);
             c->SetLine( #id->getLine());
-            #parameter_def = #([KEYDEF,"!=!"], id, c); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+            #parameter_def = #([KEYDEF,"!=!"], id, c);
         }
     ;
 
 parameter_def_list
-{    if (debugParser) std::cout << " parameter_def_list -> " /* << std::endl */; }
     : parameter_def ( COMMA! parameter_def)*
     ;
 
@@ -987,7 +928,6 @@ array_def
 {
 bool constant = true;
 int flexible_array_def_count=1;
-    if (debugParser) std::cout << " array_def -> " /* << std::endl */; 
 }
     : LSQUARE! e:expr {if( !ConstantExprNode( #e->getType())) constant = false;}
       (
@@ -996,18 +936,17 @@ int flexible_array_def_count=1;
               if( constant)
               #array_def = #([ARRAYDEF_CONST, "array_def_const"], #array_def);
               else
-              #array_def = #([ARRAYDEF, "array_def"], #array_def); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+              #array_def = #([ARRAYDEF, "array_def"], #array_def);
             }
         | (COLON! eee:expr {flexible_array_def_count++;})+ RSQUARE!
           {
             if (flexible_array_def_count>3 || flexible_array_def_count<2) throw GDLException( "Illegal array creation syntax.");
-            #array_def = #([ARRAYDEF_GENERALIZED_INDGEN, "array_def_generalized_indgen"], #array_def); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+            #array_def = #([ARRAYDEF_GENERALIZED_INDGEN, "array_def_generalized_indgen"], #array_def);
           } 
       )
     ;
 
 struct_identifier
-{    if (debugParser) std::cout << " struct_identifier -> " /* << std::endl */; }
     :   ( IDENTIFIER 
         | s:SYSVARNAME  { #s->setType( IDENTIFIER);}  
         | e:EXCLAMATION { #e->setType( IDENTIFIER);}  
@@ -1019,7 +958,6 @@ struct_identifier
     ;
 
 struct_name
-{    if (debugParser) std::cout << " struct_name -> " /* << std::endl */; }
     :   s:struct_identifier
         // here we translate IDL_OBECT to GDL_OBJECT for source code compatibility
         {
@@ -1031,47 +969,40 @@ struct_name
     ;
 
 struct_def
-{    if (debugParser) std::cout << " struct_def -> " /* << std::endl */; }
     : LCURLY! 
         (struct_name (COMMA! named_tag_def_list)? RCURLY!
             { #struct_def = 
-                #([NSTRUC_REF, "nstruct_ref"], #struct_def); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+                #([NSTRUC_REF, "nstruct_ref"], #struct_def);}
         | tag_def_list RCURLY!
             { #struct_def = 
-                #([STRUC, "struct"], #struct_def); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+                #([STRUC, "struct"], #struct_def);}
         )
     ;
 
 tag_def
-{    if (debugParser) std::cout << " tag_def -> " /* << std::endl */; }
     : struct_identifier COLON! expr    
     ;    
 
 tag_def_list
-{    if (debugParser) std::cout << " tag_def_list -> " /* << std::endl */; }
     : tag_def (options {greedy=true;} : COMMA! tag_def)*
     ;    
 
 ntag_def
-{    if (debugParser) std::cout << " ntag_def -> " /* << std::endl */; }
     : tag_def
     | expr // for named structs, just the definition is ok
     ;    
 
 ntag_defs
-{    if (debugParser) std::cout << " ntag_defs -> " /* << std::endl */; }
     : ntag_def (options {greedy=true;} : COMMA! ntag_def)*
     ;    
 
 named_tag_def_entry
-{    if (debugParser) std::cout << " named_tag_def_entry -> " /* << std::endl */; }
     :   ( (INHERITS) => INHERITS struct_name
         | ntag_def
         )
     ;
 
 named_tag_def_list
-{    if (debugParser) std::cout << " named_tag_def_list -> " /* << std::endl */; }
     : named_tag_def_entry ( COMMA! named_tag_def_entry)*
     ;    
 
@@ -1357,20 +1288,17 @@ numeric_constant
 arrayindex_list
 {        
     int rank = 1;
-    if (debugParser) std::cout << " arrayindex_list -> " /* << std::endl */; 
 }
     : LSQUARE! arrayindex ({++rank <= MAXRANK}? COMMA! arrayindex)* RSQUARE!
     | { IsRelaxed()}? LBRACE! arrayindex ({++rank <= MAXRANK}? COMMA! arrayindex)* RBRACE!
     ;    
 
 all_elements!
-{    if (debugParser) std::cout << " all_elements! -> " /* << std::endl */; }
-    : ASTERIX { #all_elements = #([ALL,"*"]); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+    : ASTERIX { #all_elements = #([ALL,"*"]);}
     ;
 
 // used only from arrayindex_list
 arrayindex
-{    if (debugParser) std::cout << " arrayindex -> " /* << std::endl */; }
   : ((ASTERIX (COMMA|{ IsRelaxed()}? RBRACE|RSQUARE))=> all_elements
     | expr
          (COLON! 
@@ -1389,29 +1317,27 @@ arrayindex
               )?
          )?
     )
-    { #arrayindex = #([ARRAYIX,"arrayix"], #arrayindex); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+    { #arrayindex = #([ARRAYIX,"arrayix"], #arrayindex);}
     ;
 
 // the expressions *************************************
 
 // system variable name
 sysvar
-{    if (debugParser) std::cout << " sysvar -> " /* << std::endl */; }
   : SYSVARNAME
-    { #sysvar = #([SYSVAR,"SYSVAR"],sysvar); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+    { #sysvar = #([SYSVAR,"SYSVAR"],sysvar);}
       ;
 
 // variable name
 var!
-{    if (debugParser) std::cout << " var: " /* << std::endl */; }
     :   ( id:IDENTIFIER
             {
-                #var = #([VAR,"VAR"],id); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                #var = #([VAR,"VAR"],id);
             }
         | ih:INHERITS 
             { 
                 #ih->setType( IDENTIFIER);
-                #var = #([VAR,"VAR"],ih); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                #var = #([VAR,"VAR"],ih);
             }  
         // fake IDENTIFIER (variable name can be "INHERITS")
         )
@@ -1422,14 +1348,13 @@ var!
 brace_expr
     :  LBRACE! expr RBRACE!       
         { #brace_expr = 
-            #([EXPR,"expr"], #brace_expr); if (debugParser) std::cout<<"brace_expr: \""<<LT(0)->getText()<<"\""<<std::endl;
+            #([EXPR,"expr"], #brace_expr);
                 }
     ;
 
 // only used in deref_expr
 // sysvar or expr (first in struct access - therefore the name)
 array_expr_1st_sub
-{    if (debugParser) std::cout << " array_expr_1st_sub -> " /* << std::endl */; }
     // a variable MUST be already defined here
     :  var 
     |  sysvar 
@@ -1437,37 +1362,33 @@ array_expr_1st_sub
     ;
 
 array_expr_1st!
-{    if (debugParser) std::cout << " array_expr_1st! -> " /* << std::endl */; }
 // a variable MUST be already defined here
     : e:array_expr_1st_sub
         ( al:arrayindex_list
             { #array_expr_1st = 
-                #([ARRAYEXPR,"arrayexpr"], #e, #al); if (debugParser) std::cout<<" array_expr_1st: \""<<LT(0)->getText()<<"\""<<std::endl;}
+                #([ARRAYEXPR,"arrayexpr"], #e, #al);}
         | // empty
-            { #array_expr_1st = #e; if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+            { #array_expr_1st = #e;}
         )
     ;    
 
 array_expr_nth_sub
-{    if (debugParser) std::cout << " array_expr_nth_sub -> " /* << std::endl */; }
     : IDENTIFIER
     | brace_expr
     ;
 
 // expr
 array_expr_nth!
-{    if (debugParser) std::cout << " array_expr_nth! -> " /* << std::endl */; }
     : e:array_expr_nth_sub
         ( al:arrayindex_list
             { #array_expr_nth = 
-                #([ARRAYEXPR,"arrayexpr"], #e, #al); if (debugParser) std::cout<<"array_expr_nth: \""<<LT(0)->getText()<<"\""<<std::endl;}
+                #([ARRAYEXPR,"arrayexpr"], #e, #al);}
         | // empty
-            { #array_expr_nth = #e; if (debugParser) std::cout<<"array_expr_nth: \""<<LT(0)->getText()<<"\""<<std::endl;}
+            { #array_expr_nth = #e;}
         )
     ;    
 
 tag_array_expr_nth_sub
-{    if (debugParser) std::cout << " tag_array_expr_nth_sub -> " /* << std::endl */; }
     : IDENTIFIER
     | s:SYSVARNAME  
         { #s->setType( IDENTIFIER); /* #s->setText( "!" + #s->getText()); */}  
@@ -1476,13 +1397,12 @@ tag_array_expr_nth_sub
     ;
 
 tag_array_expr_nth!
-{    if (debugParser) std::cout << " tag_array_expr_nth! -> " /* << std::endl */; }
     : e:tag_array_expr_nth_sub
         ( al:arrayindex_list
             { #tag_array_expr_nth = 
-                #([ARRAYEXPR,"arrayexpr"], #e, #al); if (debugParser) std::cout<<"tag_array_expr_nth: \""<<LT(0)->getText()<<"\""<<std::endl;}
+                #([ARRAYEXPR,"arrayexpr"], #e, #al);}
         | // empty
-            { #tag_array_expr_nth = #e; if (debugParser) std::cout<<"tag_array_expr_nth: \""<<LT(0)->getText()<<"\""<<std::endl;}
+            { #tag_array_expr_nth = #e;}
         )
     ;    
 
@@ -1492,7 +1412,6 @@ tag_access_keeplast returns [int nDot]
     int t;
     bool parent = false;
     nDot=1;
-    if (debugParser) std::cout << " tag_access_keeplast -> " /* << std::endl */; 
 }
     : DOT!
         (
@@ -1509,7 +1428,6 @@ deref_dot_expr_keeplast
 {
     RefDNode dot;
     int nDot;
-    if (debugParser) std::cout << " deref_dot_expr_keeplast -> " /* << std::endl */; 
 }
     : a1:array_expr_1st 
         (// (tag_access_keeplast)=>
@@ -1520,21 +1438,20 @@ deref_dot_expr_keeplast
                         dot=#[DOT,"."];
                         dot->SetNDot( nDot);    
                         dot->SetLine( #a1->getLine());
-                        #deref_dot_expr_keeplast = #(dot, #deref_dot_expr_keeplast); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                        #deref_dot_expr_keeplast = #(dot, #deref_dot_expr_keeplast);
                     }
             }        
-//      |   { #deref_dot_expr_keeplast = #a1; if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+//      |   { #deref_dot_expr_keeplast = #a1;}
         )
     | ASTERIX! deref_dot_expr_keeplast
         { #deref_dot_expr_keeplast = 
-            #([DEREF,"deref"], #deref_dot_expr_keeplast); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+            #([DEREF,"deref"], #deref_dot_expr_keeplast);}
     ;
 
 protected
 tag_access returns [SizeT nDot]
 {
     nDot=0;
-    if (debugParser) std::cout << " tag_access -> " /* << std::endl */; 
 }
     : (options {greedy=true;}: DOT! { ++nDot;} tag_array_expr_nth)+
     ;
@@ -1543,7 +1460,6 @@ deref_dot_expr
 {
     RefDNode dot;
     SizeT nDot;
-    if (debugParser) std::cout << " deref_dot_expr -> " /* << std::endl */; 
 }
 //    : array_expr_1st (DOT array_expr_nth)*
     : a1:array_expr_1st 
@@ -1554,20 +1470,19 @@ deref_dot_expr
                 dot->SetNDot( nDot);    
                 dot->SetLine( #a1->getLine());
 
-                #deref_dot_expr = #(dot, #deref_dot_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                #deref_dot_expr = #(dot, #deref_dot_expr);
             }        
 //        |   { #deref_expr = #a1;}
         )
     | ASTERIX! deref_dot_expr
         { #deref_dot_expr = 
-            #([DEREF,"deref"], #deref_dot_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+            #([DEREF,"deref"], #deref_dot_expr);}
     ;
 
 deref_expr
 {
     RefDNode dot;
     SizeT nDot;
-    if (debugParser) std::cout << " deref_expr -> " /* << std::endl */; 
 }
 //    : array_expr_1st (DOT array_expr_nth)*
     : a1:array_expr_1st 
@@ -1579,19 +1494,18 @@ deref_expr
                 dot->SetNDot( nDot);    
                 dot->SetLine( #a1->getLine());
 
-                #deref_expr = #(dot, #deref_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                #deref_expr = #(dot, #deref_expr);
             }        
-        |   { #deref_expr = #a1; if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+        |   { #deref_expr = #a1;}
         )
     | ASTERIX! deref_expr
         { #deref_expr = 
-            #([DEREF,"deref"], #deref_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+            #([DEREF,"deref"], #deref_expr);}
     ;
 
 
 protected
 member_function_call returns [bool parent]
-{    if (debugParser) std::cout << " member_function_call -> " /* << std::endl */; }
     : { parent = false;} MEMBER! 
         (s:IDENTIFIER METHOD! 
             { 
@@ -1606,7 +1520,6 @@ member_function_call returns [bool parent]
             } )? formal_function_call
       ;
 member_function_call_dot
-{    if (debugParser) std::cout << " member_function_call_dot -> " /* << std::endl */; }
     :  DOT! (s:IDENTIFIER METHOD!
         // here we translate IDL_OBECT to GDL_OBJECT for source code compatibility
         {
@@ -1619,9 +1532,8 @@ member_function_call_dot
       ;
 
 assign_expr
-{    if (debugParser) std::cout << " assign_expr -> " /* << std::endl */; }
     : LBRACE! deref_expr EQUAL! expr RBRACE! // assignment
-        { #assign_expr = #([ASSIGN,":="], #assign_expr); if (debugParser) std::cout<<" assign_expr : \""<<LT(0)->getText()<<"\""<<std::endl;}
+        { #assign_expr = #([ASSIGN,":="], #assign_expr);}
     ;
 
 // arrayexpr_mfcall_last
@@ -1634,7 +1546,6 @@ arrayexpr_mfcall!
     RefDNode dot;
     RefDNode tag;
     int nDot;
-    if (debugParser) std::cout << " arrayexpr_mfcall! -> " /* << std::endl */; 
 }
     : a1:array_expr_1st 
         (   // this rule is only for production // (tag_access_keeplast)=>
@@ -1655,11 +1566,10 @@ arrayexpr_mfcall!
                 #arrayexpr_mfcall = #([ARRAYEXPR_MFCALL,"arrayexpr_mfcall"], #tag, #id, #al);
             else
                 #arrayexpr_mfcall = #([ARRAYEXPR_MFCALL,"arrayexpr_mfcall"], #a1, #id, #al);
-         if (debugParser) std::cout<<"arrayexpr_mfcall : \""<<LT(0)->getText()<<"\""<<std::endl;
 	 }
     | ASTERIX deref_arrayexpr_mfcall:arrayexpr_mfcall
         { #arrayexpr_mfcall = 
-            #([DEREF,"deref"], #deref_arrayexpr_mfcall); if (debugParser) std::cout<<" deref_arrayexpr_mfcall : \""<<LT(0)->getText()<<"\""<<std::endl;}
+            #([DEREF,"deref"], #deref_arrayexpr_mfcall);}
     ;
 
 
@@ -1667,19 +1577,17 @@ arrayexpr_mfcall!
 primary_expr 
 {
     bool parent;
-    if (debugParser) std::cout << " -> primary_expr -> ";
     }
     : 
         // with METHOD
         (deref_dot_expr_keeplast baseclass_method)=>
         d1:deref_dot_expr_keeplast baseclass_method formal_function_call
         {
-        if (debugParser) std::cout << " d1:deref_dot_expr_keeplast baseclass_method formal_function_call "<< std::endl;
-            #primary_expr = #([MFCALL_PARENT, "mfcall::"], #primary_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+            #primary_expr = #([MFCALL_PARENT, "mfcall::"], #primary_expr);
         }   
     | 
         // ambiguity (arrayexpr or mfcall)
-        (deref_dot_expr_keeplast (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE))=> arrayexpr_mfcall {if (debugParser) std::cout << " deref_dot_expr_keeplast (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE))=> arrayexpr_mfcall -> " /*<< std::endl */;}
+        (deref_dot_expr_keeplast (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE))=> arrayexpr_mfcall 
     | 
         // not the above -> unambigous mfcall (or unambigous array expr handled below)
         (deref_dot_expr_keeplast formal_function_call)=> 
@@ -1687,7 +1595,7 @@ primary_expr
             // here it is impossible to decide about function call
             // as we do not know the object type/struct tag
             formal_function_call
-            { if (debugParser) std::cout << "  (deref_dot_expr_keeplast formal_function_call)=> d3:deref_dot_expr_keeplast formal_function_call -> " << std::endl; #primary_expr = #([MFCALL, "mfcall"], #primary_expr);}
+            {#primary_expr = #([MFCALL, "mfcall"], #primary_expr);}
     |   // a member function call starts with a deref_expr 
          (deref_dot_expr)=>
         // same parsing as (deref_expr)=> see below
@@ -1697,15 +1605,13 @@ primary_expr
                 if( parent)
                 {
                     #primary_expr = #([MFCALL_PARENT, "mfcall::"], #primary_expr);
-		    if (debugParser) std::cout << " (deref_dot_expr)=>deref_expr ( parent=true) " << std::endl;
                 } 
                 else
                 {
                     #primary_expr = #([MFCALL, "mfcall"], #primary_expr);
-		    if (debugParser) std::cout << " (deref_dot_expr)=>deref_expr -> primary_expr " << std::endl;
                 }
             }
-        | { if (debugParser) std::cout << " | empty -> array expression -> "/* << std::endl */;}  // empty -> array expression
+        | 
         )
     |   
         // ambiguity (arrayexpr or fcall)
@@ -1716,27 +1622,22 @@ primary_expr
             // (could be reordered, but this is conform to original)
             { IsFun(LT(1))}? formal_function_call
             { 
-             if (debugParser) std::cout << " (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE)=> formal_function_call " /* << std::endl */;
-                   #primary_expr = #([FCALL, "fcall"], #primary_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                   #primary_expr = #([FCALL, "fcall"], #primary_expr);
             }
         | 
             // still ambiguity (arrayexpr or fcall)
         (var arrayindex_list)=> var arrayindex_list     // array_expr_fn
             { 
-             if (debugParser) std::cout << "(var arrayindex_list)=> var arrayindex_list -> " /* << std::endl */;
-
-                #primary_expr = #([ARRAYEXPR_FCALL,"arrayexpr_fcall"], #primary_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                #primary_expr = #([ARRAYEXPR_FCALL,"arrayexpr_fcall"], #primary_expr);
 	    }
         |   // if arrayindex_list failed (due to to many indices)
             // this must be a function call
             formal_function_call
-            {  if (debugParser) std::cout << " (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE)=>formal_function_call -> " /* << std::endl */;
-                   #primary_expr = #([FCALL, "fcall"], #primary_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
-            }
+                 {#primary_expr = #([FCALL, "fcall"], #primary_expr);}
         )
     |   // not the above => keyword parameter (or no args) => function call
          (formal_function_call)=> formal_function_call
-         { if (debugParser) std::cout << " (formal_function_call)=> formal_function_call -> " << std::endl; #primary_expr = #([FCALL, "fcall"], #primary_expr);}
+         { #primary_expr = #([FCALL, "fcall"], #primary_expr);}
 
     |   // a member function call starts with a deref_expr 
         // deref_dot_expr already failed
@@ -1746,23 +1647,20 @@ primary_expr
             { 
                 if( parent)
                 {
-                    if (debugParser) std::cout << " (deref_expr)=> deref_expr ( parent=true) -> " /* << std::endl */;
-                    #primary_expr = #([MFCALL_PARENT, "mfcall::"], #primary_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                    #primary_expr = #([MFCALL_PARENT, "mfcall::"], #primary_expr);
                 }
                 else
                 {
-                    if (debugParser) std::cout << " (deref_expr)=> deref_expr ( parent=false) -> " /* << std::endl */;
-                    #primary_expr = #([MFCALL, "mfcall"], #primary_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                    #primary_expr = #([MFCALL, "mfcall"], #primary_expr);
                 }
             }
-        |{ if (debugParser) std::cout << " (deref_expr)=> deref_expr | empty -> array expression No 2!"/* << std::endl */;}  // empty -> array expression
+        |
         )
 
     |! sl:STRING_LITERAL // also a CONSTANT
         { #primary_expr=#[CONSTANT,sl->getText()];
             #primary_expr->Text2String();    
             #primary_expr->SetLine( #sl->getLine());
-	    { if (debugParser) std::cout << "STRING_LITERAL" <<std::endl;}
         }  
     | assign_expr 	   
     | numeric_constant 	   
@@ -1770,20 +1668,19 @@ primary_expr
     | struct_def 	   
     | ! ls:LSQUARE !RSQUARE
         { #primary_expr=#[GDLNULL,"GDLNULL[]"];
-            #primary_expr->SetLine( #ls->getLine()); if (debugParser) std::cout << "NULL" << std::endl;
+            #primary_expr->SetLine( #ls->getLine());
         }  
     | ! lc:LCURLY !RCURLY
         { #primary_expr=#[GDLNULL,"GDLNULL{}"];
-            #primary_expr->SetLine( #lc->getLine()); if (debugParser) std::cout << "NULL" << std::endl;
+            #primary_expr->SetLine( #lc->getLine());
         }  
 	;
 
 // only one INC/DEC allowed per target
 decinc_expr
-//{    if (debugParser) std::cout << " -> decinc_expr "; }
     : primary_expr 
-        ( i:INC^ { #i->setType( POSTINC); #i->setText( "_++");if (debugParser) std::cout << "++" <<std::endl;} 
-        | d:DEC^ { #d->setType( POSTDEC); #d->setText( "_--");if (debugParser) std::cout << "--" <<std::endl;} 
+        ( i:INC^ { #i->setType( POSTINC); #i->setText( "_++");} 
+        | d:DEC^ { #d->setType( POSTDEC); #d->setText( "_--");} 
         | // empty
         )
     | INC^ primary_expr
@@ -1791,7 +1688,6 @@ decinc_expr
     ;
 
 exponential_expr
-//{    if (debugParser) std::cout << " -> exponential_expr" ; }
     : decinc_expr 
         (POW^ decinc_expr 
         )*
@@ -1799,7 +1695,6 @@ exponential_expr
 
 
 multiplicative_expr
-//{    if (debugParser) std::cout << " -> multiplicative_expr "; }
     : exponential_expr
         (
             ( ASTERIX^
@@ -1832,7 +1727,6 @@ multiplicative_expr
 
 // only one allowed per target
 signed_multiplicative_expr
-//{    if (debugParser) std::cout << " -> signed_multiplicative_expr "; }
     : PLUS! multiplicative_expr
     | m:MINUS^ multiplicative_expr
         { 
@@ -1843,7 +1737,6 @@ signed_multiplicative_expr
     ;
 
 additive_expr
-//{    if (debugParser) std::cout << " -> additive_expr "; }
     : (signed_multiplicative_expr | neg_expr)
         ( 
             ( PLUS^
@@ -1859,7 +1752,6 @@ additive_expr
     ;
 
 neg_expr
-//{    if (debugParser) std::cout << " -> neg_expr "; }
     : NOT_OP^ multiplicative_expr
 // true precedence of ~ operator
     | LOG_NEG^ multiplicative_expr
@@ -1867,7 +1759,6 @@ neg_expr
 
 
 relational_expr
-//{    if (debugParser) std::cout << " -> relational_expr "; }
     : additive_expr
         (
             ( EQ_OP^
@@ -1881,7 +1772,6 @@ relational_expr
     ;
 
 boolean_expr
-//{    if (debugParser) std::cout << " -> boolean_expr" ; }
     : relational_expr
         ( 
             ( AND_OP^ 
@@ -1892,7 +1782,6 @@ boolean_expr
     ;
 
 logical_expr
-//{    if (debugParser) std::cout << " -> logical_expr "; }
     : boolean_expr
         ( 
             ( LOG_AND^ 
@@ -1902,7 +1791,6 @@ logical_expr
     ;
 
 expr
-{    if (debugParser) std::cout << " expr-> "; }
   : logical_expr
     (
       QUESTION^ expr

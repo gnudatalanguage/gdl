@@ -25,9 +25,6 @@
 #include <antlr/TokenStreamIOException.hpp>
 #include <antlr/CharInputBuffer.hpp>
 
-// GD: set to 1 to traceout what the Parser does.
-#define debugParser 0
-//#include "dinterpreter.hpp"
 
 // definition in dinterpreter.cpp
 void MemorizeCompileOptForMAINIfNeeded( unsigned int cOpt);
