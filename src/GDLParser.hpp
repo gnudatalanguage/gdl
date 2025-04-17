@@ -54,25 +54,26 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
     }
     
     private:
+    std::string subName; // name of procedure function to be compiled ("" -> all file)
+    bool   searchForPro; // true -> procedure subName, false -> function subName 
+    bool   subReached; 
+    unsigned int compileOpt;
+    bool relaxed=IsRelaxed();
+
     void AddCompileOpt( const std::string &opt)
     {
         if(      opt == "DEFINT32")          compileOpt |= DEFINT32;
         else if( opt == "HIDDEN")            compileOpt |= HIDDEN;
         else if( opt == "OBSOLETE")          compileOpt |= OBSOLETE;
-        else if( opt == "STRICTARR")         compileOpt |= STRICTARR;
+        else if( opt == "STRICTARR")         {compileOpt |= STRICTARR; relaxed=false;}
         else if( opt == "LOGICAL_PREDICATE") compileOpt |= LOGICAL_PREDICATE;
-        else if( opt == "IDL2")              compileOpt |= IDL2;
+        else if( opt == "IDL2")              {compileOpt |= IDL2; relaxed=false;}
         else if( opt == "STRICTARRSUBS")     compileOpt |= STRICTARRSUBS;
         else if( opt == "STATIC")            compileOpt |= STATIC;
         else if( opt == "NOSAVE")            compileOpt |= NOSAVE;
         else throw GDLException("Unrecognised COMPILE_OPT option: "+opt);
         MemorizeCompileOptForMAINIfNeeded( compileOpt);
     }
-
-    std::string subName; // name of procedure function to be compiled ("" -> all file)
-    bool   searchForPro; // true -> procedure subName, false -> function subName 
-    bool   subReached; 
-    unsigned int compileOpt;
 
     bool ConstantExprNode( int t)
     {
@@ -223,7 +224,8 @@ public:
 	public: void constant_cmplxdbl_i();
 	public: void numeric_constant();
 	public: void arrayindex_list();
-	public: void arrayindex();
+	public: void arrayindex_fussy();
+	public: void arrayindex_sloppy();
 	public: void all_elements();
 	public: void sysvar();
 	public: void var();

@@ -211,25 +211,26 @@ tokens {
     }
     
     private:
+    std::string subName; // name of procedure function to be compiled ("" -> all file)
+    bool   searchForPro; // true -> procedure subName, false -> function subName 
+    bool   subReached; 
+    unsigned int compileOpt;
+    bool relaxed=IsRelaxed();
+
     void AddCompileOpt( const std::string &opt)
     {
         if(      opt == "DEFINT32")          compileOpt |= DEFINT32;
         else if( opt == "HIDDEN")            compileOpt |= HIDDEN;
         else if( opt == "OBSOLETE")          compileOpt |= OBSOLETE;
-        else if( opt == "STRICTARR")         compileOpt |= STRICTARR;
+        else if( opt == "STRICTARR")         {compileOpt |= STRICTARR; relaxed=false;}
         else if( opt == "LOGICAL_PREDICATE") compileOpt |= LOGICAL_PREDICATE;
-        else if( opt == "IDL2")              compileOpt |= IDL2;
+        else if( opt == "IDL2")              {compileOpt |= IDL2; relaxed=false;}
         else if( opt == "STRICTARRSUBS")     compileOpt |= STRICTARRSUBS;
         else if( opt == "STATIC")            compileOpt |= STATIC;
         else if( opt == "NOSAVE")            compileOpt |= NOSAVE;
         else throw GDLException("Unrecognised COMPILE_OPT option: "+opt);
         MemorizeCompileOptForMAINIfNeeded( compileOpt);
     }
-
-    std::string subName; // name of procedure function to be compiled ("" -> all file)
-    bool   searchForPro; // true -> procedure subName, false -> function subName 
-    bool   subReached; 
-    unsigned int compileOpt;
 
     bool ConstantExprNode( int t)
     {
@@ -304,18 +305,21 @@ identifier
 translation_unit
 { 
     subReached=false;
-    compileOpt=NONE; // reset compileOpt    
+    compileOpt=NONE; // reset compileOpt  
+    relaxed=IsRelaxed();  
 }
     :   ( options {greedy=true;}: end_unit
         | forward_function end_unit
         | procedure_def 
             { 
-                compileOpt=NONE; // reset compileOpt    
+                compileOpt=NONE; // reset compileOpt  
+				relaxed=IsRelaxed();
                 if( subReached) goto bailOut;
             }
         | function_def  
             { 
-                compileOpt=NONE; // reset compileOpt    
+                compileOpt=NONE; // reset compileOpt
+				relaxed=IsRelaxed();
                 if( subReached) goto bailOut;
             }
         | common_block
@@ -1289,8 +1293,8 @@ arrayindex_list
 {        
     int rank = 1;
 }
-    : LSQUARE! arrayindex ({++rank <= MAXRANK}? COMMA! arrayindex)* RSQUARE!
-    | { IsRelaxed()}? LBRACE! arrayindex ({++rank <= MAXRANK}? COMMA! arrayindex)* RBRACE!
+    : LSQUARE! arrayindex_fussy ({++rank <= MAXRANK}? COMMA! arrayindex_fussy)* RSQUARE!
+    | { relaxed }? LBRACE! arrayindex_sloppy ({++rank <= MAXRANK}? COMMA! arrayindex_sloppy)* RBRACE!
     ;    
 
 all_elements!
@@ -1298,17 +1302,18 @@ all_elements!
     ;
 
 // used only from arrayindex_list
-arrayindex
-  : ((ASTERIX (COMMA|{ IsRelaxed()}? RBRACE|RSQUARE))=> all_elements
+arrayindex_fussy
+  : (
+      (ASTERIX (COMMA|RSQUARE))=> all_elements
     | expr
          (COLON! 
               (
-                (ASTERIX (COMMA|{ IsRelaxed()}? RBRACE|RSQUARE|COLON))=> all_elements
+                (ASTERIX (COMMA|RSQUARE|COLON))=> all_elements
               | expr
               )
               (COLON! 
                   (
-                    (ASTERIX (COMMA|{ IsRelaxed()}? RBRACE|RSQUARE))=> ASTERIX!
+                    (ASTERIX (COMMA|RSQUARE))=> ASTERIX!
                       {
                       throw  GDLException( "n:n:* subscript form not allowed.");
                       }
@@ -1317,7 +1322,31 @@ arrayindex
               )?
          )?
     )
-    { #arrayindex = #([ARRAYIX,"arrayix"], #arrayindex);}
+    { #arrayindex_fussy = #([ARRAYIX,"arrayix"], #arrayindex_fussy);}
+    ;
+
+// used only from arrayindex_list
+arrayindex_sloppy
+  : (
+       (ASTERIX (COMMA|RBRACE))=> all_elements
+    | expr
+         (COLON! 
+              (
+                (ASTERIX (COMMA|RBRACE|COLON))=> all_elements
+              | expr
+              )
+              (COLON! 
+                  (
+                    (ASTERIX (COMMA|RBRACE))=> ASTERIX!
+                      {
+                      throw  GDLException( "n:n:* subscript form not allowed.");
+                      }
+                  | expr
+                  )
+              )?
+         )?
+    )
+    { #arrayindex_sloppy = #([ARRAYIX,"arrayix"], #arrayindex_sloppy);}
     ;
 
 // the expressions *************************************

@@ -751,7 +751,8 @@ void GDLParser::translation_unit() {
 	RefDNode translation_unit_AST = RefDNode(antlr::nullAST);
 	
 	subReached=false;
-	compileOpt=NONE; // reset compileOpt    
+	compileOpt=NONE; // reset compileOpt  
+	relaxed=IsRelaxed();  
 	
 	
 	try {      // for error handling
@@ -766,7 +767,8 @@ void GDLParser::translation_unit() {
 				}
 				if ( inputState->guessing==0 ) {
 					
-					compileOpt=NONE; // reset compileOpt    
+					compileOpt=NONE; // reset compileOpt  
+									relaxed=IsRelaxed();
 					if( subReached) goto bailOut;
 					
 				}
@@ -780,7 +782,8 @@ void GDLParser::translation_unit() {
 				}
 				if ( inputState->guessing==0 ) {
 					
-					compileOpt=NONE; // reset compileOpt    
+					compileOpt=NONE; // reset compileOpt
+									relaxed=IsRelaxed();
 					if( subReached) goto bailOut;
 					
 				}
@@ -7416,7 +7419,7 @@ void GDLParser::arrayindex_list() {
 	
 	if ((LA(1) == LSQUARE)) {
 		match(LSQUARE);
-		arrayindex();
+		arrayindex_fussy();
 		if (inputState->guessing==0) {
 			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		}
@@ -7424,7 +7427,7 @@ void GDLParser::arrayindex_list() {
 		for (;;) {
 			if (((LA(1) == COMMA))&&(++rank <= MAXRANK)) {
 				match(COMMA);
-				arrayindex();
+				arrayindex_fussy();
 				if (inputState->guessing==0) {
 					astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 				}
@@ -7439,9 +7442,9 @@ void GDLParser::arrayindex_list() {
 		match(RSQUARE);
 		arrayindex_list_AST = RefDNode(currentAST.root);
 	}
-	else if (((LA(1) == LBRACE))&&( IsRelaxed())) {
+	else if (((LA(1) == LBRACE))&&( relaxed )) {
 		match(LBRACE);
-		arrayindex();
+		arrayindex_sloppy();
 		if (inputState->guessing==0) {
 			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		}
@@ -7449,7 +7452,7 @@ void GDLParser::arrayindex_list() {
 		for (;;) {
 			if (((LA(1) == COMMA))&&(++rank <= MAXRANK)) {
 				match(COMMA);
-				arrayindex();
+				arrayindex_sloppy();
 				if (inputState->guessing==0) {
 					astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 				}
@@ -7471,14 +7474,14 @@ void GDLParser::arrayindex_list() {
 	returnAST = arrayindex_list_AST;
 }
 
-void GDLParser::arrayindex() {
+void GDLParser::arrayindex_fussy() {
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
-	RefDNode arrayindex_AST = RefDNode(antlr::nullAST);
+	RefDNode arrayindex_fussy_AST = RefDNode(antlr::nullAST);
 	
 	{
 	bool synPredMatched203 = false;
-	if (((LA(1) == ASTERIX) && (LA(2) == COMMA || LA(2) == RBRACE || LA(2) == RSQUARE))) {
+	if (((LA(1) == ASTERIX) && (LA(2) == COMMA || LA(2) == RSQUARE))) {
 		int _m203 = mark();
 		synPredMatched203 = true;
 		inputState->guessing++;
@@ -7498,10 +7501,7 @@ void GDLParser::arrayindex() {
 				break;
 			}
 			default:
-				if (((LA(1) == RBRACE))&&( IsRelaxed())) {
-					match(RBRACE);
-				}
-			else {
+			{
 				throw antlr::NoViableAltException(LT(1), getFilename());
 			}
 			}
@@ -7520,7 +7520,7 @@ void GDLParser::arrayindex() {
 			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		}
 	}
-	else if ((_tokenSet_11.member(LA(1))) && (_tokenSet_17.member(LA(2)))) {
+	else if ((_tokenSet_11.member(LA(1))) && (_tokenSet_16.member(LA(2)))) {
 		expr();
 		if (inputState->guessing==0) {
 			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
@@ -7532,7 +7532,7 @@ void GDLParser::arrayindex() {
 			match(COLON);
 			{
 			bool synPredMatched208 = false;
-			if (((LA(1) == ASTERIX) && (_tokenSet_18.member(LA(2))))) {
+			if (((LA(1) == ASTERIX) && (LA(2) == COMMA || LA(2) == COLON || LA(2) == RSQUARE))) {
 				int _m208 = mark();
 				synPredMatched208 = true;
 				inputState->guessing++;
@@ -7557,10 +7557,7 @@ void GDLParser::arrayindex() {
 						break;
 					}
 					default:
-						if (((LA(1) == RBRACE))&&( IsRelaxed())) {
-							match(RBRACE);
-						}
-					else {
+					{
 						throw antlr::NoViableAltException(LT(1), getFilename());
 					}
 					}
@@ -7579,7 +7576,7 @@ void GDLParser::arrayindex() {
 					astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 				}
 			}
-			else if ((_tokenSet_11.member(LA(1))) && (_tokenSet_17.member(LA(2)))) {
+			else if ((_tokenSet_11.member(LA(1))) && (_tokenSet_16.member(LA(2)))) {
 				expr();
 				if (inputState->guessing==0) {
 					astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
@@ -7597,7 +7594,7 @@ void GDLParser::arrayindex() {
 				match(COLON);
 				{
 				bool synPredMatched213 = false;
-				if (((LA(1) == ASTERIX) && (LA(2) == COMMA || LA(2) == RBRACE || LA(2) == RSQUARE))) {
+				if (((LA(1) == ASTERIX) && (LA(2) == COMMA || LA(2) == RSQUARE))) {
 					int _m213 = mark();
 					synPredMatched213 = true;
 					inputState->guessing++;
@@ -7617,10 +7614,7 @@ void GDLParser::arrayindex() {
 							break;
 						}
 						default:
-							if (((LA(1) == RBRACE))&&( IsRelaxed())) {
-								match(RBRACE);
-							}
-						else {
+						{
 							throw antlr::NoViableAltException(LT(1), getFilename());
 						}
 						}
@@ -7634,6 +7628,225 @@ void GDLParser::arrayindex() {
 					inputState->guessing--;
 				}
 				if ( synPredMatched213 ) {
+					match(ASTERIX);
+					if ( inputState->guessing==0 ) {
+						
+						throw  GDLException( "n:n:* subscript form not allowed.");
+						
+					}
+				}
+				else if ((_tokenSet_11.member(LA(1))) && (_tokenSet_17.member(LA(2)))) {
+					expr();
+					if (inputState->guessing==0) {
+						astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+					}
+				}
+				else {
+					throw antlr::NoViableAltException(LT(1), getFilename());
+				}
+				
+				}
+				break;
+			}
+			case COMMA:
+			case RSQUARE:
+			{
+				break;
+			}
+			default:
+			{
+				throw antlr::NoViableAltException(LT(1), getFilename());
+			}
+			}
+			}
+			break;
+		}
+		case COMMA:
+		case RSQUARE:
+		{
+			break;
+		}
+		default:
+		{
+			throw antlr::NoViableAltException(LT(1), getFilename());
+		}
+		}
+		}
+	}
+	else {
+		throw antlr::NoViableAltException(LT(1), getFilename());
+	}
+	
+	}
+	if ( inputState->guessing==0 ) {
+		arrayindex_fussy_AST = RefDNode(currentAST.root);
+		arrayindex_fussy_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(ARRAYIX,"arrayix")))->add(antlr::RefAST(arrayindex_fussy_AST))));
+		currentAST.root = arrayindex_fussy_AST;
+		if ( arrayindex_fussy_AST!=RefDNode(antlr::nullAST) &&
+			arrayindex_fussy_AST->getFirstChild() != RefDNode(antlr::nullAST) )
+			  currentAST.child = arrayindex_fussy_AST->getFirstChild();
+		else
+			currentAST.child = arrayindex_fussy_AST;
+		currentAST.advanceChildToEnd();
+	}
+	arrayindex_fussy_AST = RefDNode(currentAST.root);
+	returnAST = arrayindex_fussy_AST;
+}
+
+void GDLParser::arrayindex_sloppy() {
+	returnAST = RefDNode(antlr::nullAST);
+	antlr::ASTPair currentAST;
+	RefDNode arrayindex_sloppy_AST = RefDNode(antlr::nullAST);
+	
+	{
+	bool synPredMatched218 = false;
+	if (((LA(1) == ASTERIX) && (LA(2) == COMMA || LA(2) == RBRACE))) {
+		int _m218 = mark();
+		synPredMatched218 = true;
+		inputState->guessing++;
+		try {
+			{
+			match(ASTERIX);
+			{
+			switch ( LA(1)) {
+			case COMMA:
+			{
+				match(COMMA);
+				break;
+			}
+			case RBRACE:
+			{
+				match(RBRACE);
+				break;
+			}
+			default:
+			{
+				throw antlr::NoViableAltException(LT(1), getFilename());
+			}
+			}
+			}
+			}
+		}
+		catch (antlr::RecognitionException& pe) {
+			synPredMatched218 = false;
+		}
+		rewind(_m218);
+		inputState->guessing--;
+	}
+	if ( synPredMatched218 ) {
+		all_elements();
+		if (inputState->guessing==0) {
+			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+		}
+	}
+	else if ((_tokenSet_11.member(LA(1))) && (_tokenSet_18.member(LA(2)))) {
+		expr();
+		if (inputState->guessing==0) {
+			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+		}
+		{
+		switch ( LA(1)) {
+		case COLON:
+		{
+			match(COLON);
+			{
+			bool synPredMatched223 = false;
+			if (((LA(1) == ASTERIX) && (LA(2) == COMMA || LA(2) == COLON || LA(2) == RBRACE))) {
+				int _m223 = mark();
+				synPredMatched223 = true;
+				inputState->guessing++;
+				try {
+					{
+					match(ASTERIX);
+					{
+					switch ( LA(1)) {
+					case COMMA:
+					{
+						match(COMMA);
+						break;
+					}
+					case RBRACE:
+					{
+						match(RBRACE);
+						break;
+					}
+					case COLON:
+					{
+						match(COLON);
+						break;
+					}
+					default:
+					{
+						throw antlr::NoViableAltException(LT(1), getFilename());
+					}
+					}
+					}
+					}
+				}
+				catch (antlr::RecognitionException& pe) {
+					synPredMatched223 = false;
+				}
+				rewind(_m223);
+				inputState->guessing--;
+			}
+			if ( synPredMatched223 ) {
+				all_elements();
+				if (inputState->guessing==0) {
+					astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+				}
+			}
+			else if ((_tokenSet_11.member(LA(1))) && (_tokenSet_18.member(LA(2)))) {
+				expr();
+				if (inputState->guessing==0) {
+					astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+				}
+			}
+			else {
+				throw antlr::NoViableAltException(LT(1), getFilename());
+			}
+			
+			}
+			{
+			switch ( LA(1)) {
+			case COLON:
+			{
+				match(COLON);
+				{
+				bool synPredMatched228 = false;
+				if (((LA(1) == ASTERIX) && (LA(2) == COMMA || LA(2) == RBRACE))) {
+					int _m228 = mark();
+					synPredMatched228 = true;
+					inputState->guessing++;
+					try {
+						{
+						match(ASTERIX);
+						{
+						switch ( LA(1)) {
+						case COMMA:
+						{
+							match(COMMA);
+							break;
+						}
+						case RBRACE:
+						{
+							match(RBRACE);
+							break;
+						}
+						default:
+						{
+							throw antlr::NoViableAltException(LT(1), getFilename());
+						}
+						}
+						}
+						}
+					}
+					catch (antlr::RecognitionException& pe) {
+						synPredMatched228 = false;
+					}
+					rewind(_m228);
+					inputState->guessing--;
+				}
+				if ( synPredMatched228 ) {
 					match(ASTERIX);
 					if ( inputState->guessing==0 ) {
 						
@@ -7656,7 +7869,6 @@ void GDLParser::arrayindex() {
 			}
 			case COMMA:
 			case RBRACE:
-			case RSQUARE:
 			{
 				break;
 			}
@@ -7670,7 +7882,6 @@ void GDLParser::arrayindex() {
 		}
 		case COMMA:
 		case RBRACE:
-		case RSQUARE:
 		{
 			break;
 		}
@@ -7687,18 +7898,18 @@ void GDLParser::arrayindex() {
 	
 	}
 	if ( inputState->guessing==0 ) {
-		arrayindex_AST = RefDNode(currentAST.root);
-		arrayindex_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(ARRAYIX,"arrayix")))->add(antlr::RefAST(arrayindex_AST))));
-		currentAST.root = arrayindex_AST;
-		if ( arrayindex_AST!=RefDNode(antlr::nullAST) &&
-			arrayindex_AST->getFirstChild() != RefDNode(antlr::nullAST) )
-			  currentAST.child = arrayindex_AST->getFirstChild();
+		arrayindex_sloppy_AST = RefDNode(currentAST.root);
+		arrayindex_sloppy_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(ARRAYIX,"arrayix")))->add(antlr::RefAST(arrayindex_sloppy_AST))));
+		currentAST.root = arrayindex_sloppy_AST;
+		if ( arrayindex_sloppy_AST!=RefDNode(antlr::nullAST) &&
+			arrayindex_sloppy_AST->getFirstChild() != RefDNode(antlr::nullAST) )
+			  currentAST.child = arrayindex_sloppy_AST->getFirstChild();
 		else
-			currentAST.child = arrayindex_AST;
+			currentAST.child = arrayindex_sloppy_AST;
 		currentAST.advanceChildToEnd();
 	}
-	arrayindex_AST = RefDNode(currentAST.root);
-	returnAST = arrayindex_AST;
+	arrayindex_sloppy_AST = RefDNode(currentAST.root);
+	returnAST = arrayindex_sloppy_AST;
 }
 
 void GDLParser::all_elements() {
@@ -7706,9 +7917,9 @@ void GDLParser::all_elements() {
 	antlr::ASTPair currentAST;
 	RefDNode all_elements_AST = RefDNode(antlr::nullAST);
 	
-	RefDNode tmp177_AST = RefDNode(antlr::nullAST);
+	RefDNode tmp180_AST = RefDNode(antlr::nullAST);
 	if ( inputState->guessing == 0 ) {
-		tmp177_AST = astFactory->create(LT(1));
+		tmp180_AST = astFactory->create(LT(1));
 	}
 	match(ASTERIX);
 	if ( inputState->guessing==0 ) {
@@ -7730,10 +7941,10 @@ void GDLParser::sysvar() {
 	antlr::ASTPair currentAST;
 	RefDNode sysvar_AST = RefDNode(antlr::nullAST);
 	
-	RefDNode tmp178_AST = RefDNode(antlr::nullAST);
+	RefDNode tmp181_AST = RefDNode(antlr::nullAST);
 	if ( inputState->guessing == 0 ) {
-		tmp178_AST = astFactory->create(LT(1));
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp178_AST));
+		tmp181_AST = astFactory->create(LT(1));
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp181_AST));
 	}
 	match(SYSVARNAME);
 	if ( inputState->guessing==0 ) {
@@ -8009,10 +8220,10 @@ void GDLParser::array_expr_nth_sub() {
 	switch ( LA(1)) {
 	case IDENTIFIER:
 	{
-		RefDNode tmp181_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp184_AST = RefDNode(antlr::nullAST);
 		if ( inputState->guessing == 0 ) {
-			tmp181_AST = astFactory->create(LT(1));
-			astFactory->addASTChild(currentAST, antlr::RefAST(tmp181_AST));
+			tmp184_AST = astFactory->create(LT(1));
+			astFactory->addASTChild(currentAST, antlr::RefAST(tmp184_AST));
 		}
 		match(IDENTIFIER);
 		array_expr_nth_sub_AST = RefDNode(currentAST.root);
@@ -8105,10 +8316,10 @@ void GDLParser::tag_array_expr_nth_sub() {
 	switch ( LA(1)) {
 	case IDENTIFIER:
 	{
-		RefDNode tmp182_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp185_AST = RefDNode(antlr::nullAST);
 		if ( inputState->guessing == 0 ) {
-			tmp182_AST = astFactory->create(LT(1));
-			astFactory->addASTChild(currentAST, antlr::RefAST(tmp182_AST));
+			tmp185_AST = astFactory->create(LT(1));
+			astFactory->addASTChild(currentAST, antlr::RefAST(tmp185_AST));
 		}
 		match(IDENTIFIER);
 		tag_array_expr_nth_sub_AST = RefDNode(currentAST.root);
@@ -8287,10 +8498,10 @@ int  GDLParser::tag_access_keeplast() {
 	
 	match(DOT);
 	{
-	bool synPredMatched230 = false;
+	bool synPredMatched245 = false;
 	if (((_tokenSet_20.member(LA(1))) && (_tokenSet_5.member(LA(2))))) {
-		int _m230 = mark();
-		synPredMatched230 = true;
+		int _m245 = mark();
+		synPredMatched245 = true;
 		inputState->guessing++;
 		try {
 			{
@@ -8299,12 +8510,12 @@ int  GDLParser::tag_access_keeplast() {
 			}
 		}
 		catch (antlr::RecognitionException& pe) {
-			synPredMatched230 = false;
+			synPredMatched245 = false;
 		}
-		rewind(_m230);
+		rewind(_m245);
 		inputState->guessing--;
 	}
-	if ( synPredMatched230 ) {
+	if ( synPredMatched245 ) {
 		{
 		tag_array_expr_nth();
 		if (inputState->guessing==0) {
@@ -8341,7 +8552,7 @@ SizeT  GDLParser::tag_access() {
 	
 	
 	{ // ( ... )+
-	int _cnt236=0;
+	int _cnt251=0;
 	for (;;) {
 		if ((LA(1) == DOT)) {
 			match(DOT);
@@ -8354,12 +8565,12 @@ SizeT  GDLParser::tag_access() {
 			}
 		}
 		else {
-			if ( _cnt236>=1 ) { goto _loop236; } else {throw antlr::NoViableAltException(LT(1), getFilename());}
+			if ( _cnt251>=1 ) { goto _loop251; } else {throw antlr::NoViableAltException(LT(1), getFilename());}
 		}
 		
-		_cnt236++;
+		_cnt251++;
 	}
-	_loop236:;
+	_loop251:;
 	}  // ( ... )+
 	tag_access_AST = RefDNode(currentAST.root);
 	returnAST = tag_access_AST;
@@ -8599,9 +8810,9 @@ void GDLParser::arrayexpr_mfcall() {
 	}
 	case ASTERIX:
 	{
-		RefDNode tmp190_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp193_AST = RefDNode(antlr::nullAST);
 		if ( inputState->guessing == 0 ) {
-			tmp190_AST = astFactory->create(LT(1));
+			tmp193_AST = astFactory->create(LT(1));
 		}
 		match(ASTERIX);
 		arrayexpr_mfcall();
@@ -8719,10 +8930,10 @@ void GDLParser::primary_expr() {
 		break;
 	}
 	default:
-		bool synPredMatched252 = false;
+		bool synPredMatched267 = false;
 		if (((_tokenSet_4.member(LA(1))) && (_tokenSet_5.member(LA(2))))) {
-			int _m252 = mark();
-			synPredMatched252 = true;
+			int _m267 = mark();
+			synPredMatched267 = true;
 			inputState->guessing++;
 			try {
 				{
@@ -8731,12 +8942,12 @@ void GDLParser::primary_expr() {
 				}
 			}
 			catch (antlr::RecognitionException& pe) {
-				synPredMatched252 = false;
+				synPredMatched267 = false;
 			}
-			rewind(_m252);
+			rewind(_m267);
 			inputState->guessing--;
 		}
-		if ( synPredMatched252 ) {
+		if ( synPredMatched267 ) {
 			deref_dot_expr_keeplast();
 			if (inputState->guessing==0) {
 				d1_AST = returnAST;
@@ -8766,10 +8977,10 @@ void GDLParser::primary_expr() {
 			primary_expr_AST = RefDNode(currentAST.root);
 		}
 		else {
-			bool synPredMatched257 = false;
+			bool synPredMatched272 = false;
 			if (((_tokenSet_4.member(LA(1))) && (_tokenSet_5.member(LA(2))))) {
-				int _m257 = mark();
-				synPredMatched257 = true;
+				int _m272 = mark();
+				synPredMatched272 = true;
 				inputState->guessing++;
 				try {
 					{
@@ -8785,23 +8996,23 @@ void GDLParser::primary_expr() {
 							expr();
 						}
 						else {
-							goto _loop256;
+							goto _loop271;
 						}
 						
 					}
-					_loop256:;
+					_loop271:;
 					} // ( ... )*
 					match(RBRACE);
 					}
 					}
 				}
 				catch (antlr::RecognitionException& pe) {
-					synPredMatched257 = false;
+					synPredMatched272 = false;
 				}
-				rewind(_m257);
+				rewind(_m272);
 				inputState->guessing--;
 			}
-			if ( synPredMatched257 ) {
+			if ( synPredMatched272 ) {
 				arrayexpr_mfcall();
 				if (inputState->guessing==0) {
 					astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
@@ -8809,10 +9020,10 @@ void GDLParser::primary_expr() {
 				primary_expr_AST = RefDNode(currentAST.root);
 			}
 			else {
-				bool synPredMatched259 = false;
+				bool synPredMatched274 = false;
 				if (((_tokenSet_4.member(LA(1))) && (_tokenSet_5.member(LA(2))))) {
-					int _m259 = mark();
-					synPredMatched259 = true;
+					int _m274 = mark();
+					synPredMatched274 = true;
 					inputState->guessing++;
 					try {
 						{
@@ -8821,12 +9032,12 @@ void GDLParser::primary_expr() {
 						}
 					}
 					catch (antlr::RecognitionException& pe) {
-						synPredMatched259 = false;
+						synPredMatched274 = false;
 					}
-					rewind(_m259);
+					rewind(_m274);
 					inputState->guessing--;
 				}
-				if ( synPredMatched259 ) {
+				if ( synPredMatched274 ) {
 					deref_dot_expr_keeplast();
 					if (inputState->guessing==0) {
 						d3_AST = returnAST;
@@ -8850,10 +9061,10 @@ void GDLParser::primary_expr() {
 					primary_expr_AST = RefDNode(currentAST.root);
 				}
 				else {
-					bool synPredMatched261 = false;
+					bool synPredMatched276 = false;
 					if (((_tokenSet_4.member(LA(1))) && (_tokenSet_22.member(LA(2))))) {
-						int _m261 = mark();
-						synPredMatched261 = true;
+						int _m276 = mark();
+						synPredMatched276 = true;
 						inputState->guessing++;
 						try {
 							{
@@ -8861,12 +9072,12 @@ void GDLParser::primary_expr() {
 							}
 						}
 						catch (antlr::RecognitionException& pe) {
-							synPredMatched261 = false;
+							synPredMatched276 = false;
 						}
-						rewind(_m261);
+						rewind(_m276);
 						inputState->guessing--;
 					}
-					if ( synPredMatched261 ) {
+					if ( synPredMatched276 ) {
 						deref_expr();
 						if (inputState->guessing==0) {
 							astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
@@ -8968,10 +9179,10 @@ void GDLParser::primary_expr() {
 						primary_expr_AST = RefDNode(currentAST.root);
 					}
 					else {
-						bool synPredMatched266 = false;
+						bool synPredMatched281 = false;
 						if (((LA(1) == IDENTIFIER || LA(1) == INHERITS) && (LA(2) == LBRACE || LA(2) == LSQUARE))) {
-							int _m266 = mark();
-							synPredMatched266 = true;
+							int _m281 = mark();
+							synPredMatched281 = true;
 							inputState->guessing++;
 							try {
 								{
@@ -8985,22 +9196,22 @@ void GDLParser::primary_expr() {
 										expr();
 									}
 									else {
-										goto _loop265;
+										goto _loop280;
 									}
 									
 								}
-								_loop265:;
+								_loop280:;
 								} // ( ... )*
 								match(RBRACE);
 								}
 							}
 							catch (antlr::RecognitionException& pe) {
-								synPredMatched266 = false;
+								synPredMatched281 = false;
 							}
-							rewind(_m266);
+							rewind(_m281);
 							inputState->guessing--;
 						}
-						if ( synPredMatched266 ) {
+						if ( synPredMatched281 ) {
 							{
 							if (((LA(1) == IDENTIFIER) && (LA(2) == LBRACE))&&( IsFun(LT(1)))) {
 								formal_function_call();
@@ -9022,10 +9233,10 @@ void GDLParser::primary_expr() {
 								}
 							}
 							else {
-								bool synPredMatched269 = false;
+								bool synPredMatched284 = false;
 								if (((LA(1) == IDENTIFIER || LA(1) == INHERITS) && (LA(2) == LBRACE || LA(2) == LSQUARE))) {
-									int _m269 = mark();
-									synPredMatched269 = true;
+									int _m284 = mark();
+									synPredMatched284 = true;
 									inputState->guessing++;
 									try {
 										{
@@ -9034,12 +9245,12 @@ void GDLParser::primary_expr() {
 										}
 									}
 									catch (antlr::RecognitionException& pe) {
-										synPredMatched269 = false;
+										synPredMatched284 = false;
 									}
-									rewind(_m269);
+									rewind(_m284);
 									inputState->guessing--;
 								}
-								if ( synPredMatched269 ) {
+								if ( synPredMatched284 ) {
 									var();
 									if (inputState->guessing==0) {
 										astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
@@ -9087,10 +9298,10 @@ void GDLParser::primary_expr() {
 							primary_expr_AST = RefDNode(currentAST.root);
 						}
 						else {
-							bool synPredMatched271 = false;
+							bool synPredMatched286 = false;
 							if (((LA(1) == IDENTIFIER) && (LA(2) == LBRACE))) {
-								int _m271 = mark();
-								synPredMatched271 = true;
+								int _m286 = mark();
+								synPredMatched286 = true;
 								inputState->guessing++;
 								try {
 									{
@@ -9098,12 +9309,12 @@ void GDLParser::primary_expr() {
 									}
 								}
 								catch (antlr::RecognitionException& pe) {
-									synPredMatched271 = false;
+									synPredMatched286 = false;
 								}
-								rewind(_m271);
+								rewind(_m286);
 								inputState->guessing--;
 							}
-							if ( synPredMatched271 ) {
+							if ( synPredMatched286 ) {
 								formal_function_call();
 								if (inputState->guessing==0) {
 									astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
@@ -9122,10 +9333,10 @@ void GDLParser::primary_expr() {
 								primary_expr_AST = RefDNode(currentAST.root);
 							}
 							else {
-								bool synPredMatched273 = false;
+								bool synPredMatched288 = false;
 								if (((_tokenSet_4.member(LA(1))) && (_tokenSet_22.member(LA(2))))) {
-									int _m273 = mark();
-									synPredMatched273 = true;
+									int _m288 = mark();
+									synPredMatched288 = true;
 									inputState->guessing++;
 									try {
 										{
@@ -9133,12 +9344,12 @@ void GDLParser::primary_expr() {
 										}
 									}
 									catch (antlr::RecognitionException& pe) {
-										synPredMatched273 = false;
+										synPredMatched288 = false;
 									}
-									rewind(_m273);
+									rewind(_m288);
 									inputState->guessing--;
 								}
-								if ( synPredMatched273 ) {
+								if ( synPredMatched288 ) {
 									deref_expr();
 									if (inputState->guessing==0) {
 										astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
@@ -9264,9 +9475,9 @@ void GDLParser::primary_expr() {
 									ls = LT(1);
 									ls_AST = astFactory->create(ls);
 									match(LSQUARE);
-									RefDNode tmp191_AST = RefDNode(antlr::nullAST);
+									RefDNode tmp194_AST = RefDNode(antlr::nullAST);
 									if ( inputState->guessing == 0 ) {
-										tmp191_AST = astFactory->create(LT(1));
+										tmp194_AST = astFactory->create(LT(1));
 									}
 									match(RSQUARE);
 									if ( inputState->guessing==0 ) {
@@ -9287,9 +9498,9 @@ void GDLParser::primary_expr() {
 									lc = LT(1);
 									lc_AST = astFactory->create(lc);
 									match(LCURLY);
-									RefDNode tmp192_AST = RefDNode(antlr::nullAST);
+									RefDNode tmp195_AST = RefDNode(antlr::nullAST);
 									if ( inputState->guessing == 0 ) {
-										tmp192_AST = astFactory->create(LT(1));
+										tmp195_AST = astFactory->create(LT(1));
 									}
 									match(RCURLY);
 									if ( inputState->guessing==0 ) {
@@ -9471,10 +9682,10 @@ void GDLParser::decinc_expr() {
 	}
 	case INC:
 	{
-		RefDNode tmp193_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp196_AST = RefDNode(antlr::nullAST);
 		if ( inputState->guessing == 0 ) {
-			tmp193_AST = astFactory->create(LT(1));
-			astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp193_AST));
+			tmp196_AST = astFactory->create(LT(1));
+			astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp196_AST));
 		}
 		match(INC);
 		primary_expr();
@@ -9486,10 +9697,10 @@ void GDLParser::decinc_expr() {
 	}
 	case DEC:
 	{
-		RefDNode tmp194_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp197_AST = RefDNode(antlr::nullAST);
 		if ( inputState->guessing == 0 ) {
-			tmp194_AST = astFactory->create(LT(1));
-			astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp194_AST));
+			tmp197_AST = astFactory->create(LT(1));
+			astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp197_AST));
 		}
 		match(DEC);
 		primary_expr();
@@ -9519,10 +9730,10 @@ void GDLParser::exponential_expr() {
 	{ // ( ... )*
 	for (;;) {
 		if ((LA(1) == POW)) {
-			RefDNode tmp195_AST = RefDNode(antlr::nullAST);
+			RefDNode tmp198_AST = RefDNode(antlr::nullAST);
 			if ( inputState->guessing == 0 ) {
-				tmp195_AST = astFactory->create(LT(1));
-				astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp195_AST));
+				tmp198_AST = astFactory->create(LT(1));
+				astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp198_AST));
 			}
 			match(POW);
 			decinc_expr();
@@ -9531,11 +9742,11 @@ void GDLParser::exponential_expr() {
 			}
 		}
 		else {
-			goto _loop279;
+			goto _loop294;
 		}
 		
 	}
-	_loop279:;
+	_loop294:;
 	} // ( ... )*
 	exponential_expr_AST = RefDNode(currentAST.root);
 	returnAST = exponential_expr_AST;
@@ -9557,240 +9768,240 @@ void GDLParser::multiplicative_expr() {
 			switch ( LA(1)) {
 			case ASTERIX:
 			{
-				RefDNode tmp196_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp199_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp196_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp196_AST));
+					tmp199_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp199_AST));
 				}
 				match(ASTERIX);
 				break;
 			}
 			case MATRIX_OP1:
 			{
-				RefDNode tmp197_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp200_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp197_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp197_AST));
+					tmp200_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp200_AST));
 				}
 				match(MATRIX_OP1);
 				break;
 			}
 			case MATRIX_OP2:
 			{
-				RefDNode tmp198_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp201_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp198_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp198_AST));
+					tmp201_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp201_AST));
 				}
 				match(MATRIX_OP2);
 				break;
 			}
 			case SLASH:
 			{
-				RefDNode tmp199_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp202_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp199_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp199_AST));
+					tmp202_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp202_AST));
 				}
 				match(SLASH);
 				break;
 			}
 			case MOD_OP:
 			{
-				RefDNode tmp200_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp203_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp200_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp200_AST));
+					tmp203_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp203_AST));
 				}
 				match(MOD_OP);
 				break;
 			}
 			case AND_OP_EQ:
 			{
-				RefDNode tmp201_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp204_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp201_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp201_AST));
+					tmp204_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp204_AST));
 				}
 				match(AND_OP_EQ);
 				break;
 			}
 			case ASTERIX_EQ:
 			{
-				RefDNode tmp202_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp205_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp202_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp202_AST));
+					tmp205_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp205_AST));
 				}
 				match(ASTERIX_EQ);
 				break;
 			}
 			case EQ_OP_EQ:
 			{
-				RefDNode tmp203_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp206_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp203_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp203_AST));
+					tmp206_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp206_AST));
 				}
 				match(EQ_OP_EQ);
 				break;
 			}
 			case GE_OP_EQ:
 			{
-				RefDNode tmp204_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp207_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp204_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp204_AST));
+					tmp207_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp207_AST));
 				}
 				match(GE_OP_EQ);
 				break;
 			}
 			case GTMARK_EQ:
 			{
-				RefDNode tmp205_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp208_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp205_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp205_AST));
+					tmp208_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp208_AST));
 				}
 				match(GTMARK_EQ);
 				break;
 			}
 			case GT_OP_EQ:
 			{
-				RefDNode tmp206_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp209_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp206_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp206_AST));
+					tmp209_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp209_AST));
 				}
 				match(GT_OP_EQ);
 				break;
 			}
 			case LE_OP_EQ:
 			{
-				RefDNode tmp207_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp210_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp207_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp207_AST));
+					tmp210_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp210_AST));
 				}
 				match(LE_OP_EQ);
 				break;
 			}
 			case LTMARK_EQ:
 			{
-				RefDNode tmp208_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp211_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp208_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp208_AST));
+					tmp211_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp211_AST));
 				}
 				match(LTMARK_EQ);
 				break;
 			}
 			case LT_OP_EQ:
 			{
-				RefDNode tmp209_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp212_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp209_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp209_AST));
+					tmp212_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp212_AST));
 				}
 				match(LT_OP_EQ);
 				break;
 			}
 			case MATRIX_OP1_EQ:
 			{
-				RefDNode tmp210_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp213_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp210_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp210_AST));
+					tmp213_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp213_AST));
 				}
 				match(MATRIX_OP1_EQ);
 				break;
 			}
 			case MATRIX_OP2_EQ:
 			{
-				RefDNode tmp211_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp214_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp211_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp211_AST));
+					tmp214_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp214_AST));
 				}
 				match(MATRIX_OP2_EQ);
 				break;
 			}
 			case MINUS_EQ:
 			{
-				RefDNode tmp212_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp215_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp212_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp212_AST));
+					tmp215_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp215_AST));
 				}
 				match(MINUS_EQ);
 				break;
 			}
 			case MOD_OP_EQ:
 			{
-				RefDNode tmp213_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp216_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp213_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp213_AST));
+					tmp216_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp216_AST));
 				}
 				match(MOD_OP_EQ);
 				break;
 			}
 			case NE_OP_EQ:
 			{
-				RefDNode tmp214_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp217_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp214_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp214_AST));
+					tmp217_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp217_AST));
 				}
 				match(NE_OP_EQ);
 				break;
 			}
 			case OR_OP_EQ:
 			{
-				RefDNode tmp215_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp218_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp215_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp215_AST));
+					tmp218_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp218_AST));
 				}
 				match(OR_OP_EQ);
 				break;
 			}
 			case PLUS_EQ:
 			{
-				RefDNode tmp216_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp219_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp216_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp216_AST));
+					tmp219_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp219_AST));
 				}
 				match(PLUS_EQ);
 				break;
 			}
 			case POW_EQ:
 			{
-				RefDNode tmp217_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp220_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp217_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp217_AST));
+					tmp220_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp220_AST));
 				}
 				match(POW_EQ);
 				break;
 			}
 			case SLASH_EQ:
 			{
-				RefDNode tmp218_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp221_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp218_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp218_AST));
+					tmp221_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp221_AST));
 				}
 				match(SLASH_EQ);
 				break;
 			}
 			case XOR_OP_EQ:
 			{
-				RefDNode tmp219_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp222_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp219_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp219_AST));
+					tmp222_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp222_AST));
 				}
 				match(XOR_OP_EQ);
 				break;
@@ -9807,11 +10018,11 @@ void GDLParser::multiplicative_expr() {
 			}
 		}
 		else {
-			goto _loop283;
+			goto _loop298;
 		}
 		
 	}
-	_loop283:;
+	_loop298:;
 	} // ( ... )*
 	multiplicative_expr_AST = RefDNode(currentAST.root);
 	returnAST = multiplicative_expr_AST;
@@ -10010,40 +10221,40 @@ void GDLParser::additive_expr() {
 			switch ( LA(1)) {
 			case PLUS:
 			{
-				RefDNode tmp221_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp224_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp221_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp221_AST));
+					tmp224_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp224_AST));
 				}
 				match(PLUS);
 				break;
 			}
 			case MINUS:
 			{
-				RefDNode tmp222_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp225_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp222_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp222_AST));
+					tmp225_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp225_AST));
 				}
 				match(MINUS);
 				break;
 			}
 			case LTMARK:
 			{
-				RefDNode tmp223_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp226_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp223_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp223_AST));
+					tmp226_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp226_AST));
 				}
 				match(LTMARK);
 				break;
 			}
 			case GTMARK:
 			{
-				RefDNode tmp224_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp227_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp224_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp224_AST));
+					tmp227_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp227_AST));
 				}
 				match(GTMARK);
 				break;
@@ -10130,11 +10341,11 @@ void GDLParser::additive_expr() {
 			}
 		}
 		else {
-			goto _loop290;
+			goto _loop305;
 		}
 		
 	}
-	_loop290:;
+	_loop305:;
 	} // ( ... )*
 	additive_expr_AST = RefDNode(currentAST.root);
 	returnAST = additive_expr_AST;
@@ -10148,10 +10359,10 @@ void GDLParser::neg_expr() {
 	switch ( LA(1)) {
 	case NOT_OP:
 	{
-		RefDNode tmp225_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp228_AST = RefDNode(antlr::nullAST);
 		if ( inputState->guessing == 0 ) {
-			tmp225_AST = astFactory->create(LT(1));
-			astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp225_AST));
+			tmp228_AST = astFactory->create(LT(1));
+			astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp228_AST));
 		}
 		match(NOT_OP);
 		multiplicative_expr();
@@ -10163,10 +10374,10 @@ void GDLParser::neg_expr() {
 	}
 	case LOG_NEG:
 	{
-		RefDNode tmp226_AST = RefDNode(antlr::nullAST);
+		RefDNode tmp229_AST = RefDNode(antlr::nullAST);
 		if ( inputState->guessing == 0 ) {
-			tmp226_AST = astFactory->create(LT(1));
-			astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp226_AST));
+			tmp229_AST = astFactory->create(LT(1));
+			astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp229_AST));
 		}
 		match(LOG_NEG);
 		multiplicative_expr();
@@ -10200,60 +10411,60 @@ void GDLParser::relational_expr() {
 			switch ( LA(1)) {
 			case EQ_OP:
 			{
-				RefDNode tmp227_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp230_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp227_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp227_AST));
+					tmp230_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp230_AST));
 				}
 				match(EQ_OP);
 				break;
 			}
 			case NE_OP:
 			{
-				RefDNode tmp228_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp231_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp228_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp228_AST));
+					tmp231_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp231_AST));
 				}
 				match(NE_OP);
 				break;
 			}
 			case LE_OP:
 			{
-				RefDNode tmp229_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp232_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp229_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp229_AST));
+					tmp232_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp232_AST));
 				}
 				match(LE_OP);
 				break;
 			}
 			case LT_OP:
 			{
-				RefDNode tmp230_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp233_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp230_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp230_AST));
+					tmp233_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp233_AST));
 				}
 				match(LT_OP);
 				break;
 			}
 			case GE_OP:
 			{
-				RefDNode tmp231_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp234_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp231_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp231_AST));
+					tmp234_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp234_AST));
 				}
 				match(GE_OP);
 				break;
 			}
 			case GT_OP:
 			{
-				RefDNode tmp232_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp235_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp232_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp232_AST));
+					tmp235_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp235_AST));
 				}
 				match(GT_OP);
 				break;
@@ -10270,11 +10481,11 @@ void GDLParser::relational_expr() {
 			}
 		}
 		else {
-			goto _loop295;
+			goto _loop310;
 		}
 		
 	}
-	_loop295:;
+	_loop310:;
 	} // ( ... )*
 	relational_expr_AST = RefDNode(currentAST.root);
 	returnAST = relational_expr_AST;
@@ -10296,30 +10507,30 @@ void GDLParser::boolean_expr() {
 			switch ( LA(1)) {
 			case AND_OP:
 			{
-				RefDNode tmp233_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp236_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp233_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp233_AST));
+					tmp236_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp236_AST));
 				}
 				match(AND_OP);
 				break;
 			}
 			case OR_OP:
 			{
-				RefDNode tmp234_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp237_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp234_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp234_AST));
+					tmp237_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp237_AST));
 				}
 				match(OR_OP);
 				break;
 			}
 			case XOR_OP:
 			{
-				RefDNode tmp235_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp238_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp235_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp235_AST));
+					tmp238_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp238_AST));
 				}
 				match(XOR_OP);
 				break;
@@ -10336,11 +10547,11 @@ void GDLParser::boolean_expr() {
 			}
 		}
 		else {
-			goto _loop299;
+			goto _loop314;
 		}
 		
 	}
-	_loop299:;
+	_loop314:;
 	} // ( ... )*
 	boolean_expr_AST = RefDNode(currentAST.root);
 	returnAST = boolean_expr_AST;
@@ -10362,20 +10573,20 @@ void GDLParser::logical_expr() {
 			switch ( LA(1)) {
 			case LOG_AND:
 			{
-				RefDNode tmp236_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp239_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp236_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp236_AST));
+					tmp239_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp239_AST));
 				}
 				match(LOG_AND);
 				break;
 			}
 			case LOG_OR:
 			{
-				RefDNode tmp237_AST = RefDNode(antlr::nullAST);
+				RefDNode tmp240_AST = RefDNode(antlr::nullAST);
 				if ( inputState->guessing == 0 ) {
-					tmp237_AST = astFactory->create(LT(1));
-					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp237_AST));
+					tmp240_AST = astFactory->create(LT(1));
+					astFactory->makeASTRoot(currentAST, antlr::RefAST(tmp240_AST));
 				}
 				match(LOG_OR);
 				break;
@@ -10392,11 +10603,11 @@ void GDLParser::logical_expr() {
 			}
 		}
 		else {
-			goto _loop303;
+			goto _loop318;
 		}
 		
 	}
-	_loop303:;
+	_loop318:;
 	} // ( ... )*
 	logical_expr_AST = RefDNode(currentAST.root);
 	returnAST = logical_expr_AST;
@@ -10852,7 +11063,25 @@ const unsigned long GDLParser::_tokenSet_16_data_[] = { 0UL, 0UL, 805306368UL, 3
 // CONSTANT_CMPLXDBL_I ASTERIX DOT STRING_LITERAL POW MATRIX_OP1 MATRIX_OP2 
 // PLUS MINUS LTMARK GTMARK LOG_NEG LOG_AND LOG_OR QUESTION 
 const antlr::BitSet GDLParser::_tokenSet_16(_tokenSet_16_data_,16);
-const unsigned long GDLParser::_tokenSet_17_data_[] = { 0UL, 0UL, 805306368UL, 334831616UL, 4294967194UL, 4294967295UL, 268435455UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_17_data_[] = { 0UL, 0UL, 805306368UL, 334831616UL, 3221225354UL, 4294967295UL, 268435455UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+// IDENTIFIER "and" "eq" "ge" "gt" "inherits" "le" "lt" "mod" "ne" "not" 
+// "or" "xor" COMMA DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ GTMARK_EQ 
+// GT_OP_EQ LE_OP_EQ LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ MATRIX_OP2_EQ MINUS_EQ 
+// MOD_OP_EQ NE_OP_EQ OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ XOR_OP_EQ MEMBER 
+// LBRACE SLASH LSQUARE RSQUARE SYSVARNAME EXCLAMATION LCURLY RCURLY CONSTANT_HEX_BYTE 
+// CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 CONSTANT_HEX_INT CONSTANT_HEX_I 
+// CONSTANT_HEX_ULONG CONSTANT_HEX_ULONG64 CONSTANT_HEX_UI CONSTANT_HEX_UINT 
+// CONSTANT_BYTE CONSTANT_LONG CONSTANT_LONG64 CONSTANT_INT CONSTANT_I 
+// CONSTANT_ULONG CONSTANT_ULONG64 CONSTANT_UI CONSTANT_UINT CONSTANT_OCT_BYTE 
+// CONSTANT_OCT_LONG CONSTANT_OCT_LONG64 CONSTANT_OCT_INT CONSTANT_OCT_I 
+// CONSTANT_OCT_ULONG CONSTANT_OCT_ULONG64 CONSTANT_OCT_UI CONSTANT_OCT_UINT 
+// CONSTANT_FLOAT CONSTANT_DOUBLE CONSTANT_BIN_BYTE CONSTANT_BIN_LONG CONSTANT_BIN_LONG64 
+// CONSTANT_BIN_INT CONSTANT_BIN_I CONSTANT_BIN_ULONG CONSTANT_BIN_ULONG64 
+// CONSTANT_BIN_UI CONSTANT_BIN_UINT CONSTANT_CMPLX_I CONSTANT_CMPLXDBL_I 
+// ASTERIX DOT STRING_LITERAL POW MATRIX_OP1 MATRIX_OP2 PLUS MINUS LTMARK 
+// GTMARK LOG_NEG LOG_AND LOG_OR QUESTION 
+const antlr::BitSet GDLParser::_tokenSet_17(_tokenSet_17_data_,16);
+const unsigned long GDLParser::_tokenSet_18_data_[] = { 0UL, 0UL, 805306368UL, 334831616UL, 4294967194UL, 4294967295UL, 268435455UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER "and" "eq" "ge" "gt" "inherits" "le" "lt" "mod" "ne" "not" 
 // "or" "xor" COMMA COLON DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ 
 // GTMARK_EQ GT_OP_EQ LE_OP_EQ LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ MATRIX_OP2_EQ 
@@ -10869,10 +11098,7 @@ const unsigned long GDLParser::_tokenSet_17_data_[] = { 0UL, 0UL, 805306368UL, 3
 // CONSTANT_BIN_ULONG64 CONSTANT_BIN_UI CONSTANT_BIN_UINT CONSTANT_CMPLX_I 
 // CONSTANT_CMPLXDBL_I ASTERIX DOT STRING_LITERAL POW MATRIX_OP1 MATRIX_OP2 
 // PLUS MINUS LTMARK GTMARK LOG_NEG LOG_AND LOG_OR QUESTION 
-const antlr::BitSet GDLParser::_tokenSet_17(_tokenSet_17_data_,16);
-const unsigned long GDLParser::_tokenSet_18_data_[] = { 0UL, 0UL, 0UL, 0UL, 1073741848UL, 2UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
-// COMMA COLON RBRACE RSQUARE 
-const antlr::BitSet GDLParser::_tokenSet_18(_tokenSet_18_data_,12);
+const antlr::BitSet GDLParser::_tokenSet_18(_tokenSet_18_data_,16);
 const unsigned long GDLParser::_tokenSet_19_data_[] = { 0UL, 0UL, 805306368UL, 334831616UL, 4294967178UL, 4294967295UL, 268435455UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // IDENTIFIER "and" "eq" "ge" "gt" "inherits" "le" "lt" "mod" "ne" "not" 
 // "or" "xor" COMMA DEC INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ GTMARK_EQ 
