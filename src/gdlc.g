@@ -309,7 +309,8 @@ translation_unit
     SearchedRoutineFound=false;
     compileOpt=NONE; // reset compileOpt  
     retry:; 
-    relaxed=recovery?true:false;
+    relaxed=true; //recovery?true:false;
+    std::cerr<<"recovery:"<<recovery<<", LastGoodPosition="<<LastGoodPosition<<std::endl;
     if (recovery) this->rewind(LastGoodPosition);
 }
     :   ( options {greedy=true;} : end_unit
@@ -553,6 +554,8 @@ object_name! returns [std::string name] // !//
 procedure_def
 {
     std::string name;
+			LastGoodPosition=mark();
+	std::cerr<<"start pro at "<<LastGoodPosition<<std::endl;
 }
     : p:PRO^
         ( n:IDENTIFIER { name=n->getText(); }
@@ -563,6 +566,7 @@ procedure_def
         { 
 			LastGoodPosition=mark();
 			recovery=false;
+        	std::cerr<<"end pro "<<name<<" at "<<LastGoodPosition<<std::endl;
 			relaxed=false;
             if( subName == name && searchForPro == true) SearchedRoutineFound=true;
             #p->SetCompileOpt( compileOpt); 
@@ -572,6 +576,8 @@ procedure_def
 function_def
 {
     std::string name;
+			LastGoodPosition=mark();
+	std::cerr<<"start fun"<<std::endl;
 }
     : f:FUNCTION^
         ( n:IDENTIFIER { name=n->getText(); }
@@ -583,6 +589,7 @@ function_def
             if( subName == name && searchForPro == false) SearchedRoutineFound=true;
 			LastGoodPosition=mark();
 			recovery=false;
+        	std::cerr<<"end fun "<<name<<" at "<<LastGoodPosition<<std::endl;
 			relaxed=false;
             #f->SetCompileOpt( compileOpt); 
         }
@@ -1315,9 +1322,10 @@ numeric_constant
 arrayindex_list
 {        
     int rank = 1;
+	std::cerr<<"arrayindex_list, relaxed="<<relaxed<<", line "<<LT(1).get()->getLine()<<",\""<<LT(1).get()->getText()<<"\",state: "<<inputState->guessing<<std::endl;
 }
-    : LSQUARE! arrayindex_fussy ({++rank <= MAXRANK}? COMMA! arrayindex_fussy)* RSQUARE!
-    | { relaxed }? LBRACE! arrayindex_sloppy ({++rank <= MAXRANK}? COMMA! arrayindex_sloppy)* RBRACE!
+    : LSQUARE! arrayindex ({++rank <= MAXRANK}? COMMA! arrayindex)* RSQUARE!
+    | { relaxed}? LBRACE! arrayindex ({++rank <= MAXRANK}? COMMA! arrayindex)* RBRACE!
     ;    
 
 all_elements!
@@ -1325,18 +1333,17 @@ all_elements!
     ;
 
 // used only from arrayindex_list
-arrayindex_fussy
-  : (
-      (ASTERIX (COMMA|RSQUARE))=> all_elements
+arrayindex
+  : ((ASTERIX (COMMA|{ relaxed}? RBRACE|RSQUARE))=> all_elements
     | expr
          (COLON! 
               (
-                (ASTERIX (COMMA|RSQUARE|COLON))=> all_elements
+                (ASTERIX (COMMA|{ relaxed}? RBRACE|RSQUARE|COLON))=> all_elements
               | expr
               )
               (COLON! 
                   (
-                    (ASTERIX (COMMA|RSQUARE))=> ASTERIX!
+                    (ASTERIX (COMMA|{ relaxed}? RBRACE|RSQUARE))=> ASTERIX!
                       {
                       throw  GDLException( "n:n:* subscript form not allowed.");
                       }
@@ -1345,7 +1352,7 @@ arrayindex_fussy
               )?
          )?
     )
-    { #arrayindex_fussy = #([ARRAYIX,"arrayix"], #arrayindex_fussy);}
+    { #arrayindex = #([ARRAYIX,"arrayix"], #arrayindex);}
     ;
 
 // used only from arrayindex_list

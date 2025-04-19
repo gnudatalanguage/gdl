@@ -226,9 +226,9 @@ public:
 	public: void constant_cmplxdbl_i();
 	public: void numeric_constant();
 	public: void arrayindex_list();
-	public: void arrayindex_fussy();
-	public: void arrayindex_sloppy();
+	public: void arrayindex();
 	public: void all_elements();
+	public: void arrayindex_sloppy();
 	public: void sysvar();
 	public: void var();
 	public: void brace_expr();
@@ -322,6 +322,10 @@ private:
 	static const antlr::BitSet _tokenSet_23;
 	static const unsigned long _tokenSet_24_data_[];
 	static const antlr::BitSet _tokenSet_24;
+	static const unsigned long _tokenSet_25_data_[];
+	static const antlr::BitSet _tokenSet_25;
+	static const unsigned long _tokenSet_26_data_[];
+	static const antlr::BitSet _tokenSet_26;
 };
 
 #endif /*INC_GDLParser_hpp_*/
