@@ -750,9 +750,11 @@ void GDLParser::translation_unit() {
 	antlr::ASTPair currentAST;
 	RefDNode translation_unit_AST = RefDNode(antlr::nullAST);
 	
-	subReached=false;
+	SearchedRoutineFound=false;
 	compileOpt=NONE; // reset compileOpt  
-	relaxed=IsRelaxed();  
+	retry:; 
+	relaxed=recovery?true:false;
+	if (recovery) this->rewind(LastGoodPosition);
 	
 	
 	try {      // for error handling
@@ -768,8 +770,7 @@ void GDLParser::translation_unit() {
 				if ( inputState->guessing==0 ) {
 					
 					compileOpt=NONE; // reset compileOpt  
-									relaxed=IsRelaxed();
-					if( subReached) goto bailOut;
+					if( SearchedRoutineFound) goto bailOut;
 					
 				}
 				break;
@@ -783,8 +784,7 @@ void GDLParser::translation_unit() {
 				if ( inputState->guessing==0 ) {
 					
 					compileOpt=NONE; // reset compileOpt
-									relaxed=IsRelaxed();
-					if( subReached) goto bailOut;
+					if( SearchedRoutineFound) goto bailOut;
 					
 				}
 				break;
@@ -891,6 +891,7 @@ void GDLParser::translation_unit() {
 	catch ( GDLException& e) {
 		if (inputState->guessing==0) {
 			
+						recovery=false;
 			throw;
 			
 		} else {
@@ -899,11 +900,19 @@ void GDLParser::translation_unit() {
 	}
 	catch ( antlr::NoViableAltException& e) {
 		if (inputState->guessing==0) {
-			
-					  // this partially solves #59 (no line number in '@'-included files
-						printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
-						// PARSER SYNTAX ERROR
-						throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+e.getMessage(), e.getFilename() );
+			//this exception may come from using () instead of [] for array indexes.
+					   // we try to rescan using the 'relaxed' mode, once.
+						if (recovery) {
+							recovery=false;
+							// this partially solves #59 (no line number in '@'-included files
+							printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
+							// PARSER SYNTAX ERROR
+							throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+e.getMessage(), e.getFilename() );
+						} else {
+							if (IsStrictArr()) std::cerr<<"old array index syntax at line "<<LT(1).get()->getLine()<<", column="<<LT(1).get()->getColumn()<<std::endl;
+							recovery=true;
+							goto retry;
+						}
 			
 		} else {
 			throw;
@@ -912,8 +921,9 @@ void GDLParser::translation_unit() {
 	catch ( antlr::NoViableAltForCharException& e) {
 		if (inputState->guessing==0) {
 			
-					  // this partially solves #59 (no line number in '@'-included files
-						printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());				
+						recovery=false;
+						// this partially solves #59 (no line number in '@'-included files
+						printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
 						// LEXER SYNTAX ERROR
 						throw GDLException( e.getLine(), e.getColumn(), "Lexer syntax error: "+e.getMessage(), e.getFilename() );
 			
@@ -924,10 +934,11 @@ void GDLParser::translation_unit() {
 	catch ( antlr::RecognitionException& e) {
 		if (inputState->guessing==0) {
 			
-					  // this partially solves #59 (no line number in '@'-included files
-						printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());				
-						// SYNTAX ERROR
-						throw GDLException( e.getLine(), e.getColumn(), "Lexer/Parser syntax error: "+e.getMessage(), e.getFilename() );
+						recovery=false;
+						// this partially solves #59 (no line number in '@'-included files
+						printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
+						// ???? SYNTAX ERROR
+						throw GDLException( e.getLine(), e.getColumn(), "Parser/Lexer syntax error: "+e.getMessage(), e.getFilename() );
 			
 		} else {
 			throw;
@@ -935,7 +946,8 @@ void GDLParser::translation_unit() {
 	}
 	catch ( antlr::TokenStreamIOException& e) {
 		if (inputState->guessing==0) {
-			
+						
+						recovery=false;
 			// IO ERROR
 			throw GDLException( returnAST, "Input/Output error: "+e.getMessage());
 			
@@ -946,6 +958,7 @@ void GDLParser::translation_unit() {
 	catch ( antlr::TokenStreamException& e) {
 		if (inputState->guessing==0) {
 			
+						recovery=false;
 			throw GDLException( returnAST, "Token stream error: "+e.getMessage());
 			
 		} else {
@@ -1109,7 +1122,10 @@ void GDLParser::procedure_def() {
 	match(END);
 	if ( inputState->guessing==0 ) {
 		
-		if( subName == name && searchForPro == true) subReached=true;
+					LastGoodPosition=mark();
+					recovery=false;
+					relaxed=false;
+		if( subName == name && searchForPro == true) SearchedRoutineFound=true;
 		p_AST->SetCompileOpt( compileOpt); 
 		
 	}
@@ -1226,7 +1242,10 @@ void GDLParser::function_def() {
 	match(END);
 	if ( inputState->guessing==0 ) {
 		
-		if( subName == name && searchForPro == false) subReached=true;
+		if( subName == name && searchForPro == false) SearchedRoutineFound=true;
+					LastGoodPosition=mark();
+					recovery=false;
+					relaxed=false;
 		f_AST->SetCompileOpt( compileOpt); 
 		
 	}
@@ -3620,7 +3639,7 @@ std::string  GDLParser::object_name() {
 	if ( inputState->guessing==0 ) {
 		object_name_AST = RefDNode(currentAST.root);
 		
-		// here we translate IDL_OBECT to GDL_OBJECT for source code compatibility
+		// here we translate IDL_OBJECT to GDL_OBJECT for source code compatibility
 		{
 		if( i1_AST->getText() == "IDL_OBJECT")
 		i1_AST->setText(GDL_OBJECT_NAME);

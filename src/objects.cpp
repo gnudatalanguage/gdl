@@ -960,7 +960,7 @@ DLong GetLUN()
   
   return 0;
 }
-bool IsRelaxed(){return !strictInterpreter;}
+bool IsStrictArr(){return strictInterpreter;}
 void SetStrict(bool value){strictInterpreter=value;}
 
 // for semantic predicate

@@ -56,9 +56,11 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
     private:
     std::string subName; // name of procedure function to be compiled ("" -> all file)
     bool   searchForPro; // true -> procedure subName, false -> function subName 
-    bool   subReached; 
+    bool   SearchedRoutineFound; 
     unsigned int compileOpt;
-    bool relaxed=IsRelaxed();
+    bool relaxed=!IsStrictArr();
+    int LastGoodPosition=0; // last position of start of PRO or FUNC -- used in recovery mode
+	bool recovery=false; //recovery mode going to 'relaxed' if STRICTARR generated an error 
 
     void AddCompileOpt( const std::string &opt)
     {
@@ -87,7 +89,7 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
               bool searchPro, // true -> search for procedure sName, false -> for function
               unsigned int compileOptIn):
     antlr::LLkParser(selector,2), subName(sName), searchForPro( searchPro), 
-    subReached(false), compileOpt(compileOptIn)
+    SearchedRoutineFound(false), compileOpt(compileOptIn)
     { 
         //        setTokenNames(_tokenNames);
     }

@@ -213,9 +213,11 @@ tokens {
     private:
     std::string subName; // name of procedure function to be compiled ("" -> all file)
     bool   searchForPro; // true -> procedure subName, false -> function subName 
-    bool   subReached; 
+    bool   SearchedRoutineFound; 
     unsigned int compileOpt;
-    bool relaxed=IsRelaxed();
+    bool relaxed=!IsStrictArr();
+    int LastGoodPosition=0; // last position of start of PRO or FUNC -- used in recovery mode
+	bool recovery=false; //recovery mode going to 'relaxed' if STRICTARR generated an error 
 
     void AddCompileOpt( const std::string &opt)
     {
@@ -244,7 +246,7 @@ tokens {
               bool searchPro, // true -> search for procedure sName, false -> for function
               unsigned int compileOptIn):
     antlr::LLkParser(selector,2), subName(sName), searchForPro( searchPro), 
-    subReached(false), compileOpt(compileOptIn)
+    SearchedRoutineFound(false), compileOpt(compileOptIn)
     { 
         //        setTokenNames(_tokenNames);
     }
@@ -304,28 +306,30 @@ identifier
 // file parsing
 translation_unit
 { 
-    subReached=false;
+    SearchedRoutineFound=false;
     compileOpt=NONE; // reset compileOpt  
-    relaxed=IsRelaxed();  
+    retry:; 
+    relaxed=recovery?true:false;
+    if (recovery) this->rewind(LastGoodPosition);
 }
-    :   ( options {greedy=true;}: end_unit
+    :   ( options {greedy=true;} : end_unit
         | forward_function end_unit
         | procedure_def 
             { 
                 compileOpt=NONE; // reset compileOpt  
-				relaxed=IsRelaxed();
-                if( subReached) goto bailOut;
+                if( SearchedRoutineFound) goto bailOut;
             }
-        | function_def  
+        |function_def 
             { 
                 compileOpt=NONE; // reset compileOpt
-				relaxed=IsRelaxed();
-                if( subReached) goto bailOut;
+                if( SearchedRoutineFound) goto bailOut;
             }
         | common_block
         )* // optional - only main program is also ok
 
-        ( statement_list END! (end_unit)? )? // $MAIN$ program
+        ( 
+           statement_list END! (end_unit)? 
+        )? // $MAIN$ program
 
         (EOF!)   // braces necessary because goto crosses initialization otherwise
         { bailOut:;} // bailout jump label
@@ -333,36 +337,49 @@ translation_unit
         exception 
         catch [ GDLException& e] 
         { 
+			recovery=false;
             throw;
         }
         catch [ antlr::NoViableAltException& e] 
-        {
-		  // this partially solves #59 (no line number in '@'-included files
-			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
-			// PARSER SYNTAX ERROR
-			throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+e.getMessage(), e.getFilename() );
+        {  //this exception may come from using () instead of [] for array indexes.
+		   // we try to rescan using the 'relaxed' mode, once.
+			if (recovery) {
+				recovery=false;
+				// this partially solves #59 (no line number in '@'-included files
+				printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
+				// PARSER SYNTAX ERROR
+				throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+e.getMessage(), e.getFilename() );
+			} else {
+				if (IsStrictArr()) std::cerr<<"old array index syntax at line "<<LT(1).get()->getLine()<<", column="<<LT(1).get()->getColumn()<<std::endl;
+				recovery=true;
+				goto retry;
+			}
         }
         catch [ antlr::NoViableAltForCharException& e] 
         {
-		  // this partially solves #59 (no line number in '@'-included files
-			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());				
+			recovery=false;
+			// this partially solves #59 (no line number in '@'-included files
+			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
 			// LEXER SYNTAX ERROR
 			throw GDLException( e.getLine(), e.getColumn(), "Lexer syntax error: "+e.getMessage(), e.getFilename() );
         }
         catch [ antlr::RecognitionException& e] 
         {
-		  // this partially solves #59 (no line number in '@'-included files
-			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());				
-			// SYNTAX ERROR
-			throw GDLException( e.getLine(), e.getColumn(), "Lexer/Parser syntax error: "+e.getMessage(), e.getFilename() );
+			recovery=false;
+			// this partially solves #59 (no line number in '@'-included files
+			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
+			// ???? SYNTAX ERROR
+			throw GDLException( e.getLine(), e.getColumn(), "Parser/Lexer syntax error: "+e.getMessage(), e.getFilename() );
         }
         catch [ antlr::TokenStreamIOException& e] 
-        {
+        {			
+			recovery=false;
             // IO ERROR
             throw GDLException( returnAST, "Input/Output error: "+e.getMessage());
         }
         catch [ antlr::TokenStreamException& e] 
         {
+			recovery=false;
             throw GDLException( returnAST, "Token stream error: "+e.getMessage());
         }
     ;
@@ -520,7 +537,7 @@ protected
 object_name! returns [std::string name] // !//
       : i1:IDENTIFIER m:METHOD i2:IDENTIFIER
         { 
-        // here we translate IDL_OBECT to GDL_OBJECT for source code compatibility
+        // here we translate IDL_OBJECT to GDL_OBJECT for source code compatibility
         {
             if( #i1->getText() == "IDL_OBJECT")
                 #i1->setText(GDL_OBJECT_NAME);
@@ -544,7 +561,10 @@ procedure_def
         (COMMA! parameter_declaration)? end_unit
         (statement_list)? END!
         { 
-            if( subName == name && searchForPro == true) subReached=true;
+			LastGoodPosition=mark();
+			recovery=false;
+			relaxed=false;
+            if( subName == name && searchForPro == true) SearchedRoutineFound=true;
             #p->SetCompileOpt( compileOpt); 
         }
   ;
@@ -560,12 +580,15 @@ function_def
         (COMMA! parameter_declaration)? end_unit
         (statement_list)? END!
         { 
-            if( subName == name && searchForPro == false) subReached=true;
+            if( subName == name && searchForPro == false) SearchedRoutineFound=true;
+			LastGoodPosition=mark();
+			recovery=false;
+			relaxed=false;
             #f->SetCompileOpt( compileOpt); 
         }
     ;
 
-// change defaultbehaviour of the compiling
+// change default behaviour of the compiling
 compile_opt!
     : COMPILE_OPT i:IDENTIFIER 
         {
