@@ -57,19 +57,18 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
     std::string subName; // name of procedure function to be compiled ("" -> all file)
     bool   searchForPro; // true -> procedure subName, false -> function subName 
     bool   SearchedRoutineFound; 
-    unsigned int compileOpt;
-    bool relaxed=!IsStrictArr();
+    unsigned int compileOpt=0;
+    int fussy=((compileOpt & STRICTARR)!=0)?2:1; //auto recovery if compile opt is not strictarr
     int LastGoodPosition=0; // last position of start of PRO or FUNC -- used in recovery mode
-	bool recovery=false; //recovery mode going to 'relaxed' if STRICTARR generated an error 
-
+	bool recovery=false; //recovery mode going to 'fussy' if STRICTARR generated an error 
     void AddCompileOpt( const std::string &opt)
     {
         if(      opt == "DEFINT32")          compileOpt |= DEFINT32;
         else if( opt == "HIDDEN")            compileOpt |= HIDDEN;
         else if( opt == "OBSOLETE")          compileOpt |= OBSOLETE;
-        else if( opt == "STRICTARR")         {compileOpt |= STRICTARR; relaxed=false;}
+        else if( opt == "STRICTARR")         {compileOpt |= STRICTARR; fussy=2;} // fussy=2: a strictarr syntax error is fatal
         else if( opt == "LOGICAL_PREDICATE") compileOpt |= LOGICAL_PREDICATE;
-        else if( opt == "IDL2")              {compileOpt |= IDL2; relaxed=false;}
+        else if( opt == "IDL2")              {compileOpt |= IDL2; fussy=2;}
         else if( opt == "STRICTARRSUBS")     compileOpt |= STRICTARRSUBS;
         else if( opt == "STATIC")            compileOpt |= STATIC;
         else if( opt == "NOSAVE")            compileOpt |= NOSAVE;
@@ -227,8 +226,9 @@ public:
 	public: void numeric_constant();
 	public: void arrayindex_list();
 	public: void arrayindex();
-	public: void all_elements();
 	public: void arrayindex_sloppy();
+	public: void arrayindex_list_sloppy();
+	public: void all_elements();
 	public: void sysvar();
 	public: void var();
 	public: void brace_expr();
@@ -322,10 +322,6 @@ private:
 	static const antlr::BitSet _tokenSet_23;
 	static const unsigned long _tokenSet_24_data_[];
 	static const antlr::BitSet _tokenSet_24;
-	static const unsigned long _tokenSet_25_data_[];
-	static const antlr::BitSet _tokenSet_25;
-	static const unsigned long _tokenSet_26_data_[];
-	static const antlr::BitSet _tokenSet_26;
 };
 
 #endif /*INC_GDLParser_hpp_*/

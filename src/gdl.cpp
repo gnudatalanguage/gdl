@@ -552,9 +552,9 @@ int main(int argc, char *argv[])
   if (!pretendRelease.empty()) SysVar::SetFakeRelease(pretendRelease);
   //fussyness setup and change if switch at start
   if (syntaxOptionSet) { //take it no matters any env. var.
-    if (strict_syntax == true) SetStrict(true);
+    if (strict_syntax == true) SetTraceSyntaxErrors(true);
   } else {
-    if (GetEnvString("GDL_IS_FUSSY").size()> 0) SetStrict(true);
+    if (GetEnvString("GDL_IS_FUSSY").size()> 0) SetTraceSyntaxErrors(true);
   }
   
   

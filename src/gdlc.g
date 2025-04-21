@@ -214,19 +214,18 @@ tokens {
     std::string subName; // name of procedure function to be compiled ("" -> all file)
     bool   searchForPro; // true -> procedure subName, false -> function subName 
     bool   SearchedRoutineFound; 
-    unsigned int compileOpt;
-    bool relaxed=!IsStrictArr();
+    unsigned int compileOpt=0;
+    int fussy=((compileOpt & STRICTARR)!=0)?2:1; //auto recovery if compile opt is not strictarr
     int LastGoodPosition=0; // last position of start of PRO or FUNC -- used in recovery mode
-	bool recovery=false; //recovery mode going to 'relaxed' if STRICTARR generated an error 
-
+	bool recovery=false; //recovery mode going to 'fussy' if STRICTARR generated an error 
     void AddCompileOpt( const std::string &opt)
     {
         if(      opt == "DEFINT32")          compileOpt |= DEFINT32;
         else if( opt == "HIDDEN")            compileOpt |= HIDDEN;
         else if( opt == "OBSOLETE")          compileOpt |= OBSOLETE;
-        else if( opt == "STRICTARR")         {compileOpt |= STRICTARR; relaxed=false;}
+        else if( opt == "STRICTARR")         {compileOpt |= STRICTARR; fussy=2;} // fussy=2: a strictarr syntax error is fatal
         else if( opt == "LOGICAL_PREDICATE") compileOpt |= LOGICAL_PREDICATE;
-        else if( opt == "IDL2")              {compileOpt |= IDL2; relaxed=false;}
+        else if( opt == "IDL2")              {compileOpt |= IDL2; fussy=2;}
         else if( opt == "STRICTARRSUBS")     compileOpt |= STRICTARRSUBS;
         else if( opt == "STATIC")            compileOpt |= STATIC;
         else if( opt == "NOSAVE")            compileOpt |= NOSAVE;
@@ -309,9 +308,13 @@ translation_unit
     SearchedRoutineFound=false;
     compileOpt=NONE; // reset compileOpt  
     retry:; 
-    relaxed=true; //recovery?true:false;
-    std::cerr<<"recovery:"<<recovery<<", LastGoodPosition="<<LastGoodPosition<<std::endl;
-    if (recovery) this->rewind(LastGoodPosition);
+    if (fussy<2) { //STRICTARR not given in the current PRO/FUN
+      fussy=recovery?0:1;
+    }
+    if (recovery) {
+//	    std::cerr<<"recovery:"<<recovery<<", LastGoodPosition="<<LastGoodPosition<<std::endl;
+		this->rewind(LastGoodPosition);
+	}
 }
     :   ( options {greedy=true;} : end_unit
         | forward_function end_unit
@@ -338,20 +341,22 @@ translation_unit
         exception 
         catch [ GDLException& e] 
         { 
-			recovery=false;
-            throw;
-        }
+				recovery=false;
+				throw;
+		}
         catch [ antlr::NoViableAltException& e] 
         {  //this exception may come from using () instead of [] for array indexes.
-		   // we try to rescan using the 'relaxed' mode, once.
-			if (recovery) {
+		   // we try to rescan using the 'sloppy' mode, once.
+			if (recovery || fussy==2) {
 				recovery=false;
 				// this partially solves #59 (no line number in '@'-included files
 				printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
 				// PARSER SYNTAX ERROR
 				throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+e.getMessage(), e.getFilename() );
 			} else {
-				if (IsStrictArr()) std::cerr<<"old array index syntax at line "<<LT(1).get()->getLine()<<", column="<<LT(1).get()->getColumn()<<std::endl;
+				if (IsTracingSyntaxErrors()) {
+					std::cerr<<"old syntax at line "<<LT(1).get()->getLine()<<", column "<<LT(1).get()->getColumn()<<std::endl;
+				}
 				recovery=true;
 				goto retry;
 			}
@@ -366,11 +371,19 @@ translation_unit
         }
         catch [ antlr::RecognitionException& e] 
         {
-			recovery=false;
-			// this partially solves #59 (no line number in '@'-included files
-			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
-			// ???? SYNTAX ERROR
-			throw GDLException( e.getLine(), e.getColumn(), "Parser/Lexer syntax error: "+e.getMessage(), e.getFilename() );
+			if (recovery|| fussy==2) {
+				recovery=false;
+				// this partially solves #59 (no line number in '@'-included files
+				printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
+				// PARSER SYNTAX ERROR
+				throw GDLException( e.getLine(), e.getColumn(), "Parser recognition exception error: "+e.getMessage(), e.getFilename() );
+			} else {
+				if (IsTracingSyntaxErrors()) {
+					std::cerr<<"old syntax at line "<<LT(1).get()->getLine()<<", column "<<LT(1).get()->getColumn()<<std::endl;
+				}
+				recovery=true;
+				goto retry;
+			}
         }
         catch [ antlr::TokenStreamIOException& e] 
         {			
@@ -401,6 +414,7 @@ interactive_compile!
 
 // interactive usage
 interactive
+{fussy=((compileOpt & STRICTARR)!=0)?2:0;}
     :   ( end_unit (end_mark)? 
         | interactive_statement
         | interactive_compile
@@ -417,7 +431,7 @@ interactive
             // PARSER SYNTAX ERROR
             throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+
                 e.getMessage(), e.getFilename() );
-        }
+				}
         catch [ antlr::NoViableAltForCharException& e] 
         {
 	  // here (interactive mode) the solving of #59 is delayed to the catching function (support for implied print and line continuation specifics! argh! all this an ANTLR2 problem) 
@@ -425,14 +439,14 @@ interactive
             throw GDLException( e.getLine(), e.getColumn(), "Lexer syntax error: "+
                 e.getMessage(), e.getFilename() );
         }
-        catch [ antlr::RecognitionException& e] 
-        {
+        catch [ antlr::RecognitionException& e]
+		{
 	  // here (interactive mode) the solving of #59 is delayed to the catching function (support for implied print and line continuation specifics! argh! all this an ANTLR2 problem) 
             // SYNTAX ERROR
             throw GDLException( e.getLine(), e.getColumn(), 
                 "Lexer/Parser syntax error: "+e.getMessage(), e.getFilename() );
-        }
-        catch [ antlr::TokenStreamIOException& e] 
+				}
+       catch [ antlr::TokenStreamIOException& e] 
         {
             // IO ERROR
             throw GDLException( returnAST, "Input/Output error: "+e.getMessage());
@@ -448,7 +462,7 @@ interactive
 interactive_statement
   :  (BEGIN! | IDENTIFIER! COLON!)* 
     statement end_unit
-  ;
+   ;
 
 
 // idl allows more than one ELSE: first is executed, *all*
@@ -554,8 +568,9 @@ object_name! returns [std::string name] // !//
 procedure_def
 {
     std::string name;
+	fussy=recovery?0:1; //recoverable fussy mode
 			LastGoodPosition=mark();
-	std::cerr<<"start pro at "<<LastGoodPosition<<std::endl;
+//	std::cerr<<"start pro at "<<LastGoodPosition<<std::endl;
 }
     : p:PRO^
         ( n:IDENTIFIER { name=n->getText(); }
@@ -566,8 +581,8 @@ procedure_def
         { 
 			LastGoodPosition=mark();
 			recovery=false;
-        	std::cerr<<"end pro "<<name<<" at "<<LastGoodPosition<<std::endl;
-			relaxed=false;
+//        	std::cerr<<"end pro "<<name<<" at "<<LastGoodPosition<<std::endl;
+			fussy=1; //set recoverable fussy mode
             if( subName == name && searchForPro == true) SearchedRoutineFound=true;
             #p->SetCompileOpt( compileOpt); 
         }
@@ -576,8 +591,9 @@ procedure_def
 function_def
 {
     std::string name;
+	fussy=recovery?0:1; //recoverable fussy mode
 			LastGoodPosition=mark();
-	std::cerr<<"start fun"<<std::endl;
+//	std::cerr<<"start fun"<<std::endl;
 }
     : f:FUNCTION^
         ( n:IDENTIFIER { name=n->getText(); }
@@ -589,8 +605,8 @@ function_def
             if( subName == name && searchForPro == false) SearchedRoutineFound=true;
 			LastGoodPosition=mark();
 			recovery=false;
-        	std::cerr<<"end fun "<<name<<" at "<<LastGoodPosition<<std::endl;
-			relaxed=false;
+//        	std::cerr<<"end fun "<<name<<" at "<<LastGoodPosition<<std::endl;
+			fussy=1; //set recoverable fussy mode
             #f->SetCompileOpt( compileOpt); 
         }
     ;
@@ -1322,11 +1338,20 @@ numeric_constant
 arrayindex_list
 {        
     int rank = 1;
-	std::cerr<<"arrayindex_list, relaxed="<<relaxed<<", line "<<LT(1).get()->getLine()<<",\""<<LT(1).get()->getText()<<"\",state: "<<inputState->guessing<<std::endl;
 }
     : LSQUARE! arrayindex ({++rank <= MAXRANK}? COMMA! arrayindex)* RSQUARE!
-    | { relaxed}? LBRACE! arrayindex ({++rank <= MAXRANK}? COMMA! arrayindex)* RBRACE!
-    ;    
+    | { fussy==0}? LBRACE! arrayindex_sloppy ({++rank <= MAXRANK}? COMMA! arrayindex_sloppy)* RBRACE!
+    ;
+    
+arrayindex_list_sloppy
+{        
+    int rank = 1;
+	if (IsTracingSyntaxErrors() && (inputState->guessing == 0 ) ) {
+		std::cerr<<"old syntax at line "<<LT(1).get()->getLine()<<", column "<<LT(1).get()->getColumn()<<std::endl;
+	}
+}
+    : LBRACE! arrayindex_sloppy ({++rank <= MAXRANK}? COMMA! arrayindex_sloppy)* RBRACE!
+    ; 
 
 all_elements!
     : ASTERIX { #all_elements = #([ALL,"*"]);}
@@ -1334,16 +1359,16 @@ all_elements!
 
 // used only from arrayindex_list
 arrayindex
-  : ((ASTERIX (COMMA|{ relaxed}? RBRACE|RSQUARE))=> all_elements
+  : ((ASTERIX (COMMA|RSQUARE))=> all_elements
     | expr
          (COLON! 
               (
-                (ASTERIX (COMMA|{ relaxed}? RBRACE|RSQUARE|COLON))=> all_elements
+                (ASTERIX (COMMA|RSQUARE|COLON))=> all_elements
               | expr
               )
               (COLON! 
                   (
-                    (ASTERIX (COMMA|{ relaxed}? RBRACE|RSQUARE))=> ASTERIX!
+                    (ASTERIX (COMMA|RSQUARE))=> ASTERIX!
                       {
                       throw  GDLException( "n:n:* subscript form not allowed.");
                       }
@@ -1358,16 +1383,16 @@ arrayindex
 // used only from arrayindex_list
 arrayindex_sloppy
   : (
-       (ASTERIX (COMMA|RBRACE))=> all_elements
+       (ASTERIX (COMMA|RBRACE|RSQUARE))=> all_elements
     | expr
          (COLON! 
               (
-                (ASTERIX (COMMA|RBRACE|COLON))=> all_elements
+                (ASTERIX (COMMA|RBRACE|RSQUARE|COLON))=> all_elements
               | expr
               )
               (COLON! 
                   (
-                    (ASTERIX (COMMA|RBRACE))=> ASTERIX!
+                    (ASTERIX (COMMA|RBRACE|RSQUARE))=> ASTERIX!
                       {
                       throw  GDLException( "n:n:* subscript form not allowed.");
                       }
@@ -1676,24 +1701,22 @@ primary_expr
         // ambiguity (arrayexpr or fcall)
         (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE)=>
         (
-
-            // already known function 
-            // (could be reordered, but this is conform to original)
+			// an existing function makes it a formal_function_call (hence the need for forward_function)
             { IsFun(LT(1))}? formal_function_call
             { 
                    #primary_expr = #([FCALL, "fcall"], #primary_expr);
             }
         | 
-            // still ambiguity (arrayexpr or fcall)
-        (var arrayindex_list)=> var arrayindex_list     // array_expr_fn
+            // can be an array if we are in recoverable fussy mode (or not fussy at all)
+            {fussy < 2}? (var arrayindex_list_sloppy)=> var arrayindex_list_sloppy     // array_expr_fn
             { 
                 #primary_expr = #([ARRAYEXPR_FCALL,"arrayexpr_fcall"], #primary_expr);
-	    }
+	        }
         |   // if arrayindex_list failed (due to to many indices)
             // this must be a function call
-            formal_function_call
+           formal_function_call
                  {#primary_expr = #([FCALL, "fcall"], #primary_expr);}
-        )
+		)
     |   // not the above => keyword parameter (or no args) => function call
          (formal_function_call)=> formal_function_call
          { #primary_expr = #([FCALL, "fcall"], #primary_expr);}
