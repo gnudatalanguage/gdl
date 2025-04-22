@@ -215,6 +215,7 @@ tokens {
     bool   searchForPro; // true -> procedure subName, false -> function subName 
     bool   SearchedRoutineFound; 
     unsigned int compileOpt=0;
+	bool relaxed=false; // use of a bool speedups {}? constructs
     int fussy=((compileOpt & STRICTARR)!=0)?2:1; //auto recovery if compile opt is not strictarr
     int LastGoodPosition=0; // last position of start of PRO or FUNC -- used in recovery mode
 	bool recovery=false; //recovery mode going to 'fussy' if STRICTARR generated an error 
@@ -223,9 +224,9 @@ tokens {
         if(      opt == "DEFINT32")          compileOpt |= DEFINT32;
         else if( opt == "HIDDEN")            compileOpt |= HIDDEN;
         else if( opt == "OBSOLETE")          compileOpt |= OBSOLETE;
-        else if( opt == "STRICTARR")         {compileOpt |= STRICTARR; fussy=2;} // fussy=2: a strictarr syntax error is fatal
+        else if( opt == "STRICTARR")         {compileOpt |= STRICTARR; fussy=2; relaxed=false;} // fussy=2: a strictarr syntax error is fatal
         else if( opt == "LOGICAL_PREDICATE") compileOpt |= LOGICAL_PREDICATE;
-        else if( opt == "IDL2")              {compileOpt |= IDL2; fussy=2;}
+        else if( opt == "IDL2")              {compileOpt |= IDL2; fussy=2; relaxed=false;}
         else if( opt == "STRICTARRSUBS")     compileOpt |= STRICTARRSUBS;
         else if( opt == "STATIC")            compileOpt |= STATIC;
         else if( opt == "NOSAVE")            compileOpt |= NOSAVE;
@@ -311,6 +312,7 @@ translation_unit
     if (fussy<2) { //STRICTARR not given in the current PRO/FUN
       fussy=recovery?0:1;
     }
+	relaxed=(fussy < 1);
     if (recovery) {
 //	    std::cerr<<"recovery:"<<recovery<<", LastGoodPosition="<<LastGoodPosition<<std::endl;
 		this->rewind(LastGoodPosition);
@@ -414,7 +416,9 @@ interactive_compile!
 
 // interactive usage
 interactive
-{fussy=((compileOpt & STRICTARR)!=0)?2:0;}
+{fussy=((compileOpt & STRICTARR)!=0)?2:0;
+relaxed=(fussy < 1);
+}
     :   ( end_unit (end_mark)? 
         | interactive_statement
         | interactive_compile
@@ -569,7 +573,8 @@ procedure_def
 {
     std::string name;
 	fussy=recovery?0:1; //recoverable fussy mode
-			LastGoodPosition=mark();
+	relaxed=(fussy < 1);
+	LastGoodPosition=mark();
 //	std::cerr<<"start pro at "<<LastGoodPosition<<std::endl;
 }
     : p:PRO^
@@ -592,7 +597,8 @@ function_def
 {
     std::string name;
 	fussy=recovery?0:1; //recoverable fussy mode
-			LastGoodPosition=mark();
+	relaxed=(fussy < 1);
+	LastGoodPosition=mark();
 //	std::cerr<<"start fun"<<std::endl;
 }
     : f:FUNCTION^
@@ -1340,7 +1346,7 @@ arrayindex_list
     int rank = 1;
 }
     : LSQUARE! arrayindex ({++rank <= MAXRANK}? COMMA! arrayindex)* RSQUARE!
-    | { fussy==0}? LBRACE! arrayindex_sloppy ({++rank <= MAXRANK}? COMMA! arrayindex_sloppy)* RBRACE!
+    | { relaxed }? LBRACE! arrayindex_sloppy ({++rank <= MAXRANK}? COMMA! arrayindex_sloppy)* RBRACE!
     ;
     
 arrayindex_list_sloppy

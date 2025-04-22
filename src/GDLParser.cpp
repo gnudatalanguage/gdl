@@ -756,6 +756,7 @@ void GDLParser::translation_unit() {
 	if (fussy<2) { //STRICTARR not given in the current PRO/FUN
 	fussy=recovery?0:1;
 	}
+		relaxed=(fussy < 1);
 	if (recovery) {
 	//	    std::cerr<<"recovery:"<<recovery<<", LastGoodPosition="<<LastGoodPosition<<std::endl;
 			this->rewind(LastGoodPosition);
@@ -1039,7 +1040,8 @@ void GDLParser::procedure_def() {
 	
 	std::string name;
 		fussy=recovery?0:1; //recoverable fussy mode
-				LastGoodPosition=mark();
+		relaxed=(fussy < 1);
+		LastGoodPosition=mark();
 	//	std::cerr<<"start pro at "<<LastGoodPosition<<std::endl;
 	
 	
@@ -1163,7 +1165,8 @@ void GDLParser::function_def() {
 	
 	std::string name;
 		fussy=recovery?0:1; //recoverable fussy mode
-				LastGoodPosition=mark();
+		relaxed=(fussy < 1);
+		LastGoodPosition=mark();
 	//	std::cerr<<"start fun"<<std::endl;
 	
 	
@@ -1579,6 +1582,8 @@ void GDLParser::interactive() {
 	antlr::ASTPair currentAST;
 	RefDNode interactive_AST = RefDNode(antlr::nullAST);
 	fussy=((compileOpt & STRICTARR)!=0)?2:0;
+	relaxed=(fussy < 1);
+	
 	
 	try {      // for error handling
 		{ // ( ... )+
@@ -7485,7 +7490,7 @@ void GDLParser::arrayindex_list() {
 		match(RSQUARE);
 		arrayindex_list_AST = RefDNode(currentAST.root);
 	}
-	else if (((LA(1) == LBRACE))&&( fussy==0)) {
+	else if (((LA(1) == LBRACE))&&( relaxed )) {
 		match(LBRACE);
 		arrayindex_sloppy();
 		if (inputState->guessing==0) {

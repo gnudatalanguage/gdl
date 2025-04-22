@@ -58,6 +58,7 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
     bool   searchForPro; // true -> procedure subName, false -> function subName 
     bool   SearchedRoutineFound; 
     unsigned int compileOpt=0;
+	bool relaxed=false; // use of a bool speedups {}? constructs
     int fussy=((compileOpt & STRICTARR)!=0)?2:1; //auto recovery if compile opt is not strictarr
     int LastGoodPosition=0; // last position of start of PRO or FUNC -- used in recovery mode
 	bool recovery=false; //recovery mode going to 'fussy' if STRICTARR generated an error 
@@ -66,9 +67,9 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
         if(      opt == "DEFINT32")          compileOpt |= DEFINT32;
         else if( opt == "HIDDEN")            compileOpt |= HIDDEN;
         else if( opt == "OBSOLETE")          compileOpt |= OBSOLETE;
-        else if( opt == "STRICTARR")         {compileOpt |= STRICTARR; fussy=2;} // fussy=2: a strictarr syntax error is fatal
+        else if( opt == "STRICTARR")         {compileOpt |= STRICTARR; fussy=2; relaxed=false;} // fussy=2: a strictarr syntax error is fatal
         else if( opt == "LOGICAL_PREDICATE") compileOpt |= LOGICAL_PREDICATE;
-        else if( opt == "IDL2")              {compileOpt |= IDL2; fussy=2;}
+        else if( opt == "IDL2")              {compileOpt |= IDL2; fussy=2; relaxed=false;}
         else if( opt == "STRICTARRSUBS")     compileOpt |= STRICTARRSUBS;
         else if( opt == "STATIC")            compileOpt |= STATIC;
         else if( opt == "NOSAVE")            compileOpt |= NOSAVE;
