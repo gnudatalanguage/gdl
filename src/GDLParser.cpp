@@ -901,7 +901,7 @@ void GDLParser::translation_unit() {
 							recovery=false;
 			// HERE WE COULD COUNT THE ERRORS and replace "No parser output generated." in dinterpreter.cpp by something like
 			// "% XXX Compilation error(s) in module YYY."
-			//				throw;
+							throw; //seems necessary, for execute in particular. this patch is not very clever.
 					
 		} else {
 			throw;
@@ -1702,7 +1702,8 @@ void GDLParser::interactive() {
 	catch ( GDLException& e) {
 		if (inputState->guessing==0) {
 			
-							printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn(), e.toString());
+			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn(), e.toString());
+					  throw; //necessary for EXECUTE to get the error state. Alas.
 			
 		} else {
 			throw;
