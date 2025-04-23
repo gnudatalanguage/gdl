@@ -26,7 +26,7 @@ header "post_include_cpp" {
 #include <iostream>
 #include <string>
 
-static void printLineErrorHelper(std::string filename, int line, int col) {
+static void printLineErrorHelper(std::string filename, int line, int col, std::string msg="" ) {
   if (filename.size() > 0) {
 	std::ifstream ifs;
 	ifs.open(filename, std::ifstream::in);
@@ -46,7 +46,7 @@ static void printLineErrorHelper(std::string filename, int line, int col) {
   for (auto i = 0; i < col; ++i) std::cerr << ' ';
   std::cerr << '^';
   std::cerr << '\n';
-  std::cerr << "% Syntax error.\n";
+  if ( msg.size() > 0) std::cerr << msg << std::endl; else std::cerr << "% Syntax error.\n";
   if ( filename.size() > 0)   std::cerr <<"  At: "<<filename<<", Line "<<line<<std::endl;
   return;
 }
@@ -342,9 +342,12 @@ translation_unit
         // catch lexer exceptions also
         exception 
         catch [ GDLException& e] 
-        { 
+        {  
+				printLineErrorHelper(getFilename(), e.getLine(), e.getColumn(), e.getMessage());
 				recovery=false;
-				throw;
+// HERE WE COULD COUNT THE ERRORS and replace "No parser output generated." in dinterpreter.cpp by something like
+// "% XXX Compilation error(s) in module YYY."
+//				throw;
 		}
         catch [ antlr::NoViableAltException& e] 
         {  //this exception may come from using () instead of [] for array indexes.
@@ -354,7 +357,7 @@ translation_unit
 				// this partially solves #59 (no line number in '@'-included files
 				printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
 				// PARSER SYNTAX ERROR
-				throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+e.getMessage(), e.getFilename() );
+//				throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+e.getMessage(), e.getFilename() );
 			} else {
 				if (IsTracingSyntaxErrors()) {
 					std::cerr<<"old syntax at line "<<LT(1).get()->getLine()<<", column "<<LT(1).get()->getColumn()<<std::endl;
@@ -369,7 +372,7 @@ translation_unit
 			// this partially solves #59 (no line number in '@'-included files
 			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
 			// LEXER SYNTAX ERROR
-			throw GDLException( e.getLine(), e.getColumn(), "Lexer syntax error: "+e.getMessage(), e.getFilename() );
+//			throw GDLException( e.getLine(), e.getColumn(), "Lexer syntax error: "+e.getMessage(), e.getFilename() );
         }
         catch [ antlr::RecognitionException& e] 
         {
@@ -378,7 +381,7 @@ translation_unit
 				// this partially solves #59 (no line number in '@'-included files
 				printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
 				// PARSER SYNTAX ERROR
-				throw GDLException( e.getLine(), e.getColumn(), "Parser recognition exception error: "+e.getMessage(), e.getFilename() );
+//				throw GDLException( e.getLine(), e.getColumn(), "Parser recognition exception error: "+e.getMessage(), e.getFilename() );
 			} else {
 				if (IsTracingSyntaxErrors()) {
 					std::cerr<<"old syntax at line "<<LT(1).get()->getLine()<<", column "<<LT(1).get()->getColumn()<<std::endl;
@@ -427,7 +430,7 @@ relaxed=(fussy < 1);
         exception 
         catch [ GDLException& e] 
         { 
-            throw;
+				printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn(), e.toString());
         }
         catch [ antlr::NoViableAltException& e] 
         {
@@ -969,8 +972,8 @@ parameter_def
     | SLASH! id:identifier
         {
             RefDNode c=static_cast<RefDNode>( #[CONSTANT,"1"]);
-            c->Text2Int(10);
             c->SetLine( #id->getLine());
+            c->Text2Int(10);
             #parameter_def = #([KEYDEF,"!=!"], id, c);
         }
     ;
@@ -1065,235 +1068,235 @@ named_tag_def_list
 
 constant_hex_byte!    : c1:CONSTANT_HEX_BYTE^    
         { #constant_hex_byte=#[CONSTANT,c1->getText()];
-          #constant_hex_byte->Text2Byte(16);    
           #constant_hex_byte->SetLine( c1->getLine());    
+          #constant_hex_byte->Text2Byte(16);    
         }  ;
 constant_hex_long! : c2:CONSTANT_HEX_LONG^ 
         { #constant_hex_long=#[CONSTANT,c2->getText()];
-          #constant_hex_long->Text2Long(16);    
           #constant_hex_long->SetLine( c2->getLine());    
+          #constant_hex_long->Text2Long(16);    
         }  ;
 constant_hex_long64! :  c3:CONSTANT_HEX_LONG64^ 
         { #constant_hex_long64=#[CONSTANT,c3->getText()];
-          #constant_hex_long64->Text2Long64(16);    
           #constant_hex_long64->SetLine( c3->getLine());    
+          #constant_hex_long64->Text2Long64(16);    
         }  ;
 constant_hex_int! :  c4:CONSTANT_HEX_INT^ 
         { #constant_hex_int=#[CONSTANT,c4->getText()];
-          #constant_hex_int->Text2Int(16);    
           #constant_hex_int->SetLine( c4->getLine());    
+          #constant_hex_int->Text2Int(16);    
         }  ;
 constant_hex_i! :  c44:CONSTANT_HEX_I^ 
         // DEFINT32
         { #constant_hex_i=#[CONSTANT,c44->getText()];
+          #constant_hex_i->SetLine( c44->getLine());    
             if( compileOpt & DEFINT32)
                 #constant_hex_i->Text2Long(16,true);    
             else
                 #constant_hex_i->Text2Int(16,true);    
-          #constant_hex_i->SetLine( c44->getLine());    
         }  ;
 constant_hex_ulong! :  c5:CONSTANT_HEX_ULONG^ 
         { #constant_hex_ulong=#[CONSTANT,c5->getText()];
-          #constant_hex_ulong->Text2ULong(16);    
           #constant_hex_ulong->SetLine( c5->getLine());    
+          #constant_hex_ulong->Text2ULong(16);    
         }  ;
 constant_hex_ulong64! :  c6:CONSTANT_HEX_ULONG64^
         { #constant_hex_ulong64=#[CONSTANT,c6->getText()];
-          #constant_hex_ulong64->Text2ULong64(16);    
           #constant_hex_ulong64->SetLine( c6->getLine());    
+          #constant_hex_ulong64->Text2ULong64(16);    
         }  ;
 constant_hex_ui!:  c77:CONSTANT_HEX_UI^
         // DEFINT32
         { #constant_hex_ui=#[CONSTANT,c77->getText()];
+          #constant_hex_ui->SetLine( c77->getLine());    
             if( compileOpt & DEFINT32)
                 #constant_hex_ui->Text2ULong(16,true);    
             else
                 #constant_hex_ui->Text2UInt(16,true);    
-          #constant_hex_ui->SetLine( c77->getLine());    
         }  ;
 constant_hex_uint!:  c7:CONSTANT_HEX_UINT^
         { #constant_hex_uint=#[CONSTANT,c7->getText()];
-          #constant_hex_uint->Text2UInt(16);    
           #constant_hex_uint->SetLine( c7->getLine());    
+          #constant_hex_uint->Text2UInt(16);    
         }  ;
 constant_byte!  :  c8:CONSTANT_BYTE^  
         { #constant_byte=#[CONSTANT,c8->getText()];
-          #constant_byte->Text2Byte(10);    
           #constant_byte->SetLine( c8->getLine());    
+          #constant_byte->Text2Byte(10);    
         }  ;
 constant_long! :  c9:CONSTANT_LONG^ 
         { #constant_long=#[CONSTANT,c9->getText()];
-          #constant_long->Text2Long(10);    
           #constant_long->SetLine( c9->getLine());    
+          #constant_long->Text2Long(10);    
         } ; 
 constant_long64! :  c10:CONSTANT_LONG64^ 
         { #constant_long64=#[CONSTANT,c10->getText()];
-          #constant_long64->Text2Long64(10);    
           #constant_long64->SetLine( c10->getLine());    
+          #constant_long64->Text2Long64(10);    
         }  ;
 constant_int!:  c11:CONSTANT_INT^
         { #constant_int=#[CONSTANT,c11->getText()];
-          #constant_int->Text2Int(10);    
           #constant_int->SetLine( c11->getLine());    
+          #constant_int->Text2Int(10);    
         }  ;
 constant_i!:  c111:CONSTANT_I^
         // DEFINT32
         { #constant_i=#[CONSTANT,c111->getText()];
+          #constant_i->SetLine( c111->getLine());    
             if( compileOpt & DEFINT32)
                 #constant_i->Text2Long(10,true);    
             else
                 #constant_i->Text2Int(10,true);    
-          #constant_i->SetLine( c111->getLine());    
         }  ;
 constant_ulong! :  c12:CONSTANT_ULONG^ 
         { #constant_ulong=#[CONSTANT,c12->getText()];
-          #constant_ulong->Text2ULong(10);    
           #constant_ulong->SetLine( c12->getLine());    
+          #constant_ulong->Text2ULong(10);    
         }  ;
 constant_ulong64! :  c13:CONSTANT_ULONG64^ 
         { #constant_ulong64=#[CONSTANT,c13->getText()];
-          #constant_ulong64->Text2ULong64(10);    
           #constant_ulong64->SetLine( c13->getLine());    
+          #constant_ulong64->Text2ULong64(10);    
         } ; 
 constant_ui!:  c144:CONSTANT_UI^
         // DEFINT32
         { #constant_ui=#[CONSTANT,c144->getText()];
+          #constant_ui->SetLine( c144->getLine());    
             if( compileOpt & DEFINT32)
                 #constant_ui->Text2ULong(10,true);    
             else
                 #constant_ui->Text2UInt(10,true);    
-          #constant_ui->SetLine( c144->getLine());    
         }  ;
 constant_uint!:  c14:CONSTANT_UINT^
         { #constant_uint=#[CONSTANT,c14->getText()];
-          #constant_uint->Text2UInt(10);    
           #constant_uint->SetLine( c14->getLine());    
+          #constant_uint->Text2UInt(10);    
         }  ;
 constant_oct_byte!  :  c15:CONSTANT_OCT_BYTE^  
         { #constant_oct_byte=#[CONSTANT,c15->getText()];
-          #constant_oct_byte->Text2Byte(8);    
           #constant_oct_byte->SetLine( c15->getLine());    
+          #constant_oct_byte->Text2Byte(8);    
         }  ;
 constant_oct_long! :  c16:CONSTANT_OCT_LONG^ 
         { #constant_oct_long=#[CONSTANT,c16->getText()];
-          #constant_oct_long->Text2Long(8);    
           #constant_oct_long->SetLine( c16->getLine());    
+          #constant_oct_long->Text2Long(8);    
         }  ;
 constant_oct_long64! :  c17:CONSTANT_OCT_LONG64^ 
         { #constant_oct_long64=#[CONSTANT,c17->getText()];
-          #constant_oct_long64->Text2Long64(8);    
           #constant_oct_long64->SetLine( c17->getLine());    
+          #constant_oct_long64->Text2Long64(8);    
         }  ;
 constant_oct_int!:  c18:CONSTANT_OCT_INT^
         { #constant_oct_int=#[CONSTANT,c18->getText()];
-          #constant_oct_int->Text2Int(8);    
           #constant_oct_int->SetLine( c18->getLine());    
+          #constant_oct_int->Text2Int(8);    
         }  ;
 constant_oct_i!:  c188:CONSTANT_OCT_I^
         // DEFINT32
         { #constant_oct_i=#[CONSTANT,c188->getText()];
+          #constant_oct_i->SetLine( c188->getLine());    
             if( compileOpt & DEFINT32)
                 #constant_oct_i->Text2Long(8,true);    
             else
                 #constant_oct_i->Text2Int(8,true);    
-          #constant_oct_i->SetLine( c188->getLine());    
         }  ;
 constant_oct_ulong! :  c19:CONSTANT_OCT_ULONG^ 
         { #constant_oct_ulong=#[CONSTANT,c19->getText()];
-          #constant_oct_ulong->Text2ULong(8);    
           #constant_oct_ulong->SetLine( c19->getLine());    
+          #constant_oct_ulong->Text2ULong(8);    
         }  ;
 constant_oct_ulong64! :  c20:CONSTANT_OCT_ULONG64^ 
         { #constant_oct_ulong64=#[CONSTANT,c20->getText()];
-          #constant_oct_ulong64->Text2ULong64(8);    
           #constant_oct_ulong64->SetLine( c20->getLine());    
+          #constant_oct_ulong64->Text2ULong64(8);    
         } ; 
 constant_oct_ui!:  c211:CONSTANT_OCT_UI^
         // DEFINT32
         { #constant_oct_ui=#[CONSTANT,c211->getText()];
+          #constant_oct_ui->SetLine( c211->getLine());    
             if( compileOpt & DEFINT32)
                 #constant_oct_ui->Text2ULong(8,true);    
             else
                 #constant_oct_ui->Text2UInt(8,true);    
-          #constant_oct_ui->SetLine( c211->getLine());    
         }  ;
 constant_oct_uint!:  c21:CONSTANT_OCT_UINT^
         { #constant_oct_uint=#[CONSTANT,c21->getText()];
-          #constant_oct_uint->Text2UInt(8);    
           #constant_oct_uint->SetLine( c21->getLine());    
+          #constant_oct_uint->Text2UInt(8);    
         } ; 
 constant_float!     :  c22:CONSTANT_FLOAT^     
         { #constant_float=#[CONSTANT,c22->getText()];
-          #constant_float->Text2Float();    
           #constant_float->SetLine( c22->getLine());    
+          #constant_float->Text2Float();    
         }  ;
 constant_double!:  c23:CONSTANT_DOUBLE^
         { #constant_double=#[CONSTANT,c23->getText()];
-          #constant_double->Text2Double();    
           #constant_double->SetLine( c23->getLine());    
+          #constant_double->Text2Double();    
         }  ;
 constant_bin_byte!  :  c24:CONSTANT_BIN_BYTE^  
         { #constant_bin_byte=#[CONSTANT,c24->getText()];
-          #constant_bin_byte->Text2Byte(2);    
           #constant_bin_byte->SetLine( c24->getLine());    
+          #constant_bin_byte->Text2Byte(2);    
         }  ;
 constant_bin_long! :  c25:CONSTANT_BIN_LONG^ 
         { #constant_bin_long=#[CONSTANT,c25->getText()];
-          #constant_bin_long->Text2Long(2);    
           #constant_bin_long->SetLine( c25->getLine());    
+          #constant_bin_long->Text2Long(2);    
         }  ;
 constant_bin_long64! :  c26:CONSTANT_BIN_LONG64^ 
         { #constant_bin_long64=#[CONSTANT,c26->getText()];
-          #constant_bin_long64->Text2Long64(2);    
           #constant_bin_long64->SetLine( c26->getLine());    
+          #constant_bin_long64->Text2Long64(2);    
         } ; 
 constant_bin_int!:  c27:CONSTANT_BIN_INT^
         { #constant_bin_int=#[CONSTANT,c27->getText()];
-          #constant_bin_int->Text2Int(2);    
           #constant_bin_int->SetLine( c27->getLine());    
+          #constant_bin_int->Text2Int(2);    
         }  ;
 constant_bin_i!:  c277:CONSTANT_BIN_I^
         // DEFINT32
         { #constant_bin_i=#[CONSTANT,c277->getText()];
+          #constant_bin_i->SetLine( c277->getLine());    
             if( compileOpt & DEFINT32)
                 #constant_bin_i->Text2Long(2,true);    
             else
                 #constant_bin_i->Text2Int(2,true);    
-          #constant_bin_i->SetLine( c277->getLine());    
         }  ;
 constant_bin_ulong! :  c28:CONSTANT_BIN_ULONG^ 
         { #constant_bin_ulong=#[CONSTANT,c28->getText()];
-          #constant_bin_ulong->Text2ULong(2);    
           #constant_bin_ulong->SetLine( c28->getLine());    
+          #constant_bin_ulong->Text2ULong(2);    
         }  ;
 constant_bin_ulong64! :  c29:CONSTANT_BIN_ULONG64^ 
         { #constant_bin_ulong64=#[CONSTANT,c29->getText()];
-          #constant_bin_ulong64->Text2ULong64(2);    
           #constant_bin_ulong64->SetLine( c29->getLine());    
+          #constant_bin_ulong64->Text2ULong64(2);    
         } ; 
 constant_bin_ui!:  c300:CONSTANT_BIN_UI^
         // DEFINT32
         { #constant_bin_ui=#[CONSTANT,c300->getText()];
+          #constant_bin_ui->SetLine( c300->getLine());    
             if( compileOpt & DEFINT32)
                 #constant_bin_ui->Text2ULong(2,true);    
             else
                 #constant_bin_ui->Text2UInt(2,true);    
-          #constant_bin_ui->SetLine( c300->getLine());    
         } ; 
 constant_bin_uint!:  c30:CONSTANT_BIN_UINT^
         { #constant_bin_uint=#[CONSTANT,c30->getText()];
-          #constant_bin_uint->Text2UInt(2);    
           #constant_bin_uint->SetLine( c30->getLine());    
+          #constant_bin_uint->Text2UInt(2);    
         };
 constant_cmplx_i!:  c31:CONSTANT_CMPLX_I^
         { #constant_cmplx_i=#[CONSTANT,c31->getText()];
-          #constant_cmplx_i->Text2ComplexI();    
           #constant_cmplx_i->SetLine( c31->getLine());    
+          #constant_cmplx_i->Text2ComplexI();    
         };
 constant_cmplxdbl_i!:  c32:CONSTANT_CMPLXDBL_I^
         { #constant_cmplxdbl_i=#[CONSTANT,c32->getText()];
-          #constant_cmplxdbl_i->Text2ComplexDblI();    
           #constant_cmplxdbl_i->SetLine( c32->getLine());    
+          #constant_cmplxdbl_i->Text2ComplexDblI();    
         }  
     ;
 
@@ -1340,7 +1343,7 @@ numeric_constant
     | constant_cmplx_i
     | constant_cmplxdbl_i
     )
-;
+ ;
 arrayindex_list
 {        
     int rank = 1;

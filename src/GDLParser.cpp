@@ -14,7 +14,7 @@
 #include <iostream>
 #include <string>
 
-static void printLineErrorHelper(std::string filename, int line, int col) {
+static void printLineErrorHelper(std::string filename, int line, int col, std::string msg="" ) {
   if (filename.size() > 0) {
 	std::ifstream ifs;
 	ifs.open(filename, std::ifstream::in);
@@ -34,7 +34,7 @@ static void printLineErrorHelper(std::string filename, int line, int col) {
   for (auto i = 0; i < col; ++i) std::cerr << ' ';
   std::cerr << '^';
   std::cerr << '\n';
-  std::cerr << "% Syntax error.\n";
+  if ( msg.size() > 0) std::cerr << msg << std::endl; else std::cerr << "% Syntax error.\n";
   if ( filename.size() > 0)   std::cerr <<"  At: "<<filename<<", Line "<<line<<std::endl;
   return;
 }
@@ -897,8 +897,11 @@ void GDLParser::translation_unit() {
 	catch ( GDLException& e) {
 		if (inputState->guessing==0) {
 			
+							printLineErrorHelper(getFilename(), e.getLine(), e.getColumn(), e.getMessage());
 							recovery=false;
-							throw;
+			// HERE WE COULD COUNT THE ERRORS and replace "No parser output generated." in dinterpreter.cpp by something like
+			// "% XXX Compilation error(s) in module YYY."
+			//				throw;
 					
 		} else {
 			throw;
@@ -913,7 +916,7 @@ void GDLParser::translation_unit() {
 							// this partially solves #59 (no line number in '@'-included files
 							printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
 							// PARSER SYNTAX ERROR
-							throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+e.getMessage(), e.getFilename() );
+			//				throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+e.getMessage(), e.getFilename() );
 						} else {
 							if (IsTracingSyntaxErrors()) {
 								std::cerr<<"old syntax at line "<<LT(1).get()->getLine()<<", column "<<LT(1).get()->getColumn()<<std::endl;
@@ -933,7 +936,7 @@ void GDLParser::translation_unit() {
 						// this partially solves #59 (no line number in '@'-included files
 						printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
 						// LEXER SYNTAX ERROR
-						throw GDLException( e.getLine(), e.getColumn(), "Lexer syntax error: "+e.getMessage(), e.getFilename() );
+			//			throw GDLException( e.getLine(), e.getColumn(), "Lexer syntax error: "+e.getMessage(), e.getFilename() );
 			
 		} else {
 			throw;
@@ -947,7 +950,7 @@ void GDLParser::translation_unit() {
 							// this partially solves #59 (no line number in '@'-included files
 							printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
 							// PARSER SYNTAX ERROR
-							throw GDLException( e.getLine(), e.getColumn(), "Parser recognition exception error: "+e.getMessage(), e.getFilename() );
+			//				throw GDLException( e.getLine(), e.getColumn(), "Parser recognition exception error: "+e.getMessage(), e.getFilename() );
 						} else {
 							if (IsTracingSyntaxErrors()) {
 								std::cerr<<"old syntax at line "<<LT(1).get()->getLine()<<", column "<<LT(1).get()->getColumn()<<std::endl;
@@ -1699,7 +1702,7 @@ void GDLParser::interactive() {
 	catch ( GDLException& e) {
 		if (inputState->guessing==0) {
 			
-			throw;
+							printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn(), e.toString());
 			
 		} else {
 			throw;
@@ -5651,8 +5654,8 @@ void GDLParser::parameter_def() {
 			parameter_def_AST = RefDNode(currentAST.root);
 			
 			RefDNode c=static_cast<RefDNode>( astFactory->create(CONSTANT,"1"));
-			c->Text2Int(10);
 			c->SetLine( id_AST->getLine());
+			c->Text2Int(10);
 			parameter_def_AST = RefDNode(astFactory->make((new antlr::ASTArray(3))->add(antlr::RefAST(astFactory->create(KEYDEF,"!=!")))->add(antlr::RefAST(id_AST))->add(antlr::RefAST(c))));
 			
 			currentAST.root = parameter_def_AST;
@@ -6153,8 +6156,8 @@ void GDLParser::constant_hex_byte() {
 	if ( inputState->guessing==0 ) {
 		constant_hex_byte_AST = RefDNode(currentAST.root);
 		constant_hex_byte_AST=astFactory->create(CONSTANT,c1->getText());
-		constant_hex_byte_AST->Text2Byte(16);    
 		constant_hex_byte_AST->SetLine( c1->getLine());    
+		constant_hex_byte_AST->Text2Byte(16);    
 		
 		currentAST.root = constant_hex_byte_AST;
 		if ( constant_hex_byte_AST!=RefDNode(antlr::nullAST) &&
@@ -6182,8 +6185,8 @@ void GDLParser::constant_hex_long() {
 	if ( inputState->guessing==0 ) {
 		constant_hex_long_AST = RefDNode(currentAST.root);
 		constant_hex_long_AST=astFactory->create(CONSTANT,c2->getText());
-		constant_hex_long_AST->Text2Long(16);    
 		constant_hex_long_AST->SetLine( c2->getLine());    
+		constant_hex_long_AST->Text2Long(16);    
 		
 		currentAST.root = constant_hex_long_AST;
 		if ( constant_hex_long_AST!=RefDNode(antlr::nullAST) &&
@@ -6211,8 +6214,8 @@ void GDLParser::constant_hex_long64() {
 	if ( inputState->guessing==0 ) {
 		constant_hex_long64_AST = RefDNode(currentAST.root);
 		constant_hex_long64_AST=astFactory->create(CONSTANT,c3->getText());
-		constant_hex_long64_AST->Text2Long64(16);    
 		constant_hex_long64_AST->SetLine( c3->getLine());    
+		constant_hex_long64_AST->Text2Long64(16);    
 		
 		currentAST.root = constant_hex_long64_AST;
 		if ( constant_hex_long64_AST!=RefDNode(antlr::nullAST) &&
@@ -6240,8 +6243,8 @@ void GDLParser::constant_hex_int() {
 	if ( inputState->guessing==0 ) {
 		constant_hex_int_AST = RefDNode(currentAST.root);
 		constant_hex_int_AST=astFactory->create(CONSTANT,c4->getText());
-		constant_hex_int_AST->Text2Int(16);    
 		constant_hex_int_AST->SetLine( c4->getLine());    
+		constant_hex_int_AST->Text2Int(16);    
 		
 		currentAST.root = constant_hex_int_AST;
 		if ( constant_hex_int_AST!=RefDNode(antlr::nullAST) &&
@@ -6269,11 +6272,11 @@ void GDLParser::constant_hex_i() {
 	if ( inputState->guessing==0 ) {
 		constant_hex_i_AST = RefDNode(currentAST.root);
 		constant_hex_i_AST=astFactory->create(CONSTANT,c44->getText());
+		constant_hex_i_AST->SetLine( c44->getLine());    
 		if( compileOpt & DEFINT32)
 		constant_hex_i_AST->Text2Long(16,true);    
 		else
 		constant_hex_i_AST->Text2Int(16,true);    
-		constant_hex_i_AST->SetLine( c44->getLine());    
 		
 		currentAST.root = constant_hex_i_AST;
 		if ( constant_hex_i_AST!=RefDNode(antlr::nullAST) &&
@@ -6301,8 +6304,8 @@ void GDLParser::constant_hex_ulong() {
 	if ( inputState->guessing==0 ) {
 		constant_hex_ulong_AST = RefDNode(currentAST.root);
 		constant_hex_ulong_AST=astFactory->create(CONSTANT,c5->getText());
-		constant_hex_ulong_AST->Text2ULong(16);    
 		constant_hex_ulong_AST->SetLine( c5->getLine());    
+		constant_hex_ulong_AST->Text2ULong(16);    
 		
 		currentAST.root = constant_hex_ulong_AST;
 		if ( constant_hex_ulong_AST!=RefDNode(antlr::nullAST) &&
@@ -6330,8 +6333,8 @@ void GDLParser::constant_hex_ulong64() {
 	if ( inputState->guessing==0 ) {
 		constant_hex_ulong64_AST = RefDNode(currentAST.root);
 		constant_hex_ulong64_AST=astFactory->create(CONSTANT,c6->getText());
-		constant_hex_ulong64_AST->Text2ULong64(16);    
 		constant_hex_ulong64_AST->SetLine( c6->getLine());    
+		constant_hex_ulong64_AST->Text2ULong64(16);    
 		
 		currentAST.root = constant_hex_ulong64_AST;
 		if ( constant_hex_ulong64_AST!=RefDNode(antlr::nullAST) &&
@@ -6359,11 +6362,11 @@ void GDLParser::constant_hex_ui() {
 	if ( inputState->guessing==0 ) {
 		constant_hex_ui_AST = RefDNode(currentAST.root);
 		constant_hex_ui_AST=astFactory->create(CONSTANT,c77->getText());
+		constant_hex_ui_AST->SetLine( c77->getLine());    
 		if( compileOpt & DEFINT32)
 		constant_hex_ui_AST->Text2ULong(16,true);    
 		else
 		constant_hex_ui_AST->Text2UInt(16,true);    
-		constant_hex_ui_AST->SetLine( c77->getLine());    
 		
 		currentAST.root = constant_hex_ui_AST;
 		if ( constant_hex_ui_AST!=RefDNode(antlr::nullAST) &&
@@ -6391,8 +6394,8 @@ void GDLParser::constant_hex_uint() {
 	if ( inputState->guessing==0 ) {
 		constant_hex_uint_AST = RefDNode(currentAST.root);
 		constant_hex_uint_AST=astFactory->create(CONSTANT,c7->getText());
-		constant_hex_uint_AST->Text2UInt(16);    
 		constant_hex_uint_AST->SetLine( c7->getLine());    
+		constant_hex_uint_AST->Text2UInt(16);    
 		
 		currentAST.root = constant_hex_uint_AST;
 		if ( constant_hex_uint_AST!=RefDNode(antlr::nullAST) &&
@@ -6420,8 +6423,8 @@ void GDLParser::constant_byte() {
 	if ( inputState->guessing==0 ) {
 		constant_byte_AST = RefDNode(currentAST.root);
 		constant_byte_AST=astFactory->create(CONSTANT,c8->getText());
-		constant_byte_AST->Text2Byte(10);    
 		constant_byte_AST->SetLine( c8->getLine());    
+		constant_byte_AST->Text2Byte(10);    
 		
 		currentAST.root = constant_byte_AST;
 		if ( constant_byte_AST!=RefDNode(antlr::nullAST) &&
@@ -6449,8 +6452,8 @@ void GDLParser::constant_long() {
 	if ( inputState->guessing==0 ) {
 		constant_long_AST = RefDNode(currentAST.root);
 		constant_long_AST=astFactory->create(CONSTANT,c9->getText());
-		constant_long_AST->Text2Long(10);    
 		constant_long_AST->SetLine( c9->getLine());    
+		constant_long_AST->Text2Long(10);    
 		
 		currentAST.root = constant_long_AST;
 		if ( constant_long_AST!=RefDNode(antlr::nullAST) &&
@@ -6478,8 +6481,8 @@ void GDLParser::constant_long64() {
 	if ( inputState->guessing==0 ) {
 		constant_long64_AST = RefDNode(currentAST.root);
 		constant_long64_AST=astFactory->create(CONSTANT,c10->getText());
-		constant_long64_AST->Text2Long64(10);    
 		constant_long64_AST->SetLine( c10->getLine());    
+		constant_long64_AST->Text2Long64(10);    
 		
 		currentAST.root = constant_long64_AST;
 		if ( constant_long64_AST!=RefDNode(antlr::nullAST) &&
@@ -6507,8 +6510,8 @@ void GDLParser::constant_int() {
 	if ( inputState->guessing==0 ) {
 		constant_int_AST = RefDNode(currentAST.root);
 		constant_int_AST=astFactory->create(CONSTANT,c11->getText());
-		constant_int_AST->Text2Int(10);    
 		constant_int_AST->SetLine( c11->getLine());    
+		constant_int_AST->Text2Int(10);    
 		
 		currentAST.root = constant_int_AST;
 		if ( constant_int_AST!=RefDNode(antlr::nullAST) &&
@@ -6536,11 +6539,11 @@ void GDLParser::constant_i() {
 	if ( inputState->guessing==0 ) {
 		constant_i_AST = RefDNode(currentAST.root);
 		constant_i_AST=astFactory->create(CONSTANT,c111->getText());
+		constant_i_AST->SetLine( c111->getLine());    
 		if( compileOpt & DEFINT32)
 		constant_i_AST->Text2Long(10,true);    
 		else
 		constant_i_AST->Text2Int(10,true);    
-		constant_i_AST->SetLine( c111->getLine());    
 		
 		currentAST.root = constant_i_AST;
 		if ( constant_i_AST!=RefDNode(antlr::nullAST) &&
@@ -6568,8 +6571,8 @@ void GDLParser::constant_ulong() {
 	if ( inputState->guessing==0 ) {
 		constant_ulong_AST = RefDNode(currentAST.root);
 		constant_ulong_AST=astFactory->create(CONSTANT,c12->getText());
-		constant_ulong_AST->Text2ULong(10);    
 		constant_ulong_AST->SetLine( c12->getLine());    
+		constant_ulong_AST->Text2ULong(10);    
 		
 		currentAST.root = constant_ulong_AST;
 		if ( constant_ulong_AST!=RefDNode(antlr::nullAST) &&
@@ -6597,8 +6600,8 @@ void GDLParser::constant_ulong64() {
 	if ( inputState->guessing==0 ) {
 		constant_ulong64_AST = RefDNode(currentAST.root);
 		constant_ulong64_AST=astFactory->create(CONSTANT,c13->getText());
-		constant_ulong64_AST->Text2ULong64(10);    
 		constant_ulong64_AST->SetLine( c13->getLine());    
+		constant_ulong64_AST->Text2ULong64(10);    
 		
 		currentAST.root = constant_ulong64_AST;
 		if ( constant_ulong64_AST!=RefDNode(antlr::nullAST) &&
@@ -6626,11 +6629,11 @@ void GDLParser::constant_ui() {
 	if ( inputState->guessing==0 ) {
 		constant_ui_AST = RefDNode(currentAST.root);
 		constant_ui_AST=astFactory->create(CONSTANT,c144->getText());
+		constant_ui_AST->SetLine( c144->getLine());    
 		if( compileOpt & DEFINT32)
 		constant_ui_AST->Text2ULong(10,true);    
 		else
 		constant_ui_AST->Text2UInt(10,true);    
-		constant_ui_AST->SetLine( c144->getLine());    
 		
 		currentAST.root = constant_ui_AST;
 		if ( constant_ui_AST!=RefDNode(antlr::nullAST) &&
@@ -6658,8 +6661,8 @@ void GDLParser::constant_uint() {
 	if ( inputState->guessing==0 ) {
 		constant_uint_AST = RefDNode(currentAST.root);
 		constant_uint_AST=astFactory->create(CONSTANT,c14->getText());
-		constant_uint_AST->Text2UInt(10);    
 		constant_uint_AST->SetLine( c14->getLine());    
+		constant_uint_AST->Text2UInt(10);    
 		
 		currentAST.root = constant_uint_AST;
 		if ( constant_uint_AST!=RefDNode(antlr::nullAST) &&
@@ -6687,8 +6690,8 @@ void GDLParser::constant_oct_byte() {
 	if ( inputState->guessing==0 ) {
 		constant_oct_byte_AST = RefDNode(currentAST.root);
 		constant_oct_byte_AST=astFactory->create(CONSTANT,c15->getText());
-		constant_oct_byte_AST->Text2Byte(8);    
 		constant_oct_byte_AST->SetLine( c15->getLine());    
+		constant_oct_byte_AST->Text2Byte(8);    
 		
 		currentAST.root = constant_oct_byte_AST;
 		if ( constant_oct_byte_AST!=RefDNode(antlr::nullAST) &&
@@ -6716,8 +6719,8 @@ void GDLParser::constant_oct_long() {
 	if ( inputState->guessing==0 ) {
 		constant_oct_long_AST = RefDNode(currentAST.root);
 		constant_oct_long_AST=astFactory->create(CONSTANT,c16->getText());
-		constant_oct_long_AST->Text2Long(8);    
 		constant_oct_long_AST->SetLine( c16->getLine());    
+		constant_oct_long_AST->Text2Long(8);    
 		
 		currentAST.root = constant_oct_long_AST;
 		if ( constant_oct_long_AST!=RefDNode(antlr::nullAST) &&
@@ -6745,8 +6748,8 @@ void GDLParser::constant_oct_long64() {
 	if ( inputState->guessing==0 ) {
 		constant_oct_long64_AST = RefDNode(currentAST.root);
 		constant_oct_long64_AST=astFactory->create(CONSTANT,c17->getText());
-		constant_oct_long64_AST->Text2Long64(8);    
 		constant_oct_long64_AST->SetLine( c17->getLine());    
+		constant_oct_long64_AST->Text2Long64(8);    
 		
 		currentAST.root = constant_oct_long64_AST;
 		if ( constant_oct_long64_AST!=RefDNode(antlr::nullAST) &&
@@ -6774,8 +6777,8 @@ void GDLParser::constant_oct_int() {
 	if ( inputState->guessing==0 ) {
 		constant_oct_int_AST = RefDNode(currentAST.root);
 		constant_oct_int_AST=astFactory->create(CONSTANT,c18->getText());
-		constant_oct_int_AST->Text2Int(8);    
 		constant_oct_int_AST->SetLine( c18->getLine());    
+		constant_oct_int_AST->Text2Int(8);    
 		
 		currentAST.root = constant_oct_int_AST;
 		if ( constant_oct_int_AST!=RefDNode(antlr::nullAST) &&
@@ -6803,11 +6806,11 @@ void GDLParser::constant_oct_i() {
 	if ( inputState->guessing==0 ) {
 		constant_oct_i_AST = RefDNode(currentAST.root);
 		constant_oct_i_AST=astFactory->create(CONSTANT,c188->getText());
+		constant_oct_i_AST->SetLine( c188->getLine());    
 		if( compileOpt & DEFINT32)
 		constant_oct_i_AST->Text2Long(8,true);    
 		else
 		constant_oct_i_AST->Text2Int(8,true);    
-		constant_oct_i_AST->SetLine( c188->getLine());    
 		
 		currentAST.root = constant_oct_i_AST;
 		if ( constant_oct_i_AST!=RefDNode(antlr::nullAST) &&
@@ -6835,8 +6838,8 @@ void GDLParser::constant_oct_ulong() {
 	if ( inputState->guessing==0 ) {
 		constant_oct_ulong_AST = RefDNode(currentAST.root);
 		constant_oct_ulong_AST=astFactory->create(CONSTANT,c19->getText());
-		constant_oct_ulong_AST->Text2ULong(8);    
 		constant_oct_ulong_AST->SetLine( c19->getLine());    
+		constant_oct_ulong_AST->Text2ULong(8);    
 		
 		currentAST.root = constant_oct_ulong_AST;
 		if ( constant_oct_ulong_AST!=RefDNode(antlr::nullAST) &&
@@ -6864,8 +6867,8 @@ void GDLParser::constant_oct_ulong64() {
 	if ( inputState->guessing==0 ) {
 		constant_oct_ulong64_AST = RefDNode(currentAST.root);
 		constant_oct_ulong64_AST=astFactory->create(CONSTANT,c20->getText());
-		constant_oct_ulong64_AST->Text2ULong64(8);    
 		constant_oct_ulong64_AST->SetLine( c20->getLine());    
+		constant_oct_ulong64_AST->Text2ULong64(8);    
 		
 		currentAST.root = constant_oct_ulong64_AST;
 		if ( constant_oct_ulong64_AST!=RefDNode(antlr::nullAST) &&
@@ -6893,11 +6896,11 @@ void GDLParser::constant_oct_ui() {
 	if ( inputState->guessing==0 ) {
 		constant_oct_ui_AST = RefDNode(currentAST.root);
 		constant_oct_ui_AST=astFactory->create(CONSTANT,c211->getText());
+		constant_oct_ui_AST->SetLine( c211->getLine());    
 		if( compileOpt & DEFINT32)
 		constant_oct_ui_AST->Text2ULong(8,true);    
 		else
 		constant_oct_ui_AST->Text2UInt(8,true);    
-		constant_oct_ui_AST->SetLine( c211->getLine());    
 		
 		currentAST.root = constant_oct_ui_AST;
 		if ( constant_oct_ui_AST!=RefDNode(antlr::nullAST) &&
@@ -6925,8 +6928,8 @@ void GDLParser::constant_oct_uint() {
 	if ( inputState->guessing==0 ) {
 		constant_oct_uint_AST = RefDNode(currentAST.root);
 		constant_oct_uint_AST=astFactory->create(CONSTANT,c21->getText());
-		constant_oct_uint_AST->Text2UInt(8);    
 		constant_oct_uint_AST->SetLine( c21->getLine());    
+		constant_oct_uint_AST->Text2UInt(8);    
 		
 		currentAST.root = constant_oct_uint_AST;
 		if ( constant_oct_uint_AST!=RefDNode(antlr::nullAST) &&
@@ -6954,8 +6957,8 @@ void GDLParser::constant_float() {
 	if ( inputState->guessing==0 ) {
 		constant_float_AST = RefDNode(currentAST.root);
 		constant_float_AST=astFactory->create(CONSTANT,c22->getText());
-		constant_float_AST->Text2Float();    
 		constant_float_AST->SetLine( c22->getLine());    
+		constant_float_AST->Text2Float();    
 		
 		currentAST.root = constant_float_AST;
 		if ( constant_float_AST!=RefDNode(antlr::nullAST) &&
@@ -6983,8 +6986,8 @@ void GDLParser::constant_double() {
 	if ( inputState->guessing==0 ) {
 		constant_double_AST = RefDNode(currentAST.root);
 		constant_double_AST=astFactory->create(CONSTANT,c23->getText());
-		constant_double_AST->Text2Double();    
 		constant_double_AST->SetLine( c23->getLine());    
+		constant_double_AST->Text2Double();    
 		
 		currentAST.root = constant_double_AST;
 		if ( constant_double_AST!=RefDNode(antlr::nullAST) &&
@@ -7012,8 +7015,8 @@ void GDLParser::constant_bin_byte() {
 	if ( inputState->guessing==0 ) {
 		constant_bin_byte_AST = RefDNode(currentAST.root);
 		constant_bin_byte_AST=astFactory->create(CONSTANT,c24->getText());
-		constant_bin_byte_AST->Text2Byte(2);    
 		constant_bin_byte_AST->SetLine( c24->getLine());    
+		constant_bin_byte_AST->Text2Byte(2);    
 		
 		currentAST.root = constant_bin_byte_AST;
 		if ( constant_bin_byte_AST!=RefDNode(antlr::nullAST) &&
@@ -7041,8 +7044,8 @@ void GDLParser::constant_bin_long() {
 	if ( inputState->guessing==0 ) {
 		constant_bin_long_AST = RefDNode(currentAST.root);
 		constant_bin_long_AST=astFactory->create(CONSTANT,c25->getText());
-		constant_bin_long_AST->Text2Long(2);    
 		constant_bin_long_AST->SetLine( c25->getLine());    
+		constant_bin_long_AST->Text2Long(2);    
 		
 		currentAST.root = constant_bin_long_AST;
 		if ( constant_bin_long_AST!=RefDNode(antlr::nullAST) &&
@@ -7070,8 +7073,8 @@ void GDLParser::constant_bin_long64() {
 	if ( inputState->guessing==0 ) {
 		constant_bin_long64_AST = RefDNode(currentAST.root);
 		constant_bin_long64_AST=astFactory->create(CONSTANT,c26->getText());
-		constant_bin_long64_AST->Text2Long64(2);    
 		constant_bin_long64_AST->SetLine( c26->getLine());    
+		constant_bin_long64_AST->Text2Long64(2);    
 		
 		currentAST.root = constant_bin_long64_AST;
 		if ( constant_bin_long64_AST!=RefDNode(antlr::nullAST) &&
@@ -7099,8 +7102,8 @@ void GDLParser::constant_bin_int() {
 	if ( inputState->guessing==0 ) {
 		constant_bin_int_AST = RefDNode(currentAST.root);
 		constant_bin_int_AST=astFactory->create(CONSTANT,c27->getText());
-		constant_bin_int_AST->Text2Int(2);    
 		constant_bin_int_AST->SetLine( c27->getLine());    
+		constant_bin_int_AST->Text2Int(2);    
 		
 		currentAST.root = constant_bin_int_AST;
 		if ( constant_bin_int_AST!=RefDNode(antlr::nullAST) &&
@@ -7128,11 +7131,11 @@ void GDLParser::constant_bin_i() {
 	if ( inputState->guessing==0 ) {
 		constant_bin_i_AST = RefDNode(currentAST.root);
 		constant_bin_i_AST=astFactory->create(CONSTANT,c277->getText());
+		constant_bin_i_AST->SetLine( c277->getLine());    
 		if( compileOpt & DEFINT32)
 		constant_bin_i_AST->Text2Long(2,true);    
 		else
 		constant_bin_i_AST->Text2Int(2,true);    
-		constant_bin_i_AST->SetLine( c277->getLine());    
 		
 		currentAST.root = constant_bin_i_AST;
 		if ( constant_bin_i_AST!=RefDNode(antlr::nullAST) &&
@@ -7160,8 +7163,8 @@ void GDLParser::constant_bin_ulong() {
 	if ( inputState->guessing==0 ) {
 		constant_bin_ulong_AST = RefDNode(currentAST.root);
 		constant_bin_ulong_AST=astFactory->create(CONSTANT,c28->getText());
-		constant_bin_ulong_AST->Text2ULong(2);    
 		constant_bin_ulong_AST->SetLine( c28->getLine());    
+		constant_bin_ulong_AST->Text2ULong(2);    
 		
 		currentAST.root = constant_bin_ulong_AST;
 		if ( constant_bin_ulong_AST!=RefDNode(antlr::nullAST) &&
@@ -7189,8 +7192,8 @@ void GDLParser::constant_bin_ulong64() {
 	if ( inputState->guessing==0 ) {
 		constant_bin_ulong64_AST = RefDNode(currentAST.root);
 		constant_bin_ulong64_AST=astFactory->create(CONSTANT,c29->getText());
-		constant_bin_ulong64_AST->Text2ULong64(2);    
 		constant_bin_ulong64_AST->SetLine( c29->getLine());    
+		constant_bin_ulong64_AST->Text2ULong64(2);    
 		
 		currentAST.root = constant_bin_ulong64_AST;
 		if ( constant_bin_ulong64_AST!=RefDNode(antlr::nullAST) &&
@@ -7218,11 +7221,11 @@ void GDLParser::constant_bin_ui() {
 	if ( inputState->guessing==0 ) {
 		constant_bin_ui_AST = RefDNode(currentAST.root);
 		constant_bin_ui_AST=astFactory->create(CONSTANT,c300->getText());
+		constant_bin_ui_AST->SetLine( c300->getLine());    
 		if( compileOpt & DEFINT32)
 		constant_bin_ui_AST->Text2ULong(2,true);    
 		else
 		constant_bin_ui_AST->Text2UInt(2,true);    
-		constant_bin_ui_AST->SetLine( c300->getLine());    
 		
 		currentAST.root = constant_bin_ui_AST;
 		if ( constant_bin_ui_AST!=RefDNode(antlr::nullAST) &&
@@ -7250,8 +7253,8 @@ void GDLParser::constant_bin_uint() {
 	if ( inputState->guessing==0 ) {
 		constant_bin_uint_AST = RefDNode(currentAST.root);
 		constant_bin_uint_AST=astFactory->create(CONSTANT,c30->getText());
-		constant_bin_uint_AST->Text2UInt(2);    
 		constant_bin_uint_AST->SetLine( c30->getLine());    
+		constant_bin_uint_AST->Text2UInt(2);    
 		
 		currentAST.root = constant_bin_uint_AST;
 		if ( constant_bin_uint_AST!=RefDNode(antlr::nullAST) &&
@@ -7279,8 +7282,8 @@ void GDLParser::constant_cmplx_i() {
 	if ( inputState->guessing==0 ) {
 		constant_cmplx_i_AST = RefDNode(currentAST.root);
 		constant_cmplx_i_AST=astFactory->create(CONSTANT,c31->getText());
-		constant_cmplx_i_AST->Text2ComplexI();    
 		constant_cmplx_i_AST->SetLine( c31->getLine());    
+		constant_cmplx_i_AST->Text2ComplexI();    
 		
 		currentAST.root = constant_cmplx_i_AST;
 		if ( constant_cmplx_i_AST!=RefDNode(antlr::nullAST) &&
@@ -7308,8 +7311,8 @@ void GDLParser::constant_cmplxdbl_i() {
 	if ( inputState->guessing==0 ) {
 		constant_cmplxdbl_i_AST = RefDNode(currentAST.root);
 		constant_cmplxdbl_i_AST=astFactory->create(CONSTANT,c32->getText());
-		constant_cmplxdbl_i_AST->Text2ComplexDblI();    
 		constant_cmplxdbl_i_AST->SetLine( c32->getLine());    
+		constant_cmplxdbl_i_AST->Text2ComplexDblI();    
 		
 		currentAST.root = constant_cmplxdbl_i_AST;
 		if ( constant_cmplxdbl_i_AST!=RefDNode(antlr::nullAST) &&

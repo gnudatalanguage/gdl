@@ -124,11 +124,11 @@ DNode::~DNode()
  * @return 
  */
 template<typename T> bool DNode::Text2Number(T& out, int base) {
-  throw GDLException("Text2Number called on unsupported type.");
+  throw GDLException(this->getLine(),4, "Text2Number called on unsupported type.");
 }
 
 template<> bool DNode::Text2Number(DLong& out, int base) {
-  if (base == 16 && text.size() > sizeof ( DLong)*2) throw GDLException("Int hexadecimal constant can only have 8 digits.");
+  if (base == 16 && text.size() > sizeof ( DLong)*2) throw GDLException(this->getLine(),4, "Int hexadecimal constant can only have 8 digits.");
   bool noOverflow = true;
   DLong number = 0;
   if (base != 10) { //hexa or oct decoding, can give a negative result.
@@ -307,7 +307,7 @@ template<> bool DNode::Text2Number(DUInt& out, int base) {
 }
 // ints are signed. Only the abs() value is passed to this function in decimal, but not in Hexa.
 template<> bool DNode::Text2Number(DInt& out, int base) {
-  if (base == 16 && text.size() > sizeof ( DInt)*2) throw GDLException("Int hexadecimal constant can only have 4 digits.");
+  if (base == 16 && text.size() > sizeof ( DInt)*2) throw GDLException(this->getLine(),4, "Int hexadecimal constant can only have 4 digits.");
 
   bool noOverflow = true;
 
@@ -354,7 +354,7 @@ void DNode::Text2Byte(int base)
 {
   // cout << "byte" << endl;
   DByte val;
-  if (Text2Number( val, base)==false) throw GDLException( "Byte constant must be less than 256.");
+  if (Text2Number( val, base)==false) throw GDLException(this->getLine(), 4, "Byte constant must be less than 256.");
   cData=new DByteGDL(val);
 }
 
@@ -389,7 +389,7 @@ void DNode::Text2Int(int base, bool promote)
   else
     {
     DInt val;
-      if (Text2Number( val, base)==false) throw GDLException( "Integer constant must be less than 32768.");
+      if (Text2Number( val, base)==false) throw GDLException(this->getLine(),4,  "Integer constant must be less than 32768.");
     cData = new DIntGDL(val);
   }
 }
@@ -423,7 +423,7 @@ void DNode::Text2UInt(int base, bool promote)
   else
     {
       DUInt val;
-      if (Text2Number( val, base)==false) throw GDLException( "Unsigned integer constant must be less than 65536.");
+      if (Text2Number( val, base)==false) throw GDLException(this->getLine(),4,  "Unsigned integer constant must be less than 65536.");
       cData=new DUIntGDL(val);
     }
 }
@@ -447,11 +447,11 @@ void DNode::Text2Long(int base, bool promote) {
 	
   if (base == 16) {
       if( text.size() > sizeof( DLong)*2) 
-	throw GDLException( "Long hexadecimal constant can only have "+
+	throw GDLException(this->getLine(),4,  "Long hexadecimal constant can only have "+
 			    i2s(sizeof( DLong)*2)+" digits.");
 
       DLong val;
-      if (Text2Number( val, base)==false) throw GDLException( "Long integer constant must be less than 2147483648.");
+      if (Text2Number( val, base)==false) throw GDLException(this->getLine(),4,  "Long integer constant must be less than 2147483648.");
       cData=new DLongGDL(val);
       return;
     }
@@ -460,7 +460,7 @@ void DNode::Text2Long(int base, bool promote) {
   bool noOverFlow = Text2Number( val, base);
 
   if( !noOverFlow || val > std::numeric_limits< DLong>::max())
-    throw GDLException( "Long integer constant must be less than 2147483648.");
+    throw GDLException(this->getLine(),4,  "Long integer constant must be less than 2147483648.");
 
   cData=new DLongGDL(val);
 }
@@ -489,7 +489,7 @@ void DNode::Text2ULong(int base, bool promote)
   if( base == 16)
     {
       if( text.size() > sizeof(DULong)*2)
-	throw GDLException( "Unsigned long hexadecimal constant can only have "+
+	throw GDLException(this->getLine(),4,  "Unsigned long hexadecimal constant can only have "+
 			    i2s(sizeof( DLong)*2)+" digits.");
 
       DULong val;
@@ -502,7 +502,7 @@ void DNode::Text2ULong(int base, bool promote)
   bool noOverFlow = Text2Number( val, base);
 
   if( !noOverFlow || val > std::numeric_limits< DULong>::max())
-    throw GDLException( "Unsigned long integer constant must be less than 4294967296.");
+    throw GDLException(this->getLine(),4,  "Unsigned long integer constant must be less than 4294967296.");
 
   cData=new DULongGDL(val);
 }
