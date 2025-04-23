@@ -1622,9 +1622,31 @@ member_function_call_dot
       ;
 
 assign_expr
-    : LBRACE! deref_expr EQUAL! expr RBRACE! // assignment
-        { #assign_expr = #([ASSIGN,":="], #assign_expr);}
-    ;
+    : LBRACE! deref_expr 
+	(
+      EQUAL!  { #assign_expr = #([ASSIGN,":="], #assign_expr);} 
+    | AND_OP_EQ^ 
+    | ASTERIX_EQ^ 
+    | EQ_OP_EQ^ 
+    | GE_OP_EQ^
+    | GTMARK_EQ^
+    | GT_OP_EQ^
+    | LE_OP_EQ^
+    | LTMARK_EQ^
+    | LT_OP_EQ^
+    | MATRIX_OP1_EQ^
+    | MATRIX_OP2_EQ^
+    | MINUS_EQ^
+    | MOD_OP_EQ^
+    | NE_OP_EQ^
+    | OR_OP_EQ^
+    | XOR_OP_EQ^
+    | PLUS_EQ^
+    | POW_EQ^
+    | SLASH_EQ^
+    ) expr RBRACE! // assignment
+//        { #assign_expr = #([ASSIGN,":="], #assign_expr);}
+;
 
 // arrayexpr_mfcall_last
 //     : (IDENTIFIER^ arrayindex_list) 
@@ -1766,52 +1788,50 @@ primary_expr
 
 // only one INC/DEC allowed per target
 decinc_expr
-    : primary_expr 
+    : (INC^ | DEC^) primary_expr
+    | primary_expr 
         ( i:INC^ { #i->setType( POSTINC); #i->setText( "_++");} 
         | d:DEC^ { #d->setType( POSTDEC); #d->setText( "_--");} 
-        | // empty
-        )
-    | INC^ primary_expr
-    | DEC^ primary_expr
+        )?
     ;
 
-exponential_expr
-    : decinc_expr 
-        (POW^ decinc_expr 
-        )*
-    ;
+exponential_expr: //<assoc=right> for ANTLR4
+     decinc_expr
+     (
+       POW^ decinc_expr
+     )*
+     ;
 
-
-multiplicative_expr
-    : exponential_expr
-        (
-            ( ASTERIX^
-            | MATRIX_OP1^
-            | MATRIX_OP2^
-            | SLASH^ 
-            | MOD_OP^
-            | AND_OP_EQ^ 
-            | ASTERIX_EQ^ 
-            | EQ_OP_EQ^ 
-            | GE_OP_EQ^
-            | GTMARK_EQ^
-            | GT_OP_EQ^
-            | LE_OP_EQ^
-            | LTMARK_EQ^
-            | LT_OP_EQ^
-            | MATRIX_OP1_EQ^
-            | MATRIX_OP2_EQ^
-            | MINUS_EQ^
-            | MOD_OP_EQ^
-            | NE_OP_EQ^
-            | OR_OP_EQ^
-            | PLUS_EQ^
-            | POW_EQ^
-            | SLASH_EQ^
-            | XOR_OP_EQ^
-            ) exponential_expr
-        )*
-    ;
+multiplicative_expr: // '*' | '#' | '##' | '/' | 'mod' // level 4
+      exponential_expr
+      (
+        ( ASTERIX^
+	| MATRIX_OP1^
+	| MATRIX_OP2^
+	| SLASH^
+	| MOD_OP^
+//            | AND_OP_EQ^ 
+//            | ASTERIX_EQ^ 
+//            | EQ_OP_EQ^ 
+//            | GE_OP_EQ^
+//            | GTMARK_EQ^
+//            | GT_OP_EQ^
+//            | LE_OP_EQ^
+//            | LTMARK_EQ^
+//            | LT_OP_EQ^
+//            | MATRIX_OP1_EQ^
+//            | MATRIX_OP2_EQ^
+//            | MINUS_EQ^
+//            | MOD_OP_EQ^
+//            | NE_OP_EQ^
+//            | OR_OP_EQ^
+//            | PLUS_EQ^
+//            | POW_EQ^
+//            | SLASH_EQ^
+//            | XOR_OP_EQ^
+	) exponential_expr
+      )*
+      ;
 
 // only one allowed per target
 signed_multiplicative_expr
