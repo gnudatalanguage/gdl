@@ -1,0 +1,18 @@
+GD, Apr 2025
+
+This is a pretty useable ANTLR4 grammar for GDL.
+The only thing, one has yet to write all the annoying c++ part converting listeners/walkers to the ASTs used internally as 'compiled' code in GDL.
+
+One can test the .g4 grammar just by doing, e.g.:
+
+$ antlr4-parse gdlParser.g4 gdlLexer.g4 interactive -gui
+x=b*(a*(b*(a*(b*(a*(b*(a*(a*(a*b)))))))))
+
+(end with ^D), shows a nice diagram.
+
+
+or use compileantlr4 to produce 'demo' and try something on a .pro file like
+$ ./demo --tree test_slowantlr2.pro
+
+
+(test_slowantrl2 is just a kind of procedure that takes forever to cimpile with the simple LLK(1) parser of antlr2.)

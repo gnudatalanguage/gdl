@@ -1,0 +1,12 @@
+#!/bin/bash
+if test $# -eq 0
+ then
+ PROG="gdl"
+else
+ PROG=$1
+fi
+
+antlr4 -Dlanguage=Cpp ${PROG}Lexer.g4
+antlr4 -Dlanguage=Cpp ${PROG}Parser.g4
+g++ --std=c++17 -c -O3 -Wno-attributes -I/usr/include/antlr4-runtime/ -L/usr/lib64/  ${PROG}Lexer.cpp ${PROG}Parser.cpp
+g++ --std=c++17 -O3 -Wno-attributes -o demo  -I/usr/include/antlr4-runtime/ -L/usr/lib64/ -lantlr4-runtime  main.cpp  *.o
