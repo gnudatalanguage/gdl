@@ -30,6 +30,9 @@ if [[ ${BUILD_OS} == *"MSYS"* ]] || [[ ${BUILD_OS} == *"MINGW"* ]]; then
 elif [[ ${BUILD_OS} == "Darwin" ]]; then
     BUILD_OS="macOS"
     Platform=${Platform:-$(arch)}
+	# suggested by homebrew
+	export LDFLAGS="-L/usr/local/opt/libomp/lib"
+	export CPPFLAGS="-I/usr/local/opt/libomp/include"
 fi
 
 # Build flags
@@ -124,6 +127,10 @@ elif [ ${BUILD_OS} == "macOS" ]; then
       # JP 2021 May 25: Added GCC 10 which includes libgfortran, which the numpy tap relies on.
       # J-KL 2022 July 30: GCC 10 didn't work with apple silicon mac. So I replaced it with GCC 11
       # GD added dylibbundler that simplify building correct apps.
+	  # GD 25/04/2025 do not use this gcc for compilation. Do as mantioned by homebrew for libomp 
+	  # "For compilers to find libomp you may need to set:"
+	  # "  export LDFLAGS="-L/usr/local/opt/libomp/lib"  "
+	  # " export CPPFLAGS="-I/usr/local/opt/libomp/include"  "
 else
     log "Fatal error! Unknown OS: ${BUILD_OS}. This script only supports one of: Windows, Linux, macOS."
     exit 1
@@ -434,10 +441,10 @@ function configure_gdl {
     if [[ ${BUILD_OS} == "macOS" ]]; then
         if [[ ${Platform} == "arm64" ]]; then
             export LIBRARY_PATH=$LIBRARY_PATH:/opt/homebrew/opt/llvm/lib
-            CMAKE_ADDITIONAL_ARGS=( "-DOPENMP=OFF -DMPI=OFF -DREADLINEDIR=/opt/homebrew/opt/readline" )
+            CMAKE_ADDITIONAL_ARGS=( "-DOPENMP=ON -DMPI=OFF -DREADLINEDIR=/opt/homebrew/opt/readline" )
         else
             export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/opt/llvm/lib
-            CMAKE_ADDITIONAL_ARGS=( "-DOPENMP=OFF -DMPI=OFF -DREADLINEDIR=/usr/local/opt/readline" )
+            CMAKE_ADDITIONAL_ARGS=( "-DOPENMP=ON -DMPI=OFF -DREADLINEDIR=/usr/local/opt/readline" )
         fi
     fi
 
