@@ -434,14 +434,10 @@ function configure_gdl {
     if [[ ${BUILD_OS} == "macOS" ]]; then
         if [[ ${Platform} == "arm64" ]]; then
             export LIBRARY_PATH=$LIBRARY_PATH:/opt/homebrew/opt/llvm/lib
-            CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF -DREADLINEDIR=/opt/homebrew/opt/readline"
-                                    "-DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++"
-                                    "-DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang" ) 
+            CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF -DREADLINEDIR=/opt/homebrew/opt/readline" )
         else
             export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/opt/llvm/lib
-            CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF -DREADLINEDIR=/usr/local/opt/readline"
-                                    "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++"
-                                    "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang" )
+            CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF -DREADLINEDIR=/usr/local/opt/readline" )
         fi
     fi
 
