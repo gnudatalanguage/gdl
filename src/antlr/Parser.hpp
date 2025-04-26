@@ -5,17 +5,20 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: Parser.hpp,v 1.2 2012-11-13 14:30:14 m_schellens Exp $
+ * $Id: //depot/code/org.antlr/release/antlr-2.7.7/lib/cpp/antlr/Parser.hpp#2 $
  */
 
 #include <antlr/config.hpp>
+
+#include <iostream>
+#include <exception>
+
 #include <antlr/BitSet.hpp>
 #include <antlr/TokenBuffer.hpp>
 #include <antlr/RecognitionException.hpp>
+#include <antlr/MismatchedTokenException.hpp>
 #include <antlr/ASTFactory.hpp>
 #include <antlr/ParserSharedInputState.hpp>
-
-#include <exception>
 
 #ifdef ANTLR_CXX_SUPPORTS_NAMESPACE
 namespace antlr {
@@ -60,12 +63,22 @@ extern bool DEBUG_PARSER;
  */
 class ANTLR_API Parser {
 protected:
-	Parser(TokenBuffer& input_);
-	Parser(TokenBuffer* input_);
-
-	Parser(const ParserSharedInputState& state);
+	Parser(TokenBuffer& input)
+	: inputState(new ParserInputState(input)), astFactory(0), traceDepth(0)
+	{
+	}
+	Parser(TokenBuffer* input)
+	: inputState(new ParserInputState(input)), astFactory(0), traceDepth(0)
+	{
+	}
+	Parser(const ParserSharedInputState& state)
+	: inputState(state), astFactory(0), traceDepth(0)
+	{
+	}
 public:
-	virtual ~Parser();
+	virtual ~Parser()
+	{
+	}
 
 	/** Return the token type of the ith token of lookahead where i=1
 	 * is the current token being examined by the parser (i.e., it
@@ -128,21 +141,88 @@ public:
 	/// Get another token object from the token stream
 	virtual void consume()=0;
 	/// Consume tokens until one matches the given token
-	virtual void consumeUntil(int tokenType);
+	virtual void consumeUntil(int tokenType)
+	{
+		while (LA(1) != Token::EOF_TYPE && LA(1) != tokenType)
+			consume();
+	}
+
 	/// Consume tokens until one matches the given token set
-	virtual void consumeUntil(const BitSet& set);
+	virtual void consumeUntil(const BitSet& set)
+	{
+		while (LA(1) != Token::EOF_TYPE && !set.member(LA(1)))
+			consume();
+	}
 
 	/** Make sure current lookahead symbol matches token type <tt>t</tt>.
 	 * Throw an exception upon mismatch, which is catch by either the
 	 * error handler or by the syntactic predicate.
 	 */
-	virtual void match(int t);
-	virtual void matchNot(int t);
+	virtual void match(int t)
+	{
+		if ( DEBUG_PARSER )
+		{
+			traceIndent();
+			ANTLR_USE_NAMESPACE(std)cout << "enter match(" << t << ") with LA(1)=" << LA(1) << ANTLR_USE_NAMESPACE(std)endl;
+		}
+		if ( LA(1) != t )
+		{
+			if ( DEBUG_PARSER )
+			{
+				traceIndent();
+				ANTLR_USE_NAMESPACE(std)cout << "token mismatch: " << LA(1) << "!=" << t << ANTLR_USE_NAMESPACE(std)endl;
+			}
+			throw MismatchedTokenException(getTokenNames(), getNumTokens(), LT(1), t, false, getFilename());
+		}
+		else
+		{
+			// mark token as consumed -- fetch next token deferred until LA/LT
+			consume();
+		}
+	}
+
+	virtual void matchNot(int t)
+	{
+		if ( LA(1)==t )
+		{
+			// Throws inverted-sense exception
+			throw MismatchedTokenException(getTokenNames(), getNumTokens(), LT(1), t, true, getFilename());
+		}
+		else
+		{
+			// mark token as consumed -- fetch next token deferred until LA/LT
+			consume();
+		}
+	}
+
 	/** Make sure current lookahead symbol matches the given set
 	 * Throw an exception upon mismatch, which is catch by either the
 	 * error handler or by the syntactic predicate.
 	 */
-	virtual void match(const BitSet& b);
+	virtual void match(const BitSet& b)
+	{
+		if ( DEBUG_PARSER )
+		{
+			traceIndent();
+			ANTLR_USE_NAMESPACE(std)cout << "enter match(" << "bitset" /*b.toString()*/
+				<< ") with LA(1)=" << LA(1) << ANTLR_USE_NAMESPACE(std)endl;
+		}
+		if ( !b.member(LA(1)) )
+		{
+			if ( DEBUG_PARSER )
+			{
+				traceIndent();
+				ANTLR_USE_NAMESPACE(std)cout << "token mismatch: " << LA(1) << " not member of "
+					<< "bitset" /*b.toString()*/ << ANTLR_USE_NAMESPACE(std)endl;
+			}
+			throw MismatchedTokenException(getTokenNames(), getNumTokens(), LT(1), b, false, getFilename());
+		}
+		else
+		{
+			// mark token as consumed -- fetch next token deferred until LA/LT
+			consume();
+		}
+	}
 
 	/** Mark a spot in the input and return the position.
 	 * Forwarded to TokenBuffer.
@@ -156,6 +236,14 @@ public:
 	{
 		inputState->getInput().rewind(pos);
 	}
+	/** called by the generated parser to do error recovery, override to
+	 * customize the behaviour.
+	 */
+	virtual void recover(const RecognitionException& ex, const BitSet& tokenSet)
+	{
+		consume();
+		consumeUntil(tokenSet);
+	}
 
 	/// Parser error-reporting function can be overridden in subclass
 	virtual void reportError(const RecognitionException& ex);
@@ -163,11 +251,6 @@ public:
 	virtual void reportError(const ANTLR_USE_NAMESPACE(std)string& s);
 	/// Parser warning-reporting function can be overridden in subclass
 	virtual void reportWarning(const ANTLR_USE_NAMESPACE(std)string& s);
-
-	/** Give panic message and exit the program. can be overridden in subclass
-	 * @deprecated this method is unused and will dissappear in the next release
-	 */
-	virtual void panic();
 
 	/// get the token name for the token number 'num'
 	virtual const char* getTokenName(int num) const = 0;
@@ -215,7 +298,7 @@ protected:
 		{
 #ifdef ANTLR_CXX_SUPPORTS_UNCAUGHT_EXCEPTION
 			// Only give trace if there's no uncaught exception..
-//			if(!ANTLR_USE_NAMESPACE(std)uncaught_exception())
+			if(!ANTLR_USE_NAMESPACE(std)uncaught_exception())
 #endif
 				parser->traceOut(text);
 		}

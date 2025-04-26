@@ -5,18 +5,13 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: CharScanner.hpp,v 1.3 2009-10-24 16:20:01 medericboquien Exp $
+ * $Id: //depot/code/org.antlr/release/antlr-2.7.7/lib/cpp/antlr/CharScanner.hpp#2 $
  */
 
 #include <antlr/config.hpp>
 
-// g++-4.3 needs this
-#include <cstring>
-#include <cstdlib>
-
-// g++-4.4 needs this
 #include <cstdio>
-
+#include <cstring>
 #include <map>
 
 #ifdef HAS_NOT_CCTYPE_H
@@ -30,9 +25,6 @@
 // note that this is not a standard C++ include file.
 # include <stdio.h>
 #endif
-
-// std::function needs this one
-#include <functional>
 
 #include <antlr/TokenStream.hpp>
 #include <antlr/RecognitionException.hpp>
@@ -74,7 +66,7 @@ ANTLR_C_USING(strcasecmp)
 
 /** Functor for the literals map
  */
-class ANTLR_API CharScannerLiteralsLess : public ANTLR_USE_NAMESPACE(std)function<bool(ANTLR_USE_NAMESPACE(std)string,ANTLR_USE_NAMESPACE(std)string)> {
+class ANTLR_API CharScannerLiteralsLess {
 private:
 	const CharScanner* scanner;
 public:
@@ -109,18 +101,21 @@ public:
 
 	virtual void append(char c)
 	{
-		if (saveConsumedInput) {
-			int l = text.length();
+		if (saveConsumedInput)
+		{
+			size_t l = text.length();
+
 			if ((l%256) == 0)
 				text.reserve(l+256);
+
 			text.replace(l,0,&c,1);
 		}
 	}
 
 	virtual void append(const ANTLR_USE_NAMESPACE(std)string& s)
 	{
-		if (saveConsumedInput)
-			text+=s;
+		if( saveConsumedInput )
+			text += s;
 	}
 
 	virtual void commit()
@@ -128,7 +123,39 @@ public:
 		inputState->getInput().commit();
 	}
 
-	virtual void consume();
+	/** called by the generated lexer to do error recovery, override to
+	 * customize the behaviour.
+	 */
+	virtual void recover(const RecognitionException& ex, const BitSet& tokenSet)
+	{
+		consume();
+		consumeUntil(tokenSet);
+	}
+
+	virtual void consume()
+	{
+		if (inputState->guessing == 0)
+		{
+			int c = LA(1);
+			if (caseSensitive)
+			{
+				append(c);
+			}
+			else
+			{
+				// use input.LA(), not LA(), to get original case
+				// CharScanner.LA() would toLower it.
+				append(inputState->getInput().LA(1));
+			}
+
+			// RK: in a sense I don't like this automatic handling.
+			if (c == '\t')
+				tab();
+			else
+				inputState->column++;
+		}
+		inputState->getInput().consume();
+	}
 
 	/** Consume chars until one matches the given char */
 	virtual void consumeUntil(int c)
@@ -334,7 +361,7 @@ public:
 	}
 
 	/** Advance the current column number by an appropriate amount according
-	 * to the tabsize. This method needs to be explicitly called from the 
+	 * to the tabsize. This method needs to be explicitly called from the
 	 * lexer rules encountering tabs.
 	 */
 	virtual void tab()
@@ -355,15 +382,6 @@ public:
 	{
 		return tabsize;
 	}
-
-	/** Terminate program using exit()
-	 * @deprecated will be removed in the next release. It is not used.
-	 */
-	virtual void panic();
-	/** Terminate program using exit()
-	 * @deprecated will be removed in the next release. It is not used.
-	 */
-	virtual void panic(const ANTLR_USE_NAMESPACE(std)string& s);
 
 	/** Report exception errors caught in nextToken() */
 	virtual void reportError(const RecognitionException& e);

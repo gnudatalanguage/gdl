@@ -72,7 +72,7 @@ GDLFileListT  fileUnits;
 // flag for control-c
 volatile bool sigControlC;
 int           debugMode;
-bool  strictInterpreter;
+bool  traceSyntaxErrors;
 //	global garbage collection flag in support of HEAP_REFCOUNT:
 static bool enabled_GC=true;
 	bool IsEnabledGC()  // Referenced from GDLInterpreter.hpp
@@ -960,8 +960,8 @@ DLong GetLUN()
   
   return 0;
 }
-bool IsRelaxed(){return !strictInterpreter;}
-void SetStrict(bool value){strictInterpreter=value;}
+bool IsTracingSyntaxErrors(){return traceSyntaxErrors;}
+void SetTraceSyntaxErrors(bool value){traceSyntaxErrors=value;}
 
 // for semantic predicate
 bool IsFun(antlr::RefToken rT1)

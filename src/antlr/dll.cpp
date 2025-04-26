@@ -2,7 +2,7 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: dll.cpp,v 1.1.1.1 2004-12-09 15:10:20 m_schellens Exp $
+ * $Id:$
  */
 
 /*
@@ -26,6 +26,11 @@
 // implementation. This needs some work though. (and don't try it if you're
 // not that familiar with compilers/building C++ DLL's in windows)
 #endif
+
+#include <vector>
+#include "antlr/config.hpp"
+#include "antlr/Token.hpp"
+#include "antlr/CircularQueue.hpp"
 
 #ifdef ANTLR_CXX_SUPPORTS_NAMESPACE
 namespace antlr {
@@ -114,7 +119,12 @@ template class  ANTLR_API ANTLR_USE_NAMESPACE(std)_Deque_val< TokenStream*, ANTL
 template class  ANTLR_API ANTLR_USE_NAMESPACE(std)deque< TokenStream*, ANTLR_USE_NAMESPACE(std)allocator< TokenStream* > >;
 template class  ANTLR_API ANTLR_USE_NAMESPACE(std)stack< TokenStream*, ANTLR_USE_NAMESPACE(std)deque<TokenStream*> >;
 
-// #else // Add instantiations for MSVC 7.1 here if necessary..
+#elif  defined( _MSC_VER ) && ( _MSC_VER == 1310 )
+// Instantiations for MSVC 7.1
+template class ANTLR_API CircularQueue< int >;
+template class ANTLR_API CircularQueue< RefToken >;
+
+// #else future msvc's
 
 #endif
 

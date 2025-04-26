@@ -133,8 +133,8 @@ int LibProIx(const std::string& n);
 int LibFunIx(const std::string& n);
 
 bool IsFun(antlr::RefToken); // used by Lexer and Parser
-bool IsRelaxed(); //tells if syntax is not strict (i.e. parenthesis for array indexes).
-void SetStrict(bool value);
+bool IsTracingSyntaxErrors(); //tells if syntax is not strict (i.e. parenthesis for array indexes).
+void SetTraceSyntaxErrors(bool value);
 
 bool BigEndian();
 int get_suggested_omp_num_threads();

@@ -303,12 +303,7 @@ int main(int argc, char *argv[])
       cerr << "  --help (-h)        display this message" << endl;
       cerr << "  --version (-V, -v) show version information" << endl;
       cerr << "  --fakerelease X.y  pretend that !VERSION.RELEASE is X.y" << endl;
-      cerr << "  --fussy            implies that procedures adhere with modern IDL, where \"()\" are for functions and \"[]\" are for arrays." << endl;
-      cerr << "                     This speeds up (sometimes terribly) compilation but choke on every use of \"()\" with arrays." << endl;
-      cerr << "                     Conversion of procedures to modern IDL can be done with D. Landsman's idlv4_to_v5 procedure." << endl;
-      cerr << "                     Use enviromnment variable \"GDL_IS_FUSSY\" to set up permanently this feature." << endl;
-      cerr << "  --sloppy           Sets the traditional (default) compiling option where \"()\"  can be used both with functions and arrays." << endl;
-      cerr << "                     Needed to counteract temporarily the effect of the enviromnment variable \"GDL_IS_FUSSY\"." << endl;
+      cerr << "  --trace-old-syntax print lines that do not adhere with modern IDL, where \"()\" are for functions and \"[]\" are for arrays." << endl;
       cerr << "  --MAC              Graphic device will be called 'MAC' on MacOSX. (default: 'X')" << endl;
       cerr << "  [--no-use-wx | -X] Tells GDL not to use WxWidgets graphics and resort to X11 (if available)." << endl;
       cerr << "                     Also enabled by setting the environment variable GDL_DISABLE_WX_PLOTS to a non-null value." << endl;
@@ -403,14 +398,8 @@ int main(int argc, char *argv[])
       {
           gdlde = true;
       }
-      else if (string(argv[a]) == "--fussy")
+      else if (string(argv[a]) == "--trace-old-syntax")
       {
-          strict_syntax = true;
-          syntaxOptionSet = true;
-      }
-      else if (string(argv[a]) == "--sloppy")
-      {
-          strict_syntax = false;
           syntaxOptionSet = true;
       }
       else if (string(argv[a]) == "--no-dSFMT")
@@ -550,12 +539,10 @@ int main(int argc, char *argv[])
   (*static_cast<DByteGDL*> (gdlconfig->GetTag(useWXTAG, 0)))[0]=useWxWidgetsForGraphics;
   
   if (!pretendRelease.empty()) SysVar::SetFakeRelease(pretendRelease);
-  //fussyness setup and change if switch at start
-  if (syntaxOptionSet) { //take it no matters any env. var.
-    if (strict_syntax == true) SetStrict(true);
-  } else {
-    if (GetEnvString("GDL_IS_FUSSY").size()> 0) SetStrict(true);
-  }
+  //trace old syntax locations in procedures.
+  if (syntaxOptionSet) { 
+    SetTraceSyntaxErrors(true);
+  } else SetTraceSyntaxErrors(false);
   
   
   string startup=GetEnvPathString("GDL_STARTUP");
