@@ -119,7 +119,7 @@ elif [ ${BUILD_OS} == "Linux" ]; then
 elif [ ${BUILD_OS} == "macOS" ]; then
     BREW_PACKAGES=(
         llvm libx11 libomp ncurses readline zlib libpng gsl wxwidgets graphicsmagick libtiff libgeotiff netcdf hdf5 fftw proj open-mpi python numpy udunits eigen
-        eccodes glpk shapelib expat gcc qhull dylibbundler cmake
+        eccodes glpk shapelib expat gcc@11 qhull dylibbundler cmake
     ) # JP 2021 Mar 21: HDF4 isn't available - not so critical I guess
       # JP 2021 May 25: Added GCC 10 which includes libgfortran, which the numpy tap relies on.
       # J-KL 2022 July 30: GCC 10 didn't work with apple silicon mac. So I replaced it with GCC 11
