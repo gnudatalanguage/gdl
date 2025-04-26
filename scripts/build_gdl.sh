@@ -448,7 +448,7 @@ function configure_gdl {
         fi
         CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF"
 								"-DREADLINEDIR=${READLINE_DIR}"
-								'-DOpenMP_CXX_FLAGS=\"${OMP_PREPROC}\"') #avoid blank expansion
+								"-DOpenMP_CXX_FLAGS=${OMP_PREPROC}")
    fi
 
 #    if [[ ${BUILD_OS} != "macOS" ]]; then
