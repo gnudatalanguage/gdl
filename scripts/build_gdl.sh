@@ -439,10 +439,10 @@ function configure_gdl {
         if [[ ${Platform} == "arm64" ]]; then
 	# suggested by homebrew
 	        LDFLAGS="-L/opt/homebrew/opt/libomp/lib -lomp"
-            CMAKE_ADDITIONAL_ARGS=( "-DOpenMP_CXX_FLAGS=-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include -DMPI=OFF -DREADLINEDIR=/opt/homebrew/opt/readline") 
+            CMAKE_ADDITIONAL_ARGS=( "-DOpenMP_CXX_FLAGS='-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include' -DMPI=OFF -DREADLINEDIR=/opt/homebrew/opt/readline") 
         else
 	        LDFLAGS="-L/usr/local/opt/libomp/lib -lomp"
-            CMAKE_ADDITIONAL_ARGS=( "-DOpenMP_CXX_FLAGS=-Xpreprocessor -fopenmp I/usr/local/opt/libomp/include -DMPI=OFF -DREADLINEDIR=/usr/local/opt/readline")
+            CMAKE_ADDITIONAL_ARGS=( "-DOpenMP_CXX_FLAGS='-Xpreprocessor -fopenmp -I/usr/local/opt/libomp/include' -DMPI=OFF -DREADLINEDIR=/usr/local/opt/readline")
         fi
     fi
 
