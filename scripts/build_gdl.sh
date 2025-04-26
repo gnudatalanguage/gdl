@@ -58,7 +58,6 @@ WITH_PYTHONVERSION=${WITH_PYTHONVERSION:-ON}
 WITH_FFTW=${WITH_FFTW:-ON}
 WITH_UDUNITS2=${WITH_UDUNITS2:-ON}
 WITH_GLPK=${WITH_GLPK:-ON}
-WITH_OPENMP=${WITH_OPENMP:-ON}
 if [[ ${BUILD_OS} == "macOS" ]]; then
     WITH_HDF4=${WITH_HDF4:-OFF}
     WITH_GRIB=${WITH_GRIB:-ON}
@@ -118,12 +117,13 @@ elif [ ${BUILD_OS} == "Linux" ]; then
     ) # JP 2021 Mar 21: SuSE lacks eccodes
 elif [ ${BUILD_OS} == "macOS" ]; then
     BREW_PACKAGES=(
-        llvm libx11 libomp ncurses readline zlib libpng gsl wxwidgets graphicsmagick libtiff libgeotiff netcdf hdf5 fftw proj open-mpi python numpy udunits eigen
-        eccodes glpk shapelib expat gcc@11 qhull dylibbundler cmake
+        libx11 libomp ncurses readline zlib libpng gsl wxwidgets graphicsmagick libtiff libgeotiff netcdf hdf5 fftw proj open-mpi python numpy udunits eigen
+        eccodes glpk shapelib expat gcc qhull dylibbundler cmake
     ) # JP 2021 Mar 21: HDF4 isn't available - not so critical I guess
       # JP 2021 May 25: Added GCC 10 which includes libgfortran, which the numpy tap relies on.
       # J-KL 2022 July 30: GCC 10 didn't work with apple silicon mac. So I replaced it with GCC 11
       # GD added dylibbundler that simplify building correct apps.
+	  # GD 25/04/2025 see #2025
 else
     log "Fatal error! Unknown OS: ${BUILD_OS}. This script only supports one of: Windows, Linux, macOS."
     exit 1
@@ -432,18 +432,21 @@ function configure_gdl {
     fi
     
     if [[ ${BUILD_OS} == "macOS" ]]; then
-        if [[ ${Platform} == "arm64" ]]; then
-            export LIBRARY_PATH=$LIBRARY_PATH:/opt/homebrew/opt/llvm/lib
-            CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF -DREADLINEDIR=/opt/homebrew/opt/readline"
-                                    "-DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++"
-                                    "-DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang" ) 
+       export OpenMP_ROOT=$(brew --prefix)/opt/libomp
+       if [[ ${Platform} == "arm64" ]]; then
+	# see #2025
+	        LDFLAGS="-L/opt/homebrew/opt/libomp/lib -lomp"
+			OMP_PREPROC='-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include'
+			READLINE_DIR='/opt/homebrew/opt/readline'
         else
-            export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/opt/llvm/lib
-            CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF -DREADLINEDIR=/usr/local/opt/readline"
-                                    "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++"
-                                    "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang" )
+	        LDFLAGS="-L/usr/local/opt/libomp/lib -lomp"
+			OMP_PREPROC='-Xpreprocessor -fopenmp -I/usr/local/opt/libomp/include'
+			READLINE_DIR='/usr/local/opt/readline'
         fi
-    fi
+        CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF"
+								"-DREADLINEDIR=${READLINE_DIR}"
+								'-DOpenMP_CXX_FLAGS=\"${OMP_PREPROC}\"') #avoid blank expansion
+   fi
 
 #    if [[ ${BUILD_OS} != "macOS" ]]; then
 #        CMAKE_QHULLDIR_OPT="-DQHULLDIR="${ROOT_DIR}"/qhull-2020.2"
@@ -459,7 +462,7 @@ function configure_gdl {
     cmake ${GDL_DIR} -G"${GENERATOR}" \
         -DCMAKE_BUILD_TYPE=${Configuration} \
         -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
-        -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} -DOPENMP=${WITH_OPENMP} \
+        -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
         -DWXWIDGETS=${WITH_WXWIDGETS} -DX11={WITH_X11} -DGRAPHICSMAGICK=${WITH_GRAPHICSMAGICK} \
         -DNETCDF=${WITH_NETCDF} -DHDF=${WITH_HDF4} -DHDF5=${WITH_HDF5} \
         -DMPI=${WITH_MPI} -DTIFF=${WITH_TIFF} -DGEOTIFF=${WITH_GEOTIFF} \
