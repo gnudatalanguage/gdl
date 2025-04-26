@@ -58,7 +58,6 @@ WITH_PYTHONVERSION=${WITH_PYTHONVERSION:-ON}
 WITH_FFTW=${WITH_FFTW:-ON}
 WITH_UDUNITS2=${WITH_UDUNITS2:-ON}
 WITH_GLPK=${WITH_GLPK:-ON}
-WITH_OPENMP=${WITH_OPENMP:-ON}
 if [[ ${BUILD_OS} == "macOS" ]]; then
     WITH_HDF4=${WITH_HDF4:-OFF}
     WITH_GRIB=${WITH_GRIB:-ON}
@@ -436,7 +435,8 @@ function configure_gdl {
     fi
     
     if [[ ${BUILD_OS} == "macOS" ]]; then
-        if [[ ${Platform} == "arm64" ]]; then
+       export OpenMP_ROOT=$(brew --prefix)/opt/libomp
+       if [[ ${Platform} == "arm64" ]]; then
 	# suggested by homebrew
 	        LDFLAGS="-L/opt/homebrew/opt/libomp/lib -lomp"
 			OMP_PREPROC='-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include'
