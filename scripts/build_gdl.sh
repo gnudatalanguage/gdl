@@ -439,17 +439,12 @@ function configure_gdl {
         if [[ ${Platform} == "arm64" ]]; then
 	# suggested by homebrew
 	        LDFLAGS="-L/opt/homebrew/opt/libomp/lib -lomp"
-			OMP_PREPROC='-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include'
-			READLINE_DIR='/opt/homebrew/opt/readline'
+            CMAKE_ADDITIONAL_ARGS=( "-DOpenMP_CXX_FLAGS=\"-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include\" -DMPI=OFF -DREADLINEDIR=/opt/homebrew/opt/readline") 
         else
 	        LDFLAGS="-L/usr/local/opt/libomp/lib -lomp"
-			OMP_PREPROC='-Xpreprocessor -fopenmp -I/usr/local/opt/libomp/include'
-			READLINE_DIR='/usr/local/opt/readline'
+            CMAKE_ADDITIONAL_ARGS=( "-DOpenMP_CXX_FLAGS='-Xpreprocessor -fopenmp -I/usr/local/opt/libomp/include' -DMPI=OFF -DREADLINEDIR=/usr/local/opt/readline")
         fi
-        CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF"
-								"-DREADLINEDIR=${READLINE_DIR}"
-								"-DOpenMP_CXX_FLAGS=${OMP_PREPROC}")
-   fi
+    fi
 
 #    if [[ ${BUILD_OS} != "macOS" ]]; then
 #        CMAKE_QHULLDIR_OPT="-DQHULLDIR="${ROOT_DIR}"/qhull-2020.2"
@@ -465,7 +460,7 @@ function configure_gdl {
     cmake ${GDL_DIR} -G"${GENERATOR}" \
         -DCMAKE_BUILD_TYPE=${Configuration} \
         -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
-        -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
+        -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} -DOPENMP=${WITH_OPENMP} \
         -DWXWIDGETS=${WITH_WXWIDGETS} -DX11={WITH_X11} -DGRAPHICSMAGICK=${WITH_GRAPHICSMAGICK} \
         -DNETCDF=${WITH_NETCDF} -DHDF=${WITH_HDF4} -DHDF5=${WITH_HDF5} \
         -DMPI=${WITH_MPI} -DTIFF=${WITH_TIFF} -DGEOTIFF=${WITH_GEOTIFF} \
