@@ -31,7 +31,6 @@ elif [[ ${BUILD_OS} == "Darwin" ]]; then
     BUILD_OS="macOS"
     Platform=${Platform:-$(arch)}
 	# suggested by homebrew
-    echo 'export PATH="/usr/local/opt/llvm/bin:$PATH"' >> /Users/runner/.bash_profile
 	export LDFLAGS="-L/usr/local/opt/libomp/lib"
 	export CPPFLAGS="-I/usr/local/opt/libomp/include"
 fi
