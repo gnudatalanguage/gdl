@@ -16,21 +16,10 @@
 ;
 ; --------------------------------------------
 ;
-; due to changes by Alain, no more useful
-;
-; pro TESTREADF_ERR, type
-; ;
-; MESSAGE, /continue, '% TEST_READF: failed with '+type+' char'
-; SPAWN, 'rm -f testreadf.txt'
-; EXIT, status=1
-; ;
-; end
-;
-; --------------------------------------------------------
 ; http://sourceforge.net/p/gnudatalanguage/bugs/573/
 ; playing with lines skipping
 ;
-pro TEST_BUG_573, verbose=verbose, errors=errors, test=test
+pro TEST_BUG_573, verbose=verbose, no_erase=no_erase, errors=errors, test=test
 ;
 MESSAGE, /continue, 'running TEST_BUG_573'
 ;
@@ -38,7 +27,7 @@ if N_ELEMENTS(errors) EQ 0 then errors=0
 ;
 filename='test_bug_573.tmp'
 ;
-OPENW, nlun, filename, /get_lun;, /delete
+OPENW, nlun, filename, /get_lun
 PRINTF, nlun, '234.123 231.2 54.3'
 PRINTF, nlun, '5432.4 543.'
 PRINTF, nlun, '33.4 444.22 3321.'
@@ -51,7 +40,7 @@ foo=DBLARR(5)
 READF,unit, foo
 READF,unit, foo2, foo3, foo4
 CLOSE, unit
-CLOSE, unit
+FREE_LUN, unit
 ;
 ; expected values
 exp2=33.4000
@@ -70,6 +59,8 @@ endif else begin
 endelse
 ;
 if KEYWORD_SET(test) then STOP
+;
+if NOT(KEYWORD_SET(no_erase)) then FILE_DELETE,filename
 ;
 end
 ;
@@ -108,15 +99,15 @@ if KEYWORD_SET(verbose) then begin
 endif
 case type of
     'CR': begin
-        char='\r'
+        char=string(13b)
         suffixe='CR.txt'
     end
     'LF': begin
-        char='\n'
+        char=string(10b)
         suffixe='LF.txt'
     end
     'CRLF': begin
-        char='\r\n'
+        char=string([13b,10b])
         suffixe='CRLF.txt'
     end
     else: begin
@@ -132,12 +123,13 @@ filename='TestReadF_'+soft+'_'+suffixe
 ;
 ; generating the ASCII file
 ;
-;SPAWN, 'echo -e "testl1'+char+'testl2" > '+filename
-SPAWN, 'printf "testl1'+char+'testl2" > '+filename
+openw,fd,filename, /get_lun
+printf,fd,"testl1"+char+"testl2"
+close,fd
 ;
 ; reading back the generated ASCII file
 ;
-OPENR, fd, filename, /get_lun
+openr, fd, filename
 str=''
 ;
 ; reading first line
@@ -166,7 +158,7 @@ endelse
 CLOSE, fd
 FREE_LUN, fd
 ;
-if NOT(KEYWORD_SET(no_erase)) then SPAWN, 'rm -f '+filename
+if NOT(KEYWORD_SET(no_erase)) then FILE_DELETE,filename
 ;
 end
 ;
@@ -189,11 +181,11 @@ endif
 ;
 errors=0
 ;
+TESTREADF, verbose=verbose, no_erase=no_erase, errors=errors, type='CR'
 TESTREADF, verbose=verbose, no_erase=no_erase, errors=errors, type='LF'
 TESTREADF, verbose=verbose, no_erase=no_erase, errors=errors, type='CRLF'
-TESTREADF, verbose=verbose, no_erase=no_erase, errors=errors, type='CR'
 ;
-TEST_BUG_573, verbose=verbose, errors=errors
+TEST_BUG_573, verbose=verbose, no_erase=no_erase, errors=errors
 ;
 if ~KEYWORD_SET(no_exit) then begin
    if (errors GT 0) then EXIT, status=1

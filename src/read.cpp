@@ -124,7 +124,7 @@ std::stringstream accept_comma_and_complex_default_format(std::istream *is, Base
 	while (is->get(c)) { //remove starting blanks, commas, tabs, newlines
 	  if (c == '(') open_brace++;
 	  if (c == ')') open_brace--;
-	  if (c != ',' && c != ' ' && c != '\t' && c != '\n') {
+	  if (c != ',' && c != ' ' && c != '\t' && c != '\n' && c != '\r') {
 		temp.put(c);
 		break;
 	  }
@@ -132,12 +132,12 @@ std::stringstream accept_comma_and_complex_default_format(std::istream *is, Base
 	if (debug) std::cout << "after first while : " << temp.str() << std::endl;
 
 	while (is->get(c)) { //copy until new separator appears.
-	  if (c != ',' && c != ' ' && c != '\t' && c != '\n') {
+	  if (c != ',' && c != ' ' && c != '\t' && c != '\n' && c != '\r') {
 		if (c == '(') open_brace++;
 		if (c == ')') open_brace--;
 		temp.put(c);
 	  } else {
-		is->unget();
+		if (c != '\r' ) is->unget(); //remove cr if cr/lf
 		break;
 	  }
 	}

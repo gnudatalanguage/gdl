@@ -535,7 +535,7 @@ std::streampos AnyStream::Size() {
     fStream->rdbuf()->pubseekpos(cur, std::ios_base::in | std::ios_base::out);
     return end;
   } else if (ofStream != NULL) {
-    std::streampos cur = ofStream->tellp(); 
+    std::streampos cur = ofStream->tellg(); 
     std::streampos end = ofStream->rdbuf()->pubseekoff(0, std::ios_base::end);
     ofStream->rdbuf()->pubseekpos(cur, std::ios_base::out);
     return end;
@@ -559,8 +559,8 @@ std::streampos AnyStream::Size() {
 }
 
 std::streampos AnyStream::Tell() {
-  if (fStream != NULL) return fStream->tellp(); //openr
-  else if (ofStream != NULL) return ofStream->tellp(); //openr
+  if (fStream != NULL) return fStream->tellp();
+  else if (ofStream != NULL) return ofStream->tellg();
   else if (igzStream != NULL)
     return igzStream->rdbuf()->getPosition(); 
   else if (ogzStream != NULL)
