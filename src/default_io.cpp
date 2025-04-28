@@ -30,21 +30,28 @@
 
 using namespace std;
 
+#define GET_NEXT_CHAR     c = is.get(); \
+    if ((is.rdstate() & ifstream::failbit) != 0) {\
+      if ((is.rdstate() & ifstream::eofbit) != 0)  throw GDLIOException("End of file encountered. " +  StreamInfo(&is));\
+      if ((is.rdstate() & ifstream::badbit) != 0)  throw GDLIOException("Error reading stream. " +     StreamInfo(&is));\
+      is.clear();\
+      return;\
+    }
+
+#define GET_NEXT_CHAR_RETURN_BUF     c = is.get(); \
+    if ((is.rdstate() & ifstream::failbit) != 0) {\
+      if ((is.rdstate() & ifstream::eofbit) != 0)  throw GDLIOException("End of file encountered. " +  StreamInfo(&is));\
+      if ((is.rdstate() & ifstream::badbit) != 0)  throw GDLIOException("Error reading stream. " +     StreamInfo(&is));\
+      is.clear();\
+      return buf;\
+    }
 
 void SkipWS( istream& is) {
   if (is.eof())
-    throw GDLIOException("End of file encountered. " +
-      StreamInfo(&is));
+    throw GDLIOException("End of file encountered. " +  StreamInfo(&is));
   char c;
   do {
-    c = is.get();
-
-    if ((is.rdstate() & ifstream::failbit) != 0) {
-      if ((is.rdstate() & ifstream::eofbit) != 0)  throw GDLIOException("End of file encountered. " +  StreamInfo(&is));
-      if ((is.rdstate() & ifstream::badbit) != 0)  throw GDLIOException("Error reading stream. " +     StreamInfo(&is));
-      is.clear();
-      return;
-    }
+    GET_NEXT_CHAR
   } while (c == ' ' || c == '\t' || c == '\n' || c == '\r'); //special check if line is terminated with <CR><LF>:
 #ifndef _WIN32
   if (c == '\r') {
@@ -64,15 +71,7 @@ const string ReadStringElement(istream& is) {
   string buf;
   char c;
   for (;;) {
-    c = is.get();
-    //    int cc = c;
-    //    cout << "ReadEl: " << cc << " " << c << ":" << endl;
-
-    if ((is.rdstate() & ifstream::failbit) != 0) {
-      if ((is.rdstate() & ifstream::badbit) != 0) throw GDLIOException("Error reading line. " + StreamInfo(&is));
-      is.clear();
-      return buf;
-    }
+    GET_NEXT_CHAR_RETURN_BUF
 
     if (c == '\r') {
       //test if <cr><lf> or just <cr> (old macos data)
@@ -98,15 +97,7 @@ const string ReadElement(istream& is) {
   string buf;
   char c;
   for (;;) {
-    c = is.get();
-    //    int cc = c;
-    //    cout << "ReadEl: " << cc << " " << c << ":" << endl;
-
-    if ((is.rdstate() & ifstream::failbit) != 0) {
-      if ((is.rdstate() & ifstream::badbit) != 0) throw GDLIOException("Error reading line. " + StreamInfo(&is));
-      is.clear();
-      return buf;
-    }
+    GET_NEXT_CHAR_RETURN_BUF
 
     if (c == '\r') {
       //test if <cr><lf> or just <cr> (old macos data)
@@ -136,13 +127,8 @@ const string ReadComplexElement(istream& is) {
   SkipWS(is);
 
   string buf;
-  char c = is.get();
-  if ((is.rdstate() & ifstream::failbit) != 0) {
-    if ((is.rdstate() & ifstream::eofbit) != 0) throw GDLIOException("End of file encountered. " + StreamInfo(&is));
-    if ((is.rdstate() & ifstream::badbit) != 0) throw GDLIOException("Error reading stream. " + StreamInfo(&is));
-    is.clear();
-    return buf;
-  }
+  char c;
+  GET_NEXT_CHAR_RETURN_BUF
 
   bool brace = (c == '(');
 
@@ -153,13 +139,7 @@ const string ReadComplexElement(istream& is) {
 
   buf.push_back(c);
   for (;;) {
-    c = is.get();
-
-    if ((is.rdstate() & ifstream::failbit) != 0) {
-      if ((is.rdstate() & ifstream::badbit) != 0)  throw GDLIOException("Error reading line. " +  StreamInfo(&is));
-      is.clear();
-      return buf;
-    }
+    GET_NEXT_CHAR_RETURN_BUF
 
     if (c == '\r') {
       //test if <cr><lf> or just <cr> (old macos data)
