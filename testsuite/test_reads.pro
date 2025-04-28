@@ -266,8 +266,9 @@ thisisheader2='10,12,2001,This is the date of my file'
 ; expected results
 ;
 expected1=[10,12,2001]
-expected2a=' This is the date of my file'
-expected2b=',This is the date of my file'
+expected2=expected1 
+expected1s=' This is the date of my file'
+expected2s=',This is the date of my file'
 ;
 day=0
 month=0
@@ -284,7 +285,7 @@ res1=[day, month, year]
 if ~ok1 then ERRORS_ADD, errors1, '(1) EXECUTE failed !'
 if ~ARRAY_EQUAL(expected1, res1) then $
    ERRORS_ADD, errors1, '(1) bad numerical values D/M/Y !'
-if ~ARRAY_EQUAL(expected2a, todaystring1) then   $
+if ~ARRAY_EQUAL(expected1s, todaystring1) then   $
    ERRORS_ADD, errors1, '(1) bad string value !'
 if KEYWORD_SET(verbose) then $
    if (errors1 EQ 0) then MESSAGE, /continue, 'Case 1 : succesfully done'
@@ -296,9 +297,9 @@ errors2=0
 ok2=EXECUTE('READS, thisisheader2, day, month, year, todaystring2')
 res2=[day, month, year]
 if ~ok2 then ERRORS_ADD, errors2, '(2) EXECUTE failed !'
-if ~ARRAY_EQUAL(expected1, res2) then $
+if ~ARRAY_EQUAL(expected2, res2) then $
    ERRORS_ADD, errors2, '(2) bad numerical values D/M/Y !'
-if ~ARRAY_EQUAL(expected2b, todaystring2) then  $
+if ~ARRAY_EQUAL(expected2s, todaystring2) then  $
    ERRORS_ADD, errors2, '(2) bad string value !'
 ;
 if KEYWORD_SET(verbose) then $

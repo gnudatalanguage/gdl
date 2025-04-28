@@ -1,4 +1,9 @@
 pro test_readf_with_crlf,noexit=noexit
+Catch, theError
+if theError NE 0 then begin
+   Catch,/Cancel
+   exit,  status = 1 
+endif
   err=0
   line1=' 12 833.567 '
   line2=' 26 -45.222 '         
