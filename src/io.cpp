@@ -275,7 +275,7 @@ void AnyStream::OpenAsPipes(const std::string& name_, const std::ios_base::openm
     }
   }
 #else
-  throw GDLIOException(-1,"This command relies on GNU extensions to the std C++ library that were not available during compilation on your system (?)");
+  throw GDLException("This command relies on GNU extensions to the std C++ library that were not available during compilation on your system (?)");
 #endif
 }
   void AnyStream::Open(const std::string& name_, ios_base::openmode mode_, bool compress_) {
@@ -324,7 +324,6 @@ void AnyStream::OpenAsPipes(const std::string& name_, const std::ios_base::openm
 
   if (fStream == NULL)
     fStream = new fstream();
-  if (fStream->is_open()) throw GDLIOException(-1, "File already opened.");
   fStream->open(name_.c_str(), mode_);
 
   if (fStream->fail()) {
