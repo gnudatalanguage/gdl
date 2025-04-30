@@ -1,0 +1,4 @@
+{
+IDL_StrToSTRING;
+IDL_DoubleScalar;
+};

@@ -36,7 +36,7 @@ typedef void* handle_t;
 #endif
 
 extern "C" {
-  
+//all the IDL_** modules below should be listed in dynlist.txt
 IDL_VPTR IDL_CDECL IDL_StrToSTRING(const char *s) {
     IDL_STRING idlstr = {(int) strlen(s), 0, (char*) s};
     IDL_VARIABLE *ss;
