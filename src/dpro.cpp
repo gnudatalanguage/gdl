@@ -159,9 +159,10 @@ DSub::~DSub() {}
 // DLib ******************************************************
 DLib::DLib( const string& n, const string& o, const int nPar_, 
 	    const string keyNames[],
-	    const string warnKeyNames[], const int nParMin_, const bool use_threadpool)
+	    const string warnKeyNames[], const int nParMin_, const bool use_threadpool, void* target)
   : DSub(n,o)
   , hideHelp( false)
+  , dllEntry( target)
 {
   nPar=nPar_;
   nParMin = nParMin_;
@@ -314,6 +315,14 @@ DLibPro::DLibPro( LibPro p, const string& n, const int nPar_,
 //  sort(libProList.begin(), libProList.end(),CompLibFunName());
 }
 
+DLibPro::DLibPro( LibPro p, void* target, const string& n, const int nPar_, 
+		  const string keyNames[], const string warnKeyNames[], const int nParMin_, const bool use_threadpool)
+  : DLib(n,"",nPar_,keyNames, warnKeyNames, nParMin_, use_threadpool, target), pro(p)
+{
+  libProList.push_back(this);
+//  sort(libProList.begin(), libProList.end(),CompLibFunName());
+}
+
 DLibFun::DLibFun( LibFun f, const string& n, const string& o, const int nPar_, 
 		  const string keyNames[], const string warnKeyNames[], const int nParMin_)
   : DLib(n,o,nPar_,keyNames, warnKeyNames, nParMin_), fun(f)
@@ -325,6 +334,14 @@ DLibFun::DLibFun( LibFun f, const string& n, const string& o, const int nPar_,
 DLibFun::DLibFun( LibFun f, const string& n, const int nPar_, 
 		  const string keyNames[], const string warnKeyNames[], const int nParMin_, const bool use_threadpool)
   : DLib(n,"",nPar_,keyNames, warnKeyNames, nParMin_, use_threadpool), fun(f)
+{
+  libFunList.push_back(this);
+//  sort(libFunList.begin(), libFunList.end(),CompLibFunName());
+}
+
+DLibFun::DLibFun( LibFun f, void* target, const string& n, const int nPar_, 
+		  const string keyNames[], const string warnKeyNames[], const int nParMin_, const bool use_threadpool)
+  : DLib(n,"",nPar_,keyNames, warnKeyNames, nParMin_, use_threadpool, target), fun(f)
 {
   libFunList.push_back(this);
 //  sort(libFunList.begin(), libFunList.end(),CompLibFunName());

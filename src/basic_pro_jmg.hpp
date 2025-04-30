@@ -23,6 +23,7 @@
 #include <dlfcn.h>
 #endif
 #include <time.h>
+#include "gdl_export.h"
 
 namespace lib {
 

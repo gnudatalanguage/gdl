@@ -16,7 +16,7 @@
  ***************************************************************************/
 
 #include "includefirst.hpp"
-
+#include "gdl_export.h"
 // #ifndef VERSION
 // #define VERSION "0.9"
 // #endif

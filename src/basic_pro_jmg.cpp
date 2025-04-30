@@ -35,10 +35,210 @@ typedef HMODULE handle_t;
 typedef void* handle_t;
 #endif
 
+extern "C" {
+  
+IDL_VPTR IDL_CDECL IDL_StrToSTRING(const char *s) {
+    IDL_STRING idlstr = {(int) strlen(s), 0, (char*) s};
+    IDL_VARIABLE *ss;
+    ss->type = IDL_TYP_STRING;
+    ss->flags = IDL_V_DYNAMIC;
+    ss->flags2 = 0;
+    ss->value.str = idlstr;
+    return ss;
+  }
+ IDL_VPTR GDL_ToVPTR(BaseGDL* var) {
+    IDL_VARIABLE *v = new IDL_VARIABLE();
+    switch (var->Type()) {
+      case GDL_BYTE:
+        v->type = IDL_TYP_BYTE;
+        v->flags = IDL_V_CONST;
+        v->flags2 = 0;
+        v->value.c = (*static_cast<DByteGDL*> (var))[0];
+        break;
+      case GDL_INT:
+        v->type = IDL_TYP_INT;
+        v->flags = IDL_V_CONST;
+        v->flags2 = 0;
+        v->value.i = (*static_cast<DIntGDL*> (var))[0];
+        break;
+
+      case GDL_LONG:
+        v->type = IDL_TYP_LONG;
+        v->flags = IDL_V_CONST;
+        v->flags2 = 0;
+        v->value.l = (*static_cast<DLongGDL*> (var))[0];
+        break;
+
+      case GDL_LONG64:
+        v->type = IDL_TYP_LONG64;
+        v->flags = IDL_V_CONST;
+        v->flags2 = 0;
+        v->value.l64 = (*static_cast<DLong64GDL*> (var))[0];
+        break;
+
+      case GDL_UINT:
+        v->type = IDL_TYP_UINT;
+        v->flags = IDL_V_CONST;
+        v->flags2 = 0;
+        v->value.ui = (*static_cast<DUIntGDL*> (var))[0];
+        break;
+
+      case GDL_ULONG:
+        v->type = IDL_TYP_ULONG;
+        v->flags = IDL_V_CONST;
+        v->flags2 = 0;
+        v->value.ul = (*static_cast<DULongGDL*> (var))[0];
+        break;
+
+      case GDL_ULONG64:
+        v->type = IDL_TYP_ULONG64;
+        v->flags = IDL_V_CONST;
+        v->flags2 = 0;
+        v->value.ul64 = (*static_cast<DULong64GDL*> (var))[0];
+        break;
+
+      case GDL_FLOAT:
+        v->type = IDL_TYP_FLOAT;
+        v->flags = IDL_V_CONST;
+        v->flags2 = 0;
+        v->value.f = (*static_cast<DFloatGDL*> (var))[0];
+        break;
+      case GDL_DOUBLE:
+        v->type = IDL_TYP_DOUBLE;
+        v->flags = IDL_V_CONST;
+        v->flags2 = 0;
+        v->value.d = (*static_cast<DDoubleGDL*> (var))[0];
+        break;
+      case GDL_COMPLEX:
+      {
+        v->type = IDL_TYP_COMPLEX;
+        v->flags = IDL_V_CONST;
+        v->flags2 = 0;
+        DComplex c=(*static_cast<DComplexGDL*> (var))[0];
+        v->value.cmp.r = c.real();
+        v->value.cmp.i = c.imag();
+        break;
+      }
+      case GDL_COMPLEXDBL:
+      {
+        v->type = IDL_TYP_DCOMPLEX;
+        v->flags = IDL_V_CONST;
+        v->flags2 = 0;
+        DComplexDbl c=(*static_cast<DComplexDblGDL*> (var))[0];
+        v->value.dcmp.r = c.real();
+        v->value.dcmp.i = c.imag();
+        break;
+      }
+      case GDL_STRING:
+      {
+        v->type = IDL_TYP_STRING;
+        v->flags = IDL_V_DYNAMIC;
+        v->flags2 = 0;
+        DString s = (*static_cast<DStringGDL*> (var))[0];
+        IDL_STRING idlstr = {(int) s.size(), 0, (char*) s.c_str()};
+        v->value.str = idlstr;
+        break;
+      }
+      default: std::cerr << "GDL_ToVPTR: bad case\n";
+    }
+    return v;
+  }
+
+  BaseGDL* ReturnIDL_VPTR_AsGDL(IDL_VPTR v) {
+    switch (v->type) {
+      case IDL_TYP_BYTE:
+        return new DByteGDL(v->value.c);
+        break;
+      case IDL_TYP_INT:
+        return new DIntGDL(v->value.i);
+        break;
+      case IDL_TYP_LONG:
+        return new DLongGDL(v->value.l);
+        break;
+      case IDL_TYP_FLOAT:
+        return new DFloatGDL(v->value.f);
+        break;
+      case IDL_TYP_DOUBLE:
+        return new DDoubleGDL(v->value.d);
+        break;
+      case IDL_TYP_COMPLEX:
+        return new DComplexGDL(std::complex<float>(v->value.cmp.r,v->value.cmp.i));
+        break;
+      case IDL_TYP_DCOMPLEX:
+        return new DComplexDblGDL(std::complex<double>(v->value.dcmp.r,v->value.dcmp.i));
+        break;
+      case IDL_TYP_PTR:
+        return new DPtrGDL(v->value.ptrint);
+        break;
+//      case IDL_TYP_OBJREF:
+//        return new DObjGDL(v->value.???);
+//        break;
+      case IDL_TYP_UINT:
+        return new DUIntGDL(v->value.ui);
+        break;
+      case IDL_TYP_ULONG:
+        return new DULongGDL(v->value.ul);
+        break;
+      case IDL_TYP_ULONG64:
+        return new DByteGDL(v->value.ul64);
+        break;
+       case IDL_TYP_STRING:
+        return new DStringGDL(v->value.str.s);
+        break;
+      default: std::cerr << "ReturnIDL_VPTR_AsGDL: bad case " << v->type << "\n";
+    }
+    throw;
+  }
+ double IDL_CDECL IDL_DoubleScalar(IDL_REGISTER IDL_VPTR v){
+   switch (v->type) {
+    case 1: return (double)(v->value.c);  break;
+    case 2: return (double)(v->value.i); break;
+    case 3: return (double)(v->value.l); break;
+    case 4: return (double)(v->value.f); break;
+    case 5: return v->value.d; break;
+    case IDL_TYP_UINT:  	return (double)(v->value.ui); break;
+    case IDL_TYP_ULONG: 	return (double)(v->value.ul); break;
+    case IDL_TYP_LONG64:	return (double)(v->value.l64); break;
+    case IDL_TYP_ULONG64: return (double)(v->value.ul64); break;
+    default:
+      return 0;
+      break;
+    } 
+  }
+}
+
 namespace lib {
 
   using namespace std;
+  
 
+
+  BaseGDL* CallDllFunc(EnvT* e) {
+    std::cerr<<"CallDllFunc"<<std::endl;
+    DLong x,y;
+    e->AssureLongScalarPar( 0,x);
+    e->AssureLongScalarPar( 1,y);
+    void* address=static_cast<DLibPro*>(e->GetPro())->GetDllEntry();
+    IDL_SYSRTN_FUN calldllfunc=(IDL_SYSRTN_FUN)address;
+    int argc=e->NParam();
+    IDL_VPTR argv[argc];
+    for (auto i=0; i< argc; ++i) argv[i]=GDL_ToVPTR(e->GetPar(i));
+    char *argk=NULL;
+    IDL_VPTR ret=calldllfunc(argc,argv,argk);
+    
+    return ReturnIDL_VPTR_AsGDL(ret);
+  }
+  void CallDllPro(EnvT* e) {
+    std::cerr<<"CallDllPro"<<std::endl;
+    return;
+    DLong x,y;
+    e->AssureLongScalarPar( 0,x);
+    e->AssureLongScalarPar( 1,y);
+    void* address=static_cast<DLibPro*>(e->GetPro())->GetDllEntry();
+    IDL_SYSRTN_PRO calldllpro=(IDL_SYSRTN_PRO)address;
+//    std::cerr<<pro(x,y)<<std::endl;
+  }
+  
   void CleanupProc( DLibPro* proc ) {
     auto it = libProList.begin();
     auto itE = libProList.end();
@@ -130,19 +330,19 @@ namespace lib {
       all_procs.clear();
       all_funcs.clear();
     }
-    void RegsisterSymbol( const string& lib_symbol, const string& proc_name, DLong funcType, DLong max_args=16, DLong min_args=0, const string keyNames[]=NULL ) {
+    void RegisterSymbol( const string& lib_symbol, const string& proc_name, DLong funcType, DLong max_args=16, DLong min_args=0, const string keyNames[]=NULL , bool compat=false) {
       if( !handle ) {
 	throw runtime_error( "Library not loaded!" );
       } else if( funcType < 0 || funcType>1 ) {
 	throw runtime_error( "Improper function type: "+to_string(funcType) );
       }
       if( funcType == 0 ) {
-	RegsisterProc( lib_symbol, proc_name, max_args, min_args, keyNames );
+	RegisterProc( lib_symbol, proc_name, max_args, min_args, keyNames, compat);
       } else {
-	RegsisterFunc( lib_symbol, proc_name, max_args, min_args, keyNames );
+	RegisterFunc( lib_symbol, proc_name, max_args, min_args, keyNames, compat );
       }
     }
-    void UnregsisterSymbol( const string& proc_name, DLong funcType ) {
+    void UnregisterSymbol( const string& proc_name, DLong funcType ) {
       if( !handle ) {
 	throw runtime_error( "Library not loaded!" );
       } else if( funcType < 0 || funcType>1 ) {
@@ -172,20 +372,50 @@ namespace lib {
       }
       return fPtr;
     }
-    void RegsisterProc( const string& lib_symbol, const string& proc_name, DLong max_args, DLong min_args, const string keyNames[] ) { 
+    void* FakeLinkAs( const string& lib_symbol, const string& proc_name ) { 
+      void* fPtr = nullptr;
+      char* error = nullptr;
+#if defined(_WIN32) && !defined(__CYGWIN__)
+      fPtr = GetProcAddress( handle, lib_symbol.c_str() );
+#else
+      error = dlerror();  // clear error
+      fPtr = dlsym( handle, lib_symbol.c_str() );
+      error = dlerror();
+#endif
+      if( error ) {
+	throw runtime_error( "Failed to register DLL-routine: " + proc_name + string(" -> ") + lib_symbol + string(" : ") + error );
+      }
+      return fPtr;
+    }
+    void RegisterProc( const string& lib_symbol, const string& proc_name, DLong max_args, DLong min_args, const string keyNames[], bool compat=false ) { 
       if( all_procs.count( proc_name ) ) return;
+      if (compat) {
+      all_procs[proc_name].reset(
+				 new DLibPro( CallDllPro , FakeLinkAs( lib_symbol, proc_name ), proc_name.c_str(), max_args, keyNames, NULL, min_args),
+				 CleanupProc
+				 );
+      } else {
       all_procs[proc_name].reset(
 				 new DLibPro( LinkAs<LibPro>( lib_symbol, proc_name ), proc_name.c_str(), max_args, keyNames, NULL, min_args),
 				 CleanupProc
 				 );
+      }
       my_procs.insert(proc_name);
     }
-    void RegsisterFunc( const string& lib_symbol, const string& func_name, DLong max_args, DLong min_args, const string keyNames[] ) { 
+    void RegisterFunc( const string& lib_symbol, const string& func_name, DLong max_args, DLong min_args, const string keyNames[], bool compat=false ) { 
       if( all_funcs.count( func_name ) ) return;
+      if (compat) {
+      all_funcs[func_name].reset(
+				 new DLibFun( CallDllFunc , FakeLinkAs( lib_symbol, func_name ), func_name.c_str(), max_args, keyNames, NULL, min_args),
+				 CleanupFunc
+				 );
+
+      } else {
       all_funcs[func_name].reset(
 				 new DLibFun( LinkAs<LibFun>( lib_symbol, func_name ), func_name.c_str(), max_args, keyNames, NULL, min_args),
 				 CleanupFunc
 				 );
+      }
       my_funcs.insert(func_name);
     }
     bool isLoaded( void ) { return handle; };
@@ -389,8 +619,11 @@ namespace lib {
     static int keywordsIx = e->KeywordIx("KEYWORDS");
     static int maxargsIx = e->KeywordIx("MAX_ARGS");
     static int minargsIx = e->KeywordIx("MIN_ARGS");
+    static int defaultIx = e->KeywordIx("DEFAULT");
     
+    bool idl_compat=true;
     if( e->KeywordPresent( functIx ) ) funcType = 1;
+    if( e->KeywordPresent( defaultIx ) ) idl_compat=false;
     
     DLong max_args = 16;
     e->AssureLongScalarKWIfPresent( maxargsIx, max_args );
@@ -420,12 +653,12 @@ namespace lib {
       entryName = funcName;
     }
 
-    try {
+      try {
       DllContainer& lib = DllContainer::get( shrdimgName );
-      lib.RegsisterSymbol( entryName, upCasefuncName, funcType, max_args, min_args, kw_ptr );
+      lib.RegisterSymbol( entryName, upCasefuncName, funcType, max_args, min_args, kw_ptr, idl_compat );
     } catch ( const std::exception& ex ) {
       e->Throw("Error linking procedure/DLL: " + funcName + " -> " + entryName + "  (" + shrdimgName + ") : " + ex.what() );
-    }
+      }
     
   }
   
@@ -470,7 +703,7 @@ namespace lib {
 
     try {
       DllContainer& lib = DllContainer::get( shrdimgName );
-      lib.UnregsisterSymbol( upCasefuncName, funcType );
+      lib.UnregisterSymbol( upCasefuncName, funcType );
       lib.unload();       // will only unload if all symbols have been unregistered.
     } catch ( const std::exception& ex ) {
       e->Throw("Error unlinksymbol: " + funcName + "  (" + shrdimgName + ") : " + ex.what() );
