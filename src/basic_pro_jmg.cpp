@@ -38,8 +38,13 @@ typedef void* handle_t;
 extern "C" {
 //all the IDL_** modules below should be listed in dynlist.txt
 IDL_VPTR IDL_CDECL IDL_StrToSTRING(const char *s) {
-    IDL_STRING idlstr = {(int) strlen(s), 0, (char*) s};
-    IDL_VARIABLE *ss;
+    IDL_STRING idlstr;
+    idlstr.slen=strlen(s);
+    idlstr.stype=0;
+    char *local=(char*) calloc(idlstr.slen+1,1);
+    idlstr.s=local;
+    memcpy(local,s,idlstr.slen);
+    IDL_VARIABLE *ss=(IDL_VARIABLE *)malloc(sizeof(ss));
     ss->type = IDL_TYP_STRING;
     ss->flags = IDL_V_DYNAMIC;
     ss->flags2 = 0;
@@ -258,8 +263,10 @@ namespace lib {
       if( *it == func ) break;
     }
     if( it < itE ) {
-      delete *it;
-      libFunList.erase( it );
+      //if (func->GetDllEntry() == NULL) 
+      { delete *it;
+      libFunList.erase( it ); } 
+      //else { std::cerr<<"....\n";}
     }
   }
 
