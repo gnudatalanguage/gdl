@@ -199,7 +199,7 @@ public:
   int   NParMin() const { return nParMin;}
 
   //  bool AKey() { return aKey;} // additional keywords allowed
-
+  
   friend class EnvBaseT;
   friend class EnvT;
   friend class ExtraT;
@@ -223,7 +223,7 @@ class DLib: public DSub
 public:
   DLib( const std::string& n, const std::string& o, const int nPar_,
 	const std::string keyNames[],
-	const std::string warnKeyNames[], const int nParMin_, const bool use_threadpool=false, void* target=NULL);
+	const std::string warnKeyNames[], const int nParMin_, const bool use_threadpool=false, void* target=NULL, bool usesKeywords=false);
 
   virtual const std::string ToString() = 0;
   
@@ -252,9 +252,7 @@ public:
   // change the results.
   // Note that due to their nature, there should never be keywords
   // on which a value is returned.
-  DLibPro( LibPro p, void* target, const std::string& n, const int nPar_=0, 
-	   const std::string keyNames[]=NULL,
-	   const std::string warnKeyNames[]=NULL, const int nParMin_=0, const bool use_threadpool=false);
+  DLibPro( LibPro p, void* target, const std::string& n, const int nPar_=0, const int nParMin_=0, const bool hasKeys=false);
 
   DLibPro( LibPro p, const std::string& n, const int nPar_=0, 
 	   const std::string keyNames[]=NULL,
@@ -275,9 +273,7 @@ class DLibFun: public DLib
 {
   LibFun fun;
 public:
-  DLibFun( LibFun f, void* target, const std::string& n, const int nPar_=0, 
-	   const std::string keyNames[]=NULL,
-	   const std::string warnKeyNames[]=NULL, const int nParMin_=0, const bool use_threadpool=false);
+  DLibFun( LibFun f, void* target, const std::string& n, const int nPar_=0, const int nParMin_=0, const bool hasKeys=false);
 
   DLibFun( LibFun f, const std::string& n, const int nPar_=0, 
 	   const std::string keyNames[]=NULL,

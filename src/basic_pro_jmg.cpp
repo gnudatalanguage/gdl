@@ -35,122 +35,182 @@ typedef HMODULE handle_t;
 typedef void* handle_t;
 #endif
 
-extern "C" {
-//all the IDL_** modules below should be listed in dynlist.txt
-IDL_VPTR IDL_CDECL IDL_StrToSTRING(const char *s) {
-    IDL_STRING idlstr;
-    idlstr.slen=strlen(s);
-    idlstr.stype=0;
-    char *local=(char*) calloc(idlstr.slen+1,1);
-    idlstr.s=local;
-    memcpy(local,s,idlstr.slen);
-    IDL_VARIABLE *ss=(IDL_VARIABLE *)malloc(sizeof(ss));
-    ss->type = IDL_TYP_STRING;
-    ss->flags = IDL_V_DYNAMIC;
-    ss->flags2 = 0;
-    ss->value.str = idlstr;
-    return ss;
-  }
- IDL_VPTR GDL_ToVPTR(BaseGDL* var) {
+#include "export.hpp"
+
+
+  IDL_VPTR GDL_ToVPTR(BaseGDL* var) {
     IDL_VARIABLE *v = new IDL_VARIABLE();
-    switch (var->Type()) {
-      case GDL_BYTE:
-        v->type = IDL_TYP_BYTE;
-        v->flags = IDL_V_CONST;
-        v->flags2 = 0;
-        v->value.c = (*static_cast<DByteGDL*> (var))[0];
-        break;
-      case GDL_INT:
-        v->type = IDL_TYP_INT;
-        v->flags = IDL_V_CONST;
-        v->flags2 = 0;
-        v->value.i = (*static_cast<DIntGDL*> (var))[0];
-        break;
+    if (var == NULL) {
+      v->type=IDL_TYP_UNDEF;
+      return v;
+    }
+    if (var == NullGDL::GetSingleInstance()) {
+      v->type=IDL_TYP_LONG; // any type, as the NULL flags is checked.
+      v->flags=IDL_V_NULL;
+      return v;
+    }
+    if (var->N_Elements() == 1) {
+      v->flags = IDL_V_CONST;
+      v->flags2 = 0;
+      switch (var->Type()) {
+        case GDL_BYTE:
+          v->type = IDL_TYP_BYTE;
+          v->value.c = (*static_cast<DByteGDL*> (var))[0];
+          break;
+        case GDL_INT:
+          v->type = IDL_TYP_INT;
+          v->value.i = (*static_cast<DIntGDL*> (var))[0];
+          break;
 
-      case GDL_LONG:
-        v->type = IDL_TYP_LONG;
-        v->flags = IDL_V_CONST;
-        v->flags2 = 0;
-        v->value.l = (*static_cast<DLongGDL*> (var))[0];
-        break;
+        case GDL_LONG:
+          v->type = IDL_TYP_LONG;
+          v->value.l = (*static_cast<DLongGDL*> (var))[0];
+          break;
 
-      case GDL_LONG64:
-        v->type = IDL_TYP_LONG64;
-        v->flags = IDL_V_CONST;
-        v->flags2 = 0;
-        v->value.l64 = (*static_cast<DLong64GDL*> (var))[0];
-        break;
+        case GDL_LONG64:
+          v->type = IDL_TYP_LONG64;
+          v->value.l64 = (*static_cast<DLong64GDL*> (var))[0];
+          break;
 
-      case GDL_UINT:
-        v->type = IDL_TYP_UINT;
-        v->flags = IDL_V_CONST;
-        v->flags2 = 0;
-        v->value.ui = (*static_cast<DUIntGDL*> (var))[0];
-        break;
+        case GDL_UINT:
+          v->type = IDL_TYP_UINT;
+          v->value.ui = (*static_cast<DUIntGDL*> (var))[0];
+          break;
 
-      case GDL_ULONG:
-        v->type = IDL_TYP_ULONG;
-        v->flags = IDL_V_CONST;
-        v->flags2 = 0;
-        v->value.ul = (*static_cast<DULongGDL*> (var))[0];
-        break;
+        case GDL_ULONG:
+          v->type = IDL_TYP_ULONG;
+          v->value.ul = (*static_cast<DULongGDL*> (var))[0];
+          break;
 
-      case GDL_ULONG64:
-        v->type = IDL_TYP_ULONG64;
-        v->flags = IDL_V_CONST;
-        v->flags2 = 0;
-        v->value.ul64 = (*static_cast<DULong64GDL*> (var))[0];
-        break;
+        case GDL_ULONG64:
+          v->type = IDL_TYP_ULONG64;
+          v->value.ul64 = (*static_cast<DULong64GDL*> (var))[0];
+          break;
 
-      case GDL_FLOAT:
-        v->type = IDL_TYP_FLOAT;
-        v->flags = IDL_V_CONST;
-        v->flags2 = 0;
-        v->value.f = (*static_cast<DFloatGDL*> (var))[0];
-        break;
-      case GDL_DOUBLE:
-        v->type = IDL_TYP_DOUBLE;
-        v->flags = IDL_V_CONST;
-        v->flags2 = 0;
-        v->value.d = (*static_cast<DDoubleGDL*> (var))[0];
-        break;
-      case GDL_COMPLEX:
-      {
-        v->type = IDL_TYP_COMPLEX;
-        v->flags = IDL_V_CONST;
-        v->flags2 = 0;
-        DComplex c=(*static_cast<DComplexGDL*> (var))[0];
-        v->value.cmp.r = c.real();
-        v->value.cmp.i = c.imag();
-        break;
+        case GDL_FLOAT:
+          v->type = IDL_TYP_FLOAT;
+          v->value.f = (*static_cast<DFloatGDL*> (var))[0];
+          break;
+        case GDL_DOUBLE:
+          v->type = IDL_TYP_DOUBLE;
+          v->value.d = (*static_cast<DDoubleGDL*> (var))[0];
+          break;
+        case GDL_COMPLEX:
+        {
+          v->type = IDL_TYP_COMPLEX;
+          DComplex c = (*static_cast<DComplexGDL*> (var))[0];
+          v->value.cmp.r = c.real();
+          v->value.cmp.i = c.imag();
+          break;
+        }
+        case GDL_COMPLEXDBL:
+        {
+          v->type = IDL_TYP_DCOMPLEX;
+          DComplexDbl c = (*static_cast<DComplexDblGDL*> (var))[0];
+          v->value.dcmp.r = c.real();
+          v->value.dcmp.i = c.imag();
+          break;
+        }
+        case GDL_STRING:
+        {
+          v->type = IDL_TYP_STRING;
+          v->flags = IDL_V_DYNAMIC;
+          DString s = (*static_cast<DStringGDL*> (var))[0];
+          IDL_STRING idlstr = {(int) s.size(), 0, (char*) s.c_str()};
+          v->value.str = idlstr;
+          break;
+        }
+        default: std::cerr << "GDL_ToVPTR: bad case of "<<var->TypeStr()<<std::endl;
       }
-      case GDL_COMPLEXDBL:
-      {
-        v->type = IDL_TYP_DCOMPLEX;
-        v->flags = IDL_V_CONST;
-        v->flags2 = 0;
-        DComplexDbl c=(*static_cast<DComplexDblGDL*> (var))[0];
-        v->value.dcmp.r = c.real();
-        v->value.dcmp.i = c.imag();
-        break;
+    } else {
+      v->flags = IDL_V_ARR;
+      v->flags2 = 0;
+      IDL_ARRAY arraydescr;
+      arraydescr.arr_len = var->NBytes();
+      arraydescr.data = (UCHAR*) (var->DataAddr());
+      for (int i = 0; i < var->Rank(); ++i) arraydescr.dim[i] = var->Dim(i);
+      arraydescr.n_dim = var->Rank();
+      arraydescr.n_elts = var->N_Elements();
+      arraydescr.offset = 0;
+      v->value.arr = &arraydescr;
+      switch (var->Type()) {
+        case GDL_BYTE:
+          v->type = IDL_TYP_BYTE;
+          arraydescr.elt_len = 1;
+          break;
+        case GDL_INT:
+          v->type = IDL_TYP_INT;
+          arraydescr.elt_len = 2;
+          break;
+
+        case GDL_LONG:
+          v->type = IDL_TYP_LONG;
+          arraydescr.elt_len = 4;
+          break;
+
+        case GDL_LONG64:
+          v->type = IDL_TYP_LONG64;
+          arraydescr.elt_len = 8;
+          break;
+
+        case GDL_UINT:
+          v->type = IDL_TYP_UINT;
+          arraydescr.elt_len = 2;
+          break;
+
+        case GDL_ULONG:
+          v->type = IDL_TYP_ULONG;
+          arraydescr.elt_len = 4;
+          break;
+
+        case GDL_ULONG64:
+          v->type = IDL_TYP_ULONG64;
+          arraydescr.elt_len = 8;
+          break;
+
+        case GDL_FLOAT:
+          v->type = IDL_TYP_FLOAT;
+          arraydescr.elt_len = 4;
+          break;
+        case GDL_DOUBLE:
+          v->type = IDL_TYP_DOUBLE;
+          arraydescr.elt_len = 8;
+          break;
+        case GDL_COMPLEX:
+        {
+          v->type = IDL_TYP_COMPLEX;
+          arraydescr.elt_len = 8;
+          break;
+        }
+        case GDL_COMPLEXDBL:
+        {
+          v->type = IDL_TYP_DCOMPLEX;
+          arraydescr.elt_len = 16;
+          break;
+        }
+        case GDL_STRING:
+        {
+          v->type = IDL_TYP_STRING;
+          arraydescr.elt_len = 1;
+          break;
+        }
+        default: std::cerr << "GDL_ToVPTR: bad case of "<<var->TypeStr()<<std::endl;
       }
-      case GDL_STRING:
-      {
-        v->type = IDL_TYP_STRING;
-        v->flags = IDL_V_DYNAMIC;
-        v->flags2 = 0;
-        DString s = (*static_cast<DStringGDL*> (var))[0];
-        IDL_STRING idlstr = {(int) s.size(), 0, (char*) s.c_str()};
-        v->value.str = idlstr;
-        break;
-      }
-      default: std::cerr << "GDL_ToVPTR: bad case\n";
     }
     return v;
-  }
-
-  BaseGDL* ReturnIDL_VPTR_AsGDL(IDL_VPTR v) {
-    switch (v->type) {
+  }  
+  
+  BaseGDL* VPTR_ToGDL(IDL_VPTR v) {
+    if (v == NULL) {
+      throw GDLException("Invalid IDL_VPTR used.");
+    }
+    if ( (v->flags & IDL_V_NULL) == IDL_V_NULL) {
+      return NullGDL::GetSingleInstance();
+    }
+    if ((v->flags && IDL_V_ARR) == IDL_V_ARR) {
+      throw GDLException("Array not supported.");
+    } else {
+      switch (v->type) {
       case IDL_TYP_BYTE:
         return new DByteGDL(v->value.c);
         break;
@@ -192,56 +252,141 @@ IDL_VPTR IDL_CDECL IDL_StrToSTRING(const char *s) {
         break;
       default: std::cerr << "ReturnIDL_VPTR_AsGDL: bad case " << v->type << "\n";
     }
+    }
     throw;
   }
- double IDL_CDECL IDL_DoubleScalar(IDL_REGISTER IDL_VPTR v){
-   switch (v->type) {
-    case 1: return (double)(v->value.c);  break;
-    case 2: return (double)(v->value.i); break;
-    case 3: return (double)(v->value.l); break;
-    case 4: return (double)(v->value.f); break;
-    case 5: return v->value.d; break;
-    case IDL_TYP_UINT:  	return (double)(v->value.ui); break;
-    case IDL_TYP_ULONG: 	return (double)(v->value.ul); break;
-    case IDL_TYP_LONG64:	return (double)(v->value.l64); break;
-    case IDL_TYP_ULONG64: return (double)(v->value.ul64); break;
-    default:
-      return 0;
-      break;
-    } 
-  }
-}
-
-namespace lib {
-
-  using namespace std;
   
+//  template <typename T>
+//  void addrToGDL(EnvT *e, const SizeT KeywordIx, const SizeT n, void* addr){
+//    T* ret=new T(dimension(n),BaseGDL::NOALLOC);
+//        ret->SetBuffer((void*)addr);
+//        ret->SetBufferSize(n);
+//        ret->SetDim(dimension(n));
+//        e->SetKW(KeywordIx, ret);
+//  }
+//    
+//  void ReturnAddress_AsGDL(EnvT *e, const UCHAR type, SizeT KeywordIx, const SizeT n, void* addr) {
+//    switch (type) {
+//      case IDL_TYP_BYTE:
+//        addrToGDL<DByteGDL>(e, KeywordIx, n, addr);
+//        break;
+//      case IDL_TYP_INT:
+//        addrToGDL<DIntGDL>(e, KeywordIx, n, addr);
+//        break;
+//      case IDL_TYP_LONG:
+//        addrToGDL<DLongGDL>(e, KeywordIx, n, addr);
+//        break;
+//      case IDL_TYP_FLOAT:
+//        addrToGDL<DFloatGDL>(e, KeywordIx, n, addr);
+//        break;
+//      case IDL_TYP_DOUBLE:
+//        addrToGDL<DDoubleGDL>(e, KeywordIx, n, addr);
+//        break;
+//      case IDL_TYP_COMPLEX:
+//        addrToGDL<DComplexGDL>(e, KeywordIx, n, addr);
+//        break;
+//      case IDL_TYP_DCOMPLEX:
+//        addrToGDL<DComplexDblGDL>(e, KeywordIx, n, addr);
+//        break;
+//      case IDL_TYP_PTR:
+//        addrToGDL<DPtrGDL>(e, KeywordIx, n, addr);
+//        break;
+////      case IDL_TYP_OBJREF:
+////        addrToGDL<DObjGDL>(e, KeywordIx, n, addr);
+////        break;
+//      case IDL_TYP_UINT:
+//        addrToGDL<DUIntGDL>(e, KeywordIx, n, addr);
+//        break;
+//      case IDL_TYP_ULONG:
+//        addrToGDL<DULongGDL>(e, KeywordIx, n, addr);
+//        break;
+//      case IDL_TYP_ULONG64:
+//        addrToGDL<DByteGDL>(e, KeywordIx, n, addr);
+//        break;
+//       case IDL_TYP_STRING:
+//        addrToGDL<DStringGDL>(e, KeywordIx, n, addr);
+//        break;
+//    }
+//  }
 
-
+  namespace lib {
+    using namespace std;
   BaseGDL* CallDllFunc(EnvT* e) {
-    std::cerr<<"CallDllFunc"<<std::endl;
-    DLong x,y;
-    e->AssureLongScalarPar( 0,x);
-    e->AssureLongScalarPar( 1,y);
     void* address=static_cast<DLibPro*>(e->GetPro())->GetDllEntry();
     IDL_SYSRTN_FUN calldllfunc=(IDL_SYSRTN_FUN)address;
     int argc=e->NParam();
     IDL_VPTR argv[argc];
     for (auto i=0; i< argc; ++i) argv[i]=GDL_ToVPTR(e->GetPar(i));
     char *argk=NULL;
-    IDL_VPTR ret=calldllfunc(argc,argv,argk);
-    
-    return ReturnIDL_VPTR_AsGDL(ret);
+    // keywords are passed as _REF_EXTRA struct, we just populate argk with our GDL_KEYWORDS_LIST struct
+    SizeT nkw=0;
+    GDL_PASS_KEYWORDS_LIST passed;
+    GDL_KEYWORDS_LIST* kws;
+    if (e->GetPro()->NKey() > 0) {
+      //pass in "argk" as a name,val pair as a _EXTRA 
+      //we cannot directly use the _EXTRA mechanism as some passed values should be writeable or are not defined at the time of calling this function
+      if (e->KeywordPresentAndDefined(0)) {
+          DStringGDL* refextra = e->GetKWAs<DStringGDL>(0);
+          nkw = refextra->N_Elements();
+          kws = (GDL_KEYWORDS_LIST*) calloc(nkw, sizeof (GDL_KEYWORDS_LIST));
+          for (auto i = 0; i < nkw; ++i) {
+            kws[i].name = (*refextra)[i].c_str();
+            BaseGDL* gvar = e->GetRefExtraList((*refextra)[i]); //Ptr as the variable may not exist
+            kws[i].varptr = gvar;
+            if (gvar == NULL) kws[i].type = IDL_TYP_UNDEF;
+          }
+      }
+      passed.npassed = nkw;
+      passed.passed = kws;
+      argk = (char*) (&passed);
+    }
+   IDL_VPTR ret=calldllfunc(argc,argv,argk);
+    //check if some argk keywords have been returned too
+    for (auto i=0; i< nkw ; ++i) {
+      if (kws[i].out) {
+        e->SetKW(e->KeywordIx(std::string(kws[i].name)), VPTR_ToGDL((IDL_VPTR)(kws[i].varptr)));
+      }
+    }
+    return VPTR_ToGDL(ret);
   }
-  void CallDllPro(EnvT* e) {
-    std::cerr<<"CallDllPro"<<std::endl;
+void CallDllPro(EnvT* e) {
+    void* address = static_cast<DLibPro*> (e->GetPro())->GetDllEntry();
+    IDL_SYSRTN_PRO calldllpro = (IDL_SYSRTN_PRO) address;
+    int argc = e->NParam();
+    IDL_VPTR argv[argc];
+    // direct conversion
+    for (auto i = 0; i < argc; ++i) argv[i] = GDL_ToVPTR(e->GetPar(i)); //conserves undefined and NULLs
+    char *argk = NULL;
+    // keywords are passed as _REF_EXTRA struct, we just populate argk with our GDL_KEYWORDS_LIST struct
+    SizeT nkw = 0;
+    GDL_PASS_KEYWORDS_LIST passed;
+    GDL_KEYWORDS_LIST* kws = NULL;
+    if (e->GetPro()->NKey() > 0) {
+      //pass in "argk" as a name,val pair as a _EXTRA 
+      //we cannot directly use the _EXTRA mechanism as some passed values should be writeable or are not defined at the time of calling this function
+      if (e->KeywordPresentAndDefined(0)) {
+          DStringGDL* refextra = e->GetKWAs<DStringGDL>(0);
+          nkw = refextra->N_Elements();
+          kws = (GDL_KEYWORDS_LIST*) calloc(nkw, sizeof (GDL_KEYWORDS_LIST));
+          for (auto i = 0; i < nkw; ++i) {
+            kws[i].name = (*refextra)[i].c_str();
+            BaseGDL* gvar = e->GetRefExtraList((*refextra)[i]); //Ptr as the variable may not exist
+            kws[i].varptr = gvar;
+            if (gvar == NULL) kws[i].type = IDL_TYP_UNDEF;
+          }
+      }
+      passed.npassed = nkw;
+      passed.passed = kws;
+      argk = (char*) (&passed);
+    }
+    calldllpro(argc, argv, argk);
+    //check if some argk keywords have been returned too
+    for (auto i = 0; i < nkw; ++i) {
+      if (kws[i].out) {
+        e->SetKW(e->KeywordIx(std::string(kws[i].name)), VPTR_ToGDL((IDL_VPTR) (kws[i].varptr)));
+      }
+    }
     return;
-    DLong x,y;
-    e->AssureLongScalarPar( 0,x);
-    e->AssureLongScalarPar( 1,y);
-    void* address=static_cast<DLibPro*>(e->GetPro())->GetDllEntry();
-    IDL_SYSRTN_PRO calldllpro=(IDL_SYSRTN_PRO)address;
-//    std::cerr<<pro(x,y)<<std::endl;
   }
   
   void CleanupProc( DLibPro* proc ) {
@@ -337,16 +482,16 @@ namespace lib {
       all_procs.clear();
       all_funcs.clear();
     }
-    void RegisterSymbol( const string& lib_symbol, const string& proc_name, DLong funcType, DLong max_args=16, DLong min_args=0, const string keyNames[]=NULL , bool compat=false) {
+    void RegisterSymbol( const string& lib_symbol, const string& proc_name, DLong funcType, DLong max_args=16, DLong min_args=0, bool has_keys=false) {
       if( !handle ) {
 	throw runtime_error( "Library not loaded!" );
       } else if( funcType < 0 || funcType>1 ) {
 	throw runtime_error( "Improper function type: "+to_string(funcType) );
       }
       if( funcType == 0 ) {
-	RegisterProc( lib_symbol, proc_name, max_args, min_args, keyNames, compat);
+	RegisterProc( lib_symbol, proc_name, max_args, min_args, has_keys);
       } else {
-	RegisterFunc( lib_symbol, proc_name, max_args, min_args, keyNames, compat );
+	RegisterFunc( lib_symbol, proc_name, max_args, min_args, has_keys);
       }
     }
     void UnregisterSymbol( const string& proc_name, DLong funcType ) {
@@ -363,23 +508,7 @@ namespace lib {
 	my_funcs.erase( proc_name );
       }
     }
-    template <typename T>
-    T LinkAs( const string& lib_symbol, const string& proc_name ) { 
-      T fPtr = nullptr;
-      char* error = nullptr;
-#if defined(_WIN32) && !defined(__CYGWIN__)
-      fPtr = (T) GetProcAddress( handle, lib_symbol.c_str() );
-#else
-      error = dlerror();  // clear error
-      fPtr = (T) dlsym( handle, lib_symbol.c_str() );
-      error = dlerror();
-#endif
-      if( error ) {
-	throw runtime_error( "Failed to register DLL-routine: " + proc_name + string(" -> ") + lib_symbol + string(" : ") + error );
-      }
-      return fPtr;
-    }
-    void* FakeLinkAs( const string& lib_symbol, const string& proc_name ) { 
+    void* LinkAs( const string& lib_symbol, const string& proc_name ) { 
       void* fPtr = nullptr;
       char* error = nullptr;
 #if defined(_WIN32) && !defined(__CYGWIN__)
@@ -394,35 +523,20 @@ namespace lib {
       }
       return fPtr;
     }
-    void RegisterProc( const string& lib_symbol, const string& proc_name, DLong max_args, DLong min_args, const string keyNames[], bool compat=false ) { 
+    void RegisterProc( const string& lib_symbol, const string& proc_name, DLong max_args, DLong min_args, bool has_keys) { 
       if( all_procs.count( proc_name ) ) return;
-      if (compat) {
       all_procs[proc_name].reset(
-				 new DLibPro( CallDllPro , FakeLinkAs( lib_symbol, proc_name ), proc_name.c_str(), max_args, keyNames, NULL, min_args),
+				 new DLibPro( CallDllPro , LinkAs( lib_symbol, proc_name ), proc_name.c_str(), max_args, min_args, has_keys),
 				 CleanupProc
 				 );
-      } else {
-      all_procs[proc_name].reset(
-				 new DLibPro( LinkAs<LibPro>( lib_symbol, proc_name ), proc_name.c_str(), max_args, keyNames, NULL, min_args),
-				 CleanupProc
-				 );
-      }
       my_procs.insert(proc_name);
     }
-    void RegisterFunc( const string& lib_symbol, const string& func_name, DLong max_args, DLong min_args, const string keyNames[], bool compat=false ) { 
+    void RegisterFunc( const string& lib_symbol, const string& func_name, DLong max_args, DLong min_args, bool has_keys) { 
       if( all_funcs.count( func_name ) ) return;
-      if (compat) {
       all_funcs[func_name].reset(
-				 new DLibFun( CallDllFunc , FakeLinkAs( lib_symbol, func_name ), func_name.c_str(), max_args, keyNames, NULL, min_args),
+				 new DLibFun( CallDllFunc , LinkAs( lib_symbol, func_name ), func_name.c_str(), max_args,  min_args, has_keys),
 				 CleanupFunc
 				 );
-
-      } else {
-      all_funcs[func_name].reset(
-				 new DLibFun( LinkAs<LibFun>( lib_symbol, func_name ), func_name.c_str(), max_args, keyNames, NULL, min_args),
-				 CleanupFunc
-				 );
-      }
       my_funcs.insert(func_name);
     }
     bool isLoaded( void ) { return handle; };
@@ -628,41 +742,22 @@ namespace lib {
     static int minargsIx = e->KeywordIx("MIN_ARGS");
     static int defaultIx = e->KeywordIx("DEFAULT");
     
-    bool idl_compat=true;
     if( e->KeywordPresent( functIx ) ) funcType = 1;
-    if( e->KeywordPresent( defaultIx ) ) idl_compat=false;
     
     DLong max_args = 16;
     e->AssureLongScalarKWIfPresent( maxargsIx, max_args );
     DLong min_args = 0;
     e->AssureLongScalarKWIfPresent( minargsIx, min_args );
 
-    vector<string> keywords;
-    string* kw_ptr = nullptr;
-    if( e->KeywordSet( keywordsIx ) ) {
-      DStringGDL* kws = e->GetKWAs<DStringGDL>( keywordsIx );
-      if( kws ) {
-	SizeT nEL = kws->N_Elements();
-	for( SizeT i=0; i<nEL; ++i ) {
-	  string tmpS = StrUpCase((*kws)[i]);
-	  if( !tmpS.empty() ) keywords.push_back( tmpS );
-	}
-      }
-    }
-
-    if( !keywords.empty() ) {
-      std::sort( keywords.begin(), keywords.end() ); 
-      keywords.push_back("");
-      kw_ptr = keywords.data();
-    }
-
+    bool hasKeywords=( e->KeywordSet( keywordsIx ) );
+    
     if( entryName.empty() ) {
       entryName = funcName;
     }
 
       try {
       DllContainer& lib = DllContainer::get( shrdimgName );
-      lib.RegisterSymbol( entryName, upCasefuncName, funcType, max_args, min_args, kw_ptr, idl_compat );
+      lib.RegisterSymbol( entryName, upCasefuncName, funcType, max_args, min_args, hasKeywords);
     } catch ( const std::exception& ex ) {
       e->Throw("Error linking procedure/DLL: " + funcName + " -> " + entryName + "  (" + shrdimgName + ") : " + ex.what() );
       }

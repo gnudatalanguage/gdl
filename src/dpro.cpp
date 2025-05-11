@@ -159,37 +159,38 @@ DSub::~DSub() {}
 // DLib ******************************************************
 DLib::DLib( const string& n, const string& o, const int nPar_, 
 	    const string keyNames[],
-	    const string warnKeyNames[], const int nParMin_, const bool use_threadpool, void* target)
+	    const string warnKeyNames[], const int nParMin_, const bool use_threadpool, void* target, bool usesKeywords)
   : DSub(n,o)
   , hideHelp( false)
   , dllEntry( target)
 {
   nPar=nPar_;
   nParMin = nParMin_;
-  
-  // find out number of keywords and set them
+
+  if (dllEntry == NULL) {
+    // find out number of keywords and set them
   SizeT nKey_=0;
   if( keyNames != NULL)
     {
       while( keyNames[nKey_] != "") ++nKey_;
     }
-  
-  key.resize(nKey_);
+
+    key.resize(nKey_);
   SizeT k=0;
   for( ; k<nKey_; ++k) key[k]=keyNames[k];
 
   if( nKey_ >= 1) {
     if( keyNames[0] == "_EXTRA")
       {
-	extra_type = EXTRA;
-	extraIx = 0;
+        extra_type = EXTRA;
+        extraIx = 0;
       }
     else if( keyNames[0] == "_REF_EXTRA")
       {
-	extra_type = REFEXTRA;
-	extraIx = 0;
+        extra_type = REFEXTRA;
+        extraIx = 0;
       }
-  }
+    }
 
   SizeT nWarnKey_=0;
   if( warnKeyNames != NULL)
@@ -197,16 +198,22 @@ DLib::DLib( const string& n, const string& o, const int nPar_,
       while( warnKeyNames[nWarnKey_] != "") ++nWarnKey_;
     }
 
-  warnKey.resize(nWarnKey_);
+    warnKey.resize(nWarnKey_);
   SizeT wk=0;
   for( ; wk<nWarnKey_; ++wk) warnKey[wk]=warnKeyNames[wk];
-//finally add threadpool kw if any, in warnkeys at the moment, since we do not really honor those kws.
-  if (use_threadpool) {
-    nWarnKey_ += 3;
-    warnKey.resize(nWarnKey_);
-    warnKey[wk++] = "TPOOL_MAX_ELTS";
-    warnKey[wk++] = "TPOOL_MIN_ELTS";
-    warnKey[wk++] = "TPOOL_NOTHREAD";
+    //finally add threadpool kw if any, in warnkeys at the moment, since we do not really honor those kws.
+    if (use_threadpool) {
+      nWarnKey_ += 3;
+      warnKey.resize(nWarnKey_);
+      warnKey[wk++] = "TPOOL_MAX_ELTS";
+      warnKey[wk++] = "TPOOL_MIN_ELTS";
+      warnKey[wk++] = "TPOOL_NOTHREAD";
+    }
+  } else if (usesKeywords) { //DLM: allow anything, just define _EXTRA at this stage
+    key.resize(1);
+    key[0]="_REF_EXTRA";
+    extra_type = REFEXTRA;
+    extraIx = 0; // initialise the possibility of KEYWORDS.
   }
 }
 
@@ -315,9 +322,8 @@ DLibPro::DLibPro( LibPro p, const string& n, const int nPar_,
 //  sort(libProList.begin(), libProList.end(),CompLibFunName());
 }
 
-DLibPro::DLibPro( LibPro p, void* target, const string& n, const int nPar_, 
-		  const string keyNames[], const string warnKeyNames[], const int nParMin_, const bool use_threadpool)
-  : DLib(n,"",nPar_,keyNames, warnKeyNames, nParMin_, use_threadpool, target), pro(p)
+DLibPro::DLibPro( LibPro p, void* target, const string& n, const int nPar_, const int nParMin_, const bool hasKeys)
+  : DLib(n,"",nPar_,NULL, NULL, nParMin_, false, target, hasKeys), pro(p)
 {
   libProList.push_back(this);
 //  sort(libProList.begin(), libProList.end(),CompLibFunName());
@@ -339,9 +345,8 @@ DLibFun::DLibFun( LibFun f, const string& n, const int nPar_,
 //  sort(libFunList.begin(), libFunList.end(),CompLibFunName());
 }
 
-DLibFun::DLibFun( LibFun f, void* target, const string& n, const int nPar_, 
-		  const string keyNames[], const string warnKeyNames[], const int nParMin_, const bool use_threadpool)
-  : DLib(n,"",nPar_,keyNames, warnKeyNames, nParMin_, use_threadpool, target), fun(f)
+DLibFun::DLibFun( LibFun f, void* target, const string& n, const int nPar_, const int nParMin_, const bool hasKeys)
+  : DLib(n,"",nPar_,NULL, NULL, nParMin_, false, target, hasKeys), fun(f)
 {
   libFunList.push_back(this);
 //  sort(libFunList.begin(), libFunList.end(),CompLibFunName());

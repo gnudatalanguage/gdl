@@ -1538,7 +1538,7 @@ int EnvBaseT::GetKeywordIx( const std::string& k) {
 //
 //    return -4;
 //  }
-
+  
   // search keyword
   KeyVarListT::iterator f = std::find_if(pro->key.begin(),
     pro->key.end(),

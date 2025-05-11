@@ -1,4 +1,3 @@
 {
-IDL_StrToSTRING;
-IDL_DoubleScalar;
+IDL_*;
 };
