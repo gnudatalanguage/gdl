@@ -38,224 +38,7 @@ typedef void* handle_t;
 #include "export.hpp"
 
 
-  IDL_VPTR GDL_ToVPTR(BaseGDL* var) {
-    IDL_VARIABLE *v = new IDL_VARIABLE();
-    if (var == NULL) {
-      v->type=IDL_TYP_UNDEF;
-      return v;
-    }
-    if (var == NullGDL::GetSingleInstance()) {
-      v->type=IDL_TYP_LONG; // any type, as the NULL flags is checked.
-      v->flags=IDL_V_NULL;
-      return v;
-    }
-    if (var->N_Elements() == 1) {
-      v->flags = IDL_V_CONST;
-      v->flags2 = 0;
-      switch (var->Type()) {
-        case GDL_BYTE:
-          v->type = IDL_TYP_BYTE;
-          v->value.c = (*static_cast<DByteGDL*> (var))[0];
-          break;
-        case GDL_INT:
-          v->type = IDL_TYP_INT;
-          v->value.i = (*static_cast<DIntGDL*> (var))[0];
-          break;
 
-        case GDL_LONG:
-          v->type = IDL_TYP_LONG;
-          v->value.l = (*static_cast<DLongGDL*> (var))[0];
-          break;
-
-        case GDL_LONG64:
-          v->type = IDL_TYP_LONG64;
-          v->value.l64 = (*static_cast<DLong64GDL*> (var))[0];
-          break;
-
-        case GDL_UINT:
-          v->type = IDL_TYP_UINT;
-          v->value.ui = (*static_cast<DUIntGDL*> (var))[0];
-          break;
-
-        case GDL_ULONG:
-          v->type = IDL_TYP_ULONG;
-          v->value.ul = (*static_cast<DULongGDL*> (var))[0];
-          break;
-
-        case GDL_ULONG64:
-          v->type = IDL_TYP_ULONG64;
-          v->value.ul64 = (*static_cast<DULong64GDL*> (var))[0];
-          break;
-
-        case GDL_FLOAT:
-          v->type = IDL_TYP_FLOAT;
-          v->value.f = (*static_cast<DFloatGDL*> (var))[0];
-          break;
-        case GDL_DOUBLE:
-          v->type = IDL_TYP_DOUBLE;
-          v->value.d = (*static_cast<DDoubleGDL*> (var))[0];
-          break;
-        case GDL_COMPLEX:
-        {
-          v->type = IDL_TYP_COMPLEX;
-          DComplex c = (*static_cast<DComplexGDL*> (var))[0];
-          v->value.cmp.r = c.real();
-          v->value.cmp.i = c.imag();
-          break;
-        }
-        case GDL_COMPLEXDBL:
-        {
-          v->type = IDL_TYP_DCOMPLEX;
-          DComplexDbl c = (*static_cast<DComplexDblGDL*> (var))[0];
-          v->value.dcmp.r = c.real();
-          v->value.dcmp.i = c.imag();
-          break;
-        }
-        case GDL_STRING:
-        {
-          v->type = IDL_TYP_STRING;
-          v->flags = IDL_V_DYNAMIC;
-          DString s = (*static_cast<DStringGDL*> (var))[0];
-          IDL_STRING idlstr = {(int) s.size(), 0, (char*) s.c_str()};
-          v->value.str = idlstr;
-          break;
-        }
-        default: std::cerr << "GDL_ToVPTR: bad case of "<<var->TypeStr()<<std::endl;
-      }
-    } else {
-      v->flags = IDL_V_ARR;
-      v->flags2 = 0;
-      IDL_ARRAY arraydescr;
-      arraydescr.arr_len = var->NBytes();
-      arraydescr.data = (UCHAR*) (var->DataAddr());
-      for (int i = 0; i < var->Rank(); ++i) arraydescr.dim[i] = var->Dim(i);
-      arraydescr.n_dim = var->Rank();
-      arraydescr.n_elts = var->N_Elements();
-      arraydescr.offset = 0;
-      v->value.arr = &arraydescr;
-      switch (var->Type()) {
-        case GDL_BYTE:
-          v->type = IDL_TYP_BYTE;
-          arraydescr.elt_len = 1;
-          break;
-        case GDL_INT:
-          v->type = IDL_TYP_INT;
-          arraydescr.elt_len = 2;
-          break;
-
-        case GDL_LONG:
-          v->type = IDL_TYP_LONG;
-          arraydescr.elt_len = 4;
-          break;
-
-        case GDL_LONG64:
-          v->type = IDL_TYP_LONG64;
-          arraydescr.elt_len = 8;
-          break;
-
-        case GDL_UINT:
-          v->type = IDL_TYP_UINT;
-          arraydescr.elt_len = 2;
-          break;
-
-        case GDL_ULONG:
-          v->type = IDL_TYP_ULONG;
-          arraydescr.elt_len = 4;
-          break;
-
-        case GDL_ULONG64:
-          v->type = IDL_TYP_ULONG64;
-          arraydescr.elt_len = 8;
-          break;
-
-        case GDL_FLOAT:
-          v->type = IDL_TYP_FLOAT;
-          arraydescr.elt_len = 4;
-          break;
-        case GDL_DOUBLE:
-          v->type = IDL_TYP_DOUBLE;
-          arraydescr.elt_len = 8;
-          break;
-        case GDL_COMPLEX:
-        {
-          v->type = IDL_TYP_COMPLEX;
-          arraydescr.elt_len = 8;
-          break;
-        }
-        case GDL_COMPLEXDBL:
-        {
-          v->type = IDL_TYP_DCOMPLEX;
-          arraydescr.elt_len = 16;
-          break;
-        }
-        case GDL_STRING:
-        {
-          v->type = IDL_TYP_STRING;
-          arraydescr.elt_len = 1;
-          break;
-        }
-        default: std::cerr << "GDL_ToVPTR: bad case of "<<var->TypeStr()<<std::endl;
-      }
-    }
-    return v;
-  }  
-  
-  BaseGDL* VPTR_ToGDL(IDL_VPTR v) {
-    if (v == NULL) {
-      throw GDLException("Invalid IDL_VPTR used.");
-    }
-    if ( (v->flags & IDL_V_NULL) == IDL_V_NULL) {
-      return NullGDL::GetSingleInstance();
-    }
-    if ((v->flags && IDL_V_ARR) == IDL_V_ARR) {
-      throw GDLException("Array not supported.");
-    } else {
-      switch (v->type) {
-      case IDL_TYP_BYTE:
-        return new DByteGDL(v->value.c);
-        break;
-      case IDL_TYP_INT:
-        return new DIntGDL(v->value.i);
-        break;
-      case IDL_TYP_LONG:
-        return new DLongGDL(v->value.l);
-        break;
-      case IDL_TYP_FLOAT:
-        return new DFloatGDL(v->value.f);
-        break;
-      case IDL_TYP_DOUBLE:
-        return new DDoubleGDL(v->value.d);
-        break;
-      case IDL_TYP_COMPLEX:
-        return new DComplexGDL(std::complex<float>(v->value.cmp.r,v->value.cmp.i));
-        break;
-      case IDL_TYP_DCOMPLEX:
-        return new DComplexDblGDL(std::complex<double>(v->value.dcmp.r,v->value.dcmp.i));
-        break;
-      case IDL_TYP_PTR:
-        return new DPtrGDL(v->value.ptrint);
-        break;
-//      case IDL_TYP_OBJREF:
-//        return new DObjGDL(v->value.???);
-//        break;
-      case IDL_TYP_UINT:
-        return new DUIntGDL(v->value.ui);
-        break;
-      case IDL_TYP_ULONG:
-        return new DULongGDL(v->value.ul);
-        break;
-      case IDL_TYP_ULONG64:
-        return new DByteGDL(v->value.ul64);
-        break;
-       case IDL_TYP_STRING:
-        return new DStringGDL(v->value.str.s);
-        break;
-      default: std::cerr << "ReturnIDL_VPTR_AsGDL: bad case " << v->type << "\n";
-    }
-    }
-    throw;
-  }
-  
 //  template <typename T>
 //  void addrToGDL(EnvT *e, const SizeT KeywordIx, const SizeT n, void* addr){
 //    T* ret=new T(dimension(n),BaseGDL::NOALLOC);
@@ -322,29 +105,45 @@ typedef void* handle_t;
     SizeT nkw=0;
     GDL_PASS_KEYWORDS_LIST passed;
     GDL_KEYWORDS_LIST* kws;
+    DStringGDL* refextra;
     if (e->GetPro()->NKey() > 0) {
-      //pass in "argk" as a name,val pair as a _EXTRA 
+      //pass in "argk" as a_REF_EXTRA 
       //we cannot directly use the _EXTRA mechanism as some passed values should be writeable or are not defined at the time of calling this function
       if (e->KeywordPresentAndDefined(0)) {
-          DStringGDL* refextra = e->GetKWAs<DStringGDL>(0);
+          refextra = e->GetKWAs<DStringGDL>(0);
           nkw = refextra->N_Elements();
           kws = (GDL_KEYWORDS_LIST*) calloc(nkw, sizeof (GDL_KEYWORDS_LIST));
           for (auto i = 0; i < nkw; ++i) {
             kws[i].name = (*refextra)[i].c_str();
-            BaseGDL* gvar = e->GetRefExtraList((*refextra)[i]); //Ptr as the variable may not exist
-            kws[i].varptr = gvar;
-            if (gvar == NULL) kws[i].type = IDL_TYP_UNDEF;
+            BaseGDL** gvarp = e->GetRefExtraListPtr((*refextra)[i]); //check as Ptr as the variable may not exist
+            if (gvarp == NULL) {
+              kws[i].readonly=1;
+              //pass the variable anyway using GetRefExtraList
+              BaseGDL* gvar = e->GetRefExtraList((*refextra)[i]);
+              kws[i].varptr = gvar;
+              if (gvar == NULL) kws[i].type = IDL_TYP_UNDEF;
+            } else {
+              kws[i].readonly=0;
+              kws[i].varptr = *gvarp;
+              if (*gvarp == NULL) kws[i].type = IDL_TYP_UNDEF;
+            }
           }
-      }
+      } 
       passed.npassed = nkw;
       passed.passed = kws;
       argk = (char*) (&passed);
     }
-   IDL_VPTR ret=calldllfunc(argc,argv,argk);
-    //check if some argk keywords have been returned too
-    for (auto i=0; i< nkw ; ++i) {
-      if (kws[i].out) {
-        e->SetKW(e->KeywordIx(std::string(kws[i].name)), VPTR_ToGDL((IDL_VPTR)(kws[i].varptr)));
+    IDL_VPTR ret=calldllfunc(argc,argv,argk);
+  //check if some argk keywords have been returned too. A real variable must be associated to be replaced in return
+    for (auto i = 0; i < nkw; ++i) {
+      if (kws[i].out != NULL) {
+        BaseGDL** gvarp = e->GetRefExtraListPtr((*refextra)[i]); //Ptr as the variable may not exist
+        if (gvarp) {
+          GDLDelete(*gvarp);
+          *gvarp = (BaseGDL*)VPTR_ToGDL((IDL_VPTR) (kws[i].out));
+        } else {
+          e->Throw("Unexpected error, variable not existing. Please report.");
+        }
       }
     }
     return VPTR_ToGDL(ret);
@@ -361,32 +160,47 @@ void CallDllPro(EnvT* e) {
     SizeT nkw = 0;
     GDL_PASS_KEYWORDS_LIST passed;
     GDL_KEYWORDS_LIST* kws = NULL;
+    DStringGDL* refextra;
     if (e->GetPro()->NKey() > 0) {
-      //pass in "argk" as a name,val pair as a _EXTRA 
+      //pass in "argk" as a_REF_EXTRA 
       //we cannot directly use the _EXTRA mechanism as some passed values should be writeable or are not defined at the time of calling this function
       if (e->KeywordPresentAndDefined(0)) {
-          DStringGDL* refextra = e->GetKWAs<DStringGDL>(0);
+          refextra = e->GetKWAs<DStringGDL>(0);
           nkw = refextra->N_Elements();
           kws = (GDL_KEYWORDS_LIST*) calloc(nkw, sizeof (GDL_KEYWORDS_LIST));
           for (auto i = 0; i < nkw; ++i) {
             kws[i].name = (*refextra)[i].c_str();
-            BaseGDL* gvar = e->GetRefExtraList((*refextra)[i]); //Ptr as the variable may not exist
-            kws[i].varptr = gvar;
-            if (gvar == NULL) kws[i].type = IDL_TYP_UNDEF;
+            BaseGDL** gvarp = e->GetRefExtraListPtr((*refextra)[i]); //check as Ptr as the variable may not exist
+            if (gvarp == NULL) {
+              kws[i].readonly=1;
+              //pass the variable anyway using GetRefExtraList
+              BaseGDL* gvar = e->GetRefExtraList((*refextra)[i]);
+              kws[i].varptr = gvar;
+              if (gvar == NULL) kws[i].type = IDL_TYP_UNDEF;
+            } else {
+              kws[i].readonly=0;
+              kws[i].varptr = *gvarp;
+              if (*gvarp == NULL) kws[i].type = IDL_TYP_UNDEF;
+            }
           }
-      }
+      } 
       passed.npassed = nkw;
       passed.passed = kws;
       argk = (char*) (&passed);
     }
     calldllpro(argc, argv, argk);
-    //check if some argk keywords have been returned too
+  //check if some argk keywords have been returned too. A real variable must be associated to be replaced in return
     for (auto i = 0; i < nkw; ++i) {
-      if (kws[i].out) {
-        e->SetKW(e->KeywordIx(std::string(kws[i].name)), VPTR_ToGDL((IDL_VPTR) (kws[i].varptr)));
+      if (kws[i].out != NULL) {
+        BaseGDL** gvarp = e->GetRefExtraListPtr((*refextra)[i]); //Ptr as the variable may not exist
+        if (gvarp) {
+          GDLDelete(*gvarp);
+          *gvarp = (BaseGDL*)VPTR_ToGDL((IDL_VPTR) (kws[i].out));
+        } else {
+          e->Throw("Unexpected error, variable not existing. Please report.");
+        }
       }
     }
-    return;
   }
   
   void CleanupProc( DLibPro* proc ) {
@@ -431,7 +245,7 @@ void CallDllPro(EnvT* e) {
 	msg = "Couldn't open " + fn;
       }
 #else
-      handle = dlopen(fn.c_str(), RTLD_LAZY);
+      handle = dlopen(fn.c_str(), RTLD_NOW | RTLD_GLOBAL|RTLD_DEEPBIND);
       if( !handle ) {
 	msg = "Couldn't open " + fn;
 	char* error = dlerror();

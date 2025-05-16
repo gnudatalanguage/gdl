@@ -286,7 +286,7 @@ no_implied:
     BaseGDL* par;
     env->SetNextPar(&par);
 
-// The following are notpart of standard    
+// The following are not part of standard    
 // printing first the title if TITLE keyword present
 
     static int titleIx = e->KeywordIx("TITLE");
