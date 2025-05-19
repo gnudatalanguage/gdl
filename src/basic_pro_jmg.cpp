@@ -39,59 +39,6 @@ typedef void* handle_t;
 
 
 
-//  template <typename T>
-//  void addrToGDL(EnvT *e, const SizeT KeywordIx, const SizeT n, void* addr){
-//    T* ret=new T(dimension(n),BaseGDL::NOALLOC);
-//        ret->SetBuffer((void*)addr);
-//        ret->SetBufferSize(n);
-//        ret->SetDim(dimension(n));
-//        e->SetKW(KeywordIx, ret);
-//  }
-//    
-//  void ReturnAddress_AsGDL(EnvT *e, const UCHAR type, SizeT KeywordIx, const SizeT n, void* addr) {
-//    switch (type) {
-//      case IDL_TYP_BYTE:
-//        addrToGDL<DByteGDL>(e, KeywordIx, n, addr);
-//        break;
-//      case IDL_TYP_INT:
-//        addrToGDL<DIntGDL>(e, KeywordIx, n, addr);
-//        break;
-//      case IDL_TYP_LONG:
-//        addrToGDL<DLongGDL>(e, KeywordIx, n, addr);
-//        break;
-//      case IDL_TYP_FLOAT:
-//        addrToGDL<DFloatGDL>(e, KeywordIx, n, addr);
-//        break;
-//      case IDL_TYP_DOUBLE:
-//        addrToGDL<DDoubleGDL>(e, KeywordIx, n, addr);
-//        break;
-//      case IDL_TYP_COMPLEX:
-//        addrToGDL<DComplexGDL>(e, KeywordIx, n, addr);
-//        break;
-//      case IDL_TYP_DCOMPLEX:
-//        addrToGDL<DComplexDblGDL>(e, KeywordIx, n, addr);
-//        break;
-//      case IDL_TYP_PTR:
-//        addrToGDL<DPtrGDL>(e, KeywordIx, n, addr);
-//        break;
-////      case IDL_TYP_OBJREF:
-////        addrToGDL<DObjGDL>(e, KeywordIx, n, addr);
-////        break;
-//      case IDL_TYP_UINT:
-//        addrToGDL<DUIntGDL>(e, KeywordIx, n, addr);
-//        break;
-//      case IDL_TYP_ULONG:
-//        addrToGDL<DULongGDL>(e, KeywordIx, n, addr);
-//        break;
-//      case IDL_TYP_ULONG64:
-//        addrToGDL<DByteGDL>(e, KeywordIx, n, addr);
-//        break;
-//       case IDL_TYP_STRING:
-//        addrToGDL<DStringGDL>(e, KeywordIx, n, addr);
-//        break;
-//    }
-//  }
-
   namespace lib {
     using namespace std;
   BaseGDL* CallDllFunc(EnvT* e) {
@@ -99,7 +46,11 @@ typedef void* handle_t;
     IDL_SYSRTN_FUN calldllfunc=(IDL_SYSRTN_FUN)address;
     int argc=e->NParam();
     IDL_VPTR argv[argc];
-    for (auto i=0; i< argc; ++i) argv[i]=GDL_ToVPTR(e->GetPar(i));
+    for (auto i=0; i< argc; ++i) {
+      // tells if input parameter is temporary (expression)
+      bool tempo=(e->GetString(i).find('>') != std::string::npos);
+      argv[i]=GDL_ToVPTR(e->GetPar(i), tempo);
+    }
     char *argk=NULL;
     // keywords are passed as _REF_EXTRA struct, we just populate argk with our GDL_KEYWORDS_LIST struct
     SizeT nkw=0;
@@ -146,15 +97,18 @@ typedef void* handle_t;
         }
       }
     }
-    return VPTR_ToGDL(ret);
+    return VPTR_ToGDL(ret)->Dup();
   }
 void CallDllPro(EnvT* e) {
     void* address = static_cast<DLibPro*> (e->GetPro())->GetDllEntry();
     IDL_SYSRTN_PRO calldllpro = (IDL_SYSRTN_PRO) address;
     int argc = e->NParam();
     IDL_VPTR argv[argc];
-    // direct conversion
-    for (auto i = 0; i < argc; ++i) argv[i] = GDL_ToVPTR(e->GetPar(i)); //conserves undefined and NULLs
+    for (auto i=0; i< argc; ++i) {
+      // tells if input parameter is temporary (expression)
+      bool tempo=(e->GetString(i).find('>') != std::string::npos);
+      argv[i]=GDL_ToVPTR(e->GetPar(i), tempo);
+    }
     char *argk = NULL;
     // keywords are passed as _REF_EXTRA struct, we just populate argk with our GDL_KEYWORDS_LIST struct
     SizeT nkw = 0;
@@ -203,7 +157,10 @@ void CallDllPro(EnvT* e) {
     }
   }
   
-  void CleanupProc( DLibPro* proc ) {
+void CleanupDllProc( DLibPro* proc) {}; 
+void CleanupDllFunc( DLibFun* fun) {}; 
+
+void CleanupProc( DLibPro* proc ) {
     auto it = libProList.begin();
     auto itE = libProList.end();
     for( ; it != itE; it++ ) {
@@ -222,10 +179,8 @@ void CallDllPro(EnvT* e) {
       if( *it == func ) break;
     }
     if( it < itE ) {
-      //if (func->GetDllEntry() == NULL) 
-      { delete *it;
-      libFunList.erase( it ); } 
-      //else { std::cerr<<"....\n";}
+      delete *it;
+      libFunList.erase( it );
     }
   }
 
@@ -341,7 +296,7 @@ void CallDllPro(EnvT* e) {
       if( all_procs.count( proc_name ) ) return;
       all_procs[proc_name].reset(
 				 new DLibPro( CallDllPro , LinkAs( lib_symbol, proc_name ), proc_name.c_str(), max_args, min_args, has_keys),
-				 CleanupProc
+				 CleanupDllProc /* CleanupProc would crash */
 				 );
       my_procs.insert(proc_name);
     }
@@ -349,7 +304,7 @@ void CallDllPro(EnvT* e) {
       if( all_funcs.count( func_name ) ) return;
       all_funcs[func_name].reset(
 				 new DLibFun( CallDllFunc , LinkAs( lib_symbol, func_name ), func_name.c_str(), max_args,  min_args, has_keys),
-				 CleanupFunc
+				 CleanupDllFunc /* CleanupFunc would crash */
 				 );
       my_funcs.insert(func_name);
     }
