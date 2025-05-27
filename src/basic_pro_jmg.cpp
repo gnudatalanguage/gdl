@@ -37,7 +37,7 @@ typedef void* handle_t;
 
 #include "export.hpp"
 
-
+static SizeT increment=33; //why not?
 
   namespace lib {
     using namespace std;
@@ -293,16 +293,19 @@ void CleanupProc( DLibPro* proc ) {
     }
     void RegisterProc( const string& lib_symbol, const string& proc_name, DLong max_args, DLong min_args, bool has_keys) { 
       if( all_procs.count( proc_name ) ) return;
+      // this method of 'cleaning' is excellent but show a problem when exiting, seen only with valgrind.
+      // Not clear why, as calling .FULL_RESET prior exiting does not show this error. 
       all_procs[proc_name].reset(
-				 new DLibPro( CallDllPro , LinkAs( lib_symbol, proc_name ), proc_name.c_str(), max_args, min_args, has_keys),
+				 new DLibPro( (void (*)(EnvT* e)) (increment++), (void*)CallDllPro, LinkAs( lib_symbol, proc_name ), proc_name.c_str(), max_args, min_args, has_keys),
 				 CleanupProc
 				 );
       my_procs.insert(proc_name);
     }
     void RegisterFunc( const string& lib_symbol, const string& func_name, DLong max_args, DLong min_args, bool has_keys) { 
       if( all_funcs.count( func_name ) ) return;
+      // this method of 'cleaning' is excellent but show a problem when exiting, seen only with valgrind.
       all_funcs[func_name].reset(
-				 new DLibFun( CallDllFunc , LinkAs( lib_symbol, func_name ), func_name.c_str(), max_args,  min_args, has_keys),
+				 new DLibFun((BaseGDL* (*)(EnvT* e)) (increment++), (void*)CallDllFunc , LinkAs( lib_symbol, func_name ), func_name.c_str(), max_args,  min_args, has_keys),
 				 CleanupFunc
 				 );
       my_funcs.insert(func_name);

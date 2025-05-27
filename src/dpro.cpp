@@ -159,10 +159,11 @@ DSub::~DSub() {}
 // DLib ******************************************************
 DLib::DLib( const string& n, const string& o, const int nPar_, 
 	    const string keyNames[],
-	    const string warnKeyNames[], const int nParMin_, const bool use_threadpool, void* target, bool usesKeywords)
+	    const string warnKeyNames[], const int nParMin_, const bool use_threadpool, void* _mediator, void* target, bool usesKeywords)
   : DSub(n,o)
   , hideHelp( false)
   , dllEntry( target)
+  , mediator( _mediator)
 {
   nPar=nPar_;
   nParMin = nParMin_;
@@ -322,8 +323,8 @@ DLibPro::DLibPro( LibPro p, const string& n, const int nPar_,
 //  sort(libProList.begin(), libProList.end(),CompLibFunName());
 }
 
-DLibPro::DLibPro( LibPro p, void* target, const string& n, const int nPar_, const int nParMin_, const bool hasKeys)
-  : DLib(n,"",nPar_,NULL, NULL, nParMin_, false, target, hasKeys), pro(p)
+DLibPro::DLibPro( LibPro p, void* mediator, void* target, const string& n, const int nPar_, const int nParMin_, const bool hasKeys)
+  : DLib(n,"",nPar_,NULL, NULL, nParMin_, false, mediator, target, hasKeys), pro(p)
 {
   libProList.push_back(this);
 //  sort(libProList.begin(), libProList.end(),CompLibFunName());
@@ -345,8 +346,8 @@ DLibFun::DLibFun( LibFun f, const string& n, const int nPar_,
 //  sort(libFunList.begin(), libFunList.end(),CompLibFunName());
 }
 
-DLibFun::DLibFun( LibFun f, void* target, const string& n, const int nPar_, const int nParMin_, const bool hasKeys)
-  : DLib(n,"",nPar_,NULL, NULL, nParMin_, false, target, hasKeys), fun(f)
+DLibFun::DLibFun( LibFun f, void* mediator, void* target, const string& n, const int nPar_, const int nParMin_, const bool hasKeys)
+  : DLib(n,"",nPar_,NULL, NULL, nParMin_, false, mediator, target, hasKeys), fun(f)
 {
   libFunList.push_back(this);
 //  sort(libFunList.begin(), libFunList.end(),CompLibFunName());
