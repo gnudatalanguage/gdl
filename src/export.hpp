@@ -711,7 +711,7 @@ IDL_VPTR IDL_GettmpMEMINT(IDL_MEMINT value){TRACE_ROUTINE(__FUNCTION__,__FILE__,
 #define DOCASE_ARRAY_FROM_CMP(idl_src_type, src_type)\
  			case idl_src_type: {\
 				src_type *srcval=(src_type *)(scrArrayDescr->data);\
-				for (auto i=0, k=0; i< scrArrayDescr->n_elts*2; ++i, ++k) retval[i]=srcval[k++];\
+				for (auto i=0; i< scrArrayDescr->n_elts; ++i) retval[i]=srcval[2*i];\
 				break; }
 
 #define DOCASE_TO_CMP(type, field1, field2)\
