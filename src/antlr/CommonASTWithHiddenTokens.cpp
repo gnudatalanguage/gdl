@@ -2,7 +2,7 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: CommonASTWithHiddenTokens.cpp,v 1.1.1.1 2004-12-09 15:10:20 m_schellens Exp $
+ * $Id: //depot/code/org.antlr/release/antlr-2.7.7/lib/cpp/src/CommonASTWithHiddenTokens.cpp#2 $
  */
 #include "antlr/config.hpp"
 #include "antlr/AST.hpp"
@@ -37,6 +37,8 @@ void CommonASTWithHiddenTokens::initialize(int t,const ANTLR_USE_NAMESPACE(std)s
 void CommonASTWithHiddenTokens::initialize(RefAST t)
 {
 	CommonAST::initialize(t);
+	hiddenBefore = RefCommonASTWithHiddenTokens(t)->getHiddenBefore();
+	hiddenAfter = RefCommonASTWithHiddenTokens(t)->getHiddenAfter();
 }
 
 void CommonASTWithHiddenTokens::initialize(RefToken t)

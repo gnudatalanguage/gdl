@@ -30,163 +30,132 @@
 
 using namespace std;
 
+#define GET_NEXT_CHAR     c = is.get(); \
+    if ((is.rdstate() & ifstream::failbit) != 0) {\
+      if ((is.rdstate() & ifstream::eofbit) != 0)  throw GDLIOException("End of file encountered. " +  StreamInfo(&is));\
+      if ((is.rdstate() & ifstream::badbit) != 0)  throw GDLIOException("Error reading stream. " +     StreamInfo(&is));\
+      is.clear();\
+      return;\
+    }
 
-void SkipWS( istream& is)
-{
-  if( is.eof())
-    throw GDLIOException( "End of file encountered. "+
-			StreamInfo( &is));
+#define GET_NEXT_CHAR_RETURN_BUF     c = is.get(); \
+    if ((is.rdstate() & ifstream::failbit) != 0) {\
+      if ((is.rdstate() & ifstream::eofbit) != 0)  throw GDLIOException("End of file encountered. " +  StreamInfo(&is));\
+      if ((is.rdstate() & ifstream::badbit) != 0)  throw GDLIOException("Error reading stream. " +     StreamInfo(&is));\
+      is.clear();\
+      return buf;\
+    }
+
+void SkipWS( istream& is) {
+  if (is.eof())
+    throw GDLIOException("End of file encountered. " +  StreamInfo(&is));
   char c;
   do {
-    c = is.get();
-
-    if ( (is.rdstate() & ifstream::failbit ) != 0 )
-      {
-	if ( (is.rdstate() & ifstream::eofbit ) != 0 )
-	  throw GDLIOException( "End of file encountered. "+
-			      StreamInfo( &is));
-
-	if ( (is.rdstate() & ifstream::badbit ) != 0 )
-	  throw GDLIOException( "Error reading stream. "+
-			      StreamInfo( &is));
-	
-	is.clear();
-	return ;
-      }
-  } while( c == ' ' || c == '\t' || c == '\n' || c == '\r' ); //special check if line is terminated with <CR><LF>:
+    GET_NEXT_CHAR
+  } while (c == ' ' || c == '\t' || c == '\n' || c == '\r'); //special check if line is terminated with <CR><LF>:
 #ifndef _WIN32
   if (c == '\r') {
-      char next=is.get();
-      if (next!='\n') is.unget(); //CRLF case: gobble the \cr of crlf if not WIN32 
+    int c = is.peek();
+    if (c != EOF) {
+      char next = is.get();
+      if (next != '\n') is.unget(); //CRLF case: gobble the \cr of crlf if not WIN32 
     }
+  }
 #endif
   is.unget();
 }
 
-// helper function - reads one line, does error checking
-const string ReadElement(istream& is)
-{
-  SkipWS( is);
+const string ReadStringElement(istream& is) {
+//  SkipWS(is); //blanks are part of strings, and returned string can be ""
 
   string buf;
   char c;
-  for(;;)
-    {
-      c = is.get();
-      //    int cc = c;
-      //    cout << "ReadEl: " << cc << " " << c << ":" << endl;
-      
-      if ( (is.rdstate() & ifstream::failbit ) != 0 )
-	{
-	  if ( (is.rdstate() & ifstream::badbit ) != 0 )
-	    throw GDLIOException( "Error reading line. "+
-				StreamInfo( &is));
-	  
-	  is.clear();
-	  return buf;
-	}
+  for (;;) {
+    GET_NEXT_CHAR_RETURN_BUF
 
-      if( c == '\n') 
-	return buf;
-      
-      if( c == ' ' || c == '\t')
-	{
-	  is.unget();
-	  return buf;
-	}
-
-      buf.push_back( c);
+    if (c == '\r') {
+      //test if <cr><lf> or just <cr> (old macos data)
+      int p = is.peek();
+      if (p != EOF) {
+        char next = is.get();
+        if (next != '\n') is.unget(); // test CRLF case 
+      }
+      return buf; // either <CR> or <CR><LF>
     }
+    if (c == '\n') return buf; //simple linux <LF> ending
+    buf.push_back(c); //grows buf with not line-ending chars
+  }
 
-  if( !is.good())
-    throw GDLIOException( "Error reading stream. "+StreamInfo( &is));
+  if (!is.good()) throw GDLIOException("Error reading stream. " + StreamInfo(&is));
 
   return buf;
 
-//   // old version (read full line which is then split - does not work with
-//   // different types on the same line)
-//   if( is.eof())
-//     throw GDLIOException( "End of file encountered. "+
-// 			StreamInfo( &is));
-//   string retStr;
-//   getline( is, retStr);
-  
-//   if ( (is.rdstate() & ifstream::failbit ) != 0 )
-//     {
-//       if ( (is.rdstate() & ifstream::eofbit ) != 0 )
-// 	throw GDLIOException( "End of file encountered. "+
-// 			    StreamInfo( &is));
-      
-//       if ( (is.rdstate() & ifstream::badbit ) != 0 )
-// 	throw GDLIOException( "Error reading line. "+
-// 			    StreamInfo( &is));
-      
-//       is.clear();
-//       return "";
-//     }
-
-//   if( !is.good())
-//     throw GDLIOException( "Error reading line. "+StreamInfo( &is));
-  
-//   cout << "Read line: " << retStr << endl;
-
-//   return retStr;
 }
+const string ReadElement(istream& is) {
+  SkipWS(is); //not string: skip until a non-blank, non \lf char appears. 
 
-// no skip of WS
-const string ReadComplexElement(istream& is)
-{
-
-  //  cout << " hello ReadComplexElement : " << endl;
-
-  SkipWS( is);
-  
   string buf;
-  char c = is.get();
-  if ( (is.rdstate() & ifstream::failbit ) != 0 )
-    {
-      if ( (is.rdstate() & ifstream::eofbit ) != 0 )
-	throw GDLIOException( "End of file encountered. "+
-			    StreamInfo( &is));
-      if ( (is.rdstate() & ifstream::badbit ) != 0 )
-	throw GDLIOException( "Error reading stream. "+
-			    StreamInfo( &is));
-      
-      is.clear();
-      return buf;
+  char c;
+  for (;;) {
+    GET_NEXT_CHAR_RETURN_BUF
+
+    if (c == '\r') {
+      //test if <cr><lf> or just <cr> (old macos data)
+      int p = is.peek();
+      if (p != EOF) {
+        char next = is.get();
+        if (next != '\n') is.unget(); // test CRLF case 
+      }
+      return buf; // either <CR> or <CR><LF>
     }
-  
+    if (c == '\n') return buf; //simple linux <LF> ending
+    if( c == ' ' || c == '\t') { //Element is cut at whitespace
+      is.unget(); //whitespace pertains to the next section of is (can be a string).
+      return buf;
+    } 
+    buf.push_back(c); //grows buf with not line-ending chars
+  }
+
+  if (!is.good()) throw GDLIOException("Error reading stream. " + StreamInfo(&is));
+
+  return buf;
+
+}
+// no skip of WS
+const string ReadComplexElement(istream& is) {
+
+  SkipWS(is);
+
+  string buf;
+  char c;
+  GET_NEXT_CHAR_RETURN_BUF
+
   bool brace = (c == '(');
 
-  if( !brace)
-    {
-      is.unget();
-      return ReadElement( is);
+  if (!brace) {
+    is.unget();
+    return ReadElement(is);
+  }
+
+  buf.push_back(c);
+  for (;;) {
+    GET_NEXT_CHAR_RETURN_BUF
+
+    if (c == '\r') {
+      //test if <cr><lf> or just <cr> (old macos data)
+      int p = is.peek();
+      if (p != EOF) {
+        char next = is.get();
+        if (next != '\n') is.unget(); // test CRLF case 
+      }
+      return buf; // either <CR> or <CR><LF>
     }
+    if (c == '\n') return buf;
 
-  buf.push_back( c);
-  for(;;)
-    {
-      c = is.get();
-      
-      if ( (is.rdstate() & ifstream::failbit ) != 0 )
-	{
-	  if ( (is.rdstate() & ifstream::badbit ) != 0 )
-	    throw GDLIOException( "Error reading line. "+
-				StreamInfo( &is));
-	  
-	  is.clear();
-	  return buf;
-	}
+    buf.push_back(c);
 
-      if( c == '\n') 
-	return buf;
-
-      buf.push_back( c);
-
-      if( c == ')') 
-	return buf;
-    }
+    if (c == ')') return buf;
+  }
 }
 
 inline void InsNL(ostream& o, SizeT* actPosPtr)
@@ -248,6 +217,25 @@ istream& operator>>(istream& i, Data_<Sp>& data_)
   return i;
 }
 
+// integer types
+template<> 
+istream& operator>>(istream& i, Data_<SpDString>& data_) 
+{
+  long int nTrans =  data_.dd.size();
+  SizeT assignIx = 0;
+
+  while( nTrans > 0)
+    {
+      const string segment = ReadStringElement( i);
+
+      data_[ assignIx] = segment;
+	  
+      assignIx++;
+      nTrans--;
+    }
+
+  return i;
+}
 // float : uses StrToD (character D in string)
 template<> 
 istream& operator>>(istream& i, Data_<SpDFloat>& data_) 
@@ -367,69 +355,6 @@ istream& operator>>(istream& i, Data_<SpDComplexDbl>& data_)
     }
 
   return i;
-}
-
-// string
-template<>
-istream& operator>>(istream& is, Data_<SpDString>& data_)
-{
-
-    SizeT nEl = data_.dd.size();
-    bool windows=false;
-    char delim = '\n';
-    std::getline(is, data_[ 0], delim);
-    // error handling 1st read
-    if ( (is.rdstate() & ifstream::failbit ) != 0 )
-    {
-        if ( (is.rdstate() & ifstream::eofbit ) != 0 )
-            throw GDLIOException( "End of file encountered. "+
-                                  StreamInfo( &is));
-
-        if ( (is.rdstate() & ifstream::badbit ) != 0 )
-            throw GDLIOException( "Error reading STRING. "+
-                                  StreamInfo( &is));
-
-        is.clear();
-        data_[ 0] = "";
-    }
-    if( !is.good() && !is.eof()) throw GDLIOException( "Error reading STRING. "+StreamInfo( &is));
-    //check termination.
-    SizeT posCR = (data_[0]).find( '\r');
-    SizeT l=data_[0].length();
-    if( posCR == (l-1))
-    {
-          data_[0]=data_[0].substr(0,l-1); //correct string by removing last \cr
-          windows=true;
-          delim = '\r';
-    }
-
-    //pursue for all other elements, now we have the good delim.
-
-    for( SizeT c=1; c < nEl; c++)
-    {
-        std::getline(is, data_[ c], delim);
-
-        // error handling
-        if ( (is.rdstate() & ifstream::failbit ) != 0 )
-        {
-            if ( (is.rdstate() & ifstream::eofbit ) != 0 )
-                throw GDLIOException( "End of file encountered. "+
-                                      StreamInfo( &is));
-
-            if ( (is.rdstate() & ifstream::badbit ) != 0 )
-                throw GDLIOException( "Error reading STRING. "+
-                                      StreamInfo( &is));
-
-            is.clear();
-            data_[ c] = "";
-            if (windows) is.get(); // advance 1 char since we extracted up to \cr, \lf is next
-            continue;
-        }
-
-        if( !is.good() && !is.eof()) throw GDLIOException( "Error reading STRING. "+StreamInfo( &is));
-        if (windows) is.get(); // advance 1 char since we extracted up to \cr, \lf is next
-    }
-    return is;
 }
 
 istream& operator>>(istream& i, DStructGDL& data_)
@@ -1660,7 +1585,7 @@ istream& Data_<SpDByte>::Read( istream& is, bool swapEndian, bool compress, XDR 
     (static_cast<igzstream&> (is)).rdbuf()->incrementPosition(count); //ugly patch to maintain position
 //    (static_cast<igzstream&>(os)).read( reinterpret_cast<char*> (&(*this)[0]), count );
   } else {
-    is.sync(); //in theory should permit to take into account an external change to the file, but this is not working.
+//    is.sync(); //in theory should permit to take into account an external change to the file, but this is not working.
     is.read( reinterpret_cast<char*> (&(*this)[0]), count );
   }
 

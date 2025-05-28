@@ -5,16 +5,15 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: ASTFactory.hpp,v 1.2 2013-09-17 20:12:40 gilles-duvert Exp $
+ * $Id: //depot/code/org.antlr/release/antlr-2.7.7/lib/cpp/antlr/ASTFactory.hpp#2 $
  */
 
 #include <antlr/config.hpp>
 #include <antlr/AST.hpp>
 #include <antlr/ASTArray.hpp>
 #include <antlr/ASTPair.hpp>
-#ifdef __PATHCC__
-#include <iostream>
-#endif
+
+#include <istream>
 #include <utility>
 
 #ifdef ANTLR_CXX_SUPPORTS_NAMESPACE

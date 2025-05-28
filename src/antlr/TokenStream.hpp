@@ -5,7 +5,7 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: TokenStream.hpp,v 1.1.1.1 2004-12-09 15:10:20 m_schellens Exp $
+ * $Id: //depot/code/org.antlr/release/antlr-2.7.7/lib/cpp/antlr/TokenStream.hpp#2 $
  */
 
 #include <antlr/config.hpp>

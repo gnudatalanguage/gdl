@@ -2,7 +2,7 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: CommonToken.cpp,v 1.1.1.1 2004-12-09 15:10:20 m_schellens Exp $
+ * $Id: //depot/code/org.antlr/release/antlr-2.7.7/lib/cpp/src/CommonToken.cpp#2 $
  */
 
 #include "antlr/CommonToken.hpp"
@@ -16,16 +16,22 @@ CommonToken::CommonToken() : Token(), line(1), col(1), text("")
 {}
 
 CommonToken::CommonToken(int t, const ANTLR_USE_NAMESPACE(std)string& txt)
-	: Token(t), line(1), col(1), text(txt)
+: Token(t)
+, line(1)
+, col(1)
+, text(txt)
 {}
 
 CommonToken::CommonToken(const ANTLR_USE_NAMESPACE(std)string& s)
-	: Token(), line(1), col(1), text(s)
+: Token()
+, line(1)
+, col(1)
+, text(s)
 {}
 
 ANTLR_USE_NAMESPACE(std)string CommonToken::toString() const
 {
-	return "[\""+getText()+"\",<"+type+">,line="+line+",column="+col+"]";
+	return "[\""+getText()+"\",<"+getType()+">,line="+getLine()+",column="+getColumn()+"]";
 }
 
 RefToken CommonToken::factory()

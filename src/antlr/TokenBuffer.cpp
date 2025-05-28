@@ -2,7 +2,7 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: TokenBuffer.cpp,v 1.1.1.1 2004-12-09 15:10:20 m_schellens Exp $
+ * $Id: //depot/code/org.antlr/release/antlr-2.7.7/lib/cpp/src/TokenBuffer.cpp#2 $
  */
 
 #include "antlr/TokenBuffer.hpp"
@@ -27,8 +27,8 @@ namespace antlr {
  */
 
 /** Create a token buffer */
-TokenBuffer::TokenBuffer( TokenStream& input_ )
-: input(input_)
+TokenBuffer::TokenBuffer( TokenStream& inp )
+: input(inp)
 , nMarkers(0)
 , markerOffset(0)
 , numToConsume(0)
@@ -44,7 +44,7 @@ void TokenBuffer::fill(unsigned int amount)
 {
 	syncConsume();
 	// Fill the buffer sufficiently to hold needed tokens
-	while (queue.entries() <= (amount + markerOffset))
+	while (queue.entries() < (amount + markerOffset))
 	{
 		// Append the next token
 		queue.append(input.nextToken());
@@ -55,7 +55,7 @@ void TokenBuffer::fill(unsigned int amount)
 int TokenBuffer::LA(unsigned int i)
 {
 	fill(i);
-	return queue.elementAt(markerOffset+i-1)->type;
+	return queue.elementAt(markerOffset+i-1)->getType();
 }
 
 /** Get a lookahead token */

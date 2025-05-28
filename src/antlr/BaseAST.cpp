@@ -2,12 +2,13 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: BaseAST.cpp,v 1.1.1.1 2004-12-09 15:10:20 m_schellens Exp $
+ * $Id: //depot/code/org.antlr/release/antlr-2.7.7/lib/cpp/src/BaseAST.cpp#2 $
  */
+
+#include "antlr/config.hpp"
 
 #include <iostream>
 
-#include "antlr/config.hpp"
 #include "antlr/AST.hpp"
 #include "antlr/BaseAST.hpp"
 
@@ -15,52 +16,6 @@ ANTLR_USING_NAMESPACE(std)
 #ifdef ANTLR_CXX_SUPPORTS_NAMESPACE
 namespace antlr {
 #endif
-
-const char* const BaseAST::TYPE_NAME = "BaseAST";
-
-//bool BaseAST::verboseStringConversion;
-//ANTLR_USE_NAMESPACE(std)vector<ANTLR_USE_NAMESPACE(std)string> BaseAST::tokenNames;
-
-BaseAST::BaseAST() : AST()
-{
-}
-
-BaseAST::~BaseAST()
-{
-}
-
-BaseAST::BaseAST(const BaseAST& other)
-: AST(other) // RK: don't copy links! , down(other.down), right(other.right)
-{
-}
-
-const char* BaseAST::typeName( void ) const
-{
-	return BaseAST::TYPE_NAME;
-}
-
-RefAST BaseAST::clone( void ) const
-{
-	ANTLR_USE_NAMESPACE(std)cerr << "BaseAST::clone()" << ANTLR_USE_NAMESPACE(std)endl;
-	return nullAST;
-}
-
-void BaseAST::addChild( RefAST c )
-{
-	if( !c )
-		return;
-
-	RefBaseAST tmp = down;
-
-	if (tmp)
-	{
-		while (tmp->right)
-			tmp = tmp->right;
-		tmp->right = c;
-	}
-	else
-		down = c;
-}
 
 size_t BaseAST::getNumberOfChildren() const
 {
@@ -231,19 +186,6 @@ ANTLR_USE_NAMESPACE(std)vector<RefAST> BaseAST::findAllPartial(RefAST target)
 		doWorkForFindAll(roots,target,true); // find all matches recursively
 
 	return roots;
-}
-
-void BaseAST::setText( const ANTLR_USE_NAMESPACE(std)string& )
-{
-}
-
-void BaseAST::setType( int )
-{
-}
-
-ANTLR_USE_NAMESPACE(std)string BaseAST::toString() const
-{
-	return getText();
 }
 
 ANTLR_USE_NAMESPACE(std)string BaseAST::toStringList() const

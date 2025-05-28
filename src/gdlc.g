@@ -26,7 +26,7 @@ header "post_include_cpp" {
 #include <iostream>
 #include <string>
 
-static void printLineErrorHelper(std::string filename, int line, int col) {
+static void printLineErrorHelper(std::string filename, int line, int col, std::string msg="" ) {
   if (filename.size() > 0) {
 	std::ifstream ifs;
 	ifs.open(filename, std::ifstream::in);
@@ -46,7 +46,7 @@ static void printLineErrorHelper(std::string filename, int line, int col) {
   for (auto i = 0; i < col; ++i) std::cerr << ' ';
   std::cerr << '^';
   std::cerr << '\n';
-  std::cerr << "% Syntax error.\n";
+  if ( msg.size() > 0) std::cerr << msg << std::endl; else std::cerr << "% Syntax error.\n";
   if ( filename.size() > 0)   std::cerr <<"  At: "<<filename<<", Line "<<line<<std::endl;
   return;
 }
@@ -69,9 +69,6 @@ header {
 #include <antlr/TokenStreamIOException.hpp>
 #include <antlr/CharInputBuffer.hpp>
 
-// GD: set to 1 to traceout what the Parser does.
-#define debugParser 0
-//#include "dinterpreter.hpp"
 
 // definition in dinterpreter.cpp
 void MemorizeCompileOptForMAINIfNeeded( unsigned int cOpt);
@@ -214,25 +211,28 @@ tokens {
     }
     
     private:
+    std::string subName; // name of procedure function to be compiled ("" -> all file)
+    bool   searchForPro; // true -> procedure subName, false -> function subName 
+    bool   SearchedRoutineFound; 
+    unsigned int compileOpt=0;
+	bool relaxed=false; // use of a bool speedups {}? constructs
+    int fussy=((compileOpt & STRICTARR)!=0)?2:1; //auto recovery if compile opt is not strictarr
+    int LastGoodPosition=0; // last position of start of PRO or FUNC -- used in recovery mode
+	bool recovery=false; //recovery mode going to 'fussy' if STRICTARR generated an error 
     void AddCompileOpt( const std::string &opt)
     {
         if(      opt == "DEFINT32")          compileOpt |= DEFINT32;
         else if( opt == "HIDDEN")            compileOpt |= HIDDEN;
         else if( opt == "OBSOLETE")          compileOpt |= OBSOLETE;
-        else if( opt == "STRICTARR")         compileOpt |= STRICTARR;
+        else if( opt == "STRICTARR")         {compileOpt |= STRICTARR; fussy=2; relaxed=false;} // fussy=2: a strictarr syntax error is fatal
         else if( opt == "LOGICAL_PREDICATE") compileOpt |= LOGICAL_PREDICATE;
-        else if( opt == "IDL2")              compileOpt |= IDL2;
+        else if( opt == "IDL2")              {compileOpt |= IDL2; fussy=2; relaxed=false;}
         else if( opt == "STRICTARRSUBS")     compileOpt |= STRICTARRSUBS;
         else if( opt == "STATIC")            compileOpt |= STATIC;
         else if( opt == "NOSAVE")            compileOpt |= NOSAVE;
         else throw GDLException("Unrecognised COMPILE_OPT option: "+opt);
         MemorizeCompileOptForMAINIfNeeded( compileOpt);
     }
-
-    std::string subName; // name of procedure function to be compiled ("" -> all file)
-    bool   searchForPro; // true -> procedure subName, false -> function subName 
-    bool   subReached; 
-    unsigned int compileOpt;
 
     bool ConstantExprNode( int t)
     {
@@ -246,7 +246,7 @@ tokens {
               bool searchPro, // true -> search for procedure sName, false -> for function
               unsigned int compileOptIn):
     antlr::LLkParser(selector,2), subName(sName), searchForPro( searchPro), 
-    subReached(false), compileOpt(compileOptIn)
+    SearchedRoutineFound(false), compileOpt(compileOptIn)
     { 
         //        setTokenNames(_tokenNames);
     }
@@ -306,63 +306,99 @@ identifier
 // file parsing
 translation_unit
 { 
-    subReached=false;
-    compileOpt=NONE; // reset compileOpt    
-    if (debugParser) std::cout << " translation_unit" << std::endl;
+    SearchedRoutineFound=false;
+    compileOpt=NONE; // reset compileOpt  
+    retry:; 
+    if (fussy<2) { //STRICTARR not given in the current PRO/FUN
+      fussy=recovery?0:1;
+    }
+	relaxed=(fussy < 1);
+    if (recovery) {
+//	    std::cerr<<"recovery:"<<recovery<<", LastGoodPosition="<<LastGoodPosition<<std::endl;
+		this->rewind(LastGoodPosition);
+	}
 }
-    :   ( options {greedy=true;}: end_unit
+    :   ( options {greedy=true;} : end_unit
         | forward_function end_unit
         | procedure_def 
             { 
-                compileOpt=NONE; // reset compileOpt    
-                if( subReached) goto bailOut;
+                compileOpt=NONE; // reset compileOpt  
+                if( SearchedRoutineFound) goto bailOut;
             }
-        | function_def  
+        |function_def 
             { 
-                compileOpt=NONE; // reset compileOpt    
-                if( subReached) goto bailOut;
+                compileOpt=NONE; // reset compileOpt
+                if( SearchedRoutineFound) goto bailOut;
             }
         | common_block
         )* // optional - only main program is also ok
 
-        ( statement_list END! (end_unit)? )? // $MAIN$ program
+        ( 
+           statement_list END! (end_unit)? 
+        )? // $MAIN$ program
 
         (EOF!)   // braces necessary because goto crosses initialization otherwise
         { bailOut:;} // bailout jump label
         // catch lexer exceptions also
         exception 
         catch [ GDLException& e] 
-        { 
-            throw;
-        }
+        {  
+				printLineErrorHelper(getFilename(), e.getLine(), e.getColumn(), e.getMessage());
+				recovery=false;
+// HERE WE COULD COUNT THE ERRORS and replace "No parser output generated." in dinterpreter.cpp by something like
+// "% XXX Compilation error(s) in module YYY."
+				throw; //seems necessary, for execute in particular. this patch is not very clever.
+		}
         catch [ antlr::NoViableAltException& e] 
-        {
-		  // this partially solves #59 (no line number in '@'-included files
-			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
-			// PARSER SYNTAX ERROR
-			throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+e.getMessage(), e.getFilename() );
+        {  //this exception may come from using () instead of [] for array indexes.
+		   // we try to rescan using the 'sloppy' mode, once.
+			if (recovery || fussy==2) {
+				recovery=false;
+				// this partially solves #59 (no line number in '@'-included files
+				printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
+				// PARSER SYNTAX ERROR
+//				throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+e.getMessage(), e.getFilename() );
+			} else {
+				if (IsTracingSyntaxErrors()) {
+					std::cerr<<"old syntax at line "<<LT(1).get()->getLine()<<", column "<<LT(1).get()->getColumn()<<std::endl;
+				}
+				recovery=true;
+				goto retry;
+			}
         }
         catch [ antlr::NoViableAltForCharException& e] 
         {
-		  // this partially solves #59 (no line number in '@'-included files
-			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());				
+			recovery=false;
+			// this partially solves #59 (no line number in '@'-included files
+			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
 			// LEXER SYNTAX ERROR
-			throw GDLException( e.getLine(), e.getColumn(), "Lexer syntax error: "+e.getMessage(), e.getFilename() );
+//			throw GDLException( e.getLine(), e.getColumn(), "Lexer syntax error: "+e.getMessage(), e.getFilename() );
         }
         catch [ antlr::RecognitionException& e] 
         {
-		  // this partially solves #59 (no line number in '@'-included files
-			printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());				
-			// SYNTAX ERROR
-			throw GDLException( e.getLine(), e.getColumn(), "Lexer/Parser syntax error: "+e.getMessage(), e.getFilename() );
+			if (recovery|| fussy==2) {
+				recovery=false;
+				// this partially solves #59 (no line number in '@'-included files
+				printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
+				// PARSER SYNTAX ERROR
+//				throw GDLException( e.getLine(), e.getColumn(), "Parser recognition exception error: "+e.getMessage(), e.getFilename() );
+			} else {
+				if (IsTracingSyntaxErrors()) {
+					std::cerr<<"old syntax at line "<<LT(1).get()->getLine()<<", column "<<LT(1).get()->getColumn()<<std::endl;
+				}
+				recovery=true;
+				goto retry;
+			}
         }
         catch [ antlr::TokenStreamIOException& e] 
-        {
+        {			
+			recovery=false;
             // IO ERROR
             throw GDLException( returnAST, "Input/Output error: "+e.getMessage());
         }
         catch [ antlr::TokenStreamException& e] 
         {
+			recovery=false;
             throw GDLException( returnAST, "Token stream error: "+e.getMessage());
         }
     ;
@@ -370,7 +406,6 @@ translation_unit
 // to give a more precise error message
 // interactive compilation is not allowed
 interactive_compile!
-{    if (debugParser) std::cout << " interactive_compile! " << std::endl; }
     : (FUNCTION | PRO)
         IDENTIFIER 
         {
@@ -384,8 +419,9 @@ interactive_compile!
 
 // interactive usage
 interactive
-{    if (debugParser) std::cout << " interactive " << std::endl; }
-
+{fussy=((compileOpt & STRICTARR)!=0)?2:0;
+relaxed=(fussy < 1);
+}
     :   ( end_unit (end_mark)? 
         | interactive_statement
         | interactive_compile
@@ -394,7 +430,8 @@ interactive
         exception 
         catch [ GDLException& e] 
         { 
-            throw;
+          printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn(), e.toString());
+		  throw; //necessary for EXECUTE to get the error state. Alas.
         }
         catch [ antlr::NoViableAltException& e] 
         {
@@ -402,7 +439,7 @@ interactive
             // PARSER SYNTAX ERROR
             throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+
                 e.getMessage(), e.getFilename() );
-        }
+				}
         catch [ antlr::NoViableAltForCharException& e] 
         {
 	  // here (interactive mode) the solving of #59 is delayed to the catching function (support for implied print and line continuation specifics! argh! all this an ANTLR2 problem) 
@@ -410,14 +447,14 @@ interactive
             throw GDLException( e.getLine(), e.getColumn(), "Lexer syntax error: "+
                 e.getMessage(), e.getFilename() );
         }
-        catch [ antlr::RecognitionException& e] 
-        {
+        catch [ antlr::RecognitionException& e]
+		{
 	  // here (interactive mode) the solving of #59 is delayed to the catching function (support for implied print and line continuation specifics! argh! all this an ANTLR2 problem) 
             // SYNTAX ERROR
             throw GDLException( e.getLine(), e.getColumn(), 
                 "Lexer/Parser syntax error: "+e.getMessage(), e.getFilename() );
-        }
-        catch [ antlr::TokenStreamIOException& e] 
+				}
+       catch [ antlr::TokenStreamIOException& e] 
         {
             // IO ERROR
             throw GDLException( returnAST, "Input/Output error: "+e.getMessage());
@@ -431,10 +468,9 @@ interactive
 // compound statements in the original don't care about the specific end_mark
 // in interactive mode end need not to be there and labels are ignored
 interactive_statement
-{    if (debugParser) std::cout << " interactive_statement " << std::endl; }
   :  (BEGIN! | IDENTIFIER! COLON!)* 
     statement end_unit
-  ;
+   ;
 
 
 // idl allows more than one ELSE: first is executed, *all*
@@ -443,7 +479,6 @@ interactive_statement
 switch_statement
 {
     int numBranch=0;
-    if (debugParser) std::cout  << " switch_statement " << std::endl; 
 }
     : SWITCH^ expr OF! (end_unit)? 
         (switch_body
@@ -458,21 +493,19 @@ switch_statement
     ;
 
 switch_body
-{    if (debugParser) std::cout  << " switch_body " << std::endl; }
     : expr COLON! 
         ( statement
         | BEGIN! statement_list endswitch_mark)? end_unit
-        { #switch_body = #([BLOCK, "block"], #switch_body); if (debugParser) std::cout<<std::endl;}
+        { #switch_body = #([BLOCK, "block"], #switch_body);}
     | ELSE! COLON! 
         ( statement
         | BEGIN! statement_list endswitchelse_mark)? end_unit
-        { #switch_body = #([ELSEBLK, "elseblk"], #switch_body); if (debugParser) std::cout<<std::endl;}
+        { #switch_body = #([ELSEBLK, "elseblk"], #switch_body); }
     ;    
 
 case_statement
 {
     int numBranch=0;
-    if (debugParser) std::cout  << " case_statement " << std::endl; 
 }
     : CASE^ expr OF! (end_unit)? 
         (case_body
@@ -482,58 +515,52 @@ case_statement
         )*
         endcase_mark
         {
-        #CASE->SetNumBranch(numBranch); if (debugParser) std::cout<<std::endl;
+        #CASE->SetNumBranch(numBranch); 
         }
     ;
 
 case_body
-{    if (debugParser) std::cout  << " case_body " << std::endl; }
     : expr COLON! 
         (statement
         | BEGIN! statement_list endcase_mark)? end_unit
-        { #case_body = #([BLOCK, "block"], #case_body); if (debugParser) std::cout<<std::endl;}
+        { #case_body = #([BLOCK, "block"], #case_body); }
     | ELSE! COLON! 
         (statement
         | BEGIN! statement_list endcaseelse_mark)? end_unit
-        { #case_body = #([ELSEBLK, "elseblk"], #case_body); if (debugParser) std::cout<<std::endl;}
+        { #case_body = #([ELSEBLK, "elseblk"], #case_body); }
     ;
 
 // whereever one END_U is there might be more
 // end_unit is syntactical necessary, but not for the AST
 end_unit!
-{    if (debugParser) std::cout  << " end_unit!" << std::endl; }
     : (options {greedy=true;}: END_U)+
     ;
 
 
 forward_function
-{    if (debugParser) std::cout  << " forward_function -> " /* << std::endl */; }
   : FORWARD^ identifier_list
   ;
 
 
 parameter_declaration
-{    if (debugParser) std::cout  << " parameter_declaration -> " /* << std::endl */; }
     : (IDENTIFIER | keyword_declaration) 
         (COMMA! (IDENTIFIER | keyword_declaration))*
         { #parameter_declaration = 
-            #([PARADECL,"paradecl"], #parameter_declaration); if (debugParser) std::cout<<std::endl;}
+            #([PARADECL,"paradecl"], #parameter_declaration); }
     ;
     
     
 keyword_declaration
-{    if (debugParser) std::cout  << " keyword_declaration -> " /* << std::endl */; }
     : IDENTIFIER EQUAL! IDENTIFIER
         { #keyword_declaration =
-            #([KEYDECL,"keydecl"], #keyword_declaration); if (debugParser) std::cout<<std::endl;}
+            #([KEYDECL,"keydecl"], #keyword_declaration); }
     ;
 
 protected
 object_name! returns [std::string name] // !//
-{    if (debugParser) std::cout  << " object_name! -> " /* << std::endl */; }
       : i1:IDENTIFIER m:METHOD i2:IDENTIFIER
         { 
-        // here we translate IDL_OBECT to GDL_OBJECT for source code compatibility
+        // here we translate IDL_OBJECT to GDL_OBJECT for source code compatibility
         {
             if( #i1->getText() == "IDL_OBJECT")
                 #i1->setText(GDL_OBJECT_NAME);
@@ -542,14 +569,17 @@ object_name! returns [std::string name] // !//
         }
 
             #object_name = #(NULL, i2, m, i1); // NULL -> no root
-            name= std::string( i1->getText()+"__"+i2->getText()); if (debugParser) std::cout<<std::endl;
+            name= std::string( i1->getText()+"__"+i2->getText()); 
         }
       ;    
 
 procedure_def
 {
     std::string name;
-    if (debugParser) std::cout  << " procedure_def -> " /* << std::endl */; 
+	fussy=recovery?0:1; //recoverable fussy mode
+	relaxed=(fussy < 1);
+	LastGoodPosition=mark();
+//	std::cerr<<"start pro at "<<LastGoodPosition<<std::endl;
 }
     : p:PRO^
         ( n:IDENTIFIER { name=n->getText(); }
@@ -558,15 +588,22 @@ procedure_def
         (COMMA! parameter_declaration)? end_unit
         (statement_list)? END!
         { 
-            if( subName == name && searchForPro == true) subReached=true;
-            #p->SetCompileOpt( compileOpt); if (debugParser) std::cout<<std::endl;
+			LastGoodPosition=mark();
+			recovery=false;
+//        	std::cerr<<"end pro "<<name<<" at "<<LastGoodPosition<<std::endl;
+			fussy=1; //set recoverable fussy mode
+            if( subName == name && searchForPro == true) SearchedRoutineFound=true;
+            #p->SetCompileOpt( compileOpt); 
         }
   ;
 
 function_def
 {
     std::string name;
-    if (debugParser) std::cout  << " function_def -> " /* << std::endl */; 
+	fussy=recovery?0:1; //recoverable fussy mode
+	relaxed=(fussy < 1);
+	LastGoodPosition=mark();
+//	std::cerr<<"start fun"<<std::endl;
 }
     : f:FUNCTION^
         ( n:IDENTIFIER { name=n->getText(); }
@@ -575,14 +612,17 @@ function_def
         (COMMA! parameter_declaration)? end_unit
         (statement_list)? END!
         { 
-            if( subName == name && searchForPro == false) subReached=true;
-            #f->SetCompileOpt( compileOpt); if (debugParser) std::cout<<std::endl;
+            if( subName == name && searchForPro == false) SearchedRoutineFound=true;
+			LastGoodPosition=mark();
+			recovery=false;
+//        	std::cerr<<"end fun "<<name<<" at "<<LastGoodPosition<<std::endl;
+			fussy=1; //set recoverable fussy mode
+            #f->SetCompileOpt( compileOpt); 
         }
     ;
 
-// change defaultbehaviour of the compiling
+// change default behaviour of the compiling
 compile_opt!
-{    if (debugParser) std::cout  << " compile_opt! -> " /* << std::endl */; }
     : COMPILE_OPT i:IDENTIFIER 
         {
             AddCompileOpt( i->getText());
@@ -595,23 +635,20 @@ compile_opt!
     ;
 
 common_block
-{    if (debugParser) std::cout  << " common_block -> " /* << std::endl */; }
     : COMMON! IDENTIFIER 
         (
-            { #common_block = #([COMMONDECL,"commondecl"], #common_block); if (debugParser) std::cout<<std::endl;}
+            { #common_block = #([COMMONDECL,"commondecl"], #common_block); }
         | COMMA! identifier_list
-            { #common_block = #([COMMONDEF,"commondef"], #common_block); if (debugParser) std::cout<<std::endl;}
+            { #common_block = #([COMMONDEF,"commondef"], #common_block); }
         )
     ;
 
 identifier_list
-{    if (debugParser) std::cout  << " identifier_list -> " /* << std::endl */; }
     : IDENTIFIER (COMMA! IDENTIFIER)*
     ;
 
 // no ASTs for end marks
 end_mark!
-{    if (debugParser) std::cout  << " end_mark! -> " /* << std::endl */; }
     : END
     | ENDIF
     | ENDELSE
@@ -624,82 +661,67 @@ end_mark!
     ;
 
 endforeach_mark!
-{    if (debugParser) std::cout  << " endforeach_mark! " << std::endl; }
     : ENDFOREACH | END
     ;
 
 endfor_mark!
-{    if (debugParser) std::cout  << " endfor_mark! " << std::endl; }
     : ENDFOR | END
     ;
 
 endrep_mark!
-{    if (debugParser) std::cout  << " endrep_mark! " << std::endl; }
     : ENDREP | END
     ;
 
 endwhile_mark!
-{    if (debugParser) std::cout  << " endwhile_mark! " << std::endl; }
     : ENDWHILE | END
     ;
 
 endif_mark!
-{    if (debugParser) std::cout  << " endif_mark! " << std::endl; }
     : ENDIF    | END
     ;
 
 endelse_mark!
-{    if (debugParser) std::cout  << " endelse_mark! " << std::endl; }
     : ENDELSE | END
     ;
 
 endcase_mark!
-{    if (debugParser) std::cout  << " endcase_mark! " << std::endl; }
     : ENDCASE | END
     ;
 
 endcaseelse_mark!
-{    if (debugParser) std::cout  << " endcaseelse_mark! " << std::endl; }
     : endcase_mark | ENDELSE
     ;
 
 endswitch_mark!
-{    if (debugParser) std::cout  << " endswitch_mark! " << std::endl; }
     : ENDSWITCH | END
     ;
 
 endswitchelse_mark!
-{    if (debugParser) std::cout  << " endswitchelse_mark! " << std::endl; }
     : endswitch_mark | ENDELSE
     ;
 
 statement_list
-{    if (debugParser) std::cout  << " statement_list -> " /* << std::endl */; }
     : (end_unit 
         | compound_statement end_unit 
         | label_statement end_unit)+
     ;
 
 label
-{    if (debugParser) std::cout  << " label -> " /* << std::endl */; }
       : IDENTIFIER^ COLON
       ;
 
 label_statement
-{    if (debugParser) std::cout  << " label_statement -> " /* << std::endl */; }
     : (label)+ (compound_statement)?
     ;
 
 // compound statements don't care about the specific end_mark
 compound_statement
-{    if (debugParser) std::cout  << " compound_statement -> " /* << std::endl */; }
     : statement
     | BEGIN! statement_list end_mark
-        { #compound_statement = #([BLOCK, "block"], #compound_statement); if (debugParser) std::cout<<std::endl;}
+        { #compound_statement = #([BLOCK, "block"], #compound_statement); }
     ;
 
 baseclass_method
-{    if (debugParser) std::cout  << " baseclass_method -> " /* << std::endl */; }
     : s:IDENTIFIER METHOD!
         // here we translate IDL_OBECT to GDL_OBJECT for source code compatibility
         {
@@ -714,22 +736,20 @@ statement
 // assignment and member_procedure_call starting with deref_expr
 {
     bool parent=false;
-    if (debugParser) std::cout << " statement -> " /* << std::endl */; 
 }
     : (assign_expr)=> assign_expr (DEC^ | INC^)?
     | (deref_dot_expr_keeplast IDENTIFIER COMMA)=>
         d1:deref_dot_expr_keeplast formal_procedure_call
                 { 
                         #statement = #([MPCALL, "mpcall"], #statement);
-                        #statement->SetLine( #d1->getLine()); if (debugParser) std::cout<<" statement : \""<<LT(0)->getText()<<"\""<<std::endl;
-
+                        #statement->SetLine( #d1->getLine());
                 }
     | (deref_dot_expr_keeplast baseclass_method)=>
         d2:deref_dot_expr_keeplast baseclass_method formal_procedure_call
                 { 
                         #statement = #([MPCALL_PARENT, "mpcall::"], 
                                         #statement);
-                        #statement->SetLine( #d2->getLine()); if (debugParser) std::cout<<" statement : \""<<LT(0)->getText()<<"\""<<std::endl;
+                        #statement->SetLine( #d2->getLine());
                 }
     | ( deref_expr
                 ( EQUAL
@@ -759,7 +779,7 @@ statement
       )=>
         deref_expr
             (EQUAL! expr             
-                { #statement = #([ASSIGN,":="], #statement); if (debugParser) std::cout<<" statement : \""<<LT(0)->getText()<<"\""<<std::endl;}
+                { #statement = #([ASSIGN,":="], #statement);}
             |   ( AND_OP_EQ^ 
                 | ASTERIX_EQ^ 
                 | EQ_OP_EQ^ 
@@ -789,13 +809,12 @@ statement
                                         #statement); 
                     else
                         #statement = #([MPCALL, "mpcall"], #statement);
-		if (debugParser) std::cout<<"statement : \""<<LT(0)->getText()<<"\""<<std::endl;
                 }
             )
     | d3:deref_dot_expr_keeplast formal_procedure_call
                 { 
                     #statement = #([MPCALL, "mpcall"], #statement);
-                    #statement->SetLine( #d3->getLine()); if (debugParser) std::cout<<" statement : \""<<LT(0)->getText()<<"\""<<std::endl;
+                    #statement->SetLine( #d3->getLine());
                 }
     | (DEC^ | INC^) expr
     | procedure_call // next two handled by procedure_call also
@@ -816,7 +835,6 @@ statement
 
 
 repeat_statement
-{    if (debugParser) std::cout << " repeat_statement " << std::endl; }
     : REPEAT^ 
         repeat_block
         UNTIL! expr
@@ -824,16 +842,14 @@ repeat_statement
 
 
 repeat_block
-{    if (debugParser) std::cout << " repeat_block " << std::endl; }
     : st:statement
-        { #repeat_block = #([BLOCK, "block"], #st); if (debugParser) std::cout<<std::endl;}
+        { #repeat_block = #([BLOCK, "block"], #st); }
     | BEGIN! stl:statement_list endrep_mark
-        { #repeat_block = #([BLOCK, "block"], #stl); if (debugParser) std::cout<<std::endl;}
+        { #repeat_block = #([BLOCK, "block"], #stl); }
     ;
 
 
 while_statement
-{    if (debugParser) std::cout << " while_statement " << std::endl; }
     : WHILE^
         expr DO! 
         while_block
@@ -841,15 +857,13 @@ while_statement
 
 
 while_block
-{    if (debugParser) std::cout << " while_block " << std::endl; }
     : statement 
     | BEGIN! statement_list endwhile_mark
-        { #while_block = #([BLOCK, "block"], #while_block); if (debugParser) std::cout<<std::endl;}
+        { #while_block = #([BLOCK, "block"], #while_block); }
     ;
 
 
 for_statement
-{    if (debugParser) std::cout << " for_statement " << std::endl; }
     : FOR^ IDENTIFIER EQUAL! expr COMMA! expr 
         (COMMA! expr)? DO!
         for_block
@@ -857,35 +871,30 @@ for_statement
 
 // GD reverted (below) to historical version as the following, while permitting #52 creates #1599 and #1608
 //for_block
-//{    if (debugParser) std::cout << " for_block " << std::endl; }
 //    :
-//      (BEGIN statement)=> (BEGIN! stb:statement) { #for_block = #([BLOCK, "block"], #stb); if (debugParser) std::cout<<std::endl;}
-//    |  BEGIN! stl:statement_list endfor_mark { #for_block = #([BLOCK, "block"], #stl); if (debugParser) std::cout<<std::endl;}
-//    |  st:statement { #for_block = #([BLOCK, "block"], #st); if (debugParser) std::cout<<std::endl;}
+//      (BEGIN statement)=> (BEGIN! stb:statement) { #for_block = #([BLOCK, "block"], #stb); }
+//    |  BEGIN! stl:statement_list endfor_mark { #for_block = #([BLOCK, "block"], #stl); }
+//    |  st:statement { #for_block = #([BLOCK, "block"], #st); }
 //    ;    
 
 for_block
-{    if (debugParser) std::cout << " for_block " << std::endl; }
-    :  st:statement { #for_block = #([BLOCK, "block"], #st); if (debugParser) std::cout<<std::endl;}
-    |  BEGIN! stl:statement_list endfor_mark { #for_block = #([BLOCK, "block"], #stl); if (debugParser) std::cout<<std::endl;}
+    :  st:statement { #for_block = #([BLOCK, "block"], #st); }
+    |  BEGIN! stl:statement_list endfor_mark { #for_block = #([BLOCK, "block"], #stl); }
     ;    
 
 foreach_statement
-{    if (debugParser) std::cout << " foreach_statement " << std::endl; }
     : FOREACH^ IDENTIFIER COMMA! expr (COMMA! IDENTIFIER)? DO!
         foreach_block
     ;
 
 foreach_block
-{    if (debugParser) std::cout << " foreach_block " << std::endl; }
     : st:statement
-        { #foreach_block = #([BLOCK, "block"], #st); if (debugParser) std::cout<<std::endl;}
+        { #foreach_block = #([BLOCK, "block"], #st); }
     | BEGIN! stl:statement_list endforeach_mark
-        { #foreach_block = #([BLOCK, "block"], #stl); if (debugParser) std::cout<<std::endl;}
+        { #foreach_block = #([BLOCK, "block"], #stl); }
     ;    
 
 jump_statement
-{    if (debugParser) std::cout << " jump_statement " << std::endl; }
     : GOTO^ COMMA! IDENTIFIER
 // now handled as a procedure_call because RETURN is no reserved word
 //    | RETURN^ (COMMA! expr)?
@@ -894,7 +903,6 @@ jump_statement
 
 // the classical greedy case (match ELSE as soon as possible)
 if_statement
-{    if (debugParser) std::cout << " if_statement " << std::endl; }
     : IF^ expr THEN!
         if_block
         ( options {greedy=true;}: ELSE! 
@@ -904,28 +912,24 @@ if_statement
 
 
 if_block
-{    if (debugParser) std::cout << " if_block " << std::endl; }
     : statement 
     | BEGIN! statement_list endif_mark
-        { #if_block = #([BLOCK, "block"], #if_block); if (debugParser) std::cout<<std::endl;}
+        { #if_block = #([BLOCK, "block"], #if_block); }
     ;
 
 
 else_block
-{    if (debugParser) std::cout << " else_block " << std::endl; }
     : statement
     | BEGIN! statement_list endelse_mark
-        { #else_block = #([BLOCK, "block"], #else_block); if (debugParser) std::cout<<std::endl;}
+        { #else_block = #([BLOCK, "block"], #else_block); }
     ;
 
 formal_procedure_call
-{    if (debugParser) std::cout << " formal_procedure_call -> " /* << std::endl */; }
     : IDENTIFIER (COMMA! parameter_def_list)?
     ;    
 
 // must handle RETURN, BREAK, CONTINUE also
 procedure_call!//
-{    if (debugParser) std::cout << " procedure_call! -> " /* << std::endl */; }
 // was:
 // formal_procedure_call
     : id:IDENTIFIER 
@@ -934,21 +938,21 @@ procedure_call!//
             { 
                 #id->setType(RETURN); // text is already "return"
                 #procedure_call = #( #id, #e); // make root
-             if (debugParser) std::cout<<" procedure_call : \""<<LT(0)->getText()<<"\""<<std::endl;}
+            }
         | {id->getText() == "BREAK"}?
             {
                 #id->setType(BREAK); // text is already "break"
-                #procedure_call = #id; if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                #procedure_call = #id;
             }
         | {id->getText() == "CONTINUE"}?
             {
                 #id->setType(CONTINUE); // text is already "continue"
-                #procedure_call = #id; if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                #procedure_call = #id;
             }
         | (COMMA! pa:parameter_def_list)? 
         { 
             #procedure_call = #([PCALL, "pcall"], #id, #pa);
-            #procedure_call->SetLine(id->getLine()); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+            #procedure_call->SetLine(id->getLine());
         }
         )
     ;    
@@ -957,28 +961,25 @@ procedure_call!//
 // but as arrays got priority, only real function calls need
 // to be handled here
 formal_function_call
-{    if (debugParser) std::cout << " formal_function_call -> " /* << std::endl */; }
     : IDENTIFIER LBRACE! (parameter_def_list)? RBRACE!
     ;
 
 parameter_def
-{    if (debugParser) std::cout << " parameter_def -> " /* << std::endl */; }
 //    : IDENTIFIER EQUAL! expr
     : identifier EQUAL! expr
-        { #parameter_def = #([KEYDEF,"!=!"], #parameter_def); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+        { #parameter_def = #([KEYDEF,"!=!"], #parameter_def);}
     | expr
 //    | SLASH! id:IDENTIFIER
     | SLASH! id:identifier
         {
             RefDNode c=static_cast<RefDNode>( #[CONSTANT,"1"]);
-            c->Text2Int(10);
             c->SetLine( #id->getLine());
-            #parameter_def = #([KEYDEF,"!=!"], id, c); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+            c->Text2Int(10);
+            #parameter_def = #([KEYDEF,"!=!"], id, c);
         }
     ;
 
 parameter_def_list
-{    if (debugParser) std::cout << " parameter_def_list -> " /* << std::endl */; }
     : parameter_def ( COMMA! parameter_def)*
     ;
 
@@ -987,7 +988,6 @@ array_def
 {
 bool constant = true;
 int flexible_array_def_count=1;
-    if (debugParser) std::cout << " array_def -> " /* << std::endl */; 
 }
     : LSQUARE! e:expr {if( !ConstantExprNode( #e->getType())) constant = false;}
       (
@@ -996,18 +996,17 @@ int flexible_array_def_count=1;
               if( constant)
               #array_def = #([ARRAYDEF_CONST, "array_def_const"], #array_def);
               else
-              #array_def = #([ARRAYDEF, "array_def"], #array_def); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+              #array_def = #([ARRAYDEF, "array_def"], #array_def);
             }
         | (COLON! eee:expr {flexible_array_def_count++;})+ RSQUARE!
           {
             if (flexible_array_def_count>3 || flexible_array_def_count<2) throw GDLException( "Illegal array creation syntax.");
-            #array_def = #([ARRAYDEF_GENERALIZED_INDGEN, "array_def_generalized_indgen"], #array_def); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+            #array_def = #([ARRAYDEF_GENERALIZED_INDGEN, "array_def_generalized_indgen"], #array_def);
           } 
       )
     ;
 
 struct_identifier
-{    if (debugParser) std::cout << " struct_identifier -> " /* << std::endl */; }
     :   ( IDENTIFIER 
         | s:SYSVARNAME  { #s->setType( IDENTIFIER);}  
         | e:EXCLAMATION { #e->setType( IDENTIFIER);}  
@@ -1019,7 +1018,6 @@ struct_identifier
     ;
 
 struct_name
-{    if (debugParser) std::cout << " struct_name -> " /* << std::endl */; }
     :   s:struct_identifier
         // here we translate IDL_OBECT to GDL_OBJECT for source code compatibility
         {
@@ -1031,282 +1029,275 @@ struct_name
     ;
 
 struct_def
-{    if (debugParser) std::cout << " struct_def -> " /* << std::endl */; }
     : LCURLY! 
         (struct_name (COMMA! named_tag_def_list)? RCURLY!
             { #struct_def = 
-                #([NSTRUC_REF, "nstruct_ref"], #struct_def); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+                #([NSTRUC_REF, "nstruct_ref"], #struct_def);}
         | tag_def_list RCURLY!
             { #struct_def = 
-                #([STRUC, "struct"], #struct_def); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+                #([STRUC, "struct"], #struct_def);}
         )
     ;
 
 tag_def
-{    if (debugParser) std::cout << " tag_def -> " /* << std::endl */; }
     : struct_identifier COLON! expr    
     ;    
 
 tag_def_list
-{    if (debugParser) std::cout << " tag_def_list -> " /* << std::endl */; }
     : tag_def (options {greedy=true;} : COMMA! tag_def)*
     ;    
 
 ntag_def
-{    if (debugParser) std::cout << " ntag_def -> " /* << std::endl */; }
     : tag_def
     | expr // for named structs, just the definition is ok
     ;    
 
 ntag_defs
-{    if (debugParser) std::cout << " ntag_defs -> " /* << std::endl */; }
     : ntag_def (options {greedy=true;} : COMMA! ntag_def)*
     ;    
 
 named_tag_def_entry
-{    if (debugParser) std::cout << " named_tag_def_entry -> " /* << std::endl */; }
     :   ( (INHERITS) => INHERITS struct_name
         | ntag_def
         )
     ;
 
 named_tag_def_list
-{    if (debugParser) std::cout << " named_tag_def_list -> " /* << std::endl */; }
     : named_tag_def_entry ( COMMA! named_tag_def_entry)*
     ;    
 
 
 constant_hex_byte!    : c1:CONSTANT_HEX_BYTE^    
         { #constant_hex_byte=#[CONSTANT,c1->getText()];
-          #constant_hex_byte->Text2Byte(16);    
           #constant_hex_byte->SetLine( c1->getLine());    
+          #constant_hex_byte->Text2Byte(16);    
         }  ;
 constant_hex_long! : c2:CONSTANT_HEX_LONG^ 
         { #constant_hex_long=#[CONSTANT,c2->getText()];
-          #constant_hex_long->Text2Long(16);    
           #constant_hex_long->SetLine( c2->getLine());    
+          #constant_hex_long->Text2Long(16);    
         }  ;
 constant_hex_long64! :  c3:CONSTANT_HEX_LONG64^ 
         { #constant_hex_long64=#[CONSTANT,c3->getText()];
-          #constant_hex_long64->Text2Long64(16);    
           #constant_hex_long64->SetLine( c3->getLine());    
+          #constant_hex_long64->Text2Long64(16);    
         }  ;
 constant_hex_int! :  c4:CONSTANT_HEX_INT^ 
         { #constant_hex_int=#[CONSTANT,c4->getText()];
-          #constant_hex_int->Text2Int(16);    
           #constant_hex_int->SetLine( c4->getLine());    
+          #constant_hex_int->Text2Int(16);    
         }  ;
 constant_hex_i! :  c44:CONSTANT_HEX_I^ 
         // DEFINT32
         { #constant_hex_i=#[CONSTANT,c44->getText()];
+          #constant_hex_i->SetLine( c44->getLine());    
             if( compileOpt & DEFINT32)
                 #constant_hex_i->Text2Long(16,true);    
             else
                 #constant_hex_i->Text2Int(16,true);    
-          #constant_hex_i->SetLine( c44->getLine());    
         }  ;
 constant_hex_ulong! :  c5:CONSTANT_HEX_ULONG^ 
         { #constant_hex_ulong=#[CONSTANT,c5->getText()];
-          #constant_hex_ulong->Text2ULong(16);    
           #constant_hex_ulong->SetLine( c5->getLine());    
+          #constant_hex_ulong->Text2ULong(16);    
         }  ;
 constant_hex_ulong64! :  c6:CONSTANT_HEX_ULONG64^
         { #constant_hex_ulong64=#[CONSTANT,c6->getText()];
-          #constant_hex_ulong64->Text2ULong64(16);    
           #constant_hex_ulong64->SetLine( c6->getLine());    
+          #constant_hex_ulong64->Text2ULong64(16);    
         }  ;
 constant_hex_ui!:  c77:CONSTANT_HEX_UI^
         // DEFINT32
         { #constant_hex_ui=#[CONSTANT,c77->getText()];
+          #constant_hex_ui->SetLine( c77->getLine());    
             if( compileOpt & DEFINT32)
                 #constant_hex_ui->Text2ULong(16,true);    
             else
                 #constant_hex_ui->Text2UInt(16,true);    
-          #constant_hex_ui->SetLine( c77->getLine());    
         }  ;
 constant_hex_uint!:  c7:CONSTANT_HEX_UINT^
         { #constant_hex_uint=#[CONSTANT,c7->getText()];
-          #constant_hex_uint->Text2UInt(16);    
           #constant_hex_uint->SetLine( c7->getLine());    
+          #constant_hex_uint->Text2UInt(16);    
         }  ;
 constant_byte!  :  c8:CONSTANT_BYTE^  
         { #constant_byte=#[CONSTANT,c8->getText()];
-          #constant_byte->Text2Byte(10);    
           #constant_byte->SetLine( c8->getLine());    
+          #constant_byte->Text2Byte(10);    
         }  ;
 constant_long! :  c9:CONSTANT_LONG^ 
         { #constant_long=#[CONSTANT,c9->getText()];
-          #constant_long->Text2Long(10);    
           #constant_long->SetLine( c9->getLine());    
+          #constant_long->Text2Long(10);    
         } ; 
 constant_long64! :  c10:CONSTANT_LONG64^ 
         { #constant_long64=#[CONSTANT,c10->getText()];
-          #constant_long64->Text2Long64(10);    
           #constant_long64->SetLine( c10->getLine());    
+          #constant_long64->Text2Long64(10);    
         }  ;
 constant_int!:  c11:CONSTANT_INT^
         { #constant_int=#[CONSTANT,c11->getText()];
-          #constant_int->Text2Int(10);    
           #constant_int->SetLine( c11->getLine());    
+          #constant_int->Text2Int(10);    
         }  ;
 constant_i!:  c111:CONSTANT_I^
         // DEFINT32
         { #constant_i=#[CONSTANT,c111->getText()];
+          #constant_i->SetLine( c111->getLine());    
             if( compileOpt & DEFINT32)
                 #constant_i->Text2Long(10,true);    
             else
                 #constant_i->Text2Int(10,true);    
-          #constant_i->SetLine( c111->getLine());    
         }  ;
 constant_ulong! :  c12:CONSTANT_ULONG^ 
         { #constant_ulong=#[CONSTANT,c12->getText()];
-          #constant_ulong->Text2ULong(10);    
           #constant_ulong->SetLine( c12->getLine());    
+          #constant_ulong->Text2ULong(10);    
         }  ;
 constant_ulong64! :  c13:CONSTANT_ULONG64^ 
         { #constant_ulong64=#[CONSTANT,c13->getText()];
-          #constant_ulong64->Text2ULong64(10);    
           #constant_ulong64->SetLine( c13->getLine());    
+          #constant_ulong64->Text2ULong64(10);    
         } ; 
 constant_ui!:  c144:CONSTANT_UI^
         // DEFINT32
         { #constant_ui=#[CONSTANT,c144->getText()];
+          #constant_ui->SetLine( c144->getLine());    
             if( compileOpt & DEFINT32)
                 #constant_ui->Text2ULong(10,true);    
             else
                 #constant_ui->Text2UInt(10,true);    
-          #constant_ui->SetLine( c144->getLine());    
         }  ;
 constant_uint!:  c14:CONSTANT_UINT^
         { #constant_uint=#[CONSTANT,c14->getText()];
-          #constant_uint->Text2UInt(10);    
           #constant_uint->SetLine( c14->getLine());    
+          #constant_uint->Text2UInt(10);    
         }  ;
 constant_oct_byte!  :  c15:CONSTANT_OCT_BYTE^  
         { #constant_oct_byte=#[CONSTANT,c15->getText()];
-          #constant_oct_byte->Text2Byte(8);    
           #constant_oct_byte->SetLine( c15->getLine());    
+          #constant_oct_byte->Text2Byte(8);    
         }  ;
 constant_oct_long! :  c16:CONSTANT_OCT_LONG^ 
         { #constant_oct_long=#[CONSTANT,c16->getText()];
-          #constant_oct_long->Text2Long(8);    
           #constant_oct_long->SetLine( c16->getLine());    
+          #constant_oct_long->Text2Long(8);    
         }  ;
 constant_oct_long64! :  c17:CONSTANT_OCT_LONG64^ 
         { #constant_oct_long64=#[CONSTANT,c17->getText()];
-          #constant_oct_long64->Text2Long64(8);    
           #constant_oct_long64->SetLine( c17->getLine());    
+          #constant_oct_long64->Text2Long64(8);    
         }  ;
 constant_oct_int!:  c18:CONSTANT_OCT_INT^
         { #constant_oct_int=#[CONSTANT,c18->getText()];
-          #constant_oct_int->Text2Int(8);    
           #constant_oct_int->SetLine( c18->getLine());    
+          #constant_oct_int->Text2Int(8);    
         }  ;
 constant_oct_i!:  c188:CONSTANT_OCT_I^
         // DEFINT32
         { #constant_oct_i=#[CONSTANT,c188->getText()];
+          #constant_oct_i->SetLine( c188->getLine());    
             if( compileOpt & DEFINT32)
                 #constant_oct_i->Text2Long(8,true);    
             else
                 #constant_oct_i->Text2Int(8,true);    
-          #constant_oct_i->SetLine( c188->getLine());    
         }  ;
 constant_oct_ulong! :  c19:CONSTANT_OCT_ULONG^ 
         { #constant_oct_ulong=#[CONSTANT,c19->getText()];
-          #constant_oct_ulong->Text2ULong(8);    
           #constant_oct_ulong->SetLine( c19->getLine());    
+          #constant_oct_ulong->Text2ULong(8);    
         }  ;
 constant_oct_ulong64! :  c20:CONSTANT_OCT_ULONG64^ 
         { #constant_oct_ulong64=#[CONSTANT,c20->getText()];
-          #constant_oct_ulong64->Text2ULong64(8);    
           #constant_oct_ulong64->SetLine( c20->getLine());    
+          #constant_oct_ulong64->Text2ULong64(8);    
         } ; 
 constant_oct_ui!:  c211:CONSTANT_OCT_UI^
         // DEFINT32
         { #constant_oct_ui=#[CONSTANT,c211->getText()];
+          #constant_oct_ui->SetLine( c211->getLine());    
             if( compileOpt & DEFINT32)
                 #constant_oct_ui->Text2ULong(8,true);    
             else
                 #constant_oct_ui->Text2UInt(8,true);    
-          #constant_oct_ui->SetLine( c211->getLine());    
         }  ;
 constant_oct_uint!:  c21:CONSTANT_OCT_UINT^
         { #constant_oct_uint=#[CONSTANT,c21->getText()];
-          #constant_oct_uint->Text2UInt(8);    
           #constant_oct_uint->SetLine( c21->getLine());    
+          #constant_oct_uint->Text2UInt(8);    
         } ; 
 constant_float!     :  c22:CONSTANT_FLOAT^     
         { #constant_float=#[CONSTANT,c22->getText()];
-          #constant_float->Text2Float();    
           #constant_float->SetLine( c22->getLine());    
+          #constant_float->Text2Float();    
         }  ;
 constant_double!:  c23:CONSTANT_DOUBLE^
         { #constant_double=#[CONSTANT,c23->getText()];
-          #constant_double->Text2Double();    
           #constant_double->SetLine( c23->getLine());    
+          #constant_double->Text2Double();    
         }  ;
 constant_bin_byte!  :  c24:CONSTANT_BIN_BYTE^  
         { #constant_bin_byte=#[CONSTANT,c24->getText()];
-          #constant_bin_byte->Text2Byte(2);    
           #constant_bin_byte->SetLine( c24->getLine());    
+          #constant_bin_byte->Text2Byte(2);    
         }  ;
 constant_bin_long! :  c25:CONSTANT_BIN_LONG^ 
         { #constant_bin_long=#[CONSTANT,c25->getText()];
-          #constant_bin_long->Text2Long(2);    
           #constant_bin_long->SetLine( c25->getLine());    
+          #constant_bin_long->Text2Long(2);    
         }  ;
 constant_bin_long64! :  c26:CONSTANT_BIN_LONG64^ 
         { #constant_bin_long64=#[CONSTANT,c26->getText()];
-          #constant_bin_long64->Text2Long64(2);    
           #constant_bin_long64->SetLine( c26->getLine());    
+          #constant_bin_long64->Text2Long64(2);    
         } ; 
 constant_bin_int!:  c27:CONSTANT_BIN_INT^
         { #constant_bin_int=#[CONSTANT,c27->getText()];
-          #constant_bin_int->Text2Int(2);    
           #constant_bin_int->SetLine( c27->getLine());    
+          #constant_bin_int->Text2Int(2);    
         }  ;
 constant_bin_i!:  c277:CONSTANT_BIN_I^
         // DEFINT32
         { #constant_bin_i=#[CONSTANT,c277->getText()];
+          #constant_bin_i->SetLine( c277->getLine());    
             if( compileOpt & DEFINT32)
                 #constant_bin_i->Text2Long(2,true);    
             else
                 #constant_bin_i->Text2Int(2,true);    
-          #constant_bin_i->SetLine( c277->getLine());    
         }  ;
 constant_bin_ulong! :  c28:CONSTANT_BIN_ULONG^ 
         { #constant_bin_ulong=#[CONSTANT,c28->getText()];
-          #constant_bin_ulong->Text2ULong(2);    
           #constant_bin_ulong->SetLine( c28->getLine());    
+          #constant_bin_ulong->Text2ULong(2);    
         }  ;
 constant_bin_ulong64! :  c29:CONSTANT_BIN_ULONG64^ 
         { #constant_bin_ulong64=#[CONSTANT,c29->getText()];
-          #constant_bin_ulong64->Text2ULong64(2);    
           #constant_bin_ulong64->SetLine( c29->getLine());    
+          #constant_bin_ulong64->Text2ULong64(2);    
         } ; 
 constant_bin_ui!:  c300:CONSTANT_BIN_UI^
         // DEFINT32
         { #constant_bin_ui=#[CONSTANT,c300->getText()];
+          #constant_bin_ui->SetLine( c300->getLine());    
             if( compileOpt & DEFINT32)
                 #constant_bin_ui->Text2ULong(2,true);    
             else
                 #constant_bin_ui->Text2UInt(2,true);    
-          #constant_bin_ui->SetLine( c300->getLine());    
         } ; 
 constant_bin_uint!:  c30:CONSTANT_BIN_UINT^
         { #constant_bin_uint=#[CONSTANT,c30->getText()];
-          #constant_bin_uint->Text2UInt(2);    
           #constant_bin_uint->SetLine( c30->getLine());    
+          #constant_bin_uint->Text2UInt(2);    
         };
 constant_cmplx_i!:  c31:CONSTANT_CMPLX_I^
         { #constant_cmplx_i=#[CONSTANT,c31->getText()];
-          #constant_cmplx_i->Text2ComplexI();    
           #constant_cmplx_i->SetLine( c31->getLine());    
+          #constant_cmplx_i->Text2ComplexI();    
         };
 constant_cmplxdbl_i!:  c32:CONSTANT_CMPLXDBL_I^
         { #constant_cmplxdbl_i=#[CONSTANT,c32->getText()];
-          #constant_cmplxdbl_i->Text2ComplexDblI();    
           #constant_cmplxdbl_i->SetLine( c32->getLine());    
+          #constant_cmplxdbl_i->Text2ComplexDblI();    
         }  
     ;
 
@@ -1353,34 +1344,41 @@ numeric_constant
     | constant_cmplx_i
     | constant_cmplxdbl_i
     )
-;
+ ;
 arrayindex_list
 {        
     int rank = 1;
-    if (debugParser) std::cout << " arrayindex_list -> " /* << std::endl */; 
 }
     : LSQUARE! arrayindex ({++rank <= MAXRANK}? COMMA! arrayindex)* RSQUARE!
-    | { IsRelaxed()}? LBRACE! arrayindex ({++rank <= MAXRANK}? COMMA! arrayindex)* RBRACE!
-    ;    
+    | { relaxed }? LBRACE! arrayindex_sloppy ({++rank <= MAXRANK}? COMMA! arrayindex_sloppy)* RBRACE!
+    ;
+    
+arrayindex_list_sloppy
+{        
+    int rank = 1;
+	if (IsTracingSyntaxErrors() && (inputState->guessing == 0 ) ) {
+		std::cerr<<"old syntax at line "<<LT(1).get()->getLine()<<", column "<<LT(1).get()->getColumn()<<std::endl;
+	}
+}
+    : LBRACE! arrayindex_sloppy ({++rank <= MAXRANK}? COMMA! arrayindex_sloppy)* RBRACE!
+    ; 
 
 all_elements!
-{    if (debugParser) std::cout << " all_elements! -> " /* << std::endl */; }
-    : ASTERIX { #all_elements = #([ALL,"*"]); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+    : ASTERIX { #all_elements = #([ALL,"*"]);}
     ;
 
 // used only from arrayindex_list
 arrayindex
-{    if (debugParser) std::cout << " arrayindex -> " /* << std::endl */; }
-  : ((ASTERIX (COMMA|{ IsRelaxed()}? RBRACE|RSQUARE))=> all_elements
+  : ((ASTERIX (COMMA|RSQUARE))=> all_elements
     | expr
          (COLON! 
               (
-                (ASTERIX (COMMA|{ IsRelaxed()}? RBRACE|RSQUARE|COLON))=> all_elements
+                (ASTERIX (COMMA|RSQUARE|COLON))=> all_elements
               | expr
               )
               (COLON! 
                   (
-                    (ASTERIX (COMMA|{ IsRelaxed()}? RBRACE|RSQUARE))=> ASTERIX!
+                    (ASTERIX (COMMA|RSQUARE))=> ASTERIX!
                       {
                       throw  GDLException( "n:n:* subscript form not allowed.");
                       }
@@ -1389,29 +1387,51 @@ arrayindex
               )?
          )?
     )
-    { #arrayindex = #([ARRAYIX,"arrayix"], #arrayindex); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+    { #arrayindex = #([ARRAYIX,"arrayix"], #arrayindex);}
+    ;
+
+// used only from arrayindex_list
+arrayindex_sloppy
+  : (
+       (ASTERIX (COMMA|RBRACE|RSQUARE))=> all_elements
+    | expr
+         (COLON! 
+              (
+                (ASTERIX (COMMA|RBRACE|RSQUARE|COLON))=> all_elements
+              | expr
+              )
+              (COLON! 
+                  (
+                    (ASTERIX (COMMA|RBRACE|RSQUARE))=> ASTERIX!
+                      {
+                      throw  GDLException( "n:n:* subscript form not allowed.");
+                      }
+                  | expr
+                  )
+              )?
+         )?
+    )
+    { #arrayindex_sloppy = #([ARRAYIX,"arrayix"], #arrayindex_sloppy);}
     ;
 
 // the expressions *************************************
 
 // system variable name
 sysvar
-{    if (debugParser) std::cout << " sysvar -> " /* << std::endl */; }
   : SYSVARNAME
-    { #sysvar = #([SYSVAR,"SYSVAR"],sysvar); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+    { #sysvar = #([SYSVAR,"SYSVAR"],sysvar);}
       ;
 
 // variable name
 var!
-{    if (debugParser) std::cout << " var: " /* << std::endl */; }
     :   ( id:IDENTIFIER
             {
-                #var = #([VAR,"VAR"],id); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                #var = #([VAR,"VAR"],id);
             }
         | ih:INHERITS 
             { 
                 #ih->setType( IDENTIFIER);
-                #var = #([VAR,"VAR"],ih); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                #var = #([VAR,"VAR"],ih);
             }  
         // fake IDENTIFIER (variable name can be "INHERITS")
         )
@@ -1422,14 +1442,13 @@ var!
 brace_expr
     :  LBRACE! expr RBRACE!       
         { #brace_expr = 
-            #([EXPR,"expr"], #brace_expr); if (debugParser) std::cout<<"brace_expr: \""<<LT(0)->getText()<<"\""<<std::endl;
+            #([EXPR,"expr"], #brace_expr);
                 }
     ;
 
 // only used in deref_expr
 // sysvar or expr (first in struct access - therefore the name)
 array_expr_1st_sub
-{    if (debugParser) std::cout << " array_expr_1st_sub -> " /* << std::endl */; }
     // a variable MUST be already defined here
     :  var 
     |  sysvar 
@@ -1437,37 +1456,33 @@ array_expr_1st_sub
     ;
 
 array_expr_1st!
-{    if (debugParser) std::cout << " array_expr_1st! -> " /* << std::endl */; }
 // a variable MUST be already defined here
     : e:array_expr_1st_sub
         ( al:arrayindex_list
             { #array_expr_1st = 
-                #([ARRAYEXPR,"arrayexpr"], #e, #al); if (debugParser) std::cout<<" array_expr_1st: \""<<LT(0)->getText()<<"\""<<std::endl;}
+                #([ARRAYEXPR,"arrayexpr"], #e, #al);}
         | // empty
-            { #array_expr_1st = #e; if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+            { #array_expr_1st = #e;}
         )
     ;    
 
 array_expr_nth_sub
-{    if (debugParser) std::cout << " array_expr_nth_sub -> " /* << std::endl */; }
     : IDENTIFIER
     | brace_expr
     ;
 
 // expr
 array_expr_nth!
-{    if (debugParser) std::cout << " array_expr_nth! -> " /* << std::endl */; }
     : e:array_expr_nth_sub
         ( al:arrayindex_list
             { #array_expr_nth = 
-                #([ARRAYEXPR,"arrayexpr"], #e, #al); if (debugParser) std::cout<<"array_expr_nth: \""<<LT(0)->getText()<<"\""<<std::endl;}
+                #([ARRAYEXPR,"arrayexpr"], #e, #al);}
         | // empty
-            { #array_expr_nth = #e; if (debugParser) std::cout<<"array_expr_nth: \""<<LT(0)->getText()<<"\""<<std::endl;}
+            { #array_expr_nth = #e;}
         )
     ;    
 
 tag_array_expr_nth_sub
-{    if (debugParser) std::cout << " tag_array_expr_nth_sub -> " /* << std::endl */; }
     : IDENTIFIER
     | s:SYSVARNAME  
         { #s->setType( IDENTIFIER); /* #s->setText( "!" + #s->getText()); */}  
@@ -1476,13 +1491,12 @@ tag_array_expr_nth_sub
     ;
 
 tag_array_expr_nth!
-{    if (debugParser) std::cout << " tag_array_expr_nth! -> " /* << std::endl */; }
     : e:tag_array_expr_nth_sub
         ( al:arrayindex_list
             { #tag_array_expr_nth = 
-                #([ARRAYEXPR,"arrayexpr"], #e, #al); if (debugParser) std::cout<<"tag_array_expr_nth: \""<<LT(0)->getText()<<"\""<<std::endl;}
+                #([ARRAYEXPR,"arrayexpr"], #e, #al);}
         | // empty
-            { #tag_array_expr_nth = #e; if (debugParser) std::cout<<"tag_array_expr_nth: \""<<LT(0)->getText()<<"\""<<std::endl;}
+            { #tag_array_expr_nth = #e;}
         )
     ;    
 
@@ -1492,7 +1506,6 @@ tag_access_keeplast returns [int nDot]
     int t;
     bool parent = false;
     nDot=1;
-    if (debugParser) std::cout << " tag_access_keeplast -> " /* << std::endl */; 
 }
     : DOT!
         (
@@ -1509,7 +1522,6 @@ deref_dot_expr_keeplast
 {
     RefDNode dot;
     int nDot;
-    if (debugParser) std::cout << " deref_dot_expr_keeplast -> " /* << std::endl */; 
 }
     : a1:array_expr_1st 
         (// (tag_access_keeplast)=>
@@ -1520,21 +1532,20 @@ deref_dot_expr_keeplast
                         dot=#[DOT,"."];
                         dot->SetNDot( nDot);    
                         dot->SetLine( #a1->getLine());
-                        #deref_dot_expr_keeplast = #(dot, #deref_dot_expr_keeplast); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                        #deref_dot_expr_keeplast = #(dot, #deref_dot_expr_keeplast);
                     }
             }        
-//      |   { #deref_dot_expr_keeplast = #a1; if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+//      |   { #deref_dot_expr_keeplast = #a1;}
         )
     | ASTERIX! deref_dot_expr_keeplast
         { #deref_dot_expr_keeplast = 
-            #([DEREF,"deref"], #deref_dot_expr_keeplast); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+            #([DEREF,"deref"], #deref_dot_expr_keeplast);}
     ;
 
 protected
 tag_access returns [SizeT nDot]
 {
     nDot=0;
-    if (debugParser) std::cout << " tag_access -> " /* << std::endl */; 
 }
     : (options {greedy=true;}: DOT! { ++nDot;} tag_array_expr_nth)+
     ;
@@ -1543,7 +1554,6 @@ deref_dot_expr
 {
     RefDNode dot;
     SizeT nDot;
-    if (debugParser) std::cout << " deref_dot_expr -> " /* << std::endl */; 
 }
 //    : array_expr_1st (DOT array_expr_nth)*
     : a1:array_expr_1st 
@@ -1554,20 +1564,19 @@ deref_dot_expr
                 dot->SetNDot( nDot);    
                 dot->SetLine( #a1->getLine());
 
-                #deref_dot_expr = #(dot, #deref_dot_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                #deref_dot_expr = #(dot, #deref_dot_expr);
             }        
 //        |   { #deref_expr = #a1;}
         )
     | ASTERIX! deref_dot_expr
         { #deref_dot_expr = 
-            #([DEREF,"deref"], #deref_dot_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+            #([DEREF,"deref"], #deref_dot_expr);}
     ;
 
 deref_expr
 {
     RefDNode dot;
     SizeT nDot;
-    if (debugParser) std::cout << " deref_expr -> " /* << std::endl */; 
 }
 //    : array_expr_1st (DOT array_expr_nth)*
     : a1:array_expr_1st 
@@ -1579,19 +1588,18 @@ deref_expr
                 dot->SetNDot( nDot);    
                 dot->SetLine( #a1->getLine());
 
-                #deref_expr = #(dot, #deref_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                #deref_expr = #(dot, #deref_expr);
             }        
-        |   { #deref_expr = #a1; if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+        |   { #deref_expr = #a1;}
         )
     | ASTERIX! deref_expr
         { #deref_expr = 
-            #([DEREF,"deref"], #deref_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;}
+            #([DEREF,"deref"], #deref_expr);}
     ;
 
 
 protected
 member_function_call returns [bool parent]
-{    if (debugParser) std::cout << " member_function_call -> " /* << std::endl */; }
     : { parent = false;} MEMBER! 
         (s:IDENTIFIER METHOD! 
             { 
@@ -1606,7 +1614,6 @@ member_function_call returns [bool parent]
             } )? formal_function_call
       ;
 member_function_call_dot
-{    if (debugParser) std::cout << " member_function_call_dot -> " /* << std::endl */; }
     :  DOT! (s:IDENTIFIER METHOD!
         // here we translate IDL_OBECT to GDL_OBJECT for source code compatibility
         {
@@ -1619,10 +1626,31 @@ member_function_call_dot
       ;
 
 assign_expr
-{    if (debugParser) std::cout << " assign_expr -> " /* << std::endl */; }
-    : LBRACE! deref_expr EQUAL! expr RBRACE! // assignment
-        { #assign_expr = #([ASSIGN,":="], #assign_expr); if (debugParser) std::cout<<" assign_expr : \""<<LT(0)->getText()<<"\""<<std::endl;}
-    ;
+    : LBRACE! deref_expr 
+	(
+      EQUAL!  { #assign_expr = #([ASSIGN,":="], #assign_expr);} 
+    | AND_OP_EQ^ 
+    | ASTERIX_EQ^ 
+    | EQ_OP_EQ^ 
+    | GE_OP_EQ^
+    | GTMARK_EQ^
+    | GT_OP_EQ^
+    | LE_OP_EQ^
+    | LTMARK_EQ^
+    | LT_OP_EQ^
+    | MATRIX_OP1_EQ^
+    | MATRIX_OP2_EQ^
+    | MINUS_EQ^
+    | MOD_OP_EQ^
+    | NE_OP_EQ^
+    | OR_OP_EQ^
+    | XOR_OP_EQ^
+    | PLUS_EQ^
+    | POW_EQ^
+    | SLASH_EQ^
+    ) expr RBRACE! // assignment
+//        { #assign_expr = #([ASSIGN,":="], #assign_expr);}
+;
 
 // arrayexpr_mfcall_last
 //     : (IDENTIFIER^ arrayindex_list) 
@@ -1634,7 +1662,6 @@ arrayexpr_mfcall!
     RefDNode dot;
     RefDNode tag;
     int nDot;
-    if (debugParser) std::cout << " arrayexpr_mfcall! -> " /* << std::endl */; 
 }
     : a1:array_expr_1st 
         (   // this rule is only for production // (tag_access_keeplast)=>
@@ -1655,11 +1682,10 @@ arrayexpr_mfcall!
                 #arrayexpr_mfcall = #([ARRAYEXPR_MFCALL,"arrayexpr_mfcall"], #tag, #id, #al);
             else
                 #arrayexpr_mfcall = #([ARRAYEXPR_MFCALL,"arrayexpr_mfcall"], #a1, #id, #al);
-         if (debugParser) std::cout<<"arrayexpr_mfcall : \""<<LT(0)->getText()<<"\""<<std::endl;
 	 }
     | ASTERIX deref_arrayexpr_mfcall:arrayexpr_mfcall
         { #arrayexpr_mfcall = 
-            #([DEREF,"deref"], #deref_arrayexpr_mfcall); if (debugParser) std::cout<<" deref_arrayexpr_mfcall : \""<<LT(0)->getText()<<"\""<<std::endl;}
+            #([DEREF,"deref"], #deref_arrayexpr_mfcall);}
     ;
 
 
@@ -1667,19 +1693,17 @@ arrayexpr_mfcall!
 primary_expr 
 {
     bool parent;
-    if (debugParser) std::cout << " -> primary_expr -> ";
     }
     : 
         // with METHOD
         (deref_dot_expr_keeplast baseclass_method)=>
         d1:deref_dot_expr_keeplast baseclass_method formal_function_call
         {
-        if (debugParser) std::cout << " d1:deref_dot_expr_keeplast baseclass_method formal_function_call "<< std::endl;
-            #primary_expr = #([MFCALL_PARENT, "mfcall::"], #primary_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+            #primary_expr = #([MFCALL_PARENT, "mfcall::"], #primary_expr);
         }   
     | 
         // ambiguity (arrayexpr or mfcall)
-        (deref_dot_expr_keeplast (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE))=> arrayexpr_mfcall {if (debugParser) std::cout << " deref_dot_expr_keeplast (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE))=> arrayexpr_mfcall -> " /*<< std::endl */;}
+        (deref_dot_expr_keeplast (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE))=> arrayexpr_mfcall 
     | 
         // not the above -> unambigous mfcall (or unambigous array expr handled below)
         (deref_dot_expr_keeplast formal_function_call)=> 
@@ -1687,7 +1711,7 @@ primary_expr
             // here it is impossible to decide about function call
             // as we do not know the object type/struct tag
             formal_function_call
-            { if (debugParser) std::cout << "  (deref_dot_expr_keeplast formal_function_call)=> d3:deref_dot_expr_keeplast formal_function_call -> " << std::endl; #primary_expr = #([MFCALL, "mfcall"], #primary_expr);}
+            {#primary_expr = #([MFCALL, "mfcall"], #primary_expr);}
     |   // a member function call starts with a deref_expr 
          (deref_dot_expr)=>
         // same parsing as (deref_expr)=> see below
@@ -1697,46 +1721,37 @@ primary_expr
                 if( parent)
                 {
                     #primary_expr = #([MFCALL_PARENT, "mfcall::"], #primary_expr);
-		    if (debugParser) std::cout << " (deref_dot_expr)=>deref_expr ( parent=true) " << std::endl;
                 } 
                 else
                 {
                     #primary_expr = #([MFCALL, "mfcall"], #primary_expr);
-		    if (debugParser) std::cout << " (deref_dot_expr)=>deref_expr -> primary_expr " << std::endl;
                 }
             }
-        | { if (debugParser) std::cout << " | empty -> array expression -> "/* << std::endl */;}  // empty -> array expression
+        | 
         )
     |   
         // ambiguity (arrayexpr or fcall)
         (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE)=>
         (
-
-            // already known function 
-            // (could be reordered, but this is conform to original)
+			// an existing function makes it a formal_function_call (hence the need for forward_function)
             { IsFun(LT(1))}? formal_function_call
             { 
-             if (debugParser) std::cout << " (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE)=> formal_function_call " /* << std::endl */;
-                   #primary_expr = #([FCALL, "fcall"], #primary_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                   #primary_expr = #([FCALL, "fcall"], #primary_expr);
             }
         | 
-            // still ambiguity (arrayexpr or fcall)
-        (var arrayindex_list)=> var arrayindex_list     // array_expr_fn
+            // can be an array if we are in recoverable fussy mode (or not fussy at all)
+            {fussy < 2}? (var arrayindex_list_sloppy)=> var arrayindex_list_sloppy     // array_expr_fn
             { 
-             if (debugParser) std::cout << "(var arrayindex_list)=> var arrayindex_list -> " /* << std::endl */;
-
-                #primary_expr = #([ARRAYEXPR_FCALL,"arrayexpr_fcall"], #primary_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
-	    }
+                #primary_expr = #([ARRAYEXPR_FCALL,"arrayexpr_fcall"], #primary_expr);
+	        }
         |   // if arrayindex_list failed (due to to many indices)
             // this must be a function call
-            formal_function_call
-            {  if (debugParser) std::cout << " (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE)=>formal_function_call -> " /* << std::endl */;
-                   #primary_expr = #([FCALL, "fcall"], #primary_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
-            }
-        )
+           formal_function_call
+                 {#primary_expr = #([FCALL, "fcall"], #primary_expr);}
+		)
     |   // not the above => keyword parameter (or no args) => function call
          (formal_function_call)=> formal_function_call
-         { if (debugParser) std::cout << " (formal_function_call)=> formal_function_call -> " << std::endl; #primary_expr = #([FCALL, "fcall"], #primary_expr);}
+         { #primary_expr = #([FCALL, "fcall"], #primary_expr);}
 
     |   // a member function call starts with a deref_expr 
         // deref_dot_expr already failed
@@ -1746,23 +1761,20 @@ primary_expr
             { 
                 if( parent)
                 {
-                    if (debugParser) std::cout << " (deref_expr)=> deref_expr ( parent=true) -> " /* << std::endl */;
-                    #primary_expr = #([MFCALL_PARENT, "mfcall::"], #primary_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                    #primary_expr = #([MFCALL_PARENT, "mfcall::"], #primary_expr);
                 }
                 else
                 {
-                    if (debugParser) std::cout << " (deref_expr)=> deref_expr ( parent=false) -> " /* << std::endl */;
-                    #primary_expr = #([MFCALL, "mfcall"], #primary_expr); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+                    #primary_expr = #([MFCALL, "mfcall"], #primary_expr);
                 }
             }
-        |{ if (debugParser) std::cout << " (deref_expr)=> deref_expr | empty -> array expression No 2!"/* << std::endl */;}  // empty -> array expression
+        |
         )
 
     |! sl:STRING_LITERAL // also a CONSTANT
         { #primary_expr=#[CONSTANT,sl->getText()];
             #primary_expr->Text2String();    
             #primary_expr->SetLine( #sl->getLine());
-	    { if (debugParser) std::cout << "STRING_LITERAL" <<std::endl;}
         }  
     | assign_expr 	   
     | numeric_constant 	   
@@ -1770,69 +1782,63 @@ primary_expr
     | struct_def 	   
     | ! ls:LSQUARE !RSQUARE
         { #primary_expr=#[GDLNULL,"GDLNULL[]"];
-            #primary_expr->SetLine( #ls->getLine()); if (debugParser) std::cout << "NULL" << std::endl;
+            #primary_expr->SetLine( #ls->getLine());
         }  
     | ! lc:LCURLY !RCURLY
         { #primary_expr=#[GDLNULL,"GDLNULL{}"];
-            #primary_expr->SetLine( #lc->getLine()); if (debugParser) std::cout << "NULL" << std::endl;
+            #primary_expr->SetLine( #lc->getLine());
         }  
 	;
 
 // only one INC/DEC allowed per target
 decinc_expr
-//{    if (debugParser) std::cout << " -> decinc_expr "; }
-    : primary_expr 
-        ( i:INC^ { #i->setType( POSTINC); #i->setText( "_++");if (debugParser) std::cout << "++" <<std::endl;} 
-        | d:DEC^ { #d->setType( POSTDEC); #d->setText( "_--");if (debugParser) std::cout << "--" <<std::endl;} 
-        | // empty
-        )
-    | INC^ primary_expr
-    | DEC^ primary_expr
+    : (INC^ | DEC^) primary_expr
+    | primary_expr 
+        ( i:INC^ { #i->setType( POSTINC); #i->setText( "_++");} 
+        | d:DEC^ { #d->setType( POSTDEC); #d->setText( "_--");} 
+        )?
     ;
 
-exponential_expr
-//{    if (debugParser) std::cout << " -> exponential_expr" ; }
-    : decinc_expr 
-        (POW^ decinc_expr 
-        )*
-    ;
+exponential_expr: //<assoc=right> for ANTLR4
+     decinc_expr
+     (
+       POW^ decinc_expr
+     )*
+     ;
 
-
-multiplicative_expr
-//{    if (debugParser) std::cout << " -> multiplicative_expr "; }
-    : exponential_expr
-        (
-            ( ASTERIX^
-            | MATRIX_OP1^
-            | MATRIX_OP2^
-            | SLASH^ 
-            | MOD_OP^
-            | AND_OP_EQ^ 
-            | ASTERIX_EQ^ 
-            | EQ_OP_EQ^ 
-            | GE_OP_EQ^
-            | GTMARK_EQ^
-            | GT_OP_EQ^
-            | LE_OP_EQ^
-            | LTMARK_EQ^
-            | LT_OP_EQ^
-            | MATRIX_OP1_EQ^
-            | MATRIX_OP2_EQ^
-            | MINUS_EQ^
-            | MOD_OP_EQ^
-            | NE_OP_EQ^
-            | OR_OP_EQ^
-            | PLUS_EQ^
-            | POW_EQ^
-            | SLASH_EQ^
-            | XOR_OP_EQ^
-            ) exponential_expr
-        )*
-    ;
+multiplicative_expr: // '*' | '#' | '##' | '/' | 'mod' // level 4
+      exponential_expr
+      (
+        ( ASTERIX^
+	| MATRIX_OP1^
+	| MATRIX_OP2^
+	| SLASH^
+	| MOD_OP^
+//            | AND_OP_EQ^ 
+//            | ASTERIX_EQ^ 
+//            | EQ_OP_EQ^ 
+//            | GE_OP_EQ^
+//            | GTMARK_EQ^
+//            | GT_OP_EQ^
+//            | LE_OP_EQ^
+//            | LTMARK_EQ^
+//            | LT_OP_EQ^
+//            | MATRIX_OP1_EQ^
+//            | MATRIX_OP2_EQ^
+//            | MINUS_EQ^
+//            | MOD_OP_EQ^
+//            | NE_OP_EQ^
+//            | OR_OP_EQ^
+//            | PLUS_EQ^
+//            | POW_EQ^
+//            | SLASH_EQ^
+//            | XOR_OP_EQ^
+	) exponential_expr
+      )*
+      ;
 
 // only one allowed per target
 signed_multiplicative_expr
-//{    if (debugParser) std::cout << " -> signed_multiplicative_expr "; }
     : PLUS! multiplicative_expr
     | m:MINUS^ multiplicative_expr
         { 
@@ -1843,7 +1849,6 @@ signed_multiplicative_expr
     ;
 
 additive_expr
-//{    if (debugParser) std::cout << " -> additive_expr "; }
     : (signed_multiplicative_expr | neg_expr)
         ( 
             ( PLUS^
@@ -1859,7 +1864,6 @@ additive_expr
     ;
 
 neg_expr
-//{    if (debugParser) std::cout << " -> neg_expr "; }
     : NOT_OP^ multiplicative_expr
 // true precedence of ~ operator
     | LOG_NEG^ multiplicative_expr
@@ -1867,7 +1871,6 @@ neg_expr
 
 
 relational_expr
-//{    if (debugParser) std::cout << " -> relational_expr "; }
     : additive_expr
         (
             ( EQ_OP^
@@ -1881,7 +1884,6 @@ relational_expr
     ;
 
 boolean_expr
-//{    if (debugParser) std::cout << " -> boolean_expr" ; }
     : relational_expr
         ( 
             ( AND_OP^ 
@@ -1892,7 +1894,6 @@ boolean_expr
     ;
 
 logical_expr
-//{    if (debugParser) std::cout << " -> logical_expr "; }
     : boolean_expr
         ( 
             ( LOG_AND^ 
@@ -1902,7 +1903,6 @@ logical_expr
     ;
 
 expr
-{    if (debugParser) std::cout << " expr-> "; }
   : logical_expr
     (
       QUESTION^ expr
@@ -1919,7 +1919,7 @@ options {
     testLiterals =false;
     caseSensitiveLiterals=false;
     exportVocab=GDL;
-    k=3;
+    k=4;
     defaultErrorHandler = false;
 //    defaultErrorHandler = true;
 //      analyzerDebug=true;
@@ -2140,7 +2140,7 @@ INCLUDE!
         }
     ;
 
-AND_OP_EQ: { LA(4) == '='}? "and="; 
+AND_OP_EQ: "and="; 
 ASTERIX_EQ:"*=";
 EQ_OP_EQ:"eq=";
 GE_OP_EQ:"ge=";
@@ -2152,13 +2152,13 @@ LT_OP_EQ:"lt=";
 MATRIX_OP1_EQ:"#=";
 MATRIX_OP2_EQ:"##=";
 MINUS_EQ:"-=";
-MOD_OP_EQ: { LA(4) == '='}? "mod=";
+MOD_OP_EQ: "mod=";
 NE_OP_EQ:"ne=";
 OR_OP_EQ:"or=";
 PLUS_EQ:"+=";
 POW_EQ:"^=";
 SLASH_EQ:"/=";
-XOR_OP_EQ: { LA(4) == '='}? "xor=";
+XOR_OP_EQ: "xor=";
 
 MATRIX_OP1:'#';
 MATRIX_OP2:"##";

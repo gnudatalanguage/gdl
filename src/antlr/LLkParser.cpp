@@ -2,7 +2,7 @@
  * Project led by Terence Parr at http://www.jGuru.com
  * Software rights: http://www.antlr.org/license.html
  *
- * $Id: LLkParser.cpp,v 1.8 2013-05-07 13:13:52 m_schellens Exp $
+ * $Id: //depot/code/org.antlr/release/antlr-2.7.7/lib/cpp/src/LLkParser.cpp#2 $
  */
 
 #include "antlr/LLkParser.hpp"
@@ -40,39 +40,32 @@ LLkParser::LLkParser(TokenStream& lexer, int k_)
 
 void LLkParser::trace(const char* ee, const char* rname)
 {
-  // only show non-guessing (production) calls
-  if(inputState->guessing>0) return;
-	
-  traceIndent();
-  
-  cout << ee << rname << ((inputState->guessing>0)?";                  ?: ":";          <: ");
-  
-  for (int i = 1; i <= k+3; i++)
-    {
-      if (i != 1) {
-	//cout << ", ";
-	cout << " ";
-      }
-      //cout << "LA(" << i << ")==";
-      
-      string temp;
-      
-      try {
-	temp = LT(i)->getText().c_str();
-      }
-      catch( ANTLRException& ae )
+	traceIndent();
+
+	cout << ee << rname << ((inputState->guessing>0)?"; [guessing]":"; ");
+
+	for (int i = 1; i <= k; i++)
 	{
-	  temp = "[error: ";
-	  temp += ae.toString();
-	  temp += ']';
+		if (i != 1) {
+			cout << ", ";
+		}
+		cout << "LA(" << i << ")==";
+
+		string temp;
+
+		try {
+			temp = LT(i)->getText().c_str();
+		}
+		catch( ANTLRException& ae )
+		{
+			temp = "[error: ";
+			temp += ae.toString();
+			temp += ']';
+		}
+		cout << temp;
 	}
-      if( temp == "\n")
-	cout << "\\n";
-      else
-	cout << temp;
-    }
-  
-  cout << endl;
+
+	cout << endl;
 }
 
 void LLkParser::traceIn(const char* rname)

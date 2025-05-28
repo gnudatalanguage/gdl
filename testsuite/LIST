@@ -165,6 +165,7 @@ test_qhull.pro
 test_qromb.pro
 test_qromo.pro
 test_readf_with_crlf.pro
+test_readf.pro
 test_reads.pro
 test_rebin.pro
 test_rot.pro

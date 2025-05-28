@@ -275,7 +275,7 @@ void AnyStream::OpenAsPipes(const std::string& name_, const std::ios_base::openm
     }
   }
 #else
-  throw GDLIOException(-1,"This command relies on GNU extensions to the std C++ library that were not available during compilation on your system (?)");
+  throw GDLException("This command relies on GNU extensions to the std C++ library that were not available during compilation on your system (?)");
 #endif
 }
   void AnyStream::Open(const std::string& name_, ios_base::openmode mode_, bool compress_) {
@@ -324,7 +324,6 @@ void AnyStream::OpenAsPipes(const std::string& name_, const std::ios_base::openm
 
   if (fStream == NULL)
     fStream = new fstream();
-  if (fStream->is_open()) throw GDLIOException(-1, "File already opened.");
   fStream->open(name_.c_str(), mode_);
 
   if (fStream->fail()) {
@@ -535,7 +534,7 @@ std::streampos AnyStream::Size() {
     fStream->rdbuf()->pubseekpos(cur, std::ios_base::in | std::ios_base::out);
     return end;
   } else if (ofStream != NULL) {
-    std::streampos cur = ofStream->tellp(); 
+    std::streampos cur = ofStream->tellg(); 
     std::streampos end = ofStream->rdbuf()->pubseekoff(0, std::ios_base::end);
     ofStream->rdbuf()->pubseekpos(cur, std::ios_base::out);
     return end;
@@ -559,8 +558,8 @@ std::streampos AnyStream::Size() {
 }
 
 std::streampos AnyStream::Tell() {
-  if (fStream != NULL) return fStream->tellp(); //openr
-  else if (ofStream != NULL) return ofStream->tellp(); //openr
+  if (fStream != NULL) return fStream->tellp();
+  else if (ofStream != NULL) return ofStream->tellg();
   else if (igzStream != NULL)
     return igzStream->rdbuf()->getPosition(); 
   else if (ogzStream != NULL)
