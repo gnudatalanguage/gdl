@@ -8,18 +8,20 @@
 ; -- values in second column are very close to One
 ; -- values in third and fourth column are close to initial values
 ;
-pro TEST_STANDARDIZE, liste_var, nb_var=nb_var, nb_obs=nb_obs, $
-                      no_exit=no_exit, double=double, $
-                      test=test, help=help, verbose=verbose
+; ------------------------------------------
+; Modification history:
 ;
-if KEYWORD_SET(help) then begin
-    print, 'pro TEST_STANDARDIZE, liste_var, nb_var=nb_var, nb_obs=nb_obs, $'
-    print, '                      no_exit=no_exit, double=double, $'
-    print, '                      test=test, help=help, verbose=verbose'
-    return
-endif
+; 2025-04-23 : AC going to standard way in 2025 ! (ERRORS_ADD, ...)
 ;
-if N_PARAMS() EQ 0 then liste_var=[-100., -10., 1e-3, 25., 1e3]
+; ------------------------------------------
+;
+pro TEST_STANDARDIZE_BASIC, cumul_errors, $
+                            liste_var=liste_var, nb_var=nb_var, nb_obs=nb_obs, $
+                            double=double, test=test, verbose=verbose
+;
+nb_pb=0
+;
+if ~KEYWORD_SET(liste_var) then liste_var=[-100., -10., 1e-3, 25., 1e3]
 ;
 if N_ELEMENTS(nb_var) EQ 0 then nb_var=N_ELEMENTS(liste_var)
 ;
@@ -52,29 +54,21 @@ for ii=0, nb_var-1 do std_res[*,ii]=MOMENT(std_data[ii,*])
 ;
 total_pb=0
 error=1e-2
+;
 ; first column must be close to Zero
 pb=WHERE(ABS(std_res[0,*]) GT error, nb_pb)
-if nb_pb GT 0 then begin
-   if KEYWORD_SET(verbose) then MESSAGE,/continue, 'pb with Zero''s'
-   total_pb=total_pb+nb_pb
-endif
+if nb_pb GT 0 then ERRORS_ADD, 'pb with Zero''s', nb_pb
+;
 ; second column must be close to One
 pb=WHERE(ABS(std_res[1,*]-1.0) GT error, nb_pb)
-if nb_pb GT 0 then begin
-   if KEYWORD_SET(verbose) then MESSAGE,/continue, 'pb with One''s'
-   total_pb=total_pb+nb_pb
-endif
+if nb_pb GT 0 then ERRORS_ADD, 'pb with One''s', nb_pb
+;
 ; third and fourth columns must remain equal
 pb=WHERE(ABS(std_res[2,*]-raw_res[2,*]) GT error, nb_pb)
-if nb_pb GT 0 then begin
-   if KEYWORD_SET(verbose) then MESSAGE,/continue, 'pb with Two''s'
-   total_pb=total_pb+nb_pb
-endif
+if nb_pb GT 0 then ERRORS_ADD, 'pb with Two''s', nb_pb
+
 pb=WHERE(ABS(std_res[3,*]-raw_res[3,*]) GT error, nb_pb)
-if nb_pb GT 0 then begin
-   if KEYWORD_SET(verbose) then MESSAGE,/continue, 'pb with Three''s'
-   total_pb=total_pb+nb_pb
-endif
+if nb_pb GT 0 then ERRORS_ADD, 'pb with Three''s', nb_pb
 ;
 if KEYWORD_SET(verbose) then begin
    print, "Stats on input array:"
@@ -83,17 +77,44 @@ if KEYWORD_SET(verbose) then begin
    print, std_res
 endif
 ;
+; --------------
+;
+BANNER_FOR_TESTSUITE, "TEST_STANDARDIZE_BASIC", nb_pb, /short
+ERRORS_CUMUL, cumul_errors, nb_pb
 if KEYWORD_SET(test) then STOP
 ;
-if (total_pb GT 0) then begin
-    if KEYWORD_SET(no_exit) then begin
-        MESSAGE, /continue, ' tests failed (but base on RANDOMN ...'
-    endif else begin
-        EXIT, status=1
-    endelse
-endif else begin
-    MESSAGE,/continue, 'tests successful'
-endelse
+end
+;
+; ------------------------------------------
+;
+pro TEST_STANDARDIZE, verbose=verbose, no_exit=no_exit, $
+                      test=test, help=help
+;
+if KEYWORD_SET(help) then begin
+   print, 'pro TEST_STANDARDIZE, verbose=verbose, no_exit=no_exit, $'
+   print, '                      test=test, help=help'
+   return
+endif
+;
+cumul_errors=0
+;
+TEST_STANDARDIZE_BASIC, cumul_errors, verbose=verbose
+TEST_STANDARDIZE_BASIC, cumul_errors, verbose=verbose, /double
+;
+liste_var=[-100., -10., 1e-3, 25., 1e3]
+TEST_STANDARDIZE_BASIC, cumul_errors, liste_var=liste_var
+;
+TEST_STANDARDIZE_BASIC, cumul_errors, nb_obs=10
+TEST_STANDARDIZE_BASIC, cumul_errors, nb_obs=10, /double
+;
+TEST_STANDARDIZE_BASIC, cumul_errors, nb_obs=100
+TEST_STANDARDIZE_BASIC, cumul_errors, nb_obs=100, /double
+;
+; ----------------- final MESSAGE ----------
+;
+BANNER_FOR_TESTSUITE, 'TEST_STANDARDIZE', cumul_errors
+;
+if (cumul_errors gt 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+if KEYWORD_SET(test) then stop
 ;
 end
-

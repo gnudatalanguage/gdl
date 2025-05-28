@@ -56,8 +56,8 @@ namespace lib {
     SizeT xEl, yEl, zEl, ixEl, iyEl;
     DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd;
     DDouble minVal, maxVal;
-    bool isLog;
-    bool overplot, nodata;
+    bool isLog=false;
+    bool overplot=false, nodata=false;
     DLongGDL *colors, *labels, *style;
     DFloatGDL* thick;
     Guard<BaseGDL> colors_guard, thick_guard, labels_guard, style_guard;
@@ -431,7 +431,7 @@ namespace lib {
         } else {
           zintv = AutoTickIntv(cmax - cmin, true); //zintv never null.
           nlevel = (PLINT) floor((cmax - cmin) / zintv);
-          if (nlevel <= 0) nodata = true; //yes, happens if image has constant value...
+          if (nlevel <= 0) nodata = true; else nodata=false; //yes, happens if image has constant value...
         }
         if (fill) {
           nlevel = nlevel + 1;
