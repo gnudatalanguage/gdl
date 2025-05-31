@@ -524,7 +524,8 @@ int GDLInterpreter::GetProIx(ProgNodeP f)
     if (proIx != -1) return proIx;
 #ifdef 	AUTO_PRINT_EXPR
     //noInteractive: throw
-    if (noInteractive) throw GDLException(f, "Attempt to call undefined procedure: " + subName, true, false);
+    std::string errormess="Attempt to call undefined procedure: " + subName;
+    if (noInteractive) throw GDLException(f, errormess, true, false);
     //attempts an implied print. All this should be done in the ANTLR stuff of course.
     //We are here because the text is interpreted as a procedure. It is not (otherwise it would have been found),
     //but it could just be one or a series of variable names, such as in "a=dist(3) & b=findgen(2) & a,b"
@@ -533,7 +534,7 @@ int GDLInterpreter::GetProIx(ProgNodeP f)
     //gather types of siblings. if they are not all "ref", do not tempt anything
     EnvStackT& callStack = ProgNode::interpreter->CallStack();
     DLong curlevnum = callStack.size();
-    if (curlevnum > 1) throw GDLException(f, "Attempt to call undefined procedure: " + subName, true, false);
+    if (curlevnum > 1) throw GDLException(f, errormess, true, false);
     DSubUD* pro = static_cast<DSubUD*> (callStack[curlevnum - 1]->GetPro());
     bool ok = true;
     ProgNodeP test = f;
@@ -555,9 +556,9 @@ int GDLInterpreter::GetProIx(ProgNodeP f)
         ProgNode::interpreter->SetRetTree(f->GetLastSibling()->GetNextSibling());
         return proIx;
       } catch (GDLException& e) {
-        throw GDLException(f, "Unhandled expression.", false, false);
+        throw GDLException(f, errormess, false, false);
       }
-    } else throw GDLException(f, "Unknown variable: " + subName, true, false);
+    } else throw GDLException(f, errormess, true, false);
 #else      
       throw GDLException(f, "Attempt to call undefined procedure: " + subName, true, false);
 #endif    
