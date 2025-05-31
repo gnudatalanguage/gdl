@@ -241,6 +241,7 @@ void LibInit_jmg()
   
   const string linkimageKey[]={"FUNCT", "KEYWORDS", "MAX_ARGS", "MIN_ARGS", "DEFAULT", KLISTEND}; //DEFAULT is VMS obsolete
   new DLibPro( lib::linkimage, string("LINKIMAGE"), 4, linkimageKey, NULL, 2 );
+  new DLibPro( lib::dlm_load, string("DLM_LOAD"), -1, NULL, NULL, 1 );
   const string unlinkimageKey[]={"FORCE", KLISTEND};
   new DLibPro( lib::unlinkimage, string("UNLINKIMAGE"), 1, unlinkimageKey );
   const string unlinksymbolKey[]={"FUNCT", KLISTEND};

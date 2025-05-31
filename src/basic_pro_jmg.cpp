@@ -486,6 +486,10 @@ void CleanupProc( DLibPro* proc ) {
       if (docount) (*returnedCount)[0] = ret;
     }
   }
+  void dlm_load( EnvT* e ) {
+    // do nothing as long we do load the .so segment when opening a dlm.
+    // if not, this would be a good place to call DllContainer::get( shrdimgName ); (see below)
+  }
   void linkimage( EnvT* e ) {
 
     SizeT nP = e->NParam(2);
