@@ -328,7 +328,7 @@ static void help_Output(BaseGDL** outputKW, ostringstream& ostr, SizeT &nlines, 
     StrArr path = SysVar::GDLPath();
 
     std::sort(path.begin(),path.end());
-    ostr << "!PATH (Disabled, "<< path.size() <<" directories)" << '\n';
+    ostr << "!PATH Cache (Enabled, "<< path.size() <<" directories)" << '\n';
     lines_count = 1;
 
     for (StrArr::iterator CurrentDir = path.begin(); CurrentDir != path.end(); ++CurrentDir) {

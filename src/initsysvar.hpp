@@ -26,6 +26,7 @@ namespace SysVar
   // returns a StrArr with the path to search
   const StrArr& GDLPath();
   void SetGDLPath( const DString& newPath);
+  void SetDlmPath( const DString& newPath);
 
   // returns !P
   DStructGDL* P();

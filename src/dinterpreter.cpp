@@ -625,19 +625,19 @@ void GDLInterpreter::AdjustTypes(BaseGDL* &a, BaseGDL* &b)
 void GDLInterpreter::ReportCompileError( GDLException& e, const string& file)
 {
   cout << flush;
-  cerr << SysVar::MsgPrefix() << e.toString() << endl;
+  std::cerr << SysVar::MsgPrefix() << e.toString() << endl;
   if( file != "")
     {
-      cerr << "  At: " << file;
+      std::cerr << "  At: " << file;
       SizeT line = e.getLine();
       if( line != 0)
 	{       
-	  cerr  << ", Line " << line;
+	  std::cerr  << ", Line " << line;
 	  SizeT col = e.getColumn();
 	  if( col != 0)
-	    cerr << "  Column " << e.getColumn();
+	    std::cerr << "  Column " << e.getColumn();
 	}
-      cerr << endl;
+      std::cerr << endl;
     }
 }
 
@@ -672,7 +672,7 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro, bool s
     }
   catch( ANTLRException& e)
     {
-      cerr << "Lexer/Parser exception: " <<  e.getMessage() << endl;
+      std::cerr << "Lexer/Parser exception: " <<  e.getMessage() << endl;
       return false;
     }
 
@@ -706,7 +706,7 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro, bool s
     }
   catch( ANTLRException& e)
     {
-      cerr << "Compiler exception: " <<  e.getMessage() << endl;
+      std::cerr << "Compiler exception: " <<  e.getMessage() << endl;
       if( treeParser.ActiveProCompiled()) RetAll();
       return false;
     }
@@ -752,7 +752,7 @@ bool GDLInterpreter::CompileSaveFile(RefDNode theSemiCompiledAST)
     }
   catch( ANTLRException& e)
     {
-      cerr << "Compiler exception: " <<  e.getMessage() << endl;
+      std::cerr << "Compiler exception: " <<  e.getMessage() << endl;
 //      if( treeParser.ActiveProCompiled()) RetAll();
       return false;
     }
@@ -1092,10 +1092,115 @@ if( astR->getNextSibling() != NULL) AddLineOffset( lineOffset, (RefDNode)astR->g
 }
 
 // execute one line of code (commands and statements)
+DInterpreter::CommandCode DInterpreter::ExecuteStringLine( std::string &line)
+{
+  // statement -> execute it
+  executeLine.clear(); // clear EOF (for executeLine)
+  executeLine.str( line + "\n"); // append new line
+
+  RefDNode theAST;
+  try { 
+    Guard<GDLLexer> lexer;
+	  lexer.Reset(new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
+	  lexer.Get()->Parser().interactive();
+    //    lexer->Parser().interactive();
+    theAST = lexer.Get()->Parser().getAST();
+  }
+  catch( GDLException& e)
+    {
+      ReportCompileError( e);
+      return CC_OK;
+    }
+  catch( ANTLRException& e)
+    {
+      std::cerr << "Lexer/Parser exception: " <<  e.getMessage() << endl;
+      return CC_OK;
+    }
+
+  if( theAST == NULL) return CC_OK;
+
+  ProgNodeP progAST = NULL;
+
+  RefDNode trAST;
+	
+  assert( dynamic_cast<EnvUDT*>(callStack.back()) != NULL);
+  EnvUDT* env = static_cast<EnvUDT*>(callStack.back());
+  int nForLoopsIn = env->NForLoops();
+  try
+    {
+      GDLTreeParser treeParser( callStack.back());
+	  
+      treeParser.interactive(theAST);
+
+      trAST=treeParser.getAST();
+
+  if( trAST == NULL)
+    {
+      // normal condition for cmd line procedure calls
+      return CC_OK;
+    }	
+
+    progAST = ProgNode::NewProgNode( trAST);
+
+	assert( dynamic_cast<EnvUDT*>(callStack.back()) != NULL);
+    EnvUDT* env = static_cast<EnvUDT*>(callStack.back());
+    int nForLoops = ProgNode::NumberForLoops( progAST, nForLoopsIn);
+	env->ResizeForLoops( nForLoops);
+    }
+  catch( GDLException& e)
+    {
+	  env->ResizeForLoops( nForLoopsIn);
+      
+      ReportCompileError( e);
+      return CC_OK;
+    }
+  catch( ANTLRException& e)
+    {
+	  env->ResizeForLoops( nForLoopsIn);
+      
+      std::cerr << "Compiler exception: " <<  e.getMessage() << endl;
+      return CC_OK;
+    }
+  Guard< ProgNode> progAST_guard( progAST);
+
+  try
+    {
+
+    RetCode retCode = interactive( progAST);
+      
+	  env->ResizeForLoops( nForLoopsIn);
+      
+      // write to journal file
+      string actualLine = GetClearActualLine();
+      if( actualLine != "") lib::write_journal( actualLine); 
+  
+      if( retCode == RC_RETURN) return CC_RETURN;
+      if( retCode == RC_ABORT) return CC_ABORT;
+      return CC_OK;
+    }
+  catch( GDLException& e)
+    {
+	  env->ResizeForLoops( nForLoopsIn);
+      
+      std::cerr << "Unhandled GDL exception: " <<  e.toString() << endl;
+      return CC_OK;
+    }
+  catch( ANTLRException& e)
+    {
+	  env->ResizeForLoops( nForLoopsIn);
+      
+      std::cerr << "Interpreter exception: " <<  e.getMessage() << endl;
+      return CC_OK;
+    }
+
+  return CC_OK;
+}
+
+// execute one line of code (commands and statements)
 DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffset)
 {
   string line = (in != NULL) ? ::GetLine(in) : GetLine();
-
+  
 //   cout << "ExecuteLine: " << line << endl;
 
   string firstChar = line.substr(0,1);
@@ -1299,7 +1404,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
     }
   catch( ANTLRException& e)
     {
-      cerr << "Lexer/Parser exception: " <<  e.getMessage() << endl;
+      std::cerr << "Lexer/Parser exception: " <<  e.getMessage() << endl;
       return CC_OK;
     }
 
@@ -1364,7 +1469,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
     {
 	  env->ResizeForLoops( nForLoopsIn);
       
-      cerr << "Compiler exception: " <<  e.getMessage() << endl;
+      std::cerr << "Compiler exception: " <<  e.getMessage() << endl;
       return CC_OK;
     }
   Guard< ProgNode> progAST_guard( progAST);
@@ -1394,14 +1499,14 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
     {
 	  env->ResizeForLoops( nForLoopsIn);
       
-      cerr << "Unhandled GDL exception: " <<  e.toString() << endl;
+      std::cerr << "Unhandled GDL exception: " <<  e.toString() << endl;
       return CC_OK;
     }
   catch( ANTLRException& e)
     {
 	  env->ResizeForLoops( nForLoopsIn);
       
-      cerr << "Interpreter exception: " <<  e.getMessage() << endl;
+      std::cerr << "Interpreter exception: " <<  e.getMessage() << endl;
       return CC_OK;
     }
 
@@ -1636,11 +1741,11 @@ bool DInterpreter::RunBatch( istream* in)
 	}
       catch( exception& e)
 	{
-	  cerr << "Batch" << ": Exception: " << e.what() << endl;
+	  std::cerr << "Batch" << ": Exception: " << e.what() << endl;
 	}
       catch (...)
 	{	
-	  cerr << "Batch" << ": Unhandled Error." << endl;
+	  std::cerr << "Batch" << ": Unhandled Error." << endl;
 	}
     } // while
 
@@ -1690,11 +1795,11 @@ void DInterpreter::ExecuteFile( const string& file)
 	}
       //       catch( exception& e)
       // 	{
-      // 	  cerr << file << ": Exception: " << e.what() << endl;
+      // 	  std::cerr << file << ": Exception: " << e.what() << endl;
       // 	}
       //       catch (...)
       // 	{	
-      // 	  cerr << file << ": Unhandled Error." << endl;
+      // 	  std::cerr << file << ": Unhandled Error." << endl;
       // 	}
     } // while
 }
@@ -1758,9 +1863,9 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
           runCmd = (retAllEx.Code() == RetAllException::RUN);
           if (!runCmd) throw;
         } catch (exception& e) {
-          cerr << startup << ": Exception: " << e.what() << endl;
+          std::cerr << startup << ": Exception: " << e.what() << endl;
         } catch (...) {
-          cerr << startup << ": Unhandled Error." << endl;
+          std::cerr << startup << ": Unhandled Error." << endl;
         }
       } // while
     } catch (RetAllException& retAllEx) {
@@ -1954,9 +2059,9 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
                 runCmd = (retAllEx.Code() == RetAllException::RUN);
                 if (!runCmd) throw;
               } catch (exception& e) {
-                cerr << startup << ": Exception: " << e.what() << endl;
+                std::cerr << startup << ": Exception: " << e.what() << endl;
               } catch (...) {
-                cerr << startup << ": Unhandled Error." << endl;
+                std::cerr << startup << ": Unhandled Error." << endl;
               }
             } // while
           } catch (RetAllException& retAllEx) {
@@ -1964,11 +2069,11 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
         } // if( startup...
       }
     }    catch (exception& e) {
-	  if (!iAmMaster) gdl_ipc_ClientSendReturn(3,e.what()); else  cerr << "InterpreterLoop: Exception: " << e.what() << endl;
+	  if (!iAmMaster) gdl_ipc_ClientSendReturn(3,e.what()); else  std::cerr << "InterpreterLoop: Exception: " << e.what() << endl;
     }    catch (GDLException &e ) {
       if (!iAmMaster) gdl_ipc_ClientSendReturn(3,e.getMessage()); else Warning(e.getMessage());
     }   catch (...) {
-	  if (!iAmMaster) gdl_ipc_ClientSendReturn(3,"InterpreterLoop: Unhandled Error." ); else cerr << "InterpreterLoop: Unhandled Error." << endl;
+	  if (!iAmMaster) gdl_ipc_ClientSendReturn(3,"InterpreterLoop: Unhandled Error." ); else std::cerr << "InterpreterLoop: Unhandled Error." << endl;
     }
   }
 }

@@ -58,7 +58,7 @@ namespace SysVar
     return sc;
   }
   // the index of some system variables
-  UInt nullIx, trueIx, falseIx, pathIx, helppathIx, promptIx, edit_inputIx, quietIx, moreIx,
+  UInt nullIx, trueIx, falseIx, pathIx, dlmpathIx, helppathIx, promptIx, edit_inputIx, quietIx, moreIx,
     dIx, pIx, xIx, yIx, zIx, vIx, gdlIx, cIx, MouseIx,
     errorStateIx, errorIx, errIx, err_stringIx, valuesIx,
     journalIx, exceptIx, mapIx, cpuIx, dirIx, stimeIx,
@@ -119,7 +119,35 @@ namespace SysVar
     // GJ version for( SizeT i=1; i<nArr; ++i)
     // GJ version  path += pathsep + sArr[nArr-i-1];
   }
+  void SetDlmPath( const DString& newPath)
+  {
+    FileListT sArr;
+    SizeT d;
+    long   sPos=0;
+    do
+      {
+	d=newPath.find(lib::SearchPathSeparator(),sPos);
+	string act = newPath.substr(sPos,d-sPos);
+	
+	lib::ExpandPath( sArr, act, "*.dlm");
+	
+	sPos=d+1;
+      }
+    while( d != newPath.npos);
 
+    SizeT nArr = sArr.size();
+    if( nArr == 0) return;
+
+    // get the path
+    DVar& dlmpathSysVar=*sysVarList[dlmpathIx];
+    DString& dlmpath=static_cast<DStringGDL&>(*dlmpathSysVar.Data())[0];
+
+    // set the path
+    dlmpath = sArr[0];
+    for( SizeT i=1; i<nArr; ++i)
+      dlmpath += lib::SearchPathSeparator() + sArr[i];
+  }
+  
   // returns !DIR (as a plain DString)
   const DString& Dir()
   {
@@ -198,6 +226,29 @@ namespace SysVar
       sArr.push_back(path.substr(sPos, d - sPos));
       sPos = d + 1;
     }    while (d != path.npos);
+
+    return sArr;
+  }
+  const StrArr& DLMPath() {
+    static StrArr sArr;
+
+    // clear whatever old value is stored
+    sArr.clear();
+
+    // get the path
+    DVar& dlmpathSysVar = *sysVarList[dlmpathIx];
+    DString& dlmpath = static_cast<DStringGDL&> (*dlmpathSysVar.Data())[0];
+
+    if (dlmpath == "") return sArr;
+
+    SizeT d;
+    long sPos = 0;
+
+    do {
+      d = dlmpath.find(lib::SearchPathSeparator(), sPos);
+      sArr.push_back(dlmpath.substr(sPos, d - sPos));
+      sPos = d + 1;
+    }    while (d != dlmpath.npos);
 
     return sArr;
   }
@@ -385,6 +436,10 @@ namespace SysVar
     *ystyle|=(value & 64 )>>4;
   }
   void CBPath() { //could be interesting to know if path has changed. may be used to speedup procedures fining & compilation?
+//    std::cerr<<"PATH changed.\n";
+  }
+   void CBDlmPath() { //could be interesting to know if path has changed. may be used to speedup procedures fining & compilation?
+//    std::cerr<<"PATH changed.\n";
   }
   DStructGDL* Mouse()
   {
@@ -472,6 +527,13 @@ namespace SysVar
     DVar *path=new DVar( "PATH", pathData);path->SetCallback(CBPath);
     pathIx=sysVarList.size();
     sysVarList.push_back(path);
+
+    // !DLM_PATH
+    DStringGDL* dlmpathData=new DStringGDL( "");
+    DVar *dlmpath=new DVar( "DLM_PATH", dlmpathData);dlmpath->SetCallback(CBDlmPath);
+    dlmpathIx=sysVarList.size();
+    sysVarList.push_back(dlmpath);
+
     // !HELP_PATH
     //    DString initHelpPath(""); // set here the initial path
     DStringGDL* helppathData=new DStringGDL( "");

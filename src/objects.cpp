@@ -103,8 +103,6 @@ antlr::ASTFactory DNodeFactory("DNode",DNode::factory);
 
 //this string contains the value of DATADIR
 std::string gdlDataDir;
-//this string contains the value of LIBDIR
-std::string gdlLibDir;
 //do we use WxWidgets at all?
 volatile bool useWxWidgets;
 //do we use WxWidgets for graphics?
@@ -946,6 +944,12 @@ void InitObjects()
     gdlPath = "+" + gdlDataDir + lib::PathSeparator() + "lib";
   }
   SysVar::SetGDLPath( gdlPath);
+
+  string dlmgdlPath=GetEnvPathString("DLM_PATH");
+  if( dlmgdlPath == "") {
+    dlmgdlPath = gdlDataDir + lib::PathSeparator() + "dlm";
+  }
+  SysVar::SetDlmPath( dlmgdlPath);
 }
 
 // returns GDL lun, 0 on failure
