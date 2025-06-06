@@ -12,7 +12,7 @@ as astronomy, geosciences and medical imaging.
 GDL development had been started by **Marc Schellens** back in early noughties and has since continued 
 with help of a team of maintainers, developers, packagers and thanks to feedback from users.
 
-IDL is a registered trademark of [Harris Geospatial Solutions](https://www.harrisgeospatial.com).
+IDL is a registered trademark of [NV5 Geospatial Software, Inc.](https://www.nv5geospatialsoftware.com/).
 PV-WAVE is a product of [Rogue Wave Software](https://www.roguewave.com).
 
 Overview
@@ -136,7 +136,7 @@ GDL does not maintain a proper documentation: as GDL is aimed as a drop-in repla
 resources for IDL constitute the valuable sources of information for GDL users as well. GDL MUST behave (at least) as IDL, and any discrepancy should be reported by opening an issue.
 Conversely, the GDL issues and discussion forum on GitHub are not the good place for beginners to ask for advice on how to use IDL (or GDL). Use the forum below.
 IDL freely available resources include:
-- the [official IDL documentation](https://www.harrisgeospatial.com/docs/)
+- the [official IDL documentation](https://www.nv5geospatialsoftware.com/docs/using_idl_home.html)
 - the [idl-pvwave Google Group](https://groups.google.com/forum/#!forum/idl-pvwave)
 - the [comp.lang.idl-pvwave usenet group archives](http://www.idlcoyote.com/comp.lang.idl-pvwave/) (dating back to 1991!)
 - Wikipedia article on [IDL](https://en.wikipedia.org/wiki/IDL_\(programming_language\)) and references therein
