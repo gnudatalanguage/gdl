@@ -24,6 +24,7 @@
 #include "gdleventhandler.hpp" //for gdlwait_responsive
 #include "dinterpreter.hpp"
 #include "basic_pro_jmg.hpp"
+#include "gdlhelp.hpp" //for dlmInfo
 
 //#define GDL_DEBUG
 //#undef GDL_DEBUG
@@ -257,9 +258,21 @@ void CleanupProc( DLibPro* proc ) {
 	throw runtime_error( "Improper function type: "+to_string(funcType) );
       }
       if( funcType == 0 ) {
-	RegisterProc( lib_symbol, proc_name, max_args, min_args, has_keys);
+	RegisterMediatizedProc( lib_symbol, proc_name, max_args, min_args, has_keys);
       } else {
-	RegisterFunc( lib_symbol, proc_name, max_args, min_args, has_keys);
+	RegisterMediatizedFunc( lib_symbol, proc_name, max_args, min_args, has_keys);
+      }
+    }
+    void RegisterNativeSymbol( const string& lib_symbol, const string& proc_name, DLong funcType, DLong max_args=16, DLong min_args=0, string keyNames[]=NULL) {
+      if( !handle ) {
+	throw runtime_error( "Library not loaded!" );
+      } else if( funcType < 0 || funcType>1 ) {
+	throw runtime_error( "Improper function type: "+to_string(funcType) );
+      }
+      if( funcType == 0 ) {
+	RegisterNativeProc( lib_symbol, proc_name, max_args, min_args, keyNames);
+      } else {
+	RegisterNativeFunc( lib_symbol, proc_name, max_args, min_args, keyNames);
       }
     }
     void UnregisterSymbol( const string& proc_name, DLong funcType ) {
@@ -276,7 +289,24 @@ void CleanupProc( DLibPro* proc ) {
 	my_funcs.erase( proc_name );
       }
     }
-    void* LinkAs( const string& lib_symbol, const string& proc_name ) { 
+   template <typename T>
+    T LinkAs(const string& lib_symbol, const string& proc_name) {
+      T fPtr = nullptr;
+      char* error = nullptr;
+#if defined(_WIN32) && !defined(__CYGWIN__)
+      fPtr = (T) GetProcAddress(handle, lib_symbol.c_str());
+#else
+      error = dlerror(); // clear error
+      fPtr = (T) dlsym(handle, lib_symbol.c_str());
+      error = dlerror();
+#endif
+      if (error) {
+        throw runtime_error("Failed to register DLL-routine: " + proc_name + string(" -> ") + lib_symbol + string(" : ") + error);
+      }
+      return fPtr;
+    }
+    
+    void* MakeTarget( const string& lib_symbol, const string& proc_name ) { 
       void* fPtr = nullptr;
       char* error = nullptr;
 #if defined(_WIN32) && !defined(__CYGWIN__)
@@ -291,25 +321,46 @@ void CleanupProc( DLibPro* proc ) {
       }
       return fPtr;
     }
-    void RegisterProc( const string& lib_symbol, const string& proc_name, DLong max_args, DLong min_args, bool has_keys) { 
+    
+    void RegisterMediatizedProc( const string& lib_symbol, const string& proc_name, DLong max_args, DLong min_args, bool has_keys) { 
       if( all_procs.count( proc_name ) ) return;
       // this method of 'cleaning' is excellent but show a problem when exiting, seen only with valgrind.
       // Not clear why, as calling .FULL_RESET prior exiting does not show this error. 
       all_procs[proc_name].reset(
-				 new DLibPro( (void (*)(EnvT* e)) (increment++), (void*)CallDllPro, LinkAs( lib_symbol, proc_name ), proc_name.c_str(), max_args, min_args, has_keys),
+				 new DLibPro( (void (*)(EnvT* e)) (increment++), (void*)CallDllPro, MakeTarget( lib_symbol, proc_name ), proc_name.c_str(), max_args, min_args, has_keys),
 				 CleanupProc
 				 );
       my_procs.insert(proc_name);
     }
-    void RegisterFunc( const string& lib_symbol, const string& func_name, DLong max_args, DLong min_args, bool has_keys) { 
+    
+    void RegisterNativeProc( const string& lib_symbol, const string& proc_name, DLong max_args, DLong min_args, const string keyNames[]) { 
+      if( all_procs.count( proc_name ) ) return;
+      all_procs[proc_name].reset(
+				 new DLibPro( LinkAs<LibPro>( lib_symbol, proc_name ), proc_name.c_str(), max_args, keyNames, NULL, min_args),
+				 CleanupProc
+				 );
+      my_procs.insert(proc_name);
+    }
+    
+     void RegisterMediatizedFunc( const string& lib_symbol, const string& func_name, DLong max_args, DLong min_args, bool has_keys) { 
       if( all_funcs.count( func_name ) ) return;
       // this method of 'cleaning' is excellent but show a problem when exiting, seen only with valgrind.
       all_funcs[func_name].reset(
-				 new DLibFun((BaseGDL* (*)(EnvT* e)) (increment++), (void*)CallDllFunc , LinkAs( lib_symbol, func_name ), func_name.c_str(), max_args,  min_args, has_keys),
+				 new DLibFun((BaseGDL* (*)(EnvT* e)) (increment++), (void*)CallDllFunc , MakeTarget( lib_symbol, func_name ), func_name.c_str(), max_args,  min_args, has_keys),
 				 CleanupFunc
 				 );
       my_funcs.insert(func_name);
-    }
+     }
+     
+     void RegisterNativeFunc( const string& lib_symbol, const string& func_name, DLong max_args, DLong min_args,  string keyNames[]) { 
+      if( all_funcs.count( func_name ) ) return;
+      all_funcs[func_name].reset(
+				 new DLibFun( LinkAs<LibFun>( lib_symbol, func_name ), func_name.c_str(), max_args, keyNames, NULL, min_args),
+				 CleanupFunc
+				 );
+      my_funcs.insert(func_name);
+      }
+  
     bool isLoaded( void ) { return handle; };
         
     handle_t handle;                                    // Handle to the linked DLL
@@ -490,6 +541,9 @@ void CleanupProc( DLibPro* proc ) {
     // do nothing as long we do load the .so segment when opening a dlm.
     // if not, this would be a good place to call DllContainer::get( shrdimgName ); (see below)
   }
+  
+  //linkimage is used by all DLM-related stuff, but shoul dbehave differently when called 'à la DLM'.
+  //Hence the use of DLM_INFO string array.
   void linkimage( EnvT* e ) {
 
     SizeT nP = e->NParam(2);
@@ -515,8 +569,11 @@ void CleanupProc( DLibPro* proc ) {
     static int keywordsIx = e->KeywordIx("KEYWORDS");
     static int maxargsIx = e->KeywordIx("MAX_ARGS");
     static int minargsIx = e->KeywordIx("MIN_ARGS");
-    static int defaultIx = e->KeywordIx("DEFAULT");
-    
+    static int nativeIx = e->KeywordIx("NATIVE");
+    bool isGdl=e->KeywordSet(nativeIx); //this is a GDL-native .so 
+    static int dlminfoIx = e->KeywordIx("DLM_INFO");
+    bool isDlm=e->KeywordPresent(dlminfoIx);
+
     if( e->KeywordPresent( functIx ) ) funcType = 1;
     
     DLong max_args = 16;
@@ -525,6 +582,7 @@ void CleanupProc( DLibPro* proc ) {
     e->AssureLongScalarKWIfPresent( minargsIx, min_args );
 
     bool hasKeywords=( e->KeywordSet( keywordsIx ) );
+    //if 'native' (gdl) then if keywords, these are a DStringGDL
     
     if( entryName.empty() ) {
       entryName = funcName;
@@ -532,7 +590,21 @@ void CleanupProc( DLibPro* proc ) {
 
       try {
       DllContainer& lib = DllContainer::get( shrdimgName );
-      lib.RegisterSymbol( entryName, upCasefuncName, funcType, max_args, min_args, hasKeywords);
+      if (isDlm) { //add dlminfo to list to be fed to help,/dlm
+        DStringGDL* info=e->GetKWAs<DStringGDL>(dlminfoIx);
+        help_AddDlmInfo(info->Dup());
+      }
+      if (isGdl) {
+      //if 'native' (gdl) then if keywords, these are a DStringGDL
+        if (hasKeywords) {
+          BaseGDL* p=e->GetKW(keywordsIx);
+          if (p->Type() != GDL_STRING) e->Throw("KEYWORDS: Expecting STRING keywords.");
+          DStringGDL* s=e->GetKWAs<DStringGDL>(keywordsIx);
+        lib.RegisterNativeSymbol( entryName, upCasefuncName, funcType, max_args, min_args, &((*s)[0]));
+        } else lib.RegisterNativeSymbol( entryName, upCasefuncName, funcType, max_args, min_args);
+      } else {
+        lib.RegisterSymbol( entryName, upCasefuncName, funcType, max_args, min_args, hasKeywords);
+      }
     } catch ( const std::exception& ex ) {
       e->Throw("Error linking procedure/DLL: " + funcName + " -> " + entryName + "  (" + shrdimgName + ") : " + ex.what() );
       }

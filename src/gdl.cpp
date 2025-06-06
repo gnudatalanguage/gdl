@@ -598,8 +598,10 @@ int main(int argc, char *argv[])
   }
   }
 #endif // USE_MPI
-  std::string dlmCommand=("if gdl_get_dlm() ne 1 then Message,\"Initial loading of DLM failed.\"");
+  try {
+  std::string dlmCommand=("dlm_register,/silent");
   interpreter.ExecuteStringLine(dlmCommand);
+  } catch (...) {std::cerr<<"Problem starting DLMs\n";}
 //  interpreter.ExecuteFile( gdlDataDir+"/dlm/getDlm.pro");
   interpreter.InterpreterLoop( startup, batch_files, statement);
 

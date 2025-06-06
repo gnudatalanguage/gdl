@@ -37,19 +37,35 @@ end
 
  
 ; used either with a single file, a file list (must be fully qualified) or nothing
-
-function gdl_get_dlm,file
+; silent is a GDL extension
+pro dlm_register,filein,silent=silent
   COMPILE_OPT idl2, HIDDEN
-  if n_elements(file) eq 0 then filelist=file_search(STRSPLIT(!DLM_PATH, PATH_SEP(/SEARCH_PATH),/extract)+'/*.dlm') else filelist=file
+  if n_elements(filein) eq 0 then filelist=file_search(STRSPLIT(!DLM_PATH, PATH_SEP(/SEARCH_PATH),/extract)+'/*.dlm') else filelist=filein
   nfiles = n_elements(filelist)
-  if n_elements(filelist[0]) eq 0 then return, 0
+  if nfiles eq 1 and filelist[0] eq "" then begin
+     if keyword_set(silent) then return
+     Message,"Incorrect number of arguments."
+  endif
+  
+
+  case !version.os of
+     "linux": ext=".so"
+     "darwin": ext=".so"
+     "windows": ext=".dll"
+  endcase
+
   for ifile=0,nfiles-1 do begin
-;     print,'FILE: '+filelist[ifile] & print
-     sl=strlen(filelist[ifile])-4   ; .dlm
-     image=strmid(filelist[ifile],0,sl)+".so"
-     s=gdl_get_dlm_info(filelist[ifile])
+     file=filelist[ifile]
+     file=file_expand_path(file)
+     sl=strlen(file)-4 ; .dlm
+     image=strmid(file,0,sl)+ext
+;     print,'image: '+image & print
+     s=gdl_get_dlm_info(file)
      n=n_elements(s)
-     if s[0] eq "" then break ; return,0
+     if s[0] eq "" then break
+     ; check if this is a GDL-native DLL
+     findpos=strpos(s , "#%GDL_DLM")
+     is_gdl = findpos[0] gt -1
      ; trim # comments
      findpos=strpos(s , "#")
      w=where(findpos eq -1, /null)
@@ -68,7 +84,39 @@ function gdl_get_dlm,file
      ; find module name
      modulename=strtrim(strmid(s[w],findpos[w]+7,strlen(s[w])),2)
 ;     print,"module name: "+modulename
-
+     ; prepare dlm_info to pass to linkimage
+     dlm_info=strarr(4)
+     dlm_info[0]=modulename
+     ; description
+     findpos=strpos(s , "DESCRIPTION")
+     w=where(findpos gt -1, count)
+     if (count ge 1) then begin
+        info=strtrim(strmid(s[w[0]],findpos[w[0]]+12,strlen(s[w[0]])),2)
+        dlm_info[1]=info
+     endif
+     ; version
+     findpos=strpos(s , "VERSION")
+     w=where(findpos gt -1, count)
+     if (count ge 1) then begin
+        version=strtrim(strmid(s[w[0]],findpos[w[0]]+8,strlen(s[w[0]])),2)
+        dlm_info[2]="Version: "+version
+     endif
+     ; build
+     findpos=strpos(s , "BUILD")
+     w=where(findpos gt -1, count)
+     if (count ge 1) then begin
+        build=strtrim(strmid(s[w[0]],findpos[w[0]]+6,strlen(s[w[0]])),2)
+        dlm_info[2]+=", Build_Date: "+build
+     endif
+     ; source
+     findpos=strpos(s , "SOURCE")
+     w=where(findpos gt -1, count)
+     if (count ge 1) then begin
+        source=strtrim(strmid(s[w[0]],findpos[w[0]]+7,strlen(s[w[0]])),2)
+        dlm_info[2]+=", Source: "+source
+     endif
+     dlm_info[3]="Path: "+image
+     
      ;get functions or procedures
      findpos=strpos(s , "PROCEDURE")
      w=where(findpos gt -1, count)
@@ -83,7 +131,9 @@ function gdl_get_dlm,file
            isfunct=0
            subline=strmid(s[iline],findpos[iline]+10,strlen(s[iline]))
            decipher_dlm_line,subline,rtname,minargs,maxargs,option,gdl_kw
-           linkimage,rtname,image,funct=isfunct,min_args=minargs,max_args=maxargs,keywords=strlen(option)
+           if (is_gdl) then begin
+              linkimage,rtname,image,funct=isfunct,min_args=minargs,max_args=maxargs,keywords=gdl_kw,dlm_info=dlm_info,/NATIVE
+           endif else linkimage,rtname,image,funct=isfunct,min_args=minargs,max_args=maxargs,keywords=strlen(option),dlm_info=dlm_info
 nextpro:
         endfor
      endif
@@ -101,13 +151,14 @@ nextpro:
            isfunct=1
            subline=strmid(s[iline],findpos[iline]+9,strlen(s[iline]))
            decipher_dlm_line,subline,rtname,minargs,maxargs,option,gdl_kw
-           linkimage,rtname,image,funct=isfunct,min_args=minargs,max_args=maxargs,keywords=strlen(option)
+           if (is_gdl) then begin
+           ;print,"linkimage,",rtname,",",image,",funct=",isfunct,",min_args=",minargs,",max_args=",maxargs,",keywords=",gdl_kw,",/NATIVE"
+           linkimage,rtname,image,funct=isfunct,min_args=minargs,max_args=maxargs,keywords=gdl_kw,dlm_info=dlm_info,/NATIVE
+        endif else linkimage,rtname,image,funct=isfunct,min_args=minargs,max_args=maxargs,keywords=strlen(option),dlm_info=dlm_info
 nextfunc:
         endfor
      endif
+     print,"% Loaded DLM: "+STRUPCASE(modulename)
   endfor
-
-
-  return,1
 end
 

@@ -40,4 +40,6 @@ namespace lib {
 
   } // namespace
 
+void help_AddDlmInfo(DStringGDL* s);
+
 #endif

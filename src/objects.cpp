@@ -945,7 +945,8 @@ void InitObjects()
   }
   SysVar::SetGDLPath( gdlPath);
 
-  string dlmgdlPath=GetEnvPathString("DLM_PATH");
+  string dlmgdlPath=GetEnvPathString("GDL_DLM_PATH");
+  if( dlmgdlPath == "") dlmgdlPath=GetEnvPathString("IDL_DLM_PATH");
   if( dlmgdlPath == "") {
     dlmgdlPath = gdlDataDir + lib::PathSeparator() + "dlm";
   }
