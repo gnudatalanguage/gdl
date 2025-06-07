@@ -13,7 +13,7 @@ GDL development had been started by **Marc Schellens** back in early noughties a
 with help of a team of maintainers, developers, packagers and thanks to feedback from users.
 
 IDL is a registered trademark of [NV5 Geospatial Software, Inc.](https://www.nv5geospatialsoftware.com/).
-PV-WAVE is a product of [Rogue Wave Software](https://www.roguewave.com).
+PV-WAVE is a product of [Perforce](https://www.perforce.com/products/pv-wave).
 
 Overview
 --------
@@ -139,7 +139,8 @@ IDL freely available resources include:
 - the [official IDL documentation](https://www.nv5geospatialsoftware.com/docs/using_idl_home.html)
 - the [idl-pvwave Google Group](https://groups.google.com/forum/#!forum/idl-pvwave)
 - the [comp.lang.idl-pvwave usenet group archives](http://www.idlcoyote.com/comp.lang.idl-pvwave/) (dating back to 1991!)
-- Wikipedia article on [IDL](https://en.wikipedia.org/wiki/IDL_\(programming_language\)) and references therein
+- Wikipedia article on [IDL](https://en.wikipedia.org/wiki/IDL_\(programming_language\))
+- Wikipedia article on [PV-WAVE](https://en.wikipedia.org/wiki/PV-Wave)
 - websites of IDL gurus including [David Fanning](http://www.idlcoyote.com/) and [Michael Galloy](http://michaelgalloy.com/)
 - numerous [tutorials and lecture notes](https://www.google.com/search?q=interactive+data+language) introducing IDL
 - old, used, but still very valid IDL booklets can be found in various libraries, second-hand bookstores etc.
