@@ -88,7 +88,7 @@ namespace SysVar
 //    return var == sysVarList[ dIx];
 //  }
 
-  void SetGDLPath( const DString& newPath)
+  void SetGDLPath( DString& newPath)
   {
     FileListT sArr;
     SizeT d;
@@ -97,8 +97,11 @@ namespace SysVar
       {
 	d=newPath.find(lib::SearchPathSeparator(),sPos);
 	string act = newPath.substr(sPos,d-sPos);
+    
+    if (newPath.find("<IDL_DEFAULT_PATH", 0) != std::string::npos) newPath = replaceAllOccurencesOfDefaultTokens(newPath, "<IDL_DEFAULT_PATH>", gdl_default_path);	
+    if (newPath.find("<IDL_DEFAULT", 0) != std::string::npos) newPath = replaceAllOccurencesOfDefaultTokens(newPath, "<IDL_DEFAULT>", gdl_default_path);	
 	
-	lib::ExpandPath( sArr, act, "*.pro");
+	lib::ExpandPath( sArr, act, "*.pro"); //indeed, !PATH contains only directories where a .pro is found
 	
 	sPos=d+1;
       }
@@ -119,7 +122,8 @@ namespace SysVar
     // GJ version for( SizeT i=1; i<nArr; ++i)
     // GJ version  path += pathsep + sArr[nArr-i-1];
   }
-  void SetDlmPath( const DString& newPath)
+  
+  void SetDlmPath( DString& newPath)
   {
     FileListT sArr;
     SizeT d;
@@ -128,8 +132,9 @@ namespace SysVar
       {
 	d=newPath.find(lib::SearchPathSeparator(),sPos);
 	string act = newPath.substr(sPos,d-sPos);
-	
-	lib::ExpandPath( sArr, act, "*.dlm");
+
+    if (newPath.find("<IDL_DEFAULT_DLM", 0) != std::string::npos) newPath = replaceAllOccurencesOfDefaultTokens(newPath, "<IDL_DEFAULT_DLM>", gdl_default_dlm);	
+	lib::ExpandPath( sArr, act, "*.dlm", true); //ALL_DIRS since DLM_PATH contains all dirs, not only those with a valid .dlm
 	
 	sPos=d+1;
       }

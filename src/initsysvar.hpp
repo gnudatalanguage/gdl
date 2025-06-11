@@ -25,8 +25,8 @@ namespace SysVar
   DFloat* GetSC();
   // returns a StrArr with the path to search
   const StrArr& GDLPath();
-  void SetGDLPath( const DString& newPath);
-  void SetDlmPath( const DString& newPath);
+  void SetGDLPath( DString& newPath);
+  void SetDlmPath( DString& newPath);
 
   // returns !P
   DStructGDL* P();

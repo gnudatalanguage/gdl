@@ -598,11 +598,12 @@ int main(int argc, char *argv[])
   }
   }
 #endif // USE_MPI
+  
+  //always between try{} catch{} when calling ExecuteStringLine!
   try {
   std::string dlmCommand=("dlm_register,/silent");
   interpreter.ExecuteStringLine(dlmCommand);
   } catch (...) {std::cerr<<"Problem starting DLMs\n";}
-//  interpreter.ExecuteFile( gdlDataDir+"/dlm/getDlm.pro");
   interpreter.InterpreterLoop( startup, batch_files, statement);
 
   return 0;

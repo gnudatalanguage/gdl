@@ -210,7 +210,7 @@ void LibInit()
   const string file_readlinkKey[]={"ALLOW_NONEXISTENT","ALLOW_NONSYMLINK","NOEXPAND_PATH",KLISTEND};
   new DLibFunRetNew(lib::file_readlink,string("FILE_READLINK"),1,file_readlinkKey);
 
-  const string expand_pathKey[]={"ARRAY","ALL_DIRS","COUNT","PATTERN",KLISTEND};
+  const string expand_pathKey[]={"ARRAY","ALL_DIRS","COUNT","DLM","HELP",KLISTEND}; // ,"PATTERN" not in IDL doc
   new DLibFunRetNew(lib::expand_path,string("EXPAND_PATH"),1,expand_pathKey);
   
   const string strjoinKey[]={"SINGLE",KLISTEND};

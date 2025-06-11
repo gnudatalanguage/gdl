@@ -103,6 +103,13 @@ antlr::ASTFactory DNodeFactory("DNode",DNode::factory);
 
 //this string contains the value of DATADIR
 std::string gdlDataDir;
+//this string contains the value of <IDL_DEFAULT_PATH> that defines the default path to .pro and .sav files.
+std::string gdl_default_path;
+//this string contains the value of <IDL_DEFAULT_DLM> that defines the default path to .dlm files.
+std::string gdl_default_dlm;//do we use WxWidgets at all?
+//this string contains the value of <IDL_DEFAULT_HELP> that defines the default path to help files.
+std::string gdl_default_help;
+
 //do we use WxWidgets at all?
 volatile bool useWxWidgets;
 //do we use WxWidgets for graphics?
@@ -938,19 +945,20 @@ void InitObjects()
   // We need to initialize the multi-device object that inherits from the single-device object.
   GraphicsMultiDevice::Init();
 
+  //default Path is gdl_default_path, i.e.:
+ gdl_default_path= "+" + gdlDataDir + lib::PathSeparator() + "lib";
   string gdlPath=GetEnvPathString("GDL_PATH");
   if( gdlPath == "") gdlPath=GetEnvPathString("IDL_PATH");
-  if( gdlPath == "") {
-    gdlPath = "+" + gdlDataDir + lib::PathSeparator() + "lib";
-  }
+  if( gdlPath == "") gdlPath = gdl_default_path;
   SysVar::SetGDLPath( gdlPath);
 
+  gdl_default_dlm= "+" + gdlDataDir + lib::PathSeparator() + "dlm";
   string dlmgdlPath=GetEnvPathString("GDL_DLM_PATH");
   if( dlmgdlPath == "") dlmgdlPath=GetEnvPathString("IDL_DLM_PATH");
-  if( dlmgdlPath == "") {
-    dlmgdlPath = gdlDataDir + lib::PathSeparator() + "dlm";
-  }
+  if( dlmgdlPath == "") dlmgdlPath = gdl_default_dlm;
   SysVar::SetDlmPath( dlmgdlPath);
+
+  gdl_default_help = ""; 
 }
 
 // returns GDL lun, 0 on failure

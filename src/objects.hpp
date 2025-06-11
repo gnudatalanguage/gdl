@@ -75,6 +75,12 @@ extern volatile bool sigControlC;
 
 //this string contains the value of DATADIR
 extern std::string gdlDataDir;
+//this string contains the value of <IDL_DEFAULT_PATH> that defines the default path to .pro and .sav files.
+extern std::string gdl_default_path;
+//this string contains the value of <IDL_DEFAULT_DLM> that defines the default path to .dlm files.
+extern std::string gdl_default_dlm;//do we use WxWidgets at all?
+//this string contains the value of <IDL_DEFAULT_HELP> that defines the default path to help files.
+extern std::string gdl_default_help;
 
 extern volatile bool iAmANotebook;
 
@@ -83,7 +89,7 @@ extern std::string whereami_gdl;
 extern volatile bool iAmMaster;
 extern volatile bool signalOnCommandReturn;
 
-// tells if wxwidgets is to be used at all...
+//do we use WxWidgets at all?
 extern volatile bool useWxWidgets;
 // tells if wxwidgets backend for graphics is to be used...
 extern volatile bool useWxWidgetsForGraphics;
