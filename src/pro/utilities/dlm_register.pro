@@ -17,7 +17,7 @@ pro decipher_dlm_line,subline,rtname,minargs,maxargs,option,gdl_kw
 ;  print,"subline: "+subline
   z=strsplit(subline,blank,/extract)
   nn=n_elements(z)
-  rtname=strlowcase(z[0])       ;
+  rtname=z[0]       ; no lowcase or upcase
   minargs=0
   maxargs=0
   option=""
