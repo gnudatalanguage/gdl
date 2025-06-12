@@ -4585,29 +4585,50 @@ namespace lib {
       // basic checks on "width" input
       DDoubleGDL* p1d = e->GetParAs<DDoubleGDL>(1);
 
-      if (p1d->N_Elements() > 1 || (*p1d)[0] <= 0)
-        e->Throw("Width must be a positive scalar or 1 (positive) element array in this context: " + e->GetParString(0));
+      bool rectangular=false;
       DLong MaxAllowedWidth = 0;
-      if (twoD) {
-        MaxAllowedWidth = p0->Dim(0);
-        if (p0->Dim(1) < MaxAllowedWidth) MaxAllowedWidth = p0->Dim(1);
-      } else MaxAllowedWidth = p0->N_Elements();
+      DLong MaxAllowedWidthX = 0;
+      DLong MaxAllowedWidthY = 0;
 
-      if (!std::isfinite((*p1d)[0]))
-        e->Throw("Width must be > 1, and < dimension of array (NaN or Inf)");
-      if ((*p1d)[0] < 2 || (*p1d)[0] > MaxAllowedWidth)
-        e->Throw("Width must be > 1, and < dimensions: <INT (" + i2s(MaxAllowedWidth) + ")>.");
+      if ((*p1d)[0] <= 0) e->Throw("Width must be a positive scalar or 1 (positive) element array in this context: " + e->GetParString(0));
+      if (!std::isfinite((*p1d)[0])) e->Throw("Width must be > 1, and < dimension of array (NaN or Inf)");
+
+      if (p1d->N_Elements() == 1) {
+       if (twoD) {
+          MaxAllowedWidth = p0->Dim(0);
+          if (p0->Dim(1) < MaxAllowedWidth) MaxAllowedWidth = p0->Dim(1);
+        } else MaxAllowedWidth = p0->N_Elements();
+        if ((*p1d)[0] < 2 || (*p1d)[0] > MaxAllowedWidth) e->Throw("Width must be > 1, and < dimensions: <INT (" + i2s(MaxAllowedWidth) + ")>.");
+      } else { // [withdh, widthy]
+        if ((*p1d)[1] <= 0) e->Throw("Width must be a positive scalar or 1 (positive) element array in this context: " + e->GetParString(0));
+        if (!std::isfinite((*p1d)[1])) e->Throw("Width must be > 1, and < dimension of array (NaN or Inf)");
+        if (twoD) {
+          MaxAllowedWidthX = p0->Dim(0);
+          MaxAllowedWidthY = p0->Dim(1);
+          if ((*p1d)[0] < 2 || (*p1d)[0] > MaxAllowedWidthX) e->Throw("Width must be > 1, and < dimensions: <INT (" + i2s(MaxAllowedWidthX) + ")>.");
+          if ((*p1d)[1] < 2 || (*p1d)[1] > MaxAllowedWidthY) e->Throw("Width must be > 1, and < dimensions: <INT (" + i2s(MaxAllowedWidthY) + ")>.");
+          rectangular = true;
+        } else {
+          MaxAllowedWidth = p0->N_Elements();
+          if ((*p1d)[0] < 2 || (*p1d)[0] > MaxAllowedWidth) e->Throw("Width must be > 1, and < dimensions: <INT (" + i2s(MaxAllowedWidth) + ")>.");
+        }
+      }
+
       DIntGDL* p1 = e->GetParAs<DIntGDL>(1);
 
       int width = p0->Dim(0);
       int height = twoD ? p0->Dim(1) : 1;
       int size = (*p1)[0];
+      int size2 = size;
+      if (rectangular) size2 = (*p1)[1];
       int radius = (size - 1) / 2;
+      int radius2 = radius;
+      if (rectangular) radius2 = (size2 - 1) / 2;
       bool oddsize = (size % 2 == 1);
 
       bool iseven = ((size % 2) == 0 && e->KeywordSet(evenIx));
 
-      if (p0->Type() == GDL_BYTE && twoD && oddsize) {
+      if (p0->Type() == GDL_BYTE && twoD && oddsize & !rectangular) {
         // for this special case we apply the constant-time algorithm described in Perreault et al,
         // Published in the September 2007 issue of IEEE Transactions on Image Processing. DOI: 10.1109/TIP.2007.902329
         DByteGDL* data = e->GetParAs<DByteGDL>(0);
@@ -4625,14 +4646,15 @@ namespace lib {
           if (twoD) {
             if (oddsize) { //2D fast routines are programmed with odd sizes (2*radius+1)
               BaseGDL* res = new DDoubleGDL(data->Dim(), BaseGDL::NOZERO);
-              fastmedian::median_filter_2d(width, height, radius, radius, 0, (DDouble*) data->DataAddr(), (DDouble*) res->DataAddr());
+              fastmedian::median_filter_2d(width, height, radius, radius2, 0, (DDouble*) data->DataAddr(), (DDouble*) res->DataAddr());
               return res;
             } else { //for quite a large number of pixels (100=10^2), use the next ODD value. Results are compatible within 1% for random values.
               //to be tested, but should be better for natural values.
               if (size > 10) {
-                radius = size / 2; //1 more
+                radius = radius2 = size / 2; //1 more
+                if (rectangular) radius2 = size2 / 2; //1 more
                 BaseGDL* res = new DDoubleGDL(data->Dim(), BaseGDL::NOZERO);
-                fastmedian::median_filter_2d(width, height, radius, radius, 0, (DDouble*) data->DataAddr(), (DDouble*) res->DataAddr());
+                fastmedian::median_filter_2d(width, height, radius, radius2, 0, (DDouble*) data->DataAddr(), (DDouble*) res->DataAddr());
                 if (p0->Type() == GDL_BYTE) return res->Convert2(GDL_BYTE, BaseGDL::CONVERT);
                 else return res;
               } else return SlowReliableMedian(e); //until we rewrite a fast non-odd 2 d filter.
@@ -4653,14 +4675,15 @@ namespace lib {
           if (twoD) {
             if (oddsize) { //2D fast routines are programmed with odd sizes (2*radius+1).
               BaseGDL* res = new DFloatGDL(data->Dim(), BaseGDL::NOZERO);
-              fastmedian::median_filter_2d(width, height, radius, radius, 0, (DFloat*) data->DataAddr(), (DFloat*) res->DataAddr());
+              fastmedian::median_filter_2d(width, height, radius, radius2, 0, (DFloat*) data->DataAddr(), (DFloat*) res->DataAddr());
               return res;
             } else { //for quite a large number of pixels (100=10^2), use the next ODD value. Results are compatible within 1% for random values.
               //to be tested, but should be better for natural values.
               if (size > 10) {
-                radius = size / 2; //1 more
+                radius = radius2 = size / 2; //1 more
+                if (rectangular) radius2 = size2 / 2; //1 more
                 BaseGDL* res = new DFloatGDL(data->Dim(), BaseGDL::NOZERO);
-                fastmedian::median_filter_2d(width, height, radius, radius, 0, (DFloat*) data->DataAddr(), (DFloat*) res->DataAddr());
+                fastmedian::median_filter_2d(width, height, radius, radius2, 0, (DFloat*) data->DataAddr(), (DFloat*) res->DataAddr());
                 if (p0->Type() == GDL_BYTE) return res->Convert2(GDL_BYTE, BaseGDL::CONVERT);
                 else return res;
               } else return SlowReliableMedian(e); //until we rewrite a fast non-odd 2 d filter.
