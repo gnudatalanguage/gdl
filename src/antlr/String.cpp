@@ -38,7 +38,7 @@ ANTLR_USE_NAMESPACE(std)string operator+( const ANTLR_USE_NAMESPACE(std)string& 
 ANTLR_USE_NAMESPACE(std)string operator+( const ANTLR_USE_NAMESPACE(std)string& lhs, size_t rhs )
 {
 	char tmp[100];
-	snprintf(tmp,100,"%u",rhs);
+	snprintf(tmp,100,"%zu",rhs);
 	return lhs+tmp;
 }
 
