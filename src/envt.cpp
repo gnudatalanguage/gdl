@@ -1109,7 +1109,7 @@ void EnvT::AssureGlobalPar( SizeT pIx)
   AssureGlobalKW( ix);
 }
 /**
- * @brief Insures the Keyword points to a variable (even a !NULL one) and not somenthing undefined or an expression
+ * @brief Insures the Keyword points to a variable (even a !NULL one) and not something undefined or an expression
  * @param ix index
  */
 void EnvBaseT::AssureGlobalKW( SizeT ix)
@@ -1538,7 +1538,7 @@ int EnvBaseT::GetKeywordIx( const std::string& k) {
 //
 //    return -4;
 //  }
-
+  
   // search keyword
   KeyVarListT::iterator f = std::find_if(pro->key.begin(),
     pro->key.end(),

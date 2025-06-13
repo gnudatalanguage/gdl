@@ -41,6 +41,7 @@
 #include "str.hpp"
 #include "gdlexception.hpp"
 #include "initsysvar.hpp" // GDLPath();
+
 namespace lib {
   std::string PathSeparator()
   {
@@ -70,12 +71,16 @@ namespace lib {
 //namespace lib {
 //bool trace_arg();
 //}
+
+//GetEnvString and GetEnvPathString should be able to filter  <IDL_DEFAULT> like things 
+
 std::string GetEnvString(const char* env)
 {
   char* c=getenv(env);
   if( !c) return std::string("");
   return std::string(c);
 }
+
 //same but for a path: separator will be '\' for _WIN32
 std::string GetEnvPathString(const char* env)
 {
@@ -416,7 +421,7 @@ void WordExp(std::string& s)
   //AC 2018-04-25 : because crash of :  // openr, unit, '', ERROR=error,/get_lun
   if (s.length() == 0) return;
   bool trace_me = false; //lib::trace_arg();
-
+  
   std::string sEsc = "";
   int ipos = 0;
   // escape blanks
