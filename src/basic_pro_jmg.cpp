@@ -200,7 +200,7 @@ void CleanupProc( DLibPro* proc ) {
 	msg = "Couldn't open " + fn;
       }
 #else
-      handle = dlopen(fn.c_str(), RTLD_NOW | RTLD_GLOBAL|RTLD_DEEPBIND);
+      handle = dlopen(fn.c_str(), RTLD_NOW | RTLD_LOCAL |RTLD_DEEPBIND);
       if( !handle ) {
 	msg = "Couldn't open " + fn;
 	char* error = dlerror();
@@ -542,7 +542,7 @@ void CleanupProc( DLibPro* proc ) {
     // if not, this would be a good place to call DllContainer::get( shrdimgName ); (see below)
   }
   
-  //linkimage is used by all DLM-related stuff, but shoul dbehave differently when called 'à la DLM'.
+  //linkimage is used by all DLM-related stuff, but shoul dbehave differently when called 'Ã  la DLM'.
   //Hence the use of DLM_INFO string array.
   void linkimage( EnvT* e ) {
 
