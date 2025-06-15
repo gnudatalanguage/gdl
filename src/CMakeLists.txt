@@ -92,7 +92,7 @@ getfmtast.cpp
 graphicsdevice.cpp
 basic_pro.cpp
 basic_pro_jmg.cpp
-brent.cpp
+# brent.cpp #as DLM test 
 grib.cpp
 gsl_fun.cpp
 gsl_matrix.cpp
@@ -219,6 +219,7 @@ set_source_files_properties(libinit_cl.cpp PROPERTIES COMPILE_FLAGS -Wno-depreca
 add_library(whereami STATIC ${CMAKE_SOURCE_DIR}/src/whereami/src/whereami.c)
 add_subdirectory(antlr)
 add_subdirectory(plplot)
+add_subdirectory(dlm)
 
 include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/antlr ${CMAKE_BINARY_DIR}/src ${CMAKE_SOURCE_DIR}/src/whereami/src ${CMAKE_BINARY_DIR})
 link_directories(${LINK_DIRECTORIES})
