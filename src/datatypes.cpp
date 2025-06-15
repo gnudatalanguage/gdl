@@ -223,8 +223,11 @@ inline bool gdlValid( const DComplexDbl &value )
 
 
 template<class Sp> void* Data_<Sp>::operator new( size_t bytes)
-{ 
-  assert( bytes == sizeof( Data_));
+{
+  // this assert is WRONG. bytes is just for call compatibility as we alloc sizeof( Data_), and 'bytes' cans be set by an externally compiled
+  // function. Example: POWELL is now a DLM, will crash if this assert is present beacuse for some reason at the moment of
+  // runtime new DDoubleGDL(res) at line 2729 in brent.cpp the 'new' does not pass the true size of DDoubleGDL but the 'new' does allocate the true size.
+//  assert( bytes == sizeof( Data_));
 
   if( freeList.size() > 0)
     {

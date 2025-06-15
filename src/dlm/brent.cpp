@@ -2736,4 +2736,9 @@ namespace lib {
     }
 
   }
+
+  extern "C" void POWELL(EnvT* e) {
+    brent(e);
+  }
+
 }  
