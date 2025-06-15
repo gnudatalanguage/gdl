@@ -574,7 +574,7 @@ void CleanupProc( DLibPro* proc ) {
     static int dlminfoIx = e->KeywordIx("DLM_INFO");
     bool isDlm=e->KeywordPresent(dlminfoIx);
 
-    if( e->KeywordPresent( functIx ) ) funcType = 1;
+    if( e->KeywordSet( functIx ) ) funcType = 1;
     
     DLong max_args = 16;
     e->AssureLongScalarKWIfPresent( maxargsIx, max_args );
@@ -593,14 +593,18 @@ void CleanupProc( DLibPro* proc ) {
       if (isDlm) { //add dlminfo to list to be fed to help,/dlm
         DStringGDL* info=e->GetKWAs<DStringGDL>(dlminfoIx);
         help_AddDlmInfo(info->Dup());
+        Message("Loaded DLM: "+(*info)[0]);
       }
       if (isGdl) {
       //if 'native' (gdl) then if keywords, these are a DStringGDL
         if (hasKeywords) {
           BaseGDL* p=e->GetKW(keywordsIx);
           if (p->Type() != GDL_STRING) e->Throw("KEYWORDS: Expecting STRING keywords.");
-          DStringGDL* s=e->GetKWAs<DStringGDL>(keywordsIx);
-        lib.RegisterNativeSymbol( entryName, upCasefuncName, funcType, max_args, min_args, &((*s)[0]));
+          // GD: attention Keyword list must be null terminated!
+          DStringGDL* crude=e->GetKWAs<DStringGDL>(keywordsIx);
+          DStringGDL* null_terminated=new DStringGDL(dimension(crude->N_Elements()+1));
+          for (auto i=0; i<p->N_Elements(); ++i) (*null_terminated)[i]=(*crude)[i];
+        lib.RegisterNativeSymbol( entryName, upCasefuncName, funcType, max_args, min_args, &((*null_terminated)[0]));
         } else lib.RegisterNativeSymbol( entryName, upCasefuncName, funcType, max_args, min_args);
       } else {
         lib.RegisterSymbol( entryName, upCasefuncName, funcType, max_args, min_args, hasKeywords);

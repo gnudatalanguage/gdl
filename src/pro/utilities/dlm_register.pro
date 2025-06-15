@@ -158,7 +158,6 @@ nextpro:
 nextfunc:
         endfor
      endif
-     print,"% Loaded DLM: "+STRUPCASE(modulename)
   endfor
 end
 
