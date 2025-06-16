@@ -300,6 +300,26 @@ void CleanupProc( DLibPro* proc ) {
       fPtr = (T) dlsym(handle, lib_symbol.c_str());
       error = dlerror();
 #endif
+      if (error) { //try lowercase (DLMs are written in UPPERCASE)
+        std::string s=StrLowCase(lib_symbol);
+#if defined(_WIN32) && !defined(__CYGWIN__)
+      fPtr = GetProcAddress( handle, s.c_str() );
+#else
+      error = dlerror();  // clear error
+      fPtr = (T) dlsym( handle, s.c_str() );
+      error = dlerror();
+#endif
+      }
+      if (error) { //try uppercase?
+        std::string s=StrUpCase(lib_symbol);
+#if defined(_WIN32) && !defined(__CYGWIN__)
+      fPtr = GetProcAddress( handle, s.c_str() );
+#else
+      error = dlerror();  // clear error
+      fPtr = (T)  dlsym( handle, s.c_str() );
+      error = dlerror();
+#endif
+      }
       if (error) {
         throw runtime_error("Failed to register DLL-routine: " + proc_name + string(" -> ") + lib_symbol + string(" : ") + error);
       }
@@ -309,6 +329,7 @@ void CleanupProc( DLibPro* proc ) {
     void* MakeTarget( const string& lib_symbol, const string& proc_name ) { 
       void* fPtr = nullptr;
       char* error = nullptr;
+      // if 'lib_symbol' does not work, try both upcase and lowcase versions
 #if defined(_WIN32) && !defined(__CYGWIN__)
       fPtr = GetProcAddress( handle, lib_symbol.c_str() );
 #else
@@ -316,6 +337,26 @@ void CleanupProc( DLibPro* proc ) {
       fPtr = dlsym( handle, lib_symbol.c_str() );
       error = dlerror();
 #endif
+      if (error) { //try lowercase (DLMs are written in UPPERCASE)
+        std::string s=StrLowCase(lib_symbol);
+#if defined(_WIN32) && !defined(__CYGWIN__)
+      fPtr = GetProcAddress( handle, s.c_str() );
+#else
+      error = dlerror();  // clear error
+      fPtr = dlsym( handle, s.c_str() );
+      error = dlerror();
+#endif
+      }
+      if (error) { //try uppercase?
+        std::string s=StrUpCase(lib_symbol);
+#if defined(_WIN32) && !defined(__CYGWIN__)
+      fPtr = GetProcAddress( handle, s.c_str() );
+#else
+      error = dlerror();  // clear error
+      fPtr = dlsym( handle, s.c_str() );
+      error = dlerror();
+#endif
+      }
       if( error ) {
 	throw runtime_error( "Failed to register DLL-routine: " + proc_name + string(" -> ") + lib_symbol + string(" : ") + error );
       }
@@ -550,7 +591,6 @@ void CleanupProc( DLibPro* proc ) {
  
     DString funcName;
     e->AssureScalarPar<DStringGDL>( 0, funcName );
-    DString upCasefuncName = StrUpCase( funcName );
 
     DString shrdimgName;
     e->AssureScalarPar<DStringGDL>( 1, shrdimgName );
@@ -572,7 +612,7 @@ void CleanupProc( DLibPro* proc ) {
     static int nativeIx = e->KeywordIx("NATIVE");
     bool isGdl=e->KeywordSet(nativeIx); //this is a GDL-native .so 
     static int dlminfoIx = e->KeywordIx("DLM_INFO");
-    bool isDlm=e->KeywordPresent(dlminfoIx);
+    bool isDlm=e->KeywordSet(dlminfoIx);
 
     if( e->KeywordSet( functIx ) ) funcType = 1;
     
@@ -604,10 +644,10 @@ void CleanupProc( DLibPro* proc ) {
           DStringGDL* crude=e->GetKWAs<DStringGDL>(keywordsIx);
           DStringGDL* null_terminated=new DStringGDL(dimension(crude->N_Elements()+1));
           for (auto i=0; i<p->N_Elements(); ++i) (*null_terminated)[i]=(*crude)[i];
-        lib.RegisterNativeSymbol( entryName, upCasefuncName, funcType, max_args, min_args, &((*null_terminated)[0]));
-        } else lib.RegisterNativeSymbol( entryName, upCasefuncName, funcType, max_args, min_args);
+        lib.RegisterNativeSymbol( entryName, funcName, funcType, max_args, min_args, &((*null_terminated)[0]));
+        } else lib.RegisterNativeSymbol( entryName, funcName, funcType, max_args, min_args);
       } else {
-        lib.RegisterSymbol( entryName, upCasefuncName, funcType, max_args, min_args, hasKeywords);
+        lib.RegisterSymbol( entryName, funcName, funcType, max_args, min_args, hasKeywords);
       }
     } catch ( const std::exception& ex ) {
       e->Throw("Error linking procedure/DLL: " + funcName + " -> " + entryName + "  (" + shrdimgName + ") : " + ex.what() );

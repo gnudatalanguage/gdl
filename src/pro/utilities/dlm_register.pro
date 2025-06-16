@@ -11,13 +11,14 @@ COMPILE_OPT idl2, HIDDEN
   return, lines
 end
 
-pro decipher_dlm_line,subline,rtname,minargs,maxargs,option,gdl_kw
+pro decipher_dlm_line,subline,rtname,entry,minargs,maxargs,option,gdl_kw
   COMPILE_OPT idl2, HIDDEN
   blank=string([32b,9b])
 ;  print,"subline: "+subline
   z=strsplit(subline,blank,/extract)
   nn=n_elements(z)
-  rtname=z[0]       ; no lowcase or upcase
+  entry=z[0]       ; no lowcase or upcase
+  rtname=strupcase(entry)
   minargs=0
   maxargs=0
   option=""
@@ -38,7 +39,7 @@ end
  
 ; used either with a single file, a file list (must be fully qualified) or nothing
 ; silent is a GDL extension
-pro dlm_register,filein,silent=silent
+pro dlm_register,filein,silent=silent,verbose=verbose
   COMPILE_OPT idl2, HIDDEN
   if n_elements(filein) eq 0 then filelist=file_search(STRSPLIT(!DLM_PATH, PATH_SEP(/SEARCH_PATH),/extract)+'/*.dlm') else filelist=filein
   nfiles = n_elements(filelist)
@@ -59,7 +60,7 @@ pro dlm_register,filein,silent=silent
      file=file_expand_path(file)
      sl=strlen(file)-4 ; .dlm
      image=strmid(file,0,sl)+ext
-;     print,'image: '+image & print
+if keyword_set(verbose)  then      print,'image: '+image & print
      s=gdl_get_dlm_info(file)
      n=n_elements(s)
      if s[0] eq "" then break
@@ -83,7 +84,7 @@ pro dlm_register,filein,silent=silent
 
      ; find module name
      modulename=strtrim(strmid(s[w],findpos[w]+7,strlen(s[w])),2)
-;     print,"module name: "+modulename
+if keyword_set(verbose)  then      print,"module name: "+modulename
      ; prepare dlm_info to pass to linkimage
      dlm_info=strarr(4)
      dlm_info[0]=modulename
@@ -122,6 +123,8 @@ pro dlm_register,filein,silent=silent
      w=where(findpos gt -1, count)
      if (count ge 1) then begin
         for ipro=0,count-1 do begin
+	       if dlm_info ne !NULL and ipro gt 0 then dlm_info=!NULL
+
            CATCH, Error_status
            IF Error_status NE 0 THEN BEGIN
               CATCH, /CANCEL
@@ -130,10 +133,11 @@ pro dlm_register,filein,silent=silent
            iline=w[ipro]
            isfunct=0
            subline=strmid(s[iline],findpos[iline]+10,strlen(s[iline]))
-           decipher_dlm_line,subline,rtname,minargs,maxargs,option,gdl_kw
+           decipher_dlm_line,subline,rtname,entry,minargs,maxargs,option,gdl_kw
+          if keyword_set(verbose)  then print,"linkimage,""",rtname,""",""",image,'",',strtrim(isfunct,2),',"',entry,""",min_args=",strtrim(minargs,2),",max_args=",strtrim(maxargs,2)
            if (is_gdl) then begin
-              linkimage,rtname,image,funct=isfunct,min_args=minargs,max_args=maxargs,keywords=gdl_kw,dlm_info=dlm_info,/NATIVE
-           endif else linkimage,rtname,image,funct=isfunct,min_args=minargs,max_args=maxargs,keywords=strlen(option),dlm_info=dlm_info
+              linkimage,rtname,image,isfunct,entry,min_args=minargs,max_args=maxargs,keywords=gdl_kw,dlm_info=dlm_info,/NATIVE
+           endif else linkimage,rtname,image,isfunct,entry,min_args=minargs,max_args=maxargs,keywords=strlen(option),dlm_info=dlm_info
 nextpro:
         endfor
      endif
@@ -142,6 +146,7 @@ nextpro:
      w=where(findpos gt -1, count)
      if (count ge 1) then begin
         for ifun=0,count-1 do begin
+	       if dlm_info ne !NULL and ifun gt 0 then dlm_info=!NULL
            CATCH, Error_status
            IF Error_status NE 0 THEN BEGIN
               CATCH, /CANCEL
@@ -150,11 +155,11 @@ nextpro:
            iline=w[ifun]
            isfunct=1
            subline=strmid(s[iline],findpos[iline]+9,strlen(s[iline]))
-           decipher_dlm_line,subline,rtname,minargs,maxargs,option,gdl_kw
-           if (is_gdl) then begin
-           ;print,"linkimage,",rtname,",",image,",funct=",isfunct,",min_args=",minargs,",max_args=",maxargs,",keywords=",gdl_kw,",/NATIVE"
-           linkimage,rtname,image,funct=isfunct,min_args=minargs,max_args=maxargs,keywords=gdl_kw,dlm_info=dlm_info,/NATIVE
-        endif else linkimage,rtname,image,funct=isfunct,min_args=minargs,max_args=maxargs,keywords=strlen(option),dlm_info=dlm_info
+           decipher_dlm_line,subline,rtname,entry,minargs,maxargs,option,gdl_kw
+          if keyword_set(verbose)  then print,"linkimage,""",rtname,""",""",image,'",',strtrim(isfunct,2),',"',entry,""",min_args=",strtrim(minargs,2),",max_args=",strtrim(maxargs,2)
+          if (is_gdl) then begin
+           linkimage,rtname,image,isfunct,entry,min_args=minargs,max_args=maxargs,keywords=gdl_kw,dlm_info=dlm_info,/NATIVE
+        endif else linkimage,rtname,image,isfunct,entry,min_args=minargs,max_args=maxargs,keywords=strlen(option),dlm_info=dlm_info
 nextfunc:
         endfor
      endif
