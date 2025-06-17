@@ -159,29 +159,31 @@ static SizeT increment=33; //why not?
       }
     }
   }
-  
+
 void CleanupProc( DLibPro* proc ) {
-    auto it = libProList.begin();
-    auto itE = libProList.end();
-    for( ; it != itE; it++ ) {
-      if( *it == proc ) break;
+// this does not work (double deletion at exit due to ~DllContainer() { unload( true ); } that already uses unlinksymbol.
+//    auto it = libProList.begin();
+//    auto itE = libProList.end();
+//    for( ; it != itE; it++ ) {
+//      if( *it == proc ) break;
+//    }
+//    if( it < itE ) {
+//        delete *it;
+//      libProList.erase( it );
+//      }
     }
-    if( it < itE ) {
-      delete *it;
-      libProList.erase( it );
-    }
-  }
 
   void CleanupFunc( DLibFun* func ) {
-    auto it = libFunList.begin();
-    auto itE = libFunList.end();
-    for( ; it != itE; it++ ) {
-      if( *it == func ) break;
-    }
-    if( it < itE ) {
-      delete *it;
-      libFunList.erase( it );
-    }
+// this does not work (double deletion at exit due to ~DllContainer() { unload( true ); } that already uses unlinksymbol.
+//    auto it = libFunList.begin();
+//    auto itE = libFunList.end();
+//    for( ; it != itE; it++ ) {
+//      if( *it == func ) break;
+//    }
+//    if( it < itE ) {
+//      delete *it;
+//      libFunList.erase( it );
+//    }
   }
 
   struct DllContainer {
