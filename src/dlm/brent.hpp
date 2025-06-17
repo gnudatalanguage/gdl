@@ -25,7 +25,7 @@
 
 namespace lib {
 
- extern "C" void POWELL( EnvT* e);
+ extern "C" void powell( EnvT* e);
 
 } // namespace
 
