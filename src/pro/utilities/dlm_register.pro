@@ -124,12 +124,13 @@ if keyword_set(verbose)  then      print,"module name: "+modulename
      if (count ge 1) then begin
         for ipro=0,count-1 do begin
 	       if dlm_info ne !NULL and ipro gt 0 then dlm_info=!NULL
-
+if not keyword_set(verbose) then begin
            CATCH, Error_status
            IF Error_status NE 0 THEN BEGIN
               CATCH, /CANCEL
               BREAK ; a problem occured, this file has problems
            ENDIF
+endif
            iline=w[ipro]
            isfunct=0
            subline=strmid(s[iline],findpos[iline]+10,strlen(s[iline]))
@@ -147,11 +148,13 @@ nextpro:
      if (count ge 1) then begin
         for ifun=0,count-1 do begin
 	       if dlm_info ne !NULL and ifun gt 0 then dlm_info=!NULL
+if not keyword_set(verbose) then begin
            CATCH, Error_status
            IF Error_status NE 0 THEN BEGIN
               CATCH, /CANCEL
               BREAK ; a problem occured, this file has problems
            ENDIF
+endif
            iline=w[ifun]
            isfunct=1
            subline=strmid(s[iline],findpos[iline]+9,strlen(s[iline]))
