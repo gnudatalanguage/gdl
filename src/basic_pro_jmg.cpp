@@ -422,7 +422,6 @@ void CleanupProc( DLibPro* proc ) {
   map<string,shared_ptr<DLibFun>> DllContainer::all_funcs;
   map<string,DllContainer> DllContainer::libs;
 
-
   void point_lun( EnvT* e) 
   { 
     e->NParam( 1);//, "POINT_LUN");
@@ -587,8 +586,51 @@ void CleanupProc( DLibPro* proc ) {
   
   //linkimage is used by all DLM-related stuff, but shoul dbehave differently when called 'Ã  la DLM'.
   //Hence the use of DLM_INFO string array.
+  
+#define COPYSTR(what)      IDL_SysvVersion.what.slen=what.length();\
+  IDL_SysvVersion.what.s=(char*)malloc(what.length());\
+  strncpy(IDL_SysvVersion.what.s,what.c_str(),what.length());
+ 
   void linkimage( EnvT* e ) {
-
+    
+    static bool IdlStaticsUninitialized=true;
+    if (IdlStaticsUninitialized) {
+      IdlStaticsUninitialized=false;
+      //set up values for some IDL_XXX info structures
+      //IDL_SysvVersion:
+      DStructGDL* version = SysVar::Version();
+      static unsigned releaseTag = version->Desc()->TagIndex( "RELEASE");
+      static unsigned osTag = version->Desc()->TagIndex("OS");
+      static unsigned osFamilyTag = version->Desc()->TagIndex("OS_FAMILY");
+      static unsigned osNameTag = version->Desc()->TagIndex("OS_NAME");
+      static unsigned osBuildTag = version->Desc()->TagIndex("BUILD_DATE");
+      static unsigned archTag = version->Desc()->TagIndex("ARCH");
+      static unsigned mTag = version->Desc()->TagIndex("MEMORY_BITS");
+      static unsigned foTag = version->Desc()->TagIndex("FILE_OFFSET_BITS");
+      DString arch =     (*static_cast<DStringGDL*> (version->GetTag(archTag, 0)))[0];
+      COPYSTR(arch)
+      DString os =       (*static_cast<DStringGDL*> (version->GetTag(osTag, 0)))[0];
+      COPYSTR(os)
+      DString os_family =       (*static_cast<DStringGDL*> (version->GetTag(osFamilyTag, 0)))[0];
+      COPYSTR(os_family)
+      DString os_name =       (*static_cast<DStringGDL*> (version->GetTag(osNameTag, 0)))[0];
+      COPYSTR(os_name)
+      DString release =  (*static_cast<DStringGDL*>( version->GetTag( releaseTag, 0)))[0];
+      COPYSTR(release)
+      DString build_date =       (*static_cast<DStringGDL*> (version->GetTag(osBuildTag, 0)))[0];
+      COPYSTR(build_date)
+      DInt memory_bits =       (*static_cast<DIntGDL*> (version->GetTag(mTag, 0)))[0]; 
+      IDL_SysvVersion.memory_bits=memory_bits;
+      DInt file_offset_bits =       (*static_cast<DIntGDL*> (version->GetTag(foTag, 0)))[0]; 
+      IDL_SysvVersion.file_offset_bits=file_offset_bits;
+      //IDL_SysvDir:
+      DString dir=SysVar::Dir();
+      IDL_SysvDir.slen=dir.length();
+      IDL_SysvDir.s=(char*)malloc(dir.length());
+      strncpy(IDL_SysvDir.s,dir.c_str(),dir.length());
+    }
+#undef COPYSTR
+    
     SizeT nP = e->NParam(2);
  
     DString funcName;

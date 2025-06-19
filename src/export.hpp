@@ -494,10 +494,28 @@ IDL_VPTR IDL_CDECL IDL_ImportNamedArray(char *name, int n_dim, IDL_MEMINT dim[],
   // for use inside source of LINKIMAGE and other DLMs
 extern "C" {
 	//all the IDL_** modules below should be listed in dynlist.txt ---now done using an asterisk syntax 
+char *IDL_CDECL IDL_VarName(IDL_VPTR v){
+		char* s=(char*) calloc(1,128); 
+		strncat(s,"<",2);
+		strncat(s,IDL_TypeNameFunc(v->type),9);
+		if (v->flags & IDL_V_ARR) {
+			strncat(s,"Array[",7);
+			int i;
+			for (i=0; i< v->value.arr->n_dim-1; ++i) {
+				int l=strlen(s);
+				sprintf (&s[l], "%d,",v->value.arr->dim[i]);
+			}
+			int l = strlen(s);
+			sprintf(&s[l], "%d", v->value.arr->dim[i]);
+			strncat(s,"]>",3);
+		}
+		return s;
+	}
 
 void IDL_VarEnsureSimple(IDL_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 if (v->flags == 0) return;
-	if ( !( v->flags & IDL_TYP_B_SIMPLE) ) IDL_Message(IDL_M_NAMED_GENERIC, IDL_MSG_LONGJMP, "var is not \"simple\".");
+    static char* message= (char*)"Expression must be a scalar in this context: ";
+	if ( !( v->flags & IDL_TYP_B_SIMPLE) || ( v->flags & IDL_V_ARR) ) IDL_Message(IDL_M_NAMED_GENERIC, IDL_MSG_LONGJMP, message, IDL_VarName(v), NULL);
 }
 	
 void IDL_KWFree(void){
@@ -544,6 +562,13 @@ void IDL_CDECL IDL_StrDelete(IDL_STRING *str, IDL_MEMINT n) {TRACE_ROUTINE(__FUN
 			s->s = (char*) malloc(n+1);
 			memset((void*)s->s,0,n+1);
 		}
+	}
+IDL_VPTR IDL_CDECL IDL_StrToSTRING(const char *s) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+		IDL_VPTR ss = NewTMPVPTRSTRING(); 
+		ss->value.str.slen = strlen(s);
+		ss->value.str.stype = 0;
+		ss->value.str.s=(char*)s;
+		return ss;
 	}
 
 #define DOCASE(type, what)\
@@ -598,13 +623,7 @@ void IDL_CDECL IDL_StoreScalarZero(IDL_VPTR dest, int type) {TRACE_ROUTINE(__FUN
 #undef DOCASE
 #undef DOCASE_CMP
 //scalar only
-IDL_VPTR IDL_CDECL IDL_StrToSTRING(const char *s) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-		IDL_VPTR ss = NewTMPVPTRSTRING(); 
-		ss->value.str.slen = strlen(s);
-		ss->value.str.stype = 0;
-		ss->value.str.s=(char*)s;
-		return ss;
-	}
+
 void IDL_CDECL IDL_VarCopy(IDL_REGISTER IDL_VPTR src, IDL_REGISTER
         IDL_VPTR dst){
 	if (dst->value.arr != NULL) {
@@ -1894,8 +1913,6 @@ char* GDLWriteVarAtAddr(BaseGDL* var, std::string name, UCHAR type, size_t addre
 //	int IDL_CDECL IDL_KWProcessByAddr(int argc, IDL_VPTR *argv, char
 //			*argk_passed, IDL_KW_PAR *kw_requested, IDL_VPTR *plain_args, int mask, void *kw_result) {
 //	}
-IDL_MSG_BLOCK IDL_CDECL IDL_MessageDefineBlock(char *block_name,
-        int n, IDL_MSG_DEF *defs){ return NULL;};
 void *IDL_CDECL IDL_MemAlloc(IDL_MEMINT n, const char *err_str, int
 			msg_action){return malloc(n);}
 void *IDL_CDECL IDL_MemRealloc(void *ptr, IDL_MEMINT n, const char
@@ -1913,52 +1930,110 @@ char *IDL_CDECL IDL_GetScratchOnThreshold(IDL_REGISTER char
         *auto_buf, IDL_REGISTER IDL_MEMINT auto_elts,  IDL_REGISTER IDL_MEMINT
         n_elts,  IDL_REGISTER IDL_MEMINT elt_size,  IDL_VPTR *tempvar){
 	throw GDLException("IDL_GetScratchOnThreshold is not implemented, FIXME.");
-}	
-void IDL_CDECL IDL_MessageVE_UNDEFVAR(IDL_VPTR var, int action){throw GDLException("Variable is Undefined.");}
-void IDL_CDECL IDL_MessageVE_NOTARRAY(IDL_VPTR var, int action){throw GDLException("Expression must be an array in this context.");}
-void IDL_CDECL IDL_MessageVE_NOTSCALAR(IDL_VPTR var, int action){throw GDLException("Expression must be a scalar in this context.");}
-void IDL_CDECL IDL_MessageVE_NOEXPR(IDL_VPTR var, int action){throw GDLException("Expression must be a named variable in this context");}
-void IDL_CDECL IDL_MessageVE_NOCONST(IDL_VPTR var, int action){throw GDLException("Constant not allowed in this context.");}
-void IDL_CDECL IDL_MessageVE_NOFILE(IDL_VPTR var, int action){throw GDLException("File expression not allowed in this context.");}
-void IDL_CDECL IDL_MessageVE_NOCOMPLEX(IDL_VPTR var, int action){throw GDLException("Variable is not of complex type/");}
-void IDL_CDECL IDL_MessageVE_NOSTRING(IDL_VPTR var, int action){throw GDLException("String expression not allowed in this context.");}
-void IDL_CDECL IDL_MessageVE_NOSTRUCT(IDL_VPTR var, int action){throw GDLException("Struct expression not allowed in this context.");}
-void IDL_CDECL IDL_MessageVE_REQSTR(IDL_VPTR var, int action){throw GDLException("String expression required in this context.");}
-void IDL_CDECL IDL_MessageVE_NOSCALAR(IDL_VPTR var, int action){throw GDLException("Scalar variable not allowed in this context.");}
-void IDL_CDECL IDL_MessageVE_NULLSTR(IDL_VPTR var, int action){throw GDLException("Null string not allowed in this context.");}
-void IDL_CDECL IDL_MessageVE_NOPTR(IDL_VPTR var, int action){throw GDLException("Pointer expression not allowed in this context.");}
-void IDL_CDECL IDL_MessageVE_NOOBJREF(IDL_VPTR var, int action){throw GDLException("Object reference expression not allowed in this context.");}
-void IDL_CDECL IDL_MessageVE_NOMEMINT64(IDL_VPTR var, int action){throw GDLException("This routine is 32-bit limited and cannot handle this many elements.");}
-void IDL_CDECL IDL_MessageVE_STRUC_REQ(IDL_VPTR var, int action){throw GDLException("Expression must be a structure in this context.");}
-void IDL_CDECL IDL_MessageVE_REQPTR(IDL_VPTR var, int action){throw GDLException("Pointer type required in this context.");}
-void IDL_CDECL IDL_MessageVE_REQOBJREF(IDL_VPTR var, int action){throw GDLException("Object reference required in this context");}
-void IDL_CDECL IDL_Message_BADARRDNUM(int action){throw GDLException("Arrays are allowed 1 - 8 dimensions");}
-void IDL_CDECL IDL_Deltmp(IDL_REGISTER IDL_VPTR p){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) free(p);}
-int IDL_CDECL IDL_SysRtnAdd(IDL_SYSFUN_DEF2 *defs, int is_function,
-        int cnt){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)  return 1;}
-#include <stdio.h>
-#include <stdarg.h>
-void IDL_CDECL IDL_Message(int code, int action, ...){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) 
-if (code == IDL_M_GENERIC || code == IDL_M_NAMED_GENERIC)
-{
-va_list args;
-va_start(args, action);
-// just a string
-	char* s= va_arg(args, char*);
-	if (s!=NULL) {
- 	    va_end(args);
-		std::string stds(s);
-		if (action == IDL_MSG_LONGJMP || IDL_MSG_RET) throw GDLException(stds);
-		if (action == IDL_MSG_IO_LONGJMP) throw GDLIOException(stds);
+}
+IDL_SYS_VERSION IDL_SysvVersion={{0,0,NULL},{0,0,NULL},{0,0,NULL},{0,0,NULL},{0,0,NULL},{0,0,NULL},0,0};
+IDL_STRING *IDL_CDECL IDL_SysvVersionArch(void){return &(IDL_SysvVersion.arch);}
+IDL_STRING *IDL_CDECL IDL_SysvVersionOS(void){return &(IDL_SysvVersion.os);};
+IDL_STRING *IDL_CDECL IDL_SysvVersionOSFamily(void){return &(IDL_SysvVersion.os_family);};
+IDL_STRING *IDL_CDECL IDL_SysvVersionRelease(void){return &(IDL_SysvVersion.release);};
+
+char *IDL_ProgramName=(char*)"gdl";
+char *IDL_CDECL IDL_ProgramNameFunc(void){return (char*)"gdl";}
+char *IDL_ProgramNameLC=(char*)"gdl";
+char *IDL_CDECL IDL_ProgramNameLCFunc(void){return (char*)"gdl";}
+IDL_STRING IDL_SysvDir={0,0,NULL};
+IDL_STRING *IDL_CDECL IDL_SysvDirFunc(void){return &IDL_SysvDir;}
+IDL_LONG IDL_SysvErrCode=0;
+IDL_LONG IDL_CDECL IDL_SysvErrCodeValue(void){return 0;};
+IDL_SYS_ERROR_STATE IDL_SysvErrorState={{0,0,NULL},{0,0,NULL},0,{0,0},{0,0,NULL},{0,0,NULL},{0,0,NULL},{0,0,NULL}};
+IDL_SYS_ERROR_STATE *IDL_CDECL IDL_SysvErrorStateAddr(void){return &IDL_SysvErrorState;}
+IDL_STRING *IDL_CDECL IDL_SysvErrStringFunc(void){return &(IDL_SysvErrorState.msg);}
+IDL_STRING *IDL_CDECL IDL_SysvSyserrStringFunc(void){return &(IDL_SysvErrorState.sys_msg);}
+IDL_LONG IDL_CDECL IDL_SysvErrorCodeValue(void){return IDL_SysvErrorState.code;}
+IDL_LONG *IDL_CDECL IDL_SysvSyserrorCodesAddr(void){return &(IDL_SysvErrorState.code);}
+IDL_LONG IDL_SysvOrder=0;
+IDL_LONG IDL_CDECL IDL_SysvOrderValue(void){return 0;}
+float IDL_CDECL IDL_SysvValuesGetFloat(int type){return 0;}
+int IDL_CDECL IDL_MessageNameToCode(IDL_MSG_BLOCK block, const char *name){return 0;}
+IDL_MSG_BLOCK IDL_CDECL IDL_MessageDefineBlock(char *block_name, int n, IDL_MSG_DEF *defs){return NULL;} //do nothing
+void IDL_CDECL IDL_MessageErrno(int code, ...){} //do nothing. obsoleted.
+void IDL_CDECL IDL_MessageErrnoFromBlock(IDL_MSG_BLOCK block, int code, ...){} //do nothing. obsoleted.
+
+	void IDL_CDECL IDL_Message(int code, int action, ...) {
+		TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+		std::string finalMessage = "";
+		char* s;
+		if (code == IDL_M_GENERIC || code == IDL_M_NAMED_GENERIC) {
+			va_list args;
+			va_start(args, action);
+			while (s=va_arg(args,char*)) {
+				if (s != NULL) {
+					finalMessage += std::string(s);
+				} else va_end(args);
+			}
+			va_end(args);
+		} else throw GDLException("Invalid Error Code given to IDL_Message() by user-written routine.");
+		if (action == IDL_MSG_LONGJMP || IDL_MSG_RET) throw GDLException(finalMessage);
+		if (action == IDL_MSG_IO_LONGJMP) throw GDLIOException(finalMessage);
 		if (action == IDL_MSG_EXIT) {
-			Warning(stds);
+			Warning(finalMessage);
 			throw GDLException("IDL_MSG_EXIT forbidden for user-written routines.");
 		}
-		if (action == IDL_MSG_INFO) Warning(stds);
-	} else va_end(args);
-} else throw GDLException("Invalid Error Code given to IDL_Message() by user-written routine.");
-
+		if (action == IDL_MSG_INFO) Warning(finalMessage);
+	}
+	
+void IDL_CDECL IDL_MessageFromBlock(IDL_MSG_BLOCK block, int code, int action,...){if (action!=IDL_MSG_INFO) throw GDLException("exception caused by non-GDL (dlm) function call.");}//do nothing.
+void IDL_CDECL IDL_MessageSyscode(int code, IDL_MSG_SYSCODE_T syscode_type, int syscode, int action, ...){if (action!=IDL_MSG_INFO) throw GDLException("exception caused by non-GDL (dlm) function call.");}//do nothing.
+void IDL_CDECL IDL_MessageSyscodeFromBlock(IDL_MSG_BLOCK block, int code, IDL_MSG_SYSCODE_T syscode_type,  int syscode, int action, ...){if (action!=IDL_MSG_INFO) throw GDLException("exception caused by non-GDL (dlm) function call.");}
+void IDL_CDECL IDL_MessageVarError(int code, IDL_VPTR var, int action){if (action!=IDL_MSG_INFO) throw GDLException("exception caused by non-GDL (dlm) function call.");}
+void IDL_CDECL IDL_MessageVarErrorFromBlock(IDL_MSG_BLOCK block, int code, IDL_VPTR var, int action){if (action!=IDL_MSG_INFO) throw GDLException("exception caused by non-GDL (dlm) function call.");}
+void IDL_CDECL IDL_MessageResetSysvErrorState(void) {
+		try {
+			std::string command = ("message,/reset");
+			DInterpreter::CallStackBack()->Interpreter()->ExecuteStringLine(command);
+		} catch (...) {
+		}
 }
+void IDL_CDECL IDL_MessageSJE(void *value){} //do nothing (?)
+void *IDL_CDECL IDL_MessageGJE(void){return NULL;}//do nothing (?)
+void IDL_CDECL IDL_MessageVE_UNDEFVAR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO) throw GDLException("Variable is Undefined.");}
+void IDL_CDECL IDL_MessageVE_NOTARRAY(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)throw GDLException("Expression must be an array in this context.");}
+void IDL_CDECL IDL_MessageVE_NOTSCALAR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)throw GDLException("Expression must be a scalar in this context.");}
+void IDL_CDECL IDL_MessageVE_NOEXPR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)throw GDLException("Expression must be a named variable in this context");}
+void IDL_CDECL IDL_MessageVE_NOCONST(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)throw GDLException("Constant not allowed in this context.");}
+void IDL_CDECL IDL_MessageVE_NOFILE(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)throw GDLException("File expression not allowed in this context.");}
+void IDL_CDECL IDL_MessageVE_NOCOMPLEX(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)throw GDLException("Variable is not of complex type/");}
+void IDL_CDECL IDL_MessageVE_NOSTRING(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)throw GDLException("String expression not allowed in this context.");}
+void IDL_CDECL IDL_MessageVE_NOSTRUCT(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)throw GDLException("Struct expression not allowed in this context.");}
+void IDL_CDECL IDL_MessageVE_REQSTR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)throw GDLException("String expression required in this context.");}
+void IDL_CDECL IDL_MessageVE_NOSCALAR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)throw GDLException("Scalar variable not allowed in this context.");}
+void IDL_CDECL IDL_MessageVE_NULLSTR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)throw GDLException("Null string not allowed in this context.");}
+void IDL_CDECL IDL_MessageVE_NOPTR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)throw GDLException("Pointer expression not allowed in this context.");}
+void IDL_CDECL IDL_MessageVE_NOOBJREF(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)throw GDLException("Object reference expression not allowed in this context.");}
+void IDL_CDECL IDL_MessageVE_NOMEMINT64(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)throw GDLException("This routine is 32-bit limited and cannot handle this many elements.");}
+void IDL_CDECL IDL_MessageVE_STRUC_REQ(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)throw GDLException("Expression must be a structure in this context.");}
+void IDL_CDECL IDL_MessageVE_REQPTR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)throw GDLException("Pointer type required in this context.");}
+void IDL_CDECL IDL_MessageVE_REQOBJREF(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)throw GDLException("Object reference required in this context");}
+void IDL_CDECL IDL_Message_BADARRDNUM(int action){if (action!=IDL_MSG_INFO)throw GDLException("Arrays are allowed 1 - 8 dimensions");}
+void IDL_CDECL IDL_Deltmp(IDL_REGISTER IDL_VPTR p){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) free(p);}
+int IDL_CDECL IDL_SysRtnAdd(IDL_SYSFUN_DEF2 *defs, int is_function,int cnt){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)  return 1;}
+IDL_MEMINT IDL_CDECL IDL_SysRtnNumEnabled(int is_function, int enabled){return 1;} //why not - this is a stub
+void IDL_CDECL IDL_SysRtnGetEnabledNames(int is_function, IDL_STRING *str, int enabled){str->slen=0;};
+void IDL_CDECL IDL_SysRtnEnable(int is_function, IDL_STRING *names, IDL_MEMINT n, int option,  IDL_SYSRTN_GENERIC disfcn){}// do nothing
+IDL_SYSRTN_GENERIC IDL_CDECL IDL_SysRtnGetRealPtr(int is_function, char *name){return NULL;}
+char *IDL_CDECL IDL_SysRtnGetCurrentName(void){return NULL;};
+int IDL_CDECL IDL_LMGRLicenseInfo(int iFlags){return 1;}
+int IDL_CDECL IDL_LMGRSetLicenseInfo(int iFlags){return 1;}
+int IDL_CDECL IDL_LMGRLicenseCheckoutUnique(char *szFeature, char *szVersion){return 1;}
+int IDL_CDECL IDL_LMGRLicenseCheckout(char *szFeature, char *szVersion){return 1;}
+int IDL_CDECL IDL_Load(void){return 1;}
+void IDL_CDECL IDL_Win32MessageLoop(int fFlush){}
+int IDL_CDECL IDL_Win32Init(IDL_INIT_DATA_OPTIONS_T iOpts, void  *hinstExe, void *hwndExe, void *hAccel){return 1;}
+void IDL_CDECL IDL_WinPostInit(void){}
+void IDL_CDECL IDL_WinCleanup(void){}
+#include <stdio.h>
+#include <stdarg.h>
+
 IDL_VPTR IDL_CDECL IDL_BasicTypeConversion(int argc, IDL_VPTR argv[], IDL_REGISTER int type){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 	if (argc != 1) throw GDLException("FIXME IDL_BasicTypeConversion!");
 	int i=0;
@@ -1982,6 +2057,7 @@ IDL_VPTR IDL_CDECL IDL_BasicTypeConversion(int argc, IDL_VPTR argv[], IDL_REGIST
 	}
 	return NULL;
 }
+int IDL_AddSystemRoutine(IDL_SYSFUN_DEF *defs, int is_function, int cnt){return 1;} //using DLM insure this is OK. I think.
 int IDL_CDECL IDL_BailOut(int stop){return sigControlC;} //use of stop not supported.
 void IDL_CDECL IDL_ExitRegister(IDL_EXIT_HANDLER_FUNC proc){}
 void IDL_CDECL IDL_ExitUnregister(IDL_EXIT_HANDLER_FUNC proc){}
