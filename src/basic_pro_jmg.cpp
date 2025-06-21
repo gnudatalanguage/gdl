@@ -65,7 +65,7 @@ static SizeT increment=33; //why not?
       if (e->KeywordPresentAndDefined(0)) {
         refextra = e->GetKWAs<DStringGDL>(0);
         nkw = refextra->N_Elements();
-        kws = (GDL_KEYWORDS_LIST*) calloc(nkw, sizeof (GDL_KEYWORDS_LIST));
+        kws = (GDL_KEYWORDS_LIST*) MyMemCalloc(nkw,sizeof (GDL_KEYWORDS_LIST));
         for (auto i = 0; i < nkw; ++i) {
           kws[i].name = (*refextra)[i].c_str();
           BaseGDL** gvarp = e->GetRefExtraListPtr((*refextra)[i]); //check as Ptr as the variable may not exist
@@ -99,7 +99,9 @@ static SizeT increment=33; //why not?
         }
       }
     }
-    return VPTR_ToGDL(ret)->Dup();
+    BaseGDL* back=VPTR_ToGDL(ret);
+    GDL_FreeResources() ;
+    return back;
   }
 
   void CallDllPro(EnvT* e) {
@@ -124,7 +126,7 @@ static SizeT increment=33; //why not?
       if (e->KeywordPresentAndDefined(0)) {
         refextra = e->GetKWAs<DStringGDL>(0);
         nkw = refextra->N_Elements();
-        kws = (GDL_KEYWORDS_LIST*) calloc(nkw, sizeof (GDL_KEYWORDS_LIST));
+        kws = (GDL_KEYWORDS_LIST*) MyMemCalloc(nkw,sizeof (GDL_KEYWORDS_LIST));
         for (auto i = 0; i < nkw; ++i) {
           kws[i].name = (*refextra)[i].c_str();
           BaseGDL** gvarp = e->GetRefExtraListPtr((*refextra)[i]); //check as Ptr as the variable may not exist
@@ -158,6 +160,7 @@ static SizeT increment=33; //why not?
         }
       }
     }
+    GDL_FreeResources() ;
   }
 
 void CleanupProc( DLibPro* proc ) {

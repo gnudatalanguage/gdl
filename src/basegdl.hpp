@@ -386,9 +386,10 @@ public:
 protected:
   dimension dim;
   bool shared=false;
-  
+  void (* callback_function)(unsigned char*)=NULL;
+
 public:
-  // type of initalization
+  // type of initialization
   enum InitType {
     ZERO=0,
     NOZERO,
@@ -447,6 +448,9 @@ public:
   BaseGDL();//: dim() {} 
   explicit BaseGDL(const dimension& dim_);//: dim(dim_) {} 
 
+  //callback function when deleted
+  void SetCallbackFunction(void (* ptr)(unsigned char*)){callback_function=ptr;}
+  void (*GetCallbackFunction())(unsigned char*){return callback_function;}
   //shared
   bool IsShared() {return shared;}
   void SetShared() {shared=true;} //used only with shmvar variables, explicitely in theur creation.
