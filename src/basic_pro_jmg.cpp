@@ -91,7 +91,7 @@ static SizeT increment=33; //why not?
     for (auto i = 0; i < nkw; ++i) {
       if (kws[i].out != NULL) {
         BaseGDL** gvarp = e->GetRefExtraListPtr((*refextra)[i]); //Ptr as the variable may not exist
-        if (gvarp) {
+        if (gvarp) { //replace parameter's value
           GDLDelete(*gvarp);
           *gvarp = (BaseGDL*) VPTR_ToGDL((IDL_VPTR) (kws[i].out));
         } else {

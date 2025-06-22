@@ -16,6 +16,8 @@
 #include "gdl_export.h"
 #include "datatypes.hpp"
 #include "GDLInterpreter.hpp"
+#include "terminfo.hpp"
+
 #define IDL_TYP_COMPLEXDBL IDL_TYP_DCOMPLEX
 
 // list of memory (strings...) to be released when IDL_KWFree() is called
@@ -23,7 +25,7 @@ static std::vector<IDL_VPTR> FreeList;
 static std::vector<IDL_VPTR> FreeKwList;
 typedef struct {
   const char* name;
-	BaseGDL* varptr; // pointer to some externally produced var if out=true
+  BaseGDL* varptr; // pointer to some externally produced var if out=true
   IDL_VPTR out=NULL;
   UCHAR type;
   UCHAR readonly; // no associated variable
@@ -37,7 +39,6 @@ typedef struct {
 inline void ZeroVPTR(IDL_VPTR p) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	memset((void*)p,0,sizeof(p));
 }
-void gdl_protect_data_cb(UCHAR *data){std::cerr<<"protected"<<std::endl;} //do nothing, it protects data.
 	
 inline void* MyMemAlloc(IDL_MEMINT n) {
 	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__) return malloc(n);
@@ -79,11 +80,11 @@ void IDL_CDECL IDL_Deltmp(IDL_REGISTER IDL_VPTR v) {
 	}
 }
 
-void IDL_CDECL IDL_Freetmp(IDL_REGISTER IDL_VPTR v) {
+void IDL_CDECL IDL_Freetmp(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	IDL_Deltmp(v);
 }
 
-void GDL_FreeResources() {
+void GDL_FreeResources() {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 //	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 //	for (std::vector<IDL_VPTR>::iterator it = FreeList.begin(); it != FreeList.end(); ++it) IDL_Deltmp(*it);
 //	FreeList.clear();
@@ -94,54 +95,40 @@ void IDL_KWFree(void) {
 	for (std::vector<IDL_VPTR>::iterator it = FreeKwList.begin(); it != FreeKwList.end(); ++it) IDL_Deltmp(*it);
 	FreeKwList.clear();
 };
-	
-inline IDL_VPTR NewTMPVPTR(UCHAR flag) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-	IDL_VPTR ret=new IDL_VARIABLE(); FreeList.push_back(ret);
-	ret->type=IDL_TYP_UNDEF;
-	ret->flags=IDL_V_TEMP|flag;
-	if ( flag & IDL_V_CONST) {
-		ret->flags |= IDL_V_CONST;
-		return ret;
-	}
-	if ( (flag & IDL_V_ARR) ) { // IDL_SREF is just a vraiant of ARR
-		IDL_ARRAY *a=new IDL_ARRAY();
-		ret->flags |= IDL_V_DYNAMIC;
-		a->flags=IDL_A_NO_GUARD;
-		ret->value.arr=a; //polulates also the eventual s.arr
-	}
-	return ret;
-}
-inline IDL_VPTR NewTMPVPTRARRAY() {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-	IDL_VPTR ret=new IDL_VARIABLE(); FreeList.push_back(ret);
-	ret->type=IDL_TYP_UNDEF;
-	ret->flags=IDL_V_TEMP | IDL_V_ARR | IDL_V_DYNAMIC;
-	IDL_ARRAY *a=new IDL_ARRAY();
-	a->flags=IDL_A_NO_GUARD;
-	ret->value.arr=a;
-	return ret;
-}
-inline IDL_VPTR NewTMPVPTRARRAYWithCB(IDL_ARRAY_FREE_CB free_cb) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-	IDL_VPTR ret=new IDL_VARIABLE(); FreeList.push_back(ret);
-	ret->type=IDL_TYP_UNDEF;
-	ret->flags=IDL_V_TEMP | IDL_V_ARR | IDL_V_DYNAMIC;
-	IDL_ARRAY *a=new IDL_ARRAY();
-	a->flags=IDL_A_NO_GUARD;
-	a->free_cb=free_cb;
-	ret->value.arr=a;
-	return ret;
-}
-inline IDL_VPTR NewTMPVPTRSTRUCT(_idl_structure *sdef) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-	IDL_VPTR ret=new IDL_VARIABLE(); FreeList.push_back(ret);
-	ret->type=IDL_TYP_STRUCT;
-	ret->flags=IDL_V_TEMP| IDL_V_DYNAMIC | IDL_V_ARR;
-	IDL_ARRAY *a=new IDL_ARRAY();
-	a->flags=IDL_A_NO_GUARD;
-	ret->value.arr=a;
-	ret->value.s.sdef=sdef;
-	return ret;
-}
 
-	inline IDL_VPTR NewTMPVPTR(bool kw=false) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+inline IDL_VPTR NewTMPVPTR(UCHAR flag=0) {
+	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+	IDL_VPTR ret = new IDL_VARIABLE();
+	FreeList.push_back(ret);
+	ret->type = IDL_TYP_UNDEF;
+	ret->flags = IDL_V_TEMP | flag;
+	if (flag & IDL_V_STRUCT  ) {
+		IDL_ARRAY *a = new IDL_ARRAY();
+		ret->flags |= IDL_V_DYNAMIC;
+		ret->flags |= IDL_V_ARR;
+		a->flags = IDL_A_NO_GUARD;
+		ret->value.s.arr = a;
+	} else if (flag & IDL_V_ARR) {
+		IDL_ARRAY *a = new IDL_ARRAY();
+		ret->flags |= IDL_V_DYNAMIC;
+		ret->flags |= IDL_V_ARR;
+		a->flags = IDL_A_NO_GUARD;
+		ret->value.arr = a;
+	}
+	return ret;
+}
+inline IDL_VPTR NewTMPVPTRARRAY() {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+	return NewTMPVPTR(IDL_V_ARR);
+}
+inline IDL_VPTR NewTMPVPTRARRAYWithCB(IDL_ARRAY_FREE_CB free_cb) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+	IDL_VPTR v=NewTMPVPTR(IDL_V_ARR);
+	v->value.arr->free_cb=free_cb;
+	return v;
+}
+inline IDL_VPTR NewTMPVPTRSTRUCT() {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+	return NewTMPVPTR(IDL_V_STRUCT);
+}
+	inline IDL_VPTR NewTMPVPTRFromGDL(bool kw=false) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 	IDL_VPTR ret=new IDL_VARIABLE(); if(kw) FreeKwList.push_back(ret); else FreeList.push_back(ret);
 	ret->flags=IDL_V_TEMP| IDL_V_DYNAMIC ;
 	ret->type=IDL_TYP_UNDEF;
@@ -154,7 +141,7 @@ inline IDL_VPTR NewTMPVPTRSTRUCT(_idl_structure *sdef) {TRACE_ROUTINE(__FUNCTION
 }
 	IDL_VPTR GDL_ToVPTR(BaseGDL* var, bool tempo=false, bool is_kw=false) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
     IDL_VPTR v;
-    if (tempo) v=NewTMPVPTR(is_kw); else v=NewSTATICVPTR(); 
+    if (tempo) v=NewTMPVPTRFromGDL(is_kw); else v=NewSTATICVPTR(); 
     if (var == NULL) {
       v->type=IDL_TYP_UNDEF;
       return v;
@@ -231,7 +218,15 @@ inline IDL_VPTR NewTMPVPTRSTRUCT(_idl_structure *sdef) {TRACE_ROUTINE(__FUNCTION
 		  v->value.str.s=(char*) s.c_str();
           break;
         }
-        case GDL_PTR:
+        case GDL_STRUCT:
+        {
+          v->type = IDL_TYP_STRUCT;
+          v->flags |= IDL_V_DYNAMIC;
+          v->flags |= IDL_V_ARR;
+throw GDLException("GDL_ToVPTR: do not support STRUCT yet.");
+          break;
+        }
+		  case GDL_PTR:
         {
           v->type = IDL_TYP_PTR;
 		  v->value.ptrint=(*static_cast<DPtrGDL*>(var))[0];
@@ -319,7 +314,24 @@ inline IDL_VPTR NewTMPVPTRSTRUCT(_idl_structure *sdef) {TRACE_ROUTINE(__FUNCTION
 			}
           break;
         }
-        default: throw GDLException("GDL_ToVPTR: unsupported case.");
+        case GDL_STRUCT:
+		{ //TBC: create a serie of IDL_SREFs, allocate all corresponding C char* strings, copy them, put all the newly allocated mem into the delete-after list.
+throw GDLException("GDL_ToVPTR: unsupported case: STRUCT.");
+//			SizeT nEl=arraydescr->n_elts;
+//			void* allstringdescr=MyMemAlloc(nEl*sizeof(IDL_STRING));
+//			memset(allstringdescr,0,nEl*sizeof(IDL_STRING));
+//			void* stringdescPtrs=MyMemAlloc(nEl*sizeof(IDL_STRING*));
+//			arraydescr->data = (UCHAR*) (stringdescPtrs);
+//			IDL_STRING** p=(IDL_STRING**)stringdescPtrs;
+//			for (SizeT i=0; i< nEl; ++i) p[i]=(IDL_STRING*)((SizeT)allstringdescr+(i*sizeof(IDL_STRING)));
+//			DStringGDL* gdlstr=(DStringGDL*)var;
+//			for (auto i=0; i< nEl; ++i) {
+//				p[i]->slen = ((*gdlstr)[i]).size();
+//				p[i]->s = (char*) MyMemAlloc(p[i]->slen + 1);
+//				strncpy(p[i]->s, (*gdlstr)[i].c_str(), p[i]->slen + 1);
+          break;
+        }
+		  default: throw GDLException("GDL_ToVPTR: unsupported case.");
 
       }
     }
@@ -458,18 +470,19 @@ char *IDL_TypeName[]={C_"UNDEFINED",C_"BYTE     ",C_"INT      ",C_"LONG     ",C_
 char *IDL_CDECL IDL_TypeNameFunc(int type){ TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 		if (type > IDL_MAX_TYPE) throw GDLException("type must be > 0 and < 15");
 		return IDL_TypeName[type];}
+#undef C_
 
-void GDL_Print(std::string &printPro, int nPar, IDL_VPTR *argv, DLong passedLun=0, bool usePassedLun=false) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-		SizeT printIx = LibProIx(printPro);
-      EnvT* env = new EnvT(NULL, libProList[printIx]);
-      Guard<EnvT> guard(env);
-   	// add parameters
-       if (usePassedLun) env->SetNextPar( new DLongGDL(passedLun));
-		for (auto i=0; i< nPar; ++i) {
-          env->SetNextPar(VPTR_ToGDL(argv[i])->Dup());
-		}
-	  static_cast<DLibPro*>(env->GetPro())->Pro()( env);
-	}
+//void GDL_Print(std::string &printPro, int nPar, IDL_VPTR *argv, DLong passedLun=0, bool usePassedLun=false) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+//		SizeT printIx = LibProIx(printPro);
+//      EnvT* env = new EnvT(NULL, libProList[printIx]);
+//      Guard<EnvT> guard(env);
+//   	// add parameters
+//       if (usePassedLun) env->SetNextPar( new DLongGDL(passedLun));
+//		for (auto i=0; i< nPar; ++i) {
+//          env->SetNextPar(VPTR_ToGDL(argv[i])->Dup());
+//		}
+//	  static_cast<DLibPro*>(env->GetPro())->Pro()( env);
+//	}
 
 IDL_VPTR IDL_CDECL IDL_ImportArray(int n_dim, IDL_MEMINT dim[], int type, UCHAR *data, IDL_ARRAY_FREE_CB free_cb,  IDL_StructDefPtr s){
 	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
@@ -503,7 +516,7 @@ IDL_VPTR IDL_CDECL IDL_ImportNamedArray(char *name, int n_dim, IDL_MEMINT dim[],
 	v->value.arr->elt_len = sz;
 	v->value.arr->arr_len = sz*l;
 	v->value.arr->data = data;
-	v->value.arr->free_cb= gdl_protect_data_cb; //protect data as this is passed to *MAIN* GDL
+	v->value.arr->free_cb= free_cb; //protect data as this is passed to *MAIN* GDL
 	BaseGDL* gdlvar = VPTR_ToGDL(v); //protect data as this is passed to *MAIN* GDL
 	restoreNormalVariable(std::string(name), gdlvar);
 	return v;
@@ -565,7 +578,7 @@ extern "C" {
  case ty: {sprintf (&s[l], IDL_OutputFormat[v->type],v->value.what);break;}
 #define DOCASE_CMP(ty, what)\
  case ty: {sprintf (&s[l], IDL_OutputFormat[v->type],v->value.what.r,v->value.what.i);  break;}
-char *IDL_CDECL IDL_VarName(IDL_VPTR v){
+char *IDL_CDECL IDL_VarName(IDL_VPTR v){TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 		char* s=(char*) MyMemCalloc(1,128);
 		strncat(s,"<",2);
 		strncat(s,IDL_TypeNameFunc(v->type),9);
@@ -607,16 +620,78 @@ if (v->flags == 0) return;
     static char* message= (char*)"Expression must be a scalar in this context: ";
 	if ( !( v->flags & IDL_TYP_B_SIMPLE) || ( v->flags & IDL_V_ARR) ) IDL_Message(IDL_M_NAMED_GENERIC, IDL_MSG_LONGJMP, message, IDL_VarName(v), NULL);
 }
- 
-void IDL_CDECL IDL_Print(int argc, IDL_VPTR *argv, char *argk){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-		//argk is to be set to NULL by users according to the doc.
-		std::string s("PRINT");
-		GDL_Print(s, argc, argv);
-	}
+ #define DOCASE(ty, what)\
+ case ty: dprintf (fd,IDL_OutputFormat[v->type],v->value.what);break;
 
-void IDL_CDECL IDL_PrintF(int argc, IDL_VPTR *argv, char *argk){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-		std::string s("PRINTF");
-		GDL_Print(s, argc-1, &(argv[1]),argv[0]->value.l, true);
+#define DOCASE_ARRAY(ty, c_ty)\
+ case ty: {\
+ c_ty *val=(c_ty *) v->value.arr->data;\
+ int i=0;\
+ int w=0;\
+ int l=IDL_OutputFormatLen[v->type];\
+ for (; i< v->value.arr->n_elts; ++i) {\
+ w+=l;\
+ dprintf (fd,IDL_OutputFormat[v->type],val[i]);\
+ if (w>=ncols) {dprintf (fd,"\n");w=0;} }\
+ dprintf (fd,"\n");}\
+ break;
+
+	void IDL_CDECL GDL_Print(int argc, IDL_VPTR *argv, char *argk, bool print_to_file) {
+		TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+				//argk is to be set to NULL by users according to the doc.
+		int start=0;
+		int fd=0;
+		if (print_to_file) {
+			IDL_LONG fd=argv[0]->value.l;
+			start=1;
+		}
+		int ncols= TermWidth();
+		for (int iarg = start; iarg < argc; ++iarg) {
+			IDL_VPTR v = argv[iarg];
+			if (v->flags & IDL_V_ARR) {
+				switch (v->type) {
+						DOCASE_ARRAY(IDL_TYP_BYTE, UCHAR);
+						DOCASE_ARRAY(IDL_TYP_INT, IDL_INT);
+						DOCASE_ARRAY(IDL_TYP_LONG, IDL_LONG);
+						DOCASE_ARRAY(IDL_TYP_FLOAT, float);
+						DOCASE_ARRAY(IDL_TYP_DOUBLE, double);
+						DOCASE_ARRAY(IDL_TYP_COMPLEX, IDL_COMPLEX);
+						DOCASE_ARRAY(IDL_TYP_DCOMPLEX, IDL_DCOMPLEX);
+						DOCASE_ARRAY(IDL_TYP_UINT, IDL_UINT);
+						DOCASE_ARRAY(IDL_TYP_ULONG, IDL_ULONG);
+						DOCASE_ARRAY(IDL_TYP_LONG64, IDL_LONG64);
+						DOCASE_ARRAY(IDL_TYP_ULONG64, IDL_ULONG64);
+						DOCASE_ARRAY(IDL_TYP_STRING, IDL_STRING);
+					default: IDL_Message(IDL_M_NAMED_GENERIC, IDL_MSG_LONGJMP, "IDL_Print: unexpected type " + i2s(v->type));
+				}
+			} else {
+				switch (v->type) {
+						DOCASE(IDL_TYP_BYTE, c);
+						DOCASE(IDL_TYP_INT, i);
+						DOCASE(IDL_TYP_LONG, l);
+						DOCASE(IDL_TYP_FLOAT, f);
+						DOCASE(IDL_TYP_DOUBLE, d);
+						DOCASE(IDL_TYP_COMPLEX, cmp);
+						DOCASE(IDL_TYP_DCOMPLEX, dcmp);
+						DOCASE(IDL_TYP_UINT, ui);
+						DOCASE(IDL_TYP_ULONG, ul);
+						DOCASE(IDL_TYP_LONG64, l64);
+						DOCASE(IDL_TYP_ULONG64, ul64);
+						DOCASE(IDL_TYP_STRING, str);
+					default: IDL_Message(IDL_M_NAMED_GENERIC, IDL_MSG_LONGJMP, "IDL_Print: unexpected type " + i2s(v->type));
+				}
+			}
+		}
+	}
+#undef DOCASE
+#undef DOCASE_ARRAY
+	void IDL_CDECL IDL_Print(int argc, IDL_VPTR *argv, char *argk) {
+		TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+		GDL_Print(argc, argv, argk, false);
+	}
+	void IDL_CDECL IDL_PrintF(int argc, IDL_VPTR *argv, char *argk) {
+		TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+		GDL_Print(argc, argv, argk, true);
 	}
 
 void IDL_CDECL IDL_StrStore(IDL_STRING *s, const char *fs){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
@@ -649,7 +724,7 @@ void IDL_CDECL IDL_StrDelete(IDL_STRING *str, IDL_MEMINT n) {TRACE_ROUTINE(__FUN
 		}
 	}
 IDL_VPTR IDL_CDECL IDL_StrToSTRING(const char *s) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-		IDL_VPTR ret = new IDL_VARIABLE();  FreeList.push_back(ret);
+		IDL_VPTR ret = NewTMPVPTR();
 		ret->type = IDL_TYP_STRING;
 		ret->flags = IDL_V_TEMP | IDL_V_DYNAMIC;
 		ret->value.str.slen = strlen(s);
@@ -874,8 +949,7 @@ IDL_FILEINT IDL_CDECL IDL_FILEINTScalar(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(
 	}
 #undef DOCASE
 #undef DOCASE_CMP
-void IDL_CDECL IDL_VarGetData(IDL_VPTR v, IDL_MEMINT *n, char **pd,
-        int ensure_simple){
+void IDL_CDECL IDL_VarGetData(IDL_VPTR v, IDL_MEMINT *n, char **pd,  int ensure_simple){TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	if (ensure_simple) IDL_ENSURE_SIMPLE(v);
 	if (v->flags & IDL_V_ARR) {
 		*n=v->value.arr->n_elts;
@@ -1000,8 +1074,12 @@ IDL_VPTR IDL_CDECL IDL_GettmpObjRef(IDL_HVID value){TRACE_ROUTINE(__FUNCTION__,_
 IDL_VPTR IDL_GettmpULong(IDL_ULONG value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
       DOIT(IDL_TYP_ULONG, ul);
 	}
-IDL_VPTR IDL_CDECL IDL_GettmpLong64(IDL_LONG64 value);
-IDL_VPTR IDL_CDECL IDL_GettmpULong64(IDL_ULONG64 value);
+IDL_VPTR IDL_CDECL IDL_GettmpLong64(IDL_LONG64 value){
+      DOIT(IDL_TYP_LONG64, l64);
+}
+IDL_VPTR IDL_CDECL IDL_GettmpULong64(IDL_ULONG64 value){
+      DOIT(IDL_TYP_ULONG64, ul64);
+}
 IDL_VPTR IDL_GettmpFILEINT(IDL_FILEINT value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
       DOIT(IDL_TYP_FILEINT, fileint);
 	}
@@ -1365,8 +1443,16 @@ IDL_VPTR IDL_CvtULng64(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__
 		return ret;
 
 	}
-IDL_VPTR IDL_CvtMEMINT(int argc, IDL_VPTR argv[]) {return IDL_CvtULng64(argc, argv);}
-IDL_VPTR IDL_CvtFILEINT(int argc, IDL_VPTR argv[]) {return IDL_CvtULng64(argc, argv);}
+IDL_VPTR IDL_CvtMEMINT(int argc, IDL_VPTR argv[]) {
+	IDL_VPTR v=IDL_CvtULng64(argc, argv);
+	v->type=IDL_TYP_MEMINT;
+	return v;
+}
+IDL_VPTR IDL_CvtFILEINT(int argc, IDL_VPTR argv[]) {
+	IDL_VPTR v=IDL_CvtULng64(argc, argv);
+	v->type=IDL_TYP_FILEINT;
+	return v;
+}
 //
 IDL_VPTR IDL_CvtFlt(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
         DEFOUT(IDL_TYP_FLOAT);
@@ -1566,7 +1652,7 @@ IDL_Message(IDL_M_NAMED_GENERIC, IDL_MSG_LONGJMP, "IDL_CvtString not supported, 
 
 
 
-char* GDLWriteVarAtAddr(BaseGDL* var, std::string name, UCHAR type, size_t address, bool isoutput, bool isarray){
+char* GDLWriteVarAtAddr(BaseGDL* var, std::string name, UCHAR type, size_t address, bool isoutput, bool isarray){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		switch (type) {
 			case IDL_TYP_BYTE:
 			{
@@ -1859,7 +1945,7 @@ char* GDLWriteVarAtAddr(BaseGDL* var, std::string name, UCHAR type, size_t addre
 	}
     int IDL_CDECL IDL_KWGetParams(int argc, IDL_VPTR *argv, char *argk_passed,
 				     IDL_KW_PAR *kw_requested,
-				     IDL_VPTR *plain_args, int mask) {
+				     IDL_VPTR *plain_args, int mask) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		for (auto i = 0; i < argc; ++i) plain_args[i] = argv[i];
 		//argk is a pointer to a  GDL_PASS_KEYWORDS_LIST struct
 		GDL_PASS_KEYWORDS_LIST* container = (GDL_PASS_KEYWORDS_LIST*) argk_passed;
@@ -1887,12 +1973,12 @@ char* GDLWriteVarAtAddr(BaseGDL* var, std::string name, UCHAR type, size_t addre
 			irequested++; //start at 1 too below
 		}
 		//get the list of expected KWs. Initial value of <int> in map will be: -1 (take into account) -2:ignored
-		std::map<const char*, int> requested;
-		std::map<const char*, int>::iterator it;
+		std::map<int, int> requested;
+		std::map<int, int>::iterator it;
 		while ((kw = kw_requested[ikw].keyword) != NULL) {
 			int code = -1;
 			if (kw_requested[ikw].mask & mask == 0) code = -2;
-			requested.insert(std::pair<const char*, int>(kw, code));
+			requested.insert(std::pair<int, int>(ikw, code));
 			ikw++;
 		}
 		for (auto ipassed = 0; ipassed < npassed; ++ipassed) {
@@ -1901,7 +1987,7 @@ char* GDLWriteVarAtAddr(BaseGDL* var, std::string name, UCHAR type, size_t addre
 			bool found = false;
 			bool ignored = false;
 			for (it = requested.begin(); it != requested.end(); ++it) {
-				const char* expected_kw = it->first;
+				const char* expected_kw = kw_requested[it->first].keyword;
 				if (strncmp(expected_kw, s, l) == 0) { //found
 					if (it->second == -2) { //ignored
 						ignored = true;
@@ -1916,7 +2002,7 @@ char* GDLWriteVarAtAddr(BaseGDL* var, std::string name, UCHAR type, size_t addre
 				DInterpreter::CallStackBack()->Throw("Invalid keyword " + std::string(s));
 			} else {
 				for (++it; it != requested.end(); ++it) { //search for ambiguous KW
-					const char* expected_kw = it->first;
+					const char* expected_kw =  kw_requested[it->first].keyword;
 					if (strncmp(expected_kw, s, l) == 0) DInterpreter::CallStackBack()->Throw("Ambiguous keyword abbreviation: " + std::string(s));
 				}
 			}
@@ -1924,9 +2010,9 @@ char* GDLWriteVarAtAddr(BaseGDL* var, std::string name, UCHAR type, size_t addre
 		//populate all passed addresses
 		for (it = requested.begin(); it != requested.end(); ++it) {
 			int ipassed = it->second;
-			if (ipassed == -1) GdlExportAbsentKeywordInOldApi(kw_requested[irequested], kw_requested[irequested].value);
+			if (ipassed == -1) GdlExportAbsentKeywordInOldApi(kw_requested[it->first], kw_requested[it->first].value);
 			else if (ipassed >= 0) {
-				IDL_VPTR ret = GdlExportPresentKeywordInOldApi(kw_requested[irequested], argk[ipassed], kw_requested[irequested].value);
+				IDL_VPTR ret = GdlExportPresentKeywordInOldApi(kw_requested[it->first], argk[it->second], kw_requested[it->first].value);
 				if (ret != NULL) {
 					argk[ipassed].out = ret; //pass vptr back
 				}
@@ -1934,19 +2020,21 @@ char* GDLWriteVarAtAddr(BaseGDL* var, std::string name, UCHAR type, size_t addre
 			irequested++;
 		}
 		return 0;
-}
+	}
+
 	int IDL_CDECL IDL_KWProcessByOffset(int argc, IDL_VPTR *argv, char
-			*argk_passed, IDL_KW_PAR *kw_requested, IDL_VPTR *plain_args, int mask, void *kw_result) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-			static const int NoClean=0;
-					// this is always true with GDL:
-		for (auto i=0; i< argc; ++i) plain_args[i]=argv[i];
+			*argk_passed, IDL_KW_PAR *kw_requested, IDL_VPTR *plain_args, int mask, void *kw_result) {
+		TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+				static const int NoClean = 0;
+		// this is always true with GDL:
+		for (auto i = 0; i < argc; ++i) plain_args[i] = argv[i];
 		//argk is a pointer to a  GDL_PASS_KEYWORDS_LIST struct
 		GDL_PASS_KEYWORDS_LIST* container = (GDL_PASS_KEYWORDS_LIST*) argk_passed;
-		int npassed=0;
+		int npassed = 0;
 		GDL_KEYWORDS_LIST* argk;
 		if (container) {
 			npassed = container->npassed;
-		    argk = container->passed;
+			argk = container->passed;
 		}
 		//build a vector of desired keywords 
 		int ikw = 0;
@@ -1966,28 +2054,28 @@ char* GDLWriteVarAtAddr(BaseGDL* var, std::string name, UCHAR type, size_t addre
 			irequested++; //start at 1 too below
 		}
 		//get the list of expected KWs. Initial value of <int> in map will be: -1 (take into account) -2:ignored
-		std::map<const char*, int> requested;
-		std::map<const char*, int>::iterator it;
+		std::map<int, int> requested;
+		std::map<int, int>::iterator it;
 		while ((kw = kw_requested[ikw].keyword) != NULL) {
 			int code = -1;
 			if (kw_requested[ikw].mask & mask == 0) code = -2;
-			requested.insert(std::pair<const char*, int>(kw, code));
+			requested.insert(std::pair<int, int>(ikw, code));
 			ikw++;
 		}
-//		std::cerr << "Expected: ";
-//		for (it = requested.begin(); it != requested.end(); ++it) {
-//			std::cerr << "\"" << it->first << "\",";
-//		}
-//		std::cerr << std::endl;
+		//		std::cerr << "Expected: ";
+		//		for (it = requested.begin(); it != requested.end(); ++it) {
+		//			std::cerr << "\"" << it->first << "\",";
+		//		}
+		//		std::cerr << std::endl;
 		// scan argk for wrong keywords
-//		std::cerr << "Passed: \"";
+		//		std::cerr << "Passed: \"";
 		for (auto ipassed = 0; ipassed < npassed; ++ipassed) {
 			const char* s = argk[ipassed].name;
 			int l = strlen(s);
 			bool found = false;
 			bool ignored = false;
 			for (it = requested.begin(); it != requested.end(); ++it) {
-				const char* expected_kw = it->first;
+				const char* expected_kw = kw_requested[it->first].keyword;
 				if (strncmp(expected_kw, s, l) == 0) { //found
 					if (it->second == -2) { //ignored
 						ignored = true;
@@ -1998,31 +2086,31 @@ char* GDLWriteVarAtAddr(BaseGDL* var, std::string name, UCHAR type, size_t addre
 					break;
 				}
 			}
-//			std::cerr << s << "\", \"";
+			//			std::cerr << s << "\", \"";
 			if (!found && !ignored) {
 				DInterpreter::CallStackBack()->Throw("Invalid keyword " + std::string(s));
 			} else {
 				for (++it; it != requested.end(); ++it) { //search for ambiguous KW
-					const char* expected_kw = it->first;
+					const char* expected_kw =  kw_requested[it->first].keyword;
 					if (strncmp(expected_kw, s, l) == 0) DInterpreter::CallStackBack()->Throw("Ambiguous keyword abbreviation: " + std::string(s));
 				}
 			}
 		}
-//		std::cerr << std::endl;
+		//		std::cerr << std::endl;
 		//populate kw_result
 		//first set IDL_KW_RESULT_FIRST_FIELD to zero (no need to clean)
-		memcpy(kw_result,&NoClean,sizeof(int));
+		memcpy(kw_result, &NoClean, sizeof (int));
+		//rewind: 
 		for (it = requested.begin(); it != requested.end(); ++it) {
 			int ipassed = it->second;
-//			std::cerr << "\"" << it->first << "\"," << ipassed<< std::endl;
-			if (ipassed == -1) GdlExportAbsentKeyword(kw_requested[irequested], kw_result);
+//			std::cerr <<  kw_requested[it->first].keyword << "->" <<it->second << std::endl;
+			if (ipassed == -1) GdlExportAbsentKeyword(kw_requested[it->first], kw_result);
 			else if (ipassed >= 0) {
-				IDL_VPTR ret=GdlExportPresentKeyword(kw_requested[irequested], argk[ipassed], kw_result);
+				IDL_VPTR ret=GdlExportPresentKeyword(kw_requested[it->first], argk[it->second], kw_result);
 				if (ret != NULL) {
 					argk[ipassed].out=ret; //pass vptr back
 				}
 			}
-			irequested++;
 		}
 		return argc;
 	}
@@ -2033,21 +2121,34 @@ char* GDLWriteVarAtAddr(BaseGDL* var, std::string name, UCHAR type, size_t addre
 //	}
 
 void *IDL_CDECL IDL_MemAlloc(IDL_MEMINT n, const char *err_str, int
-			msg_action){return MyMemAlloc(n);}
+			msg_action){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) return MyMemAlloc(n);}
 void *IDL_CDECL IDL_MemRealloc(void *ptr, IDL_MEMINT n, const char
- *err_str, int action){return realloc(ptr,n);}
+ *err_str, int action){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) return realloc(ptr,n);}
 void IDL_CDECL IDL_MemFree(IDL_REGISTER void *m, const char
  *err_str, int msg_action){MyMemFree(m);}
 void *IDL_CDECL IDL_MemAllocPerm(IDL_MEMINT n, const char *err_str,
-        int action){throw GDLException("MemAllocPerm is not currently supported.");}
+        int action){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) throw GDLException("MemAllocPerm is not currently supported.");}
 char *IDL_CDECL IDL_GetScratch(IDL_REGISTER IDL_VPTR *p,
-        IDL_REGISTER IDL_MEMINT n_elts,  IDL_REGISTER IDL_MEMINT elt_size){ return (char*)MyMemAlloc (n_elts*elt_size);}
-void IDL_CDECL IDL_KWCleanup(int fcn){IDL_KWFree();}
+        IDL_REGISTER IDL_MEMINT n_elts,  IDL_REGISTER IDL_MEMINT elt_size){ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) return (char*)MyMemAlloc (n_elts*elt_size);}
+void IDL_CDECL IDL_KWCleanup(int fcn){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) IDL_KWFree();}
 char *IDL_CDECL IDL_GetScratchOnThreshold(IDL_REGISTER char
         *auto_buf, IDL_REGISTER IDL_MEMINT auto_elts,  IDL_REGISTER IDL_MEMINT
-        n_elts,  IDL_REGISTER IDL_MEMINT elt_size,  IDL_VPTR *tempvar){
+        n_elts,  IDL_REGISTER IDL_MEMINT elt_size,  IDL_VPTR *tempvar){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) 
 	throw GDLException("IDL_GetScratchOnThreshold is not implemented, FIXME.");
 }
+
+IDL_TERMINFO IDL_TermInfo={
+#ifdef IDL_OS_HAS_TTYS
+  (char*)"Xterm" ,          /* Name of terminal type */
+  1    ,             /* True if stdin is a terminal */
+#endif
+  24,128};
+
+char *IDL_CDECL IDL_FileTermName(void){return IDL_TermInfo.name;}
+int IDL_CDECL IDL_FileTermIsTty(void){return IDL_TermInfo.is_tty;}
+int IDL_CDECL IDL_FileTermLines(void){return IDL_TermInfo.lines;}
+int IDL_CDECL IDL_FileTermColumns(void){return IDL_TermInfo.columns;}
+
 IDL_SYS_VERSION IDL_SysvVersion={{0,0,NULL},{0,0,NULL},{0,0,NULL},{0,0,NULL},{0,0,NULL},{0,0,NULL},0,0};
 IDL_STRING *IDL_CDECL IDL_SysvVersionArch(void){return &(IDL_SysvVersion.arch);}
 IDL_STRING *IDL_CDECL IDL_SysvVersionOS(void){return &(IDL_SysvVersion.os);};
