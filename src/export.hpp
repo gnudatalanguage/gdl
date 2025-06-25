@@ -23,6 +23,7 @@
 // list of memory (strings...) to be released when IDL_KWFree() is called
 static std::vector<IDL_VPTR> FreeList;
 static std::vector<IDL_VPTR> FreeKwList;
+static std::vector<std::pair<std::string, IDL_STRUCTURE*> > ExportedGlobalNamedStructList;
 typedef struct {
   const char* name;
   BaseGDL* varptr; // pointer to some externally produced var if out=true
@@ -81,7 +82,8 @@ void GDL_FreeResources() {
 				Message("Temporary variables are still checked out - cleaning up...");
 			}
 			fprintf(stderr,"%s\n",IDL_VarName((*it)));
-			IDL_Deltmp(*it);
+			GDL_DeleteDescriptors(*it);
+//			IDL_Deltmp(*it);
 		}
 	}
 	FreeList.clear();
@@ -109,18 +111,16 @@ inline IDL_VPTR NewTMPVPTR(UCHAR flag=0, IDL_StructDefPtr structdefptr=NULL) {
 	ret->type = IDL_TYP_UNDEF;
 	ret->flags = IDL_V_TEMP | flag;
 	if (flag & IDL_V_STRUCT  ) {
-		IDL_ARRAY *a = new IDL_ARRAY();
 		ret->flags |= IDL_V_DYNAMIC;
 		ret->flags |= IDL_V_ARR;
-		a->flags = IDL_A_NO_GUARD;
-		ret->value.s.arr = a;
+		ret->value.s.arr= new IDL_ARRAY();
+		ret->value.s.arr->flags = IDL_A_NO_GUARD;
 		ret->value.s.sdef = structdefptr;
 	} else if (flag & IDL_V_ARR) {
-		IDL_ARRAY *a = new IDL_ARRAY();
+		ret->value.arr = new IDL_ARRAY();
 		ret->flags |= IDL_V_DYNAMIC;
 		ret->flags |= IDL_V_ARR;
-		a->flags = IDL_A_NO_GUARD;
-		ret->value.arr = a;
+		ret->value.arr->flags = IDL_A_NO_GUARD;
 	}
 	return ret;
 }
@@ -134,6 +134,11 @@ inline IDL_VPTR NewTMPVPTRARRAYWithCB(IDL_ARRAY_FREE_CB free_cb) {TRACE_ROUTINE(
 }
 inline IDL_VPTR NewTMPVPTRSTRUCT(IDL_StructDefPtr structdefptr=NULL) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	return NewTMPVPTR(IDL_V_STRUCT,structdefptr);
+}
+inline IDL_VPTR NewTMPVPTRSTRUCTWithCB(IDL_StructDefPtr structdefptr=NULL, IDL_ARRAY_FREE_CB free_cb=NULL) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+	IDL_VPTR v=NewTMPVPTR(IDL_V_STRUCT,structdefptr);
+	v->value.s.arr->free_cb=free_cb;
+	return v;
 }
 	inline IDL_VPTR NewTMPVPTRFromGDL(bool kw=false) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 	IDL_VPTR ret=NewTMPVPTR(); if(kw) FreeKwList.push_back(ret); else FreeList.push_back(ret);
@@ -486,37 +491,45 @@ char *IDL_CDECL IDL_TypeNameFunc(int type){
 
 IDL_VPTR IDL_CDECL IDL_ImportArray(int n_dim, IDL_MEMINT dim[], int type, UCHAR *data, IDL_ARRAY_FREE_CB free_cb,  IDL_StructDefPtr s){
 	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-	IDL_VPTR v = NewTMPVPTRARRAYWithCB(free_cb);
-	v->type = type;
-	SizeT l = 1;
-	for (auto i = 0; i < n_dim; ++i) {
-		l *= dim[i];
-		v->value.arr->dim[i] = dim[i];
+
+	if (type == IDL_TYP_STRUCT){
+	 if (s==NULL) GDL_WillThrowAfterCleaning("IDL_ImportArray() defines a struct without passing a valid IDL_StructDefPtr");
+	 IDL_VPTR v= NewTMPVPTRSTRUCTWithCB(s,free_cb);
+		v->type = type;
+		SizeT l = 1;
+		for (auto i = 0; i < n_dim; ++i) {
+			l *= dim[i];
+			v->value.arr->dim[i] = dim[i];
+		}
+		v->value.s.arr->n_elts = l;
+		v->value.s.arr->n_dim = n_dim;
+		IDL_LONG64 sz = IDL_TypeSizeFunc(type);
+		v->value.s.arr->elt_len = sz;
+		v->value.s.arr->arr_len = sz*l;
+		v->value.s.arr->data = data;
+	    v->value.s.sdef=s;
+		return v;
+	} else {	
+		IDL_VPTR v= NewTMPVPTRARRAYWithCB(free_cb);
+		v->type = type;
+		SizeT l = 1;
+		for (auto i = 0; i < n_dim; ++i) {
+			l *= dim[i];
+			v->value.arr->dim[i] = dim[i];
+		}
+		v->value.arr->n_elts = l;
+		v->value.arr->n_dim = n_dim;
+		IDL_LONG64 sz = IDL_TypeSizeFunc(type);
+		v->value.arr->elt_len = sz;
+		v->value.arr->arr_len = sz*l;
+		v->value.arr->data = data;
+		return v;
 	}
-	v->value.arr->n_elts = l;
-	v->value.arr->n_dim = n_dim;
-	IDL_LONG64 sz = IDL_TypeSizeFunc(type);
-	v->value.arr->elt_len = sz;
-	v->value.arr->arr_len = sz*l;
-	v->value.arr->data = data;
-	return v;
 }
+
 IDL_VPTR IDL_CDECL IDL_ImportNamedArray(char *name, int n_dim, IDL_MEMINT dim[],  int type, UCHAR *data,  IDL_ARRAY_FREE_CB free_cb, IDL_StructDefPtr s){
 	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-	IDL_VPTR v = NewTMPVPTRARRAYWithCB(free_cb);
-	v->type = type;
-	SizeT l = 1;
-	for (auto i = 0; i < n_dim; ++i) {
-		l *= dim[i];
-		v->value.arr->dim[i] = dim[i];
-	}
-	v->value.arr->n_elts = l;
-	v->value.arr->n_dim = n_dim;
-	IDL_LONG64 sz = IDL_TypeSizeFunc(type);
-	v->value.arr->elt_len = sz;
-	v->value.arr->arr_len = sz*l;
-	v->value.arr->data = data;
-	v->value.arr->free_cb= free_cb; //protect data as this is passed to *MAIN* GDL
+	IDL_VPTR v=IDL_ImportArray(n_dim, dim,  type, data, free_cb, s);		
 	BaseGDL* gdlvar = VPTR_ToGDL(v, true); //protect data as this is passed to *MAIN* GDL
 	restoreNormalVariable(std::string(name), gdlvar);
 	return v;
@@ -2284,13 +2297,83 @@ int IDL_AddSystemRoutine(IDL_SYSFUN_DEF *defs, int is_function, int cnt){return 
 int IDL_CDECL IDL_BailOut(int stop){return sigControlC;} //use of stop not supported.
 void IDL_CDECL IDL_ExitRegister(IDL_EXIT_HANDLER_FUNC proc){}
 void IDL_CDECL IDL_ExitUnregister(IDL_EXIT_HANDLER_FUNC proc){}
-
-IDL_STRUCTURE* IDL_CDECL IDL_MakeStruct(char *name,  IDL_STRUCT_TAG_DEF *tags){
-	IDL_STRUCTURE *newIdlStructure= new IDL_STRUCTURE();
-	IDL_SREF *str=new IDL_SREF();
-	IDL_ARRAY *arr=new IDL_ARRAY();
-	str->arr=arr;
-	return newIdlStructure;
+static const int structdefaultdatalength=sizeof(IDL_IDENT*)+2*sizeof(UCHAR)+2*sizeof(int)+2*sizeof(IDL_MEMINT)+sizeof(void*)+sizeof(IDL_ARRAY*)+sizeof(IDL_TAGDEF*);
+static const int structdefaultlength=sizeof(IDL_STRUCTURE);
+IDL_STRUCTURE* IDL_CDECL IDL_MakeStruct(char *name,  IDL_STRUCT_TAG_DEF *tags){TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+	//count tags (?)
+    int ntags=0;
+	while (tags[ntags++].name != NULL) {};ntags--;
+	// create structure with extended size after (see https://stackoverflow.com/questions/6390331/why-use-array-size-1-instead-of-pointer)
+	IDL_STRUCTURE *returned_struct= (IDL_STRUCTURE *) calloc(1,sizeof(IDL_STRUCTURE)+ntags*sizeof (IDL_TAGDEF));
+	if (name) {
+		IDL_IDENT *iid=(IDL_IDENT*)calloc(1,sizeof(IDL_IDENT));
+		ExportedGlobalNamedStructList.push_back(std::make_pair(std::string(name),returned_struct));
+		returned_struct->id=iid;
+		iid->hash=NULL;
+		iid->name=name;
+		iid->len=strlen(name);
+	} else returned_struct->id=NULL;
+	returned_struct->flags=0;
+	returned_struct->ntags = ntags;
+	returned_struct->length = 0; //structdefaultlength;
+	returned_struct->data_length = 0; //structdefaultdatalength;
+	returned_struct->contains_string = false;
+	IDL_MEMINT offset=0;
+	struct _idl_ident *memhash=NULL;
+	for (int itag=0; itag< ntags; ++itag) {
+		IDL_STRUCT_TAG_DEF def=tags[itag];
+		IDL_IDENT *tagid=(IDL_IDENT*)calloc(1,sizeof(IDL_IDENT));
+		returned_struct->tags[itag].id=tagid;
+		tagid->name=def.name;
+		tagid->len=strlen(def.name);
+		tagid->hash=memhash;
+		memhash=tagid; //chain
+		returned_struct->tags[itag].offset=offset;
+		size_t thetype = (size_t) def.type; 
+		if (thetype == 0) { /*If this
+			   field is NULL, it indicates that IDL
+			   should search for a structure of the
+			   given name and fill in the pointer to
+			   its structure definition. */
+			if (def.name == NULL) throw GDLException("IDL_MakeStruct(): no name for inherited structure!");
+			for (std::vector<std::pair<std::string, IDL_STRUCTURE*>>::iterator it=ExportedGlobalNamedStructList.begin(); it!=ExportedGlobalNamedStructList.end(); ++it) {
+				if (it->first == std::string(def.name)) {
+					def.type=(void*)(it->second);
+					returned_struct->length +=(it->second)->length;
+					returned_struct->data_length +=(it->second)->data_length;
+					break;
+				}
+				throw GDLException("IDL_MakeStruct(): Unknown structure name"+std::string(name));
+			}
+		} else {/* This may be either a pointer to another
+			   structure definition, or a simple IDL
+			   type code (IDL_TYP_*) cast to void
+			   (e.g. (void *) IDL_TYP_BYTE)*/
+			if ( thetype > IDL_MAX_TYPE) { /* a structure ptr */
+				returned_struct->length += ((IDL_STRUCTURE*)(thetype))->length;
+				returned_struct->data_length += ((IDL_STRUCTURE*)(thetype))->data_length;
+			} else {
+				if ( thetype == IDL_TYP_STRING || thetype == IDL_TYP_PTR) returned_struct->contains_string = true;
+				if (def.dims == NULL) {
+				  returned_struct->data_length += IDL_TypeSize[thetype];
+				  returned_struct->length += IDL_TypeSize[thetype];
+				} else {
+					IDL_LONG64 ndim = tags[itag].dims[0];
+					size_t l = 1;
+					for (auto i = 1; i < ndim + 1; ++i) {
+						l *= tags[itag].dims[i];
+					}
+				 returned_struct->data_length += l*IDL_TypeSize[thetype];
+				 returned_struct->length += l*IDL_TypeSize[thetype];
+				}
+			}
+		}
+		offset=returned_struct->length;
+		}
+	returned_struct->rcount=1;
+	returned_struct->object=NULL;
+	return returned_struct;
 }
+
 }
 #endif

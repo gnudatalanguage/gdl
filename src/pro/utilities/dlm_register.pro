@@ -41,9 +41,9 @@ end
 ; silent is a GDL extension
 pro dlm_register,filein,silent=silent,verbose=verbose
   COMPILE_OPT idl2, HIDDEN
-  if n_elements(filein) eq 0 then begin 
-	filelist=file_search('*.dlm') 
-	filelist+=file_search(STRSPLIT(!DLM_PATH, PATH_SEP(/SEARCH_PATH),/extract)+'/*.dlm') 
+  if n_elements(filein) eq 0 then begin; default search is also the local directory
+     searchpath="."+ PATH_SEP(/SEARCH_PATH) +!DLM_PATH
+	filelist=file_search(STRSPLIT(searchpath, PATH_SEP(/SEARCH_PATH),/extract)+'/*.dlm') 
   endif else filelist=filein
   nfiles = n_elements(filelist)
   if nfiles eq 1 and filelist[0] eq "" then begin
