@@ -221,7 +221,7 @@ namespace MyPaths {
     std::string pathstring(path);
     free(path);
     return pathstring;
-  }
+    }
   return std::string(".");
 }
 }

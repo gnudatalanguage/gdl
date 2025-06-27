@@ -24,6 +24,7 @@
 static std::vector<IDL_VPTR> FreeList;
 static std::vector<IDL_VPTR> FreeKwList;
 static std::vector<std::pair<std::string, IDL_STRUCTURE*> > ExportedGlobalNamedStructList;
+static std::vector<std::pair<IDL_VPTR,std::string> > ExportedNamesList;
 typedef struct {
   const char* name;
   BaseGDL* varptr; // pointer to some externally produced var if out=true
@@ -63,9 +64,9 @@ void IDL_CDECL IDL_Deltmp(IDL_REGISTER IDL_VPTR v) {
 void IDL_CDECL GDL_DeleteDescriptors(IDL_REGISTER IDL_VPTR v) {
 	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 		if (v->flags & IDL_V_DYNAMIC) {
-			if (v->value.arr != NULL) {
+			if (v->flags & IDL_V_ARR ) {
 				if (v->value.arr->free_cb != NULL) v->value.arr->free_cb(v->value.arr->data);
-			} else if (v->type == IDL_TYP_STRING) if (v->value.str.slen != 0) free(v->value.str.s);
+			} //else if (v->type == IDL_TYP_STRING) if (v->value.str.slen != 0) free(v->value.str.s);
 		}
 }
 
@@ -153,7 +154,7 @@ inline IDL_VPTR NewTMPVPTRSTRUCTWithCB(IDL_StructDefPtr structdefptr=NULL, IDL_A
 }
 	IDL_VPTR GDL_ToVPTR(BaseGDL* var, bool tempo=false, bool is_kw=false) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
     IDL_VPTR v;
-    if (tempo) v=NewTMPVPTRFromGDL(is_kw); else v=NewSTATICVPTR(); 
+    if (tempo) v=NewTMPVPTRFromGDL(is_kw); else {v=NewSTATICVPTR(); ExportedNamesList.push_back(std::pair<IDL_VPTR,std::string>(v,DInterpreter::CallStackBack()->GetString(var)));}
     if (var == NULL) {
       v->type=IDL_TYP_UNDEF;
       return v;
@@ -351,11 +352,6 @@ GDL_WillThrowAfterCleaning("GDL_ToVPTR: do not support STRUCT yet.");
     return v;
   } 
   
-#define DOCASE(type, gdltype, element)\
- case type: return new gdltype(v->value.element); break;
-
-#define DOCASE_ARRAY(type, gdltype)\
- case type: var = new gdltype(dim, BaseGDL::NOALLOC); break;
 	
 // from RESTORE	
   void restoreNormalVariable(std::string varName, BaseGDL* ret) {
@@ -387,6 +383,131 @@ GDL_WillThrowAfterCleaning("GDL_ToVPTR: do not support STRUCT yet.");
     }
   }
   
+DStringGDL* GDL_GetString(IDL_VPTR v) {
+ 		  dimension *dim;
+		  IDL_STRING* ss;
+		if (v->flags & IDL_V_ARR) {
+			IDL_ARRAY* arraydescr = v->value.arr;
+			SizeT rank = arraydescr->n_dim;
+			SizeT arraydim[rank];
+			for (int i = 0; i < rank; ++i) arraydim[i] = arraydescr->dim[i];
+			dim = new dimension(arraydim, rank);
+			ss=(IDL_STRING*)(v->value.arr->data);
+	    } else {
+			dim = new  dimension(1);
+			ss=&(v->value.str);
+		}
+		  DStringGDL* gdls=new DStringGDL(*dim, BaseGDL::NOALLOC);
+//strings copy data
+			for (auto i=0; i< dim->NDimElements(); ++i) (*gdls)[i]=std::string(ss[i].s);
+//thus, delete v if temp, it deletes the original data, we're left with a copy			
+			IDL_Deltmp(v);
+			return gdls;
+}
+
+#define DOCASE(type, gdltype, tagname, pardim)\
+ case type: { gdltype entry(pardim); stru_desc->AddTag(std::string(tagname), &entry);} break;
+  
+DStructGDL* GDL_GetStruct(IDL_VPTR v, dimension &inputdim) { 
+       DStructDesc * stru_desc=new DStructDesc("$truct");
+      //summary & tag population:
+      for (int i = 0; i < v->value.s.sdef->ntags; ++i)
+{
+		  dimension *dim;
+		if (v->value.s.sdef->tags[i].var.flags & IDL_V_ARR) {
+			IDL_ARRAY* arraydescr = v->value.s.sdef->tags[i].var.value.arr;
+			SizeT rank = arraydescr->n_dim;
+			SizeT arraydim[rank];
+			for (int i = 0; i < rank; ++i) arraydim[i] = arraydescr->dim[i];
+			dim = new dimension(arraydim, rank);
+			  } else dim = new  dimension(1);
+        switch (v->value.s.sdef->tags[i].var.type) {
+			DOCASE( IDL_TYP_BYTE, SpDByte, v->value.s.sdef->tags[i].id->name,*dim)
+			DOCASE( IDL_TYP_INT, SpDInt, v->value.s.sdef->tags[i].id->name,*dim)
+			DOCASE( IDL_TYP_LONG, SpDLong, v->value.s.sdef->tags[i].id->name,*dim)
+			DOCASE( IDL_TYP_FLOAT, SpDFloat, v->value.s.sdef->tags[i].id->name,*dim)
+			DOCASE( IDL_TYP_DOUBLE, SpDDouble, v->value.s.sdef->tags[i].id->name,*dim)
+			DOCASE( IDL_TYP_COMPLEX, SpDComplex, v->value.s.sdef->tags[i].id->name,*dim)
+			DOCASE( IDL_TYP_DCOMPLEX, SpDComplexDbl, v->value.s.sdef->tags[i].id->name,*dim)
+			DOCASE( IDL_TYP_STRING, SpDString, v->value.s.sdef->tags[i].id->name,*dim)
+			DOCASE( IDL_TYP_PTR, DPtrGDL, v->value.s.sdef->tags[i].id->name,*dim)
+			DOCASE( IDL_TYP_OBJREF, DObjGDL, v->value.s.sdef->tags[i].id->name,*dim)
+			DOCASE( IDL_TYP_UINT, SpDUInt, v->value.s.sdef->tags[i].id->name,*dim)
+			DOCASE( IDL_TYP_ULONG, SpDULong, v->value.s.sdef->tags[i].id->name,*dim)
+			DOCASE( IDL_TYP_ULONG64, SpDULong64, v->value.s.sdef->tags[i].id->name,*dim)
+			DOCASE( IDL_TYP_LONG64, SpDLong64, v->value.s.sdef->tags[i].id->name,*dim)
+
+          case IDL_TYP_STRUCT:
+          {
+            bool dummy;
+            DStructGDL* parStruct = GDL_GetStruct(&(v->value.s.sdef->tags[i].var), *dim);
+            if (parStruct == NULL) return NULL;
+            stru_desc->AddTag(std::string(v->value.s.sdef->tags[i].id->name), parStruct);
+          }
+
+          default:
+            GDL_WillThrowAfterCleaning("GDL_ToVPTR: unsupported case.");
+            break;
+        }
+
+
+
+      }
+
+//      //Then there should be CLASSNAME if INHERITS or IS_SUPER 
+//      if (isObjStruct || is_super)
+//      {
+//        char* classname = 0;
+//        if (!xdr_string(xdrs, &classname, 2048)) return NULL;
+//        if (DEBUG_SAVERESTORE) cerr << "CLASSNAME: \"" << classname << "\"" << endl;
+//        //NSUPCLASSES:
+//        int32_t nsupclasses = 0;
+//        if (!xdr_int32_t(xdrs, &nsupclasses)) return NULL;
+//        if (DEBUG_SAVERESTORE)  cerr << "NSUPCLASSES=" << nsupclasses << endl;
+//        if (nsupclasses > 0)
+//        {
+//          for (int i = 0; i < nsupclasses; ++i)
+//          {
+//            char* supclassname = 0;
+//            if (!xdr_string(xdrs, &supclassname, 2048)) return NULL;
+//            if (DEBUG_SAVERESTORE) cerr << "SUPCLASSNAME " << i << ": " << supclassname << endl;
+//          }
+//          for (int i = 0; i < nsupclasses; ++i)
+//          {
+//            //define all parent classes in objheap.
+//            DStructGDL* superclass = NULL;
+//            bool dummy=false;
+//            superclass = getDStruct(e, xdrs, new dimension(1), dummy); // will define the class as an object.
+//            if (superclass) stru_desc->AddParentListOnly(superclass->Desc());
+////            if (isObjStruct)  {
+////             DPtr ptr= e->NewObjHeap(1, static_cast<DStructGDL*>(superclass));
+////            }
+//          }
+//        }
+//      }
+//      if (checkStruct)
+//      {
+//        try
+//        {
+//          ref_desc->AssureIdentical(stru_desc);
+//          stru_desc=ref_desc; //OK, switch back.
+//        }        catch (GDLException& ex)
+//        {
+//          e->Throw("Structure not restored due to conflict with existing definition: "+stru_name);
+//          return NULL;
+//        }
+//      }
+      return new DStructGDL(stru_desc, inputdim);
+    }
+#undef DOCASE
+
+#define DOCASE(type, gdltype, element)\
+ case type: return new gdltype(v->value.element); break;
+
+#define DOCASE_ARRAY(type, gdltype)\
+ case type: var = new gdltype(dim, BaseGDL::NOALLOC); break;
+
+  
 BaseGDL* VPTR_ToGDL(IDL_VPTR v, bool protect=false) {
 	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	if (v == NULL) {
@@ -399,7 +520,7 @@ BaseGDL* VPTR_ToGDL(IDL_VPTR v, bool protect=false) {
 		return NullGDL::GetSingleInstance();
 	}
 	if (v->flags & IDL_V_ARR) {
-		if (protect) v->flags &= ~IDL_V_TEMP; //will no destroy
+		if (protect) v->flags &= ~IDL_V_TEMP; //will no destroy data
 		IDL_ARRAY* arraydescr = v->value.arr;
 		SizeT rank = arraydescr->n_dim;
 		SizeT arraydim[rank];
@@ -418,11 +539,12 @@ BaseGDL* VPTR_ToGDL(IDL_VPTR v, bool protect=false) {
 				DOCASE_ARRAY(IDL_TYP_ULONG, DULongGDL);
 				DOCASE_ARRAY(IDL_TYP_LONG64, DLong64GDL);
 				DOCASE_ARRAY(IDL_TYP_ULONG64, DULong64GDL);
-//				DOCASE_ARRAY(IDL_TYP_STRING, DStringGDL);
-			case IDL_TYP_STRUCT: {
-				GDL_WillThrowAfterCleaning("VPTR_ToGDL: Write STRUCT case!.");
-			break;
-			}
+			case IDL_TYP_STRING:
+				return GDL_GetString(v);
+			    break;
+			case IDL_TYP_STRUCT: 
+				return GDL_GetStruct(v, dim);
+			    break;
 			default: GDL_WillThrowAfterCleaning("VPTR_ToGDL: bad array case.");
 		}
 //		if ((SizeT) (arraydescr->data) % (16 * sizeof(size_t))) std::cerr << "unaligned\n";
@@ -442,13 +564,20 @@ BaseGDL* VPTR_ToGDL(IDL_VPTR v, bool protect=false) {
 				DOCASE(IDL_TYP_ULONG, DULongGDL, ul);
 				DOCASE(IDL_TYP_LONG64, DLong64GDL, l64);
 				DOCASE(IDL_TYP_ULONG64, DULong64GDL, ul64);
-				DOCASE(IDL_TYP_STRING, DStringGDL, str.s);
+			case IDL_TYP_STRING:
+				return GDL_GetString(v);
+				break;
 			case IDL_TYP_COMPLEX:
 				return new DComplexGDL(std::complex<float>(v->value.cmp.r, v->value.cmp.i));
 				break;
 			case IDL_TYP_DCOMPLEX:
 				return new DComplexDblGDL(std::complex<double>(v->value.dcmp.r, v->value.dcmp.i));
 				break;
+			case IDL_TYP_STRUCT: {
+				dimension dim(1);
+				return GDL_GetStruct(v, dim);
+				break;
+			}
 			default: GDL_WillThrowAfterCleaning("ReturnIDL_VPTR_AsGDL: bad array case.");
 		}
 	}
@@ -536,30 +665,6 @@ IDL_VPTR IDL_CDECL IDL_ImportNamedArray(char *name, int n_dim, IDL_MEMINT dim[],
 }
  
 #define DOCASE(type, gdltype)\
- case type: return new gdltype(dimension(nelts), mode); break;
-
-  BaseGDL* CreateNewGDLVector(int type, SizeT nelts, BaseGDL::InitType mode) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-	switch (type) {
-			DOCASE(IDL_TYP_BYTE, DByteGDL);
-			DOCASE(IDL_TYP_INT, DIntGDL);
-			DOCASE(IDL_TYP_LONG, DLongGDL);
-			DOCASE(IDL_TYP_FLOAT,DFloatGDL);
-			DOCASE(IDL_TYP_DOUBLE, DDoubleGDL);
-			DOCASE(IDL_TYP_COMPLEX, DComplexGDL);
-			DOCASE(IDL_TYP_DCOMPLEX, DComplexDblGDL);
-			DOCASE(IDL_TYP_UINT, DUIntGDL);
-			DOCASE(IDL_TYP_ULONG, DULongGDL);
-			DOCASE(IDL_TYP_LONG64, DLong64GDL);
-			DOCASE(IDL_TYP_ULONG64, DULong64GDL);
-			DOCASE(IDL_TYP_STRING, DStringGDL);
-		default:
-			GDL_WillThrowAfterCleaning("CreateNewGDLVector failure.");
-	}
-	throw;
-}
-#undef DOCASE
-
-#define DOCASE(type, gdltype)\
  case type: return new gdltype(d, mode); break;
 
   BaseGDL* CreateNewGDLArray(int type, SizeT n_dim, SizeT dim[], BaseGDL::InitType mode) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
@@ -596,7 +701,17 @@ char *IDL_CDECL IDL_VarName(IDL_VPTR v){TRACE_ROUTINE(__FUNCTION__, __FILE__, __
 
 		if (v->type == IDL_TYP_UNDEF) {strncat(s,"<UNDEFINED> ",13); return s;}
 
-        if (v->flags & IDL_V_TEMP) strncat(s,"<Expression> ",14);
+        if ((v->flags & IDL_V_TEMP)==0) {
+			for (std::vector<std::pair <IDL_VPTR, std::string>>::iterator it = ExportedNamesList.begin(); it != ExportedNamesList.end(); ++it) {
+				if (it->first == v) {
+					strncat(s,it->second.c_str(),it->second.size());
+					break;
+				}
+				strncat(s,"<No Name>",10);
+			}
+			return s;
+		}
+        strncat(s,"<Expression> ",14);
 		strncat(s,IDL_TypeNameFunc(v->type),9);
 		if (v->flags & IDL_V_ARR) {
 			strncat(s,"Array[",7);
@@ -623,7 +738,9 @@ char *IDL_CDECL IDL_VarName(IDL_VPTR v){TRACE_ROUTINE(__FUNCTION__, __FILE__, __
 				DOCASE(IDL_TYP_ULONG, ul);
 				DOCASE(IDL_TYP_LONG64, l64);
 				DOCASE(IDL_TYP_ULONG64, ul64);
-			default: GDL_WillThrowAfterCleaning("IDL_VarName: unexpected type "+i2s(v->type));
+				DOCASE(IDL_TYP_STRING, str.s);
+				DOCASE(IDL_TYP_STRUCT, s.sdef->id->name);
+			default: Warning/*GDL_WillThrowAfterCleaning*/("IDL_VarName: unexpected type "+i2s(v->type));
 			}
 			strncat(s,")",2);
 		}
@@ -800,39 +917,40 @@ void IDL_CDECL IDL_StoreScalarZero(IDL_VPTR dest, int type) {TRACE_ROUTINE(__FUN
 	}
 #undef DOCASE
 #undef DOCASE_CMP
-//scalar only
+	//scalar only
 
-void IDL_CDECL IDL_VarCopy(IDL_REGISTER IDL_VPTR src, IDL_REGISTER
-        IDL_VPTR dst){
-	if (dst->value.arr != NULL) {
-		free(dst->value.arr->data);
-		dst->value.arr=NULL;
+	void IDL_CDECL IDL_VarCopy(IDL_REGISTER IDL_VPTR src, IDL_REGISTER
+	IDL_VPTR dst) {
+		if (dst->value.arr != NULL) {
+			free(dst->value.arr->data);
+			dst->value.arr = NULL;
+		}
+		dst->type = src->type;
+		dst->value = src->value; //copy pointers.
+		if (src->flags & IDL_V_STRUCT) { //must copy
+			GDL_WillThrowAfterCleaning("IDL_VarCopy not yet ready for structure, FIXME.");
+		} else if (src->flags & IDL_V_ARR) { //must copy
+			IDL_ARRAY *a = new IDL_ARRAY();
+			a->flags = IDL_A_NO_GUARD;
+			dst->value.arr = a;
+			dst->value.arr->n_dim = src->value.arr->n_dim;
+			dst->value.arr->n_elts = src->value.arr->n_elts;
+			for (auto i = 0; i < src->value.arr->n_dim; ++i) dst->value.arr->dim[i] = src->value.arr->dim[i];
+			dst->value.arr->elt_len = IDL_TypeSizeFunc(src->type);
+			dst->value.arr->arr_len = src->value.arr->n_elts * dst->value.arr->elt_len;
+			if (src->flags & IDL_V_TEMP) {
+				dst->value.arr->data = src->value.arr->data; //do not copy if src is temp, just pass.
+			} else {
+				void * addr = malloc(dst->value.arr->arr_len);
+				dst->value.arr->data = (UCHAR*) addr;
+				memcpy(dst->value.arr->data, src->value.arr->data, dst->value.arr->arr_len);
+			}
+			if (src->flags & IDL_V_TEMP) {
+				src->flags = IDL_V_TEMP; //only that.
+				src->type = IDL_TYP_UNDEF;
+			}
+		}
 	}
-	dst->type = src->type;
-	dst->value = src->value; //copy pointers.
-	if (src->flags & IDL_V_STRUCT) { //must copy
-		GDL_WillThrowAfterCleaning("IDL_VarCopy not yet ready for structure, FIXME.");
-	} else if (src->flags & IDL_V_ARR) { //must copy
-		IDL_ARRAY *a = new IDL_ARRAY();
-		a->flags = IDL_A_NO_GUARD;
-		dst->value.arr = a;
-		dst->value.arr->n_dim = src->value.arr->n_dim;
-		dst->value.arr->n_elts = src->value.arr->n_elts;
-		for (auto i = 0; i < src->value.arr->n_dim; ++i) dst->value.arr->dim[i] = src->value.arr->dim[i];
-		IDL_LONG64 sz = IDL_TypeSizeFunc(src->type);
-		dst->value.arr->elt_len = sz;
-		SizeT l = sz;
-		for (auto i = 0; i < src->value.arr->n_dim; ++i) l *= src->value.arr->dim[i];
-		dst->value.arr->arr_len = l;
-		void * addr = malloc(l);
-		dst->value.arr->data = (UCHAR*) addr;
-		if ((src->flags & IDL_V_TEMP)==0) memcpy(dst->value.arr->data, src->value.arr->data, l); //do not copy if src is temp, just pass.
-	}
-	if (src->flags & IDL_V_TEMP) {
-		src->flags = IDL_V_TEMP; //only that.
-		src->type=IDL_TYP_UNDEF;
-	}
-}
 
 #define DOCASE(rettype, type, what)\
  case type: {return (rettype) (v->value.what); break;}
@@ -979,6 +1097,32 @@ void IDL_CDECL IDL_VarGetData(IDL_VPTR v, IDL_MEMINT *n, char **pd,  int ensure_
 	}
 	
 }
+#define DOCASE_ARRAY(type, realtype)\
+ case type: {realtype *z=(realtype*) arr; for (auto i=0; i< nelts; ++i) z[i]=i ;} break;
+#define DOCASE_ARRAY_CPLX(type, realtype)\
+ case type: {realtype *z=(realtype*) arr; for (auto i=0; i< nelts; ++i) z[i].r=i ;} break;
+
+		void gdlInitVector(void* arr, int type, size_t nelts) {
+			TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+			switch (type) {
+						DOCASE_ARRAY(IDL_TYP_BYTE, UCHAR);
+						DOCASE_ARRAY(IDL_TYP_INT, IDL_INT);
+						DOCASE_ARRAY(IDL_TYP_LONG, IDL_LONG);
+						DOCASE_ARRAY(IDL_TYP_FLOAT, float);
+						DOCASE_ARRAY(IDL_TYP_DOUBLE, double);
+						DOCASE_ARRAY_CPLX(IDL_TYP_COMPLEX, IDL_COMPLEX);
+						DOCASE_ARRAY_CPLX(IDL_TYP_DCOMPLEX, IDL_DCOMPLEX);
+						DOCASE_ARRAY(IDL_TYP_UINT, IDL_UINT);
+						DOCASE_ARRAY(IDL_TYP_ULONG, IDL_ULONG);
+						DOCASE_ARRAY(IDL_TYP_LONG64, IDL_LONG64);
+						DOCASE_ARRAY(IDL_TYP_ULONG64, IDL_ULONG64);
+					default: GDL_WillThrowAfterCleaning("IDL_MakeTempVector: unexpected type " + i2s(type));
+			}
+			throw;
+		}
+#undef DOCASE_ARRAY
+#undef DOCASE_ARRAY_CPLX
+
 char* IDL_CDECL IDL_MakeTempVector(int type, IDL_MEMINT dim, int  init, IDL_VPTR *var){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		IDL_VPTR v=NewTMPVPTRARRAY();
 		*var=v;
@@ -988,17 +1132,12 @@ char* IDL_CDECL IDL_MakeTempVector(int type, IDL_MEMINT dim, int  init, IDL_VPTR
 		v->value.arr->n_dim=1;
 		IDL_LONG64 sz=IDL_TypeSizeFunc(type);
 		v->value.arr->elt_len = sz;
-		if ( init == IDL_ARR_INI_INDEX) {
-			BaseGDL* temp=CreateNewGDLVector(type, dim, BaseGDL::INDGEN);
-			v->value.arr->data = (UCHAR*) temp->DataAddr();
-			v->value.arr->arr_len=temp->NBytes();
-			return (char*) temp->DataAddr();
-		}
 		SizeT l=dim*sz;
 		void * addr=malloc(l);
 		v->value.arr->arr_len=l;
 		v->value.arr->data = (UCHAR*) addr;
 		if (init == IDL_ARR_INI_ZERO) memset((void*)addr, 0, l); 
+		else if (init == IDL_ARR_INI_INDEX) gdlInitVector(addr, type, l); 
 		return (char*) addr;
 }
 char *IDL_CDECL IDL_MakeTempArray(int type, int n_dim, IDL_MEMINT  dim[], int init, IDL_VPTR *var){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
@@ -1014,18 +1153,12 @@ char *IDL_CDECL IDL_MakeTempArray(int type, int n_dim, IDL_MEMINT  dim[], int in
 		v->value.arr->n_dim = n_dim;
 		IDL_LONG64 sz=IDL_TypeSizeFunc(type);
 		v->value.arr->elt_len = sz;
-		if ( init == IDL_ARR_INI_INDEX) {
-			SizeT dim64[n_dim];
-			for (auto i=0; i<n_dim; ++i) dim64[i]=dim[i]; 
-			BaseGDL* temp=CreateNewGDLArray(type, n_dim, dim64, BaseGDL::INDGEN);
-			v->value.arr->data = (UCHAR*) temp->DataAddr();
-			return (char*) temp->DataAddr();
-		}
 		l=sz; for (auto i=0; i<n_dim; ++i) l*=dim[i];
 		void * addr=malloc(l);
 		v->value.arr->arr_len=l;
 		v->value.arr->data = (UCHAR*) addr;
 		if (init == IDL_ARR_INI_ZERO)  memset((void*)addr, 0, l);
+		else if (init == IDL_ARR_INI_INDEX) gdlInitVector(addr, type, l); 
 		return (char*) addr;	
 }
 char *IDL_CDECL IDL_VarMakeTempFromTemplate(IDL_VPTR template_var, int type, IDL_StructDefPtr sdef,  IDL_VPTR *result_addr, int zero){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
@@ -2329,45 +2462,61 @@ IDL_STRUCTURE* IDL_CDECL IDL_MakeStruct(char *name,  IDL_STRUCT_TAG_DEF *tags){T
 		tagid->hash=memhash;
 		memhash=tagid; //chain
 		returned_struct->tags[itag].offset=offset;
-		size_t thetype = (size_t) def.type; 
-		if (thetype == 0) { /*If this
+		void* thetypePtr = def.type;
+		UCHAR realType=0;
+		if (thetypePtr == NULL) { /*If this
 			   field is NULL, it indicates that IDL
 			   should search for a structure of the
 			   given name and fill in the pointer to
 			   its structure definition. */
-			if (def.name == NULL) throw GDLException("IDL_MakeStruct(): no name for inherited structure!");
+			if (def.name == NULL) GDL_WillThrowAfterCleaning("IDL_MakeStruct(): no name for inherited structure!");
+			bool found=false;
 			for (std::vector<std::pair<std::string, IDL_STRUCTURE*>>::iterator it=ExportedGlobalNamedStructList.begin(); it!=ExportedGlobalNamedStructList.end(); ++it) {
 				if (it->first == std::string(def.name)) {
+					found=true;
 					def.type=(void*)(it->second);
 					returned_struct->length +=(it->second)->length;
 					returned_struct->data_length +=(it->second)->data_length;
+					realType = IDL_TYP_STRUCT;
+					returned_struct->tags[itag].var.flags &= ~IDL_V_TEMP; //knwn global.
 					break;
 				}
-				throw GDLException("IDL_MakeStruct(): Unknown structure name"+std::string(name));
 			}
+			if (!found) GDL_WillThrowAfterCleaning("IDL_MakeStruct(): inherited structure not found.");
 		} else {/* This may be either a pointer to another
 			   structure definition, or a simple IDL
 			   type code (IDL_TYP_*) cast to void
 			   (e.g. (void *) IDL_TYP_BYTE)*/
-			if ( thetype > IDL_MAX_TYPE) { /* a structure ptr */
-				returned_struct->length += ((IDL_STRUCTURE*)(thetype))->length;
-				returned_struct->data_length += ((IDL_STRUCTURE*)(thetype))->data_length;
+			if ( (size_t)thetypePtr > IDL_MAX_TYPE) { /* a structure ptr */
+				returned_struct->length += ((IDL_STRUCTURE*)(thetypePtr))->length;
+				returned_struct->data_length += ((IDL_STRUCTURE*)(thetypePtr))->data_length;
+				realType = IDL_TYP_STRUCT;
 			} else {
-				if ( thetype == IDL_TYP_STRING || thetype == IDL_TYP_PTR) returned_struct->contains_string = true;
-				if (def.dims == NULL) {
-				  returned_struct->data_length += IDL_TypeSize[thetype];
-				  returned_struct->length += IDL_TypeSize[thetype];
-				} else {
-					IDL_LONG64 ndim = tags[itag].dims[0];
-					size_t l = 1;
-					for (auto i = 1; i < ndim + 1; ++i) {
-						l *= tags[itag].dims[i];
-					}
-				 returned_struct->data_length += l*IDL_TypeSize[thetype];
-				 returned_struct->length += l*IDL_TypeSize[thetype];
-				}
+				size_t thetype=(size_t)thetypePtr;
+				realType = thetype;
+				if ( realType == IDL_TYP_STRING || realType == IDL_TYP_PTR) returned_struct->contains_string = true;
 			}
-		}
+			}
+			returned_struct->tags[itag].var.type = realType;
+			if (def.dims == NULL) {
+				returned_struct->data_length += IDL_TypeSize[realType];
+				returned_struct->length += IDL_TypeSize[realType];
+			} else {
+				returned_struct->tags[itag].var.flags |= IDL_V_ARR;
+				returned_struct->tags[itag].var.value.arr = new IDL_ARRAY();
+				IDL_LONG64 ndim = def.dims[0];
+				returned_struct->tags[itag].var.value.arr->n_dim = ndim;
+				size_t l = 1;
+				for (auto i = 1; i < ndim + 1; ++i) {
+					returned_struct->tags[itag].var.value.arr->dim[i - 1] = def.dims[i];
+					l *= def.dims[i];
+				}
+				returned_struct->tags[itag].var.value.arr->arr_len = l * IDL_TypeSize[realType];
+				returned_struct->tags[itag].var.value.arr->elt_len = IDL_TypeSize[realType];
+				returned_struct->tags[itag].var.value.arr->n_elts = l;
+				returned_struct->data_length += l * IDL_TypeSize[realType];
+				returned_struct->length += l * IDL_TypeSize[realType];
+			}
 		offset=returned_struct->length;
 		}
 	returned_struct->rcount=1;
