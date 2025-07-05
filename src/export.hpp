@@ -2544,6 +2544,8 @@ void IDL_CDECL IDL_ExitUnregister(IDL_EXIT_HANDLER_FUNC proc){}
 //					returned_struct->length += ((IDL_STRUCTURE*) (thetypePtr))->length;
 //					returned_struct->data_length += ((IDL_STRUCTURE*) (thetypePtr))->data_length;
 					realType = IDL_TYP_STRUCT;
+					returned_struct->tags[itag].var.type = realType;
+					returned_struct->tags[itag].var.value.s.sdef=IDL_MakeStruct(NULL, (IDL_STRUCT_TAG_DEF *)thetypePtr);;
 				} else {
 					size_t thetype = (size_t) thetypePtr;
 					realType = thetype;
@@ -2572,7 +2574,10 @@ void IDL_CDECL IDL_ExitUnregister(IDL_EXIT_HANDLER_FUNC proc){}
 			}
 			//we *could* make the difference between packed and unpacked...
 			IDL_MEMINT tmp=returned_struct->length % sizeof(IDL_MEMINT);
-			if (tmp != 0) returned_struct->length += tmp; //alignment needed as structure data is initialzed as such.
+			if (tmp != 0) { 
+				tmp=returned_struct->length/sizeof(IDL_MEMINT); //alignment needed as structure data is initialzed as such.
+				returned_struct->length=(tmp+1)*sizeof(IDL_MEMINT);
+				}
 		}
 		returned_struct->rcount = 1;
 		returned_struct->object = NULL;
