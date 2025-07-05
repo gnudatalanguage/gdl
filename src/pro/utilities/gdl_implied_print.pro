@@ -42,7 +42,7 @@ if (count gt 0) then begin
     5: begin & w=25 & n=fix(width/w,/print) & if n_firstdim lt n then n=n_firstdim & fmt=start+strtrim(n,2)+fmtdbl & break &end
     6: begin & w=35 & n=fix(width/w,/print) & if n_firstdim lt n then n=n_firstdim & fmt=start+strtrim(n,2)+fmtflt & break &end
     9: begin & w=53 & n=fix(width/w,/print) & if n_firstdim lt n then n=n_firstdim & fmt=start+strtrim(n,2)+fmtdbl & break &end
-    ELSE:  return, strtrim(value,2) ; just return
+    ELSE:  return, strtrim(string(value,/print),2) ; /print is for BYTES.
     endcase
   ; only special formats left
   switch type of
