@@ -55,6 +55,13 @@ if (count gt 0) then begin
 endif
 end
 
+function maketab
+common json_serialize_gdl_level, width, level
+tab=''
+for i=0,level do tab+='    '
+return, tab
+end
+
 function pretty_serialize,value,tagname=tagname,flat=flat
 common json_serialize_gdl_level, width, level
   ; warning as this is directly compiled within the $MAIN$ interpretor there must be no COMPILE_OPT here.
@@ -68,29 +75,17 @@ ON_ERROR,2
    ;; ENDIF
 
 space=' '
-tab=''
-for i=0,level do tab+='    '
-if keyword_set(flat) then begin
-   braceright='}'
-   SquareBraceright=']'
-   braceleft='{'
-   SquareBraceleft='['
-   comma=','
-endif else begin
-   braceright=string(10B)+tab+'}'
-   SquareBraceright=string(10B)+tab+']'
-   braceleft='{'+string(10B)
-   SquareBraceleft='['+string(10B)
-   comma=','+string(10B)
-endelse
-
+LF=string(10B)
+braceleft='{'
+SquareBraceleft='['
+comma=','
 
   ret=size(value)
   ndim=ret[0]
   type=ret[ndim+1]
 
 if( n_elements(tagname) gt 0) then begin
-   if (typename(tagname) eq "STRING") then tmpstr=tab+'"'+tagname+'": ' else tmpstr=tab+strtrim(tagname,2)+': '
+   if (typename(tagname) eq "STRING") then tmpstr=maketab()+'"'+tagname+'": ' else tmpstr=maketab()+strtrim(tagname,2)+': '
 endif else tmpstr=''
 
  n=n_elements(value)
@@ -105,10 +100,11 @@ endif else tmpstr=''
            tagn=tag_names(value)
            tmpstr+=braceleft & level++
            for j=0,n_tags(value)-1 do begin
-              tmpstr+=pretty_serialize(tagname=tagn[j],value.(j), /flat)
+              tmpstr+=LF+pretty_serialize(tagname=tagn[j],value.(j), /flat)
               if j lt n_tags(value)-1  then tmpstr+=comma
            endfor
-           tmpstr+=braceright & level--
+		   level--
+           tmpstr+=LF+maketab()+'}'
         end
         
      11: begin                  ; more tricky depending on single value of array
@@ -117,19 +113,20 @@ endif else tmpstr=''
            tmpstr+=SquareBraceleft & level++
            nn=value.Count()
            for j=0,nn-1 do begin
-              tmpstr+=pretty_serialize(value[j])
+              tmpstr+=LF+pretty_serialize(value[j])
               if (j lt nn-1) then tmpstr+=comma
            endfor
-           tmpstr+=SquareBraceright & level --
+           tmpstr+=maketab()+']'+LF & level--
         endif else begin
            tmpstr+=braceleft & level++
            nn=value.Count()
            keys=value.Keys()
            for j=0,nn-1 do begin
-              tmpstr+=pretty_serialize(tagname=keys[j],value[keys[j]],/flat)
+              tmpstr+=LF+pretty_serialize(tagname=keys[j],value[keys[j]],/flat)
               if (j lt nn-1) then tmpstr+=comma
            endfor
-           tmpstr+=braceright & level--
+		   level--
+           tmpstr+=maketab()+'}'+LF
         endelse
      end
 
@@ -151,10 +148,11 @@ endif else tmpstr=''
               tagn=tag_names(value[i])
               tmpstr+=braceleft & level++
               for j=0,n_tags(value[i])-1 do begin
-                 tmpstr+=pretty_serialize(tagname=tagn[j],value[i].(j),/flat)
+                 tmpstr+=LF+pretty_serialize(tagname=tagn[j],value[i].(j),/flat)
                  if (j lt n_tags(value[i])-1 ) then tmpstr+=comma
               end
-              tmpstr+=braceright & level--
+			  level--
+              tmpstr+=maketab()+'}'+LF
            end
            
            11: begin            ; more tricky depending on single value of array
@@ -163,19 +161,21 @@ endif else tmpstr=''
                  tmpstr+=SquareBraceleft & level++
                  nn=value[i].Count()
                  for j=0,nn-1 do begin
-                    tmpstr+=pretty_serialize((value[i])[j])
+                    tmpstr+=LF+pretty_serialize((value[i])[j])
                     if (j lt nn-1) then tmpstr+=comma
                  endfor
-                 tmpstr+=SquareBraceright & level--
+				 level--
+                 tmpstr+=maketab()+']'+LF
               endif else begin
                  tmpstr+=braceleft & level++
                  nn=value[i].Count()
                  keys=value[i].Keys()
                  for j=0,nn-1 do begin
-                    tmpstr+=pretty_serialize(tagname=keys[j],(value[i])[keys[j]],/flat)
+                    tmpstr+=LF+pretty_serialize(tagname=keys[j],(value[i])[keys[j]],/flat)
                     if (j lt nn-1) then tmpstr+=comma
                  endfor
-                 tmpstr+=braceright & level--
+				 level--
+                 tmpstr+=maketab()+'}'+LF
               endelse
            end
            7:  tmpstr+='"'+value[i]+'"'
