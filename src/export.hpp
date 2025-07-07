@@ -5,7 +5,7 @@
 #undef TRACE_ROUTINE
 #endif
 
-#define TRACE_OPCALLS
+//#define TRACE_OPCALLS
 
 #if defined(TRACE_OPCALLS)
 #define TRACE_ROUTINE(func,file,line) std::cout << func << "\t" << file << "\t" << line << std::endl;
@@ -405,23 +405,25 @@ DStringGDL* GDL_GetString(IDL_VPTR v) {
 			return gdls;
 }
 
-  void fillVariableData(IDL_MEMINT &running_offset, IDL_VPTR v, int t, BaseGDL* var) {
-	  SizeT nEl=var->N_Elements();
-	  IDL_MEMINT off=v->value.s.sdef->tags[t].offset;
-			void* dataset=(void*)((size_t)(v->value.s.arr->data)+off);
-			if (v->value.s.sdef->tags[t].var.flags & IDL_V_STRUCT) {
-//				GDL_WillThrowAfterCleaning("fillVariableData: unsupported case STRUCT.");
-			} else if (v->value.s.sdef->tags[t].var.flags & IDL_V_ARR) {
-				if (v->value.s.sdef->tags[t].var.type == IDL_TYP_STRING) {
-					IDL_STRING* ss = (IDL_STRING*) (v->value.arr->data + v->value.s.sdef->tags[t].offset);
-					for (auto i=0; i< nEl; ++i) (*static_cast<DStringGDL*>(var))[i]=std::string(ss[i].s,ss[i].slen);
-				}
-				else memcpy(var->DataAddr(),dataset,v->value.s.sdef->tags[t].var.value.arr->arr_len);
-			} else if (v->value.s.sdef->tags[t].var.type == IDL_TYP_STRING ) {
-				 IDL_STRING* ss=(IDL_STRING*)(v->value.arr->data+v->value.s.sdef->tags[t].offset);
-				(*static_cast<DStringGDL*>(var))[0]=std::string(ss->s,ss->slen);
-			} else memcpy(var->DataAddr(),dataset,IDL_TypeSize[v->value.s.sdef->tags[t].var.type]);
-  }
+void fillVariableData(void* baseData, IDL_VPTR v, int t, BaseGDL* var) {
+	SizeT nEl = var->N_Elements();
+	IDL_MEMINT off = v->value.s.sdef->tags[t].offset; 
+	void* dataset = (void*) ((IDL_MEMINT) baseData + off); fprintf(stderr,"%s at addr #%lld :\n",v->value.s.sdef->tags[t].id->name,dataset);
+	if (v->value.s.sdef->tags[t].var.flags & IDL_V_STRUCT) {
+		DStructGDL* myStruct = static_cast<DStructGDL*> (var);
+		u_int nEl = myStruct->N_Elements();
+		SizeT nTags = myStruct->Desc()->NTags();
+		for (SizeT ix = 0; ix < nEl; ++ix) for (SizeT tt = 0; tt < nTags; ++tt) fillVariableData(dataset, &(v->value.s.sdef->tags[t].var), tt, myStruct->GetTag(tt, ix));
+	} else if (v->value.s.sdef->tags[t].var.flags & IDL_V_ARR) {
+		if (v->value.s.sdef->tags[t].var.type == IDL_TYP_STRING) {
+			IDL_STRING* ss = (IDL_STRING*) (v->value.arr->data + v->value.s.sdef->tags[t].offset);
+			for (auto i = 0; i < nEl; ++i) (*static_cast<DStringGDL*> (var))[i] = std::string(ss[i].s, ss[i].slen);
+		} else memcpy(var->DataAddr(), dataset, v->value.s.sdef->tags[t].var.value.arr->arr_len);
+	} else if (v->value.s.sdef->tags[t].var.type == IDL_TYP_STRING) {
+		IDL_STRING* ss = (IDL_STRING*) (v->value.arr->data + v->value.s.sdef->tags[t].offset);
+		(*static_cast<DStringGDL*> (var))[0] = std::string(ss->s, ss->slen);
+	} else memcpy(var->DataAddr(), dataset, IDL_TypeSize[v->value.s.sdef->tags[t].var.type]);
+}
   
 #define DOCASE(type, gdltype, tagname, pardim)\
  case type: { gdltype entry(pardim); stru_desc->AddTag(std::string(tagname), &entry);} break;
@@ -468,54 +470,8 @@ DStructDesc * GDL_GetStructDesc(IDL_VPTR v, dimension &inputdim) {
 				GDL_WillThrowAfterCleaning("GDL_GetStructDesc: unsupported case.");
 				break;
 		}
-
-
-
 	}
 
-	//      //Then there should be CLASSNAME if INHERITS or IS_SUPER 
-	//      if (isObjStruct || is_super)
-	//      {
-	//        char* classname = 0;
-	//        if (!xdr_string(xdrs, &classname, 2048)) return NULL;
-	//        if (DEBUG_SAVERESTORE) cerr << "CLASSNAME: \"" << classname << "\"" << endl;
-	//        //NSUPCLASSES:
-	//        int32_t nsupclasses = 0;
-	//        if (!xdr_int32_t(xdrs, &nsupclasses)) return NULL;
-	//        if (DEBUG_SAVERESTORE)  cerr << "NSUPCLASSES=" << nsupclasses << endl;
-	//        if (nsupclasses > 0)
-	//        {
-	//          for (int i = 0; i < nsupclasses; ++i)
-	//          {
-	//            char* supclassname = 0;
-	//            if (!xdr_string(xdrs, &supclassname, 2048)) return NULL;
-	//            if (DEBUG_SAVERESTORE) cerr << "SUPCLASSNAME " << i << ": " << supclassname << endl;
-	//          }
-	//          for (int i = 0; i < nsupclasses; ++i)
-	//          {
-	//            //define all parent classes in objheap.
-	//            DStructGDL* superclass = NULL;
-	//            bool dummy=false;
-	//            superclass = getDStruct(e, xdrs, new dimension(1), dummy); // will define the class as an object.
-	//            if (superclass) stru_desc->AddParentListOnly(superclass->Desc());
-	////            if (isObjStruct)  {
-	////             DPtr ptr= e->NewObjHeap(1, static_cast<DStructGDL*>(superclass));
-	////            }
-	//          }
-	//        }
-	//      }
-	//      if (checkStruct)
-	//      {
-	//        try
-	//        {
-	//          ref_desc->AssureIdentical(stru_desc);
-	//          stru_desc=ref_desc; //OK, switch back.
-	//        }        catch (GDLException& ex)
-	//        {
-	//          e->Throw("Structure not restored due to conflict with existing definition: "+stru_name);
-	//          return NULL;
-	//        }
-	//      }
 	return stru_desc;
 }
 #undef DOCASE
@@ -527,7 +483,7 @@ DStructGDL* GDL_MakeStruct(IDL_VPTR v, dimension &inputdim) {
 	SizeT nTags = var->Desc()->NTags();
 	IDL_MEMINT running_offset=0;
 	for (SizeT ix = 0; ix < nEl; ++ix)
-		for (SizeT t = 0; t < nTags; ++t) fillVariableData(running_offset,v, t, var->GetTag(t, ix));
+		for (SizeT t = 0; t < nTags; ++t) fillVariableData((void*)v->value.s.arr->data,v, t, var->GetTag(t, ix));
 
 	return var;
 
@@ -641,7 +597,7 @@ char *IDL_OutputFormatNatural[IDL_NUM_TYPES]={C_"<Undefined>",C_"%d",C_"%d",C_"%
 		sizeof ( IDL_UINT), sizeof (IDL_ULONG), sizeof (IDL_LONG64), sizeof (IDL_ULONG64)};
 	
 	IDL_LONG GDL_TypeAlignment[IDL_NUM_TYPES]={0, 1, sizeof (IDL_INT), sizeof (IDL_LONG), sizeof (float), sizeof (double),
-		sizeof (IDL_COMPLEX), sizeof (IDL_MEMINT), sizeof (IDL_MEMINT), sizeof (IDL_DCOMPLEX), sizeof (IDL_MEMINT), sizeof (IDL_MEMINT),
+		sizeof (float), sizeof (IDL_MEMINT), sizeof (IDL_MEMINT), sizeof (double), sizeof (IDL_MEMINT), sizeof (IDL_MEMINT),
 		sizeof ( IDL_UINT), sizeof (IDL_ULONG), sizeof (IDL_LONG64), sizeof (IDL_ULONG64)};
 	
 	inline int IDL_TypeSizeFunc(int type){
@@ -2493,11 +2449,10 @@ void IDL_CDECL IDL_ExitRegister(IDL_EXIT_HANDLER_FUNC proc){}
 void IDL_CDECL IDL_ExitUnregister(IDL_EXIT_HANDLER_FUNC proc){}
 
 #define ADJUST_ELEMENT_OFFSET(x) {IDL_MEMINT l=x;\
-IDL_MEMINT padlength=returned_struct->tags[itag].offset % l;\
-if (padlength != 0) {\
-padlength=l-padlength;\
-returned_struct->tags[itag].offset+=padlength;\
-returned_struct->length+=padlength;\
+IDL_MEMINT excess=returned_struct->tags[itag].offset % l;\
+if (excess != 0) {\
+IDL_MEMINT pad=l-excess;\
+returned_struct->tags[itag].offset+=pad;\
 }}
 
 	IDL_STRUCTURE* IDL_CDECL IDL_MakeStruct(char *name, IDL_STRUCT_TAG_DEF *tags) {
@@ -2541,7 +2496,7 @@ returned_struct->length+=padlength;\
 		UCHAR realType = 0;
 		if (thetypePtr == NULL) {
 			realType = IDL_TYP_STRUCT;
-			ADJUST_ELEMENT_OFFSET(GDL_TypeAlignment[realType])
+//			ADJUST_ELEMENT_OFFSET(GDL_TypeAlignment[realType])
 			/*If this
 		   field is NULL, it indicates that IDL
 		   should search for a structure of the
@@ -2556,6 +2511,8 @@ returned_struct->length+=padlength;\
 					returned_struct->length += (it->second)->length;
 					returned_struct->data_length += (it->second)->data_length;
 					returned_struct->tags[itag].var.flags &= ~IDL_V_TEMP; //known global ??
+					returned_struct->tags[itag].var.flags |= IDL_V_STRUCT;
+				    returned_struct->tags[itag].var.type = realType;
 					returned_struct->tags[itag].var.value.s.sdef=(it->second);
 					break;
 				}
@@ -2568,11 +2525,31 @@ returned_struct->length+=padlength;\
 		   (e.g. (void *) IDL_TYP_BYTE)*/
 			if ((size_t) thetypePtr > IDL_MAX_TYPE) { /* a structure ptr */
 				realType = IDL_TYP_STRUCT;
-				ADJUST_ELEMENT_OFFSET(GDL_TypeAlignment[realType])
-				returned_struct->length += ((IDL_STRUCTURE*) (thetypePtr))->length;
-				returned_struct->data_length += ((IDL_STRUCTURE*) (thetypePtr))->data_length;
+//				ADJUST_ELEMENT_OFFSET(GDL_TypeAlignment[realType])
 				returned_struct->tags[itag].var.type = realType;
+				returned_struct->tags[itag].var.flags |= IDL_V_STRUCT;
 				returned_struct->tags[itag].var.value.s.sdef=(IDL_STRUCTURE*)thetypePtr;
+				IDL_LONG64 strulen=((IDL_STRUCTURE*) (thetypePtr))->length;
+				IDL_LONG64 strudata_len=((IDL_STRUCTURE*) (thetypePtr))->data_length;
+				if (def.dims == NULL) {
+					returned_struct->length += strulen;
+					returned_struct->data_length += strudata_len;
+				} else {
+					returned_struct->tags[itag].var.flags |= IDL_V_ARR;
+					returned_struct->tags[itag].var.value.arr = new IDL_ARRAY();
+					IDL_LONG64 ndim = def.dims[0];
+					returned_struct->tags[itag].var.value.arr->n_dim = ndim;
+					size_t l = 1;
+					for (auto i = 1; i < ndim + 1; ++i) {
+						returned_struct->tags[itag].var.value.arr->dim[i - 1] = def.dims[i];
+						if (def.dims[i] != 0) l *= def.dims[i]; 
+					}
+					returned_struct->tags[itag].var.value.arr->arr_len = l * strulen; 
+					returned_struct->tags[itag].var.value.arr->elt_len = strulen;
+					returned_struct->tags[itag].var.value.arr->n_elts = l;
+					returned_struct->data_length += l * strudata_len;
+					returned_struct->length += l * strulen;
+				}
 			} else {
 				size_t thetype = (size_t) thetypePtr;
 				realType = thetype;
@@ -2611,6 +2588,6 @@ returned_struct->length+=padlength;\
 	returned_struct->object = NULL;
 	return returned_struct;
 	}
-
+#undef ADJUST_ELEMENT_OFFSET
 };
 #endif
