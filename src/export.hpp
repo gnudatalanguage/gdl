@@ -112,6 +112,7 @@ inline IDL_VPTR NewTMPVPTR(UCHAR flag=0, IDL_StructDefPtr structdefptr=NULL) {
 	ret->type = IDL_TYP_UNDEF;
 	ret->flags = IDL_V_TEMP | flag;
 	if (flag & IDL_V_STRUCT  ) {
+		ret->type = IDL_TYP_STRUCT;
 		ret->flags |= IDL_V_DYNAMIC;
 		ret->flags |= IDL_V_ARR;
 		ret->value.s.arr= new IDL_ARRAY();
@@ -430,7 +431,9 @@ void fillVariableData(void* baseData, IDL_VPTR v, int t, BaseGDL* var) {
 
 DStructGDL* GDL_MakeStruct(IDL_VPTR v, dimension &inputdim);
 DStructDesc * GDL_GetStructDesc(IDL_VPTR v, dimension &inputdim) {
-	DStructDesc * stru_desc = new DStructDesc("$truct");
+	std::string struname("$truct");
+	if (v->value.s.sdef->id != NULL && v->value.s.sdef->id->name != NULL) struname=std::string(v->value.s.sdef->id->name,v->value.s.sdef->id->len); 
+	DStructDesc * stru_desc = new DStructDesc(struname);
 	//summary & tag population:
 	for (int i = 0; i < v->value.s.sdef->ntags; ++i) {
 		dimension *dim;
@@ -1146,7 +1149,7 @@ char* IDL_CDECL IDL_MakeTempVector(int type, IDL_MEMINT dim, int  init, IDL_VPTR
 		IDL_LONG64 sz=IDL_TypeSizeFunc(type);
 		v->value.arr->elt_len = sz;
 		SizeT l=dim*sz;
-		void * addr=malloc(l);
+		void * addr=malloc(l); //aka IDL_ARR_INI_NOP
 		v->value.arr->arr_len=l;
 		v->value.arr->data = (UCHAR*) addr;
 		if (init == IDL_ARR_INI_ZERO) memset((void*)addr, 0, l);
@@ -1165,7 +1168,26 @@ char* IDL_CDECL IDL_MakeTempVector(int type, IDL_MEMINT dim, int  init, IDL_VPTR
 			} else gdlInitVector(addr, type, l);
 		}
 		return (char*) addr;
-}
+	}
+
+	char *IDL_CDECL IDL_MakeTempStructVector(IDL_StructDefPtr sdef, IDL_MEMINT dim, IDL_VPTR *var, int zero) {
+		IDL_VPTR v = NewTMPVPTRSTRUCT(sdef);
+		*var = v;
+		v->value.s.arr=new IDL_ARRAY();
+		v->type=IDL_TYP_STRUCT; //already done, just for clarity.
+		v->value.arr->dim[0]=dim;
+		v->value.arr->n_elts=dim;
+		v->value.arr->n_dim=1;
+		IDL_LONG64 sz=v->value.s.sdef->length;
+		v->value.arr->elt_len = sz;
+		SizeT l=dim*sz;
+		void * addr=malloc(l);
+		if (zero) memset(addr, 0, l);
+		v->value.arr->arr_len=l;
+		v->value.arr->data = (UCHAR*) addr;
+		return (char*) addr;
+	}
+
 char *IDL_CDECL IDL_MakeTempArray(int type, int n_dim, IDL_MEMINT  dim[], int init, IDL_VPTR *var){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		IDL_VPTR v=NewTMPVPTRARRAY();
 		*var=v;
@@ -1180,7 +1202,7 @@ char *IDL_CDECL IDL_MakeTempArray(int type, int n_dim, IDL_MEMINT  dim[], int in
 		IDL_LONG64 sz=IDL_TypeSizeFunc(type);
 		v->value.arr->elt_len = sz;
 		l=sz; for (auto i=0; i<n_dim; ++i) l*=dim[i];
-		void * addr=malloc(l);
+		void * addr=malloc(l); //aka IDL_ARR_INI_NOP
 		v->value.arr->arr_len=l;
 		v->value.arr->data = (UCHAR*) addr;
 		if (init == IDL_ARR_INI_ZERO)  memset((void*)addr, 0, l);
@@ -1200,12 +1222,28 @@ char *IDL_CDECL IDL_MakeTempArray(int type, int n_dim, IDL_MEMINT  dim[], int in
 		}
 		return (char*) addr;	
 }
+
+	char *IDL_CDECL IDL_MakeTempStruct(IDL_StructDefPtr sdef, int  n_dim, IDL_MEMINT *dim, IDL_VPTR *var, int zero){
+            if (sdef == NULL) GDL_WillThrowAfterCleaning("IDL_VarMakeTempFromTemplate() defines a struct without passing a valid IDL_StructDefPtr");
+			IDL_VPTR v = NewTMPVPTRSTRUCT(sdef);
+			if (zero) memset(&(v->value),0,sizeof(IDL_ALLTYPES));
+			return (char*) 	&(v->value);
+	}
+	
+
 char *IDL_CDECL IDL_VarMakeTempFromTemplate(IDL_VPTR template_var, int type, IDL_StructDefPtr sdef,  IDL_VPTR *result_addr, int zero){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-if (sdef != NULL) GDL_WillThrowAfterCleaning("IDL_VarMakeTempFromTemplate not yet ready for structure, FIXME.");
-		IDL_VPTR t=template_var;
+		IDL_VPTR t = template_var;
+	    IDL_VPTR v;
+		if (t->flags & IDL_V_STRUCT) {
+            if (sdef == NULL) GDL_WillThrowAfterCleaning("IDL_VarMakeTempFromTemplate() defines a struct without passing a valid IDL_StructDefPtr");
+			v = NewTMPVPTRSTRUCT(sdef);
+		} else if (t->flags & IDL_V_ARR) {
+			v = NewTMPVPTRARRAY();
+		} else {
+			v = NewTMPVPTR(t->flags);
+		}
+		*result_addr = v;
 		if (t->flags & IDL_V_ARR) {
-			IDL_VPTR v = NewTMPVPTRARRAY();
-			*result_addr = v;
 			v->type = type;
 			v->flags = t->flags;
 			v->value.arr->n_dim = t->value.arr->n_dim;
@@ -1220,8 +1258,6 @@ if (sdef != NULL) GDL_WillThrowAfterCleaning("IDL_VarMakeTempFromTemplate not ye
 			if (zero) memset((void*)addr, 0, l);
 			return (char*) addr;	
 		} else {
-			IDL_VPTR v = NewTMPVPTR(t->flags);
-			*result_addr = v;
 			v->type = type;
 			if (zero) memset(&(v->value),0,sizeof(IDL_ALLTYPES));
 			return (char*) 	&(v->value);
@@ -2500,6 +2536,9 @@ IDL_MEMINT pad=l-excess;\
 returned_struct->tags[itag].offset+=pad;\
 }}
 
+// At the moment the "named" structure exist only INSIDE the user program. It is not registered in $MAIN$.
+// Will do this if the need appears.
+
 	IDL_STRUCTURE* IDL_CDECL IDL_MakeStruct(char *name, IDL_STRUCT_TAG_DEF *tags) {
 	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 			//count tags (?)
@@ -2634,5 +2673,48 @@ returned_struct->tags[itag].offset+=pad;\
 	return returned_struct;
 	}
 #undef ADJUST_ELEMENT_OFFSET
+
+	IDL_MEMINT IDL_CDECL IDL_StructTagInfoByName(IDL_StructDefPtr sdef, char *name, int msg_action, IDL_VPTR *var) {
+		int l = strlen(name);
+		for (auto i = 0; i < sdef->ntags; ++i) {
+			if (sdef->tags[i].id->len == l && strncmp(name, sdef->tags[i].id->name, l)) {
+			 *var=&(sdef->tags[i].var);
+			}
+			return sdef->tags[i].offset;
+		}
+		char* mess=(char*)calloc(256,1);
+		strcat(mess,"Tag name ");strcat(mess,name);strcat(mess," is undefined for structure ");
+		if (sdef->id!=NULL && sdef->id->name !=NULL) strcat(mess,sdef->id->name); else strcat(mess,"<Anonymous>");
+		IDL_Message(IDL_M_GENERIC, msg_action, mess);
+		free(mess);
+		return 0;
+	}
+
+	IDL_MEMINT IDL_CDECL IDL_StructTagInfoByIndex(IDL_StructDefPtr   sdef, int index, int msg_action, IDL_VPTR *var){
+		if (sdef->ntags > index) {
+			 *var=&(sdef->tags[index].var);
+			return sdef->tags[index].offset;
+		}
+		char* mess=(char*)calloc(256,1);
+		strcat(mess,"Tag number ");sprintf(mess,"%d",index); strcat(mess," is undefined for structure ");
+		if (sdef->id!=NULL && sdef->id->name !=NULL) strcat(mess,sdef->id->name); else strcat(mess,"<Anonymous>");
+		IDL_Message(IDL_M_GENERIC, msg_action, mess);
+		free(mess);
+		return 0;
+	}
+extern char *IDL_CDECL IDL_StructTagNameByIndex(IDL_StructDefPtr sdef, int index, int msg_action, char **struct_name){
+		if (sdef->ntags > index) {
+			if (struct_name != NULL) {if  (sdef->id!=NULL && sdef->id->name !=NULL) *struct_name=sdef->id->name; else *struct_name=(char*)"<Anonymous>";}
+			return sdef->tags[index].id->name;
+		}
+		char* mess=(char*)calloc(256,1);
+		strcat(mess,"Tag number ");sprintf(mess,"%d",index); strcat(mess," is undefined for structure ");
+		if (sdef->id!=NULL && sdef->id->name !=NULL) strcat(mess,sdef->id->name); else strcat(mess,"<Anonymous>");
+		IDL_Message(IDL_M_GENERIC, msg_action, mess);
+		free(mess);
+		return NULL;
+}
+int IDL_CDECL IDL_StructNumTags(IDL_StructDefPtr sdef){return sdef->ntags;}
+
 };
 #endif
