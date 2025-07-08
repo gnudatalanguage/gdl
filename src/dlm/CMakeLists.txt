@@ -12,9 +12,9 @@ add_library(powell SHARED
     brent.cpp
 )
 set_target_properties(powell PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
-GET_TARGET_PROPERTY(thesuffix powell SUFFIX)
+SET_TARGET_PROPERTIES(powell PROPERTIES SUFFIX .so)
 set(dlm_files
-  ${PROJECT_BINARY_DIR}/powell.${thesuffix}
+  ${PROJECT_BINARY_DIR}/powell.so
   powell.dlm
   )
 
