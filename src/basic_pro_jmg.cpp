@@ -206,7 +206,11 @@ void CleanupProc( DLibPro* proc ) {
 	msg = "Couldn't open " + fn;
       }
 #else
+#if defined(__APPLE__)
+      handle = dlopen(fn.c_str(), RTLD_NOW | RTLD_LOCAL); //DEEPBIND not on OSX ?
+#else
       handle = dlopen(fn.c_str(), RTLD_NOW | RTLD_LOCAL |RTLD_DEEPBIND);
+#endif
       if( !handle ) {
 	msg = "Couldn't open " + fn;
 	char* error = dlerror();

@@ -278,9 +278,17 @@ else(PYTHON_MODULE)
 endif(PYTHON_MODULE)
 
 #permit gdl.exe to export its symbols, necessary for linkimage and DLM
+if (NOT APPLE AND NOT OSX AND NOT MINGW)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--export-dynamic")
+endif()
+if (APPLE OR OSX )
 	set(EXPORTED_SYMBOLS_LIST ${CMAKE_CURRENT_SOURCE_DIR}/dynlist.txt)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--dynamic-list=${EXPORTED_SYMBOLS_LIST}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-exported_symbols_list,${EXPORTED_SYMBOLS_LIST}")
 	set_target_properties(gdl PROPERTIES LINK_DEPENDS ${EXPORTED_SYMBOLS_LIST})
+endif()
+if (MINGW )
+    message("-- Not exporting symbols in gdl executable, please do something about it!!!")
+endif()
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/pro/ DESTINATION ${CMAKE_INSTALL_PREFIX}/${GDL_DATA_DIR}/lib
 	PATTERN CVS EXCLUDE
