@@ -603,7 +603,7 @@ char *IDL_OutputFormatNatural[IDL_NUM_TYPES]={C_"<Undefined>",C_"%d",C_"%d",C_"%
 		sizeof (float), sizeof (IDL_MEMINT), sizeof (IDL_MEMINT), sizeof (double), sizeof (IDL_MEMINT), sizeof (IDL_MEMINT),
 		sizeof ( IDL_UINT), sizeof (IDL_ULONG), sizeof (IDL_LONG64), sizeof (IDL_ULONG64)};
 	
-	inline int IDL_TypeSizeFunc(int type){
+	int IDL_TypeSizeFunc(int type){
 		if (type > IDL_MAX_TYPE) GDL_WillThrowAfterCleaning("type must be > 0 and < 15");
 		return IDL_TypeSize[type];}
 
