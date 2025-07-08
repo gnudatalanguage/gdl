@@ -408,7 +408,7 @@ DStringGDL* GDL_GetString(IDL_VPTR v) {
 void fillVariableData(void* baseData, IDL_VPTR v, int t, BaseGDL* var) {
 	SizeT nEl = var->N_Elements();
 	IDL_MEMINT off = v->value.s.sdef->tags[t].offset; 
-	void* dataset = (void*) ((IDL_MEMINT) baseData + off); fprintf(stderr,"%s at addr #%lld :\n",v->value.s.sdef->tags[t].id->name,dataset);
+	void* dataset = (void*) ((IDL_MEMINT) baseData + off); //fprintf(stderr,"%s at addr #%lld :\n",v->value.s.sdef->tags[t].id->name,dataset);
 	if (v->value.s.sdef->tags[t].var.flags & IDL_V_STRUCT) {
 		DStructGDL* myStruct = static_cast<DStructGDL*> (var);
 		u_int nEl = myStruct->N_Elements();
@@ -688,6 +688,18 @@ extern "C" {
  case ty: {sprintf (&s[l], IDL_OutputFormat[v->type],v->value.what);break;}
 #define DOCASE_CMP(ty, what)\
  case ty: {sprintf (&s[l], IDL_OutputFormat[v->type],v->value.what.r,v->value.what.i);  break;}
+
+IDL_VPTR IDL_FindNamedVariable(char *name, int ienter){
+	std::string s(name);
+    for (std::vector<std::pair <IDL_VPTR, std::string>>::iterator it = ExportedNamesList.begin(); it != ExportedNamesList.end(); ++it) {
+				if (it->second == s) {
+					return it->first;
+					break;
+				}
+	}
+	return NULL;
+}
+
 char *IDL_CDECL IDL_VarName(IDL_VPTR v){TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 		char* s=(char*) calloc(1,128);
 
@@ -740,6 +752,16 @@ char *IDL_CDECL IDL_VarName(IDL_VPTR v){TRACE_ROUTINE(__FUNCTION__, __FILE__, __
 	}
 #undef DOCASE
 #undef DOCASE_CMP
+
+IDL_VPTR IDL_GetVarAddr1(char *name, int enter){
+	GDL_WillThrowAfterCleaning("IDL_GetVarAddr is not currently programmed -- as it would never be the address of a real GDL variable. Use parameters in call to get a copy of GDL variables.");
+	return NULL;
+}
+
+IDL_VPTR IDL_GetVarAddr(char *name){
+	return IDL_GetVarAddr1(name, 0);
+}
+
 void IDL_VarEnsureSimple(IDL_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 if (v->flags == 0) return;
     static char* message= (char*)"Expression must be a scalar in this context: ";
@@ -2447,6 +2469,29 @@ int IDL_AddSystemRoutine(IDL_SYSFUN_DEF *defs, int is_function, int cnt){return 
 int IDL_CDECL IDL_BailOut(int stop){return sigControlC;} //use of stop not supported.
 void IDL_CDECL IDL_ExitRegister(IDL_EXIT_HANDLER_FUNC proc){}
 void IDL_CDECL IDL_ExitUnregister(IDL_EXIT_HANDLER_FUNC proc){}
+int IDL_CDECL IDL_GetExitStatus(){return 0;} //do nothing
+int IDL_CDECL IDL_Cleanup(int just_cleanup){return 1;} //do nothing
+int IDL_CDECL IDL_Initialize(IDL_INIT_DATA *init_data){return 1;} //do nothing
+int IDL_CDECL IDL_Init(IDL_INIT_DATA_OPTIONS_T options, int *argc, char *argv[]){return 1;} //do nothing
+int IDL_CDECL IDL_Main(IDL_INIT_DATA_OPTIONS_T options, int argc, char *argv[]){return 1;} //do nothing
+int IDL_CDECL IDL_ExecuteStr(char *cmd) {
+  std::string command(cmd);
+ //always between try{} catch{} when calling ExecuteStringLine!
+  try {
+  DInterpreter::CallStackBack()->Interpreter()->ExecuteStringLine(command);
+  } catch (...) {std::cerr<<"Problem executing command: "<<command<<" ."<<std::endl; return 0;}
+  return 1;
+ }
+int IDL_CDECL IDL_Execute(int argc, char *argv[]){
+	std::string command(argv[0]);
+	for (auto i=1;i< argc; ++i) {command.append(" & "); command.append(argv[i]);}
+  try {
+  DInterpreter::CallStackBack()->Interpreter()->ExecuteStringLine(command);
+  } catch (...) {std::cerr<<"Problem executing command: "<<std::string(argv[0])<<"(...)"<<std::endl; return 0;}
+  return 1;
+}
+int IDL_CDECL IDL_RuntimeExec(char *file){Warning("IDL_RuntimeExec function not allowed in GDL.");return 0;}
+void IDL_CDECL IDL_Runtime(IDL_INIT_DATA_OPTIONS_T options, int *argc, char *argv[], char *file){GDL_WillThrowAfterCleaning("IDL_Runtime function not allowed in GDL.");}
 
 #define ADJUST_ELEMENT_OFFSET(x) {IDL_MEMINT l=x;\
 IDL_MEMINT excess=returned_struct->tags[itag].offset % l;\
