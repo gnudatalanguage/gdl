@@ -86,16 +86,11 @@ function log {  # log is needded just below!
 }
 
 if [ ${BUILD_OS} == "Windows" ]; then
-    BSDXDR_URL="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz"
     MSYS2_PACKAGES=(
-        readline zlib libpng gsl wxWidgets libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi udunits
+        libtirpc-devel ncurses-devel libreadline-devel zlib libpng gsl wxWidgets libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi udunits
         eigen3 eccodes glpk shapelib expat openssl qhull
     )
-# GD: dunno why graphicsmagick has this special treatment????
-    #if you add something in MSYS2_PACKAGES_REBUILD you may have to add special lines in main.yml to push the product in /var/cache/pacman/pkg
-    MSYS2_PACKAGES_REBUILD=(
-        graphicsmagick
-    )
+
 elif [ ${BUILD_OS} == "Linux" ]; then
     # JP: Note the seperator ',' between the package name candidates below. The leftmost one has the highest priority.
     # Debian, Ubuntu, Linux Mint, Elementary OS, etc.
