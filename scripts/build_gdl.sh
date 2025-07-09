@@ -87,7 +87,7 @@ function log {  # log is needded just below!
 
 if [ ${BUILD_OS} == "Windows" ]; then
     MSYS2_PACKAGES=(
-        portablexdr readline zlib libpng gsl wxwidgets3.2 libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi udunits
+        readline zlib libpng gsl wxwidgets3.2 libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi udunits #portablexdr 
         eigen3 eccodes glpk shapelib expat openssl qhull graphicsmagick
     )
     #if you add something in MSYS2_PACKAGES_REBUILD you may have to add special lines in main.yml to push the product in /var/cache/pacman/pkg
@@ -416,6 +416,7 @@ function configure_gdl {
 #    fi
 
     if [ ${BUILD_OS} == "Windows" ]; then
+        pacman -S mingw-w64-x86_64-portablexdr
         export WX_CONFIG=${GDL_DIR}/scripts/deps/windows/wx-config-wrapper
     fi
     # The INTERACTIVE_GRAPHICS option is removed. 
