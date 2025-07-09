@@ -88,11 +88,11 @@ function log {  # log is needded just below!
 if [ ${BUILD_OS} == "Windows" ]; then
     MSYS2_PACKAGES=(
         portablexdr readline zlib libpng gsl wxwidgets3.2 libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi udunits
-        eigen3 eccodes glpk shapelib expat openssl qhull
+        eigen3 eccodes glpk shapelib expat openssl qhull graphicsmagick
     )
     #if you add something in MSYS2_PACKAGES_REBUILD you may have to add special lines in main.yml to push the product in /var/cache/pacman/pkg
     MSYS2_PACKAGES_REBUILD=(
-        graphicsmagick
+       
     )
 elif [ ${BUILD_OS} == "Linux" ]; then
     # JP: Note the seperator ',' between the package name candidates below. The leftmost one has the highest priority.
@@ -313,34 +313,6 @@ function prep_packages {
             build_msys2_package $package_name
         done
 	
-#	pushd ${ROOT_DIR}
-#        download_file "https://github.com/qhull/qhull/archive/refs/tags/2020.2.zip"
-#        decompress_file
-#        log "Building qhull..."
-#        pushd qhull-2020.2
-#        make SO=dll || exit 1
-#        popd
-#	popd
-#
-#        download_file ${BSDXDR_URL}
-#        decompress_file
-#
-#        log "Building bsd-xdr..."
-#        pushd bsd-xdr-1.0.0
-#        sed -e 's/-Wall/-Wall -Wno-pointer-to-int-cast #/' -e 's/$(XDR_LIBRARIES) $(TEST_PROGS)/$(XDR_LIBRARIES)/' -e 's/libxdr/libbsdxdr/' -i Makefile
-#        mv lib/libxdr.def.in lib/libbsdxdr.def.in
-#        make || exit 1
-#        if [ ${DRY_RUN} == "true" ]; then
-#            log "Please run below command to install bsd-xdr prior to build GDL."
-#            echo cp -f mingw/*.dll /${mname}/bin/
-#            echo cp -f mingw/*.a /${mname}/lib/
-#            echo cp -rf rpc /${mname}/include/
-#        else
-#            cp -f mingw/*.dll /${mname}/bin/
-#            cp -f mingw/*.a /${mname}/lib/
-#            cp -rf rpc /${mname}/include/
-#        fi
-#        popd
     elif [ ${BUILD_OS} == "Linux" ]; then
         # JP: This part is based on `aptget4gdl.sh` and `rpm4gdl.sh` by Alain C. and Ilia N.
         find_pkgmgr
@@ -356,15 +328,6 @@ function prep_packages {
                 fi
             done
         done
-
-#	pushd ${ROOT_DIR}
-#        download_file "https://github.com/qhull/qhull/archive/refs/tags/2020.2.zip"
-#        decompress_file
-#        log "Building qhull..."
-#        pushd qhull-2020.2
-#        make || exit 1
-#        popd
-#	popd
 
         if [[ -z ${INSTALL_PACKAGES} ]]; then
             log "All required packages are already installed on your system."
