@@ -87,7 +87,7 @@ function log {  # log is needded just below!
 
 if [ ${BUILD_OS} == "Windows" ]; then
     MSYS2_PACKAGES=(
-        readline zlib libpng gsl wxwidgets3.2 libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi udunits #portablexdr 
+        portablexdr readline zlib libpng gsl wxwidgets3.2 libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi udunits
         eigen3 eccodes glpk shapelib expat openssl qhull graphicsmagick
     )
     #if you add something in MSYS2_PACKAGES_REBUILD you may have to add special lines in main.yml to push the product in /var/cache/pacman/pkg
