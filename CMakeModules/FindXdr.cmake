@@ -11,7 +11,7 @@
 if(XDRDIR) 
   set(CMAKE_PREFIX_PATH $XDRDIR)
 endif(XDRDIR)
-find_library(XDR_LIBRARY NAMES bsdxdr xdr)
+find_library(XDR_LIBRARY NAMES libportablexdr.a libportablexdr.dll.a)
 set(XDR_LIBRARIES ${XDR_LIBRARY})
 find_path(XDR_INCLUDE_DIR NAMES rpc/xdr.h)
 
