@@ -431,6 +431,9 @@ function configure_gdl {
     
     if [[ ${BUILD_OS} == "macOS" ]]; then
         if [[ ${Platform} == "arm64" ]]; then
+#patch to be tested: should avoid the error "tried including <stddef.h> but didn't find libc++'s <stddef.h> header."
+            xcode-select -s /Library/Developer/CommandLineTools
+#end patch
             export LIBRARY_PATH=$LIBRARY_PATH:/opt/homebrew/opt/llvm/lib
             CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF -DREADLINEDIR=/opt/homebrew/opt/readline"
                                     "-DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++"
