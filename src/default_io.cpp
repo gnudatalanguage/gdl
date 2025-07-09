@@ -1323,12 +1323,12 @@ int xdr_convert(XDR *xdrs, DULong *buf)
 
 int xdr_convert(XDR *xdrs, DLong64 *buf)
 {
-  return (xdr_longlong_t(xdrs, (quad_t *)(buf)));
+  return (xdr_int64_t(xdrs, (int64_t *)(buf)));
 }
 
 int xdr_convert(XDR *xdrs, DULong64 *buf)
 {
-  return (xdr_u_longlong_t(xdrs, (u_quad_t *) (buf)));
+  return (xdr_uint64_t(xdrs, (uint64_t *) (buf)));
 }
 
 int xdr_convert(XDR *xdrs, DFloat *buf)
