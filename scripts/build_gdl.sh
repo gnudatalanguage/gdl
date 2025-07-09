@@ -437,7 +437,7 @@ function configure_gdl {
                                     "-DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang" ) 
         else
 #patch to be tested: should avoid the error "tried including <stddef.h> but didn't find libc++'s <stddef.h> header."
-            xcode-select -s /Library/Developer/CommandLineTools
+            sudo xcode-select -s /Library/Developer/CommandLineTools
 #end patch
             export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/opt/llvm/lib
             CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF -DREADLINEDIR=/usr/local/opt/readline"
