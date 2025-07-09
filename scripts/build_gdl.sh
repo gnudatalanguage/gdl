@@ -87,7 +87,7 @@ function log {  # log is needded just below!
 
 if [ ${BUILD_OS} == "Windows" ]; then
     MSYS2_PACKAGES=(
-        portablexdr readline zlib libpng gsl wxWidgets libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi udunits
+        portablexdr readline zlib libpng gsl wxWidgets3.3 libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi udunits
         eigen3 eccodes glpk shapelib expat openssl qhull
     )
 
