@@ -247,13 +247,6 @@ jobs:
             fn=`ls /var/cache/pacman/pkg/${package}-*.tar.{gz,bz2,xz,zst} 2> /dev/null || true`
             tar xf $fn -C /cache
           done
-          ADDTIONAL_FILES=( /mingw*/bin/mgwxdr-0.dll
-                            /mingw*/lib/libbsdxdr.*
-                            /mingw*/include/rpc/types.h
-                            /mingw*/include/rpc/xdr.h )
-          for fn in ${ADDTIONAL_FILES[@]}; do
-            cp --parents ${fn} /cache
-          done
       - name: Restore Cache
         if: steps.cache.outputs.cache-hit == 'true'
         shell: msys2 {0}
