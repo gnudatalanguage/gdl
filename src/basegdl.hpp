@@ -25,6 +25,7 @@
 #include "types.h"
 #include "xdr.h"
 #define u_int64_t uint64_t
+#define u_int32_t uint32_t
 #define xdr_int8_t xdr_char
 #define xdr_u_int8_t xdr_u_char
 #define xdr_uint8_t xdr_short
