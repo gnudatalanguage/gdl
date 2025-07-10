@@ -28,13 +28,6 @@
 #include "list.hpp"
 #include "hash.hpp"
 
-//for xdr_convert() arguments.
-#ifdef __APPLE__
-#define xdr_uint16_t xdr_u_int16_t
-#define xdr_uint32_t xdr_u_int32_t
-#define xdr_uint64_t xdr_u_int64_t
-#endif
-
 using namespace std;
 
 #define GET_NEXT_CHAR     c = is.get(); \

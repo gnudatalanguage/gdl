@@ -98,26 +98,6 @@ enum {
   static bool save_compress=false;
   static FILE* save_fid=NULL;
 
-
-  // AC 2017-12-13 : missing in  <rpc/xdr.h> for OSX
-  // Following https://www.gnu.org/software/gnulib/manual/html_node/xdr_005fint16_005ft.html
-  // it may be needed for others OS : Cygwin, Mingw (seems to be OK for *BSD)
-
-  // AC 2023-12-27
-  // xdr_uint16_t are defined in old Linux systems (but no xdr_u_int16_t)
-  // xdr_uint16_t and xdr_u_int16_t in new (eg u2204) Linux systems
-  // xdr_u_int16_t are defined in OSX since 2017 (but no xdr_uint16_t )
-//#ifdef __APPLE__
-//#define xdr_uint16_t xdr_u_int16_t
-//#define xdr_uint32_t xdr_u_int32_t
-//#define xdr_uint64_t xdr_u_int64_t
-//#endif
-//  
-////windows is the only one to use portablexdr at the moment.  
-//#ifdef  _WIN32
-
-//#endif
-//#include <rpc/xdr.h>
   
   static u_int64_t ENDOFLIST =   0xFFFFFFFFFFFFFFFF;
 //  void writeCData(XDR *xdrs, BaseGDL* var);
