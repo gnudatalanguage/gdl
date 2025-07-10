@@ -313,7 +313,7 @@ void CleanupProc( DLibPro* proc ) {
       if (error) { //try lowercase (DLMs are written in UPPERCASE)
         std::string s=StrLowCase(lib_symbol);
 #if defined(_WIN32) && !defined(__CYGWIN__)
-      fPtr = GetProcAddress( handle, s.c_str() );
+      fPtr = (T) GetProcAddress( handle, s.c_str() );
 #else
       error = dlerror();  // clear error
       fPtr = (T) dlsym( handle, s.c_str() );
@@ -323,7 +323,7 @@ void CleanupProc( DLibPro* proc ) {
       if (error) { //try uppercase?
         std::string s=StrUpCase(lib_symbol);
 #if defined(_WIN32) && !defined(__CYGWIN__)
-      fPtr = GetProcAddress( handle, s.c_str() );
+      fPtr = (T) GetProcAddress( handle, s.c_str() );
 #else
       error = dlerror();  // clear error
       fPtr = (T)  dlsym( handle, s.c_str() );
@@ -341,7 +341,7 @@ void CleanupProc( DLibPro* proc ) {
       char* error = nullptr;
       // if 'lib_symbol' does not work, try both upcase and lowcase versions
 #if defined(_WIN32) && !defined(__CYGWIN__)
-      fPtr = GetProcAddress( handle, lib_symbol.c_str() );
+      fPtr = (void*) GetProcAddress( handle, lib_symbol.c_str() );
 #else
       error = dlerror();  // clear error
       fPtr = dlsym( handle, lib_symbol.c_str() );
@@ -350,7 +350,7 @@ void CleanupProc( DLibPro* proc ) {
       if (error) { //try lowercase (DLMs are written in UPPERCASE)
         std::string s=StrLowCase(lib_symbol);
 #if defined(_WIN32) && !defined(__CYGWIN__)
-      fPtr = GetProcAddress( handle, s.c_str() );
+      fPtr = (void*) GetProcAddress( handle, s.c_str() );
 #else
       error = dlerror();  // clear error
       fPtr = dlsym( handle, s.c_str() );
@@ -360,7 +360,7 @@ void CleanupProc( DLibPro* proc ) {
       if (error) { //try uppercase?
         std::string s=StrUpCase(lib_symbol);
 #if defined(_WIN32) && !defined(__CYGWIN__)
-      fPtr = GetProcAddress( handle, s.c_str() );
+      fPtr = (void*) GetProcAddress( handle, s.c_str() );
 #else
       error = dlerror();  // clear error
       fPtr = dlsym( handle, s.c_str() );

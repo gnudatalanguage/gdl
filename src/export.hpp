@@ -2372,8 +2372,20 @@ IDL_TERMINFO IDL_TermInfo={
 #endif
   24,128};
 
-char *IDL_CDECL IDL_FileTermName(void){return IDL_TermInfo.name;}
-int IDL_CDECL IDL_FileTermIsTty(void){return IDL_TermInfo.is_tty;}
+char *IDL_CDECL IDL_FileTermName(void){
+#ifdef IDL_OS_HAS_TTYS
+	return IDL_TermInfo.name;
+#else
+	return "<Anonymous>";
+#endif
+}
+int IDL_CDECL IDL_FileTermIsTty(void){
+#ifdef IDL_OS_HAS_TTYS
+	return IDL_TermInfo.is_tty;
+#else
+	return 0;
+#endif
+}
 int IDL_CDECL IDL_FileTermLines(void){return IDL_TermInfo.lines;}
 int IDL_CDECL IDL_FileTermColumns(void){return IDL_TermInfo.columns;}
 
