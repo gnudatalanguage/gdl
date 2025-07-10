@@ -771,7 +771,7 @@ if (v->flags == 0) return;
 	if ( !( v->flags & IDL_TYP_B_SIMPLE) || ( v->flags & IDL_V_ARR) ) GDL_WillThrowAfterCleaning(message+std::string(IDL_VarName(v)));
 }
  #define DOCASE(ty, what)\
- case ty: dprintf (fd,IDL_OutputFormat[v->type],v->value.what);break;
+ case ty: fprintf (theOutput,IDL_OutputFormat[v->type],v->value.what);break;
 
 #define DOCASE_ARRAY(ty, c_ty)\
  case ty: {\
@@ -781,24 +781,43 @@ if (v->flags == 0) return;
  int l=IDL_OutputFormatLen[v->type];\
  for (; i< v->value.arr->n_elts; ++i) {\
  w+=l;\
- dprintf (fd,IDL_OutputFormat[v->type],val[i]);\
- if (w>=ncols) {dprintf (fd,"\n");w=0;} }\
- dprintf (fd,"\n");}\
+ fprintf (theOutput,IDL_OutputFormat[v->type],val[i]);\
+ if (w>=ncols) {fprintf (theOutput,"\n");w=0;} }\
+ fprintf (theOutput,"\n");}\
  break;
 
 	void IDL_CDECL GDL_Print(int argc, IDL_VPTR *argv, char *argk, bool print_to_file) {
-				//argk is to be set to NULL by users according to the doc.
-		int start=0;
-		int fd=0;
+		//argk is to be set to NULL by users according to the doc.
+		int start = 0;
+		int lun = -1;
+		int ncols = TermWidth();
 		if (print_to_file) {
-			IDL_LONG fd=argv[0]->value.l;
-			start=1;
+			IDL_LONG lun = argv[0]->value.l;
+			start = 1;
+			if (lun < -2 || lun > maxLun) GDL_WillThrowAfterCleaning("File unit is not within allowed range: " + i2s(lun) + ".");
+			if (lun == 0) GDL_WillThrowAfterCleaning("Cannot print to standard input.");
+			if (lun > 0) { //need a special treatment, as our luns are not at all file descriptors...
+                int proIx = LibProIx("PRINTF");
+				  EnvT* newEnv = new EnvT(DInterpreter::CallStackBack()->CallingNode(),libProList[proIx]);
+				  Guard<EnvT> guard(newEnv);
+				// add parameters
+				newEnv->SetNextPar(new DLongGDL(lun));
+				int nParam = argc;
+				for (SizeT iarg = 1; iarg < nParam; ++iarg) {
+					IDL_VPTR v = argv[iarg];
+					checkOK(v);
+					BaseGDL* par = VPTR_ToGDL(v);
+					newEnv->SetNextPar(par->Dup());
+				}
+				static_cast<DLibPro*> (newEnv->GetPro())->Pro()(newEnv);
+				return; //job done.
+			}
 		}
-		int ncols= TermWidth();
+		FILE* theOutput=(lun==-1)?stdout:stderr;
 		for (int iarg = start; iarg < argc; ++iarg) {
 			IDL_VPTR v = argv[iarg];
-            checkOK(v);
-            if (v->flags & IDL_V_ARR) {
+			checkOK(v);
+			if (v->flags & IDL_V_ARR) {
 				switch (v->type) {
 						DOCASE_ARRAY(IDL_TYP_BYTE, UCHAR);
 						DOCASE_ARRAY(IDL_TYP_INT, IDL_INT);
