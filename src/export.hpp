@@ -28,7 +28,7 @@ static std::vector<std::pair<IDL_VPTR,std::string> > ExportedNamesList;
 typedef struct {
   const char* name;
   BaseGDL* varptr; // pointer to some externally produced var if out=true
-  IDL_VPTR out=NULL;
+  IDL_VPTR out;
   UCHAR type;
   UCHAR readonly; // no associated variable
 } GDL_KEYWORDS_LIST;
@@ -688,9 +688,9 @@ extern "C" {
 	//all the IDL_** modules below should be listed in dynlist.txt ---now done using an asterisk syntax 
 	
 #define DOCASE(ty, what)\
- case ty: {snprintf (&infoline[l], IDL_OutputFormatLen[v->type], IDL_OutputFormat[v->type],v->value.what);break;}
+ case ty: {snprintf (&infoline[l], IDL_OutputFormatLen[v->type]+1, IDL_OutputFormat[v->type],v->value.what);break;}
 #define DOCASE_CMP(ty, what)\
- case ty: {snprintf (&infoline[l], IDL_OutputFormatLen[v->type], IDL_OutputFormat[v->type],v->value.what.r,v->value.what.i);  break;}
+ case ty: {snprintf (&infoline[l], IDL_OutputFormatLen[v->type]+1, IDL_OutputFormat[v->type],v->value.what.r,v->value.what.i);  break;}
 
 IDL_VPTR IDL_FindNamedVariable(char *name, int ienter){
 	std::string s(name);
@@ -725,10 +725,10 @@ char *IDL_CDECL IDL_VarName(IDL_VPTR v){TRACE_ROUTINE(__FUNCTION__, __FILE__, __
 			int i;
 			for (i=0; i< v->value.arr->n_dim-1; ++i) {
 				int l=strlen(infoline);
-				snprintf (&infoline[l], 127-l, "%d,",v->value.arr->dim[i]);
+				snprintf (&infoline[l], 127-l, "%ld,",v->value.arr->dim[i]);
 			}
 			int l = strlen(infoline);
-			snprintf(&infoline[l], 127-l, "%d", v->value.arr->dim[i]);
+			snprintf(&infoline[l], 127-l, "%ld", v->value.arr->dim[i]);
 			strncat(infoline,"]",2);
 		} else {
 			strncat(infoline,"(",2);
