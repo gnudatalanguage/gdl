@@ -688,9 +688,9 @@ extern "C" {
 	//all the IDL_** modules below should be listed in dynlist.txt ---now done using an asterisk syntax 
 	
 #define DOCASE(ty, what)\
- case ty: {sprintf (&s[l], IDL_OutputFormat[v->type],v->value.what);break;}
+ case ty: {snprintf (&infoline[l], IDL_OutputFormatLen[v->type], IDL_OutputFormat[v->type],v->value.what);break;}
 #define DOCASE_CMP(ty, what)\
- case ty: {sprintf (&s[l], IDL_OutputFormat[v->type],v->value.what.r,v->value.what.i);  break;}
+ case ty: {snprintf (&infoline[l], IDL_OutputFormatLen[v->type], IDL_OutputFormat[v->type],v->value.what.r,v->value.what.i);  break;}
 
 IDL_VPTR IDL_FindNamedVariable(char *name, int ienter){
 	std::string s(name);
@@ -704,35 +704,35 @@ IDL_VPTR IDL_FindNamedVariable(char *name, int ienter){
 }
 
 char *IDL_CDECL IDL_VarName(IDL_VPTR v){TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-		char* s=(char*) calloc(1,128);
+		char* infoline=(char*) calloc(1,128);
 
-		if (v->type == IDL_TYP_UNDEF) {strncat(s,"<UNDEFINED> ",13); return s;}
+		if (v->type == IDL_TYP_UNDEF) {strncat(infoline,"<UNDEFINED> ",13); return infoline;}
 
         if ((v->flags & IDL_V_TEMP)==0) {
 			for (std::vector<std::pair <IDL_VPTR, std::string>>::iterator it = ExportedNamesList.begin(); it != ExportedNamesList.end(); ++it) {
 				if (it->first == v) {
-					strncat(s,it->second.c_str(),it->second.size());
+					strncat(infoline,it->second.c_str(),it->second.size());
 					break;
 				}
-				strncat(s,"<No Name>",10);
+				strncat(infoline,"<No Name>",10);
 			}
-			return s;
+			return infoline;
 		}
-        strncat(s,"<Expression> ",14);
-		strncat(s,IDL_TypeNameFunc(v->type),9);
+        strncat(infoline,"<Expression> ",14);
+		strncat(infoline,IDL_TypeNameFunc(v->type),9);
 		if (v->flags & IDL_V_ARR) {
-			strncat(s,"Array[",7);
+			strncat(infoline,"Array[",7);
 			int i;
 			for (i=0; i< v->value.arr->n_dim-1; ++i) {
-				int l=strlen(s);
-				sprintf (&s[l], "%d,",v->value.arr->dim[i]);
+				int l=strlen(infoline);
+				snprintf (&infoline[l], 127-l, "%d,",v->value.arr->dim[i]);
 			}
-			int l = strlen(s);
-			sprintf(&s[l], "%d", v->value.arr->dim[i]);
-			strncat(s,"]",2);
+			int l = strlen(infoline);
+			snprintf(&infoline[l], 127-l, "%d", v->value.arr->dim[i]);
+			strncat(infoline,"]",2);
 		} else {
-			strncat(s,"(",2);
-			int l = strlen(s);
+			strncat(infoline,"(",2);
+			int l = strlen(infoline);
 			switch(v->type){
 				DOCASE(IDL_TYP_BYTE, c);
 				DOCASE(IDL_TYP_INT, i);
@@ -749,9 +749,9 @@ char *IDL_CDECL IDL_VarName(IDL_VPTR v){TRACE_ROUTINE(__FUNCTION__, __FILE__, __
 				DOCASE(IDL_TYP_STRUCT, s.sdef->id->name);
 			default: Warning/*GDL_WillThrowAfterCleaning*/("IDL_VarName: unexpected type "+i2s(v->type));
 			}
-			strncat(s,")",2);
+			strncat(infoline,")",2);
 		}
-		return s;
+		return infoline;
 	}
 #undef DOCASE
 #undef DOCASE_CMP
@@ -1163,7 +1163,7 @@ char* IDL_CDECL IDL_MakeTempVector(int type, IDL_MEMINT dim, int  init, IDL_VPTR
 				for (auto i = 0; i < nelts; ++i) {
 					thestrings[i].slen = slen;
 					thestrings[i].s = &(allstrings[i * slen]);
-					sprintf(thestrings[i].s, IDL_OutputFormatFunc(IDL_TYP_LONG), i);
+					snprintf(thestrings[i].s,IDL_OutputFormatLenFunc(IDL_TYP_LONG), IDL_OutputFormatFunc(IDL_TYP_LONG), i);
 				}
 			} else gdlInitVector(addr, type, l);
 		}
@@ -1216,7 +1216,7 @@ char *IDL_CDECL IDL_MakeTempArray(int type, int n_dim, IDL_MEMINT  dim[], int in
 				for (auto i = 0; i < nelts; ++i) {
 					thestrings[i].slen = slen;
 					thestrings[i].s = &(allstrings[i * slen]);
-					sprintf(thestrings[i].s, IDL_OutputFormatFunc(IDL_TYP_LONG), i);
+					snprintf(thestrings[i].s, IDL_OutputFormatLenFunc(IDL_TYP_LONG), IDL_OutputFormatFunc(IDL_TYP_LONG), i);
 				}
 			} else gdlInitVector(addr, type, l);
 		}
@@ -2204,7 +2204,7 @@ char* GDLWriteVarAtAddr(BaseGDL* var, std::string name, UCHAR type, size_t addre
 		std::map<int, int>::iterator it;
 		while ((kw = kw_requested[ikw].keyword) != NULL) {
 			int code = -1;
-			if (kw_requested[ikw].mask & mask == 0) code = -2;
+			if ((kw_requested[ikw].mask & mask) == 0) code = -2;
 			requested.insert(std::pair<int, int>(ikw, code));
 			ikw++;
 		}
@@ -2285,7 +2285,7 @@ char* GDLWriteVarAtAddr(BaseGDL* var, std::string name, UCHAR type, size_t addre
 		std::map<int, int>::iterator it;
 		while ((kw = kw_requested[ikw].keyword) != NULL) {
 			int code = -1;
-			if (kw_requested[ikw].mask & mask == 0) code = -2;
+			if ((kw_requested[ikw].mask & mask) == 0) code = -2;
 			requested.insert(std::pair<int, int>(ikw, code));
 			ikw++;
 		}
@@ -2683,7 +2683,7 @@ returned_struct->tags[itag].offset+=pad;\
 			return sdef->tags[i].offset;
 		}
 		char* mess=(char*)calloc(256,1);
-		strcat(mess,"Tag name ");strcat(mess,name);strcat(mess," is undefined for structure ");
+		strncat(mess,"Tag name ",10);strncat(mess,name,strlen(name));strncat(mess," is undefined for structure ",29);
 		if (sdef->id!=NULL && sdef->id->name !=NULL) strcat(mess,sdef->id->name); else strcat(mess,"<Anonymous>");
 		IDL_Message(IDL_M_GENERIC, msg_action, mess);
 		free(mess);
@@ -2696,7 +2696,7 @@ returned_struct->tags[itag].offset+=pad;\
 			return sdef->tags[index].offset;
 		}
 		char* mess=(char*)calloc(256,1);
-		strcat(mess,"Tag number ");sprintf(mess,"%d",index); strcat(mess," is undefined for structure ");
+		strncat(mess,"Tag number ",12);snprintf(mess,64,"%d",index); strncat(mess," is undefined for structure ",29);
 		if (sdef->id!=NULL && sdef->id->name !=NULL) strcat(mess,sdef->id->name); else strcat(mess,"<Anonymous>");
 		IDL_Message(IDL_M_GENERIC, msg_action, mess);
 		free(mess);
@@ -2708,7 +2708,7 @@ extern char *IDL_CDECL IDL_StructTagNameByIndex(IDL_StructDefPtr sdef, int index
 			return sdef->tags[index].id->name;
 		}
 		char* mess=(char*)calloc(256,1);
-		strcat(mess,"Tag number ");sprintf(mess,"%d",index); strcat(mess," is undefined for structure ");
+		strncat(mess,"Tag number ",12);snprintf(mess,64,"%d",index); strncat(mess," is undefined for structure ",29);
 		if (sdef->id!=NULL && sdef->id->name !=NULL) strcat(mess,sdef->id->name); else strcat(mess,"<Anonymous>");
 		IDL_Message(IDL_M_GENERIC, msg_action, mess);
 		free(mess);
