@@ -2395,7 +2395,7 @@ char *IDL_CDECL IDL_FileTermName(void){
 #ifdef IDL_OS_HAS_TTYS
 	return IDL_TermInfo.name;
 #else
-	return "<Anonymous>";
+	return (char*)"<Anonymous>";
 #endif
 }
 int IDL_CDECL IDL_FileTermIsTty(void){

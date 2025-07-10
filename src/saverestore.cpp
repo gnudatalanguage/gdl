@@ -98,7 +98,6 @@ enum {
   static bool save_compress=false;
   static FILE* save_fid=NULL;
 
-#include <rpc/xdr.h>
 
   // AC 2017-12-13 : missing in  <rpc/xdr.h> for OSX
   // Following https://www.gnu.org/software/gnulib/manual/html_node/xdr_005fint16_005ft.html
@@ -113,6 +112,21 @@ enum {
 #define xdr_uint32_t xdr_u_int32_t
 #define xdr_uint64_t xdr_u_int64_t
 #endif
+  
+//windows is the only one to use portablexdr at the moment.  
+#ifdef  _WIN32
+#   define u_int64_t uint64_t
+#define xdr_int8_t xdr_char
+#define xdr_u_int8_t xdr_u_char
+#define xdr_uint8_t xdr_short
+#define xdr_int16_t xdr_short
+#define xdr_u_int16_t xdr_u_short
+#define xdr_uint16_t xdr_u_short
+#define xdr_int32_t xdr_long
+#define xdr_u_int32_t xdr_u_long
+#define xdr_uint32_t xdr_u_long
+#endif
+#include <rpc/xdr.h>
   
   static u_int64_t ENDOFLIST =   0xFFFFFFFFFFFFFFFF;
 //  void writeCData(XDR *xdrs, BaseGDL* var);
