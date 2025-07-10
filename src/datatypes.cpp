@@ -1010,13 +1010,14 @@ template<typename Ty>
 inline void CShift1( Ty* dst, SizeT& dstLonIx, const Ty* src, SizeT& srcLonIx,
 		     SizeT stride_1, SizeT chunk0, SizeT chunk1)
 { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  memcpy(  &dst[ dstLonIx], &src[ srcLonIx], chunk0 * sizeof(Ty));
+  memcpy( (void*) &dst[ dstLonIx], (void*) &src[ srcLonIx], chunk0 * sizeof(Ty)); //explicitly cast the pointer to silence [-Wnontrivial-memcall] warning
+  // as the 'string case' is specially treated in CShift() below.
   dstLonIx += chunk0;
   srcLonIx += chunk0;
 
   dstLonIx -= stride_1;
 
-  memcpy( &dst[ dstLonIx], &src[ srcLonIx], chunk1 * sizeof(Ty));
+  memcpy( (void*) &dst[ dstLonIx], (void*) &src[ srcLonIx], chunk1 * sizeof(Ty));
   dstLonIx += chunk1 ;
   srcLonIx += chunk1;
 

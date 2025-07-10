@@ -25,11 +25,11 @@ void update_histo_limits (TGDL* array, T& endVal, DLong nbins, T bsize, T startV
 
   if (FloatType(array->Type()) ) {
     DDouble endValDble = nbins * (DDouble) bsize + (DDouble) startVal;
-    if (endValDble > std::numeric_limits<T>::max()) endVal = std::numeric_limits<T>::max();
+    if (endValDble > static_cast<DDouble>(std::numeric_limits<T>::max())) endVal = std::numeric_limits<T>::max();
     else endVal = endValDble;
   } else {
     DLong64 endVal64 = nbins * (DLong64) bsize + (DLong64) startVal;
-    if (endVal64 > std::numeric_limits<T>::max()) endVal = std::numeric_limits<T>::max();
+    if (endVal64 > static_cast<DLong64>(std::numeric_limits<T>::max())) endVal = std::numeric_limits<T>::max();
     else endVal = endVal64;
   }
 }
