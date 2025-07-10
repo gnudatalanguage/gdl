@@ -109,7 +109,6 @@ namespace lib {
           os = &fileUnits[ lun - 1].OgzStream();
         else
           os = &fileUnits[ lun - 1].OStream();
-        os->exceptions(std::ofstream::failbit);
       } else
         os = &oss;
 
