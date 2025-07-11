@@ -39,10 +39,6 @@ typedef struct {
 } GDL_PASS_KEYWORDS_LIST;
 
 
-inline void ZeroVPTR(IDL_VPTR p) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-	memset((void*)p,0,sizeof(p));
-}
-
 void IDL_CDECL IDL_Deltmp(IDL_REGISTER IDL_VPTR v) {
 	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	if (v->flags & IDL_V_TEMP) {
@@ -99,7 +95,7 @@ inline void checkOK(IDL_VPTR v) {
 	if (v->type == IDL_TYP_UNDEF) GDL_WillThrowAfterCleaning("Variable is undefined: <UNDEFINED>.");
 }
 
-void IDL_KWFree(void) {
+void IDL_CDECL IDL_KWFree(void) {
 	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	for (std::vector<IDL_VPTR>::iterator it = FreeKwList.begin(); it != FreeKwList.end(); ++it) IDL_Deltmp(*it);
 	FreeKwList.clear();
@@ -585,7 +581,7 @@ char *IDL_CDECL IDL_OutputFormatFunc(int type){
 		return IDL_OutputFormat[type];
 }
 int IDL_OutputFormatLen[IDL_NUM_TYPES]={11,4,8,12,13,16,29,0,0,35,12,12,8,12,22};
-int IDL_CDECL IDL_OutputFormatLenFunc(int type){
+int IDL_OutputFormatLenFunc(int type){
 		if (type > IDL_MAX_TYPE) GDL_WillThrowAfterCleaning("type must be > 0 and < 15");
 		return IDL_OutputFormatLen[type];
 }
@@ -603,7 +599,7 @@ char *IDL_OutputFormatNatural[IDL_NUM_TYPES]={C_"<Undefined>",C_"%d",C_"%d",C_"%
 		sizeof (float), sizeof (IDL_MEMINT), sizeof (IDL_MEMINT), sizeof (double), sizeof (IDL_MEMINT), sizeof (IDL_MEMINT),
 		sizeof ( IDL_UINT), sizeof (IDL_ULONG), sizeof (IDL_LONG64), sizeof (IDL_ULONG64)};
 	
-	int IDL_TypeSizeFunc(int type){
+int IDL_CDECL IDL_TypeSizeFunc(int type){
 		if (type > IDL_MAX_TYPE) GDL_WillThrowAfterCleaning("type must be > 0 and < 15");
 		return IDL_TypeSize[type];}
 
@@ -692,7 +688,7 @@ extern "C" {
 #define DOCASE_CMP(ty, what)\
  case ty: {snprintf (&infoline[l], IDL_OutputFormatLen[v->type]+1, IDL_OutputFormat[v->type],v->value.what.r,v->value.what.i);  break;}
 
-IDL_VPTR IDL_FindNamedVariable(char *name, int ienter){
+IDL_VPTR IDL_CDECL IDL_FindNamedVariable(char *name, int ienter){
 	std::string s(name);
     for (std::vector<std::pair <IDL_VPTR, std::string>>::iterator it = ExportedNamesList.begin(); it != ExportedNamesList.end(); ++it) {
 				if (it->second == s) {
@@ -756,16 +752,16 @@ char *IDL_CDECL IDL_VarName(IDL_VPTR v){TRACE_ROUTINE(__FUNCTION__, __FILE__, __
 #undef DOCASE
 #undef DOCASE_CMP
 
-IDL_VPTR IDL_GetVarAddr1(char *name, int enter){
+IDL_VPTR IDL_CDECL IDL_GetVarAddr1(char *name, int enter){
 	GDL_WillThrowAfterCleaning("IDL_GetVarAddr is not currently programmed -- as it would never be the address of a real GDL variable. Use parameters in call to get a copy of GDL variables.");
 	return NULL;
 }
 
-IDL_VPTR IDL_GetVarAddr(char *name){
+IDL_VPTR IDL_CDECL IDL_GetVarAddr(char *name){
 	return IDL_GetVarAddr1(name, 0);
 }
 
-void IDL_VarEnsureSimple(IDL_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+void IDL_CDECL IDL_VarEnsureSimple(IDL_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 if (v->flags == 0) return;
     static char* message= (char*)"Expression must be a scalar in this context: ";
 	if ( !( v->flags & IDL_TYP_B_SIMPLE) || ( v->flags & IDL_V_ARR) ) GDL_WillThrowAfterCleaning(message+std::string(IDL_VarName(v)));
@@ -1284,7 +1280,7 @@ char *IDL_CDECL IDL_VarMakeTempFromTemplate(IDL_VPTR template_var, int type, IDL
 		throw;
 }	
 
-IDL_VPTR IDL_Gettmp(void){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+IDL_VPTR IDL_CDECL IDL_Gettmp(void){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 	return NewTMPVPTR();
 	}
 #define DOIT(aaa, entry)\
@@ -1296,13 +1292,13 @@ IDL_VPTR IDL_CDECL IDL_GettmpByte(UCHAR value){TRACE_ROUTINE(__FUNCTION__,__FILE
      DOIT(IDL_TYP_BYTE, c);
 }
 
-IDL_VPTR IDL_GettmpInt(IDL_INT value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+IDL_VPTR IDL_CDECL IDL_GettmpInt(IDL_INT value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
       DOIT(IDL_TYP_INT, i);
 	}
-IDL_VPTR IDL_GettmpUInt(IDL_UINT value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+IDL_VPTR IDL_CDECL IDL_GettmpUInt(IDL_UINT value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
       DOIT(IDL_TYP_UINT, ui);
 	}
-IDL_VPTR IDL_GettmpLong(IDL_LONG value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+IDL_VPTR IDL_CDECL IDL_GettmpLong(IDL_LONG value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
       DOIT(IDL_TYP_LONG, l);
 	}
 IDL_VPTR IDL_CDECL IDL_GettmpFloat(float value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
@@ -1317,7 +1313,7 @@ IDL_VPTR IDL_CDECL IDL_GettmpPtr(IDL_HVID value){TRACE_ROUTINE(__FUNCTION__,__FI
 IDL_VPTR IDL_CDECL IDL_GettmpObjRef(IDL_HVID value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
       DOIT(IDL_TYP_OBJREF, hvid);
 	}
-IDL_VPTR IDL_GettmpULong(IDL_ULONG value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+IDL_VPTR IDL_CDECL IDL_GettmpULong(IDL_ULONG value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
       DOIT(IDL_TYP_ULONG, ul);
 	}
 IDL_VPTR IDL_CDECL IDL_GettmpLong64(IDL_LONG64 value){
@@ -1326,10 +1322,10 @@ IDL_VPTR IDL_CDECL IDL_GettmpLong64(IDL_LONG64 value){
 IDL_VPTR IDL_CDECL IDL_GettmpULong64(IDL_ULONG64 value){
       DOIT(IDL_TYP_ULONG64, ul64);
 }
-IDL_VPTR IDL_GettmpFILEINT(IDL_FILEINT value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+IDL_VPTR IDL_CDECL IDL_GettmpFILEINT(IDL_FILEINT value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
       DOIT(IDL_TYP_FILEINT, fileint);
 	}
-IDL_VPTR IDL_GettmpMEMINT(IDL_MEMINT value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+IDL_VPTR IDL_CDECL IDL_GettmpMEMINT(IDL_MEMINT value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
       DOIT(IDL_TYP_MEMINT, memint);
 	}
 #undef DOIT
@@ -1388,7 +1384,7 @@ IDL_VPTR IDL_GettmpMEMINT(IDL_MEMINT value){TRACE_ROUTINE(__FUNCTION__,__FILE__,
 #define DOCASE_TO_CMP_FROM_CMP(type, field1, field2)\
  case type: ret->value.field1.r=value.field2.r ; ret->value.field1.i=value.field2.i ;break;
 
-IDL_VPTR IDL_CvtByte(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+IDL_VPTR IDL_CDECL IDL_CvtByte(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
         DEFOUT(IDL_TYP_BYTE);
 		if (argv[0]->flags & IDL_V_ARR) {
 		PREPARE_ARRAY(UCHAR);		
@@ -1425,7 +1421,7 @@ IDL_VPTR IDL_CvtByte(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FI
 	return ret;
 }
 
-IDL_VPTR IDL_CvtBytscl(int argc, IDL_VPTR argv[], char *argk) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+IDL_VPTR IDL_CDECL IDL_CvtBytscl(int argc, IDL_VPTR argv[], char *argk) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		DEFOUT(IDL_TYP_BYTE);
 		if (argv[0]->flags & IDL_V_ARR) {
 			PREPARE_ARRAY(UCHAR);
@@ -1462,7 +1458,7 @@ IDL_VPTR IDL_CvtBytscl(int argc, IDL_VPTR argv[], char *argk) {TRACE_ROUTINE(__F
 		return ret;
 }
 //
-IDL_VPTR IDL_CvtFix(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+IDL_VPTR IDL_CDECL IDL_CvtFix(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		DEFOUT(IDL_TYP_INT);
 		if (argv[0]->flags & IDL_V_ARR) {
 			PREPARE_ARRAY(IDL_INT);
@@ -1500,7 +1496,7 @@ IDL_VPTR IDL_CvtFix(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FIL
 
 }
 //
-IDL_VPTR IDL_CvtUInt(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+IDL_VPTR IDL_CDECL IDL_CvtUInt(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
         DEFOUT(IDL_TYP_UINT);
 		if (argv[0]->flags & IDL_V_ARR) {
 			PREPARE_ARRAY(IDL_UINT);
@@ -1537,7 +1533,7 @@ IDL_VPTR IDL_CvtUInt(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FI
 		return ret;
 	}
 //
-IDL_VPTR IDL_CvtLng(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+IDL_VPTR IDL_CDECL IDL_CvtLng(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
         DEFOUT(IDL_TYP_LONG);
 		if (argv[0]->flags & IDL_V_ARR) {
 			PREPARE_ARRAY(IDL_LONG);
@@ -1575,7 +1571,7 @@ IDL_VPTR IDL_CvtLng(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FIL
 
 	}
 //
-IDL_VPTR IDL_CvtULng(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+IDL_VPTR IDL_CDECL IDL_CvtULng(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
         DEFOUT(IDL_TYP_ULONG);
 		if (argv[0]->flags & IDL_V_ARR) {
 			PREPARE_ARRAY(IDL_ULONG);
@@ -1613,7 +1609,7 @@ IDL_VPTR IDL_CvtULng(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FI
 
 	}
 //
-IDL_VPTR IDL_CvtLng64(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+IDL_VPTR IDL_CDECL IDL_CvtLng64(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
         DEFOUT(IDL_TYP_LONG64);
 		if (argv[0]->flags & IDL_V_ARR) {
 			PREPARE_ARRAY(IDL_LONG64);
@@ -1652,7 +1648,7 @@ IDL_VPTR IDL_CvtLng64(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__F
 	}
 //
 
-IDL_VPTR IDL_CvtULng64(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+IDL_VPTR IDL_CDECL IDL_CvtULng64(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
         DEFOUT(IDL_TYP_ULONG64);
 		if (argv[0]->flags & IDL_V_ARR) {
 			PREPARE_ARRAY(IDL_ULONG64);
@@ -1689,18 +1685,18 @@ IDL_VPTR IDL_CvtULng64(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__
 		return ret;
 
 	}
-IDL_VPTR IDL_CvtMEMINT(int argc, IDL_VPTR argv[]) {
+IDL_VPTR IDL_CDECL IDL_CvtMEMINT(int argc, IDL_VPTR argv[]) {
 	IDL_VPTR v=IDL_CvtULng64(argc, argv);
 	v->type=IDL_TYP_MEMINT;
 	return v;
 }
-IDL_VPTR IDL_CvtFILEINT(int argc, IDL_VPTR argv[]) {
+IDL_VPTR IDL_CDECL IDL_CvtFILEINT(int argc, IDL_VPTR argv[]) {
 	IDL_VPTR v=IDL_CvtULng64(argc, argv);
 	v->type=IDL_TYP_FILEINT;
 	return v;
 }
 //
-IDL_VPTR IDL_CvtFlt(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+IDL_VPTR IDL_CDECL IDL_CvtFlt(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
         DEFOUT(IDL_TYP_FLOAT);
 		if (argv[0]->flags & IDL_V_ARR) {
 			PREPARE_ARRAY(float);
@@ -1737,7 +1733,7 @@ IDL_VPTR IDL_CvtFlt(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FIL
 		return ret;
 	}
 //
-IDL_VPTR IDL_CvtDbl(int argc, IDL_VPTR argv[]){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+IDL_VPTR IDL_CDECL IDL_CvtDbl(int argc, IDL_VPTR argv[]){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		DEFOUT(IDL_TYP_DOUBLE);
 		if (argv[0]->flags & IDL_V_ARR) {
 			PREPARE_ARRAY(double);
@@ -1774,7 +1770,7 @@ IDL_VPTR IDL_CvtDbl(int argc, IDL_VPTR argv[]){TRACE_ROUTINE(__FUNCTION__,__FILE
 		return ret;
 	}
 //
-IDL_VPTR IDL_CvtComplex(int argc, IDL_VPTR argv[], char *argk=NULL) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+IDL_VPTR IDL_CDECL IDL_CvtComplex(int argc, IDL_VPTR argv[], char *argk=NULL) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		DEFOUT(IDL_TYP_COMPLEX);
 		if (argv[0]->flags & IDL_V_ARR) {
 			PREPARE_ARRAY(IDL_COMPLEX);
@@ -1811,7 +1807,7 @@ IDL_VPTR IDL_CvtComplex(int argc, IDL_VPTR argv[], char *argk=NULL) {TRACE_ROUTI
 		return ret;
 	}
 //
-IDL_VPTR IDL_CvtDComplex(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+IDL_VPTR IDL_CDECL IDL_CvtDComplex(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		DEFOUT(IDL_TYP_DCOMPLEX);
 		if (argv[0]->flags & IDL_V_ARR) {
 			PREPARE_ARRAY(IDL_DCOMPLEX);
@@ -1848,7 +1844,7 @@ IDL_VPTR IDL_CvtDComplex(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,
 		return ret;
 			}
 
-IDL_VPTR IDL_CvtString(int argc, IDL_VPTR argv[], char *argk=NULL){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+IDL_VPTR IDL_CDECL IDL_CvtString(int argc, IDL_VPTR argv[], char *argk=NULL){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 DEFOUT(IDL_TYP_STRING);
 GDL_WillThrowAfterCleaning("IDL_CvtString not supported, fixme");
 //		if (argv[0]->flags & IDL_V_ARR) {
@@ -2189,7 +2185,7 @@ char* GDLWriteVarAtAddr(BaseGDL* var, std::string name, UCHAR type, size_t addre
 			}
 		}
 	}
-    int IDL_CDECL IDL_KWGetParams(int argc, IDL_VPTR *argv, char *argk_passed,
+int IDL_CDECL IDL_KWGetParams(int argc, IDL_VPTR *argv, char *argk_passed,
 				     IDL_KW_PAR *kw_requested,
 				     IDL_VPTR *plain_args, int mask) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		for (auto i = 0; i < argc; ++i) plain_args[i] = argv[i];
@@ -2268,7 +2264,7 @@ char* GDLWriteVarAtAddr(BaseGDL* var, std::string name, UCHAR type, size_t addre
 		return 0;
 	}
 
-	int IDL_CDECL IDL_KWProcessByOffset(int argc, IDL_VPTR *argv, char
+int IDL_CDECL IDL_KWProcessByOffset(int argc, IDL_VPTR *argv, char
 			*argk_passed, IDL_KW_PAR *kw_requested, IDL_VPTR *plain_args, int mask, void *kw_result) {
 		TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 				static const int NoClean = 0;
@@ -2532,7 +2528,7 @@ IDL_VPTR IDL_CDECL IDL_BasicTypeConversion(int argc, IDL_VPTR argv[], IDL_REGIST
 	}
 	return NULL;
 }
-int IDL_AddSystemRoutine(IDL_SYSFUN_DEF *defs, int is_function, int cnt){return 1;} //using DLM insure this is OK. I think.
+int IDL_CDECL IDL_AddSystemRoutine(IDL_SYSFUN_DEF *defs, int is_function, int cnt){return 1;} //using DLM insure this is OK. I think.
 int IDL_CDECL IDL_BailOut(int stop){return sigControlC;} //use of stop not supported.
 void IDL_CDECL IDL_ExitRegister(IDL_EXIT_HANDLER_FUNC proc){}
 void IDL_CDECL IDL_ExitUnregister(IDL_EXIT_HANDLER_FUNC proc){}
