@@ -13,6 +13,36 @@
 #define TRACE_ROUTINE(func,file,line)
 #endif
 
+// define something to give the visibility of a function /class
+// see https://gcc.gnu.org/wiki/Visibility for the whole story, noticeably the problem of catching C++ exceptions. 
+// if we use this method along with  -fvisibility=hidden passed to the gcc compiler,
+// then only DLL_PUBLIC entries will be visible outside.
+#if defined _WIN32 || defined __CYGWIN__
+//  #ifdef BUILDING_DLL
+    #ifdef __GNUC__
+      #define DLL_PUBLIC __attribute__ ((dllexport))
+    #else
+      #define DLL_PUBLIC __declspec(dllexport) // Note: actually gcc seems to also supports this syntax.
+    #endif
+//  #else
+//    #ifdef __GNUC__
+//      #define DLL_PUBLIC __attribute__ ((dllimport))
+//    #else
+//      #define DLL_PUBLIC __declspec(dllimport) // Note: actually gcc seems to also supports this syntax.
+//    #endif
+//  #endif
+  #define DLL_LOCAL
+#else
+//  #if __GNUC__ >= 4
+//    #define DLL_PUBLIC __attribute__ ((visibility ("default")))
+//    #define DLL_LOCAL  __attribute__ ((visibility ("hidden")))
+//  #else
+    #define DLL_PUBLIC
+    #define DLL_LOCAL
+//  #endif
+#endif
+
+
 #include "gdl_export.h"
 #include "datatypes.hpp"
 #include "GDLInterpreter.hpp"
@@ -39,7 +69,7 @@ typedef struct {
 } GDL_PASS_KEYWORDS_LIST;
 
 
-void IDL_CDECL IDL_Deltmp(IDL_REGISTER IDL_VPTR v) {
+DLL_PUBLIC void IDL_CDECL IDL_Deltmp(IDL_REGISTER IDL_VPTR v) {
 	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	if (v->flags & IDL_V_TEMP) {
 		if (v->flags & IDL_V_DYNAMIC) {
@@ -57,7 +87,7 @@ void IDL_CDECL IDL_Deltmp(IDL_REGISTER IDL_VPTR v) {
 }
 
 //Used by GDL_FreeResources(), like IDL_Deltmp, but deletes the IDL_VARIABLE itself
-void IDL_CDECL GDL_DeleteDescriptors(IDL_REGISTER IDL_VPTR v) {
+DLL_PUBLIC void IDL_CDECL GDL_DeleteDescriptors(IDL_REGISTER IDL_VPTR v) {
 	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 		if (v->flags & IDL_V_DYNAMIC) {
 			if (v->flags & IDL_V_ARR ) {
@@ -66,7 +96,7 @@ void IDL_CDECL GDL_DeleteDescriptors(IDL_REGISTER IDL_VPTR v) {
 		}
 }
 
-void IDL_CDECL IDL_Freetmp(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+DLL_PUBLIC void IDL_CDECL IDL_Freetmp(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	IDL_Deltmp(v);
 }
 
@@ -95,7 +125,7 @@ inline void checkOK(IDL_VPTR v) {
 	if (v->type == IDL_TYP_UNDEF) GDL_WillThrowAfterCleaning("Variable is undefined: <UNDEFINED>.");
 }
 
-void IDL_CDECL IDL_KWFree(void) {
+DLL_PUBLIC void IDL_CDECL IDL_KWFree(void) {
 	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	for (std::vector<IDL_VPTR>::iterator it = FreeKwList.begin(); it != FreeKwList.end(); ++it) IDL_Deltmp(*it);
 	FreeKwList.clear();
@@ -576,7 +606,7 @@ BaseGDL* VPTR_ToGDL(IDL_VPTR v, bool protect=false) {
 #define C_ (char*)
 char *IDL_OutputFormat[IDL_NUM_TYPES]={C_ "<Undefined>",C_ "%4d",C_ "%8d",C_ "%12d",C_ "%#13.6g",C_ "%#16.8g",
 C_ "(%#13.6g,%#13.6g)",C_ "%s",C_ "",C_ "(%#16.8g,%#16.8g)",C_ "%12lu",C_ "%12lu",C_ "%8u",C_ "%12u",C_ "%22ld"};
-char *IDL_CDECL IDL_OutputFormatFunc(int type){
+DLL_PUBLIC char* IDL_CDECL IDL_OutputFormatFunc(int type){
 		if (type > IDL_MAX_TYPE) GDL_WillThrowAfterCleaning("type must be > 0 and < 15");
 		return IDL_OutputFormat[type];
 }
@@ -599,17 +629,17 @@ char *IDL_OutputFormatNatural[IDL_NUM_TYPES]={C_"<Undefined>",C_"%d",C_"%d",C_"%
 		sizeof (float), sizeof (IDL_MEMINT), sizeof (IDL_MEMINT), sizeof (double), sizeof (IDL_MEMINT), sizeof (IDL_MEMINT),
 		sizeof ( IDL_UINT), sizeof (IDL_ULONG), sizeof (IDL_LONG64), sizeof (IDL_ULONG64)};
 	
-int IDL_CDECL IDL_TypeSizeFunc(int type){
+DLL_PUBLIC int IDL_CDECL IDL_TypeSizeFunc(int type){
 		if (type > IDL_MAX_TYPE) GDL_WillThrowAfterCleaning("type must be > 0 and < 15");
 		return IDL_TypeSize[type];}
 
 char *IDL_TypeName[]={C_"UNDEFINED",C_"BYTE     ",C_"INT      ",C_"LONG     ",C_"FLOAT    ",C_"DOUBLE   ",C_"COMPLEX  ",C_"STRING   ",C_"STRUCT   ",C_"DCOMPLEX ",C_"POINTER  ",C_"OBJREF   ",C_"UINT     ",C_"ULONG    ",C_"LONG64   "};
-char *IDL_CDECL IDL_TypeNameFunc(int type){
+DLL_PUBLIC char* IDL_CDECL IDL_TypeNameFunc(int type){
 		if (type > IDL_MAX_TYPE) GDL_WillThrowAfterCleaning("type must be > 0 and < 15");
 		return IDL_TypeName[type];}
 #undef C_
 
-IDL_VPTR IDL_CDECL IDL_ImportArray(int n_dim, IDL_MEMINT dim[], int type, UCHAR *data, IDL_ARRAY_FREE_CB free_cb,  IDL_StructDefPtr s){
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_ImportArray(int n_dim, IDL_MEMINT dim[], int type, UCHAR *data, IDL_ARRAY_FREE_CB free_cb,  IDL_StructDefPtr s){
 	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 
 	if (type == IDL_TYP_STRUCT){
@@ -647,7 +677,7 @@ IDL_VPTR IDL_CDECL IDL_ImportArray(int n_dim, IDL_MEMINT dim[], int type, UCHAR 
 	}
 }
 
-IDL_VPTR IDL_CDECL IDL_ImportNamedArray(char *name, int n_dim, IDL_MEMINT dim[],  int type, UCHAR *data,  IDL_ARRAY_FREE_CB free_cb, IDL_StructDefPtr s){
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_ImportNamedArray(char *name, int n_dim, IDL_MEMINT dim[],  int type, UCHAR *data,  IDL_ARRAY_FREE_CB free_cb, IDL_StructDefPtr s){
 	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	IDL_VPTR v=IDL_ImportArray(n_dim, dim,  type, data, free_cb, s);		
 	BaseGDL* gdlvar = VPTR_ToGDL(v, true); //protect data as this is passed to *MAIN* GDL
@@ -688,7 +718,7 @@ extern "C" {
 #define DOCASE_CMP(ty, what)\
  case ty: {snprintf (&infoline[l], IDL_OutputFormatLen[v->type]+1, IDL_OutputFormat[v->type],v->value.what.r,v->value.what.i);  break;}
 
-IDL_VPTR IDL_CDECL IDL_FindNamedVariable(char *name, int ienter){
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_FindNamedVariable(char *name, int ienter){
 	std::string s(name);
     for (std::vector<std::pair <IDL_VPTR, std::string>>::iterator it = ExportedNamesList.begin(); it != ExportedNamesList.end(); ++it) {
 				if (it->second == s) {
@@ -699,7 +729,7 @@ IDL_VPTR IDL_CDECL IDL_FindNamedVariable(char *name, int ienter){
 	return NULL;
 }
 
-char *IDL_CDECL IDL_VarName(IDL_VPTR v){TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+DLL_PUBLIC char* IDL_CDECL IDL_VarName(IDL_VPTR v){TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 		char* infoline=(char*) calloc(1,128);
 
 		if (v->type == IDL_TYP_UNDEF) {strncat(infoline,"<UNDEFINED> ",13); return infoline;}
@@ -752,16 +782,16 @@ char *IDL_CDECL IDL_VarName(IDL_VPTR v){TRACE_ROUTINE(__FUNCTION__, __FILE__, __
 #undef DOCASE
 #undef DOCASE_CMP
 
-IDL_VPTR IDL_CDECL IDL_GetVarAddr1(char *name, int enter){
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_GetVarAddr1(char *name, int enter){
 	GDL_WillThrowAfterCleaning("IDL_GetVarAddr is not currently programmed -- as it would never be the address of a real GDL variable. Use parameters in call to get a copy of GDL variables.");
 	return NULL;
 }
 
-IDL_VPTR IDL_CDECL IDL_GetVarAddr(char *name){
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_GetVarAddr(char *name){
 	return IDL_GetVarAddr1(name, 0);
 }
 
-void IDL_CDECL IDL_VarEnsureSimple(IDL_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC void IDL_CDECL IDL_VarEnsureSimple(IDL_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 if (v->flags == 0) return;
     static char* message= (char*)"Expression must be a scalar in this context: ";
 	if ( !( v->flags & IDL_TYP_B_SIMPLE) || ( v->flags & IDL_V_ARR) ) GDL_WillThrowAfterCleaning(message+std::string(IDL_VarName(v)));
@@ -782,7 +812,7 @@ if (v->flags == 0) return;
  fprintf (theOutput,"\n");}\
  break;
 
-	void IDL_CDECL GDL_Print(int argc, IDL_VPTR *argv, char *argk, bool print_to_file) {
+	DLL_PUBLIC void IDL_CDECL GDL_Print(int argc, IDL_VPTR *argv, char *argk, bool print_to_file) {
 		//argk is to be set to NULL by users according to the doc.
 		int start = 0;
 		int lun = -1;
@@ -850,16 +880,16 @@ if (v->flags == 0) return;
 	}
 #undef DOCASE
 #undef DOCASE_ARRAY
-	void IDL_CDECL IDL_Print(int argc, IDL_VPTR *argv, char *argk) {
+	DLL_PUBLIC void IDL_CDECL IDL_Print(int argc, IDL_VPTR *argv, char *argk) {
 		TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 		GDL_Print(argc, argv, argk, false);
 	}
-	void IDL_CDECL IDL_PrintF(int argc, IDL_VPTR *argv, char *argk) {
+	DLL_PUBLIC void IDL_CDECL IDL_PrintF(int argc, IDL_VPTR *argv, char *argk) {
 		TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 		GDL_Print(argc, argv, argk, true);
 	}
 
-void IDL_CDECL IDL_StrStore(IDL_STRING *s, const char *fs){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC void IDL_CDECL IDL_StrStore(IDL_STRING *s, const char *fs){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 	s->slen=strlen(fs);
 	s->stype=0;
 	s->s=(char*)malloc(s->slen);
@@ -867,7 +897,7 @@ void IDL_CDECL IDL_StrStore(IDL_STRING *s, const char *fs){TRACE_ROUTINE(__FUNCT
 }
 // str below is a supposed to be a copy of the string descriptor(s).
 // to properly duplicate, one has to create copies of the string(s) and update the descriptor(s)
-void IDL_CDECL IDL_StrDup(IDL_REGISTER IDL_STRING *str, IDL_REGISTER IDL_MEMINT n){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC void IDL_CDECL IDL_StrDup(IDL_REGISTER IDL_STRING *str, IDL_REGISTER IDL_MEMINT n){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 	for (auto i=0; i< n; ++i) {
 		if (str[i].slen > 0) {
 			char* news=(char*)malloc(str[i].slen+1);
@@ -877,18 +907,18 @@ void IDL_CDECL IDL_StrDup(IDL_REGISTER IDL_STRING *str, IDL_REGISTER IDL_MEMINT 
 	}
 }
 
-void IDL_CDECL IDL_StrDelete(IDL_STRING *str, IDL_MEMINT n) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC void IDL_CDECL IDL_StrDelete(IDL_STRING *str, IDL_MEMINT n) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 	for (auto i=0; i< n; ++i) if (str[i].slen > 0) free(str[i].s);
 	}
 // n: The number of characters the string must be able to contain, not including the terminating NULL character.
-	void IDL_CDECL IDL_StrEnsureLength(IDL_STRING *s, int n) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+	DLL_PUBLIC void IDL_CDECL IDL_StrEnsureLength(IDL_STRING *s, int n) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 		if (s->slen < n) {
 			IDL_StrDelete(s, 1);
 			s->s = (char*) malloc(n+1);
 			memset((void*)s->s,0,n+1);
 		}
 	}
-IDL_VPTR IDL_CDECL IDL_StrToSTRING(const char *s) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_StrToSTRING(const char *s) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		IDL_VPTR ret = NewTMPVPTR();
 		ret->type = IDL_TYP_STRING;
 		ret->flags = IDL_V_TEMP | IDL_V_DYNAMIC;
@@ -903,7 +933,7 @@ IDL_VPTR IDL_CDECL IDL_StrToSTRING(const char *s) {TRACE_ROUTINE(__FUNCTION__,__
 #define DOCASE_CMP(type, what)\
  case type: {dest->value.what.r=value->what.r; dest->value.what.i=value->what.i;  break;}
 
-void IDL_CDECL IDL_StoreScalar(IDL_VPTR dest, int type,	IDL_ALLTYPES * value) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC void IDL_CDECL IDL_StoreScalar(IDL_VPTR dest, int type,	IDL_ALLTYPES * value) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 	IDL_ENSURE_SIMPLE(dest);
 		dest->type=type;
 		switch (type) {
@@ -929,7 +959,7 @@ void IDL_CDECL IDL_StoreScalar(IDL_VPTR dest, int type,	IDL_ALLTYPES * value) {T
 #define DOCASE_CMP(type, what)\
  case type: {dest->value.what.r=0; dest->value.what.i=0;  break;}
 
-void IDL_CDECL IDL_StoreScalarZero(IDL_VPTR dest, int type) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC void IDL_CDECL IDL_StoreScalarZero(IDL_VPTR dest, int type) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 	IDL_ENSURE_SIMPLE(dest);
 		dest->type=type;
 		switch (type) {
@@ -951,7 +981,7 @@ void IDL_CDECL IDL_StoreScalarZero(IDL_VPTR dest, int type) {TRACE_ROUTINE(__FUN
 #undef DOCASE_CMP
 	//scalar only
 
-	void IDL_CDECL IDL_VarCopy(IDL_REGISTER IDL_VPTR src, IDL_REGISTER
+	DLL_PUBLIC void IDL_CDECL IDL_VarCopy(IDL_REGISTER IDL_VPTR src, IDL_REGISTER
 	IDL_VPTR dst) {
 		if (dst->value.arr != NULL) {
 			free(dst->value.arr->data);
@@ -989,7 +1019,7 @@ void IDL_CDECL IDL_StoreScalarZero(IDL_VPTR dest, int type) {TRACE_ROUTINE(__FUN
 #define DOCASE_CMP(rettype,type, what)\
  case type: {return (rettype) (v->value.what.r);  break;}
 
-double IDL_CDECL IDL_DoubleScalar(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC double IDL_CDECL IDL_DoubleScalar(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		IDL_ENSURE_SIMPLE(v);
 		switch (v->type) {
 				DOCASE(double, IDL_TYP_BYTE, c);
@@ -1008,7 +1038,7 @@ double IDL_CDECL IDL_DoubleScalar(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(__FUNC
 		throw;
 	}
 
-IDL_ULONG IDL_CDECL IDL_ULongScalar(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_ULONG IDL_CDECL IDL_ULongScalar(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		IDL_ENSURE_SIMPLE(v);
 		switch (v->type) {
 				DOCASE(IDL_ULONG, IDL_TYP_BYTE, c);
@@ -1026,7 +1056,7 @@ IDL_ULONG IDL_CDECL IDL_ULongScalar(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(__FU
 		}
 		throw;
 	}
-IDL_LONG IDL_CDECL IDL_LongScalar(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_LONG IDL_CDECL IDL_LongScalar(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		IDL_ENSURE_SIMPLE(v);
 		switch (v->type) {
 				DOCASE(IDL_LONG, IDL_TYP_BYTE, c);
@@ -1044,7 +1074,7 @@ IDL_LONG IDL_CDECL IDL_LongScalar(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(__FUNC
 		}
 		throw;
 	}
-IDL_LONG64 IDL_CDECL IDL_Long64Scalar(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_LONG64 IDL_CDECL IDL_Long64Scalar(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		IDL_ENSURE_SIMPLE(v);
 		switch (v->type) {
 				DOCASE(IDL_LONG64, IDL_TYP_BYTE, c);
@@ -1062,7 +1092,7 @@ IDL_LONG64 IDL_CDECL IDL_Long64Scalar(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(__
 		}
 		throw;
 	}
-IDL_ULONG64 IDL_CDECL IDL_ULong64Scalar(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_ULONG64 IDL_CDECL IDL_ULong64Scalar(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		IDL_ENSURE_SIMPLE(v);
 		switch (v->type) {
 				DOCASE(IDL_ULONG64, IDL_TYP_BYTE, c);
@@ -1080,7 +1110,7 @@ IDL_ULONG64 IDL_CDECL IDL_ULong64Scalar(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(
 		}
 		throw;
 	}
-IDL_MEMINT IDL_CDECL IDL_MEMINTScalar(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_MEMINT IDL_CDECL IDL_MEMINTScalar(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		IDL_ENSURE_SIMPLE(v);
 		switch (v->type) {
 				DOCASE(IDL_MEMINT, IDL_TYP_BYTE, c);
@@ -1098,7 +1128,7 @@ IDL_MEMINT IDL_CDECL IDL_MEMINTScalar(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(__
 		}
 		throw;
 	}
-IDL_FILEINT IDL_CDECL IDL_FILEINTScalar(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_FILEINT IDL_CDECL IDL_FILEINTScalar(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		IDL_ENSURE_SIMPLE(v);
 		switch (v->type) {
 				DOCASE(IDL_FILEINT, IDL_TYP_BYTE, c);
@@ -1118,7 +1148,7 @@ IDL_FILEINT IDL_CDECL IDL_FILEINTScalar(IDL_REGISTER IDL_VPTR v) {TRACE_ROUTINE(
 	}
 #undef DOCASE
 #undef DOCASE_CMP
-void IDL_CDECL IDL_VarGetData(IDL_VPTR v, IDL_MEMINT *n, char **pd,  int ensure_simple){TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+DLL_PUBLIC void IDL_CDECL IDL_VarGetData(IDL_VPTR v, IDL_MEMINT *n, char **pd,  int ensure_simple){TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	if (ensure_simple) IDL_ENSURE_SIMPLE(v);
 	if (v->flags & IDL_V_ARR) {
 		*n=v->value.arr->n_elts;
@@ -1154,7 +1184,7 @@ void IDL_CDECL IDL_VarGetData(IDL_VPTR v, IDL_MEMINT *n, char **pd,  int ensure_
 #undef DOCASE_ARRAY
 #undef DOCASE_ARRAY_CPLX
 
-char* IDL_CDECL IDL_MakeTempVector(int type, IDL_MEMINT dim, int  init, IDL_VPTR *var){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC char* IDL_CDECL IDL_MakeTempVector(int type, IDL_MEMINT dim, int  init, IDL_VPTR *var){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		IDL_VPTR v=NewTMPVPTRARRAY();
 		*var=v;
 		v->type=type;
@@ -1185,7 +1215,7 @@ char* IDL_CDECL IDL_MakeTempVector(int type, IDL_MEMINT dim, int  init, IDL_VPTR
 		return (char*) addr;
 	}
 
-	char *IDL_CDECL IDL_MakeTempStructVector(IDL_StructDefPtr sdef, IDL_MEMINT dim, IDL_VPTR *var, int zero) {
+	DLL_PUBLIC char* IDL_CDECL IDL_MakeTempStructVector(IDL_StructDefPtr sdef, IDL_MEMINT dim, IDL_VPTR *var, int zero) {
 		IDL_VPTR v = NewTMPVPTRSTRUCT(sdef);
 		*var = v;
 		v->value.s.arr=new IDL_ARRAY();
@@ -1203,7 +1233,7 @@ char* IDL_CDECL IDL_MakeTempVector(int type, IDL_MEMINT dim, int  init, IDL_VPTR
 		return (char*) addr;
 	}
 
-char *IDL_CDECL IDL_MakeTempArray(int type, int n_dim, IDL_MEMINT  dim[], int init, IDL_VPTR *var){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC char* IDL_CDECL IDL_MakeTempArray(int type, int n_dim, IDL_MEMINT  dim[], int init, IDL_VPTR *var){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		IDL_VPTR v=NewTMPVPTRARRAY();
 		*var=v;
 		v->type=type;
@@ -1238,7 +1268,7 @@ char *IDL_CDECL IDL_MakeTempArray(int type, int n_dim, IDL_MEMINT  dim[], int in
 		return (char*) addr;	
 }
 
-	char *IDL_CDECL IDL_MakeTempStruct(IDL_StructDefPtr sdef, int  n_dim, IDL_MEMINT *dim, IDL_VPTR *var, int zero){
+	DLL_PUBLIC char* IDL_CDECL IDL_MakeTempStruct(IDL_StructDefPtr sdef, int  n_dim, IDL_MEMINT *dim, IDL_VPTR *var, int zero){
             if (sdef == NULL) GDL_WillThrowAfterCleaning("IDL_VarMakeTempFromTemplate() defines a struct without passing a valid IDL_StructDefPtr");
 			IDL_VPTR v = NewTMPVPTRSTRUCT(sdef);
 			if (zero) memset(&(v->value),0,sizeof(IDL_ALLTYPES));
@@ -1246,7 +1276,7 @@ char *IDL_CDECL IDL_MakeTempArray(int type, int n_dim, IDL_MEMINT  dim[], int in
 	}
 	
 
-char *IDL_CDECL IDL_VarMakeTempFromTemplate(IDL_VPTR template_var, int type, IDL_StructDefPtr sdef,  IDL_VPTR *result_addr, int zero){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC char* IDL_CDECL IDL_VarMakeTempFromTemplate(IDL_VPTR template_var, int type, IDL_StructDefPtr sdef,  IDL_VPTR *result_addr, int zero){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		IDL_VPTR t = template_var;
 	    IDL_VPTR v;
 		if (t->flags & IDL_V_STRUCT) {
@@ -1280,7 +1310,7 @@ char *IDL_CDECL IDL_VarMakeTempFromTemplate(IDL_VPTR template_var, int type, IDL
 		throw;
 }	
 
-IDL_VPTR IDL_CDECL IDL_Gettmp(void){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_Gettmp(void){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 	return NewTMPVPTR();
 	}
 #define DOIT(aaa, entry)\
@@ -1288,44 +1318,44 @@ IDL_VPTR IDL_CDECL IDL_Gettmp(void){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__
 	ret->type=aaa;\
 	ret->value.entry=value;\
 	return ret;
-IDL_VPTR IDL_CDECL IDL_GettmpByte(UCHAR value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_GettmpByte(UCHAR value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
      DOIT(IDL_TYP_BYTE, c);
 }
 
-IDL_VPTR IDL_CDECL IDL_GettmpInt(IDL_INT value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_GettmpInt(IDL_INT value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
       DOIT(IDL_TYP_INT, i);
 	}
-IDL_VPTR IDL_CDECL IDL_GettmpUInt(IDL_UINT value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_GettmpUInt(IDL_UINT value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
       DOIT(IDL_TYP_UINT, ui);
 	}
-IDL_VPTR IDL_CDECL IDL_GettmpLong(IDL_LONG value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_GettmpLong(IDL_LONG value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
       DOIT(IDL_TYP_LONG, l);
 	}
-IDL_VPTR IDL_CDECL IDL_GettmpFloat(float value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_GettmpFloat(float value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
       DOIT(IDL_TYP_FLOAT, f);
 	}
-IDL_VPTR IDL_CDECL IDL_GettmpDouble(double value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_GettmpDouble(double value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
       DOIT(IDL_TYP_DOUBLE, d);
 	}
-IDL_VPTR IDL_CDECL IDL_GettmpPtr(IDL_HVID value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_GettmpPtr(IDL_HVID value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
       DOIT(IDL_TYP_PTR, hvid);
 	}
-IDL_VPTR IDL_CDECL IDL_GettmpObjRef(IDL_HVID value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_GettmpObjRef(IDL_HVID value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
       DOIT(IDL_TYP_OBJREF, hvid);
 	}
-IDL_VPTR IDL_CDECL IDL_GettmpULong(IDL_ULONG value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_GettmpULong(IDL_ULONG value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
       DOIT(IDL_TYP_ULONG, ul);
 	}
-IDL_VPTR IDL_CDECL IDL_GettmpLong64(IDL_LONG64 value){
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_GettmpLong64(IDL_LONG64 value){
       DOIT(IDL_TYP_LONG64, l64);
 }
-IDL_VPTR IDL_CDECL IDL_GettmpULong64(IDL_ULONG64 value){
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_GettmpULong64(IDL_ULONG64 value){
       DOIT(IDL_TYP_ULONG64, ul64);
 }
-IDL_VPTR IDL_CDECL IDL_GettmpFILEINT(IDL_FILEINT value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_GettmpFILEINT(IDL_FILEINT value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
       DOIT(IDL_TYP_FILEINT, fileint);
 	}
-IDL_VPTR IDL_CDECL IDL_GettmpMEMINT(IDL_MEMINT value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_GettmpMEMINT(IDL_MEMINT value){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
       DOIT(IDL_TYP_MEMINT, memint);
 	}
 #undef DOIT
@@ -1384,7 +1414,7 @@ IDL_VPTR IDL_CDECL IDL_GettmpMEMINT(IDL_MEMINT value){TRACE_ROUTINE(__FUNCTION__
 #define DOCASE_TO_CMP_FROM_CMP(type, field1, field2)\
  case type: ret->value.field1.r=value.field2.r ; ret->value.field1.i=value.field2.i ;break;
 
-IDL_VPTR IDL_CDECL IDL_CvtByte(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_CvtByte(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
         DEFOUT(IDL_TYP_BYTE);
 		if (argv[0]->flags & IDL_V_ARR) {
 		PREPARE_ARRAY(UCHAR);		
@@ -1421,7 +1451,7 @@ IDL_VPTR IDL_CDECL IDL_CvtByte(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCT
 	return ret;
 }
 
-IDL_VPTR IDL_CDECL IDL_CvtBytscl(int argc, IDL_VPTR argv[], char *argk) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_CvtBytscl(int argc, IDL_VPTR argv[], char *argk) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		DEFOUT(IDL_TYP_BYTE);
 		if (argv[0]->flags & IDL_V_ARR) {
 			PREPARE_ARRAY(UCHAR);
@@ -1458,7 +1488,7 @@ IDL_VPTR IDL_CDECL IDL_CvtBytscl(int argc, IDL_VPTR argv[], char *argk) {TRACE_R
 		return ret;
 }
 //
-IDL_VPTR IDL_CDECL IDL_CvtFix(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_CvtFix(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		DEFOUT(IDL_TYP_INT);
 		if (argv[0]->flags & IDL_V_ARR) {
 			PREPARE_ARRAY(IDL_INT);
@@ -1496,7 +1526,7 @@ IDL_VPTR IDL_CDECL IDL_CvtFix(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTI
 
 }
 //
-IDL_VPTR IDL_CDECL IDL_CvtUInt(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_CvtUInt(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
         DEFOUT(IDL_TYP_UINT);
 		if (argv[0]->flags & IDL_V_ARR) {
 			PREPARE_ARRAY(IDL_UINT);
@@ -1533,7 +1563,7 @@ IDL_VPTR IDL_CDECL IDL_CvtUInt(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCT
 		return ret;
 	}
 //
-IDL_VPTR IDL_CDECL IDL_CvtLng(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_CvtLng(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
         DEFOUT(IDL_TYP_LONG);
 		if (argv[0]->flags & IDL_V_ARR) {
 			PREPARE_ARRAY(IDL_LONG);
@@ -1571,7 +1601,7 @@ IDL_VPTR IDL_CDECL IDL_CvtLng(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTI
 
 	}
 //
-IDL_VPTR IDL_CDECL IDL_CvtULng(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_CvtULng(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
         DEFOUT(IDL_TYP_ULONG);
 		if (argv[0]->flags & IDL_V_ARR) {
 			PREPARE_ARRAY(IDL_ULONG);
@@ -1609,7 +1639,7 @@ IDL_VPTR IDL_CDECL IDL_CvtULng(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCT
 
 	}
 //
-IDL_VPTR IDL_CDECL IDL_CvtLng64(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_CvtLng64(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
         DEFOUT(IDL_TYP_LONG64);
 		if (argv[0]->flags & IDL_V_ARR) {
 			PREPARE_ARRAY(IDL_LONG64);
@@ -1648,7 +1678,7 @@ IDL_VPTR IDL_CDECL IDL_CvtLng64(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNC
 	}
 //
 
-IDL_VPTR IDL_CDECL IDL_CvtULng64(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_CvtULng64(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
         DEFOUT(IDL_TYP_ULONG64);
 		if (argv[0]->flags & IDL_V_ARR) {
 			PREPARE_ARRAY(IDL_ULONG64);
@@ -1685,18 +1715,18 @@ IDL_VPTR IDL_CDECL IDL_CvtULng64(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUN
 		return ret;
 
 	}
-IDL_VPTR IDL_CDECL IDL_CvtMEMINT(int argc, IDL_VPTR argv[]) {
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_CvtMEMINT(int argc, IDL_VPTR argv[]) {
 	IDL_VPTR v=IDL_CvtULng64(argc, argv);
 	v->type=IDL_TYP_MEMINT;
 	return v;
 }
-IDL_VPTR IDL_CDECL IDL_CvtFILEINT(int argc, IDL_VPTR argv[]) {
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_CvtFILEINT(int argc, IDL_VPTR argv[]) {
 	IDL_VPTR v=IDL_CvtULng64(argc, argv);
 	v->type=IDL_TYP_FILEINT;
 	return v;
 }
 //
-IDL_VPTR IDL_CDECL IDL_CvtFlt(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_CvtFlt(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
         DEFOUT(IDL_TYP_FLOAT);
 		if (argv[0]->flags & IDL_V_ARR) {
 			PREPARE_ARRAY(float);
@@ -1733,7 +1763,7 @@ IDL_VPTR IDL_CDECL IDL_CvtFlt(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTI
 		return ret;
 	}
 //
-IDL_VPTR IDL_CDECL IDL_CvtDbl(int argc, IDL_VPTR argv[]){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_CvtDbl(int argc, IDL_VPTR argv[]){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		DEFOUT(IDL_TYP_DOUBLE);
 		if (argv[0]->flags & IDL_V_ARR) {
 			PREPARE_ARRAY(double);
@@ -1770,7 +1800,7 @@ IDL_VPTR IDL_CDECL IDL_CvtDbl(int argc, IDL_VPTR argv[]){TRACE_ROUTINE(__FUNCTIO
 		return ret;
 	}
 //
-IDL_VPTR IDL_CDECL IDL_CvtComplex(int argc, IDL_VPTR argv[], char *argk=NULL) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_CvtComplex(int argc, IDL_VPTR argv[], char *argk=NULL) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		DEFOUT(IDL_TYP_COMPLEX);
 		if (argv[0]->flags & IDL_V_ARR) {
 			PREPARE_ARRAY(IDL_COMPLEX);
@@ -1807,7 +1837,7 @@ IDL_VPTR IDL_CDECL IDL_CvtComplex(int argc, IDL_VPTR argv[], char *argk=NULL) {T
 		return ret;
 	}
 //
-IDL_VPTR IDL_CDECL IDL_CvtDComplex(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_CvtDComplex(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		DEFOUT(IDL_TYP_DCOMPLEX);
 		if (argv[0]->flags & IDL_V_ARR) {
 			PREPARE_ARRAY(IDL_DCOMPLEX);
@@ -1844,7 +1874,7 @@ IDL_VPTR IDL_CDECL IDL_CvtDComplex(int argc, IDL_VPTR argv[]) {TRACE_ROUTINE(__F
 		return ret;
 			}
 
-IDL_VPTR IDL_CDECL IDL_CvtString(int argc, IDL_VPTR argv[], char *argk=NULL){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_CvtString(int argc, IDL_VPTR argv[], char *argk=NULL){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 DEFOUT(IDL_TYP_STRING);
 GDL_WillThrowAfterCleaning("IDL_CvtString not supported, fixme");
 //		if (argv[0]->flags & IDL_V_ARR) {
@@ -2185,7 +2215,7 @@ char* GDLWriteVarAtAddr(BaseGDL* var, std::string name, UCHAR type, size_t addre
 			}
 		}
 	}
-int IDL_CDECL IDL_KWGetParams(int argc, IDL_VPTR *argv, char *argk_passed,
+DLL_PUBLIC int IDL_CDECL IDL_KWGetParams(int argc, IDL_VPTR *argv, char *argk_passed,
 				     IDL_KW_PAR *kw_requested,
 				     IDL_VPTR *plain_args, int mask) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		for (auto i = 0; i < argc; ++i) plain_args[i] = argv[i];
@@ -2264,7 +2294,7 @@ int IDL_CDECL IDL_KWGetParams(int argc, IDL_VPTR *argv, char *argk_passed,
 		return 0;
 	}
 
-int IDL_CDECL IDL_KWProcessByOffset(int argc, IDL_VPTR *argv, char
+DLL_PUBLIC int IDL_CDECL IDL_KWProcessByOffset(int argc, IDL_VPTR *argv, char
 			*argk_passed, IDL_KW_PAR *kw_requested, IDL_VPTR *plain_args, int mask, void *kw_result) {
 		TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 				static const int NoClean = 0;
@@ -2358,22 +2388,22 @@ int IDL_CDECL IDL_KWProcessByOffset(int argc, IDL_VPTR *argv, char
 	}
 
 	// not so simple
-//	int IDL_CDECL IDL_KWProcessByAddr(int argc, IDL_VPTR *argv, char
+//	DLL_PUBLIC int IDL_CDECL IDL_KWProcessByAddr(int argc, IDL_VPTR *argv, char
 //			*argk_passed, IDL_KW_PAR *kw_requested, IDL_VPTR *plain_args, int mask, void *kw_result) {
 //	}
 
-void *IDL_CDECL IDL_MemAlloc(IDL_MEMINT n, const char *err_str, int
+DLL_PUBLIC void* IDL_CDECL IDL_MemAlloc(IDL_MEMINT n, const char *err_str, int
 			msg_action){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) return malloc(n);}
-void *IDL_CDECL IDL_MemRealloc(void *ptr, IDL_MEMINT n, const char
+DLL_PUBLIC void* IDL_CDECL IDL_MemRealloc(void *ptr, IDL_MEMINT n, const char
  *err_str, int action){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) return realloc(ptr,n);}
-void IDL_CDECL IDL_MemFree(IDL_REGISTER void *m, const char
+DLL_PUBLIC void IDL_CDECL IDL_MemFree(IDL_REGISTER void *m, const char
  *err_str, int msg_action){free(m);}
-void *IDL_CDECL IDL_MemAllocPerm(IDL_MEMINT n, const char *err_str,
+DLL_PUBLIC void* IDL_CDECL IDL_MemAllocPerm(IDL_MEMINT n, const char *err_str,
         int action){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) GDL_WillThrowAfterCleaning("MemAllocPerm is not currently supported.");throw;}
-char *IDL_CDECL IDL_GetScratch(IDL_REGISTER IDL_VPTR *p,
+DLL_PUBLIC char* IDL_CDECL IDL_GetScratch(IDL_REGISTER IDL_VPTR *p,
         IDL_REGISTER IDL_MEMINT n_elts,  IDL_REGISTER IDL_MEMINT elt_size){ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) return (char*)malloc (n_elts*elt_size);}
-void IDL_CDECL IDL_KWCleanup(int fcn){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) IDL_KWFree();}
-char *IDL_CDECL IDL_GetScratchOnThreshold(IDL_REGISTER char
+DLL_PUBLIC void IDL_CDECL IDL_KWCleanup(int fcn){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) IDL_KWFree();}
+DLL_PUBLIC char* IDL_CDECL IDL_GetScratchOnThreshold(IDL_REGISTER char
         *auto_buf, IDL_REGISTER IDL_MEMINT auto_elts,  IDL_REGISTER IDL_MEMINT
         n_elts,  IDL_REGISTER IDL_MEMINT elt_size,  IDL_VPTR *tempvar){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) 
 	GDL_WillThrowAfterCleaning("IDL_GetScratchOnThreshold is not implemented, FIXME.");
@@ -2387,52 +2417,52 @@ IDL_TERMINFO IDL_TermInfo={
 #endif
   24,128};
 
-char *IDL_CDECL IDL_FileTermName(void){
+DLL_PUBLIC char* IDL_CDECL IDL_FileTermName(void){
 #ifdef IDL_OS_HAS_TTYS
 	return IDL_TermInfo.name;
 #else
 	return (char*)"<Anonymous>";
 #endif
 }
-int IDL_CDECL IDL_FileTermIsTty(void){
+DLL_PUBLIC int IDL_CDECL IDL_FileTermIsTty(void){
 #ifdef IDL_OS_HAS_TTYS
 	return IDL_TermInfo.is_tty;
 #else
 	return 0;
 #endif
 }
-int IDL_CDECL IDL_FileTermLines(void){return IDL_TermInfo.lines;}
-int IDL_CDECL IDL_FileTermColumns(void){return IDL_TermInfo.columns;}
+DLL_PUBLIC int IDL_CDECL IDL_FileTermLines(void){return IDL_TermInfo.lines;}
+DLL_PUBLIC int IDL_CDECL IDL_FileTermColumns(void){return IDL_TermInfo.columns;}
 
 IDL_SYS_VERSION IDL_SysvVersion={{0,0,NULL},{0,0,NULL},{0,0,NULL},{0,0,NULL},{0,0,NULL},{0,0,NULL},0,0};
-IDL_STRING *IDL_CDECL IDL_SysvVersionArch(void){return &(IDL_SysvVersion.arch);}
-IDL_STRING *IDL_CDECL IDL_SysvVersionOS(void){return &(IDL_SysvVersion.os);};
-IDL_STRING *IDL_CDECL IDL_SysvVersionOSFamily(void){return &(IDL_SysvVersion.os_family);};
-IDL_STRING *IDL_CDECL IDL_SysvVersionRelease(void){return &(IDL_SysvVersion.release);};
+DLL_PUBLIC IDL_STRING *IDL_CDECL IDL_SysvVersionArch(void){return &(IDL_SysvVersion.arch);}
+DLL_PUBLIC IDL_STRING *IDL_CDECL IDL_SysvVersionOS(void){return &(IDL_SysvVersion.os);};
+DLL_PUBLIC IDL_STRING *IDL_CDECL IDL_SysvVersionOSFamily(void){return &(IDL_SysvVersion.os_family);};
+DLL_PUBLIC IDL_STRING *IDL_CDECL IDL_SysvVersionRelease(void){return &(IDL_SysvVersion.release);};
 
 char *IDL_ProgramName=(char*)"gdl";
-char *IDL_CDECL IDL_ProgramNameFunc(void){return (char*)"gdl";}
+DLL_PUBLIC char* IDL_CDECL IDL_ProgramNameFunc(void){return (char*)"gdl";}
 char *IDL_ProgramNameLC=(char*)"gdl";
-char *IDL_CDECL IDL_ProgramNameLCFunc(void){return (char*)"gdl";}
+DLL_PUBLIC char* IDL_CDECL IDL_ProgramNameLCFunc(void){return (char*)"gdl";}
 IDL_STRING IDL_SysvDir={0,0,NULL};
-IDL_STRING *IDL_CDECL IDL_SysvDirFunc(void){return &IDL_SysvDir;}
+DLL_PUBLIC IDL_STRING* IDL_CDECL IDL_SysvDirFunc(void){return &IDL_SysvDir;}
 IDL_LONG IDL_SysvErrCode=0;
-IDL_LONG IDL_CDECL IDL_SysvErrCodeValue(void){return 0;};
+DLL_PUBLIC IDL_LONG IDL_CDECL IDL_SysvErrCodeValue(void){return 0;};
 IDL_SYS_ERROR_STATE IDL_SysvErrorState={{0,0,NULL},{0,0,NULL},0,{0,0},{0,0,NULL},{0,0,NULL},{0,0,NULL},{0,0,NULL}};
-IDL_SYS_ERROR_STATE *IDL_CDECL IDL_SysvErrorStateAddr(void){return &IDL_SysvErrorState;}
-IDL_STRING *IDL_CDECL IDL_SysvErrStringFunc(void){return &(IDL_SysvErrorState.msg);}
-IDL_STRING *IDL_CDECL IDL_SysvSyserrStringFunc(void){return &(IDL_SysvErrorState.sys_msg);}
-IDL_LONG IDL_CDECL IDL_SysvErrorCodeValue(void){return IDL_SysvErrorState.code;}
-IDL_LONG *IDL_CDECL IDL_SysvSyserrorCodesAddr(void){return &(IDL_SysvErrorState.code);}
+DLL_PUBLIC IDL_SYS_ERROR_STATE* IDL_CDECL IDL_SysvErrorStateAddr(void){return &IDL_SysvErrorState;}
+DLL_PUBLIC IDL_STRING *IDL_CDECL IDL_SysvErrStringFunc(void){return &(IDL_SysvErrorState.msg);}
+DLL_PUBLIC IDL_STRING *IDL_CDECL IDL_SysvSyserrStringFunc(void){return &(IDL_SysvErrorState.sys_msg);}
+DLL_PUBLIC IDL_LONG IDL_CDECL IDL_SysvErrorCodeValue(void){return IDL_SysvErrorState.code;}
+DLL_PUBLIC IDL_LONG *IDL_CDECL IDL_SysvSyserrorCodesAddr(void){return &(IDL_SysvErrorState.code);}
 IDL_LONG IDL_SysvOrder=0;
-IDL_LONG IDL_CDECL IDL_SysvOrderValue(void){return 0;}
-float IDL_CDECL IDL_SysvValuesGetFloat(int type){return 0;}
-int IDL_CDECL IDL_MessageNameToCode(IDL_MSG_BLOCK block, const char *name){return 0;}
-IDL_MSG_BLOCK IDL_CDECL IDL_MessageDefineBlock(char *block_name, int n, IDL_MSG_DEF *defs){return NULL;} //do nothing
-void IDL_CDECL IDL_MessageErrno(int code, ...){} //do nothing. obsoleted.
-void IDL_CDECL IDL_MessageErrnoFromBlock(IDL_MSG_BLOCK block, int code, ...){} //do nothing. obsoleted.
+DLL_PUBLIC IDL_LONG IDL_CDECL IDL_SysvOrderValue(void){return 0;}
+DLL_PUBLIC float IDL_CDECL IDL_SysvValuesGetFloat(int type){return 0;}
+DLL_PUBLIC int IDL_CDECL IDL_MessageNameToCode(IDL_MSG_BLOCK block, const char *name){return 0;}
+DLL_PUBLIC IDL_MSG_BLOCK IDL_CDECL IDL_MessageDefineBlock(char *block_name, int n, IDL_MSG_DEF *defs){return NULL;} //do nothing
+DLL_PUBLIC void IDL_CDECL IDL_MessageErrno(int code, ...){} //do nothing. obsoleted.
+DLL_PUBLIC void IDL_CDECL IDL_MessageErrnoFromBlock(IDL_MSG_BLOCK block, int code, ...){} //do nothing. obsoleted.
 
-	void IDL_CDECL IDL_Message(int code, int action, ...) {
+	DLL_PUBLIC void IDL_CDECL IDL_Message(int code, int action, ...) {
 		TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 		std::string finalMessage = "";
 		char* s;
@@ -2454,58 +2484,58 @@ void IDL_CDECL IDL_MessageErrnoFromBlock(IDL_MSG_BLOCK block, int code, ...){} /
 		if (action == IDL_MSG_INFO) Warning(finalMessage);
 	}
 	
-void IDL_CDECL IDL_MessageFromBlock(IDL_MSG_BLOCK block, int code, int action,...){if (action!=IDL_MSG_INFO) GDL_WillThrowAfterCleaning("exception caused by non-GDL (dlm) function call.");}//do nothing.
-void IDL_CDECL IDL_MessageSyscode(int code, IDL_MSG_SYSCODE_T syscode_type, int syscode, int action, ...){if (action!=IDL_MSG_INFO) GDL_WillThrowAfterCleaning("exception caused by non-GDL (dlm) function call.");}//do nothing.
-void IDL_CDECL IDL_MessageSyscodeFromBlock(IDL_MSG_BLOCK block, int code, IDL_MSG_SYSCODE_T syscode_type,  int syscode, int action, ...){if (action!=IDL_MSG_INFO) GDL_WillThrowAfterCleaning("exception caused by non-GDL (dlm) function call.");}
-void IDL_CDECL IDL_MessageVarError(int code, IDL_VPTR var, int action){if (action!=IDL_MSG_INFO) GDL_WillThrowAfterCleaning("exception caused by non-GDL (dlm) function call.");}
-void IDL_CDECL IDL_MessageVarErrorFromBlock(IDL_MSG_BLOCK block, int code, IDL_VPTR var, int action){if (action!=IDL_MSG_INFO) GDL_WillThrowAfterCleaning("exception caused by non-GDL (dlm) function call.");}
-void IDL_CDECL IDL_MessageResetSysvErrorState(void) {
+DLL_PUBLIC void IDL_CDECL IDL_MessageFromBlock(IDL_MSG_BLOCK block, int code, int action,...){if (action!=IDL_MSG_INFO) GDL_WillThrowAfterCleaning("exception caused by non-GDL (dlm) function call.");}//do nothing.
+DLL_PUBLIC void IDL_CDECL IDL_MessageSyscode(int code, IDL_MSG_SYSCODE_T syscode_type, int syscode, int action, ...){if (action!=IDL_MSG_INFO) GDL_WillThrowAfterCleaning("exception caused by non-GDL (dlm) function call.");}//do nothing.
+DLL_PUBLIC void IDL_CDECL IDL_MessageSyscodeFromBlock(IDL_MSG_BLOCK block, int code, IDL_MSG_SYSCODE_T syscode_type,  int syscode, int action, ...){if (action!=IDL_MSG_INFO) GDL_WillThrowAfterCleaning("exception caused by non-GDL (dlm) function call.");}
+DLL_PUBLIC void IDL_CDECL IDL_MessageVarError(int code, IDL_VPTR var, int action){if (action!=IDL_MSG_INFO) GDL_WillThrowAfterCleaning("exception caused by non-GDL (dlm) function call.");}
+DLL_PUBLIC void IDL_CDECL IDL_MessageVarErrorFromBlock(IDL_MSG_BLOCK block, int code, IDL_VPTR var, int action){if (action!=IDL_MSG_INFO) GDL_WillThrowAfterCleaning("exception caused by non-GDL (dlm) function call.");}
+DLL_PUBLIC void IDL_CDECL IDL_MessageResetSysvErrorState(void) {
 		try {
 			std::string command = ("message,/reset");
 			DInterpreter::CallStackBack()->Interpreter()->ExecuteStringLine(command);
 		} catch (...) {
 		}
 }
-void IDL_CDECL IDL_MessageSJE(void *value){} //do nothing (?)
-void *IDL_CDECL IDL_MessageGJE(void){return NULL;}//do nothing (?)
-void IDL_CDECL IDL_MessageVE_UNDEFVAR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO) GDL_WillThrowAfterCleaning("Variable is Undefined.");}
-void IDL_CDECL IDL_MessageVE_NOTARRAY(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Expression must be an array in this context.");}
-void IDL_CDECL IDL_MessageVE_NOTSCALAR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Expression must be a scalar in this context.");}
-void IDL_CDECL IDL_MessageVE_NOEXPR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Expression must be a named variable in this context");}
-void IDL_CDECL IDL_MessageVE_NOCONST(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Constant not allowed in this context.");}
-void IDL_CDECL IDL_MessageVE_NOFILE(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("File expression not allowed in this context.");}
-void IDL_CDECL IDL_MessageVE_NOCOMPLEX(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Variable is not of complex type/");}
-void IDL_CDECL IDL_MessageVE_NOSTRING(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("String expression not allowed in this context.");}
-void IDL_CDECL IDL_MessageVE_NOSTRUCT(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Struct expression not allowed in this context.");}
-void IDL_CDECL IDL_MessageVE_REQSTR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("String expression required in this context.");}
-void IDL_CDECL IDL_MessageVE_NOSCALAR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Scalar variable not allowed in this context.");}
-void IDL_CDECL IDL_MessageVE_NULLSTR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Null string not allowed in this context.");}
-void IDL_CDECL IDL_MessageVE_NOPTR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Pointer expression not allowed in this context.");}
-void IDL_CDECL IDL_MessageVE_NOOBJREF(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Object reference expression not allowed in this context.");}
-void IDL_CDECL IDL_MessageVE_NOMEMINT64(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("This routine is 32-bit limited and cannot handle this many elements.");}
-void IDL_CDECL IDL_MessageVE_STRUC_REQ(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Expression must be a structure in this context.");}
-void IDL_CDECL IDL_MessageVE_REQPTR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Pointer type required in this context.");}
-void IDL_CDECL IDL_MessageVE_REQOBJREF(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Object reference required in this context");}
-void IDL_CDECL IDL_Message_BADARRDNUM(int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Arrays are allowed 1 - 8 dimensions");}
-int IDL_CDECL IDL_SysRtnAdd(IDL_SYSFUN_DEF2 *defs, int is_function,int cnt){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)  return 1;}
-IDL_MEMINT IDL_CDECL IDL_SysRtnNumEnabled(int is_function, int enabled){return 1;} //why not - this is a stub
-void IDL_CDECL IDL_SysRtnGetEnabledNames(int is_function, IDL_STRING *str, int enabled){str->slen=0;};
-void IDL_CDECL IDL_SysRtnEnable(int is_function, IDL_STRING *names, IDL_MEMINT n, int option,  IDL_SYSRTN_GENERIC disfcn){}// do nothing
-IDL_SYSRTN_GENERIC IDL_CDECL IDL_SysRtnGetRealPtr(int is_function, char *name){return NULL;}
-char *IDL_CDECL IDL_SysRtnGetCurrentName(void){return NULL;};
-int IDL_CDECL IDL_LMGRLicenseInfo(int iFlags){return 1;}
-int IDL_CDECL IDL_LMGRSetLicenseInfo(int iFlags){return 1;}
-int IDL_CDECL IDL_LMGRLicenseCheckoutUnique(char *szFeature, char *szVersion){return 1;}
-int IDL_CDECL IDL_LMGRLicenseCheckout(char *szFeature, char *szVersion){return 1;}
-int IDL_CDECL IDL_Load(void){return 1;}
-void IDL_CDECL IDL_Win32MessageLoop(int fFlush){}
-int IDL_CDECL IDL_Win32Init(IDL_INIT_DATA_OPTIONS_T iOpts, void  *hinstExe, void *hwndExe, void *hAccel){return 1;}
-void IDL_CDECL IDL_WinPostInit(void){}
-void IDL_CDECL IDL_WinCleanup(void){}
+DLL_PUBLIC void IDL_CDECL IDL_MessageSJE(void *value){} //do nothing (?)
+DLL_PUBLIC void* IDL_CDECL IDL_MessageGJE(void){return NULL;}//do nothing (?)
+DLL_PUBLIC void IDL_CDECL IDL_MessageVE_UNDEFVAR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO) GDL_WillThrowAfterCleaning("Variable is Undefined.");}
+DLL_PUBLIC void IDL_CDECL IDL_MessageVE_NOTARRAY(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Expression must be an array in this context.");}
+DLL_PUBLIC void IDL_CDECL IDL_MessageVE_NOTSCALAR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Expression must be a scalar in this context.");}
+DLL_PUBLIC void IDL_CDECL IDL_MessageVE_NOEXPR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Expression must be a named variable in this context");}
+DLL_PUBLIC void IDL_CDECL IDL_MessageVE_NOCONST(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Constant not allowed in this context.");}
+DLL_PUBLIC void IDL_CDECL IDL_MessageVE_NOFILE(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("File expression not allowed in this context.");}
+DLL_PUBLIC void IDL_CDECL IDL_MessageVE_NOCOMPLEX(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Variable is not of complex type/");}
+DLL_PUBLIC void IDL_CDECL IDL_MessageVE_NOSTRING(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("String expression not allowed in this context.");}
+DLL_PUBLIC void IDL_CDECL IDL_MessageVE_NOSTRUCT(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Struct expression not allowed in this context.");}
+DLL_PUBLIC void IDL_CDECL IDL_MessageVE_REQSTR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("String expression required in this context.");}
+DLL_PUBLIC void IDL_CDECL IDL_MessageVE_NOSCALAR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Scalar variable not allowed in this context.");}
+DLL_PUBLIC void IDL_CDECL IDL_MessageVE_NULLSTR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Null string not allowed in this context.");}
+DLL_PUBLIC void IDL_CDECL IDL_MessageVE_NOPTR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Pointer expression not allowed in this context.");}
+DLL_PUBLIC void IDL_CDECL IDL_MessageVE_NOOBJREF(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Object reference expression not allowed in this context.");}
+DLL_PUBLIC void IDL_CDECL IDL_MessageVE_NOMEMINT64(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("This routine is 32-bit limited and cannot handle this many elements.");}
+DLL_PUBLIC void IDL_CDECL IDL_MessageVE_STRUC_REQ(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Expression must be a structure in this context.");}
+DLL_PUBLIC void IDL_CDECL IDL_MessageVE_REQPTR(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Pointer type required in this context.");}
+DLL_PUBLIC void IDL_CDECL IDL_MessageVE_REQOBJREF(IDL_VPTR var, int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Object reference required in this context");}
+DLL_PUBLIC void IDL_CDECL IDL_Message_BADARRDNUM(int action){if (action!=IDL_MSG_INFO)GDL_WillThrowAfterCleaning("Arrays are allowed 1 - 8 dimensions");}
+DLL_PUBLIC int IDL_CDECL IDL_SysRtnAdd(IDL_SYSFUN_DEF2 *defs, int is_function,int cnt){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)  return 1;}
+DLL_PUBLIC IDL_MEMINT IDL_CDECL IDL_SysRtnNumEnabled(int is_function, int enabled){return 1;} //why not - this is a stub
+DLL_PUBLIC void IDL_CDECL IDL_SysRtnGetEnabledNames(int is_function, IDL_STRING *str, int enabled){str->slen=0;};
+DLL_PUBLIC void IDL_CDECL IDL_SysRtnEnable(int is_function, IDL_STRING *names, IDL_MEMINT n, int option,  IDL_SYSRTN_GENERIC disfcn){}// do nothing
+DLL_PUBLIC IDL_SYSRTN_GENERIC IDL_CDECL IDL_SysRtnGetRealPtr(int is_function, char *name){return NULL;}
+DLL_PUBLIC char* IDL_CDECL IDL_SysRtnGetCurrentName(void){return NULL;};
+DLL_PUBLIC int IDL_CDECL IDL_LMGRLicenseInfo(int iFlags){return 1;}
+DLL_PUBLIC int IDL_CDECL IDL_LMGRSetLicenseInfo(int iFlags){return 1;}
+DLL_PUBLIC int IDL_CDECL IDL_LMGRLicenseCheckoutUnique(char *szFeature, char *szVersion){return 1;}
+DLL_PUBLIC int IDL_CDECL IDL_LMGRLicenseCheckout(char *szFeature, char *szVersion){return 1;}
+DLL_PUBLIC int IDL_CDECL IDL_Load(void){return 1;}
+DLL_PUBLIC void IDL_CDECL IDL_Win32MessageLoop(int fFlush){}
+DLL_PUBLIC int IDL_CDECL IDL_Win32Init(IDL_INIT_DATA_OPTIONS_T iOpts, void  *hinstExe, void *hwndExe, void *hAccel){return 1;}
+DLL_PUBLIC void IDL_CDECL IDL_WinPostInit(void){}
+DLL_PUBLIC void IDL_CDECL IDL_WinCleanup(void){}
 #include <stdio.h>
 #include <stdarg.h>
 
-IDL_VPTR IDL_CDECL IDL_BasicTypeConversion(int argc, IDL_VPTR argv[], IDL_REGISTER int type){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC IDL_VPTR IDL_CDECL IDL_BasicTypeConversion(int argc, IDL_VPTR argv[], IDL_REGISTER int type){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 	if (argc != 1) GDL_WillThrowAfterCleaning("FIXME IDL_BasicTypeConversion!");
 	int i=0;
 	IDL_ENSURE_SIMPLE(argv[i]);
@@ -2528,16 +2558,16 @@ IDL_VPTR IDL_CDECL IDL_BasicTypeConversion(int argc, IDL_VPTR argv[], IDL_REGIST
 	}
 	return NULL;
 }
-int IDL_CDECL IDL_AddSystemRoutine(IDL_SYSFUN_DEF *defs, int is_function, int cnt){return 1;} //using DLM insure this is OK. I think.
-int IDL_CDECL IDL_BailOut(int stop){return sigControlC;} //use of stop not supported.
-void IDL_CDECL IDL_ExitRegister(IDL_EXIT_HANDLER_FUNC proc){}
-void IDL_CDECL IDL_ExitUnregister(IDL_EXIT_HANDLER_FUNC proc){}
-int IDL_CDECL IDL_GetExitStatus(){return 0;} //do nothing
-int IDL_CDECL IDL_Cleanup(int just_cleanup){return 1;} //do nothing
-int IDL_CDECL IDL_Initialize(IDL_INIT_DATA *init_data){return 1;} //do nothing
-int IDL_CDECL IDL_Init(IDL_INIT_DATA_OPTIONS_T options, int *argc, char *argv[]){return 1;} //do nothing
-int IDL_CDECL IDL_Main(IDL_INIT_DATA_OPTIONS_T options, int argc, char *argv[]){return 1;} //do nothing
-int IDL_CDECL IDL_ExecuteStr(char *cmd) {
+DLL_PUBLIC int IDL_CDECL IDL_AddSystemRoutine(IDL_SYSFUN_DEF *defs, int is_function, int cnt){return 1;} //using DLM insure this is OK. I think.
+DLL_PUBLIC int IDL_CDECL IDL_BailOut(int stop){return sigControlC;} //use of stop not supported.
+DLL_PUBLIC void IDL_CDECL IDL_ExitRegister(IDL_EXIT_HANDLER_FUNC proc){}
+DLL_PUBLIC void IDL_CDECL IDL_ExitUnregister(IDL_EXIT_HANDLER_FUNC proc){}
+DLL_PUBLIC int IDL_CDECL IDL_GetExitStatus(){return 0;} //do nothing
+DLL_PUBLIC int IDL_CDECL IDL_Cleanup(int just_cleanup){return 1;} //do nothing
+DLL_PUBLIC int IDL_CDECL IDL_Initialize(IDL_INIT_DATA *init_data){return 1;} //do nothing
+DLL_PUBLIC int IDL_CDECL IDL_Init(IDL_INIT_DATA_OPTIONS_T options, int *argc, char *argv[]){return 1;} //do nothing
+DLL_PUBLIC int IDL_CDECL IDL_Main(IDL_INIT_DATA_OPTIONS_T options, int argc, char *argv[]){return 1;} //do nothing
+DLL_PUBLIC int IDL_CDECL IDL_ExecuteStr(char *cmd) {
   std::string command(cmd);
  //always between try{} catch{} when calling ExecuteStringLine!
   try {
@@ -2545,7 +2575,7 @@ int IDL_CDECL IDL_ExecuteStr(char *cmd) {
   } catch (...) {std::cerr<<"Problem executing command: "<<command<<" ."<<std::endl; return 0;}
   return 1;
  }
-int IDL_CDECL IDL_Execute(int argc, char *argv[]){
+DLL_PUBLIC int IDL_CDECL IDL_Execute(int argc, char *argv[]){
 	std::string command(argv[0]);
 	for (auto i=1;i< argc; ++i) {command.append(" & "); command.append(argv[i]);}
   try {
@@ -2553,8 +2583,8 @@ int IDL_CDECL IDL_Execute(int argc, char *argv[]){
   } catch (...) {std::cerr<<"Problem executing command: "<<std::string(argv[0])<<"(...)"<<std::endl; return 0;}
   return 1;
 }
-int IDL_CDECL IDL_RuntimeExec(char *file){Warning("IDL_RuntimeExec function not allowed in GDL.");return 0;}
-void IDL_CDECL IDL_Runtime(IDL_INIT_DATA_OPTIONS_T options, int *argc, char *argv[], char *file){GDL_WillThrowAfterCleaning("IDL_Runtime function not allowed in GDL.");}
+DLL_PUBLIC int IDL_CDECL IDL_RuntimeExec(char *file){Warning("IDL_RuntimeExec function not allowed in GDL.");return 0;}
+DLL_PUBLIC void IDL_CDECL IDL_Runtime(IDL_INIT_DATA_OPTIONS_T options, int *argc, char *argv[], char *file){GDL_WillThrowAfterCleaning("IDL_Runtime function not allowed in GDL.");}
 
 #define ADJUST_ELEMENT_OFFSET(x) {IDL_MEMINT l=x;\
 IDL_MEMINT excess=returned_struct->tags[itag].offset % l;\
@@ -2566,7 +2596,7 @@ returned_struct->tags[itag].offset+=pad;\
 // At the moment the "named" structure exist only INSIDE the user program. It is not registered in $MAIN$.
 // Will do this if the need appears.
 
-	IDL_STRUCTURE* IDL_CDECL IDL_MakeStruct(char *name, IDL_STRUCT_TAG_DEF *tags) {
+	DLL_PUBLIC IDL_STRUCTURE* IDL_CDECL IDL_MakeStruct(char *name, IDL_STRUCT_TAG_DEF *tags) {
 	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 			//count tags (?)
 			int ntags = 0;
@@ -2701,7 +2731,7 @@ returned_struct->tags[itag].offset+=pad;\
 	}
 #undef ADJUST_ELEMENT_OFFSET
 
-	IDL_MEMINT IDL_CDECL IDL_StructTagInfoByName(IDL_StructDefPtr sdef, char *name, int msg_action, IDL_VPTR *var) {
+DLL_PUBLIC IDL_MEMINT IDL_CDECL IDL_StructTagInfoByName(IDL_StructDefPtr sdef, char *name, int msg_action, IDL_VPTR *var) {
 		int l = strlen(name);
 		for (auto i = 0; i < sdef->ntags; ++i) {
 			if (sdef->tags[i].id->len == l && strncmp(name, sdef->tags[i].id->name, l)) {
@@ -2717,7 +2747,7 @@ returned_struct->tags[itag].offset+=pad;\
 		return 0;
 	}
 
-	IDL_MEMINT IDL_CDECL IDL_StructTagInfoByIndex(IDL_StructDefPtr   sdef, int index, int msg_action, IDL_VPTR *var){
+DLL_PUBLIC IDL_MEMINT IDL_CDECL IDL_StructTagInfoByIndex(IDL_StructDefPtr   sdef, int index, int msg_action, IDL_VPTR *var){
 		if (sdef->ntags > index) {
 			 *var=&(sdef->tags[index].var);
 			return sdef->tags[index].offset;
@@ -2729,7 +2759,7 @@ returned_struct->tags[itag].offset+=pad;\
 		free(mess);
 		return 0;
 	}
-extern char *IDL_CDECL IDL_StructTagNameByIndex(IDL_StructDefPtr sdef, int index, int msg_action, char **struct_name){
+extern DLL_PUBLIC char* IDL_CDECL IDL_StructTagNameByIndex(IDL_StructDefPtr sdef, int index, int msg_action, char **struct_name){
 		if (sdef->ntags > index) {
 			if (struct_name != NULL) {if  (sdef->id!=NULL && sdef->id->name !=NULL) *struct_name=sdef->id->name; else *struct_name=(char*)"<Anonymous>";}
 			return sdef->tags[index].id->name;
@@ -2741,7 +2771,7 @@ extern char *IDL_CDECL IDL_StructTagNameByIndex(IDL_StructDefPtr sdef, int index
 		free(mess);
 		return NULL;
 }
-int IDL_CDECL IDL_StructNumTags(IDL_StructDefPtr sdef){return sdef->ntags;}
+DLL_PUBLIC int IDL_CDECL IDL_StructNumTags(IDL_StructDefPtr sdef){return sdef->ntags;}
 
 };
 #endif
