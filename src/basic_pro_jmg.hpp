@@ -31,6 +31,7 @@ namespace lib {
   void copy_lun( EnvT* e );
   void truncate_lun( EnvT* e );
   void linkimage( EnvT* e );
+  void dlm_load( EnvT* e );
   void unlinkimage( EnvT* e );
   void unlinksymbol( EnvT* e );
   void ResetDLLs( void );

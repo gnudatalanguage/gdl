@@ -223,8 +223,11 @@ inline bool gdlValid( const DComplexDbl &value )
 
 
 template<class Sp> void* Data_<Sp>::operator new( size_t bytes)
-{ 
-  assert( bytes == sizeof( Data_));
+{
+  // this assert is WRONG. bytes is just for call compatibility as we alloc sizeof( Data_), and 'bytes' cans be set by an externally compiled
+  // function. Example: POWELL is now a DLM, will crash if this assert is present beacuse for some reason at the moment of
+  // runtime new DDoubleGDL(res) at line 2729 in brent.cpp the 'new' does not pass the true size of DDoubleGDL but the 'new' does allocate the true size.
+//  assert( bytes == sizeof( Data_));
 
   if( freeList.size() > 0)
     {
@@ -1007,13 +1010,14 @@ template<typename Ty>
 inline void CShift1( Ty* dst, SizeT& dstLonIx, const Ty* src, SizeT& srcLonIx,
 		     SizeT stride_1, SizeT chunk0, SizeT chunk1)
 { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  memcpy(  &dst[ dstLonIx], &src[ srcLonIx], chunk0 * sizeof(Ty));
+  memcpy( (void*) &dst[ dstLonIx], (void*) &src[ srcLonIx], chunk0 * sizeof(Ty)); //explicitly cast the pointer to silence [-Wnontrivial-memcall] warning
+  // as the 'string case' is specially treated in CShift() below.
   dstLonIx += chunk0;
   srcLonIx += chunk0;
 
   dstLonIx -= stride_1;
 
-  memcpy( &dst[ dstLonIx], &src[ srcLonIx], chunk1 * sizeof(Ty));
+  memcpy( (void*) &dst[ dstLonIx], (void*) &src[ srcLonIx], chunk1 * sizeof(Ty));
   dstLonIx += chunk1 ;
   srcLonIx += chunk1;
 

@@ -100,7 +100,7 @@ for i=0, n-1 do begin           ;Each format character...
       i = i + 1
       c = strmid(curr_fmt, i, 1)     ;The function
       case c of                        ;format character?
-         'M' : if n_elements(month_chr) eq 12 then out+=month_chr(month-1) else out+=defmonth(month-1) 
+         'M' : if n_elements(month_chr) eq 12 then out+=month_chr[month-1] else out+=defmonth[month-1] 
          'N' : out += string(format='(i2.2)', month)
          'D' : out += string(format='(i2.2)', day)
          'Y' : begin
@@ -133,8 +133,8 @@ for i=0, n-1 do begin           ;Each format character...
           end
          
          
-         'W' : if n_elements(dow_chr) eq 7 then out+=dow_chr(dow) else out+=defdow(dow) 
-         'A' : if n_elements(ampm_chr) eq 2 then out+=ampm_chr(icap) else out+=defampm(icap)
+         'W' : if n_elements(dow_chr) eq 7 then out+=dow_chr[dow] else out+=defdow[dow] 
+         'A' : if n_elements(ampm_chr) eq 2 then out+=ampm_chr[icap] else out+=defampm[icap]
          '%' : out = out + '%'
       endcase
    endif else out = out + c

@@ -138,34 +138,15 @@ typedef unsigned long       ULong;
 
 // convenient naming
 typedef unsigned char          DByte;
-// typedef int                    DInt;
-// typedef unsigned int           DUInt;
-// typedef long int               DLong;
-// typedef unsigned long int      DULong;
 
-#ifdef _MSC_VER
-typedef __int64               DLong64;
-typedef unsigned __int64      DULong64;
-
-#else
-//typedef long int               DLong64;
-//typedef unsigned long int      DULong64;
+//#ifdef _MSC_VER
+//typedef long long               DLong64;
+//typedef unsigned long long      DULong64;
+//
+//#else
 typedef long long int          DLong64;
 typedef unsigned long long int DULong64;
-#endif
-
-#ifdef USE_MPFR
-
-typedef __int128               DLong128;
-typedef unsigned __int128      DULong128;
-
-typedef long double            DLDouble;
-typedef std::complex<DLDouble> DComplexLDbl;
-
-
-typedef mpfr::mpreal           DArbitrary;
-#endif
-
+//#endif
 
 typedef short                  DInt;
 typedef unsigned short         DUInt;
@@ -178,6 +159,18 @@ typedef SizeT                  DPtr; // ptr to heap
 typedef DPtr                   DObj; // ptr to object heap
 typedef std::complex<DFloat>   DComplex;
 typedef std::complex<DDouble>  DComplexDbl;
+
+#ifdef USE_MPFR
+
+typedef __int128               DLong128;
+typedef unsigned __int128      DULong128;
+
+typedef long double            DLDouble;
+typedef std::complex<DLDouble> DComplexLDbl;
+
+
+typedef mpfr::mpreal           DArbitrary;
+#endif
 
 // list of identifiers (used in several places)
 typedef std::vector<std::string>       IDList;

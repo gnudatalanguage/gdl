@@ -2674,7 +2674,7 @@ namespace lib {
   }
 
   //Note: this brent is not from gsl
-  void brent(EnvT* e) {
+  extern "C" void brent(EnvT* e) {
     // sanity check (for number of parameters)
     SizeT nParam = e->NParam();
     if (nParam != 5) e->Throw("Incorrect number of arguments.");
@@ -2736,4 +2736,9 @@ namespace lib {
     }
 
   }
+
+  extern "C" void powell(EnvT* e) {
+    brent(e);
+  }
+
 }  

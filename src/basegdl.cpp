@@ -842,7 +842,12 @@ void GDLDelete( BaseGDL* toDelete)
 {
   if( toDelete ==NULL) return;
   if( toDelete == NullGDL::GetSingleInstance()) return;
-  if (!toDelete->IsShared())  delete toDelete; 
+  if (!toDelete->IsShared())  
+  { 
+    if(toDelete->GetCallbackFunction()!=NULL) toDelete->GetCallbackFunction()((unsigned char*)toDelete->DataAddr());
+  //if (toDelete->callback_function!=NULL) toDelete->callback_function((unsigned char*)toDelete->DataAddr());
+  else delete toDelete; 
+  }
 #ifndef _WIN32
   else lib::shm_unreference(toDelete);
 #endif

@@ -92,7 +92,7 @@ getfmtast.cpp
 graphicsdevice.cpp
 basic_pro.cpp
 basic_pro_jmg.cpp
-brent.cpp
+# brent.cpp #as DLM test 
 grib.cpp
 gsl_fun.cpp
 gsl_matrix.cpp
@@ -219,6 +219,7 @@ set_source_files_properties(libinit_cl.cpp PROPERTIES COMPILE_FLAGS -Wno-depreca
 add_library(whereami STATIC ${CMAKE_SOURCE_DIR}/src/whereami/src/whereami.c)
 add_subdirectory(antlr)
 add_subdirectory(plplot)
+add_subdirectory(dlm)
 
 include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/antlr ${CMAKE_BINARY_DIR}/src ${CMAKE_SOURCE_DIR}/src/whereami/src ${CMAKE_BINARY_DIR})
 link_directories(${LINK_DIRECTORIES})
@@ -276,6 +277,17 @@ else(PYTHON_MODULE)
 	set_target_properties(gdl PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif(PYTHON_MODULE)
 
+#permit gdl.exe to export its symbols, necessary for linkimage and DLM
+if (NOT APPLE AND NOT OSX AND NOT MINGW)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--export-dynamic")
+endif()
+if (APPLE OR OSX )
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fvisibility=protected") #-exported_symbols_list ${EXPORTED_SYMBOLS_LIST}")
+endif()
+if (MINGW )
+#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--export-all-symbols")
+endif()
+
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/pro/ DESTINATION ${CMAKE_INSTALL_PREFIX}/${GDL_DATA_DIR}/lib
 	PATTERN CVS EXCLUDE
 	PATTERN checks EXCLUDE
@@ -287,6 +299,8 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource DESTINATION ${CMAKE_INSTALL_PREFI
 	PATTERN checks EXCLUDE
 	PATTERN Makefile* EXCLUDE
 	PATTERN UrgentNeed.txt EXCLUDE)
+
+install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/${GDL_DATA_DIR}/dlm )
 
 configure_file(
  	${CMAKE_SOURCE_DIR}/scripts/quick_start_GDL.sh.in

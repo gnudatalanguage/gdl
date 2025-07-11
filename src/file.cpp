@@ -99,6 +99,30 @@
 #  define GLOB_PERIOD 0
 #endif
 
+#include <iostream>
+#include <string>
+#include <algorithm>
+#include <iterator>
+#include <sstream>
+
+inline std::string replaceAllOccurencesOfDefaultTokens(const std::string& s, const std::string& f, const std::string& r) {
+  if (s.empty() || f.empty() || f == r || f.size() > s.size() || s.find(f) == std::string::npos) {
+    return s;
+  }
+  std::ostringstream build_it;
+  typedef std::string::const_iterator iter;
+  iter i(s.begin());
+  const iter::difference_type f_size(std::distance(f.begin(), f.end()));
+  for (iter pos; (pos = search(i, s.end(), f.begin(), f.end())) != s.end();) {
+    copy(i, pos, std::ostreambuf_iterator<char>(build_it));
+    copy(r.begin(), r.end(), std::ostreambuf_iterator<char>(build_it));
+    std::advance(pos, f_size);
+    i = pos;
+  }
+  copy(i, s.end(), std::ostreambuf_iterator<char>(build_it));
+  return build_it.str();
+}
+
 #ifdef _MSC_VER
 
 /*
@@ -584,14 +608,7 @@ static void ExpandPathN( FileListT& result,
 
     if( dirN == "") 
       return;
-
-    if( StrUpCase( dirN) == "<GDL_DEFAULT>" ||
-    StrUpCase( dirN) == "<IDL_DEFAULT>")
-      {
-    // result.push_back( the default path here);
-    return;
-      }
-    
+   
     if( dirN[0] != '+' && dirN[0] != '~')
       {
     result.push_back( dirN);
@@ -649,26 +666,55 @@ static void ExpandPathN( FileListT& result,
   {
     e->NParam( 1);
 
+    int specialization=0;
+    DString pattern = "*.pro";
+
+    static int all_dirsIx = e->KeywordIx("ALL_DIRS");
+    bool all_dirs = e->KeywordSet(all_dirsIx);
+
+    static int arrayIx = e->KeywordIx("ARRAY");
+    bool array = e->KeywordSet(arrayIx);
+
+    static int countIx = e->KeywordIx("COUNT");
+
+    static int dlmtypeIx = e->KeywordIx("DLM");
+    if (e->KeywordPresent(dlmtypeIx)) specialization=1;
+    static int hlptypeIx = e->KeywordIx("HELP");
+    if (e->KeywordPresent(hlptypeIx)) specialization=2;
+
     DString pathString;
-    e->AssureStringScalarPar( 0, pathString);
+    e->AssureStringScalarPar(0, pathString);
+    
+    // complex treatment of embedded  "<IDL_XXX>" strings. Note that there is NO "<GDL_XXX>" equivalents, they are NOT NEEDED.
+    if (pathString.find("<", 0) != std::string::npos) {
+      if (pathString.find("<IDL_DEFAULT_PATH", 0) != std::string::npos) {
+        pathString = replaceAllOccurencesOfDefaultTokens(pathString, "<IDL_DEFAULT_PATH>", gdl_default_path);
+        pattern = "*.pro"; //in fact, should be "([^\\s]+(\\.(?i)(pro|sav))$)"
+      } else if (pathString.find("<IDL_DEFAULT_DLM", 0) != std::string::npos) {
+        pathString = replaceAllOccurencesOfDefaultTokens(pathString, "<IDL_DEFAULT_DLM>", gdl_default_dlm);
+        pattern = "*.dlm";
+        all_dirs=true; //DLM search use implicitely ALL_DIRS
+      } else if (pathString.find("<IDL_DEFAULT_HELP", 0) != std::string::npos) {
+        pathString = replaceAllOccurencesOfDefaultTokens(pathString, "<IDL_DEFAULT_HELP>", gdl_default_help);
+        pattern = "*.*"; //should be "([^\\s]+(\\.(?i)(pdf|html|chm))$)"
+      } else if (pathString.find("<IDL_DEFAULT>", 0) != std::string::npos) {
+        switch (specialization) {
+          case 0: pathString = replaceAllOccurencesOfDefaultTokens(pathString, "<IDL_DEFAULT>", gdl_default_path);
+            pattern = "*.pro"; //in fact, should be "([^\\s]+(\\.(?i)(pro|sav))$)"
+            break;
+          case 1: pathString = replaceAllOccurencesOfDefaultTokens(pathString, "<IDL_DEFAULT>", gdl_default_dlm);
+            pattern = "*.dlm";
+            break;
+          case 2: pathString = replaceAllOccurencesOfDefaultTokens(pathString, "<IDL_DEFAULT>", gdl_default_help);
+            pattern = "*.*"; //should be "([^\\s]+(\\.(?i)(pdf|html|chm))$)"
+            break;
+        }
+      }
+    }
+
+    // normal expand follows
     WordExp(pathString);
     FileListT sArr;
-    
-
-    static int all_dirsIx = e->KeywordIx( "ALL_DIRS");
-    bool all_dirs = e->KeywordSet( all_dirsIx);
-
-    static int arrayIx = e->KeywordIx( "ARRAY");
-    bool array = e->KeywordSet( arrayIx);
-
-    static int countIx = e->KeywordIx( "COUNT");
-
-    DString pattern;
-    static int typeIx = e->KeywordIx( "PATTERN");
-    if(e->KeywordPresent(typeIx)) {
-      e->AssureStringScalarKWIfPresent( typeIx, pattern);
-    }
-    else      pattern = "*.pro";
 
     SizeT d;
     long   sPos=0;

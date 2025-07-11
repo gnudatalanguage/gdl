@@ -16,7 +16,6 @@
  ***************************************************************************/
 
 #include "includefirst.hpp"
-
 // #ifndef VERSION
 // #define VERSION "0.9"
 // #endif
@@ -170,7 +169,7 @@ void InitGDL()
 
   // init library functions
   LibInit(); 
-    
+  
   // ensuring we work in the C locale (needs to be called after InitObjects and LibInit!!! 
   // as some code there calls setlocale as well, e.g. MagickInit)
 #ifdef HAVE_LOCALE_H
@@ -222,7 +221,7 @@ namespace MyPaths {
     std::string pathstring(path);
     free(path);
     return pathstring;
-  }
+    }
   return std::string(".");
 }
 }
@@ -239,10 +238,8 @@ int main(int argc, char *argv[])
   
 //The default installation location --- will not always be there.  
   gdlDataDir = std::string(GDLDATADIR);
-  gdlLibDir = std::string(GDLLIBDIR);
 #ifdef _WIN32
   std::replace(gdlDataDir.begin(), gdlDataDir.end(), '/', '\\');
-  std::replace(gdlLibDir.begin(), gdlLibDir.end(), '/', '\\');
 #endif 
 
 //check where is the executable being run
@@ -255,10 +252,14 @@ int main(int argc, char *argv[])
 //    std::cerr<<"installed at: "<<gdlDataDir<<std::endl;
   }
 
-//PATH. This one is often modified by people before starting GDL.
-  string gdlPath=GetEnvPathString("GDL_PATH"); //warning: is a Path, use system separator.
-  if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH"); //warning: is a Path, use system separator.
-  if( gdlPath == "") gdlPath = gdlDataDir + lib::PathSeparator() + "lib";
+//   GD: seems to confuse people --- too much information kills information
+//  bool pathUserNotDefined=false;
+//  string gdlPath=GetEnvPathString("GDL_PATH"); //warning: is a Path, use system separator.
+//  if( gdlPath == "") gdlPath=GetEnvPathString("IDL_PATH"); //warning: is a Path, use system separator.
+//  if( gdlPath == "") {
+//    gdlPath = "+" + gdlDataDir + lib::PathSeparator() + "lib";
+//    pathUserNotDefined=true;
+//  }
 
   char* wantCalm = getenv("IDL_QUIET");
   if (wantCalm != NULL) setQuietSysvar=true;
@@ -494,8 +495,8 @@ int main(int argc, char *argv[])
   if (force_no_wxgraphics) useWxWidgetsForGraphics=false; //this has the last answer, whatever the setup.
 #endif  
   std::string doUseUglyFonts=GetEnvString("GDL_WIDGETS_COMPAT");
-  if ( doUseUglyFonts.length() > 0) tryToMimicOriginalWidgets=true; 
-  
+  if ( doUseUglyFonts.length() > 0) tryToMimicOriginalWidgets=true;
+
   InitGDL(); 
   
   // for debug one could turn on all floating point exceptions, it will stop at first one.
@@ -523,7 +524,7 @@ int main(int argc, char *argv[])
 
   if (gdlde || (isatty(0) && !quiet)) {
     StartupMessage();
-    cerr << "- Default library routine search path used (GDL_PATH/IDL_PATH env. var. not set): " << gdlPath << endl;
+//    if (pathUserNotDefined) cerr << "- Default library routine search path used (GDL_PATH/IDL_PATH env. var. not set): " << gdlPath << endl;
     if (useWxWidgetsForGraphics) cerr << "- Using WxWidgets as graphics library (windows and widgets)." << endl;
   }
   if (useDSFMTAcceleration && (GetEnvString("GDL_NO_DSFMT").length() > 0)) useDSFMTAcceleration=false;
@@ -597,7 +598,12 @@ int main(int argc, char *argv[])
   }
   }
 #endif // USE_MPI
-
+  
+  //always between try{} catch{} when calling ExecuteStringLine!
+  try {
+  std::string dlmCommand=("dlm_register,/silent");
+  interpreter.ExecuteStringLine(dlmCommand);
+  } catch (...) {std::cerr<<"Problem starting DLMs\n";}
   interpreter.InterpreterLoop( startup, batch_files, statement);
 
   return 0;
