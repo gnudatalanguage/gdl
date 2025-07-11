@@ -123,14 +123,6 @@ typedef struct  __rpc_xdr {
                 /* free privates of this xdr_stream */
                 void    (*x_destroy)(struct __rpc_xdr *);
                 bool_t  (*x_control)(struct __rpc_xdr *, int, void *);
-//		bool_t	(*x_getlong)();	/* get a long from underlying stream */
-//		bool_t	(*x_putlong)();	/* put a long to " */
-//		bool_t	(*x_getbytes)();/* get some bytes from " */
-//		bool_t	(*x_putbytes)();/* put some bytes to " */
-//		u_int	(*x_getpostn)();/* returns bytes off from beginning */
-//		bool_t  (*x_setpostn)();/* lets you reposition the stream */
-//		long *	(*x_inline)();	/* buf quick ptr to buffered data */
-//		void	(*x_destroy)();	/* free privates of this xdr_stream */
 	} *x_ops;
 	caddr_t 	x_public;	/* users' data */
 	caddr_t		x_private;	/* pointer to private data */
@@ -206,7 +198,7 @@ struct xdr_discrim {
 };
 
 /*
- * In-line routines for fast encode/decode of primitve data types.
+ * In-line routines for fast encode/decode of primitive data types.
  * Caveat emptor: these use single memory cycles to get the
  * data from the underlying buffer, and will fail to operate
  * properly if the data is not aligned.  The standard way to use these
@@ -263,31 +255,12 @@ extern bool_t   xdr_double(XDR *, double *);
 extern bool_t   xdr_reference(XDR *, char **, u_int, xdrproc_t);
 extern bool_t   xdr_pointer(XDR *, char **, u_int, xdrproc_t);
 extern bool_t   xdr_wrapstring(XDR *, char **);
+extern bool_t   xdr_uint64_t (XDR *xdrs, uint64_t *uip);
+extern bool_t   xdr_int64_t (XDR *xdrs, int64_t *uip);
 #ifdef __cplusplus
 }
 #endif
-//extern bool_t	xdr_void();
-//extern bool_t	xdr_int();
-//extern bool_t	xdr_u_int();
-//extern bool_t	xdr_long();
-//extern bool_t	xdr_u_long();
-//extern bool_t	xdr_short();
-//extern bool_t	xdr_u_short();
-//extern bool_t	xdr_bool();
-//extern bool_t	xdr_enum();
-//extern bool_t	xdr_array();
-//extern bool_t	xdr_bytes();
-//extern bool_t	xdr_opaque();
-//extern bool_t	xdr_string();
-//extern bool_t	xdr_union();
-//extern bool_t	xdr_char();
-//extern bool_t	xdr_u_char();
-//extern bool_t	xdr_vector();
-//extern bool_t	xdr_float();
-//extern bool_t	xdr_double();
-//extern bool_t	xdr_reference();
-//extern bool_t	xdr_pointer();
-//extern bool_t	xdr_wrapstring();
+
 /*
  * Common opaque bytes objects used by many rpc protocols;
  * declared here due to commonality.
@@ -329,17 +302,9 @@ extern bool_t xdrrec_eof(XDR *);
 #ifdef __cplusplus
 }
 #endif
-//extern void   xdrmem_create();		/* XDR using memory buffers */
-//extern void   xdrstdio_create();	/* XDR using stdio library */
-//extern void   xdrrec_create();		/* XDR pseudo records for tcp */
-//extern bool_t xdrrec_endofrecord();	/* make end of xdr record */
-//extern bool_t xdrrec_skiprecord();	/* move to beginning of next record */
-//extern bool_t xdrrec_eof();		/* true if no more input */
 
 /* RWMJ */
 extern void xdr_free (xdrproc_t, char *);
-extern bool_t xdr_uint64_t (XDR *xdrs, uint64_t *uip);
-extern bool_t xdr_int64_t (XDR *xdrs, int64_t *uip);
 
 #define xdr_u_quad_t xdr_uint64_t
 #define xdr_quad_t xdr_int64_t
