@@ -2759,7 +2759,7 @@ DLL_PUBLIC IDL_MEMINT IDL_CDECL IDL_StructTagInfoByIndex(IDL_StructDefPtr   sdef
 		free(mess);
 		return 0;
 	}
-extern DLL_PUBLIC char* IDL_CDECL IDL_StructTagNameByIndex(IDL_StructDefPtr sdef, int index, int msg_action, char **struct_name){
+DLL_PUBLIC char* IDL_CDECL IDL_StructTagNameByIndex(IDL_StructDefPtr sdef, int index, int msg_action, char **struct_name){
 		if (sdef->ntags > index) {
 			if (struct_name != NULL) {if  (sdef->id!=NULL && sdef->id->name !=NULL) *struct_name=sdef->id->name; else *struct_name=(char*)"<Anonymous>";}
 			return sdef->tags[index].id->name;
