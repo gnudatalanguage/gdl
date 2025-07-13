@@ -247,14 +247,10 @@ jobs:
             fn=`ls /var/cache/pacman/pkg/${package}-*.tar.{gz,bz2,xz,zst} 2> /dev/null || true`
             tar xf $fn -C /cache
           done
-          ADDTIONAL_FILES=( /mingw*/bin/libportablexdr-0.dll
-                            /mingw*/bin/portable-rpcgen.exe
-                            /mingw*/include/rpc/rpc.h
+          ADDTIONAL_FILES=( /mingw*/bin/mgwxdr-0.dll
+                            /mingw*/lib/libbsdxdr.*
                             /mingw*/include/rpc/types.h
-                            /mingw*/include/rpc/xdr.h
-                            /mingw*/lib/libportablexdr.a
-                            /mingw*/lib/libportablexdr.dll.a
-                            )
+                            /mingw*/include/rpc/xdr.h )
           for fn in ${ADDTIONAL_FILES[@]}; do
             cp --parents ${fn} /cache
           done
