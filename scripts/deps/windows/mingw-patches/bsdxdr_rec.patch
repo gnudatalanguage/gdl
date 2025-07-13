@@ -1,0 +1,11 @@
+--- /home/gildas/Downloads/bsd-xdr-1.0.0/lib/xdr_rec.c	2009-05-23 07:30:51.000000000 +0200
++++ bsd-xdr-1.0.0/lib/xdr_rec.c	2025-07-12 23:09:18.543660836 +0200
+@@ -69,8 +69,6 @@
+   XPRT_IDLE
+ };
+ 
+-static u_int fix_buf_size ();
+-
+ static bool_t xdrrec_getlong (XDR *, long *);
+ static bool_t xdrrec_putlong (XDR *, const long *);
+ static bool_t xdrrec_getbytes (XDR *, char *, u_int);
