@@ -2740,7 +2740,7 @@ DLL_PUBLIC IDL_MEMINT IDL_CDECL IDL_StructTagInfoByName(IDL_StructDefPtr sdef, c
 			return sdef->tags[i].offset;
 		}
 		char* mess=(char*)calloc(256,1);
-		strncat(mess,"Tag name ",10);strncat(mess,name,strlen(name));strncat(mess," is undefined for structure ",29);
+		strncat(mess,"Tag name ",10);strncat(mess,name,strlen(name)+1);strncat(mess," is undefined for structure ",29);
 		if (sdef->id!=NULL && sdef->id->name !=NULL) strcat(mess,sdef->id->name); else strcat(mess,"<Anonymous>");
 		IDL_Message(IDL_M_GENERIC, msg_action, mess);
 		free(mess);
