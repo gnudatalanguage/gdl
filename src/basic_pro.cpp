@@ -1813,7 +1813,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     if (unitKeyword) e->AssureGlobalKW(unitIx);
 
     if (unitKeyword) {
-      e->Throw("UNIT keyword is not implemented yet!");
+      e->Throw("UNIT keyword is not implemented yet, but could be on Windows: just do it taking example on the linux version!");
       /*
         if (exit_statusKeyword)
         {
