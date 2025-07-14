@@ -788,14 +788,13 @@ fstream& GDLStream::IStream() { //IStream is always FStream (normal file)
 }
 
 fstream& GDLStream::OStream() { //OStream may be oFStream if oFStream is not NULL (different pipe)
+  if (anyStream == NULL || !anyStream->IsOpen()) throw GDLIOException("File unit is not open.");
   if (anyStream->oFStream() != NULL) { //process special pipe
     return *anyStream->oFStream();
   }
   // old behaviour for normal files
-  if (anyStream == NULL || anyStream->FStream() == NULL || !anyStream->IsOpen())
-    throw GDLIOException("File unit is not open.");
-  if (!(mode & ios::out))
-    throw GDLIOException("File unit is not open for writing.");
+  if (anyStream->FStream() == NULL) throw GDLIOException("File unit is not open.");
+  if (!(mode & ios::out))  throw GDLIOException("File unit is not open for writing.");
   return *anyStream->FStream();
 }
 

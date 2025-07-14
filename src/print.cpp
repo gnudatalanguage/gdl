@@ -109,7 +109,6 @@ namespace lib {
           os = &fileUnits[ lun - 1].OgzStream();
         else
           os = &fileUnits[ lun - 1].OStream();
-        os->exceptions(std::ofstream::failbit);
       } else
         os = &oss;
 
@@ -286,7 +285,7 @@ no_implied:
     BaseGDL* par;
     env->SetNextPar(&par);
 
-// The following are notpart of standard    
+// The following are not part of standard    
 // printing first the title if TITLE keyword present
 
     static int titleIx = e->KeywordIx("TITLE");

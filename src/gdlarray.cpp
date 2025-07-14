@@ -155,7 +155,7 @@ template<class T, bool IsPOD>
     assert(&right != this);
     assert(sz == right.size());
     if (IsPOD) {
-      std::memcpy(buf, right.buf, sz * sizeof (T));
+      std::memcpy((void*) buf, (void*) right.buf, sz * sizeof (T)); //explicitly cast the pointer to silence [-Wnontrivial-memcall] warning
     } else {
       if ((GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION))==1) {
         for (SizeT i = 0; i < sz; ++i) buf[ i] = right.buf[ i];
@@ -172,7 +172,7 @@ template<class T, bool IsPOD>
     assert(this != &right);
     assert(sz == right.size());
     if (IsPOD) {
-      std::memcpy(buf, right.buf, sz * sizeof (T));
+      std::memcpy((void*) buf, (void*) right.buf, sz * sizeof (T)); //explicitly cast the pointer to silence [-Wnontrivial-memcall] warning
     } else {
       if ((GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION))==1) {
         for (SizeT i = 0; i < sz; ++i) buf[ i] = right.buf[ i];

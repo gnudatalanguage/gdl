@@ -20,11 +20,29 @@
 
 #include "includefirst.hpp"
 
-//#include <list>
-#if defined(__CYGWIN__) || defined(_WIN32)
-#  include <rpc/xdr.h>
+//use libtirpc (to be installed) for linux & mac, use portablexdr for windows, but use our custom 'xdr.h' 
+#if defined(_WIN32)
+#include "types.h"
+#include "xdr.h"
+#define u_int64_t uint64_t
+#define u_int32_t uint32_t
+#define u_int16_t uint16_t
+#define xdr_int8_t xdr_char
+#define xdr_u_int8_t xdr_u_char
+#define xdr_uint8_t xdr_short
+#define xdr_int16_t xdr_short
+#define xdr_u_int16_t xdr_u_short
+#define xdr_uint16_t xdr_u_short
+#define xdr_int32_t xdr_int
+#define xdr_u_int32_t xdr_u_int
+#define xdr_uint32_t xdr_u_int
 #else
-#  include <rpc/rpc.h>
+#include <rpc/rpc.h>
+#ifdef __APPLE__
+#define xdr_uint16_t xdr_u_int16_t
+#define xdr_uint32_t xdr_u_int32_t
+#define xdr_uint64_t xdr_u_int64_t
+#endif
 #endif
 
 #include <algorithm>
@@ -386,9 +404,10 @@ public:
 protected:
   dimension dim;
   bool shared=false;
-  
+  void (* callback_function)(unsigned char*)=NULL;
+
 public:
-  // type of initalization
+  // type of initialization
   enum InitType {
     ZERO=0,
     NOZERO,
@@ -447,6 +466,9 @@ public:
   BaseGDL();//: dim() {} 
   explicit BaseGDL(const dimension& dim_);//: dim(dim_) {} 
 
+  //callback function when deleted
+  void SetCallbackFunction(void (* ptr)(unsigned char*)){callback_function=ptr;}
+  void (*GetCallbackFunction())(unsigned char*){return callback_function;}
   //shared
   bool IsShared() {return shared;}
   void SetShared() {shared=true;} //used only with shmvar variables, explicitely in theur creation.

@@ -107,6 +107,9 @@ public:
   // execute one line of code
   CommandCode ExecuteLine( std::istream* in = NULL, SizeT lineOffset = 0);
 
+// execute one line of code
+  CommandCode ExecuteStringLine( std::string &line);
+
   // execute a whole file (used by @ and for batch files specified as arguments to gdl)
   void        ExecuteFile( const std::string& file);  
 
