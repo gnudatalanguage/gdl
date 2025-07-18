@@ -121,6 +121,8 @@ extern "C" {
 #include "shm_utils.hpp"
 #endif
 
+static std::vector<DStringGDL*> dlmInfo;            // DStringGDL* info to be used by help,/DLM, populated if the DLL is defined by a DLM related command (not directly linkimage)
+
 // for sorting compiled pro/fun lists by name
 struct CompFunName: public std::function<bool(DFun*, DFun*)>
 {
@@ -278,7 +280,23 @@ static void help_sysvar(ostream& os , bool briefKW=true)
 		}
 	return;
   }
-
+static void help_dlm(ostream &os, bool briefKW=false) {
+  std::vector<DStringGDL*>::iterator it;
+  if (briefKW) {
+    for (it = dlmInfo.begin(); it != dlmInfo.end(); ++it) {
+    if ( (*it)->N_Elements() != 4) continue; 
+    os << (*(*it))[0] <<" ";
+    } 
+    os << "\n";
+  } else {
+    for (it = dlmInfo.begin(); it != dlmInfo.end(); ++it) {
+      if ( (*it)->N_Elements() != 4) continue; 
+      os << "** "<<(*(*it))[0]<<" - "<<(*(*it))[1]<<"\n";
+      os << "   "<<(*(*it))[2]<<"\n";
+      os << "   "<<(*(*it))[3]<<"\n";
+   }
+  }
+}
 static void help_Output(BaseGDL** outputKW, ostringstream& ostr, SizeT &nlines, bool doOutput=true)
   {
 	// Setup output return variable ostream& os, int &lines_count
@@ -328,7 +346,7 @@ static void help_Output(BaseGDL** outputKW, ostringstream& ostr, SizeT &nlines, 
     StrArr path = SysVar::GDLPath();
 
     std::sort(path.begin(),path.end());
-    ostr << "!PATH (Disabled, "<< path.size() <<" directories)" << '\n';
+    ostr << "!PATH Cache (Enabled, "<< path.size() <<" directories)" << '\n';
     lines_count = 1;
 
     for (StrArr::iterator CurrentDir = path.begin(); CurrentDir != path.end(); ++CurrentDir) {
@@ -808,12 +826,12 @@ void help_help(EnvT* e)
 
   void help_pro(EnvT* e) {
     //unsupported: just return
-    //BREAKPOINTS","DLM", "MESSAGES", "LAMBDA",
+    //BREAKPOINTS","MESSAGES", "LAMBDA",
 	static int BREAKPOINTS = e->KeywordIx("BREAKPOINTS"); if (e->KeywordPresent(BREAKPOINTS)) { Message("Unsupported Keyword."); return;}
-	static int DLM = e->KeywordIx("DLM"); if (e->KeywordPresent(DLM)) { Message("Unsupported Keyword."); return;}
+
 	static int MESSAGES = e->KeywordIx("MESSAGES"); if (e->KeywordPresent(MESSAGES)) { Message("Unsupported Keyword."); return;}
 	static int LAMBDA = e->KeywordIx("LAMBDA"); if (e->KeywordPresent(LAMBDA)) { Message("Unsupported Keyword."); return;}
-    
+
 	// in order of priority
 	bool kw = false;
 	static int lastmKWIx = e->KeywordIx("LAST_MESSAGE");
@@ -843,7 +861,7 @@ void help_help(EnvT* e)
 	if (e->KeywordSet(helpIx)) {
 	  help_help(e);
 	  return;
-	}
+    }
 
 	static int namesIx = e->KeywordIx("NAMES");
 	bool isKWSetNames = e->KeywordPresent(namesIx);
@@ -899,6 +917,15 @@ void help_help(EnvT* e)
 	// also MESSAGES OBJECTS ROUTINES SOURCE_FILES STRUCTURES SYSTEM_VARIABLES
 	static int fullKWIx = e->KeywordIx("FULL");
 	bool fullKW = e->KeywordSet(fullKWIx);
+
+    static int DLM = e->KeywordIx("DLM");
+    bool wantsDlm = (e->KeywordPresent(DLM));
+    if (wantsDlm) {
+      help_dlm(ostr,briefKW);
+      if (doOutput) (*outputKW) = StreamToGDLString(ostr);
+      else cout << ostr.str();
+      return;
+    }
 
 	// AC 14-08-11 : detailed info (display size, deep ...) are missing
 	static int deviceKWIx = e->KeywordIx("DEVICE");
@@ -1537,5 +1564,10 @@ void help_help(EnvT* e)
 	if (doOutput) help_Output(outputKW, ostr, OutputLines);
 	return;
   }
+  
 
   } // namespace
+
+  void help_AddDlmInfo(DStringGDL* s){
+  dlmInfo.push_back(s);
+  }

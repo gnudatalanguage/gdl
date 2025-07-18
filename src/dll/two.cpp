@@ -23,13 +23,20 @@ extern "C" BaseGDL* two_fun( EnvT* e)
     cout << "TWO: Improper Number of Variables" << endl;
     return new DLongGDL( -1);
   }
-
+  static int keywdIx=e->KeywordIx("KEYWORD");
+  if (e->KeywordSet(keywdIx)) Message("Keyword present!");
   BaseGDL* p0 = e->GetPar( 0);//, "TWO");
 
-  if( p0->Type() == GDL_DOUBLE)
-    return two_fun_template< DDoubleGDL>( p0);
+  if( p0->Type() == GDL_DOUBLE) {
+    DFloatGDL* f=e->GetParAs<DFloatGDL>(0);
+    return two_fun_template< DFloatGDL>( f);
+  }
   else if( p0->Type() == GDL_FLOAT)
     return two_fun_template< DFloatGDL>( p0);
+  else if( p0->Type() == GDL_INT)
+    return two_fun_template< DIntGDL>( p0);
+  else if( p0->Type() == GDL_LONG)
+    return two_fun_template< DLongGDL>( p0);
   else 
     {
       return new DLongGDL( -1);

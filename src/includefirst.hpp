@@ -18,6 +18,11 @@
 #ifndef INCLUDEFIRST_HPP_
 #define INCLUDEFIRST_HPP_
 
+//prevent register to take effect when including old code.
+#if __cplusplus > 199711L
+#define register      // Deprecated in C++11.
+#endif  // #if __cplusplus > 199711L
+
 #ifdef __CYGWIN__
 //  std::cerr is  broken in gcc/cygwin64 - for gdl, anyways.
 #define cerr cout

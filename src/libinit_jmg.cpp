@@ -239,8 +239,9 @@ void LibInit_jmg()
   new DLibPro(lib::skip_lun,string("SKIP_LUN"),2,skip_or_copy_lunKey);
   new DLibPro(lib::copy_lun,string("COPY_LUN"),3,skip_or_copy_lunKey);
   
-  const string linkimageKey[]={"FUNCT", "KEYWORDS", "MAX_ARGS", "MIN_ARGS", "DEFAULT", KLISTEND}; //DEFAULT is VMS obsolete
+  const string linkimageKey[]={"FUNCT", "KEYWORDS", "MAX_ARGS", "MIN_ARGS", "NATIVE","DLM_INFO", KLISTEND}; //DEFAULT is VMS obsolete
   new DLibPro( lib::linkimage, string("LINKIMAGE"), 4, linkimageKey, NULL, 2 );
+  new DLibPro( lib::dlm_load, string("DLM_LOAD"), -1, NULL, NULL, 1 );
   const string unlinkimageKey[]={"FORCE", KLISTEND};
   new DLibPro( lib::unlinkimage, string("UNLINKIMAGE"), 1, unlinkimageKey );
   const string unlinksymbolKey[]={"FUNCT", KLISTEND};

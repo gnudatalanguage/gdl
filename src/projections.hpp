@@ -44,7 +44,7 @@ namespace lib {
   void map_proj_gctp_forinit (EnvT* e);
   void map_proj_gctp_revinit (EnvT* e);
 
-#define GDL_COMPLEX COMPLEX2
+//#define GDL_COMPLEX COMPLEX2
 
   extern "C" {
 #if LIBPROJ_MAJOR_VERSION >= 5

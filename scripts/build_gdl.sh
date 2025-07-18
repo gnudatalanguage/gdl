@@ -88,13 +88,12 @@ function log {  # log is needded just below!
 if [ ${BUILD_OS} == "Windows" ]; then
     BSDXDR_URL="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz"
     MSYS2_PACKAGES=(
-        readline zlib libpng gsl wxWidgets libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi udunits
-        eigen3 eccodes glpk shapelib expat openssl qhull
+        readline zlib libpng gsl wxwidgets3.2 libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi udunits
+        eigen3 eccodes glpk shapelib expat openssl qhull graphicsmagick
     )
-# GD: dunno why graphicsmagick has this special treatment????
     #if you add something in MSYS2_PACKAGES_REBUILD you may have to add special lines in main.yml to push the product in /var/cache/pacman/pkg
     MSYS2_PACKAGES_REBUILD=(
-        graphicsmagick
+       
     )
 elif [ ${BUILD_OS} == "Linux" ]; then
     # JP: Note the seperator ',' between the package name candidates below. The leftmost one has the highest priority.
@@ -311,24 +310,17 @@ function prep_packages {
             eval "pacman --noconfirm --needed -S ${msys2_packages}"
         fi
 
-        for package_name in ${MSYS2_PACKAGES_REBUILD[@]}; do
-            build_msys2_package $package_name
-        done
+#        for package_name in ${MSYS2_PACKAGES_REBUILD[@]}; do
+#            build_msys2_package $package_name
+#        done
 	
-#	pushd ${ROOT_DIR}
-#        download_file "https://github.com/qhull/qhull/archive/refs/tags/2020.2.zip"
-#        decompress_file
-#        log "Building qhull..."
-#        pushd qhull-2020.2
-#        make SO=dll || exit 1
-#        popd
-#	popd
-
         download_file ${BSDXDR_URL}
         decompress_file
 
         log "Building bsd-xdr..."
         pushd bsd-xdr-1.0.0
+#		need a patch now with a new version of the mingw compiler... (GD)
+        patch lib/xdr_rec.c ${GDL_DIR}/scripts/deps/windows/mingw-patches/bsdxdr_rec.patch
         sed -e 's/-Wall/-Wall -Wno-pointer-to-int-cast #/' -e 's/$(XDR_LIBRARIES) $(TEST_PROGS)/$(XDR_LIBRARIES)/' -e 's/libxdr/libbsdxdr/' -i Makefile
         mv lib/libxdr.def.in lib/libbsdxdr.def.in
         make || exit 1
@@ -358,15 +350,6 @@ function prep_packages {
                 fi
             done
         done
-
-#	pushd ${ROOT_DIR}
-#        download_file "https://github.com/qhull/qhull/archive/refs/tags/2020.2.zip"
-#        decompress_file
-#        log "Building qhull..."
-#        pushd qhull-2020.2
-#        make || exit 1
-#        popd
-#	popd
 
         if [[ -z ${INSTALL_PACKAGES} ]]; then
             log "All required packages are already installed on your system."
@@ -438,6 +421,9 @@ function configure_gdl {
                                     "-DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++"
                                     "-DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang" ) 
         else
+#patch to be tested: should avoid the error "tried including <stddef.h> but didn't find libc++'s <stddef.h> header."
+            sudo xcode-select -s /Library/Developer/CommandLineTools
+#end patch
             export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/opt/llvm/lib
             CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF -DREADLINEDIR=/usr/local/opt/readline"
                                     "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++"

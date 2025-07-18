@@ -1236,14 +1236,15 @@ statement returns[ RetCode retCode]
     exception 
     catch [ GDLException& e] 
     { 
-        // errors while typing commands in inner loop (called via Control-C, STOP, error) should be ignored.
-        if (e.Interpreter()->IsInnerInterpreterLoop()) {
-            e.Interpreter()->SetInnerInterpeterLoop(false);
-            _retTree=NULL;
-            debugMode=DEBUG_CLEAR;
-            throw e; //signal we made a (typing ?) error see #1855
-            return RC_OK;
-        }
+     		// errors while typing commands in inner loop (called via Control-C, STOP, error) should be ignored.
+		if (e.Interpreter()->IsInnerInterpreterLoop()) {
+		  e.Interpreter()->SetInnerInterpeterLoop(false);
+		  _retTree=NULL;
+		  debugMode=DEBUG_CLEAR;
+		  // we cannot throw, here, it caused #2017 
+		  Warning(e.getMessage());  //just warn that there was a (typing ?) error see #1855
+		return RC_OK;
+		}
 	// reset _retTree to last statement
 	// (might otherwise be inside an expression in which case 
 	// .CONTINUE does not work)

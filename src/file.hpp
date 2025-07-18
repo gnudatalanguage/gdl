@@ -18,6 +18,9 @@
 #ifndef FILE_HPP_
 #define FILE_HPP_
 #include "dinterpreter.hpp"
+
+std::string replaceAllOccurencesOfDefaultTokens(const std::string& s, const std::string& f, const std::string& r);
+
 namespace lib {
   // library functions
   BaseGDL* file_test( EnvT* e);

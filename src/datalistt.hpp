@@ -322,7 +322,7 @@ public:
 //     return -1;
 //   }
 
-  // finds the gloabl variable pp
+  // finds the global variable pp
   int FindGlobal( BaseGDL** pp)
   {
     for( SizeT i=0; i<env.size(); i++)
