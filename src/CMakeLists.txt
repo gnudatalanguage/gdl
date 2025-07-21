@@ -224,9 +224,6 @@ add_subdirectory(dlm)
 include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/antlr ${CMAKE_BINARY_DIR}/src ${CMAKE_SOURCE_DIR}/src/whereami/src ${CMAKE_BINARY_DIR})
 link_directories(${LINK_DIRECTORIES})
 
-#permit gdl.exe to export its symbols, necessary for linkimage and DLM
-set (CMAKE_SHARED_LIBRARY_ENABLE_EXPORTS true)
-
 if(PYTHON_MODULE) #GDL.so
 	add_library(gdl SHARED ${SOURCES})
 	SET_TARGET_PROPERTIES(gdl PROPERTIES PREFIX "")
@@ -281,15 +278,15 @@ else(PYTHON_MODULE)
 endif(PYTHON_MODULE)
 
 
-### if (NOT APPLE AND NOT OSX AND NOT MINGW)
-###     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--export-dynamic")
-### endif()
-### if (APPLE OR OSX )
-###     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fvisibility=protected") #-exported_symbols_list ${EXPORTED_SYMBOLS_LIST}")
-### endif()
-### if (MINGW )
-###   #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--export-all-symbols")
-### endif()
+if (NOT APPLE AND NOT OSX AND NOT MINGW)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--export-dynamic")
+endif()
+if (APPLE OR OSX )
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fvisibility=protected") #-exported_symbols_list ${EXPORTED_SYMBOLS_LIST}")
+endif()
+if (MINGW )
+  #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--export-all-symbols")
+endif()
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/pro/ DESTINATION ${CMAKE_INSTALL_PREFIX}/${GDL_DATA_DIR}/lib
 	PATTERN CVS EXCLUDE
