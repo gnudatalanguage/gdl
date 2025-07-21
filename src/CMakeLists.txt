@@ -231,6 +231,8 @@ if(PYTHON_MODULE) #GDL.so
 	SET_TARGET_PROPERTIES(gdl PROPERTIES NO_SONAME TRUE)
         SET_TARGET_PROPERTIES(gdl PROPERTIES SUFFIX ".so") # e.g. Mac defaults to .dylib which is not looked for by Python
 else(PYTHON_MODULE) #GDL.so
+#permit gdl (exe) to export its symbols, necessary for linkimage and DLM
+    set (CMAKE_SHARED_LIBRARY_ENABLE_EXPORTS true)
 	set(SOURCES ${SOURCES} gdl.cpp)
 	add_executable(gdl ${SOURCES})
 endif(PYTHON_MODULE)
@@ -277,17 +279,17 @@ else(PYTHON_MODULE)
 	set_target_properties(gdl PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif(PYTHON_MODULE)
 
-
-if (NOT APPLE AND NOT OSX AND NOT MINGW)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--export-dynamic")
-endif()
-if (APPLE OR OSX )
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fvisibility=protected") #-exported_symbols_list ${EXPORTED_SYMBOLS_LIST}")
-endif()
-if (MINGW )
-  #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--export-all-symbols")
-endif()
-
+### replaced by use of CMAKE_SHARED_LIBRARY_ENABLE_EXPORTS above
+### if (NOT APPLE AND NOT OSX AND NOT MINGW)
+###     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--export-dynamic")
+### endif()
+### if (APPLE OR OSX )
+###     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fvisibility=protected") #-exported_symbols_list ${EXPORTED_SYMBOLS_LIST}")
+### endif()
+### if (MINGW )
+###   #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--export-all-symbols")
+### endif()
+### 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/pro/ DESTINATION ${CMAKE_INSTALL_PREFIX}/${GDL_DATA_DIR}/lib
 	PATTERN CVS EXCLUDE
 	PATTERN checks EXCLUDE
