@@ -55,7 +55,7 @@ pro dlm_register,filein,silent=silent,verbose=verbose
   case !version.os of
      "linux": ext=".so"
      "darwin": ext=".so"
-     "windows": ext=".dll"
+     "Windows": ext=".dll"
   endcase
 
   for ifile=0,nfiles-1 do begin
