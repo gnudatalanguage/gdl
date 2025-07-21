@@ -224,6 +224,9 @@ add_subdirectory(dlm)
 include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/antlr ${CMAKE_BINARY_DIR}/src ${CMAKE_SOURCE_DIR}/src/whereami/src ${CMAKE_BINARY_DIR})
 link_directories(${LINK_DIRECTORIES})
 
+#permit gdl.exe to export its symbols, necessary for linkimage and DLM
+set (CMAKE_SHARED_LIBRARY_ENABLE_EXPORTS true)
+
 if(PYTHON_MODULE) #GDL.so
 	add_library(gdl SHARED ${SOURCES})
 	SET_TARGET_PROPERTIES(gdl PROPERTIES PREFIX "")
@@ -277,8 +280,6 @@ else(PYTHON_MODULE)
 	set_target_properties(gdl PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif(PYTHON_MODULE)
 
-#permit gdl.exe to export its symbols, necessary for linkimage and DLM
-set (CMAKE_SHARED_LIBRARY_ENABLE_EXPORTS true)
 
 ### if (NOT APPLE AND NOT OSX AND NOT MINGW)
 ###     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--export-dynamic")
