@@ -278,7 +278,7 @@ else(PYTHON_MODULE)
 endif(PYTHON_MODULE)
 
 #permit gdl.exe to export its symbols, necessary for linkimage and DLM
-set (CMAKE_SHARED_LIBRARY_ENABLE_EXPORTS )
+set (CMAKE_SHARED_LIBRARY_ENABLE_EXPORTS true)
 
 ### if (NOT APPLE AND NOT OSX AND NOT MINGW)
 ###     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--export-dynamic")
