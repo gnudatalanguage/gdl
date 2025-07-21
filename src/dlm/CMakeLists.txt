@@ -6,7 +6,9 @@ if (NOT MINGW )
 	  set(CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS "${CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS} -undefined dynamic_lookup")
 	endif()
 
-	add_library(powell MODULE brent.cpp	)
+	add_library(powell SHARED 
+		brent.cpp
+	)
 	set_target_properties(powell PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 	SET_TARGET_PROPERTIES(powell PROPERTIES SUFFIX .so)
 	set(dlm_files
