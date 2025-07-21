@@ -18,6 +18,27 @@
 #ifndef INCLUDEFIRST_HPP_
 #define INCLUDEFIRST_HPP_
 
+// define something to give the visibility of a function /class
+// see https://gcc.gnu.org/wiki/Visibility for the whole story, noticeably the problem of catching C++ exceptions. 
+// if we use this method along with  -fvisibility=hidden passed to the gcc compiler,
+// then only DLL_PUBLIC entries will be visible outside.
+#if defined _WIN32 || defined __CYGWIN__
+#ifdef __GNUC__
+#define DLL_PUBLIC __attribute__ ((dllexport))
+#else
+#define DLL_PUBLIC __declspec(dllexport)
+#endif
+#define DLL_LOCAL
+#else
+  #if __GNUC__ >= 4
+    #define DLL_PUBLIC __attribute__ ((visibility ("default")))
+    #define DLL_LOCAL  __attribute__ ((visibility ("hidden")))
+  #else
+#define DLL_PUBLIC
+#define DLL_LOCAL
+  #endif
+#endif
+
 //prevent register to take effect when including old code.
 #if __cplusplus > 199711L
 #define register      // Deprecated in C++11.

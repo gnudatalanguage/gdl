@@ -45,9 +45,9 @@ static SizeT increment=33; //why not?
 
   BaseGDL* CallDllFunc(EnvT* e) {
     void* address = static_cast<DLibPro*> (e->GetPro())->GetDllEntry();
-    IDL_SYSRTN_FUN calldllfunc = (IDL_SYSRTN_FUN) address;
+    EXPORT_SYSRTN_FUN calldllfunc = (EXPORT_SYSRTN_FUN) address;
     int argc = e->NParam();
-    IDL_VPTR argv[argc];
+    EXPORT_VPTR argv[argc];
     for (auto i = 0; i < argc; ++i) {
       // tells if input parameter is temporary (expression)
       bool tempo = (e->GetString(i).find('>') != std::string::npos);
@@ -74,11 +74,11 @@ static SizeT increment=33; //why not?
             //pass the variable anyway using GetRefExtraList
             BaseGDL* gvar = e->GetRefExtraList((*refextra)[i]);
             kws[i].varptr = gvar;
-            if (gvar == NULL) kws[i].type = IDL_TYP_UNDEF;
+            if (gvar == NULL) kws[i].type = GDL_TYP_UNDEF;
           } else {
             kws[i].readonly = 0;
             kws[i].varptr = *gvarp;
-            if (*gvarp == NULL) kws[i].type = IDL_TYP_UNDEF;
+            if (*gvarp == NULL) kws[i].type = GDL_TYP_UNDEF;
           }
         }
       }
@@ -86,20 +86,20 @@ static SizeT increment=33; //why not?
       passed.passed = kws;
       argk = (char*) (&passed);
     }
-    IDL_VPTR ret = calldllfunc(argc, argv, argk);
+    EXPORT_VPTR ret = calldllfunc(argc, argv, argk);
     //check if some argk keywords have been returned too. A real variable must be associated to be replaced in return
     for (auto i = 0; i < nkw; ++i) {
       if (kws[i].out != NULL) {
         BaseGDL** gvarp = e->GetRefExtraListPtr((*refextra)[i]); //Ptr as the variable may not exist
         if (gvarp) { //replace parameter's value
           GDLDelete(*gvarp);
-          *gvarp = (BaseGDL*) VPTR_ToGDL((IDL_VPTR) (kws[i].out));
+          *gvarp = (BaseGDL*) VPTR_ToGDL((EXPORT_VPTR) (kws[i].out));
         } else {
           e->Throw("Unexpected error, variable not existing. Please report.");
         }
       }
     }
-    if (ret->type == IDL_TYP_UNDEF) e->Throw("Variable is undefined: <UNDEFINED>."); 
+    if (ret->type == GDL_TYP_UNDEF) e->Throw("Variable is undefined: <UNDEFINED>."); 
     BaseGDL* back=VPTR_ToGDL(ret, true); //protect data
     GDL_FreeResources() ;
     return back;
@@ -107,9 +107,9 @@ static SizeT increment=33; //why not?
 
   void CallDllPro(EnvT* e) {
     void* address = static_cast<DLibPro*> (e->GetPro())->GetDllEntry();
-    IDL_SYSRTN_PRO calldllpro = (IDL_SYSRTN_PRO) address;
+    EXPORT_SYSRTN_PRO calldllpro = (EXPORT_SYSRTN_PRO) address;
     int argc = e->NParam();
-    IDL_VPTR argv[argc];
+    EXPORT_VPTR argv[argc];
     for (auto i = 0; i < argc; ++i) {
       // tells if input parameter is temporary (expression)
       bool tempo = (e->GetString(i).find('>') != std::string::npos);
@@ -136,11 +136,11 @@ static SizeT increment=33; //why not?
             //pass the variable anyway using GetRefExtraList
             BaseGDL* gvar = e->GetRefExtraList((*refextra)[i]);
             kws[i].varptr = gvar;
-            if (gvar == NULL) kws[i].type = IDL_TYP_UNDEF;
+            if (gvar == NULL) kws[i].type = GDL_TYP_UNDEF;
           } else {
             kws[i].readonly = 0;
             kws[i].varptr = *gvarp;
-            if (*gvarp == NULL) kws[i].type = IDL_TYP_UNDEF;
+            if (*gvarp == NULL) kws[i].type = GDL_TYP_UNDEF;
           }
         }
       }
@@ -155,7 +155,7 @@ static SizeT increment=33; //why not?
         BaseGDL** gvarp = e->GetRefExtraListPtr((*refextra)[i]); //Ptr as the variable may not exist
         if (gvarp) {
           GDLDelete(*gvarp);
-          *gvarp = (BaseGDL*) VPTR_ToGDL((IDL_VPTR) (kws[i].out));
+          *gvarp = (BaseGDL*) VPTR_ToGDL((EXPORT_VPTR) (kws[i].out));
         } else {
           e->Throw("Unexpected error, variable not existing. Please report.");
         }
@@ -604,8 +604,8 @@ void CleanupProc( DLibPro* proc ) {
     static bool IdlStaticsUninitialized=true;
     if (IdlStaticsUninitialized) {
       IdlStaticsUninitialized=false;
-      //set up values for some IDL_XXX info structures
-      //IDL_SysvVersion:
+      //set up values for some EXPORT_XXX info structures
+      //EXPORT_SysvVersion:
       DStructGDL* version = SysVar::Version();
       static unsigned releaseTag = version->Desc()->TagIndex( "RELEASE");
       static unsigned osTag = version->Desc()->TagIndex("OS");
