@@ -233,6 +233,9 @@ if(PYTHON_MODULE) #GDL.so
 else(PYTHON_MODULE) #GDL.so
 	set(SOURCES ${SOURCES} gdl.cpp)
 	add_executable(gdl ${SOURCES})
+## use this in conjunction with -fvisibility=hidden below, but complicated to make work.
+#   set_target_properties(gdl PROPERTIES CXX_VISIBILITY_PRESET hidden)
+#   set_target_properties(gdl PROPERTIES C_VISIBILITY_PRESET hidden)
 endif(PYTHON_MODULE)
 
 if(USE_OPENMP)
@@ -279,12 +282,13 @@ endif(PYTHON_MODULE)
 
 
 if (NOT APPLE AND NOT OSX AND NOT MINGW)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--export-dynamic")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--export-dynamic") # -fvisibility=hidden 
 endif()
 if (APPLE OR OSX )
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fvisibility=protected") #-exported_symbols_list ${EXPORTED_SYMBOLS_LIST}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--export-dynamic") # -fvisibility=protected") #-exported_symbols_list ${EXPORTED_SYMBOLS_LIST}")
 endif()
 if (MINGW )
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--export-dynamic")
   #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--export-all-symbols")
 endif()
 

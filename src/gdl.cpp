@@ -16,10 +16,6 @@
  ***************************************************************************/
 
 #include "includefirst.hpp"
-// #ifndef VERSION
-// #define VERSION "0.9"
-// #endif
-
 #include <string>
 #include <csignal>
 #include <cstdlib>

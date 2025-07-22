@@ -206,11 +206,7 @@ void CleanupProc( DLibPro* proc ) {
 	msg = "Couldn't open " + fn;
       }
 #else
-#if defined(__APPLE__)
-      handle = dlopen(fn.c_str(), RTLD_NOW | RTLD_LOCAL); //DEEPBIND not on OSX ?
-#else
-      handle = dlopen(fn.c_str(), RTLD_NOW | RTLD_LOCAL |RTLD_DEEPBIND);
-#endif
+      handle = dlopen(fn.c_str(), RTLD_LAZY);
       if( !handle ) {
 	msg = "Couldn't open " + fn;
 	char* error = dlerror();
@@ -1140,10 +1136,7 @@ void CleanupProc( DLibPro* proc ) {
     HMODULE handle = LoadLibraryW(wchr);
     delete(wchr);
 #else
-    // note following code line is correct for gcc and linux.
-    // in case of trouble on some architecture, find the correct option and make an #ifdef.
-    // Do *not* modify the following line. GD.
-    void* handle =  dlopen(image.c_str(),  RTLD_NOW | RTLD_GLOBAL);
+    void* handle =  dlopen(image.c_str(), RTLD_LAZY);
 #endif
     if (handle == NULL) {
 #if !defined(_WIN32) || defined(__CYGWIN__)
