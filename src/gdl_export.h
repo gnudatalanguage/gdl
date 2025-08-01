@@ -210,7 +210,7 @@ typedef struct {
   UCHAR flags;
 } EXPORT_STRUCT_TAG_DEF;
 
-#define IDL_ENSURE_SIMPLE(v) IDL_VarEnsureSimple(v)
+#define GDL_ENSURE_SIMPLE(v) IDL_VarEnsureSimple(v)
 
 #define GDL_KW_ARRAY (1 << 12)
 #define GDL_KW_OUT (1 << 13)

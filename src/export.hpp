@@ -77,7 +77,7 @@ void GDL_FreeResources() {
 	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	bool message = true;
 	for (std::vector<EXPORT_VPTR>::iterator it = FreeList.begin(); it != FreeList.end(); ++it) {
-		if ((*it)->flags & GDL_V_TEMP) {
+		if ((*it)->flags & GDL_V_DYNAMIC) {
 			if (message) { message=false;
 				Message("Temporary variables are still checked out - cleaning up...");
 			}
@@ -137,8 +137,6 @@ inline EXPORT_VPTR NewTMPVPTRSTRUCTWithCB(EXPORT_StructDefPtr structdefptr=NULL,
 }
 inline EXPORT_VPTR NewTMPVPTRFromGDL(bool kw=false) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 EXPORT_VPTR ret=NewTMPVPTR(); if(kw) FreeKwList.push_back(ret); else FreeList.push_back(ret);
-ret->flags=GDL_V_TEMP| GDL_V_DYNAMIC ;
-ret->type=GDL_TYP_UNDEF;
 return ret;
 }	
 inline EXPORT_VPTR NewSTATICVPTR() {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
@@ -219,10 +217,10 @@ EXPORT_VPTR GDL_ToVPTR(BaseGDL* var, bool tempo=false, bool is_kw=false) { TRACE
         case GDL_STRING:
         {
           v->type = GDL_TYP_STRING;
-          v->flags |= GDL_V_DYNAMIC;
           DString s = (*static_cast<DStringGDL*> (var))[0];
 		  v->value.str.slen=s.size();
-		  v->value.str.s=(char*) s.c_str();
+		  v->value.str.s=(char*) malloc(s.size()+1);
+		  strncpy(v->value.str.s,s.c_str(),s.size());
           break;
         }
         case GDL_STRUCT:
@@ -866,7 +864,15 @@ DLL_PUBLIC void  GDL_CDECL IDL_StrStore(EXPORT_STRING *s, const char *fs){TRACE_
 	s->s=(char*)malloc(s->slen);
 	strncpy(s->s,fs,s->slen);
 }
-
+DLL_PUBLIC char* GDL_CDECL IDL_VarGetString(EXPORT_VPTR s) {
+	GDL_ENSURE_SIMPLE(s);
+	if (s->type != GDL_TYP_STRING) GDL_WillThrowAfterCleaning("IDL_VarGetString: variable is not a string.");
+	if (s->value.str.slen==0) {
+		return (char*) calloc(1,1);
+	} else {
+		return s->value.str.s;
+	}
+}
 // str below is a supposed to be a copy of the string descriptor(s).
 // to properly duplicate, one has to create copies of the string(s) and update the descriptor(s)
 DLL_PUBLIC void  GDL_CDECL IDL_StrDup(GDL_REGISTER EXPORT_STRING *str, GDL_REGISTER EXPORT_MEMINT n){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
@@ -895,7 +901,7 @@ DLL_PUBLIC void  GDL_CDECL IDL_StrEnsureLength(EXPORT_STRING *s, int n) {TRACE_R
 DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_StrToSTRING(const char *s) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		EXPORT_VPTR ret = NewTMPVPTR();
 		ret->type = GDL_TYP_STRING;
-		ret->flags = GDL_V_TEMP | GDL_V_DYNAMIC;
+		ret->flags = GDL_V_TEMP;
 		ret->value.str.slen = strlen(s);
 		ret->value.str.stype = 0;
 		ret->value.str.s=(char*)s;
@@ -907,7 +913,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_StrToSTRING(const char *s) {TRACE_ROUTINE(
 #define DOCASE_CMP(type, what)\
  case type: {dest->value.what.r=value->what.r; dest->value.what.i=value->what.i;  break;}
 DLL_PUBLIC void  GDL_CDECL IDL_StoreScalar(EXPORT_VPTR dest, int type,	EXPORT_ALLTYPES * value) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-	IDL_ENSURE_SIMPLE(dest);
+	GDL_ENSURE_SIMPLE(dest);
 		dest->type=type;
 		switch (type) {
 				DOCASE(GDL_TYP_BYTE, c);
@@ -932,7 +938,7 @@ DLL_PUBLIC void  GDL_CDECL IDL_StoreScalar(EXPORT_VPTR dest, int type,	EXPORT_AL
 #define DOCASE_CMP(type, what)\
  case type: {dest->value.what.r=0; dest->value.what.i=0;  break;}
 DLL_PUBLIC void  GDL_CDECL IDL_StoreScalarZero(EXPORT_VPTR dest, int type) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-	IDL_ENSURE_SIMPLE(dest);
+	GDL_ENSURE_SIMPLE(dest);
 		dest->type=type;
 		switch (type) {
 				DOCASE(GDL_TYP_BYTE, c);
@@ -989,7 +995,7 @@ DLL_PUBLIC void  GDL_CDECL IDL_VarCopy(GDL_REGISTER EXPORT_VPTR src, GDL_REGISTE
 #define DOCASE_CMP(rettype,type, what)\
  case type: {return (rettype) (v->value.what.r);  break;}
 DLL_PUBLIC double  GDL_CDECL IDL_DoubleScalar(GDL_REGISTER EXPORT_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-		IDL_ENSURE_SIMPLE(v);
+		GDL_ENSURE_SIMPLE(v);
 		switch (v->type) {
 				DOCASE(double, GDL_TYP_BYTE, c);
 				DOCASE(double, GDL_TYP_INT, i);
@@ -1007,7 +1013,7 @@ DLL_PUBLIC double  GDL_CDECL IDL_DoubleScalar(GDL_REGISTER EXPORT_VPTR v) {TRACE
 		throw;
 	}
 DLL_PUBLIC EXPORT_ULONG  GDL_CDECL IDL_ULongScalar(GDL_REGISTER EXPORT_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-		IDL_ENSURE_SIMPLE(v);
+		GDL_ENSURE_SIMPLE(v);
 		switch (v->type) {
 				DOCASE(EXPORT_ULONG, GDL_TYP_BYTE, c);
 				DOCASE(EXPORT_ULONG, GDL_TYP_INT, i);
@@ -1025,7 +1031,7 @@ DLL_PUBLIC EXPORT_ULONG  GDL_CDECL IDL_ULongScalar(GDL_REGISTER EXPORT_VPTR v) {
 		throw;
 	}
 DLL_PUBLIC EXPORT_LONG  GDL_CDECL IDL_LongScalar(GDL_REGISTER EXPORT_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-		IDL_ENSURE_SIMPLE(v);
+		GDL_ENSURE_SIMPLE(v);
 		switch (v->type) {
 				DOCASE(EXPORT_LONG, GDL_TYP_BYTE, c);
 				DOCASE(EXPORT_LONG, GDL_TYP_INT, i);
@@ -1043,7 +1049,7 @@ DLL_PUBLIC EXPORT_LONG  GDL_CDECL IDL_LongScalar(GDL_REGISTER EXPORT_VPTR v) {TR
 		throw;
 	}
 DLL_PUBLIC EXPORT_LONG64  GDL_CDECL IDL_Long64Scalar(GDL_REGISTER EXPORT_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-		IDL_ENSURE_SIMPLE(v);
+		GDL_ENSURE_SIMPLE(v);
 		switch (v->type) {
 				DOCASE(EXPORT_LONG64, GDL_TYP_BYTE, c);
 				DOCASE(EXPORT_LONG64, GDL_TYP_INT, i);
@@ -1061,7 +1067,7 @@ DLL_PUBLIC EXPORT_LONG64  GDL_CDECL IDL_Long64Scalar(GDL_REGISTER EXPORT_VPTR v)
 		throw;
 	}
 DLL_PUBLIC EXPORT_ULONG64  GDL_CDECL IDL_ULong64Scalar(GDL_REGISTER EXPORT_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-		IDL_ENSURE_SIMPLE(v);
+		GDL_ENSURE_SIMPLE(v);
 		switch (v->type) {
 				DOCASE(EXPORT_ULONG64, GDL_TYP_BYTE, c);
 				DOCASE(EXPORT_ULONG64, GDL_TYP_INT, i);
@@ -1079,7 +1085,7 @@ DLL_PUBLIC EXPORT_ULONG64  GDL_CDECL IDL_ULong64Scalar(GDL_REGISTER EXPORT_VPTR 
 		throw;
 	}
 DLL_PUBLIC EXPORT_MEMINT  GDL_CDECL IDL_MEMINTScalar(GDL_REGISTER EXPORT_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-		IDL_ENSURE_SIMPLE(v);
+		GDL_ENSURE_SIMPLE(v);
 		switch (v->type) {
 				DOCASE(EXPORT_MEMINT, GDL_TYP_BYTE, c);
 				DOCASE(EXPORT_MEMINT, GDL_TYP_INT, i);
@@ -1097,7 +1103,7 @@ DLL_PUBLIC EXPORT_MEMINT  GDL_CDECL IDL_MEMINTScalar(GDL_REGISTER EXPORT_VPTR v)
 		throw;
 	}
 DLL_PUBLIC EXPORT_FILEINT  GDL_CDECL IDL_FILEINTScalar(GDL_REGISTER EXPORT_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-		IDL_ENSURE_SIMPLE(v);
+		GDL_ENSURE_SIMPLE(v);
 		switch (v->type) {
 				DOCASE(EXPORT_FILEINT, GDL_TYP_BYTE, c);
 				DOCASE(EXPORT_FILEINT, GDL_TYP_INT, i);
@@ -1118,7 +1124,7 @@ DLL_PUBLIC EXPORT_FILEINT  GDL_CDECL IDL_FILEINTScalar(GDL_REGISTER EXPORT_VPTR 
 #undef DOCASE_CMP
 
 DLL_PUBLIC void  GDL_CDECL IDL_VarGetData(EXPORT_VPTR v, EXPORT_MEMINT *n, char **pd,  int ensure_simple){TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-	if (ensure_simple) IDL_ENSURE_SIMPLE(v);
+	if (ensure_simple) GDL_ENSURE_SIMPLE(v);
 	if (v->flags & GDL_V_ARR) {
 		*n=v->value.arr->n_elts;
 		*pd=(char*) v->value.arr->data;
@@ -2518,7 +2524,7 @@ DLL_PUBLIC void  GDL_CDECL IDL_WinCleanup(void){}
 DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_BasicTypeConversion(int argc, EXPORT_VPTR argv[], GDL_REGISTER int type){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 	if (argc != 1) GDL_WillThrowAfterCleaning("FIXME IDL_BasicTypeConversion!");
 	int i=0;
-	IDL_ENSURE_SIMPLE(argv[i]);
+	GDL_ENSURE_SIMPLE(argv[i]);
 	if (argv[i]->type == type) return argv[i];
 
 	switch(type) {
