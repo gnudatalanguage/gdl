@@ -719,10 +719,10 @@ DLL_PUBLIC char * GDL_CDECL IDL_VarName(EXPORT_VPTR v){TRACE_ROUTINE(__FUNCTION_
 			int i;
 			for (i=0; i< v->value.arr->n_dim-1; ++i) {
 				int l=strlen(infoline);
-				snprintf (&infoline[l], 127-l, "%ld,",v->value.arr->dim[i]);
+				snprintf (&infoline[l], 127-l, "%llu,",v->value.arr->dim[i]);
 			}
 			int l = strlen(infoline);
-			snprintf(&infoline[l], 127-l, "%ld", v->value.arr->dim[i]);
+			snprintf(&infoline[l], 127-l, "%llu", v->value.arr->dim[i]);
 			strncat(infoline,"]",2);
 		} else {
 			strncat(infoline,"(",2);
@@ -2763,6 +2763,10 @@ DLL_PUBLIC int  GDL_CDECL IDL_StructNumTags(EXPORT_StructDefPtr sdef){return sde
 
 #include <signal.h>
 
+#if defined(SIGWINDOW) && !defined(SIGWINCH)
+#define SIGWINCH SIGWINDOW
+#endif
+
 typedef struct {
 #ifdef linux
   unsigned long set[_SIGSET_NWORDS];
@@ -2784,11 +2788,11 @@ typedef void (* EXPORT_SignalHandler_t)(int signo);
 //should mimic what IDL does
 
 int GDL_CDECL IDL_SignalRegister(int signo, EXPORT_SignalHandler_t func, int msg_action){
-	if (signo == SIGFPE || signo == SIGALRM ) {
+	if (signo == SIGFPE || signo == SIGALRM || signo == SIGCHLD  ) {
 		Warning("Signal "+i2s(signo)+" not allowed. Use alternative API.");
 		return 0;
 	}
-	sighandler_t ret=signal(signo,func);
+	sig_t ret=signal(signo,func);
 	if (ret==SIG_ERR) {
 			Warning("Attempt to set signal failed.\n"+std::string(strerror(errno)));
 			return 0;
@@ -2797,11 +2801,11 @@ int GDL_CDECL IDL_SignalRegister(int signo, EXPORT_SignalHandler_t func, int msg
 }
 //not exactly what IDL does
 int GDL_CDECL IDL_SignalUnregister(int signo, EXPORT_SignalHandler_t func, int msg_action){
-	if (signo == SIGFPE || signo == SIGALRM ) {
+	if (signo == SIGFPE || signo == SIGALRM  || signo == SIGCHLD ) {
 		Warning("Signal "+i2s(signo)+" not allowed. Use alternative API.");
 		return 0;
 	}
-	sighandler_t ret=signal(signo,SIG_DFL);
+	sig_t ret=signal(signo,SIG_DFL);
 	return 1;
 }
 
