@@ -2786,7 +2786,17 @@ typedef void (* EXPORT_SignalHandler_t)(int signo);
 //void GDL_CDECL IDL_SignalBlock(int signo, EXPORT_SignalSet_t *oset);
 //void GDL_CDECL IDL_SignalSuspend(EXPORT_SignalSet_t *set);
 //should mimic what IDL does
+#if defined (_WIN32) && !defined(__CYGWIN__)
+int GDL_CDECL IDL_SignalRegister(int signo, EXPORT_SignalHandler_t func, int msg_action){
+	Warning("Signal "+i2s(signo)+" not allowed. Use alternative API.");
+		return 0;
+	}
 
+	int GDL_CDECL IDL_SignalUnegister(int signo, EXPORT_SignalHandler_t func, int msg_action) {
+		Warning("Signal " + i2s(signo) + " not allowed. Use alternative API.");
+		return 0;
+	}
+#else
 int GDL_CDECL IDL_SignalRegister(int signo, EXPORT_SignalHandler_t func, int msg_action){
 	if (signo == SIGFPE || signo == SIGALRM || signo == SIGCHLD  ) {
 		Warning("Signal "+i2s(signo)+" not allowed. Use alternative API.");
@@ -2808,6 +2818,6 @@ int GDL_CDECL IDL_SignalUnregister(int signo, EXPORT_SignalHandler_t func, int m
 	sig_t ret=signal(signo,SIG_DFL);
 	return 1;
 }
-
+#endif
 }
 #endif
