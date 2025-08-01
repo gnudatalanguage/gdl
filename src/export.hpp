@@ -2761,5 +2761,49 @@ DLL_PUBLIC char * GDL_CDECL IDL_StructTagNameByIndex(EXPORT_StructDefPtr sdef, i
 
 DLL_PUBLIC int  GDL_CDECL IDL_StructNumTags(EXPORT_StructDefPtr sdef){return sdef->ntags;}
 
+#include <signal.h>
+
+typedef struct {
+#ifdef linux
+  unsigned long set[_SIGSET_NWORDS];
+#else
+  double set[4];
+#endif
+} EXPORT_SignalSet_t;
+typedef void (* EXPORT_SignalHandler_t)(int signo);
+
+//void GDL_CDECL IDL_SignalSetInit(EXPORT_SignalSet_t *set, int signo);
+//void GDL_CDECL IDL_SignalSetAdd(EXPORT_SignalSet_t *set, int signo);
+//void GDL_CDECL IDL_SignalSetDel(EXPORT_SignalSet_t *set, int signo);
+//int GDL_CDECL IDL_SignalSetIsMember(EXPORT_SignalSet_t *set, int signo);
+//void GDL_CDECL IDL_SignalMaskGet(EXPORT_SignalSet_t *set);
+//void GDL_CDECL IDL_SignalMaskSet(EXPORT_SignalSet_t *set, EXPORT_SignalSet_t *oset);
+//void GDL_CDECL IDL_SignalMaskBlock(EXPORT_SignalSet_t *set,	EXPORT_SignalSet_t *oset);
+//void GDL_CDECL IDL_SignalBlock(int signo, EXPORT_SignalSet_t *oset);
+//void GDL_CDECL IDL_SignalSuspend(EXPORT_SignalSet_t *set);
+//should mimic what IDL does
+
+int GDL_CDECL IDL_SignalRegister(int signo, EXPORT_SignalHandler_t func, int msg_action){
+	if (signo == SIGFPE || signo == SIGALRM ) {
+		Warning("Signal "+i2s(signo)+" not allowed. Use alternative API.");
+		return 0;
+	}
+	sighandler_t ret=signal(signo,func);
+	if (ret==SIG_ERR) {
+			Warning("Attempt to set signal failed.\n"+std::string(strerror(errno)));
+			return 0;
+	}
+	return 1;
+}
+//not exactly what IDL does
+int GDL_CDECL IDL_SignalUnregister(int signo, EXPORT_SignalHandler_t func, int msg_action){
+	if (signo == SIGFPE || signo == SIGALRM ) {
+		Warning("Signal "+i2s(signo)+" not allowed. Use alternative API.");
+		return 0;
+	}
+	sighandler_t ret=signal(signo,SIG_DFL);
+	return 1;
+}
+
 }
 #endif
