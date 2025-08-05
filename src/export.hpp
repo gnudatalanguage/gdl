@@ -2263,7 +2263,7 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWProcessByOffset(int argc, EXPORT_VPTR *argv, cha
 		TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 				static const int NoClean = 0;
 		// this is always true with GDL:
-		for (auto i = 0; i < argc; ++i) plain_args[i] = argv[i];
+		if (plain_args) for (auto i = 0; i < argc; ++i) plain_args[i] = argv[i];
 		//argk is a pointer to a  GDL_PASS_KEYWORDS_LIST struct
 		GDL_PASS_KEYWORDS_LIST* container = (GDL_PASS_KEYWORDS_LIST*) argk_passed;
 		int npassed = 0;
