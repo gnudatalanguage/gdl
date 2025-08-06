@@ -436,24 +436,26 @@ DLL_PUBLIC char * GDL_CDECL IDL_TypeNameFunc(int type) {
 }
 #undef C_
 }
-void fillVariableData(void* baseData, EXPORT_VPTR v, int t, BaseGDL* var) {
+void StructFillVariableData(EXPORT_MEMINT baseData, EXPORT_VPTR v, int t, BaseGDL* var) {
 	SizeT nEl = var->N_Elements();
 	EXPORT_MEMINT off = v->value.s.sdef->tags[t].offset; 
-	void* dataset = (void*) ((EXPORT_MEMINT) baseData + off); //fprintf(stderr,"%s at addr #%lld :\n",v->value.s.sdef->tags[t].id->name,dataset);
+	EXPORT_MEMINT dataset = baseData + off;
 	if (v->value.s.sdef->tags[t].var.flags & GDL_V_STRUCT) {
 		DStructGDL* myStruct = static_cast<DStructGDL*> (var);
 		u_int nEl = myStruct->N_Elements();
 		SizeT nTags = myStruct->Desc()->NTags();
-		for (SizeT ix = 0; ix < nEl; ++ix) for (SizeT tt = 0; tt < nTags; ++tt) fillVariableData(dataset, &(v->value.s.sdef->tags[t].var), tt, myStruct->GetTag(tt, ix));
+		for (SizeT ix = 0; ix < nEl; ++ix) for (SizeT tt = 0; tt < nTags; ++tt) StructFillVariableData(dataset, &(v->value.s.sdef->tags[t].var), tt, myStruct->GetTag(tt, ix));
 	} else if (v->value.s.sdef->tags[t].var.flags & GDL_V_ARR) {
 		if (v->value.s.sdef->tags[t].var.type == GDL_TYP_STRING) {
-			EXPORT_STRING* ss = (EXPORT_STRING*) (v->value.arr->data + v->value.s.sdef->tags[t].offset);
-			for (auto i = 0; i < nEl; ++i) (*static_cast<DStringGDL*> (var))[i] = std::string(ss[i].s, ss[i].slen);
-		} else memcpy(var->DataAddr(), dataset, v->value.s.sdef->tags[t].var.value.arr->arr_len);
+            EXPORT_STRING* ss = (EXPORT_STRING*) dataset;
+			for (auto i = 0; i < nEl; ++i) {
+				(*static_cast<DStringGDL*> (var))[i] = std::string(ss[i].s, ss[i].slen);
+			}
+		} else memcpy(var->DataAddr(), (void*) dataset, v->value.s.sdef->tags[t].var.value.arr->arr_len);
 	} else if (v->value.s.sdef->tags[t].var.type == GDL_TYP_STRING) {
-		EXPORT_STRING* ss = (EXPORT_STRING*) (v->value.arr->data + v->value.s.sdef->tags[t].offset);
+		EXPORT_STRING* ss = (EXPORT_STRING*) (dataset + v->value.s.sdef->tags[t].offset);
 		(*static_cast<DStringGDL*> (var))[0] = std::string(ss->s, ss->slen);
-	} else memcpy(var->DataAddr(), dataset, IDL_TypeSize[v->value.s.sdef->tags[t].var.type]);
+	} else memcpy(var->DataAddr(), (void*) dataset, IDL_TypeSize[v->value.s.sdef->tags[t].var.type]);
 }
   
 #define DOCASE(type, gdltype, tagname, pardim)\
@@ -514,10 +516,11 @@ DStructGDL* GDL_MakeStruct(EXPORT_VPTR v, dimension &inputdim) {
 	DStructGDL* var = new DStructGDL(stru_desc, inputdim);
 	u_int nEl = var->N_Elements();
 	SizeT nTags = var->Desc()->NTags();
-	EXPORT_MEMINT running_offset=0;
-	for (SizeT ix = 0; ix < nEl; ++ix)
-		for (SizeT t = 0; t < nTags; ++t) fillVariableData((void*)v->value.s.arr->data,v, t, var->GetTag(t, ix));
-
+	EXPORT_MEMINT running_offset= (EXPORT_MEMINT) v->value.s.arr->data;
+	for (SizeT ix = 0; ix < nEl; ++ix) {
+		for (SizeT t = 0; t < nTags; ++t) StructFillVariableData(running_offset,v, t, var->GetTag(t, ix));
+		running_offset +=  v->value.s.sdef->length;
+	}
 	return var;
 
 }
@@ -623,7 +626,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_ImportArray(int n_dim, EXPORT_MEMINT dim[]
 		}
 		v->value.s.arr->n_elts = l;
 		v->value.s.arr->n_dim = n_dim;
-		EXPORT_LONG64 sz = IDL_TypeSizeFunc(type);
+		EXPORT_LONG64 sz = s->data_length;
 		v->value.s.arr->elt_len = sz;
 		v->value.s.arr->arr_len = sz*l;
 		v->value.s.arr->data = data;
