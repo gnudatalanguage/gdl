@@ -453,7 +453,7 @@ void StructFillVariableData(EXPORT_MEMINT baseData, EXPORT_VPTR v, int t, BaseGD
 			}
 		} else memcpy(var->DataAddr(), (void*) dataset, v->value.s.sdef->tags[t].var.value.arr->arr_len);
 	} else if (v->value.s.sdef->tags[t].var.type == GDL_TYP_STRING) {
-		EXPORT_STRING* ss = (EXPORT_STRING*) (dataset + v->value.s.sdef->tags[t].offset);
+		EXPORT_STRING* ss = (EXPORT_STRING*) dataset;
 		(*static_cast<DStringGDL*> (var))[0] = std::string(ss->s, ss->slen);
 	} else memcpy(var->DataAddr(), (void*) dataset, IDL_TypeSize[v->value.s.sdef->tags[t].var.type]);
 }
