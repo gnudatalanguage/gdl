@@ -26,20 +26,7 @@ if (NOT EXISTS "${CMAKE_SOURCE_DIR}/src/version.hpp")
   )
 endif()
 
-# Set some policies to fix warnings in newer versions of cmake
-# Since VERSION_GREATER_EQUAL is available only since 3.7, we use 
-# VERSION_GREATER combined with VERSION_EQUAL to achieve what we want
-
-if (CMAKE_MINOR_VERSION GREATER 12)
-  if (CMAKE_VERSION VERSION_GREATER "3.12.0" OR CMAKE_VERSION VERSION_EQUAL "3.12.0")
-      cmake_policy(SET CMP0075 NEW)
-  endif(CMAKE_VERSION VERSION_GREATER "3.12.0" OR CMAKE_VERSION VERSION_EQUAL "3.12.0")
-  if (CMAKE_VERSION VERSION_GREATER "3.13.0" OR CMAKE_VERSION VERSION_EQUAL "3.13.0")
-      cmake_policy(SET CMP0077 NEW)
-  endif(CMAKE_VERSION VERSION_GREATER "3.13.0" OR CMAKE_VERSION VERSION_EQUAL "3.13.0")
-endif (CMAKE_MINOR_VERSION GREATER 12)
-
-project(GDL)
+project(GDL LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_C_STANDARD 99)
 
@@ -72,7 +59,7 @@ set(GDLDEV OFF CACHE BOOL "GDL: Enable GDL developer mode (includes work-in-prog
 
 set(PYTHON_MODULE OFF CACHE BOOL "GDL: Build GDL as a Python module ?")
 
-set(X11 OFF CACHE BOOL "GDL: Enable X11 ?") 
+set(X11 OFF CACHE BOOL "GDL: Enable X11 ?")
 set(X11DIR "" CACHE PATH "GDL: Specify X11 directory tree")
 
 # Only GNU Readline since May 2020 (too complex to manage BSD Editline. See #754)
@@ -211,7 +198,7 @@ check_library_exists(m nexttoward "" HAVE_NEXTTOWARD)
 # mpi
 check_include_file(mpi.h HAVE_MPI_H)
 
-# SA: whithout it compilation of antlr fails if there's a conflicting 
+# SA: whithout it compilation of antlr fails if there's a conflicting
 #     version of antlr in system-wide directories
 include_directories(src)
 
@@ -219,7 +206,7 @@ include_directories(src)
 if (NOT WIN32)
     # Ncurses MANDATORY for readline on POSIX
     # -DNCURSESDIR=DIR
-    set(CMAKE_PREFIX_PATH ${NCURSESDIR})    
+    set(CMAKE_PREFIX_PATH ${NCURSESDIR})
     set(CURSES_NEED_NCURSES TRUE)
     find_package(Curses QUIET COMPONENTS initscr)
     mark_as_advanced(CURSES_CURSES_H_PATH CURSES_FORM_LIBRARY CURSES_HAVE_CURSES_H)
@@ -343,7 +330,7 @@ elseif (WIN32)
     if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
       add_compile_options(-Wa,-mbig-obj)
       message(STATUS "-Wa,-mbig-obj added to compiler options ")
-    endif() 
+    endif()
 endif()
 
 if (NOT SPLIT_SOURCES_FILES)
@@ -395,7 +382,7 @@ if(OPENMP)
     "Use -DOPENMP=OFF to not use it.\n"
     "(suitable Homebrew compiler package: llvm)"
     "(suitable Homebrew library package: libomp)")
-  endif(OPENMP_FOUND) 
+  endif(OPENMP_FOUND)
 else(OPENMP)
   # we need to define those semaphore posix symbols, do it with threads libs
   find_package(Threads)
@@ -414,7 +401,7 @@ endif(OPENMP)
 
 # wxWidgets: should be the one graphics library. Presence test is 'WXWIDGETS_FOUND'
 #
-#    I suggest to have wxWidgets a 'main' dependency. 
+#    I suggest to have wxWidgets a 'main' dependency.
 #    thus removing the need of X11 for unix/linux/MacOS, as well as xwin and wingcc/wingdi.
 #    Behavior of plots, either in a WIDGET_DRAW or in a WINDOW, will be identical.
 #    Provided wxWidgets library exist, the graphic device will be 'X' on all platforms.
@@ -443,9 +430,9 @@ if(WXWIDGETS)
     set (PLD_wxwidgets OFF)
     endif(WXWIDGETS_FOUND)
 else (WXWIDGETS)
-  if (INTERACTIVE_GRAPHICS AND WIN32) 
+  if (INTERACTIVE_GRAPHICS AND WIN32)
     message(FATAL_ERROR "wxWidgets are required on Windows.")
-  endif (INTERACTIVE_GRAPHICS AND WIN32) 
+  endif (INTERACTIVE_GRAPHICS AND WIN32)
   #forcibly not used, no need to build and install our own copy of drivers, below
   set (PLD_wxwidgets OFF)
 endif(WXWIDGETS)
@@ -472,14 +459,14 @@ if(CYGWIN OR NOT WIN32)
     else(X11)
       set (PLD_xwin OFF)
     endif(X11)
-    if (X11_FOUND AND NOT WXWIDGETS_FOUND) 
+    if (X11_FOUND AND NOT WXWIDGETS_FOUND)
       message(STATUS "WARNING: GDL is BEST with wxWidgets instead of X11, please consider installing wxWidgets")
-    endif (X11_FOUND AND NOT WXWIDGETS_FOUND) 
+    endif (X11_FOUND AND NOT WXWIDGETS_FOUND)
 else(CYGWIN OR NOT WIN32)
   set (PLD_xwin OFF)
 endif(CYGWIN OR NOT WIN32)
 
-    
+
 # GraphicsMagick (GM) is an alternative to the classical ImageMagick Lib (IM).
 # It was experienced that GM was more stable in time than IM
 #
@@ -491,8 +478,8 @@ if(GRAPHICSMAGICK)
     find_package(GraphicsMagick QUIET)
     set(USE_MAGICK ${GRAPHICSMAGICK_FOUND})
     if(GRAPHICSMAGICK_FOUND)
-        include_directories(${GRAPHICSMAGICK_INCLUDE_DIR})  
-        set(LIBRARIES ${LIBRARIES} ${GRAPHICSMAGICK_LIBRARIES})     
+        include_directories(${GRAPHICSMAGICK_INCLUDE_DIR})
+        set(LIBRARIES ${LIBRARIES} ${GRAPHICSMAGICK_LIBRARIES})
     else(GRAPHICSMAGICK_FOUND)
         message( STATUS
         "GRAPHICSMAGICK is strongly suggested but was not found.
@@ -500,7 +487,7 @@ if(GRAPHICSMAGICK)
         Use -DGRAPHICSMAGICK=OFF to not use it.
                 (suitable Fedora/CentOS package: GraphicsMagick-c++-devel
            Debian/Ubuntu package: libgraphicsmagick++1-dev)\n")
-        message( STATUS 
+        message( STATUS
         "Looking for ImageMagick")
     endif(GRAPHICSMAGICK_FOUND)
 endif(GRAPHICSMAGICK)
@@ -530,7 +517,7 @@ if(MAGICK)
       execute_process(COMMAND ${MAGICKXXCONFIG} "--libs" OUTPUT_VARIABLE MAGICKXXCONFIGLIBS OUTPUT_STRIP_TRAILING_WHITESPACE)
       set(LIBRARIES ${LIBRARIES} ${MAGICKXXCONFIGLIBS})
       execute_process(COMMAND ${MAGICKXXCONFIG} "--cxxflags" OUTPUT_VARIABLE MAGICKXXCONFIGCXXFLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MAGICKXXCONFIGCXXFLAGS}")  
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MAGICKXXCONFIGCXXFLAGS}")
     else(MAGICKXXCONFIG)
       message(FATAL_ERROR "ImageMagick is required but was not found (Magick++-config).\n"
     "Use -DMAGICKDIR=DIR to specify the ImageMagick directory.\n"
@@ -672,7 +659,7 @@ if(HDF5)
         find_package(MPI QUIET)
         if(MPI_FOUND)
             include_directories(${MPI_INCLUDE_PATH})
-            set(LIBRARIES ${LIBRARIES} ${MPI_LIBRARIES})    
+            set(LIBRARIES ${LIBRARIES} ${MPI_LIBRARIES})
         endif(MPI_FOUND)
     else(HDF5_FOUND)
         message(FATAL_ERROR "HDF version 5 is required but was not found.\n"
@@ -710,7 +697,7 @@ if(LIBPROJ)
     find_package(LIBPROJ)
     set(USE_LIBPROJ ${LIBPROJ_FOUND})
 
-    if(LIBPROJ_FOUND)  
+    if(LIBPROJ_FOUND)
         set(LIBRARIES ${LIBRARIES} ${LIBPROJ_LIBRARIES})
         include_directories(${LIBPROJ_INCLUDE_DIR})
         set(LIBPROJ_MAJOR_VERSION ${LIBPROJ_MAJOR_VERSION})
@@ -720,7 +707,7 @@ if(LIBPROJ)
         "Use -DLIBPROJ=OFF to not use it.\n"
         "(suitable Debian/Ubuntu package: libproj-dev)\n"
         "(suitable Fedora/CentOS package: proj-devel)")
-    endif(LIBPROJ_FOUND)   
+    endif(LIBPROJ_FOUND)
 endif(LIBPROJ)
 
 # MPI (experimental)
@@ -731,14 +718,14 @@ if(MPI)
 	find_package(MPI QUIET)
 	set(USE_MPI ${MPI_FOUND})
 	if(MPI_FOUND)
-		include_directories(${MPI_INCLUDE_PATH})	
+		include_directories(${MPI_INCLUDE_PATH})
 		set(LIBRARIES ${LIBRARIES} ${MPI_LIBRARIES})
 	else(MPI_FOUND)
 		message(FATAL_ERROR "MPI is required but was not found.\n"
 		"(on Fedora, running `module load mpi` is required prior to run CMake)\n"
 		"Use -DMPIDIR=DIR to specify the MPI directory tree.\n"
 		"Use -DMPI=OFF to not use it.")
-	endif(MPI_FOUND)	
+	endif(MPI_FOUND)
 endif(MPI)
 # python
 # -DPYTHON=ON|OFF
@@ -781,7 +768,7 @@ if(PYTHON OR PYTHON_MODULE)
         endif()
         set(USE_PYTHON ${Python_NumPy_FOUND})
         set(LIBRARIES ${LIBRARIES} ${Python_LIBRARIES})
-        include_directories(${Python_INCLUDE_DIRS} ${Python_NumPy_INCLUDE_DIRS}) 
+        include_directories(${Python_INCLUDE_DIRS} ${Python_NumPy_INCLUDE_DIRS})
     else()
         message(FATAL_ERROR "Python is required but was not found.\n"
         "Use -DPYTHONDIR=DIR to specify the Python directory tree.\n"
@@ -801,7 +788,7 @@ if(UDUNITS2)
     set(USE_UDUNITS ${UDUNITS2_FOUND})
     if(UDUNITS2_FOUND)
         set(LIBRARIES ${LIBRARIES} ${UDUNITS2_LIBRARIES})
-        include_directories(${UDUNITS2_INCLUDE_DIR}) 
+        include_directories(${UDUNITS2_INCLUDE_DIR})
     else(UDUNITS2_FOUND)
         message(FATAL_ERROR "UDUNITS-2 is required but was not found.\n"
         "Use -DUDUNITS2DIR=DIR to specify the Udunits2 directory tree.\n"
@@ -828,7 +815,7 @@ if(EIGEN3)
       " Please download a recent version (>=3.2.4) in a local directory."
       " Then use -DEIGEN3DIR=DIR to specify the Eigen3 local directory tree.\n"
       "Use -DEIGEN3=OFF to not use it.\n")
-  else(EIGEN3_TOO_OLD)   
+  else(EIGEN3_TOO_OLD)
     set(USE_EIGEN ${EIGEN3_FOUND})
     if(EIGEN3_FOUND)
       include_directories(${EIGEN3_INCLUDE_DIR})
@@ -951,19 +938,19 @@ if(EXPAT)
   endif(EXPAT_FOUND)
 endif(EXPAT)
 
-#currently duplicates src/plplot/modules/freetype as 
+#currently duplicates src/plplot/modules/freetype as
   find_package(Freetype)
   if (FREETYPE_FOUND)
     set(LIBRARIES ${LIBRARIES} ${FREETYPE_LIBRARIES})
     include_directories(${FREETYPE_INCLUDE_DIRS})
-    message(STATUS "Found Freetype.") 
+    message(STATUS "Found Freetype.")
   endif(FREETYPE_FOUND)
 
 #plplot minimum local
 set (ENABLE_cxx ON)
 #add_subdirectory(src/plplot)
 
-#rest of gdl  
+#rest of gdl
 add_subdirectory(src)
 
 if (TARGET version)
@@ -1016,7 +1003,7 @@ if(MSVC)
     set_target_properties(gdl PROPERTIES LINK_FLAGS "/machine:${MACHINE_ARCH}")
 endif(MSVC)
 
-# AC, 12-oct-2011, solved by Marc 
+# AC, 12-oct-2011, solved by Marc
 # set_target_properties(gdl PROPERTIES LINK_FLAGS "-Wl,-z,muldefs")
 # set_target_properties(gdl PROPERTIES LINK_FLAGS "-z muldefs")
 #
@@ -1075,7 +1062,7 @@ module(QHULL     QHULL     "QHULL         ")
 module(GLPK      GLPK      "GLPK          ")
 module(SHAPELIB  SHAPELIB  "SHAPELIB      ")
 module(EXPAT     EXPAT     "EXPAT         ")
-if (INTERACTIVE_GRAPHICS) 
+if (INTERACTIVE_GRAPHICS)
 if( CYGWIN OR NOT WIN32  )
   module(X11     X11     "Xlib          ")
 endif( CYGWIN OR NOT WIN32)
