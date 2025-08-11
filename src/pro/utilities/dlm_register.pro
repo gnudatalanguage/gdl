@@ -41,16 +41,13 @@ end
 ; silent is a GDL extension
 pro dlm_register,filein,silent=silent,verbose=verbose
   COMPILE_OPT idl2, HIDDEN
-  if n_elements(filein) eq 0 then begin; default search is also the local directory
+  if n_elements(filein) eq 0 then begin ; default search is also the local directory
      searchpath="."+ PATH_SEP(/SEARCH_PATH) +!DLM_PATH
-	filelist=file_search(STRSPLIT(searchpath, PATH_SEP(/SEARCH_PATH),/extract)+'/*.dlm') 
+     filelist=file_search(STRSPLIT(searchpath, PATH_SEP(/SEARCH_PATH),/extract)+'/*.dlm') 
+     if n_elements(filelist) eq 1 and filelist[0] eq "" then return
   endif else filelist=filein
-  nfiles = n_elements(filelist)
-  if nfiles eq 1 and filelist[0] eq "" then begin
-     if keyword_set(silent) then return
-     Message,"Incorrect number of arguments."
-  endif
-  
+
+  nfiles=n_elements(filelist)
 
   case !version.os of
      "linux": ext=".so"
@@ -63,10 +60,9 @@ pro dlm_register,filein,silent=silent,verbose=verbose
      file=file_expand_path(file)
      sl=strlen(file)-4 ; .dlm
      image=strmid(file,0,sl)+ext
-if keyword_set(verbose)  then      print,'image: '+image & print
+     if keyword_set(verbose)  then      print,'image: '+image & print
      s=gdl_get_dlm_info(file)
      n=n_elements(s)
-     if s[0] eq "" then break
      ; check if this is a GDL-native DLL
      findpos=strpos(s , "#%GDL_DLM")
      is_gdl = findpos[0] gt -1
