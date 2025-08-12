@@ -2029,8 +2029,8 @@ bool iszero = ((requested.flags & GDL_KW_ZERO) == GDL_KW_ZERO); //zero field if 
 // and GDL_KW_OUT | GDL_KW_ZERO for the flags.  The value field will either
 // contain NULL or the pointer to the variable. */
 bool inputByReference = ((requested.flags & GDL_KW_VIN) == GDL_KW_VIN); // input, but passed by reference
-bool isoutput = (!inputByReference && (requested.flags & GDL_KW_OUT) == GDL_KW_OUT);
-bool isarray = (!inputByReference && (requested.flags & GDL_KW_ARRAY) == GDL_KW_ARRAY); //var must be an array, field is a GDL_KW_ARR_DESC_R*
+bool isoutput = ((requested.flags & GDL_KW_OUT) == GDL_KW_OUT);
+bool isarray = ((requested.flags & GDL_KW_ARRAY) == GDL_KW_ARRAY); //var must be an array, field is a GDL_KW_ARR_DESC_R*
 bool byMask = ((requested.flags & GDL_KW_VALUE) == GDL_KW_VALUE);
 // tag 'out' those that will get a return value
 if (requested.specified != NULL) { // need write 0 or 1 in a special int in KW structure
@@ -2044,7 +2044,7 @@ if (requested.value != NULL) { // need to pass either an address of a EXPORT_VPT
 	if (isoutput && passed.readonly) GDL_WillThrowAfterCleaning("Keyword " + std::string(requested.keyword) + " must be a named variable.");
 	BaseGDL* var = passed.varptr;
 	//if requested var is NULL here, it is an undefined var, which MAY be returned as good value.
-	if (var == NULL) GDL_WillThrowAfterCleaning("GDLExportKeyword: variable " + std::string(requested.keyword) + " is not defined.");
+	if (var == NULL && !isoutput) GDL_WillThrowAfterCleaning("GDLExportKeyword: variable " + std::string(requested.keyword) + " is not defined.");
 	if (iszero) { //zero before write.
 		GDLZeroAtAddr(global_address);
 	}
@@ -2084,6 +2084,9 @@ if (requested.value != NULL) { // need to pass either an address of a EXPORT_VPT
 				}
 			}
 		}
+	} else if (isoutput) {
+				toBeReturned = IDL_Gettmp();
+				memcpy((void*) (global_address), (void*) (&toBeReturned), sizeof (EXPORT_VPTR)); //pass address of a EXPORT_VAR that will contain the result.
 	}
 }
 return toBeReturned;
