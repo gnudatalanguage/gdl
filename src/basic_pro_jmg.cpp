@@ -374,7 +374,7 @@ void CleanupProc( DLibPro* proc ) {
       // this method of 'cleaning' is excellent but show a problem when exiting, seen only with valgrind.
       // Not clear why, as calling .FULL_RESET prior exiting does not show this error. 
       all_procs[proc_name].reset(
-				 new DLibPro( (void (*)(EnvT* e)) (increment++), (void*)CallDllPro, MakeTarget( lib_symbol, proc_name ), proc_name.c_str(), max_args, min_args, has_keys),
+				 new DLibPro( (void (*)(EnvT* e)) (increment++), (void*)CallDllPro, MakeTarget( lib_symbol, proc_name ), proc_name, max_args, min_args, has_keys),
 				 CleanupProc
 				 );
       my_procs.insert(proc_name);
@@ -393,7 +393,7 @@ void CleanupProc( DLibPro* proc ) {
       if( all_funcs.count( func_name ) ) return;
       // this method of 'cleaning' is excellent but show a problem when exiting, seen only with valgrind.
       all_funcs[func_name].reset(
-				 new DLibFun((BaseGDL* (*)(EnvT* e)) (increment++), (void*)CallDllFunc , MakeTarget( lib_symbol, func_name ), func_name.c_str(), max_args,  min_args, has_keys),
+				 new DLibFun((BaseGDL* (*)(EnvT* e)) (increment++), (void*)CallDllFunc , MakeTarget( lib_symbol, func_name ), func_name, max_args,  min_args, has_keys),
 				 CleanupFunc
 				 );
       my_funcs.insert(func_name);
