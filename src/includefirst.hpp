@@ -105,10 +105,11 @@ inline void* gdlAlignedRealloc(void *ptr, std::size_t new_size, std::size_t old_
 
 inline void gdlAlignedFree(void* ptr) {
 #if defined(USE_EIGEN)
- return Eigen::internal::aligned_free(ptr);
+ Eigen::internal::aligned_free(ptr);
 #else
- return free(ptr);
+ free(ptr);
 #endif
+ ptr=NULL;
 }
 
 
