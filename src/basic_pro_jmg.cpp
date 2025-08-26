@@ -43,7 +43,7 @@ static SizeT increment=33; //why not?
   namespace lib {
     using namespace std;
 
-  BaseGDL* CallDllFunc(EnvT* e) {
+  BaseGDL* CallDllFunc(EnvT* e) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
     void* address = static_cast<DLibPro*> (e->GetPro())->GetDllEntry();
     EXPORT_SYSRTN_FUN calldllfunc = (EXPORT_SYSRTN_FUN) address;
     int argc = e->NParam();
@@ -105,7 +105,7 @@ static SizeT increment=33; //why not?
     return back;
   }
 
-  void CallDllPro(EnvT* e) {
+  void CallDllPro(EnvT* e) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
     void* address = static_cast<DLibPro*> (e->GetPro())->GetDllEntry();
     EXPORT_SYSRTN_PRO calldllpro = (EXPORT_SYSRTN_PRO) address;
     int argc = e->NParam();

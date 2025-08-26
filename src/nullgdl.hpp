@@ -112,6 +112,7 @@ class NullGDL: public BaseGDL
   /*virtual*/ bool Scalar() const;
   /*virtual*/ bool StrictScalar() const;
   /*virtual*/ DType   Type() const;
+  /*virtual*/ int   SizeOfType() const;
   /*virtual*/ const std::string& TypeStr() const;
   /*virtual*/ bool          EqType( const BaseGDL*) const;
   /*virtual*/ void* DataAddr();// SizeT elem=0);
