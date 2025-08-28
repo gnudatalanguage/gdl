@@ -34,7 +34,6 @@ void* MyMalloc(size_t size){	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 }
 static std::vector<EXPORT_VPTR> FreeList;
 static std::vector<EXPORT_VPTR> FreeKwList;
-static std::vector<std::pair<std::string, EXPORT_STRUCTURE*> > ExportedGlobalNamedStructList;
 static std::vector<std::pair<EXPORT_VPTR,std::string> > ExportedNamesList;
 typedef struct {
   const char* name;
@@ -444,11 +443,16 @@ DStringGDL* GDL_GetString(EXPORT_VPTR v) { TRACE_ROUTINE(__FUNCTION__,__FILE__,_
 		  EXPORT_STRING* ss;
 		if (v->flags & GDL_V_ARR) {
 			EXPORT_ARRAY* arraydescr = v->value.arr;
-			SizeT rank = arraydescr->n_dim;
-			SizeT arraydim[rank];
-			for (int i = 0; i < rank; ++i) arraydim[i] = arraydescr->dim[i];
-			dim = new dimension(arraydim, rank);
-			ss=(EXPORT_STRING*)(v->value.arr->data);
+			if (arraydescr) {
+				SizeT rank = arraydescr->n_dim;
+				SizeT arraydim[rank];
+				for (int i = 0; i < rank; ++i) arraydim[i] = arraydescr->dim[i];
+				dim = new dimension(arraydim, rank);
+				ss=(EXPORT_STRING*)(v->value.arr->data);
+			} else {
+				dim = new dimension(1);
+				ss = &(v->value.str);
+			}
 	    } else {
 			dim = new  dimension(1);
 			ss=&(v->value.str);
@@ -540,10 +544,12 @@ DStructDesc * GDL_GetStructDesc(EXPORT_VPTR v, dimension &inputdim) { TRACE_ROUT
 		dimension *dim;
 		if (v->value.s.sdef->tags[i].var.flags & GDL_V_ARR) {
 			EXPORT_ARRAY* arraydescr = v->value.s.sdef->tags[i].var.value.arr;
-			SizeT rank = arraydescr->n_dim;
-			SizeT arraydim[rank];
-			for (int j = 0; j < rank; ++j) arraydim[j] = arraydescr->dim[j];
-			dim = new dimension(arraydim, rank);
+			if (arraydescr) {
+				SizeT rank = arraydescr->n_dim;
+				SizeT arraydim[rank];
+				for (int j = 0; j < rank; ++j) arraydim[j] = arraydescr->dim[j];
+				dim = new dimension(arraydim, rank);
+			} else dim = new dimension(1);
 		} else dim = new dimension(1);
 		switch (v->value.s.sdef->tags[i].var.type) {
 				DOCASE(GDL_TYP_BYTE, SpDByte, v->value.s.sdef->tags[i].id->name, *dim)
@@ -784,7 +790,7 @@ DLL_PUBLIC char * GDL_CDECL IDL_VarName(EXPORT_VPTR v){TRACE_ROUTINE(__FUNCTION_
 		}
         strncat(infoline,"<Expression> ",14);
 		strncat(infoline,IDL_TypeNameFunc(v->type),9);
-		if (v->flags & GDL_V_ARR) {
+		if (( v->flags & GDL_V_ARR) && (v->value.arr != NULL)) {
 			strncat(infoline,"Array[",7);
 			int i;
 			for (i=0; i< v->value.arr->n_dim-1; ++i) {
@@ -1203,7 +1209,7 @@ DLL_PUBLIC EXPORT_FILEINT  GDL_CDECL IDL_FILEINTScalar(GDL_REGISTER EXPORT_VPTR 
 
 DLL_PUBLIC void  GDL_CDECL IDL_VarGetData(EXPORT_VPTR v, EXPORT_MEMINT *n, char **pd,  int ensure_simple){TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	if (ensure_simple) GDL_ENSURE_SIMPLE(v);
-	if (v->flags & GDL_V_ARR) {
+	if ((v->flags & GDL_V_ARR) && ( v->value.arr != NULL) ) {
 		*n=v->value.arr->n_elts;
 		*pd=(char*) v->value.arr->data;
 	} else {
@@ -2640,15 +2646,69 @@ DLL_PUBLIC int  GDL_CDECL IDL_Execute(int argc, char *argv[]){
 DLL_PUBLIC int  GDL_CDECL IDL_RuntimeExec(char *file){Warning("IDL_RuntimeExec function not allowed in GDL.");return 0;}
 DLL_PUBLIC void  GDL_CDECL IDL_Runtime(EXPORT_INIT_DATA_OPTIONS_T options, int *argc, char *argv[], char *file){GDL_WillThrowAfterCleaning("IDL_Runtime function not allowed in GDL.");}
 
+#define DOCASE_TAG(type, gdltype, tagname, pardim)\
+ case type: { gdltype entry(pardim); stru_desc->AddTag(std::string(tagname), &entry);} break;
+
+	DStructDesc* GDL_GetStructDesc(std::string name, EXPORT_STRUCT_TAG_DEF *tags) {
+		int ntags = 0;
+		while (tags[ntags++].name != NULL) {
+		};
+		ntags--;
+		DStructDesc* stru_desc = new DStructDesc(name);
+		for (int itag = 0; itag < ntags; ++itag) {
+			EXPORT_STRUCT_TAG_DEF def = tags[itag];
+			dimension *dim;
+			if (def.dims == NULL) {
+				dim = new dimension(1);
+			} else {
+				EXPORT_LONG64 ndim = def.dims[0];
+				dim = new dimension(&(def.dims[1]), ndim);
+			}
+			if (def.type == NULL) { /*If this field is NULL, it indicates that we should search for a structure of the given name and fill in the pointer to its structure definition. */
+				if (def.name == NULL) GDL_WillThrowAfterCleaning("IDL_MakeStruct(): no name for inherited structure!");
+				std::string passed_name = std::string(def.name);
+				assert(passed_name != "$truct"); // named struct
+				passed_name = StrUpCase(passed_name);
+				if (passed_name == "IDL_OBJECT") passed_name = GDL_OBJECT_NAME; // replacement also done in GDLParser
+				if (passed_name == "IDL_CONTAINER") passed_name = GDL_CONTAINER_NAME; // replacement also done in GDLParser
+				DStructDesc* desc = DInterpreter::CallStackBack()->Interpreter()->GetStruct(passed_name, DInterpreter::CallStackBack()->CallingNode()); //will throw if does not exist.
+				stru_desc->AddTag(std::string(def.name), new DStructGDL(desc, *dim));
+				continue;
+			}
+			/* This may be either a pointer to another structure definition, or a simple IDL type code (GDL_TYP_*) cast to void (e.g. (void *) GDL_TYP_BYTE)*/
+			if ((size_t) def.type > EXPORT_MAX_TYPE) { /* a structure ptr */
+//				 EXPORT_StructDefPtr s= (EXPORT_StructDefPtr) def.type;
+//				 stru_desc->AddTag(std::string(def.name), GDL_GetStructDesc(NULL, s.));
+			} else {
+				switch ((SizeT) def.type) {
+						DOCASE_TAG(GDL_TYP_BYTE, SpDByte, def.name, *dim)
+						DOCASE_TAG(GDL_TYP_INT, SpDInt, def.name, *dim)
+						DOCASE_TAG(GDL_TYP_LONG, SpDLong, def.name, *dim)
+						DOCASE_TAG(GDL_TYP_FLOAT, SpDFloat, def.name, *dim)
+						DOCASE_TAG(GDL_TYP_DOUBLE, SpDDouble, def.name, *dim)
+						DOCASE_TAG(GDL_TYP_COMPLEX, SpDComplex, def.name, *dim)
+						DOCASE_TAG(GDL_TYP_DCOMPLEX, SpDComplexDbl, def.name, *dim)
+						DOCASE_TAG(GDL_TYP_STRING, SpDString, def.name, *dim)
+						DOCASE_TAG(GDL_TYP_PTR, DPtrGDL, def.name, *dim)
+						DOCASE_TAG(GDL_TYP_OBJREF, DObjGDL, def.name, *dim)
+						DOCASE_TAG(GDL_TYP_UINT, SpDUInt, def.name, *dim)
+						DOCASE_TAG(GDL_TYP_ULONG, SpDULong, def.name, *dim)
+						DOCASE_TAG(GDL_TYP_ULONG64, SpDULong64, def.name, *dim)
+						DOCASE_TAG(GDL_TYP_LONG64, SpDLong64, def.name, *dim)
+					default: GDL_WillThrowAfterCleaning("GDL_GetStructDesc(EXPORT_STRUCT_TAG_DEF): bad case.");
+				}
+			}
+		}
+		return stru_desc;
+	}
+#undef DOCASE_TAG
+
 #define ADJUST_ELEMENT_OFFSET(x) {EXPORT_MEMINT l=x;\
 EXPORT_MEMINT excess=newStruct->length % l;\
 if (excess != 0) {\
 EXPORT_MEMINT pad=l-excess;\
 newStruct->length+=pad;\
 }}
-
-// At the moment the "named" structure exist only INSIDE the user program. It is not registered in $MAIN$.
-// Will do this if the need appears.
 // NB: we use RCOUNT to store the padding of each struct (probably not clever enough to do without that). Should not be aproblem as GDL does not use it, and users probably as well.
 DLL_PUBLIC EXPORT_StructDefPtr  GDL_CDECL IDL_MakeStruct(char *name, EXPORT_STRUCT_TAG_DEF *tags) {	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 			//count tags (?)
@@ -2660,7 +2720,6 @@ DLL_PUBLIC EXPORT_StructDefPtr  GDL_CDECL IDL_MakeStruct(char *name, EXPORT_STRU
 	EXPORT_STRUCTURE *newStruct = (EXPORT_STRUCTURE *) calloc(1, sizeof (EXPORT_STRUCTURE) + ntags * sizeof (EXPORT_TAGDEF));
 	if (name) {
 		EXPORT_IDENT *iid = (EXPORT_IDENT*) calloc(1, sizeof (EXPORT_IDENT));
-		ExportedGlobalNamedStructList.push_back(std::make_pair(std::string(name), newStruct));
 		newStruct->id = iid;
 		iid->hash = NULL;
 		iid->name = name;
@@ -2688,28 +2747,26 @@ DLL_PUBLIC EXPORT_StructDefPtr  GDL_CDECL IDL_MakeStruct(char *name, EXPORT_STRU
 		memhash = tagid; //chain
 		void* thetypePtr = def.type;
 		if (thetypePtr == NULL) {    /*If this field is NULL, it indicates that we should search for a structure of the given name and fill in the pointer to its structure definition. */
-			if (def.name == NULL) GDL_WillThrowAfterCleaning("IDL_MakeStruct(): no name for inherited structure!");
-			bool found = false;
-				// should use std::find_if
-			for (std::vector<std::pair < std::string, EXPORT_STRUCTURE*>>::iterator it = ExportedGlobalNamedStructList.begin(); it != ExportedGlobalNamedStructList.end(); ++it) {
-				if (it->first == std::string(def.name)) {
-					found = true;
-					thetypePtr = (void*) (it->second);
-					//ARRAY ?????
-					break;
-				}
-			}
-			if (!found) GDL_WillThrowAfterCleaning("IDL_MakeStruct(): inherited structure not found.");
-			//structure found, pursue
+		  if (def.name == NULL) GDL_WillThrowAfterCleaning("IDL_MakeStruct(): no name for inherited structure!");
+		  std::string passed_name = std::string(def.name);
+		  assert(passed_name != "$truct") ; // named struct
+		  passed_name = StrUpCase(passed_name);
+		  if( passed_name == "IDL_OBJECT") passed_name = GDL_OBJECT_NAME; // replacement also done in GDLParser
+		  if( passed_name == "IDL_CONTAINER") passed_name = GDL_CONTAINER_NAME; // replacement also done in GDLParser
+		  DStructDesc* desc = DInterpreter::CallStackBack()->Interpreter()->GetStruct(passed_name, DInterpreter::CallStackBack()->CallingNode()); //will throw if does not exist.
+	      DStructGDL* tmpstruct=new DStructGDL(desc,dimension(1));
+		  Guard<DStructGDL> g(tmpstruct);
+		  thetypePtr=(void*) GDL_Make_EXPORT_STRUCT_TAG_DEF(tmpstruct);
+		  //structure found, pursue
 		} 
 		/* This may be either a pointer to another structure definition, or a simple IDL type code (GDL_TYP_*) cast to void (e.g. (void *) GDL_TYP_BYTE)*/
 		if ((size_t) thetypePtr > EXPORT_MAX_TYPE) { /* a structure ptr */
 			newStruct->tags[itag].var.type = GDL_TYP_STRUCT;
 			newStruct->tags[itag].var.flags |= (GDL_V_STRUCT|GDL_V_ARR);
-			newStruct->tags[itag].var.value.s.sdef=(EXPORT_STRUCTURE*)thetypePtr;
-			EXPORT_LONG64 strulen=((EXPORT_STRUCTURE*) (thetypePtr))->length;
-			EXPORT_LONG64 strudata_len=((EXPORT_STRUCTURE*) (thetypePtr))->data_length;
-			int alignment=((EXPORT_STRUCTURE*) (thetypePtr))->rcount;
+			newStruct->tags[itag].var.value.s.sdef=(EXPORT_StructDefPtr)thetypePtr;
+			EXPORT_LONG64 strulen=((EXPORT_StructDefPtr) (thetypePtr))->length;
+			EXPORT_LONG64 strudata_len=((EXPORT_StructDefPtr) (thetypePtr))->data_length;
+			int alignment=((EXPORT_StructDefPtr) (thetypePtr))->rcount;
 			if (finalPad < alignment) finalPad=alignment;
 			ADJUST_ELEMENT_OFFSET(alignment) //add to current struct length the necessary pad if needed 
 			newStruct->tags[itag].offset = newStruct->length; //current struct length at this point of creation: start of tag
@@ -2766,6 +2823,11 @@ DLL_PUBLIC EXPORT_StructDefPtr  GDL_CDECL IDL_MakeStruct(char *name, EXPORT_STRU
 
 	newStruct->rcount = finalPad;
 	newStruct->object = NULL;
+	if (name) { //define named struct at GDL level. probably easier to do otherwise without creating an IDL, then a GDL, struct, but this limits the 'new' code at a minimum.
+		std::string sname(name);
+		sname= StrUpCase(sname);
+		structList.push_back(GDL_GetStructDesc(sname,tags));
+	}
 	return newStruct;
 	}
 #undef ADJUST_ELEMENT_OFFSET
