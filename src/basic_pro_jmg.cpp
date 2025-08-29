@@ -218,6 +218,22 @@ void CleanupProc( DLibPro* proc ) {
       if( !handle ) {
 	throw runtime_error( msg );
       }
+      void* fPtr=NULL;
+      //for IDL-compatible library, try IDL_Load, that may define useful variables or structures before the use of the othe functions/procedures inside.
+            char* error = nullptr;
+      // if 'lib_symbol' does not work, try both upcase and lowcase versions
+#if defined(_WIN32) && !defined(__CYGWIN__)
+      fPtr = (void*) GetProcAddress( handle, "IDL_Load" );
+#else
+      error = dlerror();  // clear error
+      fPtr = dlsym( handle, "IDL_Load" );
+      error = dlerror();
+#endif
+      //fPtr may not exist (native DLM, or absent in an IDL DLM)
+      if(fPtr) {
+        int (*calldllfunc)(void) = ( int (*)(void)) fPtr;
+        int ret = calldllfunc();
+      }
     }
     void unload( bool force=false ) {
       if( !force && !(my_procs.empty() && my_funcs.empty()) ) {
