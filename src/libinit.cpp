@@ -45,7 +45,7 @@
 #include "where.hpp"
 #include "convol.hpp"
 #include "smooth.hpp"
-//#include "brent.hpp" //now a dlm
+#include "brent.hpp"
 #include "linearprogramming.hpp"
 #include "saverestore.hpp"
 
@@ -1010,9 +1010,8 @@ void LibInit()
   const string dfpminKey[] = { "DOUBLE", "EPS", "ITER", "ITMAX", "STEPMAX", "TOLX", KLISTEND };
   new DLibPro(lib::dfpmin, string("DFPMIN"), 5, dfpminKey);
 
-  // now used as and example for DLM - found in src/dlm
-  //  const string brentKey[] = { "DOUBLE", "ITER", "ITMAX", KLISTEND };
-//  new DLibPro(lib::brent, string("POWELL"), 5, brentKey);
+  const string brentKey[] = { "DOUBLE", "ITER", "ITMAX", KLISTEND };
+  new DLibPro(lib::brent, string("POWELL"), 5, brentKey);
 
   //#ifdef USE_GLPK
   const string simplexKey[] = { "DOUBLE", "EPS", "STATUS", KLISTEND };

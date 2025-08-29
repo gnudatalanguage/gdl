@@ -92,7 +92,7 @@ getfmtast.cpp
 graphicsdevice.cpp
 basic_pro.cpp
 basic_pro_jmg.cpp
-# brent.cpp #as DLM test 
+brent.cpp #as DLM test 
 grib.cpp
 gsl_fun.cpp
 gsl_matrix.cpp

@@ -2736,9 +2736,4 @@ namespace lib {
     }
 
   }
-
-  extern "C" void powell(EnvT* e) {
-    brent(e);
-  }
-
 }  
