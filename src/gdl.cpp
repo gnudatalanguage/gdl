@@ -456,8 +456,13 @@ int main(int argc, char *argv[])
 	} else if (string(argv[a]) == "--clean-at-exit") {
 	  if (atexit(AtExit) != 0) cerr << "atexit registration failed. option \"--clean-at-exit\" unefficient." << endl;
 	} else if (*argv[a] == '-') {
+      if (string(argv[a],5)=="-IDL_" || string(argv[a],5)=="-GDL_") { //an IDL/GDL preference ? do it.
+        char* what=argv[a];
+        int ret=setenv( (char*)(what+1), argv[++a], 1); //overwrite
+      } else {
         cerr << argv[0] << ": " << argv[a] << " option not recognized." << endl;
         return 0;
+      }
       }
       else
       {
