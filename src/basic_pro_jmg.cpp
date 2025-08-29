@@ -193,7 +193,7 @@ void CleanupProc( DLibPro* proc ) {
   struct DllContainer {
     DllContainer( const DllContainer& ) = delete;
     DllContainer( DllContainer&& rhs ) : handle(nullptr) { std::swap( handle, rhs.handle ); };
-    DllContainer( const string& fn ) : handle(nullptr) { load(fn); }
+    DllContainer( const string& fn ) : handle(nullptr) { };//load(fn); }/// do not load at DllContainer definition! will be done better after.
     ~DllContainer() { unload( true ); }
     void load( const string& fn ) {
       if( handle ) return;     // already loaded.
@@ -254,12 +254,16 @@ void CleanupProc( DLibPro* proc ) {
 #endif
       handle = nullptr;
     }
-    static DllContainer& get( const string& fn ) {
+    static DllContainer& get( const string& fn , bool signal=false, DStringGDL* info=NULL) {
       auto res = libs.emplace( std::pair<string,DllContainer>(fn, DllContainer(fn)) );
       DllContainer& l = res.first->second;
       if( ! l.isLoaded() ) {
-	l.load(fn);
+        l.load(fn);
+        if (signal) {
+          help_AddDlmInfo(info->Dup());
+          Message("Loaded DLM: "+(*info)[0]);
       }
+     }
       return l;
     }
     static void unload( const string& fn, bool force=false ) {
@@ -693,12 +697,8 @@ void CleanupProc( DLibPro* proc ) {
     }
 
       try {
-      DllContainer& lib = DllContainer::get( shrdimgName );
-      if (isDlm) { //add dlminfo to list to be fed to help,/dlm
-        DStringGDL* info=e->GetKWAs<DStringGDL>(dlminfoIx);
-        help_AddDlmInfo(info->Dup());
-        Message("Loaded DLM: "+(*info)[0]);
-      }
+      DStringGDL* info=e->GetKWAs<DStringGDL>(dlminfoIx);
+      DllContainer& lib = DllContainer::get( shrdimgName, isDlm, info );
       if (isGdl) {
       //if 'native' (gdl) then if keywords, these are a DStringGDL
         if (hasKeywords) {
