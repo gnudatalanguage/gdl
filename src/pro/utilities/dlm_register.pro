@@ -122,7 +122,6 @@ if keyword_set(verbose)  then      print,"module name: "+modulename
      w=where(findpos gt -1, count)
      if (count ge 1) then begin
         for ipro=0,count-1 do begin
-	       if dlm_info ne !NULL and ipro gt 0 then dlm_info=!NULL
 if not keyword_set(verbose) then begin
            CATCH, Error_status
            IF Error_status NE 0 THEN BEGIN
@@ -146,7 +145,6 @@ nextpro:
      w=where(findpos gt -1, count)
      if (count ge 1) then begin
         for ifun=0,count-1 do begin
-	       if dlm_info ne !NULL and ifun gt 0 then dlm_info=!NULL
 if not keyword_set(verbose) then begin
            CATCH, Error_status
            IF Error_status NE 0 THEN BEGIN
