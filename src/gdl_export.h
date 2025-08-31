@@ -1,6 +1,5 @@
 #ifndef export_GDL_DEF
 #define export_GDL_DEF
-//#include "idl_export.h"
 #ifdef MSWIN
 #define GDL_STDCALL __stdcall
 #define GDL_CDECL __cdecl
@@ -15,18 +14,6 @@
 #define GDL_REGISTER
 
 typedef DByte UCHAR ; //typedef unsigned char UCHAR;	/* Unsigned character type */
-
-///* Boolean. */ 
-//typedef enum {
-//    GDL_FALSE = 0,
-//    GDL_TRUE = 1
-//} GDLBool_t;
-
-/*
- * IDL integer types. For historical reasons, we use UCHAR for TYP_BYTE
- * instead of defining an IDL_BYTE type.
- */
-
 typedef DInt EXPORT_INT;
 typedef DUInt EXPORT_UINT;
 typedef DLong EXPORT_LONG;
@@ -79,7 +66,7 @@ typedef EXPORT_ULONG EXPORT_HVID;
 #define GDL_V_STRUCT        32
 #define GDL_V_NULL          64
 #define GDL_V_BOOLEAN      128
-#define GDL_V_NOT_SCALAR    (IDL_V_ARR | IDL_V_FILE | IDL_V_STRUCT)
+#define GDL_V_NOT_SCALAR    (GDL_V_ARR | GDL_V_FILE | GDL_V_STRUCT)
 #define GDL_A_FILE          1
 #define GDL_A_NO_GUARD      2
 #define GDL_A_FILE_PACKED   4
@@ -139,37 +126,31 @@ typedef struct {		/* Reference to a structure */
   struct _idlgdl_structure *sdef;	/* ^ to structure definition */
 } EXPORT_SREF;
 
-/* IDL_ALLTYPES can be used to represent all IDL_VARIABLE types */
 typedef union {
-  char sc;			/* A standard char, where "standard" is defined
-				   by the compiler. This isn't an IDL data
-				   type, but having this field is sometimes
-				   useful for internal code */
-  UCHAR c;			/* Byte value */
-  EXPORT_INT i;			/* 16-bit integer */
-  EXPORT_UINT ui;			/* 16-bit unsigned integer */
-  EXPORT_LONG l;			/* 32-bit integer */
-  EXPORT_ULONG ul;			/* 32-bit unsigned integer */
-  EXPORT_LONG64 l64;		/* 64-bit integer */
-  EXPORT_ULONG64 ul64;		/* 64-bit unsigned integer */
-  float f;			/* 32-bit floating point value */
-  double d;			/* 64-bit floating point value */
-  EXPORT_COMPLEX cmp;		/* Complex value */
-  EXPORT_DCOMPLEX dcmp;		/* Double complex value */
-  EXPORT_STRING str;		/* String descriptor */
-  EXPORT_ARRAY *arr;		/* ^ to array descriptor */
-  EXPORT_SREF s;			/* Descriptor of structure */
-  EXPORT_HVID hvid;		/* Heap variable identifier */
-
-  /* The following are mappings to basic types that vary between platforms */
-  EXPORT_MEMINT memint;		/* Memory size or offset */
-  EXPORT_FILEINT fileint;		/* File size or offset */
-  EXPORT_PTRINT ptrint;		/* A pointer size integer */
+  char sc;
+  UCHAR c;
+  EXPORT_INT i;			
+  EXPORT_UINT ui;		
+  EXPORT_LONG l;		
+  EXPORT_ULONG ul;		
+  EXPORT_LONG64 l64;	
+  EXPORT_ULONG64 ul64;	
+  float f;
+  double d;
+  EXPORT_COMPLEX cmp;	
+  EXPORT_DCOMPLEX dcmp;	
+  EXPORT_STRING str;	
+  EXPORT_ARRAY *arr;	
+  EXPORT_SREF s;		
+  EXPORT_HVID hvid;		
+  EXPORT_MEMINT memint;	
+  EXPORT_FILEINT fileint;
+  EXPORT_PTRINT ptrint;	
 } EXPORT_ALLTYPES;
 
-typedef struct {		/* IDL_VARIABLE definition */
-  UCHAR type;			/* Type byte */
-  UCHAR flags;			/* Flags byte */
+typedef struct {
+  UCHAR type;	
+  UCHAR flags;	
   UCHAR flags2;
   EXPORT_ALLTYPES value;
 } EXPORT_VARIABLE;
@@ -306,33 +287,33 @@ typedef void *EXPORT_MSG_BLOCK;
 typedef EXPORT_VARIABLE *(* EXPORT_SYSRTN_GENERIC)();
 typedef int EXPORT_INIT_DATA_OPTIONS_T;
 typedef union {
-  EXPORT_SYSRTN_GENERIC generic;	/* Used for generic access to the routine
-				   pointer. The Ansi C spec (K&R 2nd edition)
-				   says that union initializations always
-				   refer to the first field in the union.
-				   Hence, this must be the first field. */
-  EXPORT_SYSRTN_PRO pro;		/* System procedure pointer */
-  EXPORT_SYSRTN_FUN fun;		/* System function pointer */
-} EXPORT_SYSRTN_UNION;		/* ^ to interp. function (ret ^ to VAR) */
+  EXPORT_SYSRTN_GENERIC generic;
+  EXPORT_SYSRTN_PRO pro;
+  EXPORT_SYSRTN_FUN fun;
+} EXPORT_SYSRTN_UNION;	
 
 #define EXPORT_FUN_RET EXPORT_SYSRTN_GENERIC
-typedef struct {		/* System function definition */
-  EXPORT_FUN_RET funct_addr;	/* Address of function, or procedure. */
-  char *name;			/* The name of the function */
-  UCHAR arg_min;		/* Minimum allowed argument count. */
-  UCHAR arg_max;		/* Maximum argument count.  The top
-				   bit in arg_min is set to indicate that
-				   the routine accepts keywords. */
-  UCHAR flags;			/* IDL_SYSFUN_DEF_F_* flags */
+#define EXPORT_SYSFUN_DEF_F_OBSOLETE	1   
+#define EXPORT_SYSFUN_DEF_F_KEYWORDS	2   
+#define EXPORT_SYSFUN_DEF_F_METHOD		32  
+#define EXPORT_SYSFUN_DEF_F_NOPROFILE	512 
+#define EXPORT_SYSFUN_DEF_F_STATIC	1024 
+
+typedef struct {
+  EXPORT_FUN_RET funct_addr;
+  char *name;	
+  UCHAR arg_min;
+  UCHAR arg_max;
+  UCHAR flags;
 } EXPORT_SYSFUN_DEF;
 
 typedef struct {
-  EXPORT_SYSRTN_UNION funct_addr;	/* Address of function, or procedure. */
-  char *name;			/* The name of the function */
-  unsigned short arg_min;	/* Minimum allowed argument count. */
-  unsigned short arg_max;	/* Maximum argument count. */
-  int flags;			/* IDL_SYSFUN_DEF_F_* flags */
-  void *extra;			/* Caller should set this to 0 */
+  EXPORT_SYSRTN_UNION funct_addr;
+  char *name;
+  unsigned short arg_min;
+  unsigned short arg_max;
+  int flags;
+  void *extra;
 } EXPORT_SYSFUN_DEF2;
 typedef struct {
   EXPORT_INIT_DATA_OPTIONS_T options;
@@ -347,5 +328,4 @@ typedef struct {
 } EXPORT_INIT_DATA;
 
 typedef void (* EXPORT_EXIT_HANDLER_FUNC)(void);
-//#include "gdl_idl_define.h"
 #endif 

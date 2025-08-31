@@ -20,6 +20,9 @@
 
 #define GDL_TYP_COMPLEXDBL GDL_TYP_DCOMPLEX
 
+static std::map<const char*,void*> SysFunDefinitions; 
+static std::map<const char*,void*> SysProDefinitions; 
+
 // list of memory (strings...) to be released when GDL_FreeResources() is called.
 // If each call is ended by freeing the resources, this list does not need to be private to each CallDllFunc/CallDllpro I guess.
 static std::vector<void*> FreeAtEnd;
@@ -106,9 +109,9 @@ void GDL_FreeResources() {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	FreeList.clear();
 }
 
-inline void GDL_WillThrowAfterCleaning(const std::string &s) {	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+void GDL_WillThrowAfterCleaning(const std::string &s) {	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	GDL_FreeResources();
-	throw GDLException(s);
+   DInterpreter::CallStackBack()->Throw(s);
 }
 
 inline void checkOK(EXPORT_VPTR v) {	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
@@ -840,7 +843,10 @@ if (v->flags == 0) return;
     static char* message= (char*)"Expression must be a scalar in this context: ";
 	if ( !( v->flags & GDL_TYP_B_SIMPLE) || ( v->flags & GDL_V_ARR) ) GDL_WillThrowAfterCleaning(message+std::string(IDL_VarName(v)));
 }
-
+DLL_PUBLIC EXPORT_VPTR GDL_CDECL IDL_VarTypeConvert(EXPORT_VPTR v, GDL_REGISTER int type){
+	v->type=type;
+	return v;
+}
 #define DOCASE(ty, what)\
  case ty: fprintf (stdout,IDL_OutputFormat[v->type],v->value.what);break;
 #define DOCASE_ARRAY(ty, c_ty)\
@@ -946,6 +952,10 @@ DLL_PUBLIC char* GDL_CDECL IDL_VarGetString(EXPORT_VPTR s) {
 	} else {
 		return s->value.str.s;
 	}
+}
+DLL_PUBLIC EXPORT_STRING *GDL_CDECL IDL_VarGet1EltStringDesc(EXPORT_VPTR v, EXPORT_VPTR *tc_v, int like_print){
+	GDL_WillThrowAfterCleaning("IDL_VarGet1EltStringDesc() used but not yet programmed, please report.");
+	return NULL;
 }
 // str below is a supposed to be a copy of the string descriptor(s).
 // to properly duplicate, one has to create copies of the string(s) and update the descriptor(s)
@@ -1128,7 +1138,7 @@ DLL_PUBLIC EXPORT_LONG  GDL_CDECL IDL_LongScalar(GDL_REGISTER EXPORT_VPTR v) {TR
 				DOCASE(EXPORT_LONG, GDL_TYP_ULONG, ul);
 				DOCASE(EXPORT_LONG, GDL_TYP_LONG64, l64);
 				DOCASE(EXPORT_LONG, GDL_TYP_ULONG64, ul64);
-			default: GDL_WillThrowAfterCleaning("IDL_LongScalar: unexpected type "+i2s(v->type));
+			default: return (EXPORT_LONG) 0;
 		}
 		return 0;
 	}
@@ -1146,7 +1156,7 @@ DLL_PUBLIC EXPORT_LONG64  GDL_CDECL IDL_Long64Scalar(GDL_REGISTER EXPORT_VPTR v)
 				DOCASE(EXPORT_LONG64, GDL_TYP_ULONG, ul);
 				DOCASE(EXPORT_LONG64, GDL_TYP_LONG64, l64);
 				DOCASE(EXPORT_LONG64, GDL_TYP_ULONG64, ul64);
-			default: GDL_WillThrowAfterCleaning("IDL_Long64Scalar: unexpected type "+i2s(v->type));
+			default: return (EXPORT_LONG64) 0;
 		}
 		return 0;
 	}
@@ -2426,6 +2436,10 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWProcessByOffset(int argc, EXPORT_VPTR *argv, cha
 		return argc;
 	}
 
+DLL_PUBLIC int GDL_CDECL IDL_KWProcessByAddr(int argc, EXPORT_VPTR *argv, char *argk,  GDL_KW_PAR *kw_list, EXPORT_VPTR *plain_args, int mask, int *free_required){
+	return argc;
+}
+
 DLL_PUBLIC void  GDL_CDECL IDL_KWFree(void) {
 	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	for (std::vector<EXPORT_VPTR>::iterator it = FreeKwList.begin(); it != FreeKwList.end(); ++it) IDL_Deltmp(*it);
@@ -2520,8 +2534,8 @@ DLL_PUBLIC EXPORT_LONG  GDL_CDECL IDL_SysvOrderValue(void){return 0;}
 
 DLL_PUBLIC float  GDL_CDECL IDL_SysvValuesGetFloat(int type){return 0;}
 
-DLL_PUBLIC int  GDL_CDECL IDL_MessageNameToCode(EXPORT_MSG_BLOCK block, const char *name){return 0;}
-DLL_PUBLIC EXPORT_MSG_BLOCK  GDL_CDECL IDL_MessageDefineBlock(char *block_name, int n, EXPORT_MSG_DEF *defs){return NULL;} //do nothing
+DLL_PUBLIC int  GDL_CDECL IDL_MessageNameToCode(EXPORT_MSG_BLOCK block, const char *name){return 3333;} //a random (!) value
+DLL_PUBLIC EXPORT_MSG_BLOCK  GDL_CDECL IDL_MessageDefineBlock(char *block_name, int n, EXPORT_MSG_DEF *defs){ return malloc(1);} //do nothing but returns an "address"
 DLL_PUBLIC void  GDL_CDECL IDL_MessageErrno(int code, ...){} //do nothing. obsoleted.
 DLL_PUBLIC void  GDL_CDECL IDL_MessageErrnoFromBlock(EXPORT_MSG_BLOCK block, int code, ...){} //do nothing. obsoleted.
 DLL_PUBLIC void  GDL_CDECL IDL_Message(int code, int action, ...) {	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
@@ -2577,7 +2591,6 @@ DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_STRUC_REQ(EXPORT_VPTR var, int action){
 DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_REQPTR(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillThrowAfterCleaning("Pointer type required in this context.");}
 DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_REQOBJREF(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillThrowAfterCleaning("Object reference required in this context");}
 DLL_PUBLIC void  GDL_CDECL IDL_Message_BADARRDNUM(int action){if (action!=EXPORT_MSG_INFO)GDL_WillThrowAfterCleaning("Arrays are allowed 1 - 8 dimensions");}
-DLL_PUBLIC int  GDL_CDECL IDL_SysRtnAdd(EXPORT_SYSFUN_DEF2 *defs, int is_function,int cnt){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)  return 1;}
 DLL_PUBLIC EXPORT_MEMINT  GDL_CDECL IDL_SysRtnNumEnabled(int is_function, int enabled){return 1;} //why not - this is a stub
 DLL_PUBLIC void  GDL_CDECL IDL_SysRtnGetEnabledNames(int is_function, EXPORT_STRING *str, int enabled){str->slen=0;};
 DLL_PUBLIC void  GDL_CDECL IDL_SysRtnEnable(int is_function, EXPORT_STRING *names, EXPORT_MEMINT n, int option,  EXPORT_SYSRTN_GENERIC disfcn){}// do nothing
@@ -2587,7 +2600,6 @@ DLL_PUBLIC int  GDL_CDECL IDL_LMGRLicenseInfo(int iFlags){return 1;}
 DLL_PUBLIC int  GDL_CDECL IDL_LMGRSetLicenseInfo(int iFlags){return 1;}
 DLL_PUBLIC int  GDL_CDECL IDL_LMGRLicenseCheckoutUnique(char *szFeature, char *szVersion){return 1;}
 DLL_PUBLIC int  GDL_CDECL IDL_LMGRLicenseCheckout(char *szFeature, char *szVersion){return 1;}
-DLL_PUBLIC int  GDL_CDECL IDL_Load(void){return 1;}
 DLL_PUBLIC void  GDL_CDECL IDL_Win32MessageLoop(int fFlush){}
 DLL_PUBLIC int  GDL_CDECL IDL_Win32Init(EXPORT_INIT_DATA_OPTIONS_T iOpts, void  *hinstExe, void *hwndExe, void *hAccel){return 1;}
 DLL_PUBLIC void  GDL_CDECL IDL_WinPostInit(void){}
@@ -2967,7 +2979,26 @@ int GDL_CDECL IDL_SignalUnregister(int signo, EXPORT_SignalHandler_t func, int m
 	}
 	sig_t ret=signal(signo,SIG_DFL);
 	return 1;
-}
+	}
+
+	DLL_PUBLIC int GDL_CDECL IDL_SysRtnAdd(EXPORT_SYSFUN_DEF2 *defs, int is_function, int cnt) {
+		TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+		for (auto i = 0; i < cnt; ++i) {
+			const char* name=(const char*) defs[i].name;
+			void* addr=(void*)(defs[i].funct_addr.fun);
+			if (is_function){
+				if (SysFunDefinitions.count(name) > 0 ) return 1; //already done
+//				printf("%u %s %u %u %u %u\n", defs[i].funct_addr, name, defs[i].arg_min, defs[i].arg_max, defs[i].flags, defs[i].extra);
+				SysFunDefinitions[name]=addr;
+			} else {
+				if (SysProDefinitions.count(name) > 0 ) return 1;
+//				printf("%u %s %u %u %u %u\n", defs[i].funct_addr, name, defs[i].arg_min, defs[i].arg_max, defs[i].flags, defs[i].extra);
+				SysProDefinitions[name]=addr;
+			}
+		}
+		return 1;
+	}
+
 #endif
 }
 #endif
