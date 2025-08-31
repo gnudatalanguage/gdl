@@ -220,9 +220,9 @@ void CleanupProc( DLibPro* proc ) {
 	}
       }
 #endif
-      if( !handle ) {
-	throw runtime_error( msg );
-      }
+//      if( !handle ) {
+//	throw runtime_error( msg );
+//      }
     }
     void unload( bool force=false ) {
       if( !force && !(my_procs.empty() && my_funcs.empty()) ) {
@@ -767,6 +767,7 @@ void CleanupProc( DLibPro* proc ) {
       DStringGDL* info=NULL;
       if (isDlm) info=e->GetKWAs<DStringGDL>(dlminfoIx);
       DllContainer& lib = DllContainer::get( shrdimgName, isDlm, info );
+      if (lib.isLoaded()) {
       if (isGdl) {
       //if 'native' (gdl) then if keywords, these are a DStringGDL
         if (hasKeywords) {
@@ -786,10 +787,10 @@ void CleanupProc( DLibPro* proc ) {
         }
         if (!ret) lib.RegisterSymbol( entryName, funcName, funcType, max_args, min_args, hasKeywords); //not a dlm, or dlm does not have ILD_Load()
       }
+      }
     } catch ( const std::exception& ex ) {
       e->Throw("Error linking procedure/DLL: " + funcName + " -> " + entryName + "  (" + shrdimgName + ") : " + ex.what() );
       }
-    
   }
   
   void unlinkimage( EnvT* e ) {
