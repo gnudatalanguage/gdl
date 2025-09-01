@@ -60,7 +60,12 @@ pro dlm_register,filein,silent=silent,verbose=verbose
      file=file_expand_path(file)
      sl=strlen(file)-4 ; .dlm
      image=strmid(file,0,sl)+ext
-     if keyword_set(verbose)  then      print,'image: '+image & print
+	 info=file_info(image)
+	 if info.exists eq 0 or info.size lt 40 then begin 
+		if keyword_set(verbose)  then      print,'image: '+image+" is invalid."
+        continue
+	  endif
+     if keyword_set(verbose)  then      print,'image: '+image
      s=gdl_get_dlm_info(file)
      n=n_elements(s)
      ; check if this is a GDL-native DLL
@@ -83,7 +88,7 @@ pro dlm_register,filein,silent=silent,verbose=verbose
 
      ; find module name
      modulename=strtrim(strmid(s[w],findpos[w]+7,strlen(s[w])),2)
-if keyword_set(verbose)  then      print,"module name: "+modulename
+     if keyword_set(verbose)  then      print,"module name: "+modulename
      ; prepare dlm_info to pass to linkimage
      dlm_info=strarr(4)
      dlm_info[0]=modulename
@@ -122,7 +127,7 @@ if keyword_set(verbose)  then      print,"module name: "+modulename
      w=where(findpos gt -1, count)
      if (count ge 1) then begin
         for ipro=0,count-1 do begin
-if not keyword_set(verbose) then begin
+     if not keyword_set(verbose) then begin
            CATCH, Error_status
            IF Error_status NE 0 THEN BEGIN
               CATCH, /CANCEL
