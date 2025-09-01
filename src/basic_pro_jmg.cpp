@@ -196,10 +196,22 @@ void CleanupProc( DLibPro* proc ) {
   }
 
   struct DllContainer {
+    handle_t handle; // Handle to the linked DLL
+
+    set<string> my_procs; // list of procedures linked within this DLL
+    set<string> my_funcs; // list of functions linked within this DLL
+    set<handle_t> my_handles; // memorize handles to avoid calling IDL_Load() many times
+
+    static map<string, shared_ptr<DLibPro>> all_procs; // list of ALL procedures linked (using linkimage)
+    static map<string, shared_ptr<DLibFun>> all_funcs; // list of ALL functions linked (using linkimage)
+    static map<string, DllContainer> libs; // list of ALL DLLs linked (using linkimage)
+
+    bool isok=false;
+    bool IsOK(){return isok;}
     DllContainer( const DllContainer& ) = delete;
     DllContainer( DllContainer&& rhs ) : handle(nullptr) { std::swap( handle, rhs.handle ); };
     DllContainer( const string& fn ) : handle(nullptr) { };//load(fn); }/// do not load at DllContainer definition! will be done better after.
-    ~DllContainer() { unload( true ); }
+    ~DllContainer() { unload( true ); isok=false;}
     void load( const string& fn ) {
       if( handle ) return;     // already loaded.
       string msg;
@@ -211,7 +223,7 @@ void CleanupProc( DLibPro* proc ) {
 	msg = "Couldn't open " + fn;
       }
 #else
-      handle = dlopen(fn.c_str(), RTLD_LAZY);
+      handle = dlopen(fn.c_str(), RTLD_LAZY|RTLD_GLOBAL);
       if( !handle ) {
 	msg = "Couldn't open " + fn;
 	char* error = dlerror();
@@ -220,9 +232,10 @@ void CleanupProc( DLibPro* proc ) {
 	}
       }
 #endif
-//      if( !handle ) {
+      if( !handle ) {
 //	throw runtime_error( msg );
-//      }
+//	Warning( msg );
+      } else isok=true;
     }
     void unload( bool force=false ) {
       if( !force && !(my_procs.empty() && my_funcs.empty()) ) {
@@ -242,13 +255,14 @@ void CleanupProc( DLibPro* proc ) {
       if( handle ) dlclose(handle);
 #endif
       handle = nullptr;
+      isok=false;
     }
     static DllContainer& get( const string& fn , bool signal=false, DStringGDL* info=NULL) {
       auto res = libs.emplace( std::pair<string,DllContainer>(fn, DllContainer(fn)) );
       DllContainer& l = res.first->second;
       if( ! l.isLoaded() ) {
         l.load(fn);
-        if (signal) {
+        if ( l.isLoaded() && signal) { //can still be unloaded due to problems.
           help_AddDlmInfo(info->Dup());
           Message("Loaded DLM: "+(*info)[0]);
       }
@@ -494,18 +508,7 @@ void CleanupProc( DLibPro* proc ) {
       my_funcs.insert(func_name);
       }
   
-    bool isLoaded( void ) { return handle; };
-        
-    handle_t handle;                                    // Handle to the linked DLL
-        
-    set<string> my_procs;                               // list of procedures linked within this DLL
-    set<string> my_funcs;                               // list of functions linked within this DLL
-    set<handle_t> my_handles;                           // memorize handles to avoid calling IDL_Load() many times
-    
-    static map<string,shared_ptr<DLibPro>> all_procs;   // list of ALL procedures linked (using linkimage)
-    static map<string,shared_ptr<DLibFun>> all_funcs;   // list of ALL functions linked (using linkimage)
-    static map<string,DllContainer> libs;               // list of ALL DLLs linked (using linkimage)
-        
+    bool isLoaded( void ) { return handle; };        
   };
 
   // Instantiate static members
@@ -767,7 +770,7 @@ void CleanupProc( DLibPro* proc ) {
       DStringGDL* info=NULL;
       if (isDlm) info=e->GetKWAs<DStringGDL>(dlminfoIx);
       DllContainer& lib = DllContainer::get( shrdimgName, isDlm, info );
-      if (lib.isLoaded()) {
+      if (lib.IsOK()) {
       if (isGdl) {
       //if 'native' (gdl) then if keywords, these are a DStringGDL
         if (hasKeywords) {
