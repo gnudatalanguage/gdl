@@ -35,7 +35,7 @@ IDL_MEMINT data_offset(struct _idl_structure *vv, IDL_MEMINT i){
   /* else return IDL_TypeSize[vv->tags[i].var.type]; */
 }
 			  
-IDL_VPTR hello_world(int argc, IDL_VPTR argv[])
+IDL_VPTR hello_world_not_same_name_to_test_IDL_Load(int argc, IDL_VPTR argv[])
 {
   /* char* toto="zekjfezkfjezlfkjze"; */
   /* IDL_STRING s_src,s_dst; */
@@ -495,7 +495,7 @@ int IDL_Load(void) {
  //return IDL_MakeStruct("NOUVELLESTRUCT", NOUVELLESTRUCT_tags);
  //}
  static IDL_SYSFUN_DEF2 function_addr[] = {
-{(IDL_SYSRTN_GENERIC) hello_world,"HELLO_WORLD",0,1,0,0},
+{(IDL_SYSRTN_GENERIC) hello_world_not_same_name_to_test_IDL_Load,"HELLO_WORLD",0,1,0,0},
 {(IDL_SYSRTN_GENERIC) IDL_rsum1,"IDL_RSUM1",1,1,0,0},
 {(IDL_SYSRTN_GENERIC) IDL_rsum2,"IDL_RSUM2",1,1,0,0},
 {(IDL_SYSRTN_GENERIC) IDL_rsum3,"IDL_RSUM3",1,1,0,0},
