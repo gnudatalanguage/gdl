@@ -131,6 +131,7 @@ pro dlm_register,filein,silent=silent,verbose=verbose
            CATCH, Error_status
            IF Error_status NE 0 THEN BEGIN
               CATCH, /CANCEL
+			  Message,/REISSUE,/INFO
               BREAK ; a problem occured, this file has problems
            ENDIF
 endif
@@ -154,6 +155,7 @@ if not keyword_set(verbose) then begin
            CATCH, Error_status
            IF Error_status NE 0 THEN BEGIN
               CATCH, /CANCEL
+			  Message,/REISSUE,/INFO
               BREAK ; a problem occured, this file has problems
            ENDIF
 endif
