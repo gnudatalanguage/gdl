@@ -154,6 +154,7 @@ std::istream& BaseGDL::FromStream(std::istream& i)
 bool BaseGDL::Scalar() const { return false;}
 bool BaseGDL::StrictScalar() const { return false;}
 DType   BaseGDL::Type() const { return GDL_UNDEF;}
+int BaseGDL::SizeOfType() const {return 0;}
 const std::string& BaseGDL::TypeStr() const
 { static const std::string s("UNDEFINED"); return s;}
 bool BaseGDL::EqType( const BaseGDL*) const

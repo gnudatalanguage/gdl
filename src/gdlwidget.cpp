@@ -250,7 +250,7 @@ protected:
 private:
   size_t m_maxChars; // max number of chars allowed
 #if wxUSE_VALIDATORS
-  wxScopedPtr<wxValidator> m_validator;
+  unique_ptr<wxValidator> m_validator;
 #endif
   wxString m_value;
 

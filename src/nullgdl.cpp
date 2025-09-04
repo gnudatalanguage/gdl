@@ -158,6 +158,7 @@ std::istream& NullGDL::FromStream(std::istream& i)
 bool NullGDL::Scalar() const { return false;}
 bool NullGDL::StrictScalar() const { return false;}
 DType   NullGDL::Type() const { return GDL_UNDEF;}
+int   NullGDL::SizeOfType() const { return sizeof(void*);}
 const std::string& NullGDL::TypeStr() const
 { static const std::string s("UNDEFINED"); return s;}
 bool NullGDL::EqType( const BaseGDL*) const

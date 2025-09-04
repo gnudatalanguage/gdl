@@ -74,6 +74,7 @@ struct SpDByte: public BaseGDL
   struct IfOther {};
  
   DType   Type()    const;
+  int   SizeOfType()    const;
   const std::string& TypeStr() const;
 
   ~SpDByte();
@@ -118,6 +119,7 @@ struct SpDInt: public BaseGDL
   struct IfOther {};
  
   DType   Type()    const;
+  int   SizeOfType()    const;
   const std::string& TypeStr() const;
 
   ~SpDInt();
@@ -163,6 +165,7 @@ struct SpDUInt: public BaseGDL
  
 
   DType   Type()    const;
+  int   SizeOfType()    const;
   const std::string& TypeStr() const;
 
   ~SpDUInt();
@@ -208,6 +211,7 @@ struct SpDLong: public BaseGDL
  
 
   DType   Type()    const;
+  int   SizeOfType()    const;
   const std::string& TypeStr() const;
 
   ~SpDLong();
@@ -253,6 +257,7 @@ struct SpDULong: public BaseGDL
  
 
   DType   Type()    const;
+  int   SizeOfType()    const;
   const std::string& TypeStr() const;
 
   ~SpDULong();
@@ -298,6 +303,7 @@ struct SpDLong64: public BaseGDL
  
 
   DType   Type()    const;
+  int   SizeOfType()    const;
   const std::string& TypeStr() const;
 
   ~SpDLong64();
@@ -343,6 +349,7 @@ struct SpDULong64: public BaseGDL
  
 
   DType   Type()    const;
+  int   SizeOfType()    const;
   const std::string& TypeStr() const;
 
   ~SpDULong64();
@@ -387,6 +394,7 @@ struct SpDFloat: public BaseGDL
   struct IfOther {};
  
   DType   Type()    const;
+  int   SizeOfType()    const;
   const std::string& TypeStr() const;
 
   ~SpDFloat();
@@ -431,6 +439,7 @@ struct SpDDouble: public BaseGDL
   struct IfOther {};
 
   DType   Type()    const;
+  int   SizeOfType()    const;
   const std::string& TypeStr() const;
 
   ~SpDDouble();
@@ -475,6 +484,7 @@ struct SpDString: public BaseGDL
   struct IfOther { typedef ReturnType type; };
 
   DType   Type()    const;
+  int   SizeOfType()    const;
   const std::string& TypeStr() const;
 
   ~SpDString();
@@ -532,6 +542,7 @@ public:
   static const Ty     zero;
 
   DType   Type()    const;
+  int   SizeOfType()    const;
   const std::string& TypeStr() const;
 
   ~SpDStruct();
@@ -577,6 +588,7 @@ struct SpDPtr: public BaseGDL
   static const Ty       zero;
 
   DType   Type()    const;
+  int   SizeOfType()    const;
   const std::string& TypeStr() const;
 
   ~SpDPtr();
@@ -622,6 +634,7 @@ struct SpDObj: public BaseGDL
   static const Ty       zero;
 
   DType   Type()    const;
+  int   SizeOfType()    const;
   const std::string& TypeStr() const;
 
   ~SpDObj();
@@ -666,6 +679,7 @@ struct SpDComplex: public BaseGDL
   static const DComplex zero;
 
   DType   Type()    const;
+  int   SizeOfType()    const;
   const std::string& TypeStr() const;
 
   ~SpDComplex();
@@ -710,6 +724,7 @@ struct SpDComplexDbl: public BaseGDL
   static const DComplexDbl zero;
 
   DType   Type()    const;
+  int   SizeOfType()    const;
   const std::string& TypeStr() const;
 
   ~SpDComplexDbl();

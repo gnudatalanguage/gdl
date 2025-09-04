@@ -220,18 +220,16 @@ class DLib: public DSub
   bool hideHelp; // if set HELP,/LIB will not list this subroutine
 
 public:
-  void* dllEntry;
   void* mediator;
   
   DLib( const std::string& n, const std::string& o, const int nPar_,
 	const std::string keyNames[],
-	const std::string warnKeyNames[], const int nParMin_, const bool use_threadpool=false, void* mediator=NULL, void* target=NULL, bool usesKeywords=false);
+	const std::string warnKeyNames[], const int nParMin_, const bool use_threadpool=false, void* mediator=NULL, bool usesKeywords=false);
 
   virtual const std::string ToString() = 0;
   
   bool GetHideHelp() const { return hideHelp;}
   void SetHideHelp( bool v) { hideHelp = v;}
-  void* GetDllEntry(){return dllEntry;}
 
   // for sorting lists by name. Not used (lists too short to make a time gain. Long lists would, if existing,
   // benefit from sorting by hash number in a std::map instead of a std::list.
@@ -254,7 +252,7 @@ public:
   // change the results.
   // Note that due to their nature, there should never be keywords
   // on which a value is returned.
-  DLibPro( LibPro p, void* mediator, void* target, const std::string& n, const int nPar_=0, const int nParMin_=0, const bool hasKeys=false);
+  DLibPro( LibPro p, void* mediator, const std::string& n, const int nPar_=0, const int nParMin_=0, const bool hasKeys=false);
 
   DLibPro( LibPro p, const std::string& n, const int nPar_=0, 
 	   const std::string keyNames[]=NULL,
@@ -264,8 +262,8 @@ public:
 	   const int nPar_=0, 
 	   const std::string keyNames[]=NULL,
 	   const std::string warnKeyNames[]=NULL, const int nParMin_=0);
-
-  LibPro Pro() { if (dllEntry) return (LibPro)mediator; else return pro;}
+  void* GetProAddress() {return (void*) pro;} //pro address MAY NOT BE a real Procedure address.
+  LibPro Pro() { if (mediator) return (LibPro)mediator; else return pro;}
   
   const std::string ToString();
 };
@@ -275,7 +273,7 @@ class DLibFun: public DLib
 {
   LibFun fun;
 public:
-  DLibFun( LibFun f, void* mediator, void* target, const std::string& n, const int nPar_=0, const int nParMin_=0, const bool hasKeys=false);
+  DLibFun( LibFun f, void* mediator, const std::string& n, const int nPar_=0, const int nParMin_=0, const bool hasKeys=false);
 
   DLibFun( LibFun f, const std::string& n, const int nPar_=0, 
 	   const std::string keyNames[]=NULL,
@@ -286,7 +284,8 @@ public:
 	   const std::string keyNames[]=NULL,
 	   const std::string warnKeyNames[]=NULL, const int nParMin_=0);
 
-  LibFun Fun() { if (dllEntry) return (LibFun)mediator; else return fun;}
+  void* GetFunAddress() {return (void*) fun;} //fun address MAY NOT BE a real Function address.
+  LibFun Fun() { if (mediator) return (LibFun)mediator; else return fun;}
 
   const std::string ToString();
 

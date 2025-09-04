@@ -26,6 +26,7 @@ const string SpDByte::str("BYTE"); // type string
 const DByte  SpDByte::zero=0;
 BaseGDL* SpDByte::GetTag() const { return new SpDByte(*this);}
 DType   SpDByte::Type()    const { return t;}
+int   SpDByte::SizeOfType()    const { return 1;}
 const std::string& SpDByte::TypeStr() const { return str;}
 
 const DType  SpDInt::t=GDL_INT; // type ID
@@ -33,6 +34,7 @@ const string SpDInt::str("INT"); // type string
 const DInt   SpDInt::zero=0;
 BaseGDL* SpDInt::GetTag() const { return new SpDInt(*this);}
 DType   SpDInt::Type()    const { return t;}
+int   SpDInt::SizeOfType()    const { return sizeof(DInt);}
 const std::string& SpDInt::TypeStr() const { return str;}
 
 const DType  SpDUInt::t=GDL_UINT; // type ID
@@ -40,6 +42,7 @@ const string SpDUInt::str("UINT"); // type string
 const DUInt  SpDUInt::zero=0;
 BaseGDL* SpDUInt::GetTag() const { return new SpDUInt(*this);}
 DType   SpDUInt::Type()    const { return t;}
+int   SpDUInt::SizeOfType()    const { return sizeof(DUInt);}
 const std::string& SpDUInt::TypeStr() const { return str;}
 
 
@@ -48,6 +51,7 @@ const string SpDLong::str("LONG"); // type string
 const DLong  SpDLong::zero=0;
 BaseGDL* SpDLong::GetTag() const { return new SpDLong(*this);}
 DType   SpDLong::Type()    const { return t;}
+int   SpDLong::SizeOfType()    const { return sizeof(DLong);}
 const std::string& SpDLong::TypeStr() const { return str;}
 
 const DType  SpDULong::t=GDL_ULONG; // type ID
@@ -55,6 +59,7 @@ const string SpDULong::str("ULONG"); // type string
 const DULong SpDULong::zero=0;
 BaseGDL* SpDULong::GetTag() const { return new SpDULong(*this);}
 DType   SpDULong::Type()    const { return t;}
+int   SpDULong::SizeOfType()    const { return sizeof(DULong);}
 const std::string& SpDULong::TypeStr() const { return str;}
 
 const DType  SpDLong64::t=GDL_LONG64; // type ID
@@ -62,6 +67,7 @@ const string SpDLong64::str("LONG64"); // type string
 const DLong64  SpDLong64::zero=0;
 BaseGDL* SpDLong64::GetTag() const { return new SpDLong64(*this);}
 DType   SpDLong64::Type()    const { return t;}
+int   SpDLong64::SizeOfType()    const { return sizeof(DLong64);}
 const std::string& SpDLong64::TypeStr() const { return str;}
 
 const DType  SpDULong64::t=GDL_ULONG64; // type ID
@@ -69,6 +75,7 @@ const string SpDULong64::str("ULONG64"); // type string
 const DULong64 SpDULong64::zero=0;
 BaseGDL* SpDULong64::GetTag() const { return new SpDULong64(*this);}
 DType   SpDULong64::Type()    const { return t;}
+int   SpDULong64::SizeOfType()    const { return sizeof(DULong64);}
 const std::string& SpDULong64::TypeStr() const { return str;}
 
 const DType  SpDFloat::t=GDL_FLOAT; // type ID
@@ -76,6 +83,7 @@ const string SpDFloat::str("FLOAT"); // type string
 const DFloat SpDFloat::zero=0.0;
 BaseGDL* SpDFloat::GetTag() const { return new SpDFloat(*this);}
 DType   SpDFloat::Type()    const { return t;}
+int   SpDFloat::SizeOfType()    const { return sizeof(DFloat);}
 const std::string& SpDFloat::TypeStr() const { return str;}
 
 const DType   SpDDouble::t=GDL_DOUBLE; // type ID
@@ -83,6 +91,7 @@ const string  SpDDouble::str("DOUBLE"); // type string
 const DDouble SpDDouble::zero=0.0;
 BaseGDL* SpDDouble::GetTag() const { return new SpDDouble(*this);}
 DType   SpDDouble::Type()    const { return t;}
+int   SpDDouble::SizeOfType()    const { return sizeof(DDouble);}
 const std::string& SpDDouble::TypeStr() const { return str;}
 
 const DType   SpDString::t=GDL_STRING; // type ID
@@ -90,6 +99,7 @@ const string  SpDString::str("STRING"); // type string
 const DString SpDString::zero(""); // zero string
 BaseGDL* SpDString::GetTag() const { return new SpDString(*this);}
 DType   SpDString::Type()    const { return t;}
+int   SpDString::SizeOfType()    const { return sizeof(DString);}
 const std::string& SpDString::TypeStr() const { return str;}
 
 const DType    SpDStruct::t=GDL_STRUCT;      // type ID
@@ -102,6 +112,7 @@ BaseGDL* SpDStruct::GetTag() const
   return newTag;
 }
 DType   SpDStruct::Type()    const { return t;}
+int   SpDStruct::SizeOfType()    const { return sizeof(void*);}
 const std::string& SpDStruct::TypeStr() const { return str;}
 
 const DType   SpDPtr::t=GDL_PTR;   // type ID
@@ -109,6 +120,7 @@ const string  SpDPtr::str("POINTER"); // type string
 const DPtr    SpDPtr::zero=0;  // zero ptr
 BaseGDL* SpDPtr::GetTag() const { return new SpDPtr(*this);}
 DType   SpDPtr::Type()    const { return t;}
+int  SpDPtr::SizeOfType()    const { return sizeof(DPtr);}
 const std::string& SpDPtr::TypeStr() const { return str;}
 
 const DType   SpDObj::t=GDL_OBJ;   // type ID
@@ -116,6 +128,7 @@ const string  SpDObj::str("OBJREF"); // type string
 const DObj    SpDObj::zero=0;  // zero ptr/obj
 BaseGDL* SpDObj::GetTag() const { return new SpDObj(*this);}
 DType   SpDObj::Type()    const { return t;}
+int   SpDObj::SizeOfType()    const { return sizeof(DObj);}
 const std::string& SpDObj::TypeStr() const { return str;}
 
 const DType  SpDComplex::t=GDL_COMPLEX; // type ID
@@ -123,6 +136,7 @@ const string SpDComplex::str("COMPLEX"); // type string
 const DComplex SpDComplex::zero(0.0,0.0);
 BaseGDL* SpDComplex::GetTag() const { return new SpDComplex(*this);}
 DType   SpDComplex::Type()    const { return t;}
+int   SpDComplex::SizeOfType()    const { return sizeof(DComplex);}
 const std::string& SpDComplex::TypeStr() const { return str;}
 
 const DType  SpDComplexDbl::t=GDL_COMPLEXDBL; // type ID
@@ -130,6 +144,7 @@ const string SpDComplexDbl::str("DCOMPLEX"); // type string
 const DComplexDbl SpDComplexDbl::zero(0.0,0.0);
 BaseGDL* SpDComplexDbl::GetTag() const { return new SpDComplexDbl(*this);}
 DType   SpDComplexDbl::Type()    const { return t;}
+int   SpDComplexDbl::SizeOfType()    const { return sizeof(DComplexDbl);}
 const std::string& SpDComplexDbl::TypeStr() const { return str;}
 
 // for GDL structs

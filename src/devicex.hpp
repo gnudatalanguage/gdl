@@ -150,8 +150,8 @@ public:
             if (!open) return NULL;
 
             DString title = "GDL 0";
-            DLong xSize=640;
-            DLong ySize=512;
+            DLong xSize=0;
+            DLong ySize=0;
             DefaultXYSize(&xSize, &ySize);
             bool success = WOpen(0, title, xSize, ySize, -1, -1, false);
             if (!success)
@@ -302,15 +302,18 @@ public:
    *xSize = DisplayWidth(display, DefaultScreen(display)) / 2;
    *ySize = DisplayHeight(display, DefaultScreen(display)) / 2;
    XCloseDisplay(display);
-  }
+  } else throw GDLException("X11 DISPLAY not set, aborting");
 
-  bool noQscreen = true;
+  bool acceptUserScreenSizeRequests = false; //default
   string gdlQscreen = GetEnvString("GDL_GR_X_QSCREEN");
-  if (gdlQscreen == "1") noQscreen = false;
+  if (gdlQscreen.size() == 0) gdlQscreen = GetEnvString("IDL_GR_X_QSCREEN");
+  if (gdlQscreen.size() > 0 && gdlQscreen != "1") acceptUserScreenSizeRequests = true;
   string gdlXsize = GetEnvString("GDL_GR_X_WIDTH");
-  if (gdlXsize != "" && noQscreen) *xSize = atoi(gdlXsize.c_str());
+  if (gdlXsize.size() == 0) gdlXsize = GetEnvString("IDL_GR_X_WIDTH");
+  if (acceptUserScreenSizeRequests && (gdlXsize.size() > 0)) *xSize = atoi(gdlXsize.c_str());
   string gdlYsize = GetEnvString("GDL_GR_X_HEIGHT");
-  if (gdlYsize != "" && noQscreen) *ySize = atoi(gdlYsize.c_str());
+  if (gdlYsize.size() == 0) gdlYsize = GetEnvString("IDL_GR_X_HEIGHT");
+  if (acceptUserScreenSizeRequests && (gdlYsize.size() > 0)) *ySize = atoi(gdlYsize.c_str());
   }
 
  void MaxXYSize(DLong *xSize, DLong *ySize) {

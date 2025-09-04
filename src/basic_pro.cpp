@@ -2008,7 +2008,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     if (nParam > 2 && pipe(cerrP) == -1) e->Throw("GDL internal error: no more PIPE resources. ");
     if (stderrKeyword && !RedirectedCoutToCerr && !RedirectedCerrToCout) cmd+=" 2>&1";
     
-    pid_t pid = vfork(); // *** fork
+    pid_t pid = fork(); // *** fork
     if (pid == -1) // error in fork
     {
       close(cinP[0]);

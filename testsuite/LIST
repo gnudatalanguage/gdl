@@ -154,6 +154,7 @@ test_plot_usersym.pro
 test_pmulti.pro
 test_poly_fit.pro
 test_postscript.pro
+test_powell.pro
 test_product.pro
 test_ptrarr.pro
 test_ptr_valid.pro

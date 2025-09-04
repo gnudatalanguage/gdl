@@ -41,16 +41,13 @@ end
 ; silent is a GDL extension
 pro dlm_register,filein,silent=silent,verbose=verbose
   COMPILE_OPT idl2, HIDDEN
-  if n_elements(filein) eq 0 then begin; default search is also the local directory
+  if n_elements(filein) eq 0 then begin ; default search is also the local directory
      searchpath="."+ PATH_SEP(/SEARCH_PATH) +!DLM_PATH
-	filelist=file_search(STRSPLIT(searchpath, PATH_SEP(/SEARCH_PATH),/extract)+'/*.dlm') 
+     filelist=file_search(STRSPLIT(searchpath, PATH_SEP(/SEARCH_PATH),/extract)+'/*.dlm') 
+     if n_elements(filelist) eq 1 and filelist[0] eq "" then return
   endif else filelist=filein
-  nfiles = n_elements(filelist)
-  if nfiles eq 1 and filelist[0] eq "" then begin
-     if keyword_set(silent) then return
-     Message,"Incorrect number of arguments."
-  endif
-  
+
+  nfiles=n_elements(filelist)
 
   case !version.os of
      "linux": ext=".so"
@@ -63,10 +60,14 @@ pro dlm_register,filein,silent=silent,verbose=verbose
      file=file_expand_path(file)
      sl=strlen(file)-4 ; .dlm
      image=strmid(file,0,sl)+ext
-if keyword_set(verbose)  then      print,'image: '+image & print
+	 info=file_info(image)
+	 if info.exists eq 0 or info.size lt 40 then begin 
+		if keyword_set(verbose)  then      print,'image: '+image+" is invalid."
+        continue
+	  endif
+     if keyword_set(verbose)  then      print,'image: '+image
      s=gdl_get_dlm_info(file)
      n=n_elements(s)
-     if s[0] eq "" then break
      ; check if this is a GDL-native DLL
      findpos=strpos(s , "#%GDL_DLM")
      is_gdl = findpos[0] gt -1
@@ -87,7 +88,7 @@ if keyword_set(verbose)  then      print,'image: '+image & print
 
      ; find module name
      modulename=strtrim(strmid(s[w],findpos[w]+7,strlen(s[w])),2)
-if keyword_set(verbose)  then      print,"module name: "+modulename
+     if keyword_set(verbose)  then      print,"module name: "+modulename
      ; prepare dlm_info to pass to linkimage
      dlm_info=strarr(4)
      dlm_info[0]=modulename
@@ -126,11 +127,11 @@ if keyword_set(verbose)  then      print,"module name: "+modulename
      w=where(findpos gt -1, count)
      if (count ge 1) then begin
         for ipro=0,count-1 do begin
-	       if dlm_info ne !NULL and ipro gt 0 then dlm_info=!NULL
-if not keyword_set(verbose) then begin
+     if not keyword_set(verbose) then begin
            CATCH, Error_status
            IF Error_status NE 0 THEN BEGIN
               CATCH, /CANCEL
+			  Message,/REISSUE,/INFO
               BREAK ; a problem occured, this file has problems
            ENDIF
 endif
@@ -150,11 +151,11 @@ nextpro:
      w=where(findpos gt -1, count)
      if (count ge 1) then begin
         for ifun=0,count-1 do begin
-	       if dlm_info ne !NULL and ifun gt 0 then dlm_info=!NULL
 if not keyword_set(verbose) then begin
            CATCH, Error_status
            IF Error_status NE 0 THEN BEGIN
               CATCH, /CANCEL
+			  Message,/REISSUE,/INFO
               BREAK ; a problem occured, this file has problems
            ENDIF
 endif

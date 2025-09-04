@@ -954,7 +954,15 @@ void InitObjects()
 
   gdl_default_dlm= "+" + gdlDataDir + lib::PathSeparator() + "dlm";
   string dlmgdlPath=GetEnvPathString("GDL_DLM_PATH");
-  if( dlmgdlPath == "") dlmgdlPath=GetEnvPathString("IDL_DLM_PATH");
+  //NO! Because GD is ABLE to link to IDL's DLMs (at least a subset) but this will fail afterwards and crash gdl.
+  //This needs a bit of information:
+  // DLMs is just (in GDL) a construction atop LINKIMAGE.
+  // One is supposed to be able to use linkimage without needing to resolve all symbols in the (potentially larger) DLL.
+  // However, a DLM contains an IDL_Load, that GDL must call to get the exact address of symbols corresponding to defined FUN/PRO
+  // since the symbol/entry "name" in  the dll may vary between distros. 
+  // Unfortunately IDL_Load() function may call (indirectly) unresolved symbols, and this is the case for ALL DLMs in the IDL distribution.
+  // So enabling by default the loading of these DLMs only on the behalf of the setting of an environment variable set for IDL users, is dangerous.
+  //if( dlmgdlPath == "") dlmgdlPath=GetEnvPathString("IDL_DLM_PATH");
   if( dlmgdlPath == "") dlmgdlPath = gdl_default_dlm;
   SysVar::SetDlmPath( dlmgdlPath);
 

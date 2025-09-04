@@ -1,0 +1,7 @@
+a number of testing functions for the DLM support.
+the .so can be produced with:
+gcc -c -O3 -fPIC -I /opt/idl/idl84/external/include/ testmodule.c; gcc -shared testmodule.o -o testmodule.so
+
+just define GDL_DLM_Path to point on this directory.
+
+functions are probably of use only by the GDL programmer, badly written and just made to test  some cases (others having been tested by changing types etc.. in the code). It's just a starter.

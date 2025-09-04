@@ -38,14 +38,24 @@ typedef void* handle_t;
 
 #include "export.hpp"
 
-static SizeT increment=33; //why not?
+static SizeT increment=0;
 
-  namespace lib {
+namespace lib {
     using namespace std;
 
-  BaseGDL* CallDllFunc(EnvT* e) {
-    void* address = static_cast<DLibPro*> (e->GetPro())->GetDllEntry();
-    EXPORT_SYSRTN_FUN calldllfunc = (EXPORT_SYSRTN_FUN) address;
+    //search in AllDLMSymbols all functions/procs referring to this dlm name, and clears them to indicate that the "Loaded DLM" message has already been activated.
+    //mimics IDL's behaviour although we do not use the same logic, the dlls are loaded when the dlm is read, not when an entry is called.
+    void ClearDlmStringReference(std::string &s){
+      std::string local_s=s;
+      for (auto i=0; i< AllDLMSymbols.size() ;++i) if (AllDLMSymbols[i].second.size() && AllDLMSymbols[i].second == local_s) AllDLMSymbols[i].second.clear();
+    }
+  BaseGDL* CallDllFunc(EnvT* e) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+  SizeT pos=(SizeT)(static_cast<DLibFun*> (e->GetPro())->GetFunAddress());
+  EXPORT_SYSRTN_FUN calldllfunc= (EXPORT_SYSRTN_FUN) AllDLMSymbols[pos].first;
+    if ((AllDLMSymbols[pos].second).size()) {
+      std::cout<<"Loaded DLM: "<<AllDLMSymbols[pos].second<<std::endl;
+      ClearDlmStringReference(AllDLMSymbols[pos].second);
+    }
     int argc = e->NParam();
     EXPORT_VPTR argv[argc];
     for (auto i = 0; i < argc; ++i) {
@@ -86,7 +96,10 @@ static SizeT increment=33; //why not?
       passed.passed = kws;
       argk = (char*) (&passed);
     }
-    EXPORT_VPTR ret = calldllfunc(argc, argv, argk);
+    EXPORT_VPTR ret;
+    try{
+      ret = calldllfunc(argc, argv, argk);
+    } catch (...) {Warning("error in DLM code / unsupported function, returning."); return NULL;}
     //check if some argk keywords have been returned too. A real variable must be associated to be replaced in return
     for (auto i = 0; i < nkw; ++i) {
       if (kws[i].out != NULL) {
@@ -105,9 +118,13 @@ static SizeT increment=33; //why not?
     return back;
   }
 
-  void CallDllPro(EnvT* e) {
-    void* address = static_cast<DLibPro*> (e->GetPro())->GetDllEntry();
-    EXPORT_SYSRTN_PRO calldllpro = (EXPORT_SYSRTN_PRO) address;
+  void CallDllPro(EnvT* e) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+  SizeT pos=(SizeT)(static_cast<DLibPro*> (e->GetPro())->GetProAddress());
+    EXPORT_SYSRTN_PRO calldllpro = (EXPORT_SYSRTN_PRO) AllDLMSymbols[pos].first;
+    if ((AllDLMSymbols[pos].second).size()) {
+      std::cout<<"Loaded DLM: "<<AllDLMSymbols[pos].second<<std::endl;
+      ClearDlmStringReference(AllDLMSymbols[pos].second);
+    }
     int argc = e->NParam();
     EXPORT_VPTR argv[argc];
     for (auto i = 0; i < argc; ++i) {
@@ -148,7 +165,9 @@ static SizeT increment=33; //why not?
       passed.passed = kws;
       argk = (char*) (&passed);
     }
-    calldllpro(argc, argv, argk);
+    try{
+      calldllpro(argc, argv, argk);
+    } catch (...) {Warning("error in DLM code / unsupported function, returning.");}
     //check if some argk keywords have been returned too. A real variable must be associated to be replaced in return
     for (auto i = 0; i < nkw; ++i) {
       if (kws[i].out != NULL) {
@@ -191,10 +210,25 @@ void CleanupProc( DLibPro* proc ) {
   }
 
   struct DllContainer {
+    handle_t handle; // Handle to the linked DLL
+
+    set<string> my_procs; // list of procedures linked within this DLL
+    set<string> my_funcs; // list of functions linked within this DLL
+    set<handle_t> my_handles; // memorize handles to avoid calling IDL_Load() many times
+
+    static map<string, shared_ptr<DLibPro>> all_procs; // list of ALL procedures linked (using linkimage)
+    static map<string, shared_ptr<DLibFun>> all_funcs; // list of ALL functions linked (using linkimage)
+    static map<string, DllContainer> libs; // list of ALL DLLs linked (using linkimage)
+
+    bool isok=false;
+    bool addedToHelpDll=false;
+    bool IsOK(){return isok;}
+    bool IsHelpAdded(){return addedToHelpDll;}
+    void HelpAdded(bool b){addedToHelpDll=b;}
     DllContainer( const DllContainer& ) = delete;
     DllContainer( DllContainer&& rhs ) : handle(nullptr) { std::swap( handle, rhs.handle ); };
-    DllContainer( const string& fn ) : handle(nullptr) { load(fn); }
-    ~DllContainer() { unload( true ); }
+    DllContainer( const string& fn ) : handle(nullptr) { };//load(fn); }/// do not load at DllContainer definition! will be done better after.
+    ~DllContainer() { unload( true ); isok=false;}
     void load( const string& fn ) {
       if( handle ) return;     // already loaded.
       string msg;
@@ -206,11 +240,7 @@ void CleanupProc( DLibPro* proc ) {
 	msg = "Couldn't open " + fn;
       }
 #else
-#if defined(__APPLE__)
-      handle = dlopen(fn.c_str(), RTLD_NOW | RTLD_LOCAL); //DEEPBIND not on OSX ?
-#else
-      handle = dlopen(fn.c_str(), RTLD_NOW | RTLD_LOCAL |RTLD_DEEPBIND);
-#endif
+      handle = dlopen(fn.c_str(), RTLD_LAZY|RTLD_GLOBAL);
       if( !handle ) {
 	msg = "Couldn't open " + fn;
 	char* error = dlerror();
@@ -220,8 +250,9 @@ void CleanupProc( DLibPro* proc ) {
       }
 #endif
       if( !handle ) {
-	throw runtime_error( msg );
-      }
+//	throw runtime_error( msg );
+//	Warning( msg );
+      } else isok=true;
     }
     void unload( bool force=false ) {
       if( !force && !(my_procs.empty() && my_funcs.empty()) ) {
@@ -241,13 +272,14 @@ void CleanupProc( DLibPro* proc ) {
       if( handle ) dlclose(handle);
 #endif
       handle = nullptr;
+      isok=false;
     }
     static DllContainer& get( const string& fn ) {
       auto res = libs.emplace( std::pair<string,DllContainer>(fn, DllContainer(fn)) );
       DllContainer& l = res.first->second;
       if( ! l.isLoaded() ) {
-	l.load(fn);
-      }
+        l.load(fn);
+     }
       return l;
     }
     static void unload( const string& fn, bool force=false ) {
@@ -261,28 +293,62 @@ void CleanupProc( DLibPro* proc ) {
       all_procs.clear();
       all_funcs.clear();
     }
-    void RegisterSymbol( const string& lib_symbol, const string& proc_name, DLong funcType, DLong max_args=16, DLong min_args=0, bool has_keys=false) {
-      if( !handle ) {
-	throw runtime_error( "Library not loaded!" );
-      } else if( funcType < 0 || funcType>1 ) {
-	throw runtime_error( "Improper function type: "+to_string(funcType) );
+
+    void RegisterSymbolDefinedByIDL_Load(const string& dlm_name, const string& proc_name, DLong funcType, DLong max_args = 16, DLong min_args = 0, bool has_keys = false) {
+      if (!handle) {
+        throw runtime_error("Library not loaded!");
+      } else if (funcType < 0 || funcType > 1) {
+        throw runtime_error("Improper function type: " + to_string(funcType));
       }
-      if( funcType == 0 ) {
-	RegisterMediatizedProc( lib_symbol, proc_name, max_args, min_args, has_keys);
-      } else {
-	RegisterMediatizedFunc( lib_symbol, proc_name, max_args, min_args, has_keys);
+      const char * name = proc_name.c_str();
+      if (funcType == 0) {
+        bool found = false;
+        for (std::map<const char*, void*>::iterator it = SysProDefinitions.begin(); it != SysProDefinitions.end(); ++it) {
+          if (strcmp(it->first, name) == 0) {
+            //find lib_symbol in SysPropDefinitions
+            RegisterMediatizedProc(dlm_name, it->second, proc_name, max_args, min_args, has_keys);
+            found = true;
+            break;
+          }
+        }
+        if (!found) throw runtime_error("DLM's IDL_Load() does not define procedure " + proc_name);
+        } else {
+        bool found = false;
+        for (std::map<const char*, void*>::iterator it = SysFunDefinitions.begin(); it != SysFunDefinitions.end(); ++it) {
+          if (strcmp(it->first, name) == 0) {
+            //find lib_symbol in SysFunDefinitions
+            RegisterMediatizedFunc(dlm_name, it->second, proc_name, max_args, min_args, has_keys);
+            found = true;
+            break;
+          }
+        }
+        if (!found) throw runtime_error("DLM's IDL_Load()  does not define function " + proc_name);
       }
     }
-    void RegisterNativeSymbol( const string& lib_symbol, const string& proc_name, DLong funcType, DLong max_args=16, DLong min_args=0, string keyNames[]=NULL) {
+    
+    void RegisterSymbol(const string & dlm_name, const string& entry_name, const string& proc_name, DLong funcType, DLong max_args=16, DLong min_args=0, bool has_keys=false) {
       if( !handle ) {
 	throw runtime_error( "Library not loaded!" );
       } else if( funcType < 0 || funcType>1 ) {
 	throw runtime_error( "Improper function type: "+to_string(funcType) );
       }
       if( funcType == 0 ) {
-	RegisterNativeProc( lib_symbol, proc_name, max_args, min_args, keyNames);
+	RegisterMediatizedProc( dlm_name, MakeTarget(entry_name,proc_name), proc_name, max_args, min_args, has_keys);
       } else {
-	RegisterNativeFunc( lib_symbol, proc_name, max_args, min_args, keyNames);
+	RegisterMediatizedFunc( dlm_name, MakeTarget(entry_name,proc_name), proc_name, max_args, min_args, has_keys);
+      }
+    }
+ 
+    void RegisterNativeSymbol( const string& entry_name, const string& proc_name, DLong funcType, DLong max_args=16, DLong min_args=0, string keyNames[]=NULL) {
+      if( !handle ) {
+	throw runtime_error( "Library not loaded!" );
+      } else if( funcType < 0 || funcType>1 ) {
+	throw runtime_error( "Improper function type: "+to_string(funcType) );
+      }
+      if( funcType == 0 ) {
+	RegisterNativeProc( entry_name, proc_name, max_args, min_args, keyNames);
+      } else {
+	RegisterNativeFunc( entry_name, proc_name, max_args, min_args, keyNames);
       }
     }
     void UnregisterSymbol( const string& proc_name, DLong funcType ) {
@@ -298,6 +364,30 @@ void CleanupProc( DLibPro* proc ) {
 	all_funcs.erase( proc_name );
 	my_funcs.erase( proc_name );
       }
+    }
+    //for IDL-compatible library, try IDL_Load, that may define useful variables or structures before the use of the othe functions/procedures inside.
+    int CallLoadToDefineEntryLocations(){
+      if (my_handles.count(handle) > 0) return 1; //already known
+      void* fPtr=NULL;
+      char* error = nullptr;
+#if defined(_WIN32) && !defined(__CYGWIN__)
+      fPtr = (void*) GetProcAddress( handle, "IDL_Load" );
+#else
+      error = dlerror();  // clear error
+      fPtr = dlsym( handle, "IDL_Load" );
+      error = dlerror();
+#endif
+      if(fPtr) { //IDL_Load() may be absent, no probs for us.
+        // if it is present, we call it. If it contains calls to IDL_SysRtnAdd(), then IDL_SysRtnAdd() will to load all the definitions, they will not be defined again.
+        int (*Call_IDL_Load)(void) = ( int (*)(void)) fPtr;
+        int ret ;
+        try{
+          ret = Call_IDL_Load();
+        } catch (...) { return 0;}
+        if (ret) my_handles.insert(handle); // IDL_Load has been called
+        return ret;
+      }
+      return 0;
     }
    template <typename T>
     T LinkAs(const string& lib_symbol, const string& proc_name) {
@@ -347,6 +437,7 @@ void CleanupProc( DLibPro* proc ) {
       fPtr = dlsym( handle, lib_symbol.c_str() );
       error = dlerror();
 #endif
+      // if 'lib_symbol' does not work, try both upcase and lowcase versions
       if (error) { //try lowercase (DLMs are written in UPPERCASE)
         std::string s=StrLowCase(lib_symbol);
 #if defined(_WIN32) && !defined(__CYGWIN__)
@@ -372,16 +463,21 @@ void CleanupProc( DLibPro* proc ) {
       }
       return fPtr;
     }
-    
-    void RegisterMediatizedProc( const string& lib_symbol, const string& proc_name, DLong max_args, DLong min_args, bool has_keys) { 
-      if( all_procs.count( proc_name ) ) return;
+#define ADD_PROC_TO_INFOLIST_AND_INCREMENT_COUNTER std::pair <void*, std::string> newpair;\
+      newpair.first=target;\
+      newpair.second=dlm_name;\
+      AllDLMSymbols[increment++]=newpair;
+
+    void RegisterMediatizedProc(const string& dlm_name, void* target, const string& proc_name, DLong max_args, DLong min_args, bool has_keys) {
+      if (all_procs.count(proc_name)) return;
       // this method of 'cleaning' is excellent but show a problem when exiting, seen only with valgrind.
       // Not clear why, as calling .FULL_RESET prior exiting does not show this error. 
       all_procs[proc_name].reset(
-				 new DLibPro( (void (*)(EnvT* e)) (increment++), (void*)CallDllPro, MakeTarget( lib_symbol, proc_name ), proc_name.c_str(), max_args, min_args, has_keys),
-				 CleanupProc
-				 );
+          new DLibPro((void (*)(EnvT * e)) (increment), (void*) CallDllPro,  proc_name, max_args, min_args, has_keys),
+          CleanupProc
+          );
       my_procs.insert(proc_name);
+      ADD_PROC_TO_INFOLIST_AND_INCREMENT_COUNTER
     }
     
     void RegisterNativeProc( const string& lib_symbol, const string& proc_name, DLong max_args, DLong min_args, const string keyNames[]) { 
@@ -392,17 +488,18 @@ void CleanupProc( DLibPro* proc ) {
 				 );
       my_procs.insert(proc_name);
     }
-    
-     void RegisterMediatizedFunc( const string& lib_symbol, const string& func_name, DLong max_args, DLong min_args, bool has_keys) { 
+
+    void RegisterMediatizedFunc(const string& dlm_name, void* target, const string& func_name, DLong max_args, DLong min_args, bool has_keys) { 
       if( all_funcs.count( func_name ) ) return;
       // this method of 'cleaning' is excellent but show a problem when exiting, seen only with valgrind.
       all_funcs[func_name].reset(
-				 new DLibFun((BaseGDL* (*)(EnvT* e)) (increment++), (void*)CallDllFunc , MakeTarget( lib_symbol, func_name ), func_name.c_str(), max_args,  min_args, has_keys),
+				 new DLibFun((BaseGDL* (*)(EnvT* e)) (increment), (void*)CallDllFunc , func_name, max_args,  min_args, has_keys),
 				 CleanupFunc
 				 );
       my_funcs.insert(func_name);
+      ADD_PROC_TO_INFOLIST_AND_INCREMENT_COUNTER
      }
-     
+
      void RegisterNativeFunc( const string& lib_symbol, const string& func_name, DLong max_args, DLong min_args,  string keyNames[]) { 
       if( all_funcs.count( func_name ) ) return;
       all_funcs[func_name].reset(
@@ -412,17 +509,7 @@ void CleanupProc( DLibPro* proc ) {
       my_funcs.insert(func_name);
       }
   
-    bool isLoaded( void ) { return handle; };
-        
-    handle_t handle;                                    // Handle to the linked DLL
-        
-    set<string> my_procs;                               // list of procedures linked within this DLL
-    set<string> my_funcs;                               // list of functions linked within this DLL
-        
-    static map<string,shared_ptr<DLibPro>> all_procs;   // list of ALL procedures linked (using linkimage)
-    static map<string,shared_ptr<DLibFun>> all_funcs;   // list of ALL functions linked (using linkimage)
-    static map<string,DllContainer> libs;               // list of ALL DLLs linked (using linkimage)
-        
+    bool isLoaded( void ) { return handle; };        
   };
 
   // Instantiate static members
@@ -662,7 +749,7 @@ void CleanupProc( DLibPro* proc ) {
     static int maxargsIx = e->KeywordIx("MAX_ARGS");
     static int minargsIx = e->KeywordIx("MIN_ARGS");
     static int nativeIx = e->KeywordIx("NATIVE");
-    bool isGdl=e->KeywordSet(nativeIx); //this is a GDL-native .so 
+    bool isNativeGdl=e->KeywordSet(nativeIx); //this is a GDL-native .so 
     static int dlminfoIx = e->KeywordIx("DLM_INFO");
     bool isDlm=e->KeywordSet(dlminfoIx);
 
@@ -680,31 +767,45 @@ void CleanupProc( DLibPro* proc ) {
       entryName = funcName;
     }
 
-      try {
-      DllContainer& lib = DllContainer::get( shrdimgName );
-      if (isDlm) { //add dlminfo to list to be fed to help,/dlm
-        DStringGDL* info=e->GetKWAs<DStringGDL>(dlminfoIx);
-        help_AddDlmInfo(info->Dup());
-        Message("Loaded DLM: "+(*info)[0]);
+    try {
+      DStringGDL* info = NULL;
+      if (isDlm) info = e->GetKWAs<DStringGDL>(dlminfoIx);
+      DllContainer& lib = DllContainer::get(shrdimgName);
+      if (lib.IsOK()) {
+        if (isNativeGdl) {
+          //if 'native' (gdl) then if keywords, these are a DStringGDL
+          if (hasKeywords) {
+            BaseGDL* p = e->GetKW(keywordsIx);
+            if (p->Type() != GDL_STRING) e->Throw("KEYWORDS: Expecting STRING keywords.");
+            // GD: attention Keyword list must be null terminated!
+            DStringGDL* crude = e->GetKWAs<DStringGDL>(keywordsIx);
+            DStringGDL* null_terminated = new DStringGDL(dimension(crude->N_Elements() + 1));
+            for (auto i = 0; i < p->N_Elements(); ++i) (*null_terminated)[i] = (*crude)[i];
+            lib.RegisterNativeSymbol(entryName, funcName, funcType, max_args, min_args, &((*null_terminated)[0]));
+          } else lib.RegisterNativeSymbol(entryName, funcName, funcType, max_args, min_args);
+        } else {
+          int ret = 0;
+          if (isDlm) {
+            // test if "IDL_Load() can be called to give, noot symbol names, but symbols addresses
+            ret = lib.CallLoadToDefineEntryLocations();
+            if (ret) { //if we got directly symbol addresses, use a special fuction
+              lib.RegisterSymbolDefinedByIDL_Load((*info)[0],funcName, funcType, max_args, min_args, hasKeywords);
+              if (!lib.IsHelpAdded()) { //can still be unloaded due to problems.
+                help_AddDlmInfo(info->Dup()); //only once
+                lib.HelpAdded(true);
+              }
+              if (funcType) {//insert DLM name in lib/pro structure to enable the "Loaded XXXX" message at first use.
+                int funIx=LibFunIx(funcName);
+                } else {
+                int proIx=LibProIx(funcName);
+                }
+            } else lib.RegisterSymbol((*info)[0], entryName, funcName, funcType, max_args, min_args, hasKeywords); //not a dlm, or dlm does not have ILD_Load()
+          }
+        }
       }
-      if (isGdl) {
-      //if 'native' (gdl) then if keywords, these are a DStringGDL
-        if (hasKeywords) {
-          BaseGDL* p=e->GetKW(keywordsIx);
-          if (p->Type() != GDL_STRING) e->Throw("KEYWORDS: Expecting STRING keywords.");
-          // GD: attention Keyword list must be null terminated!
-          DStringGDL* crude=e->GetKWAs<DStringGDL>(keywordsIx);
-          DStringGDL* null_terminated=new DStringGDL(dimension(crude->N_Elements()+1));
-          for (auto i=0; i<p->N_Elements(); ++i) (*null_terminated)[i]=(*crude)[i];
-        lib.RegisterNativeSymbol( entryName, funcName, funcType, max_args, min_args, &((*null_terminated)[0]));
-        } else lib.RegisterNativeSymbol( entryName, funcName, funcType, max_args, min_args);
-      } else {
-        lib.RegisterSymbol( entryName, funcName, funcType, max_args, min_args, hasKeywords);
-      }
-    } catch ( const std::exception& ex ) {
-      e->Throw("Error linking procedure/DLL: " + funcName + " -> " + entryName + "  (" + shrdimgName + ") : " + ex.what() );
-      }
-    
+    } catch (const std::exception& ex) {
+      e->Throw("Error linking procedure/DLL: " + funcName + " -> " + entryName + "  (" + shrdimgName + ") : " + ex.what());
+    }
   }
   
   void unlinkimage( EnvT* e ) {
@@ -1140,10 +1241,7 @@ void CleanupProc( DLibPro* proc ) {
     HMODULE handle = LoadLibraryW(wchr);
     delete(wchr);
 #else
-    // note following code line is correct for gcc and linux.
-    // in case of trouble on some architecture, find the correct option and make an #ifdef.
-    // Do *not* modify the following line. GD.
-    void* handle =  dlopen(image.c_str(),  RTLD_NOW | RTLD_GLOBAL);
+    void* handle =  dlopen(image.c_str(), RTLD_LAZY);
 #endif
     if (handle == NULL) {
 #if !defined(_WIN32) || defined(__CYGWIN__)
