@@ -38,9 +38,8 @@ using namespace std;
       return;\
     }
 
-#define GET_NEXT_CHAR_RETURN_BUF     c = is.get(); \
+#define GET_NEXT_CHAR_RETURN_BUF_AT_LF_OR_EOF     c = is.get(); \
     if ((is.rdstate() & ifstream::failbit) != 0) {\
-      if ((is.rdstate() & ifstream::eofbit) != 0)  throw GDLIOException("End of file encountered. " +  StreamInfo(&is));\
       if ((is.rdstate() & ifstream::badbit) != 0)  throw GDLIOException("Error reading stream. " +     StreamInfo(&is));\
       is.clear();\
       return buf;\
@@ -71,7 +70,7 @@ const string ReadStringElement(istream& is) {
   string buf;
   char c;
   for (;;) {
-    GET_NEXT_CHAR_RETURN_BUF
+    GET_NEXT_CHAR_RETURN_BUF_AT_LF_OR_EOF
 
     if (c == '\r') {
       //test if <cr><lf> or just <cr> (old macos data)
@@ -97,7 +96,7 @@ const string ReadElement(istream& is) {
   string buf;
   char c;
   for (;;) {
-    GET_NEXT_CHAR_RETURN_BUF
+    GET_NEXT_CHAR_RETURN_BUF_AT_LF_OR_EOF
 
     if (c == '\r') {
       //test if <cr><lf> or just <cr> (old macos data)
@@ -128,7 +127,7 @@ const string ReadComplexElement(istream& is) {
 
   string buf;
   char c;
-  GET_NEXT_CHAR_RETURN_BUF
+  GET_NEXT_CHAR_RETURN_BUF_AT_LF_OR_EOF
 
   bool brace = (c == '(');
 
@@ -139,7 +138,7 @@ const string ReadComplexElement(istream& is) {
 
   buf.push_back(c);
   for (;;) {
-    GET_NEXT_CHAR_RETURN_BUF
+    GET_NEXT_CHAR_RETURN_BUF_AT_LF_OR_EOF
 
     if (c == '\r') {
       //test if <cr><lf> or just <cr> (old macos data)
