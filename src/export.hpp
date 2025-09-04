@@ -22,6 +22,7 @@
 
 static std::map<const char*,void*> SysFunDefinitions; 
 static std::map<const char*,void*> SysProDefinitions; 
+static std::vector<std::pair<void*, std::string> > AllDLMSymbols(64); //vector of possible function addresses and dDLM names 
 
 // list of memory (strings...) to be released when GDL_FreeResources() is called.
 // If each call is ended by freeing the resources, this list does not need to be private to each CallDllFunc/CallDllpro I guess.
@@ -574,8 +575,7 @@ DStructDesc * GDL_GetStructDesc(EXPORT_VPTR v, dimension &inputdim) { TRACE_ROUT
 			{
 				DStructDesc * desc =  GDL_GetStructDesc(&(v->value.s.sdef->tags[i].var), *dim);
 				if (desc == NULL) GDL_WillThrowAfterCleaning("GDL_GetStructDesc: NULL substructure descriptor, abort.");
-				DStructGDL entry( desc, *dim, BaseGDL::NOALLOC);
-				stru_desc->AddTag(std::string(v->value.s.sdef->tags[i].id->name), &entry);
+				stru_desc->AddTag(std::string(v->value.s.sdef->tags[i].id->name), new DStructGDL(desc, *dim));
 				break;
 			}
 
@@ -2843,7 +2843,6 @@ DLL_PUBLIC EXPORT_StructDefPtr  GDL_CDECL IDL_MakeStruct(char *name, EXPORT_STRU
 	return newStruct;
 	}
 #undef ADJUST_ELEMENT_OFFSET
-
 DLL_PUBLIC EXPORT_MEMINT  GDL_CDECL IDL_StructTagInfoByName(EXPORT_StructDefPtr sdef, char *name, int msg_action, EXPORT_VPTR *var) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		int l = strlen(name);
 		for (auto i = 0; i < sdef->ntags; ++i) {
@@ -3000,5 +2999,8 @@ int GDL_CDECL IDL_SignalUnregister(int signo, EXPORT_SignalHandler_t func, int m
 	}
 
 #endif
+	
+	
+#include "export_notsupported.hpp"
 }
 #endif
