@@ -849,7 +849,7 @@ namespace lib {
       res = new DLong64GDL(dim);
       type = H5T_NATIVE_INT64;
 
-    } else if (ourType == GDL_LONG64) {
+    } else if (ourType == GDL_ULONG64) {
       res = new DULong64GDL(dim);
       type = H5T_NATIVE_UINT64;
 

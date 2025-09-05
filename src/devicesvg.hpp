@@ -82,6 +82,7 @@ class DeviceSVG : public GraphicsDevice
   }
 
 public:
+  bool DoesNotDrawSinglePoints() {return true;}
   DeviceSVG(): GraphicsDevice(), fileName( "gdl.svg"), actStream( NULL),
 	       XPageSize(29.7), YPageSize(21.0), XOffset(0.0), YOffset(0.0),
     color(1),  decomposed(1), scale(1.)
