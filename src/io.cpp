@@ -529,12 +529,12 @@ DLong AnyStream::SkipLines(DLong nlines, bool doThrow) {
 
 std::streampos AnyStream::Size() {
   if (fStream != NULL) {
-    std::streampos cur = fStream->tellg(); 
+    std::streampos cur = fStream->tellp(); 
     std::streampos end = fStream->rdbuf()->pubseekoff(0, std::ios_base::end);
     fStream->rdbuf()->pubseekpos(cur, std::ios_base::in | std::ios_base::out);
     return end;
   } else if (ofStream != NULL) {
-    std::streampos cur = ofStream->tellp(); 
+    std::streampos cur = ofStream->tellg(); 
     std::streampos end = ofStream->rdbuf()->pubseekoff(0, std::ios_base::end);
     ofStream->rdbuf()->pubseekpos(cur, std::ios_base::out);
     return end;
@@ -558,8 +558,8 @@ std::streampos AnyStream::Size() {
 }
 
 std::streampos AnyStream::Tell() {
-  if (fStream != NULL) return fStream->tellg();
-  else if (ofStream != NULL) return ofStream->tellp();
+  if (fStream != NULL) return fStream->tellp();
+  else if (ofStream != NULL) return ofStream->tellg();
   else if (igzStream != NULL)
     return igzStream->rdbuf()->getPosition(); 
   else if (ogzStream != NULL)
