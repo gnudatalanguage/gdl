@@ -323,15 +323,15 @@ if strlen(projoptions) gt 0 then begin
    x=where(strpos(s,'+') eq 0, comp=y)
    a=hash(s[x],s[y])
 ; if a contains "+lon_0" this is p0lon, etc.
-   if a.HasKey("+lon_0") then p0lon=(a["+lon_0"]*1d)[0]
-   if a.HasKey("+lat_0") and rotPossible then begin
+   if a->HasKey("+lon_0") then p0lon=(a["+lon_0"]*1d)[0]
+   if a->HasKey("+lat_0") and rotPossible then begin
       p0lat=(a["+lat_0"]*1d)[0]
    endif
-   if a.HasKey("+lat_1") then p1=(a["+lat_1"]*1d)[0]
-   if a.HasKey("+lat_2") then p2=(a["+lat_2"]*1d)[0]
-   if a.HasKey("+h")     then satheight=a["+h"]*1d
-   if a.HasKey("+alpha") then alpha=a["+alpha"]*1d
-   if a.HasKey("+lonc")  then lonc=a["+lonc"]*1d
+   if a->HasKey("+lat_1") then p1=(a["+lat_1"]*1d)[0]
+   if a->HasKey("+lat_2") then p2=(a["+lat_2"]*1d)[0]
+   if a->HasKey("+h")     then satheight=a["+h"]*1d
+   if a->HasKey("+alpha") then alpha=a["+alpha"]*1d
+   if a->HasKey("+lonc")  then lonc=a["+lonc"]*1d
 endif
 
 

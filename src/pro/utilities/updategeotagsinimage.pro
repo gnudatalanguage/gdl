@@ -340,7 +340,7 @@ pro updategeotagsinimage,filename,g
   openu,unit,filename,/get_lun
   signature=0s
   magic=0s
-  offsetIFD=0L
+  offsetIFD=0LL
   readu,unit,signature,magic,offsetIFD
   if signature ne '4949'x then message,'Cannot update big-endian TIFF files; please FIXME'
 
@@ -351,7 +351,7 @@ pro updategeotagsinimage,filename,g
 ; go to last IFD if any
   skip_lun,unit,nexistingIFDEntries*12
 ; read the pointer to the next IFD (may be Zero)
-  PointerToNextIFD=0L & readu,unit,PointerToNextIFD
+  PointerToNextIFD=0LL & readu,unit,PointerToNextIFD
   while PointerToNextIFD ne 0 do begin
      offsetIFD=PointerToNextIFD
      point_lun,unit,offsetIFD
