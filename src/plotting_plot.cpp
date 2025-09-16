@@ -329,8 +329,17 @@ namespace lib {
 #endif 
       } else { //just as if LIBPROJ WAS NOT present
         COORDSYS coordinateSystem = DATA;
-        SelfConvertToNormXY(xVal, xLog, yVal, yLog, coordinateSystem); //always DATA for PLOT X,Y values
-        draw_polyline(actStream, xVal, yVal, psym, false, doColor ? color : NULL); //x and y are normed values.
+        if (doMinMax) { //must memorize 'bad' points first, then convert, then use indexes to make NaNs. Lengthy but the MIN MAX option is rarely used.
+          unsigned char *isBad=(unsigned char*) calloc(yVal->N_Elements(),1);
+          for (auto i=0; i<yVal->N_Elements(); ++i) if ((*yVal)[i]<minVal || (*yVal)[i] >maxVal) isBad[i]=1;
+          SelfConvertToNormXY(xVal, xLog, yVal, yLog, coordinateSystem); //always DATA for PLOT X,Y values
+          for (auto i=0; i<yVal->N_Elements(); ++i) if (isBad[i]) (*yVal)[i]=std::numeric_limits<DDouble>::quiet_NaN();
+          free(isBad);
+          draw_polyline(actStream, xVal, yVal, psym, false, doColor ? color : NULL); //x and y are normed values.
+        } else {
+          SelfConvertToNormXY(xVal, xLog, yVal, yLog, coordinateSystem); //always DATA for PLOT X,Y values
+          draw_polyline(actStream, xVal, yVal, psym, false, doColor ? color : NULL); //x and y are normed values.
+        }
       }
 
     }

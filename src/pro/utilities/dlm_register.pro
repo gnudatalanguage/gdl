@@ -1,5 +1,5 @@
 function gdl_get_dlm_info, file
-COMPILE_OPT idl2, HIDDEN  
+; called from $MAIN$ makes all GDL IDL2 and HIDDEN! --- see #2074 COMPILE_OPT idl2, HIDDEN  
 ;  print,file
   nlines=FILE_LINES(file)
   if nlines lt 1 then return,""
@@ -12,7 +12,7 @@ COMPILE_OPT idl2, HIDDEN
 end
 
 pro decipher_dlm_line,subline,rtname,entry,minargs,maxargs,option,gdl_kw
-  COMPILE_OPT idl2, HIDDEN
+;  COMPILE_OPT idl2, HIDDEN
   blank=string([32b,9b])
 ;  print,"subline: "+subline
   z=strsplit(subline,blank,/extract)
@@ -40,7 +40,7 @@ end
 ; used either with a single file, a file list (must be fully qualified) or nothing
 ; silent is a GDL extension
 pro dlm_register,filein,silent=silent,verbose=verbose
-  COMPILE_OPT idl2, HIDDEN
+;  COMPILE_OPT idl2, HIDDEN
   if n_elements(filein) eq 0 then begin ; default search is also the local directory
      searchpath="."+ PATH_SEP(/SEARCH_PATH) +!DLM_PATH
      filelist=file_search(STRSPLIT(searchpath, PATH_SEP(/SEARCH_PATH),/extract)+'/*.dlm') 
