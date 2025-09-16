@@ -221,6 +221,7 @@ void CleanupProc( DLibPro* proc ) {
     static map<string, DllContainer> libs; // list of ALL DLLs linked (using linkimage)
 
     bool isok=false;
+    std::string DllLoadErrorMessage;
     bool addedToHelpDll=false;
     bool IsOK(){return isok;}
     bool IsHelpAdded(){return addedToHelpDll;}
@@ -229,31 +230,20 @@ void CleanupProc( DLibPro* proc ) {
     DllContainer( DllContainer&& rhs ) : handle(nullptr) { std::swap( handle, rhs.handle ); };
     DllContainer( const string& fn ) : handle(nullptr) { };//load(fn); }/// do not load at DllContainer definition! will be done better after.
     ~DllContainer() { unload( true ); isok=false;}
+    
     void load( const string& fn ) {
       if( handle ) return;     // already loaded.
-      string msg;
 #if defined(_WIN32) && !defined(__CYGWIN__)
       WCHAR u_shrdimgName[255];
       MultiByteToWideChar(CP_ACP, 0, fn.c_str(), fn.length(), u_shrdimgName, 255);
       handle = LoadLibraryW(u_shrdimgName);
-      if( !handle ) {
-	msg = "Couldn't open " + fn;
-      }
+      if( !handle ) DllLoadErrorMessage = fn; else isok=true;
 #else
       handle = dlopen(fn.c_str(), RTLD_LAZY|RTLD_GLOBAL);
-      if( !handle ) {
-	msg = "Couldn't open " + fn;
-	char* error = dlerror();
-	if( error ) {
-	  msg += string(": ") + error;
-	}
-      }
+      if( !handle ) DllLoadErrorMessage = string(dlerror()); else isok=true;
 #endif
-      if( !handle ) {
-//	throw runtime_error( msg );
-//	Warning( msg );
-      } else isok=true;
     }
+    
     void unload( bool force=false ) {
       if( !force && !(my_procs.empty() && my_funcs.empty()) ) {
 	return;
@@ -383,7 +373,8 @@ void CleanupProc( DLibPro* proc ) {
         int ret ;
         try{
           ret = Call_IDL_Load();
-        } catch (...) { return 0;}
+        } catch (GDLException ex) { throw GDLException("Error while calling IDL_Load(): "+ex.toString());}
+          catch (...) { throw GDLException("Error while calling IDL_Load()");}
         if (ret) my_handles.insert(handle); // IDL_Load has been called
         return ret;
       }
@@ -767,7 +758,7 @@ void CleanupProc( DLibPro* proc ) {
       entryName = funcName;
     }
 
-    try {
+//    try {
       DStringGDL* info = NULL;
       if (isDlm) info = e->GetKWAs<DStringGDL>(dlminfoIx);
       DllContainer& lib = DllContainer::get(shrdimgName);
@@ -787,8 +778,10 @@ void CleanupProc( DLibPro* proc ) {
           int ret = 0;
           if (isDlm) {
             // test if "IDL_Load() can be called to give, noot symbol names, but symbols addresses
-            ret = lib.CallLoadToDefineEntryLocations();
-            if (ret) { //if we got directly symbol addresses, use a special fuction
+            try {
+              ret = lib.CallLoadToDefineEntryLocations();
+            } catch (GDLException ex) { Warning((*info)[0]+": Recovering from error: "+ex.toString()); e->Interpreter()->RetAll();}
+            if (ret) { //if we got directly symbol addresses, use a special function
               lib.RegisterSymbolDefinedByIDL_Load((*info)[0],funcName, funcType, max_args, min_args, hasKeywords);
               if (!lib.IsHelpAdded()) { //can still be unloaded due to problems.
                 help_AddDlmInfo(info->Dup()); //only once
@@ -802,10 +795,13 @@ void CleanupProc( DLibPro* proc ) {
             } else lib.RegisterSymbol((*info)[0], entryName, funcName, funcType, max_args, min_args, hasKeywords); //not a dlm, or dlm does not have ILD_Load()
           }
         }
-      }
-    } catch (const std::exception& ex) {
-      e->Throw("Error linking procedure/DLL: " + funcName + " -> " + entryName + "  (" + shrdimgName + ") : " + ex.what());
-    }
+      } else {
+        e->Throw("Error linking procedure/DLL: " + funcName + " -> " + entryName + "  (" + shrdimgName + ") : " +lib.DllLoadErrorMessage); e->Interpreter()->RetAll();}
+//    } catch (GDLException ex) {
+//      e->Throw(ex.toString());
+//    } catch (const std::exception& ex) {
+//      e->Throw("Error linking procedure/DLL: " + funcName + " -> " + entryName + "  (" + shrdimgName + ") : " + ex.what());
+//    } catch (...) { e->Throw("Unexpected exception.");}
   }
   
   void unlinkimage( EnvT* e ) {
