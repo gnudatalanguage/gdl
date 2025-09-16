@@ -792,7 +792,7 @@ namespace lib {
   BaseGDL* make_array(EnvT* e) {
     DDouble off = 0, inc = 1;
     DType type = GDL_UNDEF;
-
+    
     e->AssureDoubleScalarKWIfPresent("START", off);
     e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
 
@@ -861,26 +861,26 @@ namespace lib {
 
       // TODO: Add support for BOOLEAN type introduced in IDL 8.4
       e->Throw("MAKE_ARRAY of BOOLEAN types not yet implemented.");
+    } else if (type == GDL_UNDEF) { // not already given by SIZE
+           if(e->KeywordSet("BYTE"))      type = GDL_BYTE;
+      else if(e->KeywordSet("COMPLEX"))   type = GDL_COMPLEX;
+      else if(e->KeywordSet("DCOMPLEX"))  type = GDL_COMPLEXDBL;
+      else if(e->KeywordSet("DOUBLE"))    type = GDL_DOUBLE;
+      else if(e->KeywordSet("FLOAT"))     type = GDL_FLOAT;
+      else if(e->KeywordSet("INTEGER"))   type = GDL_INT;
+      else if(e->KeywordSet("L64"))       type = GDL_LONG64;
+      else if(e->KeywordSet("LONG"))      type = GDL_LONG;
+      else if(e->KeywordSet("OBJ"))       type = GDL_OBJ;
+      else if(e->KeywordSet("PTR"))       type = GDL_PTR;
+      else if(e->KeywordSet("STRING"))    type = GDL_STRING;
+      else if(e->KeywordSet("UINT"))      type = GDL_UINT;
+      else if(e->KeywordSet("UL64"))      type = GDL_ULONG64;
+      else if(e->KeywordSet("ULONG"))     type = GDL_ULONG;
+      else if(value) {
+          wasAValue=true;
+          type = value->Type();
+      }
     }
-    else if(e->KeywordSet("BYTE"))      type = GDL_BYTE;
-    else if(e->KeywordSet("COMPLEX"))   type = GDL_COMPLEX;
-    else if(e->KeywordSet("DCOMPLEX"))  type = GDL_COMPLEXDBL;
-    else if(e->KeywordSet("DOUBLE"))    type = GDL_DOUBLE;
-    else if(e->KeywordSet("FLOAT"))     type = GDL_FLOAT;
-    else if(e->KeywordSet("INTEGER"))   type = GDL_INT;
-    else if(e->KeywordSet("L64"))       type = GDL_LONG64;
-    else if(e->KeywordSet("LONG"))      type = GDL_LONG;
-    else if(e->KeywordSet("OBJ"))       type = GDL_OBJ;
-    else if(e->KeywordSet("PTR"))       type = GDL_PTR;
-    else if(e->KeywordSet("STRING"))    type = GDL_STRING;
-    else if(e->KeywordSet("UINT"))      type = GDL_UINT;
-    else if(e->KeywordSet("UL64"))      type = GDL_ULONG64;
-    else if(e->KeywordSet("ULONG"))     type = GDL_ULONG;
-    else if(value) {
-        wasAValue=true;
-        type = value->Type();
-    }
-
     switch(type) {
     case GDL_BYTE:          return make_array_template<DByteGDL>(e, dimKey, value, off, inc);
     case GDL_COMPLEX:       return make_array_template<DComplexGDL>(e, dimKey, value, off, inc);
