@@ -312,6 +312,28 @@ else if(var_type == NC_LONG)
 	  GDLDelete(e->GetParGlobal(2));
 	e->GetParGlobal(2) = new DULongGDL((uivar));
       }
+    else if(var_type == NC_INT64)
+      {
+	
+	int ivar;
+	status=nc_get_var1_int(cdfid,
+				varid,
+				index,
+				&ivar);
+	  GDLDelete(e->GetParGlobal(2));
+	e->GetParGlobal(2) = new DLong64GDL((ivar));
+      }
+    else if(var_type == NC_UINT64)
+      {
+	
+	unsigned int uivar;
+	status=nc_get_var1_uint(cdfid,
+				varid,
+				index,
+				&uivar);
+	  GDLDelete(e->GetParGlobal(2));
+	e->GetParGlobal(2) = new DULong64GDL((uivar));
+      }
     else if(var_type == NC_SHORT)
       {
 	
@@ -350,6 +372,13 @@ else if(var_type == NC_LONG)
 
       GDLDelete(e->GetParGlobal(2));
       e->GetParGlobal(2) = new DByteGDL((bvar));
+    }
+    else if (var_type == NC_STRING) {
+      char *stemp;
+      status = nc_get_var1_string(cdfid, varid, index, &stemp);
+      GDLDelete(e->GetParGlobal(2));
+      e->GetParGlobal(2)=new DStringGDL(stemp);
+      free(stemp);
     }
     
     ncdf_handle_error(e,status,"NCDF_VARGET1");
@@ -400,7 +429,6 @@ else if(var_type == NC_LONG)
       transposed_dim_length[trans[i]] = dim_length[i];
       ncdf_handle_error(e, status, "NCDF_VARGET");
     }
-    
 //    for (int i = 0; i < var_ndims; ++i) index[i]=0;//defaults
 
     /*Here we have the minimum required details for getting any kind of data
@@ -482,6 +510,22 @@ else if(var_type == NC_LONG)
         GDLDelete(e->GetParGlobal(2));
         e->GetParGlobal(2)=temp;      	
       } 
+      else if (var_type == NC_INT64)
+      {
+        DLong64GDL* temp=new DLong64GDL(dim,BaseGDL::NOZERO);
+        status=nc_get_var_longlong(cdfid, varid,&(*temp)[0]);
+        ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+        GDLDelete(e->GetParGlobal(2));
+        e->GetParGlobal(2)=temp;      	
+      } 
+      else if (var_type == NC_UINT64)
+      {
+        DULong64GDL* temp=new DULong64GDL(dim,BaseGDL::NOZERO);
+        status=nc_get_var_ulonglong(cdfid, varid,&(*temp)[0]);
+        ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+        GDLDelete(e->GetParGlobal(2));
+        e->GetParGlobal(2)=temp;      	
+      } 
       else if (var_type == NC_BYTE || var_type == NC_UBYTE )
       {
         DByteGDL* temp=new DByteGDL(dim,BaseGDL::NOZERO);
@@ -505,6 +549,24 @@ else if(var_type == NC_LONG)
         ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
         GDLDelete(e->GetParGlobal(2));
         e->GetParGlobal(2) = temp;
+      }
+      else if (var_type == NC_STRING)
+      {
+// Read NC_STRING
+// Below should read an array of strings into char** stmp
+        char **stemp = new char*[array_size];
+        status = nc_get_var_string(cdfid, varid, stemp);
+        ncdf_handle_error(e, status, "NCDF_VARGET");
+// Need to copy strings in stemp to the returned structure...
+        GDLDelete(e->GetParGlobal(2));
+        SizeT num_elems=array_size;
+        dimension flat_dim(&num_elems, 1);
+        BaseGDL *str_arr = new DStringGDL(flat_dim);
+// assign array pointers
+        for (size_t i=0; i<array_size; i++) (*(static_cast<DStringGDL*> (str_arr)))[i] = stemp[i];
+// re-shape array & add as tag
+       	(static_cast<BaseGDL*>(str_arr))->SetDim(dim);
+	e->GetParGlobal(2)=str_arr;
       }
       //done read all.
     } 
@@ -628,6 +690,22 @@ else if(var_type == NC_LONG)
           GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp;    
         }
+        else if(var_type == NC_INT64)
+        {
+          DLong64GDL *temp = new DLong64GDL(dim,BaseGDL::NOZERO);
+          status = nc_get_vara_longlong(cdfid, varid, off, cou, &(*temp)[0]);
+          ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+          GDLDelete(e->GetParGlobal(2));
+          e->GetParGlobal(2) = temp;    
+        }
+        else if(var_type == NC_UINT64)
+        {
+          DULong64GDL *temp = new DULong64GDL(dim,BaseGDL::NOZERO);
+          status = nc_get_vara_ulonglong(cdfid, varid, off, cou, &(*temp)[0]);
+          ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+          GDLDelete(e->GetParGlobal(2));
+          e->GetParGlobal(2) = temp;    
+        }
         else if (var_type == NC_BYTE || var_type == NC_UBYTE )
         {
           DByteGDL *temp=new DByteGDL(dim,BaseGDL::NOZERO);
@@ -643,6 +721,24 @@ else if(var_type == NC_LONG)
           ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
           GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp;
+        }
+        else if (var_type == NC_STRING)
+        {
+// Read NC_STRING
+// Below should read an array of strings into char** stmp
+          char **stemp = new char*[array_size];
+          status = nc_get_vara_string(cdfid, varid, off, cou, stemp);
+          ncdf_handle_error(e, status, "NCDF_VARGET");
+// Need to copy strings in stemp to the returned structure...
+          GDLDelete(e->GetParGlobal(2));
+          SizeT num_elems=array_size;
+          dimension flat_dim(&num_elems, 1);
+          BaseGDL *str_arr = new DStringGDL(flat_dim);
+// assign array pointers
+          for (size_t i=0; i<array_size; i++) (*(static_cast<DStringGDL*> (str_arr)))[i] = stemp[i];
+// re-shape array & add as tag
+          (static_cast<BaseGDL*>(str_arr))->SetDim(dim);
+          e->GetParGlobal(2)=str_arr;
         }
       } 
       else 
@@ -747,6 +843,22 @@ else if(var_type == NC_LONG)
           GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp;  
         }
+        else if(var_type == NC_INT64)
+        {
+          DLong64GDL *temp = new DLong64GDL(dim, BaseGDL::NOZERO);
+          status = nc_get_vars_longlong(cdfid, varid, off,cou, stri, &(*temp)[0]);
+          ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+          GDLDelete(e->GetParGlobal(2));
+          e->GetParGlobal(2) = temp;  
+        }
+        else if(var_type == NC_UINT64)
+        {
+          DULong64GDL *temp = new DULong64GDL(dim, BaseGDL::NOZERO);
+          status = nc_get_vars_ulonglong(cdfid, varid, off,cou, stri, &(*temp)[0]);
+          ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+          GDLDelete(e->GetParGlobal(2));
+          e->GetParGlobal(2) = temp;  
+        }
         else if(var_type == NC_BYTE || var_type == NC_UBYTE )
         {
           DByteGDL *temp=new DByteGDL(dim, BaseGDL::NOZERO);
@@ -762,6 +874,24 @@ else if(var_type == NC_LONG)
           ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
           GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp;      	
+        }
+        else if (var_type == NC_STRING)
+        {
+// Read NC_STRING
+// Below should read an array of strings into char** stmp
+          char **stemp = new char*[array_size];
+          status = nc_get_vars_string(cdfid, varid, off, cou, stri, stemp);
+          ncdf_handle_error(e, status, "NCDF_VARGET");
+// Need to copy strings in stemp to the returned structure...
+          GDLDelete(e->GetParGlobal(2));
+          SizeT num_elems=array_size;
+          dimension flat_dim(&num_elems, 1);
+          BaseGDL *str_arr = new DStringGDL(flat_dim);
+// assign array pointers
+          for (size_t i=0; i<array_size; i++) (*(static_cast<DStringGDL*> (str_arr)))[i] = stemp[i];
+// re-shape array & add as tag
+          (static_cast<BaseGDL*>(str_arr))->SetDim(dim);
+          e->GetParGlobal(2)=str_arr;
         }
       }
     }
@@ -1076,56 +1206,46 @@ else if(var_type == NC_LONG)
         status = nc_put_vars_short(cdfid, varid, offset, count, stride, 
           &((*static_cast<DIntGDL*>(v))[0]));
         break;
+      case GDL_UINT : 
+        status = nc_put_vars_ushort(cdfid, varid, offset, count, stride, 
+          &((*static_cast<DUIntGDL*>(v))[0]));
+        break;
       case GDL_LONG :
         status = nc_put_vars_int(cdfid, varid, offset, count, stride, 
           &((*static_cast<DLongGDL*>(v))[0]));
         break;
-      case GDL_BYTE :
-        status = nc_put_vars_uchar(cdfid, varid, offset, count, stride,
-          &((*static_cast<DByteGDL*>(v))[0]));
+      case GDL_ULONG :
+        status = nc_put_vars_uint(cdfid, varid, offset, count, stride, 
+          &((*static_cast<DULongGDL*>(v))[0]));
         break;
-      // initially using GDL methods for data type convertion
+      case GDL_LONG64 :
+        status = nc_put_vars_longlong(cdfid, varid, offset, count, stride, 
+          &((*static_cast<DLong64GDL*>(v))[0]));
+        break;
+      case GDL_ULONG64 :
+        status = nc_put_vars_ulonglong(cdfid, varid, offset, count, stride, 
+          &((*static_cast<DULong64GDL*>(v))[0]));
+        break;
+      case GDL_BYTE :
       case GDL_COMPLEXDBL : 
       case GDL_COMPLEX :
-      case GDL_UINT :
-      case GDL_ULONG :
-      case GDL_LONG64:
-      case GDL_ULONG64 :
       {
         BaseGDL* val;
         Guard<BaseGDL> val_guard;
         switch (var_type) 
         {
-          case NC_BYTE :   // 8-bit signed integer
-          case NC_SHORT :  // 16-bit signed integer
-            val = v->Convert2(GDL_INT, BaseGDL::COPY);
-	    val_guard.Init(val);
-            status = nc_put_vars_short(cdfid, varid, offset, count, stride,
-              &((*static_cast<DIntGDL*>(val))[0])); 
-            break;
+          case NC_UBYTE :   // 8-bit unsigned integer
           case NC_CHAR :   // 8-bit unsigned integer
             val = v->Convert2(GDL_BYTE, BaseGDL::COPY);
 	    val_guard.Init(val);
             status = nc_put_vars_uchar(cdfid, varid, offset, count, stride,
               &((*static_cast<DByteGDL*>(val))[0])); 
             break;
-          case NC_INT :    // 32-bit signed integer
-            val = v->Convert2(GDL_LONG, BaseGDL::COPY);
+          case NC_BYTE :   // 8-bit signed integer - IDL does not have one, but try to behave like IDL and write to the data type anyway...
+            val = v->Convert2(GDL_BYTE, BaseGDL::COPY);
 	    val_guard.Init(val);
-            status = nc_put_vars_int(cdfid, varid, offset, count, stride,
-              &((*static_cast<DLongGDL*>(val))[0]));
-            break;
-          case NC_FLOAT :  // 32-bit floating point
-            val = v->Convert2(GDL_FLOAT, BaseGDL::COPY);
-	    val_guard.Init(val);
-            status = nc_put_vars_float(cdfid, varid, offset, count, stride, 
-              &((*static_cast<DFloatGDL*>(val))[0]));
-            break;
-          case NC_DOUBLE : // 64-bit floating point
-            val = v->Convert2(GDL_DOUBLE, BaseGDL::COPY);
-	    val_guard.Init(val);
-            status = nc_put_vars_double(cdfid, varid, offset, count, stride,
-              &((*static_cast<DDoubleGDL*>(val))[0]));
+            status = nc_put_vars_schar(cdfid, varid, offset, count, stride,
+              (signed char*)&((*static_cast<DByteGDL*>(val))[0])); 
             break;
         }
         break;
@@ -1162,6 +1282,7 @@ else if(var_type == NC_LONG)
         e->Throw("GDL internal error, please report!" 
           + e->GetParString(2));
     }
+    if ( status == NC_ERANGE ) status = NC_NOERR; // Ignore data-type range errors (like IDL does)
     ncdf_handle_error(e, status, "NCDF_VARPUT");
   }
 
