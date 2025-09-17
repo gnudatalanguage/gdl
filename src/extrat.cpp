@@ -213,53 +213,26 @@ void ExtraT::ResolveExtra(EnvBaseT* callerIn) {
 
       // from back -> _EXTRA overrides additional keyword
       //GD: Protect (do not throw) against !NULL -valued tags. These ARE included in _REF_EXTRA and should not appear in _EXTRA, but
-      //GDL shoudl not throw on them.
+      //GDL should not throw on them.
+      //GD: EXTRA Struct tags are sorted (issue #2074)
+      std::map<std::string, BaseGDL*>entries; 
       for (int i = nEl - 1; i >= 0; --i) {
         if (listEnv[i] != NULL && listEnv.IsDefined(i)) // if undef or !NULL just skip (pass by value) 
         {
-          if (extraStruct == NULL) {
-            extraStructDesc = new DStructDesc("$truct");
-            // 		      extraStruct = new DStructGDL( extraStructDesc, dimension(1));
-            extraStruct = new DStructGDL(extraStructDesc);
-
-            //		      extraStructDesc->AddTag( listName[i], listEnv[i]); 
-            // 		      extraStruct->AddTagGrab( listEnv.Grab(i));
-            extraStruct->NewTag(listName[i], listEnv.Grab(i));
-          } else
-            if (extraStructDesc->TagIndex(listName[i]) == -1) {
-            extraStruct->NewTag(listName[i], listEnv.Grab(i));
-            //			extraStructDesc->AddTag( listName[i], listEnv[i]); 
-            // 			extraStruct->AddTagGrab( listEnv.Grab(i));
-            //			extraStruct->AddTag( listEnv[i]);
-          }
+          if (entries.find(listName[i]) == entries.end()) entries[listName[i]]=listEnv.Grab(i);
         }
       }
-
-      // look if equal is already there (very possible eg. _EXTRA in loops)
-      // 	  DStructDesc* oStructDesc=extraStructDesc->FindEqual( structList);
-      // 	  if( oStructDesc != NULL)
-      // 	    {
-      // 	      extraStruct->SetDesc(oStructDesc);
-      // 	      delete extraStructDesc; 
-      // 	    }
-      // 	  else
-      // 	    {
-      // 	      // insert into struct list // NOT ANYMORE!!!
-      // 	      structList.push_back( extraStructDesc);
-      // 	    }
-
-      //	  structList.push_back( extraStructDesc);
-
+      extraStructDesc = new DStructDesc("$truct");
+      extraStruct = new DStructGDL(extraStructDesc);
+      if (!entries.empty()) { //dumb protection?
+        for (std::map<std::string, BaseGDL*>::iterator it=entries.begin(); it!=entries.end(); ++it) extraStruct->NewTag(it->first, it->second);
+      }
 
       assert(thisEnv->env.Loc(static_cast<SizeT> (pro->extraIx)) == NULL);
       assert(thisEnv->env.Env(static_cast<SizeT> (pro->extraIx)) == NULL);
 
       thisEnv->env.Set(static_cast<SizeT> (pro->extraIx),
         static_cast<BaseGDL*> (extraStruct));
-
-
-      // 	  thisEnv->env.Reset( static_cast<SizeT>(pro->extraIx), 
-      // 			      static_cast<BaseGDL*>(extraStruct));
     }
   }
 }
