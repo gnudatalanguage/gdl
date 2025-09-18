@@ -557,7 +557,7 @@ namespace lib {
         field = new DULongGDL(dim);
       } else if (ourType == GDL_LONG64) {
         field = new DLong64GDL(dim);
-      } else if (ourType == GDL_LONG64) {
+      } else if (ourType == GDL_ULONG64) {
         field = new DULong64GDL(dim);
       } else if (ourType == GDL_FLOAT) {
         field = new DFloatGDL(dim);
