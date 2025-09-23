@@ -37,6 +37,7 @@
 
 #ifndef __XDR_HEADER__
 #define __XDR_HEADER__
+#include <cstdio>
 
 /*
  * XDR provides a conventional way for converting between C data
