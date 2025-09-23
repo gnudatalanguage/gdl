@@ -802,34 +802,24 @@ endif(UDUNITS2)
 # -DEIGEN3=ON|OFF
 # -DEIGEN3DIR=DIR
 if(EIGEN3)
-  # cleaning Cache ...
-  if (EIGEN3DIR)
-    unset(EIGEN3_INCLUDE_DIR CACHE)
-  endif(EIGEN3DIR)
-  #
-  set(CMAKE_PREFIX_PATH ${EIGEN3DIR})
-  find_package(Eigen3 3.2.4 QUIET)
-  if(EIGEN3_TOO_OLD)
-    # on iCore 3/5/7 we must have Eigen >=3.2.4 to avoid fatal error in "test_matrix_multiply.pro"
-    message(FATAL_ERROR "\nEIGEN3 is required but the version found is TOO OLD."
-      " Please download a recent version (>=3.2.4) in a local directory."
-      " Then use -DEIGEN3DIR=DIR to specify the Eigen3 local directory tree.\n"
-      "Use -DEIGEN3=OFF to not use it.\n")
-  else(EIGEN3_TOO_OLD)
-    set(USE_EIGEN ${EIGEN3_FOUND})
-    if(EIGEN3_FOUND)
-      include_directories(${EIGEN3_INCLUDE_DIR})
-      if(MINGW)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-ipa-cp-clone")
-      endif(MINGW)
-    else(EIGEN3_FOUND)
-      message(FATAL_ERROR "EIGEN3 is required but was not found.\n"
-        "Use -DEIGEN3DIR=DIR to specify the Eigen3 directory tree.\n"
-        "Use -DEIGEN3=OFF to not use it.\n"
-            "(suitable Fedora/CentOS package: eigen3-devel)\n"
-            "(suitable Debian/Ubuntu package: libeigen3-dev)")
-    endif(EIGEN3_FOUND)
-      endif(EIGEN3_TOO_OLD)
+    find_package(Eigen3 QUIET REQUIRED NO_MODULE)
+    # Note: Eigen3 moved to semantic versioning in 5.0.0; so WORLD.MAJOR.MINOR
+    # becomes MAJOR.MINOR.PATCH, WORLD will forever be 3
+    # see: https://gitlab.com/libeigen/eigen/-/releases/5.0.0
+
+    # we need at least version 3.2.4, => world 3, major 2, minor 4
+    if(${Eigen3_VERSION_MAJOR} VERSION_LESS 2
+        OR (
+            ${Eigen3_VERSION_MAJOR} VERSION_EQUAL 2 AND ${Eigen3_VERSION_MINOR} VERSION_LESS 4
+        )
+    )
+        message(FATAL_ERROR
+                "Found Eigen3 version '${Eigen3_VERSION}' when needing at least version 3.2.4.\n"
+                "Consider installing a newer version or switch off Eigen3 by setting '-DEIGEN3=OFF'"
+        )
+    endif()
+
+    target_link_libraries(gdl Eigen3::Eigen)
 endif(EIGEN3)
 
 # grib
