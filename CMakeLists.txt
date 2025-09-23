@@ -818,8 +818,6 @@ if(EIGEN3)
                 "Consider installing a newer version or switch off Eigen3 by setting '-DEIGEN3=OFF'"
         )
     endif()
-
-    target_link_libraries(gdl Eigen3::Eigen)
 endif(EIGEN3)
 
 # grib
