@@ -820,7 +820,7 @@ if(EIGEN3)
     endif()
     set(USE_EIGEN ${Eigen3_FOUND})
     if(MINGW)
-        add_compile_options("-fno-ipa-cp-clone")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-ipa-cp-clone")
     endif(MINGW)
 endif(EIGEN3)
 
