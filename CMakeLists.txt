@@ -818,8 +818,9 @@ if(EIGEN3)
                 "Consider installing a newer version or switch off Eigen3 by setting '-DEIGEN3=OFF'"
         )
     endif()
+    set(USE_EIGEN ${Eigen3_FOUND})
     if(MINGW)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-ipa-cp-clone")
+        add_compile_options("-fno-ipa-cp-clone")
     endif(MINGW)
 endif(EIGEN3)
 
