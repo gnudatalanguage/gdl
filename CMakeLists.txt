@@ -27,7 +27,7 @@ if (NOT EXISTS "${CMAKE_SOURCE_DIR}/src/version.hpp")
 endif()
 
 project(GDL LANGUAGES C CXX)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_C_STANDARD 99)
 
 # advice by Orion, mandatory for FC 28
@@ -816,12 +816,6 @@ if(EIGEN3)
         message(FATAL_ERROR
                 "Found Eigen3 version '${Eigen3_VERSION}' when needing at least version 3.2.4.\n"
                 "Consider installing a newer version or switch off Eigen3 by setting '-DEIGEN3=OFF'"
-        )
-    endif()
-    if(${Eigen3_VERSION_MAJOR} VERSION_GREATER_EQUAL 5)
-        message(FATAL_ERROR
-                "FixMe: Found unsupported Eigen3 version '${Eigen3_VERSION}'\n"
-                "Switch off Eigen3 by setting '-DEIGEN3=OFF'"
         )
     endif()
     set(USE_EIGEN ${Eigen3_FOUND})
