@@ -807,7 +807,7 @@ if(EIGEN3)
     # becomes MAJOR.MINOR.PATCH, WORLD will forever be 3
     # see: https://gitlab.com/libeigen/eigen/-/releases/5.0.0
 
-    # we need at least version 3.2.4, => world 3, major 2, minor 4
+    # we need a version between 3.2.4 (=> world 3, major 2, minor 4) and less then 5.0.0 (=> world 3, major 5, minor 0)
     if(${Eigen3_VERSION_MAJOR} VERSION_LESS 2
         OR (
             ${Eigen3_VERSION_MAJOR} VERSION_EQUAL 2 AND ${Eigen3_VERSION_MINOR} VERSION_LESS 4
@@ -816,6 +816,12 @@ if(EIGEN3)
         message(FATAL_ERROR
                 "Found Eigen3 version '${Eigen3_VERSION}' when needing at least version 3.2.4.\n"
                 "Consider installing a newer version or switch off Eigen3 by setting '-DEIGEN3=OFF'"
+        )
+    endif()
+    if(${Eigen3_VERSION_MAJOR} VERSION_GREATER_EQUAL 5)
+        message(FATAL_ERROR
+                "FixMe: Found unsupported Eigen3 version '${Eigen3_VERSION}'\n"
+                "Switch off Eigen3 by setting '-DEIGEN3=OFF'"
         )
     endif()
     set(USE_EIGEN ${Eigen3_FOUND})
