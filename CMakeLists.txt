@@ -818,6 +818,9 @@ if(EIGEN3)
                 "Consider installing a newer version or switch off Eigen3 by setting '-DEIGEN3=OFF'"
         )
     endif()
+    if(MINGW)
+        add_compile_options("-fno-ipa-cp-clone")
+    endif(MINGW)
 endif(EIGEN3)
 
 # grib

@@ -38,9 +38,6 @@
 #ifndef __XDR_HEADER__
 #define __XDR_HEADER__
 
-/* We need FILE.  */
-#include <stdio.h>
-
 /*
  * XDR provides a conventional way for converting between C data
  * types and an external bit-string representation.  Library supplied
