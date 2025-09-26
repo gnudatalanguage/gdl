@@ -443,6 +443,7 @@ function configure_gdl {
     # The INTERACTIVE_GRAPHICS option is removed. 
     # Now plplot drivers is part of GDL
     cmake ${GDL_DIR} -G"${GENERATOR}" \
+        -DCMAKE_VERBOSE_MAKEFILE=ON \
         -DCMAKE_BUILD_TYPE=${Configuration} \
         -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
         -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} -DOPENMP=${WITH_OPENMP} \
