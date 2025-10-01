@@ -117,8 +117,6 @@ PRO MAP_SET, lat, lon, rot, $
      map_struct_append, extra, "SEMIMAJOR_AXIS",a 
      map_struct_append, extra, "SEMIMINOR_AXIS",b
   endif
-  if n_elements(standard_parallels) gt 0 then map_struct_append, extra, "STANDARD_PAR1",standard_parallels[0] 
-  if n_elements(standard_parallels) gt 1 then map_struct_append, extra, "STANDARD_PAR2",standard_parallels[1] 
   if keyword_set(STEREOGRAPHIC) then nam = 'stereographic'
   if keyword_set(ORTHOGRAPHIC) then nam = 'orthographic'
   if keyword_set(CONIC) then nam = 'lambert conic'
@@ -153,6 +151,16 @@ PRO MAP_SET, lat, lon, rot, $
      if keyword_set(CYLINDRICAL) then map_struct_append, extra, "CENTER_AZIMUTH",cent_azim 
      if keyword_set(SINUSOIDAL) then map_struct_append, extra, "CENTER_AZIMUTH",cent_azim 
   endif
+
+; map_set of a conic without arguments needs to set a standard parallel.
+  if strpos(strupcase(nam),"CONIC") ge 0  then begin
+    if n_elements(standard_parallels) eq 0 then standard_parallels=[45,80]
+    if n_elements(standard_parallels) eq 1 then standard_parallels=[standard_parallels[0],80] ; /silly and wrong
+  endif
+
+  if n_elements(standard_parallels) gt 0 then map_struct_append, extra, "STANDARD_PAR1",standard_parallels[0] 
+;  if n_elements(standard_parallels) gt 0 then map_struct_append, extra, "STANDARD_PARALLEL",standard_parallels[0] 
+  if n_elements(standard_parallels) gt 1 then map_struct_append, extra, "STANDARD_PAR2",standard_parallels[1] 
 
   if dolimit then begin
    ; We use sphere_radius=1 as all the rest (grid and horizon) are based on that 

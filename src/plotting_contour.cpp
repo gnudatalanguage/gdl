@@ -16,7 +16,7 @@
  ***************************************************************************/
 
 #include "includefirst.hpp"
-
+#include "dinterpreter.hpp"
 #include "plotting.hpp"
 #include "math_utl.hpp"
 
@@ -48,7 +48,7 @@ namespace lib {
     if (yLog && y <= 0) return 0;
     return 1;
   }
-
+  
   class contour_call : public plotting_routine_call {
     DDoubleGDL *zVal, *yVal, *xVal;
     Guard<BaseGDL> xval_guard, yval_guard, zval_guard, p0_guard;
@@ -96,32 +96,29 @@ namespace lib {
       if (nParam() == 2 || nParam() > 3) {
         e->Throw("Incorrect number of arguments.");
       }
+      if (irregular && nParam()==2) e->Throw("Incorrect number of arguments.");
       if (nParam() > 0) {
         // By testing here using EquivalentRank() we avoid computing zval if there was a problem.
         // AC 2018/04/24
         // a sub-array like: a=RANDOMU(seed, 3,4,5) & (this procedure name), a[1,*,*]
         // should be OK ...
-        if ((e->GetNumericArrayParDefined(0))->EquivalentRank() != 2) e->Throw("Array must have 2 dimensions: " + e->GetParString(0));
+        if (irregular) {} else if ((e->GetNumericArrayParDefined(0))->EquivalentRank() != 2) e->Throw("Array must have 2 dimensions: " + e->GetParString(0));
       }
 
       if (nParam() == 1) {
-        if (irregular) {
-          e->Throw("Incorrect number of arguments.");
-        } else {
-          BaseGDL* p0 = e->GetNumericArrayParDefined(0)->Transpose(NULL);
-          p0_guard.Init(p0); // delete upon exit
+        BaseGDL* p0 = e->GetNumericArrayParDefined(0)->Transpose(NULL);
+        p0_guard.Init(p0); // delete upon exit
 
-          zVal = static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
-          zval_guard.Init(zVal); // delete upon exit
+        zVal = static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+        zval_guard.Init(zVal); // delete upon exit
 
-          xEl = zVal->Dim(1);
-          yEl = zVal->Dim(0);
+        xEl = zVal->Dim(1);
+        yEl = zVal->Dim(0);
 
-          xVal = new DDoubleGDL(dimension(xEl), BaseGDL::INDGEN);
-          xval_guard.Init(xVal); // delete upon exit
-          yVal = new DDoubleGDL(dimension(yEl), BaseGDL::INDGEN);
-          yval_guard.Init(yVal); // delete upon exit
-        }
+        xVal = new DDoubleGDL(dimension(xEl), BaseGDL::INDGEN);
+        xval_guard.Init(xVal); // delete upon exit
+        yVal = new DDoubleGDL(dimension(yEl), BaseGDL::INDGEN);
+        yval_guard.Init(yVal); // delete upon exit
       }
 
       if (nParam() == 3) {
@@ -190,29 +187,29 @@ namespace lib {
             xval_guard.Init(yValExpanded); // delete upon exit
             yVal = yValExpanded;
           }
-          //if there is a projection, we can use the irregular case, see:
-          bool mapSet = false;
-          get_mapset(mapSet);
-          if (mapSet) {
-            //if x and y are monodim, create a 2d mesh
-            if (xVal->Rank() == 1) { // so Y is 1 also
-              xValIrregularCase=new DDoubleGDL(xEl*yEl, BaseGDL::NOZERO);
-              yValIrregularCase=new DDoubleGDL(xEl*yEl, BaseGDL::NOZERO);
-              SizeT k=0;
-              for (SizeT j = 0; j < yEl; ++j) for (SizeT i = 0; i < xEl; ++i) 
-              { 
-                (*xValIrregularCase)[k] = (*xVal)[i];
-                (*yValIrregularCase)[k++] = (*yVal)[j];
-              }
-              irregular = true;
-            }
-            //else just say X and Y are the irregularcase
-            else {
-              xValIrregularCase=xVal;
-              yValIrregularCase=yVal;
-              irregular = true;
-            }
-          }        
+//          //if there is a projection, we can use the irregular case, see:
+//          bool mapSet = false;
+//          get_mapset(mapSet);
+//          if (mapSet) {
+//            //if x and y are monodim, create a 2d mesh
+//            if (xVal->Rank() == 1) { // so Y is 1 also
+//              xValIrregularCase=new DDoubleGDL(xEl*yEl, BaseGDL::NOZERO);
+//              yValIrregularCase=new DDoubleGDL(xEl*yEl, BaseGDL::NOZERO);
+//              SizeT k=0;
+//              for (SizeT j = 0; j < yEl; ++j) for (SizeT i = 0; i < xEl; ++i) 
+//              { 
+//                (*xValIrregularCase)[k] = (*xVal)[i];
+//                (*yValIrregularCase)[k++] = (*yVal)[j];
+//              }
+//              irregular = true;
+//            }
+//            //else just say X and Y are the irregularcase
+//            else {
+//              xValIrregularCase=xVal;
+//              yValIrregularCase=yVal;
+//              irregular = true;
+//            }
+//          }        
 
         }
       }
@@ -471,7 +468,7 @@ namespace lib {
           long xsize, ysize;
           actStream->GetGeometry(xsize, ysize);
 
-          //if projection active, comvert pairs
+          //if projection active, convert pairs
           SelfProjectXY(xValIrregularCase, yValIrregularCase);
           SizeT nEl=xValIrregularCase->N_Elements();
           GetMinMaxVal(xValIrregularCase, &xmin, &xmax);
@@ -507,15 +504,27 @@ namespace lib {
           for (SizeT i = 0; i < ixEl; ++i) (*xVal)[i] = xmin + i * (xmax - xmin) / ixEl;
           for (SizeT i = 0; i < iyEl; ++i) (*yVal)[i] = ymin + i * (ymax - ymin) / iyEl;
           actStream->Alloc2dGrid(&map, ixEl, iyEl);
-          PLFLT data = 1;
-
-          //in order to avoid crash in plplot's griddata, we need to add some random value to x and y
-          
-          actStream->griddata(&(*xValIrregularCase)[0], &(*yValIrregularCase)[0], &(*zVal)[0], nEl,
-            &(*xVal)[0], ixEl, &(*yVal)[0], iyEl, map, GRID_CSA, data);
-          for (SizeT i = 0, k = 0; i < ixEl; i++) {
-            for (SizeT j = 0; j < iyEl; j++) {
-              PLFLT v = map[i][j];
+          int griddataIx = e->Interpreter()->GetFunIx("GRIDDATA");
+          if (griddataIx < 0) e->Throw("internal error in CONTOUR, please report");
+          // GDL magick
+          EnvUDT* newEnv = new EnvUDT(NULL, funList[griddataIx], NULL);
+          // add parameters
+          DLongGDL* theDimension=new DLongGDL(dimension(2)); (* theDimension)[0]=ixEl; (* theDimension)[1]=iyEl;
+          newEnv->SetNextPar(xValIrregularCase);
+          newEnv->SetNextPar(yValIrregularCase);
+          newEnv->SetNextPar(zVal);
+          newEnv->SetKeyword("DIMENSION",theDimension);
+          bool mapSet = false;
+          get_mapset(mapSet);
+          if (mapSet) newEnv->SetKeyword("SPHERE",new DLongGDL(1));
+          if (mapSet) newEnv->SetKeyword("DEGREES",new DLongGDL(1));
+          BaseGDL::interpreter->CallStack().push_back(newEnv);
+          // make the call
+          DDoubleGDL* res = (DDoubleGDL*)BaseGDL::interpreter->call_fun(funList[ griddataIx]->GetTree());
+          BaseGDL::interpreter->CallStack().pop_back();
+          for (SizeT j = 0, k = 0; j < iyEl; j++) {
+            for (SizeT i = 0; i < ixEl; i++) {
+              PLFLT v = (*res)[k++];
               if (!isfinite(v)) v = (fill) ? minmin : d_nan; //note: nan regions could eventually be filled.
               if (hasMinVal && v < minVal) v = (fill) ? minmin : d_nan;
               if (hasMaxVal && v > maxVal) v = (fill) ? maxmax : d_nan;
@@ -531,7 +540,7 @@ namespace lib {
               PLFLT v = (*zVal)[k++];
               if (!isfinite(v)) v = (fill) ? minmin : d_nan; //note: nan regions could eventually be filled.
               if (hasMinVal && v < minVal) v = (fill) ? minmin : d_nan;
-              if (hasMaxVal && v > maxVal) v = (fill) ? minmin : d_nan;
+              if (hasMaxVal && v > maxVal) v = (fill) ? maxmax : d_nan;
               map[i][j] = v;
             }
           }
@@ -786,6 +795,7 @@ namespace lib {
           delete[] yg1;
         }
 
+//        if (do_free_grid) 
         actStream->Free2dGrid(map, xEl, yEl);
       }
 

@@ -118,6 +118,8 @@ required_kw4=" +"+strlowcase(tag_names(required))+"="
 
 nproj=n_elements(proj)
 
+if n_elements(pindex) eq 0 then pindex=1
+
 sindex=pindex
 ; find projection index, by index:
 if (N_ELEMENTS(pindex) le 0) then begin 

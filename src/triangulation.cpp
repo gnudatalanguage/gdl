@@ -1165,12 +1165,11 @@ namespace lib {
     DLong ny = 51;
     static int nxIx = e->KeywordIx("NX");
     static int nyIx = e->KeywordIx("NY");
-    bool canUseLimitsx=true;
-    bool canUseLimitsy=true;
-    if (e->KeywordSet(nxIx)) { canUseLimitsx=false; e->AssureLongScalarKW(nxIx, nx);}
-    if (e->KeywordSet(nyIx)) { canUseLimitsy=false; e->AssureLongScalarKW(nyIx, ny);}
+    bool NxDefined=e->KeywordSet(nxIx);
+    bool NyDefined=e->KeywordSet(nyIx);
+    if (NxDefined) e->AssureLongScalarKW(nxIx, nx);
+    if (NyDefined) e->AssureLongScalarKW(nyIx, ny);
     if (nx < 1 || ny < 1) e->Throw("Array dimensions must be greater than 0.");
-    // we will further on define GS, whose value may overwrite the nx, ny.
  
     DDoubleGDL* GS = NULL;
     DDoubleGDL* limits = NULL;
@@ -1207,27 +1206,23 @@ namespace lib {
     //compute World positions of each pixels.
     if (limits != NULL)
     {
-      if (canUseLimitsx) {
         xval = (*limits)[0];
         xrange = (*limits)[2] - xval;
-      }
-      if (canUseLimitsy) {
         yval = (*limits)[1];
         yrange = (*limits)[3] - yval;
-      }
     }
-    // Determine grid spacing
+    // Determine grid spacing (recompute nx ny)
     DDouble xinc = xrange / (nx-1);
     DDouble yinc = yrange / (ny-1);
-    if (GS != NULL && canUseLimitsx)
+    if (GS != NULL)
     {
       xinc = (*GS)[0];
-      nx = (DLong) ceil(xrange / xinc) +1;
+      if (xinc > 0 && NxDefined) xinc= xrange/(nx-1); else nx = (DLong) ceil(xrange / xinc) +1;
     }
-    if (GS != NULL && canUseLimitsy)
+    if (GS != NULL && NyDefined)
     {
       yinc = (*GS)[1];
-      ny = (DLong) ceil(yrange / yinc) +1;
+      if (yinc == 0 && NyDefined) yinc= yrange/(ny-1); else ny = (DLong) ceil(yrange / yinc) +1;
     }
 
     DDouble *x, *y;

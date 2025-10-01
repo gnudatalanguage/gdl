@@ -30,7 +30,7 @@ PRO map_horizon, fill=fill, nverts=n, zvalue=zvalue, _extra=Extra
     a = findgen(n+1) * (2 * !pi / n) ;N angles from 0 to 2 pi
  
     if p4name eq "igh" then begin
-       z=1e-6
+       z=1e-4
        inc=(90-z)/(n-1)
        yt=[0d:90:inc]
        ryt=reverse(yt) 
