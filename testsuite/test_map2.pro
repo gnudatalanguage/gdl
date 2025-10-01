@@ -1,4 +1,4 @@
-pro TEST_MAP2,lon,lat, projname=projname, help=help
+pro TEST_MAP2,lon,lat, projname=projname, help=help, _extra=_extra
 if keyword_set(help) then begin
 MAP_PROJ_INFO,PROJ_NAMES=names
 Print, "Useage: test_map2, lon,lat, projname= one of:"
@@ -9,7 +9,7 @@ if (n_elements(lon) eq 0) then lon=0
 if (n_elements(lat) eq 0) then lat=0
 if ~keyword_set(projname) then projname="Sinusoidal"
 image = BYTSCL(SIN(DIST(400)/10))
-MAP_SET, lat, lon, NAME=PROJNAME, /ISOTROPIC,TITLE=projname+' + REPROJECTED IMAGE'
+MAP_SET, lat, lon, NAME=PROJNAME, /ISOTROPIC,TITLE=projname+' + REPROJECTED IMAGE',  _extra=_extra
 result = MAP_IMAGE(image,Startx,Starty)
 TV, result, Startx, Starty
 MAP_CONTINENTS,/coasts

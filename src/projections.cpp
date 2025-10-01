@@ -1396,48 +1396,48 @@ namespace lib {
 
   DDoubleGDL* gdlApplyFullProjection(PROJTYPE ref, DStructGDL* map, DDoubleGDL *lonsIn, DDoubleGDL *latsIn) {
     if (map == NULL) map = SysVar::Map();
-    //DATA MUST BE IN RADIANS
-    unsigned pTag = map->Desc()->TagIndex("PIPELINE");
-    DDoubleGDL* pipeline = (static_cast<DDoubleGDL*> (map->GetTag(pTag, 0))->Dup());
-    Guard<BaseGDL> pipeGuard(pipeline);
-
-    unsigned llboxTag = map->Desc()->TagIndex("LL_BOX");
-    DDoubleGDL* llbox = (static_cast<DDoubleGDL*> (map->GetTag(llboxTag, 0))->Dup());
-    Guard<BaseGDL> llboxGuard(llbox);
-
-    // convert to radians
-    for (int i = 0; i < 4; ++i) (*llbox)[i] *= DEG_TO_RAD;
-
-    DLong pipedims[2];
-
-    enum {
-      EXIT = 0,
-      SPLIT,
-      CLIP_PLANE,
-      TRANSFORM,
-      CLIP_UV
-    };
-
-    pipedims[0] = pipeline->Dim(0);
-    pipedims[1] = pipeline->Dim(1);
-    int line = 0;
-    //if pipeline is void, a TRANSFORM will be applied anyway.This test is just for that.
-    bool PerformTransform = (pipeline->Sum() == 0);
-    if (PerformTransform) (*pipeline)[0] = TRANSFORM; //just change value of pipeline (which is a copy)
-
-    int icode = (*pipeline)[pipedims[0] * line + 0];
-    DDouble a = (*pipeline)[pipedims[0] * line + 1]; //plane a,b,c,d
-    DDouble b = (*pipeline)[pipedims[0] * line + 2];
-    DDouble c = (*pipeline)[pipedims[0] * line + 3];
-    DDouble d = (*pipeline)[pipedims[0] * line + 4];
-    DDouble px = (*pipeline)[pipedims[0] * line + 5]; //pole x,y,z
-    DDouble py = (*pipeline)[pipedims[0] * line + 6];
-    DDouble pz = (*pipeline)[pipedims[0] * line + 7];
-    DDouble clon, slon, clat, slat;
-    DDouble x, y, z;
+//    //DATA MUST BE IN RADIANS
+//    unsigned pTag = map->Desc()->TagIndex("PIPELINE");
+//    DDoubleGDL* pipeline = (static_cast<DDoubleGDL*> (map->GetTag(pTag, 0))->Dup());
+//    Guard<BaseGDL> pipeGuard(pipeline);
+//
+//    unsigned llboxTag = map->Desc()->TagIndex("LL_BOX");
+//    DDoubleGDL* llbox = (static_cast<DDoubleGDL*> (map->GetTag(llboxTag, 0))->Dup());
+//    Guard<BaseGDL> llboxGuard(llbox);
+//
+//    // convert to radians
+//    for (int i = 0; i < 4; ++i) (*llbox)[i] *= DEG_TO_RAD;
+//
+//    DLong pipedims[2];
+//
+//    enum {
+//      EXIT = 0,
+//      SPLIT,
+//      CLIP_PLANE,
+//      TRANSFORM,
+//      CLIP_UV
+//    };
+//
+//    pipedims[0] = pipeline->Dim(0);
+//    pipedims[1] = pipeline->Dim(1);
+//    int line = 0;
+//    //if pipeline is void, a TRANSFORM will be applied anyway.This test is just for that.
+//    bool PerformTransform = (pipeline->Sum() == 0);
+//    if (PerformTransform) (*pipeline)[0] = TRANSFORM; //just change value of pipeline (which is a copy)
+//
+//    int icode = (*pipeline)[pipedims[0] * line + 0];
+//    DDouble a = (*pipeline)[pipedims[0] * line + 1]; //plane a,b,c,d
+//    DDouble b = (*pipeline)[pipedims[0] * line + 2];
+//    DDouble c = (*pipeline)[pipedims[0] * line + 3];
+//    DDouble d = (*pipeline)[pipedims[0] * line + 4];
+//    DDouble px = (*pipeline)[pipedims[0] * line + 5]; //pole x,y,z
+//    DDouble py = (*pipeline)[pipedims[0] * line + 6];
+//    DDouble pz = (*pipeline)[pipedims[0] * line + 7];
+//    DDouble clon, slon, clat, slat;
+//    DDouble x, y, z;
     DDouble* lons = static_cast<DDouble*> (&(*lonsIn)[0]);
     DDouble* lats = static_cast<DDouble*> (&(*latsIn)[0]);
-    bool isHidden;
+//    bool isHidden;
 
     SizeT nEl = lonsIn->N_Elements();
     LPTYPE idata;
@@ -1464,36 +1464,36 @@ namespace lib {
       (*res)[2 * i + 1] = odata.v;
 #endif
     }
-    while (icode > 0 && line < 12) {
-      switch (icode) {
-      case CLIP_PLANE:
-        for (SizeT i = 0; i < nEl; ++i) {
-          gdl_sincos(lons[i], &slon, &clon);
-          gdl_sincos(lats[i], &slat, &clat);
-          x = clon * clat;
-          y = slon * clat;
-          z = slat;
-          isHidden = (a * x + b * y + c * z + d < 0.0);
-          if (isHidden) {
-            (*res)[2 * i] = std::numeric_limits<double>::quiet_NaN();
-            (*res)[2 * i + 1] = std::numeric_limits<double>::quiet_NaN();
-          }
-        }
-        break;
-      case CLIP_UV:
-        //TO BE DONE (really useful?)
-        break;
-      }
-      line++;
-      icode = (*pipeline)[pipedims[0] * line + 0];
-      a = (*pipeline)[pipedims[0] * line + 1]; //plane a,b,c,d
-      b = (*pipeline)[pipedims[0] * line + 2];
-      c = (*pipeline)[pipedims[0] * line + 3];
-      d = (*pipeline)[pipedims[0] * line + 4];
-      px = (*pipeline)[pipedims[0] * line + 5]; //pole x,y,z
-      py = (*pipeline)[pipedims[0] * line + 6];
-      pz = (*pipeline)[pipedims[0] * line + 7];
-    }
+//    while (icode > 0 && line < 12) {
+//      switch (icode) {
+//      case CLIP_PLANE:
+//        for (SizeT i = 0; i < nEl; ++i) {
+//          gdl_sincos(lons[i], &slon, &clon);
+//          gdl_sincos(lats[i], &slat, &clat);
+//          x = clon * clat;
+//          y = slon * clat;
+//          z = slat;
+//          isHidden = (a * x + b * y + c * z + d < 0.0);
+//          if (isHidden) {
+//            (*res)[2 * i] = std::numeric_limits<double>::quiet_NaN();
+//            (*res)[2 * i + 1] = std::numeric_limits<double>::quiet_NaN();
+//          }
+//        }
+//        break;
+//      case CLIP_UV:
+//        //TO BE DONE (really useful?)
+//        break;
+//      }
+//      line++;
+//      icode = (*pipeline)[pipedims[0] * line + 0];
+//      a = (*pipeline)[pipedims[0] * line + 1]; //plane a,b,c,d
+//      b = (*pipeline)[pipedims[0] * line + 2];
+//      c = (*pipeline)[pipedims[0] * line + 3];
+//      d = (*pipeline)[pipedims[0] * line + 4];
+//      px = (*pipeline)[pipedims[0] * line + 5]; //pole x,y,z
+//      py = (*pipeline)[pipedims[0] * line + 6];
+//      pz = (*pipeline)[pipedims[0] * line + 7];
+//    }
     return res;
   }
 
