@@ -918,21 +918,43 @@ namespace lib {
 
        if (debug) printf("compound dataset\n");
 
-       if(data_rank>0)
-          e->Throw("Only scalar dataspaces supported for compound datasets.");
-
-       DStructDesc* cmp_desc = new DStructDesc("$truct");
-       DStructGDL* res = new DStructGDL(cmp_desc);
-
+       // get total number of array elements and the size of each
+       SizeT num_elems=1;
+       for(int i=0; i<rank_s; i++) num_elems *= count_s[i];
        size_t cmp_sz = H5Tget_size(datatype);
        if (cmp_sz < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-       std::unique_ptr<char[]> raw(new char[cmp_sz]);
-
+       // Allocate byte array to read the raw data
+       char* raw = (char*) malloc(num_elems*cmp_sz*sizeof(char));
        // read raw-data for compound dataset
-       hdf5_basic_read( loc_id, datatype, ms_id, fs_id, raw.get(), e );
+       hdf5_basic_read( loc_id, datatype, ms_id, fs_id, raw, e );
 
-       // translate to GDL structure
-       hdf5_parse_compound( datatype, res, raw.get(), e );
+       // Now parse the data into a single gdl structure
+       DStructDesc* cmp_desc1 = new DStructDesc("$truct");
+       DStructGDL* res1 = new DStructGDL(cmp_desc1);
+       hdf5_parse_compound( datatype, res1, raw, e );
+       // Now can make array to hold all elements (using the structure description defined by parsing the first element)
+       dimension flat_dim(&num_elems, 1);
+       DStructGDL* res = new DStructGDL(res1->Desc(),flat_dim);
+       // Also get the number of tags (will need to copy each tag)
+       int NTags=res1->Desc()->NTags();
+//printf("n_elems: %d; n_tags %d\n",(int)num_elems,NTags);
+
+       // If there are more elements then parse each element in turn and copy data into res
+       // (which is declared as a flat struct array)
+       // Each element is treated as a separate struct to be constructed by hdf5_parse_compound
+       // It is assumed all the structs will have identical tags and datasize (this should be safe assumption for compound array)
+       for (size_t i=0; i<num_elems; i++) {
+         DStructDesc* cmp_desci = new DStructDesc("$truct");
+         DStructGDL* resi = new DStructGDL(cmp_desci);
+         hdf5_parse_compound( datatype, resi, raw+cmp_sz*i, e );
+         for( size_t itag=0; itag<NTags; itag++) {
+            *(res->GetTag(itag,i)) = *(resi->GetTag(itag));
+         }
+       }
+       // re-shape res to have the intended dimensions array to match dataset
+       (static_cast<BaseGDL*>(res))->SetDim(dim);
+       // Free the raw data
+       free(raw);
 
        return res;
 
