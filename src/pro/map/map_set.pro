@@ -87,9 +87,6 @@ PRO MAP_SET, lat, lon, rot, $
   if abs(lat) gt 90.0 then message,'Latitude must be in range of +/- 90 degrees'
   if abs(lon) gt 360.0 then message,'Longitude must be in range of +/- 360 degrees'
 
-; lon better be between -180 and 180
-  map_adjlon,lon
-
   if n_elements(color) eq 0 then color = !p.color ;Default color
   if n_elements(title) eq 0 then title = " "
   if n_elements(t3d) le 0 then t3d = 0
