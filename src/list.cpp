@@ -59,32 +59,32 @@
 // These macros are used in the new container-related routines
 
 #define GDL_CONTAINER_STRUCT()          \
-  static unsigned GDLContainerVersionTag = \
-        structDesc::GDL_CONTAINER->TagIndex( "IDLCONTAINERVERSION"); \
-  static unsigned pHeadTag = structDesc::GDL_CONTAINER->TagIndex( "PHEAD"); \
-  static unsigned pTailTag = structDesc::GDL_CONTAINER->TagIndex( "PTAIL"); \
-  static unsigned nListTag = structDesc::GDL_CONTAINER->TagIndex( "NLIST");
-
+  unsigned GDLContainerVersionTag = \
+        self->Desc()->TagIndex( "IDLCONTAINERVERSION"); \
+  unsigned pHeadTag = self->Desc()->TagIndex( "PHEAD"); \
+  unsigned pTailTag = self->Desc()->TagIndex( "PTAIL"); \
+  unsigned nListTag = self->Desc()->TagIndex( "NLIST");\
+  
 #define GDL_LIST_STRUCT()           \
-  static unsigned GDLContainerVersionTag = \
-        structDesc::GDL_CONTAINER->TagIndex( "IDLCONTAINERVERSION"); \
-  static unsigned pHeadTag = structDesc::LIST->TagIndex( "PHEAD");  \
-  static unsigned pTailTag = structDesc::LIST->TagIndex( "PTAIL");  \
-  static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
+  unsigned GDLContainerVersionTag = \
+        self->Desc()->TagIndex( "IDLCONTAINERVERSION"); \
+  unsigned pHeadTag = self->Desc()->TagIndex( "PHEAD");  \
+  unsigned pTailTag = self->Desc()->TagIndex( "PTAIL");  \
+  unsigned nListTag = self->Desc()->TagIndex( "NLIST");
 
 #define GDL_CONTAINER_NODE()            \
     static unsigned pNextTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PNEXT");  \
     static unsigned pDataTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PDATA");
 
 #define GDL_HASH_STRUCT()           \
-    static unsigned TableBitsTag = structDesc::HASH->TagIndex( "TABLE_BITS");   \
-    static unsigned pTableTag = structDesc::HASH->TagIndex( "TABLE_DATA");  \
-    static unsigned TableSizeTag = structDesc::HASH->TagIndex( "TABLE_SIZE");   \
-    static unsigned TableCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
+    unsigned TableBitsTag = self->Desc()->TagIndex( "TABLE_BITS");   \
+    unsigned pTableTag = self->Desc()->TagIndex( "TABLE_DATA");  \
+    unsigned TableSizeTag = self->Desc()->TagIndex( "TABLE_SIZE");   \
+    unsigned TableCountTag = self->Desc()->TagIndex( "TABLE_COUNT");
 
 #define GDL_HASHTABLEENTRY()            \
-    static unsigned pKeyTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PKEY"); \
-    static unsigned pValueTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PVALUE");
+    unsigned pKeyTag = self->Desc()->TagIndex( "PKEY"); \
+    unsigned pValueTag = self->Desc()->TagIndex( "PVALUE");
 
 #define MAKE_LONGGDL(X, XLong) \
         DLongGDL* XLong=0; \
@@ -274,7 +274,7 @@ static BaseGDL* GetNodeData(DPtr &Node)
  
   void LIST__ToStream( DStructGDL* oStructGDL, std::ostream& o, SizeT w, SizeT* actPosPtr)
     {
-
+    DStructGDL* self = oStructGDL;
     GDL_LIST_STRUCT()
     GDL_CONTAINER_NODE()
     
@@ -299,11 +299,12 @@ static BaseGDL* GetNodeData(DPtr &Node)
   void EnvBaseT::AddLIST( DPtrListT& ptrAccessible,
               DPtrListT& objAccessible, DStructGDL* listStruct)
   {
+
+    DStructGDL* self = listStruct;
       
     GDL_LIST_STRUCT()
     GDL_CONTAINER_NODE()
     
-    DStructGDL* self = listStruct;
 
     DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];          
   
@@ -640,8 +641,8 @@ BaseGDL* list_extraction( BaseGDL* theref, ArrayIndexListT* ixList)
     
     DStructGDL* self = GetOBJ( e->GetTheKW( 0), e);
 
-    // here static is fine
-    static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
+    // here is fine
+    unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
 
     DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];          
   
@@ -673,7 +674,6 @@ BaseGDL* LIST___OverloadEQOp( EnvUDT* e)
   if( nParam < 3) // consider implicit SELF
     ThrowFromInternalUDSub( e, "Two parameters are needed: LEFT, RIGHT.");
 
-  GDL_LIST_STRUCT()
   GDL_CONTAINER_NODE()
   
   // default behavior: Exact like scalar indexing
@@ -706,6 +706,7 @@ BaseGDL* LIST___OverloadEQOp( EnvUDT* e)
   if( rightStruct != NULL && rightStruct->Desc() != structDesc::LIST)
     ThrowFromInternalUDSub( e, "Right parameter must be a LIST.");
 
+  static unsigned nListTag =  structDesc::LIST->TagIndex( "NLIST");
   SizeT nListLeft = (*static_cast<DLongGDL*>(leftStruct->GetTag( nListTag, 0)))[0];
   SizeT nListRight = 0; 
   if( rightStruct != NULL)
@@ -890,7 +891,6 @@ BaseGDL* LIST___OverloadEQOp( EnvUDT* e)
     if( nParam < 3) 
       ThrowFromInternalUDSub( e, "Two parameters are needed: LEFT, RIGHT.");
 
-  GDL_LIST_STRUCT()
   GDL_CONTAINER_NODE()
     
      DStructGDL* leftStruct;
@@ -914,7 +914,10 @@ BaseGDL* LIST___OverloadEQOp( EnvUDT* e)
     if( rightStruct->Desc() != listDesc)
       ThrowFromInternalUDSub( e, "Right parameter must be a LIST.");
   
-    SizeT nListLeft = (*static_cast<DLongGDL*>(leftStruct->GetTag( nListTag, 0)))[0];
+    static unsigned nListTag =  structDesc::LIST->TagIndex( "NLIST");
+    static unsigned pHeadTag = structDesc::LIST->TagIndex( "PHEAD");
+    static unsigned pTailTag = structDesc::LIST->TagIndex( "PTAIL");
+      SizeT nListLeft = (*static_cast<DLongGDL*>(leftStruct->GetTag( nListTag, 0)))[0];
     SizeT nListRight = (*static_cast<DLongGDL*>(rightStruct->GetTag( nListTag, 0)))[0];
 
     DStructGDL* listStruct= new DStructGDL( listDesc, dimension());
@@ -991,10 +994,6 @@ help, list[3, 'COLOR' ]
 BaseGDL* LIST___OverloadBracketsRightSide( EnvUDT* e)
 {
   
-  GDL_LIST_STRUCT()
-  GDL_CONTAINER_NODE()
-  GDL_HASH_STRUCT()
-  GDL_HASHTABLEENTRY()
   static unsigned isRangeIx = 1;
   static unsigned prmbeg = isRangeIx+1;
 
@@ -1033,6 +1032,11 @@ BaseGDL* LIST___OverloadBracketsRightSide( EnvUDT* e)
     DStructGDL* self = GetOBJ( theref , e);
     DStructGDL* theStruct  = self;
     int iprm = 0;
+// introduce tag positions
+    GDL_LIST_STRUCT()
+    GDL_CONTAINER_NODE()
+    GDL_HASH_STRUCT()
+    GDL_HASHTABLEENTRY()
   
   SizeT listSize = (*static_cast<DLongGDL*>(self->GetTag( nListTag, 0)))[0];
   
@@ -1173,7 +1177,6 @@ BaseGDL* LIST___OverloadBracketsRightSide( EnvUDT* e)
 BaseGDL* list_rightextraction( EnvUDT* e, BaseGDL* theref, int iprm  )
 {
   
-  GDL_LIST_STRUCT()
   GDL_CONTAINER_NODE()
   SizeT nParam = e->NParam(1); 
   static unsigned isRangeIx = 1;
@@ -1272,7 +1275,10 @@ if( trace_me) std::cout << " done, iprm="<<iprm;
       if(ishash ){ 
         ThrowFromInternalUDSub( e, " hashes or structs cannot be accessed this way.");
         } else return list_extraction( theref , aL);
-    } 
+    }
+  
+  DStructGDL* self=theStruct;
+  GDL_LIST_STRUCT()
 
   SizeT listSize = (*static_cast<DLongGDL*>(theStruct->GetTag( nListTag, 0)))[0];
 
@@ -1362,7 +1368,6 @@ if( trace_me) std::cout << " done, iprm="<<iprm;
 void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  )
 {
   
-  GDL_LIST_STRUCT()
   GDL_CONTAINER_NODE()
   static unsigned isRangeIx = 3;
   static unsigned prmbeg = isRangeIx+1;
@@ -1391,26 +1396,27 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  )
        for (int i=0; i < nIsRange; i++) (*isRange)[i] = 0;
         if(trace_me) std::cout << " nIsRange was 0!" ;
     }
-    DStructGDL* theStruct;
+    DStructGDL* self;
+    GDL_LIST_STRUCT()
     bool islist = false;
     bool ishash = false; // although normally, ishash case is already handled.
     bool isstruct = false;
     DType theType = theref->Type();
     if(theType == GDL_OBJ && theref->Rank() == 0) {
-          theStruct = GetOBJ( theref, e);
-          DStructDesc* desc = theStruct->Desc();
+          self = GetOBJ( theref, e);
+          DStructDesc* desc = self->Desc();
           islist = desc->IsParent("LIST");
           ishash = desc->IsParent("HASH");
 //        isstruct = !(islist or ishash);
         }
 //  else if( theType == GDL_STRUCT and theref->N_Elements() == 1) {
     else if( theType == GDL_STRUCT) {
-//      theStruct = static_cast<DStructGDL*>( theref);
+//       self = static_cast<DStructGDL*>( theref);
          isstruct = true;
         }
 
     if(islist) 
-        listSize = (*static_cast<DLongGDL*>(theStruct->GetTag( nListTag, 0)))[0];
+        listSize = (*static_cast<DLongGDL*>(self->GetTag( nListTag, 0)))[0];
 
   ArrayIndexVectorT ixList;
 //   IxExprListT exprList;
@@ -1486,7 +1492,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  )
      "Only single value struct access is allowed.");
 
     SizeT actIx = allIx->operator[](0);
-    DPtr pActNode = GetLISTNode( e, theStruct, actIx);
+    DPtr pActNode = GetLISTNode( e, self, actIx);
     DStructGDL* actNode = GetLISTStruct( e, pActNode);   
     *objRef = actNode->GetTag( pDataTag, 0)->Dup();
     return;
@@ -1521,7 +1527,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  )
     for( SizeT i=0; i<allIxSize; ++i)
     {
       SizeT actIx = allIx->operator[](i);
-      DPtr pActNode = GetLISTNode( e, theStruct, actIx);
+      DPtr pActNode = GetLISTNode( e, self, actIx);
       DStructGDL* actNode = GetLISTStruct( e, pActNode);   
 
       DPtr Ptr = (*static_cast<DPtrGDL*>(actNode->GetTag( pDataTag, 0)))[0];
@@ -1533,7 +1539,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  )
     for( SizeT i=0; i<allIxSize; ++i)
     {
       SizeT actIx = allIx->operator[](i);
-      DPtr pActNode = GetLISTNode( e, theStruct, actIx);
+      DPtr pActNode = GetLISTNode( e, self, actIx);
       DStructGDL* actNode = GetLISTStruct( e, pActNode);   
 
       DPtr Ptr = (*static_cast<DPtrGDL*>(actNode->GetTag( pDataTag, 0)))[0];
@@ -1553,10 +1559,6 @@ void LIST___OverloadBracketsLeftSide( EnvUDT* e)
   //->AddPar("SUB1")->AddPar("SUB2")->AddPar("SUB3")->AddPar("SUB4");
   //->AddPar("SUB5")->AddPar("SUB6")->AddPar("SUB7")->AddPar("SUB8");
 
-  GDL_LIST_STRUCT()
-  GDL_CONTAINER_NODE()
-  GDL_HASH_STRUCT()
-  GDL_HASHTABLEENTRY()
   static unsigned isRangeIx = 3;
   static unsigned prmbeg = isRangeIx+1;
 
@@ -1606,6 +1608,10 @@ void LIST___OverloadBracketsLeftSide( EnvUDT* e)
     DStructGDL* self = GetOBJ( theref , e);
     DStructGDL* theStruct = self;       
     int iprm = 0;
+  GDL_LIST_STRUCT()
+  GDL_CONTAINER_NODE()
+  GDL_HASH_STRUCT()
+  GDL_HASHTABLEENTRY()
   
   SizeT listSize = (*static_cast<DLongGDL*>(self->GetTag( nListTag, 0)))[0];
   
@@ -1742,8 +1748,6 @@ BaseGDL* LIST__ToArray( EnvUDT* e,  dimension& newdim)
 //
 // "resultype" == DtypeGDL::t
 //
-    GDL_LIST_STRUCT()
-    GDL_CONTAINER_NODE()
     if(trace_me) std::cout << " ToArray.";  
     static int kwTYPEIx = e->GetKeywordIx("TYPE");
     static int kwSELFIx = kwTYPEIx + 1;
@@ -1766,6 +1770,8 @@ RESULT          FLOAT     = Array[3, 29, 5]
 Note: If the DIMENSION keyword is specified, the MISSING and TRANSPOSE keywords are ignored.
 */
     DStructGDL* self = GetOBJ( e->GetTheKW( kwSELFIx), e);
+    GDL_LIST_STRUCT()
+    GDL_CONTAINER_NODE()
 
     DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];          
     DPtr pTail = (*static_cast<DPtrGDL*>( self->GetTag( pTailTag, 0)))[0];
@@ -1873,9 +1879,6 @@ void list__help( EnvUDT* e)
 BaseGDL* list__toarray( EnvUDT* e)
   {
       
-    GDL_LIST_STRUCT()
-    GDL_CONTAINER_NODE()
-    
     static int kwTYPEIx = e->GetKeywordIx("TYPE");
     static int kwSELFIx = kwTYPEIx + 1;
     static int kwMISSINGIx = e->GetKeywordIx("MISSING"); 
@@ -1890,6 +1893,9 @@ BaseGDL* list__toarray( EnvUDT* e)
     SizeT nParam = e->NParam(1); // SELF
     
     DStructGDL* self = GetOBJ( e->GetTheKW( kwSELFIx), e);
+    GDL_LIST_STRUCT()
+    GDL_CONTAINER_NODE()
+        
 
     if(trace_me) std::cout << " list.toarray():";
 
@@ -2124,10 +2130,10 @@ BaseGDL* list__isempty( EnvUDT* e)
 {
 //             std::cout << "par par ici et là" << std::endl;
    
-    GDL_LIST_STRUCT()
         
   static int kwSELFIx = 0;
   DStructGDL* self = GetOBJ( e->GetTheKW( kwSELFIx), e);
+    GDL_LIST_STRUCT()
   DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];        
 
   if (nList > 0) return new DByteGDL(0); else return new DByteGDL(1);
@@ -2136,9 +2142,9 @@ BaseGDL* list__isempty( EnvUDT* e)
 SizeT LIST_count( DStructGDL* list)
 {// straight through, no checks
 
-  static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
+  unsigned nListTag = list->Desc()->TagIndex( "NLIST");
   
-  //  std::cout << nListTag << std::endl;
+  std::cout << nListTag << std::endl;
   return (*static_cast<DLongGDL*>( list->GetTag( nListTag, 0)))[0];
 }
 
@@ -2168,13 +2174,13 @@ BaseGDL* list__count( EnvUDT* e)
 void list__move( EnvUDT* e)
 {
   
-      GDL_LIST_STRUCT()
-      GDL_CONTAINER_NODE()
-
     SizeT nParam = e->NParam(3); // minimum SELF, SOURCE, DESTINATION
     
     static int kwSELFIx = 0; // no keywords
     DStructGDL* self = GetOBJ( e->GetTheKW( kwSELFIx), e);
+      GDL_LIST_STRUCT()
+      GDL_CONTAINER_NODE()
+
     DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];          
     trace_me = false; // trace_arg();
 
@@ -2293,8 +2299,6 @@ void list__move( EnvUDT* e)
 void list__swap( EnvUDT* e)
 {
   
-  GDL_LIST_STRUCT()
-  GDL_CONTAINER_NODE()
 
 //      trace_me = false; // lib::trace_arg();
     if(trace_me) std::printf(" list__swap ");
@@ -2302,6 +2306,8 @@ void list__swap( EnvUDT* e)
     
     static int kwSELFIx = 0; // no keywords
     DStructGDL* self = GetOBJ( e->GetTheKW( kwSELFIx), e);
+  GDL_LIST_STRUCT()
+  GDL_CONTAINER_NODE()
     DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];          
     
     DLong index1, index2;
@@ -2962,8 +2968,6 @@ void list__swap( EnvUDT* e)
   //     DFunLIST__ADD->AddPar("VALUE")->AddPar("INDEX");
   // res=List.get([/all] [, isa=(names)] [. position=index] [, count=variable] [/null][)
   
-  GDL_LIST_STRUCT()
-  GDL_CONTAINER_NODE()
     enum { POINTERS=1, OBJECTS};
   SizeT nParam = e->NParam(1);
 
@@ -2975,6 +2979,8 @@ void list__swap( EnvUDT* e)
     static int kwCOUNTIx = e->GetKeywordIx("COUNT");
     static int kwSELFIx = kwALLIx + 1;
     DStructGDL* self = GetOBJ( e->GetTheKW( kwSELFIx), e);
+  GDL_LIST_STRUCT()
+  GDL_CONTAINER_NODE()
 
 // IDL_CONTAINER began as an object container and was later extended to
 // include Heap variable pointers.  Both cases are handled with the same
@@ -3179,8 +3185,6 @@ void list__swap( EnvUDT* e)
   //     DFunLIST__ADD->AddPar("VALUE")->AddPar("INDEX");
   // List.Add, Value [,Index],  [, /EXTRACT] [, /NO_COPY]
 
-  GDL_LIST_STRUCT()
-  GDL_CONTAINER_NODE()
 
 
 //      trace_me = false; //lib::trace_arg();
@@ -3195,6 +3199,8 @@ void list__swap( EnvUDT* e)
     SizeT nParam = e->NParam(1);
 
     DStructGDL* self = GetOBJ( e->GetTheKW( kwSELFIx), e);
+  GDL_LIST_STRUCT()
+  GDL_CONTAINER_NODE()
   DStructDesc* containerDesc=structDesc::GDL_CONTAINER_NODE;
     DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];          
     DInt GDLContainerVersion = 0;
@@ -3437,9 +3443,6 @@ void list__swap( EnvUDT* e)
     }
     
     DInterpreter* ip = e->Interpreter();
-    
-    GDL_LIST_STRUCT()
-    GDL_CONTAINER_NODE()
       
     // because of .RESET_SESSION, we cannot use static here
     DStructDesc* listDesc=structDesc::LIST;
@@ -3447,9 +3450,12 @@ void list__swap( EnvUDT* e)
     assert( listDesc != NULL && listDesc->NTags() > 0);
     assert( containerDesc != NULL && containerDesc->NTags() > 0);
 
-    DStructGDL* listStruct= new DStructGDL( listDesc, dimension());
+    DStructGDL* self= new DStructGDL( listDesc, dimension());
+    
+    GDL_LIST_STRUCT()
+    GDL_CONTAINER_NODE()
 
-    DObj objID= e->NewObjHeap( 1, listStruct); // owns objStruct, sets ref count to 1 
+    DObj objID= e->NewObjHeap( 1, self); // owns objStruct, sets ref count to 1 
 
     BaseGDL* newObj = new DObjGDL( objID); // the list object
     Guard<BaseGDL> newObjGuard( newObj);
@@ -3457,7 +3463,7 @@ void list__swap( EnvUDT* e)
     SizeT added = 0;
     DStructGDL* cStruct = NULL;
     DPtr cID = 0;
-    (*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;         
+    (*static_cast<DPtrGDL*>( self->GetTag( pTailTag, 0)))[0] = cID;         
     if( nParam > 0 || listLength > 0)
     {
       DStructGDL* cStructLast = NULL;
@@ -3491,7 +3497,7 @@ void list__swap( EnvUDT* e)
           (*static_cast<DPtrGDL*>( cStructLast->GetTag( pNextTag, 0)))[0] = cID;
         else
         { // 1st element
-          (*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;       
+          (*static_cast<DPtrGDL*>( self->GetTag( pTailTag, 0)))[0] = cID;       
         }
         
         cStructLast = cStruct;
@@ -3534,7 +3540,7 @@ void list__swap( EnvUDT* e)
         (*static_cast<DPtrGDL*>( cStructLast->GetTag( pNextTag, 0)))[0] = cID;
       else
       { // 1st element
-        (*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;         
+        (*static_cast<DPtrGDL*>( self->GetTag( pTailTag, 0)))[0] = cID;         
       }
       
       cStructLast = cStruct;
@@ -3561,7 +3567,7 @@ void list__swap( EnvUDT* e)
         (*static_cast<DPtrGDL*>( cStructLast->GetTag( pNextTag, 0)))[0] = cID;
       else
       { // 1st element
-        (*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;         
+        (*static_cast<DPtrGDL*>( self->GetTag( pTailTag, 0)))[0] = cID;         
       }
       
       cStructLast = cStruct;
@@ -3572,8 +3578,8 @@ void list__swap( EnvUDT* e)
 //     if( cStruct != NULL)
 //       (*static_cast<DPtrGDL*>( cStruct->GetTag( pNextTag, 0)))[0] = 0;
         
-    (*static_cast<DPtrGDL*>( listStruct->GetTag( pHeadTag, 0)))[0] = cID;         
-    (*static_cast<DLongGDL*>( listStruct->GetTag( nListTag, 0)))[0] = added;          
+    (*static_cast<DPtrGDL*>( self->GetTag( pHeadTag, 0)))[0] = cID;         
+    (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0] = added;          
 
     newObjGuard.Release();
     return newObj;
@@ -3593,13 +3599,13 @@ void list__swap( EnvUDT* e)
   
   BaseGDL* container__iscontained( EnvUDT* e)
   {
-    GDL_CONTAINER_STRUCT()
-    GDL_CONTAINER_NODE()
     static int kwPOSITIONIx = e->GetKeywordIx("POSITION");
     static int kwSELFIx = kwPOSITIONIx + 1; // no keywords
     static int kwVALUEIx = kwSELFIx + 1;
 // Keyword
     DStructGDL* self = GetOBJ( e->GetTheKW( kwSELFIx), e);
+    GDL_CONTAINER_STRUCT()
+    GDL_CONTAINER_NODE()
     DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];  
     if( nList == 0)
       return NullGDL::GetSingleInstance();
@@ -3653,12 +3659,12 @@ void list__swap( EnvUDT* e)
 }
   BaseGDL* container__equals( EnvUDT* e)
   {
-    GDL_CONTAINER_STRUCT()
-    GDL_CONTAINER_NODE()
     static int kwSELFIx = 0; // no keywords
     static int kwVALUEIx = 1;
 // no Keywords
     DStructGDL* self = GetOBJ( e->GetTheKW( kwSELFIx), e);
+    GDL_CONTAINER_STRUCT()
+    GDL_CONTAINER_NODE()
     DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];  
     if( nList == 0)
       return NullGDL::GetSingleInstance();
@@ -3693,8 +3699,6 @@ void list__swap( EnvUDT* e)
   void container__remove( EnvUDT* e)
   {
 
-    GDL_CONTAINER_STRUCT()
-    GDL_CONTAINER_NODE()
     enum { POINTERS=1, OBJECTS};
     SizeT nParam = e->NParam(1);
 
@@ -3705,6 +3709,8 @@ void list__swap( EnvUDT* e)
 
 
     DStructGDL* self = GetOBJ( e->GetTheKW( kwSELFIx), e);
+    GDL_CONTAINER_STRUCT()
+    GDL_CONTAINER_NODE()
 
     DLong nList = (*static_cast<DLongGDL*>( self->GetTag( nListTag, 0)))[0];          
 // Is this correct behavior? Not from the LIST example.
