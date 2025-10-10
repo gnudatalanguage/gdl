@@ -38,11 +38,11 @@ if (count gt 0) then begin
   n=n_elements(value)
   n_firstdim=ret[1]
   case type of  ; define special formats
-    4: begin & w=16 & n=fix(width/w,/print) & if n_firstdim lt n then n=n_firstdim & fmt=start+strtrim(n,2)+fmtflt & break &end
-    5: begin & w=25 & n=fix(width/w,/print) & if n_firstdim lt n then n=n_firstdim & fmt=start+strtrim(n,2)+fmtdbl & break &end
-    6: begin & w=35 & n=fix(width/w,/print) & if n_firstdim lt n then n=n_firstdim & fmt=start+strtrim(n,2)+fmtflt & break &end
-    9: begin & w=53 & n=fix(width/w,/print) & if n_firstdim lt n then n=n_firstdim & fmt=start+strtrim(n,2)+fmtdbl & break &end
-    ELSE:  return, strtrim(string(value,/print),2) ; /print is for BYTES.
+     4: begin & w=16 & n=fix(width/w,/print) & if n_firstdim lt n then n=n_firstdim & fmt=start+strtrim(n,2)+fmtflt & break &end
+     5: begin & w=25 & n=fix(width/w,/print) & if n_firstdim lt n then n=n_firstdim & fmt=start+strtrim(n,2)+fmtdbl & break &end
+     6: begin & w=35 & n=fix(width/w,/print) & if n_firstdim lt n then n=n_firstdim & fmt=start+strtrim(n,2)+fmtflt & break &end
+     9: begin & w=53 & n=fix(width/w,/print) & if n_firstdim lt n then n=n_firstdim & fmt=start+strtrim(n,2)+fmtdbl & break &end
+     ELSE: return, strtrim(string(value,/print),2) ; /print is for BYTES.
     endcase
   ; only special formats left
   switch type of
@@ -62,7 +62,7 @@ for i=0,level do tab+='    '
 return, tab
 end
 
-function pretty_serialize,value,tagname=tagname,flat=flat
+function pretty_serialize,value,tagname=tagname
 common json_serialize_gdl_level, width, level
   ; warning as this is directly compiled within the $MAIN$ interpretor there must be no COMPILE_OPT here.
 ;COMPILE_OPT HIDDEN
@@ -83,10 +83,9 @@ comma=','
   ret=size(value)
   ndim=ret[0]
   type=ret[ndim+1]
-
-if( n_elements(tagname) gt 0) then begin
-   if (typename(tagname) eq "STRING") then tmpstr=maketab()+'"'+tagname+'": ' else tmpstr=maketab()+strtrim(tagname,2)+': '
-endif else tmpstr=''
+  if( n_elements(tagname) gt 0) then begin
+     if (typename(tagname) eq "STRING") then tmpstr=maketab()+'"'+tagname+'": ' else tmpstr=maketab()+strtrim(tagname,2)+': '
+  endif else tmpstr=''
 
  n=n_elements(value)
 
@@ -95,19 +94,19 @@ endif else tmpstr=''
   if (mytype eq 'LIST' or mytype eq 'HASH' or mytype eq 'ORDEREDHASH' or mytype eq 'DICTIONARY')  then n=1
  
   if (n eq 1 ) then begin
-      case type of
+     case type of
         8: begin
            tagn=tag_names(value)
            tmpstr+=braceleft & level++
            for j=0,n_tags(value)-1 do begin
-              tmpstr+=LF+pretty_serialize(tagname=tagn[j],value.(j), /flat)
+              tmpstr+=LF+pretty_serialize(tagname=tagn[j],value.(j))
               if j lt n_tags(value)-1  then tmpstr+=comma
            endfor
 		   level--
            tmpstr+=LF+maketab()+'}'
         end
         
-     11: begin                  ; more tricky depending on single value of array
+        11: begin               ; more tricky depending on single value of array
         mytype=typename(value)
         if (mytype eq 'LIST') then begin
            tmpstr+=SquareBraceleft & level++
@@ -117,23 +116,26 @@ endif else tmpstr=''
               if (j lt nn-1) then tmpstr+=comma
            endfor
            tmpstr+=maketab()+']'+LF & level--
-        endif else begin
+        endif else if (mytype eq 'HASH') then  begin
            tmpstr+=braceleft & level++
            nn=value.Count()
            keys=value.Keys()
            for j=0,nn-1 do begin
-              tmpstr+=LF+pretty_serialize(tagname=keys[j],value[keys[j]],/flat)
+              tmpstr+=LF+pretty_serialize(tagname=keys[j],value[keys[j]])
               if (j lt nn-1) then tmpstr+=comma
            endfor
-		   level--
+        	   level--
            tmpstr+=maketab()+'}'+LF
+        endif else  begin
+           ind=OBJ_VALID(value,/get)
+           if (ind) then tmpstr+="<ObjHeapVar"+strtrim(ind,2)+"("+obj_class(value)+")>" else tmpstr+="<NullObject>"
         endelse
      end
 
      7:  tmpstr+='"'+value+'"'
      10: BEGIN
         ind=PTR_VALID(value,/get)
-        tmpstr+="<PtrHeapVar"+strtrim(ind,2)+">"
+        if (ind) then tmpstr+="<PtrHeapVar"+strtrim(ind,2)+">" else tmpstr+="<NullPointer>"
      END
      ELSE: tmpstr+=gdl_implied_string(value)
   endcase
@@ -142,13 +144,13 @@ endif else tmpstr=''
   endif else begin
      nel=n_elements(value)
      if nel gt 1 then tmpstr+='['
-       for i=0,nel-1 do begin
+     for i=0,nel-1 do begin
         case type of
            8: begin
               tagn=tag_names(value[i])
               tmpstr+=braceleft & level++
               for j=0,n_tags(value[i])-1 do begin
-                 tmpstr+=LF+pretty_serialize(tagname=tagn[j],value[i].(j),/flat)
+                 tmpstr+=LF+pretty_serialize(tagname=tagn[j],value[i].(j))
                  if (j lt n_tags(value[i])-1 ) then tmpstr+=comma
               end
 			  level--
@@ -164,25 +166,28 @@ endif else tmpstr=''
                     tmpstr+=LF+pretty_serialize((value[i])[j])
                     if (j lt nn-1) then tmpstr+=comma
                  endfor
-				 level--
+	         level--
                  tmpstr+=maketab()+']'+LF
-              endif else begin
+              endif else if (mytype eq 'HASH') then begin
                  tmpstr+=braceleft & level++
                  nn=value[i].Count()
                  keys=value[i].Keys()
                  for j=0,nn-1 do begin
-                    tmpstr+=LF+pretty_serialize(tagname=keys[j],(value[i])[keys[j]],/flat)
+                    tmpstr+=LF+pretty_serialize(tagname=keys[j],(value[i])[keys[j]])
                     if (j lt nn-1) then tmpstr+=comma
                  endfor
-				 level--
+	        		 level--
                  tmpstr+=maketab()+'}'+LF
+              endif else  begin
+                 ind=OBJ_VALID(value,/get)
+                 if (ind) then tmpstr+="<ObjHeapVar"+strtrim(ind,2)+"("+obj_class(value)+")>" else tmpstr+="<NullObject>"
               endelse
            end
            7:  tmpstr+='"'+value[i]+'"'
            10: BEGIN
-              ind=PTR_VALID(value[i],/get)
-              tmpstr+="<PtrHeapVar"+strtrim(ind,2)+">"
-           END 
+              ind=PTR_VALID(value,/get)
+              if (ind) then tmpstr+="<PtrHeapVar"+strtrim(ind,2)+">" else tmpstr+="<NullPointer>"
+           END
            ELSE: tmpstr+=gdl_implied_string(value[i])
         endcase
         if (i lt nel-1) then tmpstr+=(comma+space)
@@ -204,6 +209,36 @@ if info.isatty eq 1 then begin
    width=(TERMINAL_SIZE( ))[0]
 endif else width=132
 level=-1
+
+types=[1,2,3,4,5,6,7,9,12,13,14,15]
+type=size(value,/type)
+if (type eq 0) then begin
+ print,"!NULL"
+ return
+endif
+w=where(type eq types, count)
+if (count gt 0) then begin
+   start='('
+   fmtflt='(G16.8))'
+   fmtdbl='(G25.17))'
+   fmtcplx='("(",G16.8,",",G16.8,")"))'
+   fmtcplxdbl='("(",G25.17,",",G25.17,")"))'
+   ret=size(value)
+   ndim=ret[0]
+   type=ret[ndim+1]
+   n=n_elements(value)
+   n_firstdim=ret[1]
+   case type of                 ; define special formats
+   4: begin & w=16 & n=fix(width/w,/print) & if n_firstdim lt n then n=n_firstdim & fmt=start+strtrim(n,2)+fmtflt & break &end
+   5: begin & w=25 & n=fix(width/w,/print) & if n_firstdim lt n then n=n_firstdim & fmt=start+strtrim(n,2)+fmtdbl & break &end
+   6: begin & w=35 & n=fix(width/w,/print) & if n_firstdim lt n then n=n_firstdim & fmt=start+strtrim(n,2)+fmtcplx & break &end
+   9: begin & w=53 & n=fix(width/w,/print) & if n_firstdim lt n then n=n_firstdim & fmt=start+strtrim(n,2)+fmtcplxdbl & break &end
+      ELSE: BEGIN & print, value & RETURN & END
+   endcase
+  ; only special formats left
+   print,value,format=fmt
+   return
+endif
 
 text=pretty_serialize(value)
 
