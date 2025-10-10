@@ -267,6 +267,7 @@ void InitStructs()
   gdlHash->AddTag("TABLE_REMOVE", &aULong);
   gdlHash->AddTag("TABLE_FOREACH", &aULong);
   gdlHash->AddTag("TABLE_DATA", &aPtrRef);
+  gdlHash->AddTag("FLAGS", &aLong);
   // insert into structList
   structList.push_back(gdlHash);
   structDesc::HASH = gdlHash;
