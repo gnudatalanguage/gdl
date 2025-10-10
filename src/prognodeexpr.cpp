@@ -3134,7 +3134,9 @@ BaseGDL* FCALL_LIB_N_ELEMENTSNode::Eval()
 
 			DStructGDL* s = NULL;
 			Guard<BaseGDL> guard(s);
-		   try {
+	        s= BaseGDL::interpreter->GetObjHeapNoThrow( ID);//see 2090
+            if (s == NULL) return new DLongGDL( 1); //see 2090
+		   try { //keep old behaviour after patching #2090
 				  s= BaseGDL::interpreter->GetObjHeap( ID);
 				}
 				catch( GDLInterpreter::HeapException& hEx)
