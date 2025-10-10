@@ -2122,7 +2122,7 @@ BaseGDL* list__toarray( EnvUDT* e)
 
 BaseGDL* list__isempty( EnvUDT* e)
 {
-             std::cout << "par par ici et là" << std::endl;
+//             std::cout << "par par ici et là" << std::endl;
    
     GDL_LIST_STRUCT()
         
