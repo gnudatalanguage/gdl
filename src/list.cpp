@@ -2144,7 +2144,6 @@ SizeT LIST_count( DStructGDL* list)
 
   unsigned nListTag = list->Desc()->TagIndex( "NLIST");
   
-  std::cout << nListTag << std::endl;
   return (*static_cast<DLongGDL*>( list->GetTag( nListTag, 0)))[0];
 }
 
