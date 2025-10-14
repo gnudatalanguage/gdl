@@ -65,8 +65,8 @@ namespace lib {
   static PJ_XY badProjXY={sqrt(-1),sqrt(-1)};
   static PJ_LP badProjLP={sqrt(-1),sqrt(-1)};
 
-  static PJ *ref;
-  static PJ *prev_ref;
+  static PJ *ref=NULL;
+  static PJ *prev_ref=NULL;
 
 #define DEG_TO_RAD   .017453292519943296
 #define RAD_TO_DEG    57.295779513082321

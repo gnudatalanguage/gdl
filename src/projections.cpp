@@ -574,6 +574,7 @@ namespace lib {
   //epsilon is the size of the "trouble ahead" region around splits. Mostly due to projection numerical errors?
   //if set to a smaller value, the splits of the Goode projections are not OK (? some goode's projection computation in float instead of double?)
   static double epsilon = std::numeric_limits<float>::epsilon(); //say, 5e-7 
+  static double minus_epsilon = -1*std::numeric_limits<float>::epsilon(); //say, 5e-7 
 
   PROJTYPE map_init(DStructGDL * map) {
 
@@ -1396,48 +1397,48 @@ namespace lib {
 
   DDoubleGDL* gdlApplyFullProjection(PROJTYPE ref, DStructGDL* map, DDoubleGDL *lonsIn, DDoubleGDL *latsIn) {
     if (map == NULL) map = SysVar::Map();
-    //DATA MUST BE IN RADIANS
-    unsigned pTag = map->Desc()->TagIndex("PIPELINE");
-    DDoubleGDL* pipeline = (static_cast<DDoubleGDL*> (map->GetTag(pTag, 0))->Dup());
-    Guard<BaseGDL> pipeGuard(pipeline);
-
-    unsigned llboxTag = map->Desc()->TagIndex("LL_BOX");
-    DDoubleGDL* llbox = (static_cast<DDoubleGDL*> (map->GetTag(llboxTag, 0))->Dup());
-    Guard<BaseGDL> llboxGuard(llbox);
-
-    // convert to radians
-    for (int i = 0; i < 4; ++i) (*llbox)[i] *= DEG_TO_RAD;
-
-    DLong pipedims[2];
-
-    enum {
-      EXIT = 0,
-      SPLIT,
-      CLIP_PLANE,
-      TRANSFORM,
-      CLIP_UV
-    };
-
-    pipedims[0] = pipeline->Dim(0);
-    pipedims[1] = pipeline->Dim(1);
-    int line = 0;
-    //if pipeline is void, a TRANSFORM will be applied anyway.This test is just for that.
-    bool PerformTransform = (pipeline->Sum() == 0);
-    if (PerformTransform) (*pipeline)[0] = TRANSFORM; //just change value of pipeline (which is a copy)
-
-    int icode = (*pipeline)[pipedims[0] * line + 0];
-    DDouble a = (*pipeline)[pipedims[0] * line + 1]; //plane a,b,c,d
-    DDouble b = (*pipeline)[pipedims[0] * line + 2];
-    DDouble c = (*pipeline)[pipedims[0] * line + 3];
-    DDouble d = (*pipeline)[pipedims[0] * line + 4];
-    DDouble px = (*pipeline)[pipedims[0] * line + 5]; //pole x,y,z
-    DDouble py = (*pipeline)[pipedims[0] * line + 6];
-    DDouble pz = (*pipeline)[pipedims[0] * line + 7];
-    DDouble clon, slon, clat, slat;
-    DDouble x, y, z;
+//    //DATA MUST BE IN RADIANS
+//    unsigned pTag = map->Desc()->TagIndex("PIPELINE");
+//    DDoubleGDL* pipeline = (static_cast<DDoubleGDL*> (map->GetTag(pTag, 0))->Dup());
+//    Guard<BaseGDL> pipeGuard(pipeline);
+//
+//    unsigned llboxTag = map->Desc()->TagIndex("LL_BOX");
+//    DDoubleGDL* llbox = (static_cast<DDoubleGDL*> (map->GetTag(llboxTag, 0))->Dup());
+//    Guard<BaseGDL> llboxGuard(llbox);
+//
+//    // convert to radians
+//    for (int i = 0; i < 4; ++i) (*llbox)[i] *= DEG_TO_RAD;
+//
+//    DLong pipedims[2];
+//
+//    enum {
+//      EXIT = 0,
+//      SPLIT,
+//      CLIP_PLANE,
+//      TRANSFORM,
+//      CLIP_UV
+//    };
+//
+//    pipedims[0] = pipeline->Dim(0);
+//    pipedims[1] = pipeline->Dim(1);
+//    int line = 0;
+//    //if pipeline is void, a TRANSFORM will be applied anyway.This test is just for that.
+//    bool PerformTransform = (pipeline->Sum() == 0);
+//    if (PerformTransform) (*pipeline)[0] = TRANSFORM; //just change value of pipeline (which is a copy)
+//
+//    int icode = (*pipeline)[pipedims[0] * line + 0];
+//    DDouble a = (*pipeline)[pipedims[0] * line + 1]; //plane a,b,c,d
+//    DDouble b = (*pipeline)[pipedims[0] * line + 2];
+//    DDouble c = (*pipeline)[pipedims[0] * line + 3];
+//    DDouble d = (*pipeline)[pipedims[0] * line + 4];
+//    DDouble px = (*pipeline)[pipedims[0] * line + 5]; //pole x,y,z
+//    DDouble py = (*pipeline)[pipedims[0] * line + 6];
+//    DDouble pz = (*pipeline)[pipedims[0] * line + 7];
+//    DDouble clon, slon, clat, slat;
+//    DDouble x, y, z;
     DDouble* lons = static_cast<DDouble*> (&(*lonsIn)[0]);
     DDouble* lats = static_cast<DDouble*> (&(*latsIn)[0]);
-    bool isHidden;
+//    bool isHidden;
 
     SizeT nEl = lonsIn->N_Elements();
     LPTYPE idata;
@@ -1464,36 +1465,36 @@ namespace lib {
       (*res)[2 * i + 1] = odata.v;
 #endif
     }
-    while (icode > 0 && line < 12) {
-      switch (icode) {
-      case CLIP_PLANE:
-        for (SizeT i = 0; i < nEl; ++i) {
-          gdl_sincos(lons[i], &slon, &clon);
-          gdl_sincos(lats[i], &slat, &clat);
-          x = clon * clat;
-          y = slon * clat;
-          z = slat;
-          isHidden = (a * x + b * y + c * z + d < 0.0);
-          if (isHidden) {
-            (*res)[2 * i] = std::numeric_limits<double>::quiet_NaN();
-            (*res)[2 * i + 1] = std::numeric_limits<double>::quiet_NaN();
-          }
-        }
-        break;
-      case CLIP_UV:
-        //TO BE DONE (really useful?)
-        break;
-      }
-      line++;
-      icode = (*pipeline)[pipedims[0] * line + 0];
-      a = (*pipeline)[pipedims[0] * line + 1]; //plane a,b,c,d
-      b = (*pipeline)[pipedims[0] * line + 2];
-      c = (*pipeline)[pipedims[0] * line + 3];
-      d = (*pipeline)[pipedims[0] * line + 4];
-      px = (*pipeline)[pipedims[0] * line + 5]; //pole x,y,z
-      py = (*pipeline)[pipedims[0] * line + 6];
-      pz = (*pipeline)[pipedims[0] * line + 7];
-    }
+//    while (icode > 0 && line < 12) {
+//      switch (icode) {
+//      case CLIP_PLANE:
+//        for (SizeT i = 0; i < nEl; ++i) {
+//          gdl_sincos(lons[i], &slon, &clon);
+//          gdl_sincos(lats[i], &slat, &clat);
+//          x = clon * clat;
+//          y = slon * clat;
+//          z = slat;
+//          isHidden = (a * x + b * y + c * z + d < 0.0);
+//          if (isHidden) {
+//            (*res)[2 * i] = std::numeric_limits<double>::quiet_NaN();
+//            (*res)[2 * i + 1] = std::numeric_limits<double>::quiet_NaN();
+//          }
+//        }
+//        break;
+//      case CLIP_UV:
+//        //TO BE DONE (really useful?)
+//        break;
+//      }
+//      line++;
+//      icode = (*pipeline)[pipedims[0] * line + 0];
+//      a = (*pipeline)[pipedims[0] * line + 1]; //plane a,b,c,d
+//      b = (*pipeline)[pipedims[0] * line + 2];
+//      c = (*pipeline)[pipedims[0] * line + 3];
+//      d = (*pipeline)[pipedims[0] * line + 4];
+//      px = (*pipeline)[pipedims[0] * line + 5]; //pole x,y,z
+//      py = (*pipeline)[pipedims[0] * line + 6];
+//      pz = (*pipeline)[pipedims[0] * line + 7];
+//    }
     return res;
   }
 
@@ -1613,29 +1614,18 @@ namespace lib {
       pz = (*pipeline)[pipedims[0] * line + 7];
     }
   }
+  
   inline bool intersectsLonLatBox(DDouble minlon, DDouble maxlon, DDouble minlat, DDouble maxlat, DDouble* llbox){
-    if (minlon >= llbox[3]) return false;
-    if (maxlon <= llbox[1]) return false;
+  // std::cerr<<" ["<<minlon<<";"<<maxlon<<"]"<<std::endl;
+//  std::cerr<<"["<<llbox[1]<<","<<llbox[3]<<"]: ["<<minlon<<";"<<maxlon<<"]"<<std::endl;
     if (minlat >= llbox[2]) return false;
     if (maxlat <= llbox[0]) return false;
+    if (abs(maxlon-minlon) > 1.999*GDL_PI) return true;
+    if (minlon >= llbox[3]) return false;
+    if (maxlon <= llbox[1]) return false;
     return true;
   }
-  inline bool intersectsBox(DDouble xmin, DDouble xmax, DDouble ymin, DDouble ymax, DDouble* box){
-    if (xmin >= box[3]) return false;
-    if (xmax <= box[1]) return false;
-    if (ymin >= box[2]) return false;
-    if (ymax <= box[0]) return false;
-    return true;
-  }
-  inline bool inBox(DDouble x, DDouble y, DDouble* box){
-    if (x > box[3]) return false;
-    if (x < box[1]) return false;
-    if (y > box[2]) return false;
-    if (y < box[0]) return false;
-    return true;
-  }
-  //reproject, removing hidden points, cutting lines at projections splits & boundaries if LINE and FILL, closing contours if FILL.
-  //produces a [3,N] or [N,3] output. Or -1 if nothing works.
+
   DDoubleGDL* gdlProjForward(PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats, DDoubleGDL *zIn, DLongGDL *connIn,
     bool doConn, DLongGDL *&gonsOut, bool doGons, DLongGDL *&linesOut, bool doLines, bool const doFill, bool const transpose) {
 
@@ -1656,9 +1646,6 @@ namespace lib {
     unsigned uvboxTag = map->Desc()->TagIndex("UV_BOX");
     DDoubleGDL* uvbox = (static_cast<DDoubleGDL*> (map->GetTag(uvboxTag, 0))->Dup());
     Guard<BaseGDL> uvboxGuard(uvbox);
-    //test if we can eliminate some polygons as they are probably (this is the use of ll_box) not going to be seen at the end.
-    //this has problems as ll_box is very crude and false for some projetions (satellite)
-    bool llsubset=!((*llbox)[0] <= -90.0 && (*llbox)[2] >= 90.0 && (*llbox)[1] <= -180.0 && (*llbox)[3] >= 180.0);
 
     // convert to radians
     for (int i = 0; i < 4; ++i) (*llbox)[i] *= DEG_TO_RAD;
@@ -1761,19 +1748,13 @@ namespace lib {
             currentVertexList.push_back(curr);
           }
         }
-        bool keep=intersectsLonLatBox(minlon,maxlon,minlat,maxlat,&((*llbox)[0]));
-        if (llsubset && !keep) {
-//          cerr<<"removed "<<minlon*RAD_TO_DEG<<","<<maxlon*RAD_TO_DEG<<","<<minlat*RAD_TO_DEG<<","<<maxlat*RAD_TO_DEG<<endl;
-            currentVertexList.clear();
-          } else {
-          currentPol.VertexList = currentVertexList;
-          currentPol.type = 1; //before cut
-          currentPol.xmin = minlon;
-          currentPol.xmax = maxlon;
-          currentPol.ymin = minlat;
-          currentPol.ymax = maxlat;
-          PolygonList.push_back(currentPol);
-        }
+        currentPol.VertexList = currentVertexList;
+        currentPol.type = 1; //before cut
+        currentPol.xmin = minlon;
+        currentPol.xmax = maxlon;
+        currentPol.ymin = minlat;
+        currentPol.ymax = maxlat;
+        PolygonList.push_back(currentPol);
       } else break;
       index += (size + 1);
     }
@@ -1907,7 +1888,7 @@ namespace lib {
             tmpPolygonList.clear();
 
             // for each list, repeatedly find polygons that contain others. Polygons that contain no others are closed and removed.
-            // polygons that contain others: sticth the one whose start is closer to the end of the container, this decreases the complexity.
+            // polygons that contain others: stitch the one whose start is closer to the end of the container, this decreases the complexity.
             // repeat until all polygons have been stitched.
             std::list<Polygon>* aliasList;
             std::list<Polygon>* theTwoLists[] = {&beforePolygonList, &afterPolygonList};
@@ -2033,7 +2014,7 @@ namespace lib {
             p->xmax=MAX(p->xmax,v->lon);
             p->ymax=MAX(p->ymax,v->lat);
           }
-          if (!intersectsBox(p->xmin,p->xmax,p->ymin,p->ymax,&((*uvbox)[0]))) p->valid=false;
+          //if (!intersectsBox(p->xmin,p->xmax,p->ymin,p->ymax,&((*uvbox)[0]))) p->valid=false;
         }
         //remove invalid
         PolygonList.remove_if(isInvalid);
