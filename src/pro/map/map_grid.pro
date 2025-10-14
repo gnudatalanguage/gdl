@@ -188,7 +188,7 @@ PRO map_grid, LABEL=labelSeparation, LATDEL = lat_separation, NO_GRID=nogrid, $
   if doMyLons then begin 
      minlon = passed_lons[0]
      maxlon = passed_lons[-1]
-  endif else if (myMap.ll_box[1] ne myMap.ll_box[3]) and (maxlat lt 90.) and (minlat gt -90.) then begin
+  endif else if (myMap.ll_box[1] ne myMap.ll_box[3]) then begin
      minlon = myMap.ll_box[1]
      maxlon = myMap.ll_box[3]
   endif else begin
@@ -220,7 +220,7 @@ PRO map_grid, LABEL=labelSeparation, LATDEL = lat_separation, NO_GRID=nogrid, $
   endif
 ; labels
   if n_elements(latitudeOfLabels) eq 0 then latitudeOfLabels = (minlat + maxlat)/2
-  if n_elements(longitudeOfLabels) eq 0 then longitudeOfLabels = (minlon +maxlon)/2
+  if n_elements(longitudeOfLabels) eq 0 then longitudeOfLabels = (maxlon-minlon eq 360)?0:(maxlon+minlon)/2 
   if n_elements(latalign) eq 0 then latalign = .5 ;center
   if n_elements(lonalign) eq 0 then lonalign = .5 ;center
 
@@ -312,8 +312,11 @@ PRO map_grid, LABEL=labelSeparation, LATDEL = lat_separation, NO_GRID=nogrid, $
      MAP_HORIZON, _EXTRA=ehorizon
   endif
 
-; arrange longitude_list btw. -180 and 180
-  map_adjlon,longitude_list
+; arrange longitude lists
+    w = where(longitude_list lt minlon, count)        ;Handle longitude wrap-around
+    if count gt 0 then longitude_list[w] += 360.0
+    w = where(lonlist lt minlon, count)        ;Handle longitude wrap-around
+    if count gt 0 then lonlist[w] += 360.0
 
 ;
 ; parallels (curlat) and labels at latlab
@@ -374,8 +377,8 @@ PRO map_grid, LABEL=labelSeparation, LATDEL = lat_separation, NO_GRID=nogrid, $
 
 ; draw meridians (curlon) and labels at 'lonlab'
   FOR i=0,n_passed_lons-1 DO BEGIN
-     lon=longitude_list[i] & fudged_lon=lon
-     fmt = (lon ne long(lon)) ? '(f7.2)' : '(i4)' ; future format
+     curlon=longitude_list[i] & fudged_lon=curlon
+     fmt = (curlon ne long(curlon)) ? '(f7.2)' : '(i4)' ; future format
      if is_cyl then begin
         fudgefact = fudged_lon - myMap.p0lon & map_adjlon,fudgefact 
         if fudgefact eq -180 then fudged_lon += 1.0e-5 else if fudgefact eq 180 then fudged_lon -= 1.0e-5 
@@ -400,7 +403,10 @@ PRO map_grid, LABEL=labelSeparation, LATDEL = lat_separation, NO_GRID=nogrid, $
      endif
 
      IF doLabelLon[i] THEN BEGIN
-        IF i lt n_elements(lonstrings) then ls=map_grid_toformat(lonstrings[i],fmt) else ls=strtrim(string(lon, format=fmt),2)
+        IF i lt n_elements(lonstrings) then ls=map_grid_toformat(lonstrings[i],fmt) else begin
+		   map_adjlon,curlon
+           ls=strtrim(string(curlon, format=fmt),2)
+        endelse
 
         textArrayForLonLat[i,0] = ls
         if ~dobox then begin
@@ -420,7 +426,7 @@ PRO map_grid, LABEL=labelSeparation, LATDEL = lat_separation, NO_GRID=nogrid, $
         for j=0,1 do begin
            k = 0
            while ~finite(boxpos[i,j,0]) and abs(k) lt 3 do begin
-              boxpos[i, j, 0] = find_grid_intersection([xboxpix[0], ypixels[j]+k*dy],[xboxpix[1], ypixels[j]+k*dy], 0, lon, map_structure=passedMap)
+              boxpos[i, j, 0] = find_grid_intersection([xboxpix[0], ypixels[j]+k*dy],[xboxpix[1], ypixels[j]+k*dy], 0, curlon, map_structure=passedMap)
               k = k + (j ? -1 : 1)
            endwhile
         endfor
