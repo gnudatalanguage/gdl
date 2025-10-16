@@ -389,29 +389,29 @@ public:
 
   // single element access. 
 //   BaseGDL*& Get( SizeT tag, SizeT ix)
-  BaseGDL* GetTag( SizeT t, SizeT ix)
+  BaseGDL* GetTag( unsigned t, SizeT ix)
   {
     if( dd.size() == 0) return typeVar[ t];
     return typeVar[ t]->SetBuffer( Buf() + Desc()->Offset( t, ix));
   }
-  BaseGDL* GetTag( SizeT t)
+  BaseGDL* GetTag( unsigned t)
   {
     if( dd.size() == 0) return typeVar[ t];
     return typeVar[ t]->SetBuffer( Buf() + Desc()->Offset( t));
   }
-  const BaseGDL* GetTag( SizeT t, SizeT ix) const
+  const BaseGDL* GetTag( unsigned t, SizeT ix) const
   {
     if( dd.size() == 0) return typeVar[ t];
     return typeVar[ t]->SetBuffer( Buf() + Desc()->Offset( t, ix));
   }
-  const BaseGDL* GetTag( SizeT t) const
+  const BaseGDL* GetTag( unsigned t) const
   {
     if( dd.size() == 0) return typeVar[ t];
     return typeVar[ t]->SetBuffer( Buf() + Desc()->Offset( t));
   }
 
   // single tag access. 
-  BaseGDL* Get( SizeT tag);
+  BaseGDL* Get( unsigned tag);
 
   //***
 //   friend std::ostream& operator<<(std::ostream& o, DStructGDL& data_);
@@ -442,7 +442,7 @@ public:
   template< class DataGDL>
   void InitTag(const std::string& tName, const DataGDL& data)
   {
-    int tIx = Desc()->TagIndex( tName);
+    int tIx = Desc()->TagIndexNoThrow( tName);
     if( tIx == -1)
       throw GDLException("Struct "+Desc()->Name()+
 			 " does not contain tag "+tName+".");

@@ -2461,7 +2461,7 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
       }
         } else if( isstruct ) {
 // use XX to access struct. GDL extension, IDL doesn't do this.
-            int ptagindex = 0;
+            unsigned ptagindex = 0;
             if(XX->Type() != GDL_STRING) {
                 MAKE_LONGGDL( XX, XXLong)
                 ptagindex = (*XXLong)[0];

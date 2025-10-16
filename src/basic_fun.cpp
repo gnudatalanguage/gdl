@@ -8810,8 +8810,8 @@ namespace lib {
         FindInStructList(structList, "IDL_TRACEBACK"),
         dimension(actIx));
 
-      int tRoutine, tFilename, tLine, tLevel, tFunction;
-      int tMethod = 0, tRestored = 0, tSystem = 0;
+      unsigned tRoutine, tFilename, tLine, tLevel, tFunction;
+      unsigned tMethod = 0, tRestored = 0, tSystem = 0;
 
       for (SizeT i = 0; i < actIx; ++i) {
 

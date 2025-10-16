@@ -504,7 +504,7 @@ public:
 	throw GDLException(-1,NULL,"Left side of a tag must be a STRUCT: "+tagName);
     }
    
-    int t=dStruct.back()->Desc()->TagIndex( tagName);
+    int t=dStruct.back()->Desc()->TagIndexNoThrow( tagName);
     if( t == -1) 
     {
       // TODO: Check for call to Get/SetProperty

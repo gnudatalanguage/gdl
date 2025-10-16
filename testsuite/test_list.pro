@@ -3,6 +3,17 @@
 ; first draft for a testsuite for LIST
 ; AC July: adding IsEmpty tests
 ;
+; GD: adding a case corresponding to bug 2091
+; make a LIST hertiage object
+pro myContainer__define
+  struct = {myContainer, $
+            DUMMY0 : 0ll, $
+            DUMMY1 : 0Ll, $
+            DUMMY2 : 0Ll,$
+            DUMMY3 : 0Ll,$
+            DUMMY4 : 0Ll,$
+            inherits IDL_CONTAINER} ; needed at end -- where it can be! 
+end
 pro ERRORS_ADD, errors, message
 errors=errors+1
 MESSAGE, /continue, message
@@ -250,6 +261,7 @@ if( total(ll3 ne list3) ne 0 or ll3.count() ne list3.count())  then $
 ll3=list()
 ll3.add,list2,/extract
 ll3.add,list1,/extract,1
+stop
 for k=0,list1.count()-1 do ll3.swap,k,k+1
 if( total(ll3 ne list3) ne 0 or ll3.count() ne list3.count())  then $
     ERRORS_ADD, nb_errors, ' list1,list2 swapping'
@@ -312,7 +324,15 @@ jj=where(ll eq findgen(5),nj)
 if(nj ne n_elements(vv) ) then $
     ERRORS_ADD, nb_errors, ' ll[vv]= findgen(5)'
 ll = 0
-   
+
+; GD: if LIST does not treat children correctly, this is the good test:
+  help,obj_new("IDL_Container")
+  a=obj_new("myContainer")
+  b=list(1,2,3)
+  a.add,b
+  z=a.iscontained(b)
+  if (z ne 1) then ERRORS_ADD, nb_errors, 'inheritance problem'
+  
 ; ----------------- final messages ----------
 ;
 BANNER_FOR_TESTSUITE, 'TEST_LIST', nb_errors, short=short

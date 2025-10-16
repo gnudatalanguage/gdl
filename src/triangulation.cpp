@@ -451,7 +451,7 @@ namespace lib {
     static int sphereIx = e->KeywordIx( "SPHERE");
     BaseGDL* test=e->GetKW(sphereIx);
     
-    int xTag,yTag,zTag,listTag,lptrTag,lendTag;
+    unsigned xTag,yTag,zTag,listTag,lptrTag,lendTag;
     
     if (test->Type() == GDL_STRUCT)
     {

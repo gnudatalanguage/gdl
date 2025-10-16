@@ -340,14 +340,14 @@ namespace SysVar
   DLongGDL* GetPMulti()
   {
     DStructGDL* pStruct = SysVar::P();   //MUST NOT BE STATIC, due to .reset 
-    static int tag = pStruct->Desc()->TagIndex( "MULTI");
+    static unsigned tag = pStruct->Desc()->TagIndex( "MULTI");
     return static_cast<DLongGDL*>( pStruct->GetTag( tag, 0));
   }
 
   DLong GetPFont()
   {
     DStructGDL* pStruct = SysVar::P();   //MUST NOT BE STATIC, due to .reset 
-    static int tag = pStruct->Desc()->TagIndex( "FONT");
+    static unsigned tag = pStruct->Desc()->TagIndex( "FONT");
     return (*static_cast<DLongGDL*>( pStruct->GetTag( tag)))[0];
   }
 
@@ -380,7 +380,7 @@ namespace SysVar
   {
     DVar& var = *sysVarList[ vIx];
     DStructGDL *s=static_cast<DStructGDL*>(var.Data());
-    static int tag = s->Desc()->TagIndex( "RELEASE");
+    static unsigned tag = s->Desc()->TagIndex( "RELEASE");
     (*static_cast<DStringGDL*>( s->GetTag( tag)))[0] = release;
   }
   DStructGDL* Values()

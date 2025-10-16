@@ -932,7 +932,7 @@ void DStructGDL::CatInsert( const DStructGDL* srcArr, const SizeT atDim, SizeT& 
   at += (add > 1)? add : 1;
 }
 
-BaseGDL* DStructGDL::Get( SizeT tag)
+BaseGDL* DStructGDL::Get(unsigned tag)
 {
   DotAccessDescT aD( 2); // like a.b (=2 levels)
   aD.ADRoot( this);  // set root, implicit no index
