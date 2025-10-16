@@ -247,6 +247,9 @@ endif(USE_OPENMP)
 
 add_dependencies(gdl plplot antlr whereami) # be sure that antlr is built before gdl
 target_link_libraries(gdl plplot antlr whereami) # link antlr against gdl. added librt for mmap (unix only, not osx, apparently)
+if(TARGET Eigen3::Eigen)
+	target_link_libraries(gdl Eigen3::Eigen)
+endif()
 if (MINGW)
 target_link_libraries(gdl ws2_32)
 endif (MINGW)
