@@ -365,11 +365,8 @@ else if(var_type == NC_LONG)
     }
     else if(var_type == NC_BYTE || var_type == NC_UBYTE ){
       unsigned char  bvar;
-      status=nc_get_var1_uchar(cdfid,
-			       varid,
-			       index,
-			       &bvar);
-
+      status=nc_get_var1_uchar(cdfid, varid, index, &bvar);
+      if (status==NC_ERANGE) status=NC_NOERR;
       GDLDelete(e->GetParGlobal(2));
       e->GetParGlobal(2) = new DByteGDL((bvar));
     }
@@ -530,15 +527,8 @@ else if(var_type == NC_LONG)
       {
         DByteGDL* temp=new DByteGDL(dim,BaseGDL::NOZERO);
         status=nc_get_var_uchar(cdfid, varid, &(*temp)[0]);
-	if (status != NC_ERANGE) {
-	  ncdf_var_handle_error(e,status,"NCDF_VARGET (ici)", temp);
-	} else {
-// exceeding range of signed byte is allowed in IDL
-// because IDL has no signed byte datatype - need to read it as unsigned byte and
-// then code needs to handle the sign bit (convert to int then values>127 need 256 subtracting)
-	  //Warning("Warning in NCDF_VARGET: NC_ERANGE while reading BYTE");
-	  status=NC_NOERR;
-	}
+	if (status == NC_ERANGE) status=NC_NOERR;
+	ncdf_var_handle_error(e,status,"NCDF_VARGET", temp);
 	GDLDelete(e->GetParGlobal(2));  
         e->GetParGlobal(2)=temp;      	
       } 
@@ -710,7 +700,8 @@ else if(var_type == NC_LONG)
         {
           DByteGDL *temp=new DByteGDL(dim,BaseGDL::NOZERO);
           status = nc_get_vara_uchar(cdfid, varid, off, cou, &(*temp)[0]);
-          ncdf_var_handle_error(e, status, "NCDF_VARGET", temp);
+	  if (status == NC_ERANGE) status=NC_NOERR; // exceeding range of signed byte is allowed in IDL
+          ncdf_var_handle_error(e,status,"NCDF_VARGET", temp);
           GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp;      	
         }
@@ -863,6 +854,7 @@ else if(var_type == NC_LONG)
         {
           DByteGDL *temp=new DByteGDL(dim, BaseGDL::NOZERO);
           status = nc_get_vars_uchar(cdfid, varid, off, cou, stri, &(*temp)[0]);
+          if (status == NC_ERANGE) status=NC_NOERR; // exceeding range of signed byte is allowed in IDL
           ncdf_var_handle_error(e,status,"NCDF_VARGET", temp);
           GDLDelete(e->GetParGlobal(2));
           e->GetParGlobal(2) = temp;      	
