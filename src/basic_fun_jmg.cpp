@@ -687,7 +687,7 @@ namespace lib {
 	int status = fstat(-lun, &buffer);
 	fileStatus->InitTag("NAME", DStringGDL( names[-lun]));
 	fileStatus->InitTag("OPEN", DByteGDL( 1 )); 
-        DByte is_a_tty=isatty(lun);
+        DByte is_a_tty=isatty(-lun);
 	fileStatus->InitTag("ISATTY", DByteGDL( is_a_tty )); 
 	fileStatus->InitTag("ISAGUI", DByteGDL( 0)); 
 	fileStatus->InitTag("INTERACTIVE", DByteGDL( is_a_tty ));

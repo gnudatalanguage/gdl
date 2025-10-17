@@ -97,12 +97,120 @@ pro gdl_compute_map_limits, myMap
   myMap.uv_box = [xmin, ymin, xmax, ymax]
 end
 
+function gdl_set_map_limits, myMap, limits
+  compile_opt idl2, hidden
+  
+  problem=0
 
-function map_proj_init, pindex, p4number=p4number, relaxed=relaxed, rotation=rotation, gctp=gctp, radians=radians, limit=passed_limit, ellipsoid=ellipsoid, semimajor_axis=semimajor_axis, semiminor_axis=semiminor_axis, sphere_radius=sphere_radius, center_azimuth=center_azimuth, datum=datum, clip=clip,  gdl_precise=gdl_precise, check_proj4=chkprj4,  _extra=extra
+; map_limits may have 4 or 8 elements.
+  
+  if n_elements(limits) ne 8 and n_elements(limits) ne 4 then  message, 'Map limit must have 4 or 8 points'
+  map_limits=limits ; do not change limits
+  xmin=-1d & ymin=-1d & xmax=1d & ymax=1d
+  
+  if n_elements(map_limits) eq 4 then begin
+;    filter map_limits to [-180,+180] in both directions however keeping orientation
+     lonmin=map_limits[1] & lonmax=map_limits[3] & latmin=map_limits[0] & latmax=map_limits[2]
+; longitudes: beautify
+     map_adjlon,lonmin
+     map_adjlon,lonmax
+     if (lonmin gt lonmax) then  begin temp=lonmin & lonmin=lonmax & lonmax=temp & end
+     if (lonmin eq lonmax) then  begin lonmin=-180 & lonmax=180 & endif
+; latitudes: beautify
+     latmin = -90 > latmin < 90
+     latmax = -90 > latmax < 90
+     if (latmin gt latmax) then  begin temp=latmin & latmin=latmax & latmax=temp & end
+     if (latmin eq latmax) then  begin latmin=-90 & latmax=90 & endif
+	 danger=90
+	 if strpos(myMap.up_name,"=igh ") ge 0 then danger=85 ; even 89 does not pass
+     latmin = -danger > latmin < danger
+     latmax = -danger > latmax < danger
+
+     map_limits=[latmin, lonmin, latmax, lonmax]
+
+     if ( map_limits[0] eq  map_limits[2])  then problem=1
+     if ( map_limits[1] eq  map_limits[3])  then problem=1
+
+;    range of values
+       lonrange = lonmax - lonmin
+       latrange = latmax - latmin
+;    is there another way (PROJ) to get ranges except brute force on a grid of possible points?
+;    epsilon useful as projections are not precise (see #define EPS in PROJ c files: apparently < 1e-6)
+       epsx = 1d-6*ABS(lonrange)
+       epsy = 1d-6*ABS(latrange)
+       
+       n_lons = 90
+     lons = [ lonmin + epsx, DINDGEN(n_lons)*(float(lonrange)/n_lons) + lonmin, lonmax - epsx] & n_lons += 2
+       
+       n_lats = 45
+     lats =  [latmin + epsy, DINDGEN(n_lats)*(float(latrange)/n_lats) + latmin, latmax - epsy] & n_lats += 2 
+     if ((latmin lt 0) && (latmax gt 0)) then begin lats = [lats, -epsy, epsy] &  n_lats += 2 & end
+       
+     lons = reform(rebin(lons, n_lons, n_lats), 1, n_lons*n_lats, /over)
+     lats = reform(rebin(transpose(lats), n_lons, n_lats), 1, n_lons*n_lats, /over)
+       tmp = [temporary(lons), temporary(lats)]
+       
+       xy = map_proj_forward(tmp, MAP=myMap)
+                                ; Default if no points are valid is just the map_limits.
+       good = WHERE(FINITE(xy[0,*]) and FINITE(xy[1,*]), ngood)
+       
+       if (ngood gt 0) then begin
+         xy = xy[*, good]
+         lonlat = tmp[*, good]
+                                ; further check: are backprojected good points really close to original point?
+         tmp = MAP_PROJ_INVERSE(xy, MAP=myMap)
+         bad = WHERE(~FINITE(tmp[0,*]) or ~FINITE(tmp[1,*]), nbad)
+         if (nbad gt 0) then tmp[*, bad] = -9999
+         diff = ABS(lonlat - tmp)
+         diff[0,*] = diff[0,*] mod 360 ; Ignore 360 degre differences for longitude.
+         w = where(diff[0,*] gt 359.99, count) & if count gt 0 then diff[0,w] = 0
+         w = where((abs(tmp[0,*]) le 720) and (abs(tmp[1,*]) le 90) and (total(diff,1) lt 1d), count)
+         if (count gt 0) then begin ; Only those good during forward and inverse projection.
+           lonlat = lonlat[*, w]
+           xy = xy[*,w]
+         endif
+         xmin = min(xy[0,*], max=xmax)
+         ymin = min(xy[1,*], max=ymax)
+         lonmin = min(lonlat[0,*], max=lonmax)
+         latmin = min(lonlat[1,*], max=latmax)
+       endif
+  map_limits=[latmin, lonmin, latmax, lonmax]      
+  endif else begin
+; easy: convert and pray.
+; 8 point limit as in [latLeft,lonLeft, latTop, lonTop, LatRight, lonRight, LatBottom, LonBottom]
+;
+     lons=map_limits[[1,3,5,7]] & lats=map_limits[[0,2,4,6]]
+     xy=map_proj_forward(lons,lats,map=myMap)
+     good = WHERE(FINITE(xy[0,*]) and FINITE(xy[1,*]), ngood)
+     if (ngood ge 2 ) then begin
+        xmin = min(xy[0,*], max=xmax)
+        ymin = min(xy[1,*], max=ymax)
+        lonmin = min(lons, max=lonmax)
+        latmin = min(lats, max=latmax)
+     endif else message, 'Unmappable limit point(s) in LIMIT keyword'
+     map_limits=[latmin, lonmin, latmax, lonmax]
+  endelse
+
+                                ; Fill in map structure.
+  myMap.ll_box = map_limits
+  myMap.uv_box = [xmin, ymin, xmax, ymax]
+  return,problem
+end
+
+
+function map_proj_init, pindex, ellipsoid=ellipsoid, datum=datum, gctp=gctp, limit=passed_limit, radians=radians, relaxed=relaxed,  $ ; NOTE: We are always "relaxed". ; datum is obsolete
+	rotation=rotation,  $
+	semimajor_axis=semimajor_axis, semiminor_axis=semiminor_axis, sphere_radius=sphere_radius, $
+	center_azimuth=center_azimuth, clip=clip, $
+ ; GDL specifics
+    p4number=p4number,gdl_precise=gdl_precise, check_proj4=chkprj4,$
+; all the other map_proj_init many parameters are treated through _extra below (via list_of_needed_params etc)
+   _extra=extra
+
     compile_opt idl2, hidden
     ON_ERROR, 2  ; return to caller
 
-; NOTE: We are always "relaxed".
+if ~n_elements(clip) then clip=1
 ; p4num bool indicates pindex is a number and refers to the internal PROJ table of PROJ properties line and not an IDL number for which an equivalent must be found 
 
 ; define limit
@@ -118,13 +226,21 @@ required_kw4=" +"+strlowcase(tag_names(required))+"="
 
 nproj=n_elements(proj)
 
+if n_elements(pindex) eq 0 then pindex=1
+
 sindex=pindex
 ; find projection index, by index:
 if (N_ELEMENTS(pindex) le 0) then begin 
    index=where(proj.proj4name eq 'stere') ; stereo is default
 ; this is a drawback: projection number is always an IDL number 
-endif else if (SIZE(pindex, /TYPE) ne 7) then begin
-   if keyword_set(p4number) then sindex=proj[pindex].fullname else sindex=idl_ids[pindex]
+endif else if (SIZE(pindex, /TYPE) ne 7) then begin ; a number
+   if keyword_set(p4number) then sindex=proj[pindex].fullname else begin
+	  index=pindex ; preserve pindex
+      if index ge 200 then index-=100             ; GCTP variant does not exist in GDL
+	  if index gt 132 then message,/noname,"Invalid Projection number: "+string(index)
+      if index ge 100 then index=index-100+20     ; added at end of 'simple' MAP_SET list
+      sindex=idl_ids[index]
+   endelse
 endif
 ; now by name, as pindex is a string
 
@@ -323,9 +439,13 @@ if strlen(projoptions) gt 0 then begin
    x=where(strpos(s,'+') eq 0, comp=y)
    a=hash(s[x],s[y])
 ; if a contains "+lon_0" this is p0lon, etc.
-   if a->HasKey("+lon_0") then p0lon=(a["+lon_0"]*1d)[0]
+   if a->HasKey("+lon_0") then begin
+	 if n_elements(center_longitude) then message,/info,"center_longitude ignored for projection"
+	p0lon=(a["+lon_0"]*1d)[0]
+   end
    if a->HasKey("+lat_0") and rotPossible then begin
       p0lat=(a["+lat_0"]*1d)[0]
+      if n_elements(center_latitude) then message,/info,"center_latitude ignored for projection"
    endif
    if a->HasKey("+lat_1") then p1=(a["+lat_1"]*1d)[0]
    if a->HasKey("+lat_2") then p2=(a["+lat_2"]*1d)[0]
@@ -337,9 +457,9 @@ endif
 
 ; adjust ranges
 map_adjlon,p0lon
-p0lat= p0lat > (-89.999) & p0lat=p0lat < 89.999
-p1=p1 > (-89.999) & p1=p1<89.999
-p2=p2 > (-89.999) & p2=p2<89.999
+p0lat= -89.999 > p0lat  < 89.999 ;take some precautions as PROJ is not protected!!! 
+p1   = -89.999 > p1     < 89.999
+p2   = -89.999 > p2     < 89.999
 ;if (p2 lt p1) then begin & tmp=p2 & p2=p1 & p1=p2 & end
 
 if (rotPossible) then begin
@@ -349,16 +469,14 @@ if (rotPossible) then begin
       w=where(list_of_passed_params eq search_string, count)
       if count gt 0 then begin  ; try general oblique
          p0lat=extra.(w[0])
-         if p0lat ne 0 then begin 
-            if p0lat gt 89.9 then p0lat = 89.9 ;take some precautions as PROJ is not protected!!! 
-            if p0lat lt -89.9 then p0lat = -89.9 ;
+;         if p0lat ne 0 then begin 
             ; compute pole of transformed projection
             projcommand="+proj=ob_tran +o_proj="+proj[index].proj4name
             ; remove '+lat_0=xxx +lon_0=xxx' from projoptions
             a=strsplit(projoptions,"\+lat_0=[0-9.]*",/regex,/extract)
             a=strsplit(projoptions,"\+lon_0=[0-9.]*",/regex,/extract)
             projoptions=strjoin(a)
-         endif else rotPossible=0B
+;         endif else rotPossible=0B
       endif
    endif else rotPossible=0B
 endif
@@ -389,10 +507,11 @@ myMap.v0 = p0lat * deg2rad
 ;myMap.e2 = e2
 
 myMap.rotation = rotation                      ; map rotation
+myMap.coso = cos(p0lat*deg2rad)
+myMap.sino = sin(p0lat*deg2rad)
 myMap.cosr=cos(rotation*deg2rad)
 myMap.sinr=sin(rotation*deg2rad)
-; pole is at +90 on meridian p0lon, eventually rotated by
-; center_azimuth
+; pole is at +90 on meridian p0lon, eventually rotated by center_azimuth
 pole_lon=p0lon
 pole_lat=p0lat+90
 ; pole sines and xyz
@@ -433,8 +552,11 @@ myMap.pole=[pole_lon*deg2rad,pole_lat*deg2rad,psinlat,pcoslat,xyzpole] ; need to
 ; now that pole is computed correctly, add pole position to
 ; generalized oblique
 if rotPossible then begin
-   projcommand+=" +o_alpha=90 +o_lat_c="+strtrim(p0lat,2)+" +o_lon_c=180"
-   if (p0lat gt 0) then projcommand+=" +lon_0="+strtrim(p0lon,2) else  projcommand+=" +lon_0="+strtrim(180+p0lon,2)
+   if ~keyword_set(center_azimuth) then center_azimuth=0
+   lon_p=0
+   lat_p=90-p0lat
+   lon_0=p0lon-center_azimuth
+   projcommand+=" +o_lon_p="+strtrim(lon_p,2) +" +o_lat_p="+strtrim(lat_p,2) +" +lon_0="+strtrim(lon_0,2);
 endif
 
 
@@ -443,7 +565,7 @@ MAP_CLIP_SET, MAP=myMap, /RESET        ;Clear clipping pipeline.
 ; 1) get !map useful values
 ; radius or ell or..
 myMap.a=6370997.0d ; default
-myMap.e2=1
+myMap.e2=0
 hasRadius=0 
 ellipticalusagerequired=(p4n eq "utm" or p4n eq "ups")
 if n_elements(sphere_radius) gt 0 then begin 
@@ -459,7 +581,7 @@ if n_elements(ellipsoid) gt 0 or n_elements(datum) gt 0 then begin ; case where 
    hasEll=1
    if n_elements(datum) gt 0 and n_elements(ellipsoid) eq 0 then ellipsoid=datum ; in case both are present.
    if ~(SIZE(ellipsoid, /TYPE) eq 7) then begin ; must give name (index in list)
-      if ellipsoid gt 25 or ellipsoid lt 0 then message,"Invalid value for keyword ELLIPSOID: "+strtrim(ellipsoid,2)
+      if ellipsoid gt 24 or ellipsoid lt 0 then message,"Invalid value for keyword ELLIPSOID: "+strtrim(ellipsoid,2)
       ellipsoid=ellipsoid_proj[ellipsoid] 
    endif else begin
       w = strcmp(strupcase(ellipsoid_idl),strupcase(ellipsoid),strlen(ellipsoid)) & count=total(w)
@@ -598,6 +720,9 @@ endif else begin ; not interrupted
    endelse                      ; end azim projs
 endelse                         ; not interrupted
 
+; do not perform clipping!
+if n_elements(clip) and clip eq 0 then MAP_CLIP_SET, MAP=myMap,/RESET
+
 if ellipticalusagerequired then projOptions+=' +ellps=GRS80 '
 if south then projOptions+=' +south'
 ; finalize projection to be used in finding limits:
@@ -614,7 +739,15 @@ endif
 if keyword_set(chkprj4) then print,myMap.up_name
 ; 3) Set LIMITs and clip.
 
-if keyword_set(gdl_precise) then gdl_compute_map_limits, myMap else gdl_set_map_limits, myMap, limit
+if keyword_set(gdl_precise) then gdl_compute_map_limits, myMap else begin
+	problem=gdl_set_map_limits(myMap, limit)
+	if problem then begin
+      case p4n of
+      "omerc": 	myMap.uv_box=[-3.1415926535897931, -2.4300000667572021, 3.1415926535897931, 2.4300000667572021]
+	  else: message,/informational,/noname,"Warning, current MAP limits are invalid."
+	  endcase
+	endif
+endelse
 
 ; 4) transform
 MAP_CLIP_SET, MAP=myMap, /transform        ;apply transform
