@@ -48,18 +48,19 @@
      unsigned TableSizeTag = XXX->Desc()->TagIndex( "TABLE_SIZE");   \
      unsigned TableCountTag = XXX->Desc()->TagIndex( "TABLE_COUNT");
 
-#define GET_HASH_TABLE_DATA(XXX) XXX->GetTag( XXX->Desc()->TagIndex( "TABLE_DATA"), 0)
-#define GET_HASH_TABLE_BITS(XXX) XXX->GetTag( XXX->Desc()->TagIndex( "TABLE_BITS"), 0)
-#define GET_HASH_TABLE_SIZE(XXX) XXX->GetTag( XXX->Desc()->TagIndex( "TABLE_SIZE"), 0)
-#define GET_HASH_TABLE_COUNT(XXX) XXX->GetTag( XXX->Desc()->TagIndex( "TABLE_COUNT"), 0) 
+#define DPtrTABLE_DATA(XXX) ((*static_cast<DPtrGDL*>(XXX->GetTag( XXX->Desc()->TagIndex( "TABLE_DATA"), 0)))[0])
+#define TABLE_BITS(XXX) ((*static_cast<DLongGDL*>(XXX->GetTag( XXX->Desc()->TagIndex( "TABLE_BITS"), 0)))[0])
+#define TABLE_SIZE(XXX) ((*static_cast<DLongGDL*>(XXX->GetTag( XXX->Desc()->TagIndex( "TABLE_SIZE"), 0)))[0])
+#define TABLE_COUNT(XXX) ((*static_cast<DLongGDL*>(XXX->GetTag( XXX->Desc()->TagIndex( "TABLE_COUNT"), 0)))[0])
 #define HASH_PTR(XXX) (*static_cast<DPtrGDL*>(XXX->GetTag(XXX->Desc()->TagIndex( "TABLE_DATA"), 0)))[0]
 
-#define DEFINE_HASHTABLEENTRY_TAGS(XXX)            \
-    static unsigned pKeyTag = XXX->Desc()->TagIndex( "PKEY"); \
-    static unsigned pValueTag = XXX->Desc()->TagIndex( "PVALUE");
-#define GET_HASHTABLEENTRY_PKEY(XXX) XXX->GetTag( XXX->Desc()->TagIndex( "PKEY"), 0)
-#define GET_HASHTABLEENTRY_PVALUE(XXX) XXX->GetTag( XXX->Desc()->TagIndex( "PVALUE"), 0)
-#define GET_HASHVALUE(XXX, index) (*static_cast<DPtrGDL*> (XXX->GetTag( XXX->Desc()->TagIndex( "PVALUE" ), index)))[0]
+//#define DEFINE_HASHTABLEENTRY_TAGS(XXX)            \
+//    static unsigned pKeyTag = XXX->Desc()->TagIndex( "PKEY"); \
+//    static unsigned pValueTag = XXX->Desc()->TagIndex( "PVALUE");
+#define PKEY 0
+#define PVALUE 1
+#define DPtrKEY(XXX,YYY) ((*static_cast<DPtrGDL*>(XXX->GetTag( PKEY, YYY)))[0])
+#define DPtrVALUE(XXX,YYY) ((*static_cast<DPtrGDL*>(XXX->GetTag( PVALUE, YYY)))[0])
 
 #define MAKE_LONGGDL(X, XLong) \
         DLongGDL* XLong=0; \

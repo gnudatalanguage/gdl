@@ -1042,7 +1042,7 @@ namespace lib {
           if (XX->N_Elements() == 1) {
             DLong hashIndex = HashIndex(hashTable, XX, isfoldcase);
             if (hashIndex < 0) return NullGDL::GetSingleInstance();
-            DPtr vID =  GET_HASHVALUE(hashTable, hashIndex);
+            DPtr vID =  DPtrVALUE(hashTable, hashIndex);
             BaseGDL* value = e->Interpreter()->GetHeap(vID);
             if (trace_me) lib::help_item(std::cout, value, " [...XX]value", false);
             if (value == NULL)
@@ -1556,7 +1556,7 @@ namespace lib {
         DLong hashIndex = HashIndex(hashTable, XX, isfoldcase);
         if (trace_me) std::cout << " hashindex" << hashIndex;
         if (hashIndex >= 0) {
-          DPtr pValue = GET_HASHVALUE(hashTable, hashIndex);
+          DPtr pValue = DPtrVALUE(hashTable, hashIndex);
           if (iprm + prmbeg + 1 == nParam) {
             if (trace_me) std::cout << " - immediate Dup()" << std::endl;
             BaseGDL::interpreter->GetHeap(pValue) = rValue->Dup();
@@ -2000,11 +2000,7 @@ BaseGDL* list__toarray(EnvUDT* e) {
     else return new DByteGDL(1);
   }
 
-  SizeT LIST_count(DStructGDL* list) {// straight through, no checks
-
-    unsigned nListTag = list->Desc()->TagIndex("NLIST");
-
-    //  std::cout << nListTag << std::endl;
+inline  SizeT LIST_count(DStructGDL* list) {// straight through, no checks
     return NLIST(list);
   }
 

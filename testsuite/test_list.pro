@@ -261,7 +261,6 @@ if( total(ll3 ne list3) ne 0 or ll3.count() ne list3.count())  then $
 ll3=list()
 ll3.add,list2,/extract
 ll3.add,list1,/extract,1
-stop
 for k=0,list1.count()-1 do ll3.swap,k,k+1
 if( total(ll3 ne list3) ne 0 or ll3.count() ne list3.count())  then $
     ERRORS_ADD, nb_errors, ' list1,list2 swapping'

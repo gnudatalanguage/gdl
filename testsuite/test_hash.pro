@@ -138,6 +138,7 @@ IF N_ELEMENTS(htest) ne 7 then $
    endelse
    ;;
    keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+   scalars=hash(keys) ;test with no key
    scalars=hash(keys,0)
    eq7 = scalars.count(0)
    if isgit then scalars[keys[1:4]] = 4+intarr(4) else $
