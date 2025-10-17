@@ -37,7 +37,6 @@ namespace lib {
 //  void help_struct( std::ostream& os,  BaseGDL* par, int indent , bool debug );
   SizeT HASH_count( DStructGDL* hash)
   {
-    static unsigned TableCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
     return TABLE_COUNT( hash);        
   }
 } 
