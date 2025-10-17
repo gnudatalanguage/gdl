@@ -87,9 +87,6 @@ PRO MAP_SET, lat, lon, rot, $
   if abs(lat) gt 90.0 then message,'Latitude must be in range of +/- 90 degrees'
   if abs(lon) gt 360.0 then message,'Longitude must be in range of +/- 360 degrees'
 
-; lon better be between -180 and 180
-  map_adjlon,lon
-
   if n_elements(color) eq 0 then color = !p.color ;Default color
   if n_elements(title) eq 0 then title = " "
   if n_elements(t3d) le 0 then t3d = 0
@@ -111,14 +108,11 @@ PRO MAP_SET, lat, lon, rot, $
      map_struct_append, extra, "SAT_TILT",sat_p[1]
      map_struct_append, extra, "CENTER_AZIMUTH",sat_p[2] 
   endif
-  if n_elements(ellipsoid) gt 0 then begin
-     if n_elements(ellipsoid) ne 3 then message, "ELLIPSOID must be a 3-element array"
-     a=ellipsoid[0] & e2=ellipsoid[1]  & b=a*sqrt(1-e2^2)
-     map_struct_append, extra, "SEMIMAJOR_AXIS",a 
-     map_struct_append, extra, "SEMIMINOR_AXIS",b
-  endif
-  if n_elements(standard_parallels) gt 0 then map_struct_append, extra, "STANDARD_PAR1",standard_parallels[0] 
-  if n_elements(standard_parallels) gt 1 then map_struct_append, extra, "STANDARD_PAR2",standard_parallels[1] 
+
+
+; NAME=XXX has preference over Keyword
+if ~keyword_set(nam) then begin
+  nam='equidistant cylindrical' ; the default
   if keyword_set(STEREOGRAPHIC) then nam = 'stereographic'
   if keyword_set(ORTHOGRAPHIC) then nam = 'orthographic'
   if keyword_set(CONIC) then nam = 'lambert conic'
@@ -128,8 +122,12 @@ PRO MAP_SET, lat, lon, rot, $
   if keyword_set(SATELLITE) then nam = 'satellite'
   if keyword_set(CYLINDRICAL) then nam = 'equidistant cylindrical' ; idl:cylindrical is just equidistant cylindrical
   if keyword_set(MERCATOR) then begin
+	 if dolimit eq 0 then begin
+	   dolimit=1
+	   limit=[-80, -180, 80, 180]
+	 endif
      if n_elements(cent_azim) gt 0 then begin
-        map_struct_append, extra,"ALPHA",cent_azim
+        map_struct_append, extra,"ALPHA",cent_azim & cent_azim=0
         map_struct_append, extra,"LONC",lon
         lon=0
         nam = 'oblique mercator'
@@ -147,12 +145,30 @@ PRO MAP_SET, lat, lon, rot, $
   if keyword_set(ROBINSON) then nam = 'robinson'
   if keyword_set(GOODESHOMOLOSINE) then nam = 'interrupted goode'
 
-  if n_elements(cent_azim) gt 0 then begin
-     if keyword_set(MILLER_CYLINDRICAL) then map_struct_append, extra, "CENTER_AZIMUTH",cent_azim 
-     if keyword_set(MOLLWEIDE) then map_struct_append, extra, "CENTER_AZIMUTH",cent_azim 
-     if keyword_set(CYLINDRICAL) then map_struct_append, extra, "CENTER_AZIMUTH",cent_azim 
-     if keyword_set(SINUSOIDAL) then map_struct_append, extra, "CENTER_AZIMUTH",cent_azim 
+endif
+
+  if n_elements(cent_azim) gt 0 then map_struct_append, extra, "CENTER_AZIMUTH",cent_azim 
+
+; ellipsoid: only 2 cases "This keyword can be used with the CONIC or TRANSVERSE_MERCATOR keywords."
+  doEll=0
+  if nam eq 'lambert conic' or nam eq 'transverse mercator' then doEll=1
+  if nam eq 'transverse mercator' and n_elements(ellipsoid) eq 0 then ellipsoid=[6378206.4, 0.00676866, 0.9996]
+  if doEll and n_elements(ellipsoid) gt 0 then begin
+     if n_elements(ellipsoid) ne 3 then message, "ELLIPSOID must be a 3-element array"
+     a=ellipsoid[0] & e2=ellipsoid[1]  & b=a*sqrt(1-e2^2)
+     map_struct_append, extra, "SEMIMAJOR_AXIS",a 
+     map_struct_append, extra, "SEMIMINOR_AXIS",b
   endif
+
+; map_set of a conic without arguments needs to set a standard parallel.
+  if strpos(strupcase(nam),"CONIC") ge 0  then begin
+    if n_elements(standard_parallels) eq 0 then standard_parallels=[45,80]
+    if n_elements(standard_parallels) eq 1 then standard_parallels=[standard_parallels[0],80] ; /silly and wrong
+  endif
+
+  if n_elements(standard_parallels) gt 0 then map_struct_append, extra, "STANDARD_PAR1",standard_parallels[0] 
+;  if n_elements(standard_parallels) gt 0 then map_struct_append, extra, "STANDARD_PARALLEL",standard_parallels[0] 
+  if n_elements(standard_parallels) gt 1 then map_struct_append, extra, "STANDARD_PAR2",standard_parallels[1] 
 
   if dolimit then begin
    ; We use sphere_radius=1 as all the rest (grid and horizon) are based on that 
@@ -161,7 +177,7 @@ PRO MAP_SET, lat, lon, rot, $
      !map=map_proj_init( keyword_set(nam)?nam:keyword_set(projection)?projection:"cylindrical", sphere_radius=1d, center_latitude=lat, center_longitude=lon, rotation=rot, clip=clip, _extra=extra)
   endelse
 
-  if  keyword_set(GNOMIC) then !map.uv_box=[-2,-2,2,2] 
+  if nam eq 'gnomonic' then !map.uv_box=[-2,-2,2,2] 
 
   uvrange=!map.uv_box
 

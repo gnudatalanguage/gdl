@@ -268,7 +268,7 @@ namespace lib {
     GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
     DLong wIx = actDevice->ActWin();
     if (wIx != -1) bool success = actDevice->WSize(wIx, &xSize, &ySize); //on failure, sizes are ot changed by WSize.
-    else Warning("CONVERT_COORD: Window is closed and unavailable.");
+    //else Warning("CONVERT_COORD: Window is closed and unavailable.");
     
     //projection?
     bool mapSet = false;
