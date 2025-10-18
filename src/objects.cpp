@@ -226,23 +226,24 @@ void InitStructs()
   structList.push_back(gdl_object);
   
   DStructDesc* gdlList = new DStructDesc( "LIST");
-  gdlList->AddTag("GDL_CONTAINER_TOP", &aLong64);
-  gdlList->AddTag("GDLCONTAINERVERSION", &aInt);
+  // use operator overloading (note: gdl_object's operators are not set yet)
+  gdlList->AddParent(gdl_object);
+  gdlList->AddTag("IDL_CONTAINER_TOP", &aLong64);
+  gdlList->AddTag("IDLCONTAINERVERSION", &aInt);
   gdlList->AddTag("PHEAD", &aPtrRef);
   gdlList->AddTag("PTAIL", &aPtrRef);
   gdlList->AddTag("NLIST", &aLong);
-  gdlList->AddTag("GDL_CONTAINER_BOTTOM", &aLong64);
-  // use operator overloading (note: gdl_object's operators are not set yet)
-  gdlList->AddParent(gdl_object);
+  gdlList->AddTag("IDL_CONTAINER_BOTTOM", &aLong64);
+  gdlList->AddTag("WITHINPRINT", &aByte);
   // insert into structList
   structList.push_back(gdlList);
   structDesc::LIST = gdlList;
   
   DStructDesc* gdlContainerNode = new DStructDesc( "GDL_CONTAINER_NODE");
   gdlContainerNode->AddTag("PNEXT", &aPtrRef);
+//  gdlContainerNode->AddTag("OOBJ", &aObjRef); //IDL compat, not used
+//  gdlContainerNode->AddTag("FLAGS", &aLong); //IDL compat, not used
   gdlContainerNode->AddTag("PDATA", &aPtrRef);
-//   gdlContainerNode->AddTag("OOBJ", &aObjRef);
-//   gdlContainerNode->AddTag("FLAGS", &aLong);
   // insert into structList
   structList.push_back(gdlContainerNode);
   structDesc::GDL_CONTAINER_NODE = gdlContainerNode;
@@ -254,18 +255,19 @@ void InitStructs()
   gdlContainer->AddTag("PTAIL", &aPtrRef);
   gdlContainer->AddTag("NLIST", &aLong);
   gdlContainer->AddTag("IDL_CONTAINER_BOTTOM", &aLong64);
-//  gdlContainer->AddParent(gdl_object);// no operator overloading
   structList.push_back(gdlContainer);
   structDesc::GDL_CONTAINER = gdlContainer;
+
   DStructDesc* gdlHash = new DStructDesc( "HASH");
+  // use operator overloading (note: gdl_object's operators are not set yet)
+  gdlHash->AddParent(gdl_object);
   gdlHash->AddTag("TABLE_BITS", &aULong);
   gdlHash->AddTag("TABLE_SIZE", &aULong);
   gdlHash->AddTag("TABLE_COUNT", &aULong);
   gdlHash->AddTag("TABLE_REMOVE", &aULong);
   gdlHash->AddTag("TABLE_FOREACH", &aULong);
   gdlHash->AddTag("TABLE_DATA", &aPtrRef);
-  // use operator overloading (note: gdl_object's operators are not set yet)
-  gdlHash->AddParent(gdl_object);
+  gdlHash->AddTag("FLAGS", &aLong);
   // insert into structList
   structList.push_back(gdlHash);
   structDesc::HASH = gdlHash;
@@ -328,7 +330,6 @@ void InitStructs()
   gdlffXmlSax->AddTag("_XML_PARSER", &aLong64);
   gdlffXmlSax->AddTag("_XML_LOCATOR", &aLong64);
   gdlffXmlSax->AddTag("IDLFFXMLSAX_BOTTOM", &aLong64);
-//  gdlffXmlSax->AddParent(gdl_object);
   // insert into structList
   structList.push_back(gdlffXmlSax);
   structDesc::IDLFFXMLSAX = gdlffXmlSax;

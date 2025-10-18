@@ -143,7 +143,13 @@ public:
 
   void AddTag( const std::string& tagName, const BaseGDL* data);
   
-  int TagIndex( const std::string& tN) const
+  unsigned TagIndex( const std::string& tN) const
+  {
+    for( SizeT i=0; i< tNames.size(); i++)
+      if( tNames[i] == tN) return static_cast<unsigned>(i);
+      throw GDLException("Tag "+tN+" does not exist!");
+  }
+  int TagIndexNoThrow( const std::string& tN) const
   {
     for( SizeT i=0; i< tNames.size(); i++)
       if( tNames[i] == tN) return static_cast<int>(i);

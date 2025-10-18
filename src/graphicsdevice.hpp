@@ -124,7 +124,7 @@ class GraphicsDevice
   SizeT CopyBufferSize;
   
 protected:
-  static int wTag, xSTag, ySTag, xVSTag, yVSTag, n_colorsTag; // !D tag indices
+  static unsigned wTag, xSTag, ySTag, xVSTag, yVSTag, n_colorsTag; // !D tag indices
 
   static std::vector<GDLCT> CT; // predefined colortables
   static GDLCT           actCT; // actual used colortable

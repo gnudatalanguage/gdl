@@ -1201,11 +1201,9 @@ namespace lib {
       return new DLongGDL(1);
     if (p0->Type() == GDL_OBJ) {
       DStructGDL* s = GetObjStruct(p0, e);
-      if (s->Desc()->IsParent("LIST"))
-        return new DLongGDL(LIST_count(s));
-      else
-        if (s->Desc()->IsParent("HASH"))
-        return new DLongGDL(HASH_count(s));
+      if (s->Desc()->IsParent("LIST")) return new DLongGDL(LIST_count(s));
+      else if (s->Desc()->IsParent("HASH")) return new DLongGDL(HASH_count(s));
+      else return new DLongGDL(1); //#2090
     }
     if (p0->N_Elements() > 2147483647UL)
       return new DLong64GDL(p0->N_Elements());
@@ -7121,7 +7119,14 @@ namespace lib {
     if (p0->Type() == GDL_OBJ) {
       DObjGDL* pObj = static_cast<DObjGDL*> (p0);
       if (pObj) { //pObj protection probably overkill.
-        for (SizeT i = 0; i < nElem; ++i) {
+        //empty obj for which nElem is 0 has still some type:
+        if (nElem == 0) {
+          DStructGDL* oStruct = e->GetObjHeap((*pObj)[0]);
+            if (oStruct->Desc()->IsParent(className)) (*res)[0] = 1;
+            return res;
+        }
+        // normal (non-empty) objs
+          for (SizeT i = 0; i < nElem; ++i) {
           if (e->Interpreter()->ObjValid((*pObj)[ i])) {
             DStructGDL* oStruct = e->GetObjHeap((*pObj)[i]);
             if (oStruct->Desc()->IsParent(className))
@@ -8810,8 +8815,8 @@ namespace lib {
         FindInStructList(structList, "IDL_TRACEBACK"),
         dimension(actIx));
 
-      int tRoutine, tFilename, tLine, tLevel, tFunction;
-      int tMethod = 0, tRestored = 0, tSystem = 0;
+      unsigned tRoutine, tFilename, tLine, tLevel, tFunction;
+      unsigned tMethod = 0, tRestored = 0, tSystem = 0;
 
       for (SizeT i = 0; i < actIx; ++i) {
 

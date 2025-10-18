@@ -313,17 +313,17 @@ void GDLGStream::DefaultCharSize() {
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GDLGStream::DefaultCharSize()\n");
   DStructGDL* d = SysVar::D();
   DStructDesc* s = d->Desc();
-  int X_CH_SIZE = s->TagIndex("X_CH_SIZE");
-  int Y_CH_SIZE = s->TagIndex("Y_CH_SIZE");
+  unsigned X_CH_SIZE = s->TagIndex("X_CH_SIZE");
+  unsigned Y_CH_SIZE = s->TagIndex("Y_CH_SIZE");
   DLong ichx = (*static_cast<DLongGDL*> (d->GetTag(X_CH_SIZE, 0)))[0];
   DLong ichy = (*static_cast<DLongGDL*> (d->GetTag(Y_CH_SIZE, 0)))[0];
   PLFLT chx=ichx; //needed as floats for subsequent computations!
   PLFLT chy=ichy;
-  int FLAGS = s->TagIndex("FLAGS");
+  unsigned FLAGS = s->TagIndex("FLAGS");
   DLong flags = (*static_cast<DLongGDL*> (d->GetTag(FLAGS, 0)))[0];
   if (flags & 0x1) {
-    int X_PX_CM = s->TagIndex("X_PX_CM");
-    int Y_PX_CM = s->TagIndex("Y_PX_CM");
+    unsigned X_PX_CM = s->TagIndex("X_PX_CM");
+    unsigned Y_PX_CM = s->TagIndex("Y_PX_CM");
     DFloat xpxcm = (*static_cast<DFloatGDL*> (d->GetTag(X_PX_CM, 0)))[0];
     DFloat ypxcm = (*static_cast<DFloatGDL*> (d->GetTag(Y_PX_CM, 0)))[0];
     setVariableCharacterSize(chx, 1.0, chy,xpxcm,ypxcm);
@@ -336,11 +336,11 @@ void GDLGStream::SetCharSize(DLong ichx, DLong chy) {
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GDLGStream::SetCharSize()\n");
   DStructGDL* d = SysVar::D();
   DStructDesc* s = d->Desc();
-  int FLAGS = s->TagIndex("FLAGS");
+  unsigned FLAGS = s->TagIndex("FLAGS");
   DLong flags = (*static_cast<DLongGDL*> (d->GetTag(FLAGS, 0)))[0];
   if (flags & 0x1) {
-    int X_PX_CM = s->TagIndex("X_PX_CM");
-    int Y_PX_CM = s->TagIndex("Y_PX_CM");
+    unsigned X_PX_CM = s->TagIndex("X_PX_CM");
+    unsigned Y_PX_CM = s->TagIndex("Y_PX_CM");
     DFloat xpxcm = (*static_cast<DFloatGDL*> (d->GetTag(X_PX_CM, 0)))[0];
     DFloat ypxcm = (*static_cast<DFloatGDL*> (d->GetTag(Y_PX_CM, 0)))[0];
     setVariableCharacterSize(chx, 1.0, chy,xpxcm,ypxcm);
@@ -1335,7 +1335,7 @@ void GDLGStream::adv(PLINT page)
 
 void GDLGStream::getSubpageRegion(PLFLT *sxmin, PLFLT *symin, PLFLT *sxmax, PLFLT *symax, PLFLT *szmin, PLFLT *szmax) {
   //here we must take into account the contents of ![X|Y|Z].OMARGIN
-  unsigned int omarginTag = SysVar::X()->Desc()->TagIndex("OMARGIN");
+  unsigned omarginTag = SysVar::X()->Desc()->TagIndex("OMARGIN");
   DFloat xstart = (*static_cast<DFloatGDL*> (SysVar::X()->GetTag(omarginTag, 0)))[0];
   xstart=MAX(xstart,0);
   DFloat xend = (*static_cast<DFloatGDL*> (SysVar::X()->GetTag(omarginTag, 0)))[1];

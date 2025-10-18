@@ -305,7 +305,7 @@ DStructGDL* CallEventHandler(DStructGDL* ev) {
 #ifdef GDL_DEBUG_WIDGETS
     std::cout << "CallEventHandler: *WIDGET_RUNTIME_ERROR*" << std::endl;
 #endif
-    static int messIx = ev->Desc( )->TagIndex( "MESSAGE" );
+    static unsigned messIx = ev->Desc( )->TagIndex( "MESSAGE" );
     std::string mess = (*static_cast<DStringGDL*> (ev->GetTag( messIx, 0 )))[0];
     GDLDelete(ev);
     EnvUDT* e = GDLInterpreter::CallStackBack(); e->Throw(mess);
@@ -383,7 +383,7 @@ DStructGDL* CallEventHandler(DStructGDL* ev) {
           return NULL; 
         } 
         //struct
-        if (ev->Desc()->TagIndex("ID") != 0 || ev->Desc()->TagIndex("TOP") != 1 || ev->Desc()->TagIndex("HANDLER") != 2) {
+        if (ev->Desc()->TagIndexNoThrow("ID") != 0 || ev->Desc()->TagIndexNoThrow("TOP") != 1 || ev->Desc()->TagIndexNoThrow("HANDLER") != 2) {
           GDLDelete(ev);
           throw GDLException(eventHandlerFun + ": Event handler return struct must contain ID, TOP, HANDLER as first tags.");
         }
@@ -2549,7 +2549,7 @@ BaseGDL* widget_info( EnvT* e ) {
 		if (!all) {
 		  //specific widget(s)
 		  while ((ev = GDLWidget::widgetEventQueue.Pop()) != NULL) { // get event
-            static int idIx = ev->Desc()->TagIndex("ID");
+            static unsigned idIx = ev->Desc()->TagIndex("ID");
 			id = (*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0]; // get its id
             //check TLW destroyed here
             if (ev->Desc()->Name() == "*TOPLEVEL_DESTROYED*") {
@@ -3196,9 +3196,9 @@ void widget_control( EnvT* e ) {
       BaseGDL* event = e->GetKW(SEND_EVENT)->Dup();
       if (event && event->Type() != GDL_STRUCT) e->Throw("Expression must be a structure in this context: " + e->GetString(SEND_EVENT));
       DStructGDL* ev = static_cast<DStructGDL*> (event);
-      SizeT id1 = ev->Desc()->TagIndex("ID");
-      SizeT id2 = ev->Desc()->TagIndex("TOP");
-      SizeT id3 = ev->Desc()->TagIndex("HANDLER");
+      int id1 = ev->Desc()->TagIndexNoThrow("ID");
+      int id2 = ev->Desc()->TagIndexNoThrow("TOP");
+      int id3 = ev->Desc()->TagIndexNoThrow("HANDLER");
       if (id1 == -1 || id2 == -1 || id3 == -1) e->Throw("Invalid SEND_EVENT value.");
       BaseGDL* val1 = ev->GetTag(id1);
       BaseGDL* val2 = ev->GetTag(id2);

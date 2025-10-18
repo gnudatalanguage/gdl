@@ -1552,7 +1552,7 @@ namespace lib {
     for ( int t = 0; t < nTags; ++t )
       {
         string sourceTagName = ( *source ).Desc( )->TagName( t );
-        int ix = ( *dest ).Desc( )->TagIndex( sourceTagName );
+        int ix = ( *dest ).Desc( )->TagIndexNoThrow( sourceTagName );
         if ( ix >= 0 )
           {
             //as always structure handling in GDL is painful and special methods should be specifically called for.

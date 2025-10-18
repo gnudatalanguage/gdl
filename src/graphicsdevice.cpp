@@ -110,12 +110,12 @@ DeviceListT  GraphicsDevice::deviceList;
 GraphicsDevice*    GraphicsDevice::actDevice   = NULL;
 GraphicsDevice*    GraphicsDevice::actGUIDevice   = NULL;
 
-int GraphicsDevice::wTag;
-int GraphicsDevice::xSTag;
-int GraphicsDevice::ySTag;
-int GraphicsDevice::xVSTag;
-int GraphicsDevice::yVSTag;
-int GraphicsDevice::n_colorsTag;
+unsigned GraphicsDevice::wTag;
+unsigned GraphicsDevice::xSTag;
+unsigned GraphicsDevice::ySTag;
+unsigned GraphicsDevice::xVSTag;
+unsigned GraphicsDevice::yVSTag;
+unsigned GraphicsDevice::n_colorsTag;
 DByte  GraphicsDevice::deviceBckColorR;
 DByte  GraphicsDevice::deviceBckColorG;
 DByte  GraphicsDevice::deviceBckColorB;

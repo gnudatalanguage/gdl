@@ -545,8 +545,9 @@ namespace lib
   }
   
     void plotting_routine_call::call(EnvT* e, SizeT n_params_required) {
+	  static unsigned nameTag = SysVar::D()->Desc()->TagIndex("NAME");
       // when !d.name == Null  we do nothing !
-      DString name = (*static_cast<DStringGDL*> (SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("NAME"), 0)))[0];
+      DString name = (*static_cast<DStringGDL*> (SysVar::D()->GetTag(nameTag, 0)))[0];
 
       _nParam = e->NParam(n_params_required);
 
@@ -591,37 +592,33 @@ namespace lib
     }
     
   void GetSFromPlotStructs(DDouble **sx, DDouble **sy, DDouble **sz)
-  {
+{
+    static unsigned sTag = SysVar::X()->Desc()->TagIndex("S");
     DStructGDL* xStruct=SysVar::X();   //MUST NOT BE STATIC, due to .reset 
     DStructGDL* yStruct=SysVar::Y();   //MUST NOT BE STATIC, due to .reset 
     DStructGDL* zStruct=SysVar::Z();   //MUST NOT BE STATIC, due to .reset 
-    unsigned sxTag=xStruct->Desc()->TagIndex("S");
-    unsigned syTag=yStruct->Desc()->TagIndex("S");
-    unsigned szTag=zStruct->Desc()->TagIndex("S");
-    if (sx != NULL) *sx= &(*static_cast<DDoubleGDL*>(xStruct->GetTag(sxTag, 0)))[0];
-    if (sy != NULL) *sy= &(*static_cast<DDoubleGDL*>(yStruct->GetTag(syTag, 0)))[0];
-    if (sz != NULL) *sz= &(*static_cast<DDoubleGDL*>(zStruct->GetTag(szTag, 0)))[0];
+    if (sx != NULL) *sx= &(*static_cast<DDoubleGDL*>(xStruct->GetTag(sTag, 0)))[0];
+    if (sy != NULL) *sy= &(*static_cast<DDoubleGDL*>(yStruct->GetTag(sTag, 0)))[0];
+    if (sz != NULL) *sz= &(*static_cast<DDoubleGDL*>(zStruct->GetTag(sTag, 0)))[0];
   }
   
   void GetWFromPlotStructs(DDouble *wx, DDouble *wy, DDouble *wz )
   {
+    static unsigned windowTag=SysVar::X()->Desc()->TagIndex("WINDOW");
     DStructGDL* xStruct=SysVar::X();   //MUST NOT BE STATIC, due to .reset 
     DStructGDL* yStruct=SysVar::Y();   //MUST NOT BE STATIC, due to .reset 
     DStructGDL* zStruct=SysVar::Z();   //MUST NOT BE STATIC, due to .reset 
-    unsigned xwindowTag=xStruct->Desc()->TagIndex("WINDOW");
-    unsigned ywindowTag=yStruct->Desc()->TagIndex("WINDOW");
-    unsigned zwindowTag=zStruct->Desc()->TagIndex("WINDOW");
     if (wx != NULL) {
-      wx[0]= (*static_cast<DFloatGDL*>(xStruct->GetTag(xwindowTag, 0)))[0];
-      wx[1]= (*static_cast<DFloatGDL*>(xStruct->GetTag(xwindowTag, 0)))[1];
+      wx[0]= (*static_cast<DFloatGDL*>(xStruct->GetTag(windowTag, 0)))[0];
+      wx[1]= (*static_cast<DFloatGDL*>(xStruct->GetTag(windowTag, 0)))[1];
     }
     if (wy != NULL) {
-      wy[0]= (*static_cast<DFloatGDL*>(yStruct->GetTag(ywindowTag, 0)))[0];
-      wy[1]= (*static_cast<DFloatGDL*>(yStruct->GetTag(ywindowTag, 0)))[1];
+      wy[0]= (*static_cast<DFloatGDL*>(yStruct->GetTag(windowTag, 0)))[0];
+      wy[1]= (*static_cast<DFloatGDL*>(yStruct->GetTag(windowTag, 0)))[1];
     }
     if (wz != NULL) {
-      wz[0]= (*static_cast<DFloatGDL*>(zStruct->GetTag(zwindowTag, 0)))[0];
-      wz[1]= (*static_cast<DFloatGDL*>(zStruct->GetTag(zwindowTag, 0)))[1];
+      wz[0]= (*static_cast<DFloatGDL*>(zStruct->GetTag(windowTag, 0)))[0];
+      wz[1]= (*static_cast<DFloatGDL*>(zStruct->GetTag(windowTag, 0)))[1];
     }
   }
 
@@ -655,13 +652,13 @@ namespace lib
   //RETURN RAW VALUES, not deLog-ified
   void gdlGetCurrentAxisRawRangeValues(int axisId, DDouble &Start, DDouble &End) {
     DStructGDL* Struct = NULL;
+    static unsigned crangeTag = SysVar::X()->Desc()->TagIndex("CRANGE");
     if (axisId == XAXIS) Struct = SysVar::X();
     else if (axisId == YAXIS) Struct = SysVar::Y();
     else if (axisId == ZAXIS) Struct = SysVar::Z();
     Start = 0;
     End = 0;
     if (Struct != NULL) {
-      static unsigned crangeTag = Struct->Desc()->TagIndex("CRANGE");
       Start = (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[0];
       End = (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[1];
     }
@@ -1170,7 +1167,8 @@ namespace lib
 
  //crange to struct
   void gdlStoreAxisCRANGE(int axisId, DDouble Start, DDouble End, bool log)
-  {
+{
+    static unsigned crangeTag = SysVar::X()->Desc()->TagIndex("CRANGE");
     DStructGDL* Struct=NULL;
     if ( axisId==XAXIS ) Struct=SysVar::X();
     else if ( axisId==YAXIS ) Struct=SysVar::Y();
@@ -1180,7 +1178,6 @@ namespace lib
       int debug=0;
       if ( debug ) cout<<"Set     :"<<Start<<" "<<End<<endl;
 
-      unsigned crangeTag=Struct->Desc()->TagIndex("CRANGE");
       if ( log )
       {
         (*static_cast<DDoubleGDL*>(Struct->GetTag(crangeTag, 0)))[0]=log10(Start);
@@ -1197,7 +1194,8 @@ namespace lib
 
 //CRANGE from struct
   void gdlGetCurrentAxisWindow(int axisId, DDouble &wStart, DDouble &wEnd)
-  {
+{
+    static unsigned windowTag = SysVar::X()->Desc()->TagIndex("WINDOW");
     DStructGDL* Struct=NULL;
     if ( axisId==XAXIS ) Struct=SysVar::X();
     else if ( axisId==YAXIS ) Struct=SysVar::Y();
@@ -1206,7 +1204,6 @@ namespace lib
     wEnd=0;
     if ( Struct!=NULL )
     {
-      static unsigned windowTag=Struct->Desc()->TagIndex("WINDOW");
       wStart=(*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0];
       wEnd=(*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1];
     }
@@ -1215,6 +1212,8 @@ namespace lib
   //converts x and y but leaves code and log unchanged.
   void ConvertToNormXY(SizeT n, DDouble *x, bool const xLog, DDouble *y, bool const yLog, COORDSYS const code) {
     //  std::cerr<<"ConvertToNormXY(DDouble)"<<std::endl;
+    static unsigned xsizeTag = SysVar::D()->Desc()->TagIndex("X_SIZE");
+    static unsigned ysizeTag = SysVar::D()->Desc()->TagIndex("Y_SIZE");
     if (code == DATA) {
       DDouble *sx, *sy;
       GetSFromPlotStructs(&sx, &sy);
@@ -1224,8 +1223,6 @@ namespace lib
       int xSize, ySize;
       //give default values
       DStructGDL* dStruct = SysVar::D();
-      unsigned xsizeTag = dStruct->Desc()->TagIndex("X_SIZE");
-      unsigned ysizeTag = dStruct->Desc()->TagIndex("Y_SIZE");
       xSize = (*static_cast<DLongGDL*> (dStruct->GetTag(xsizeTag, 0)))[0];
       ySize = (*static_cast<DLongGDL*> (dStruct->GetTag(ysizeTag, 0)))[0];
       for (auto i = 0; i < n; ++i) x[i] /= xSize;
@@ -1247,21 +1244,20 @@ namespace lib
   void gdlStoreSC() {
     //save corresponding SCxx values useful for oldies compatibility (to be checked as some changes have been done):
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
-    static unsigned positionTag = pStruct->Desc()->TagIndex("POSITION");
+    static unsigned positionTag = SysVar::P()->Desc()->TagIndex("POSITION");
     DFloat* position = &(*static_cast<DFloatGDL*> (pStruct->GetTag(positionTag, 0)))[0];
     DStructGDL* dStruct = SysVar::D(); //MUST NOT BE STATIC, due to .reset
-    static unsigned dxvsizeTag = dStruct->Desc()->TagIndex("X_VSIZE");
-    static unsigned dyvsizeTag = dStruct->Desc()->TagIndex("Y_VSIZE");
+    static unsigned dxvsizeTag = SysVar::D()->Desc()->TagIndex("X_VSIZE");
+    static unsigned dyvsizeTag = SysVar::D()->Desc()->TagIndex("Y_VSIZE");
 
     DLong x_vsize = (*static_cast<DLongGDL*> (dStruct->GetTag(dxvsizeTag, 0)))[0];
     DLong y_vsize = (*static_cast<DLongGDL*> (dStruct->GetTag(dyvsizeTag, 0)))[0];
     DFloat* sc = SysVar::GetSC();
     DStructGDL* xStruct = SysVar::X(); 
-    static unsigned xwindowTag = xStruct->Desc()->TagIndex("WINDOW");
     DStructGDL* yStruct = SysVar::Y(); 
-    static unsigned ywindowTag = yStruct->Desc()->TagIndex("WINDOW");
-    DFloat* xwindow=&(*static_cast<DFloatGDL*> (xStruct->GetTag(xwindowTag, 0)))[0];
-    DFloat* ywindow=&(*static_cast<DFloatGDL*> (yStruct->GetTag(ywindowTag, 0)))[0];
+    static unsigned windowTag = SysVar::X()->Desc()->TagIndex("WINDOW");
+    DFloat* xwindow=&(*static_cast<DFloatGDL*> (xStruct->GetTag(windowTag, 0)))[0];
+    DFloat* ywindow=&(*static_cast<DFloatGDL*> (yStruct->GetTag(windowTag, 0)))[0];
     sc[0] = (position[2] != 0) ? position[0] * x_vsize : xwindow[0]*x_vsize;
     sc[1] = (position[2] != 0) ? position[2] * x_vsize : xwindow[1]*x_vsize;
     sc[2] = (position[2] != 0) ? position[1] * y_vsize : ywindow[0]*y_vsize;
@@ -1271,8 +1267,7 @@ namespace lib
 
   //Get [XYZ].WINDOW
   DFloat* gdlGetWindow() {
-    DStructGDL* Struct=SysVar::X(); //same for all
-    static unsigned WINDOWTAG=Struct->Desc()->TagIndex("WINDOW");
+    static unsigned WINDOWTAG=SysVar::X()->Desc()->TagIndex("WINDOW");
     static DFloat position[6];
     position[0]=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(WINDOWTAG, 0)))[0];
     position[1]=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(WINDOWTAG, 0)))[1];
@@ -1300,8 +1295,7 @@ PLFLT gdlGetBoxNYSize() {
 }
     //Get [XYZ].REGION
   PLFLT* gdlGetRegion() {
-    DStructGDL* Struct=SysVar::X(); //same for all
-    static unsigned REGIONTAG=Struct->Desc()->TagIndex("REGION");
+    static unsigned REGIONTAG=SysVar::X()->Desc()->TagIndex("REGION");
     static PLFLT position[6];
     position[0]=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(REGIONTAG, 0)))[0];
     position[2]=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(REGIONTAG, 0)))[1];
@@ -1350,7 +1344,7 @@ PLFLT gdlGetBoxNYSize() {
     static unsigned typeTag = Struct->Desc()->TagIndex("TYPE");
     (*static_cast<DLongGDL*> (Struct->GetTag(typeTag, 0)))[0] = log;
     //CRANGE
-    unsigned crangeTag = Struct->Desc()->TagIndex("CRANGE");
+    static unsigned crangeTag = Struct->Desc()->TagIndex("CRANGE");
     //here, as this is called from a box-setting (or axis-setting) function, Start and End are already in LOG if case be.
     (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[0] = Start;
     (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[1] = End;
@@ -1384,7 +1378,7 @@ PLFLT gdlGetBoxNYSize() {
     static unsigned typeTag = Struct->Desc()->TagIndex("TYPE");
     (*static_cast<DLongGDL*> (Struct->GetTag(typeTag, 0)))[0] = log;
     //CRANGE
-    unsigned crangeTag = Struct->Desc()->TagIndex("CRANGE");
+    static unsigned crangeTag = Struct->Desc()->TagIndex("CRANGE");
     //here, as this is called from a box-setting (or axis-setting) function, Start and End are already in LOG if case be.
     (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[0] = Start;
     (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[1] = End;
@@ -1406,7 +1400,7 @@ PLFLT gdlGetBoxNYSize() {
     static unsigned typeTag = Struct->Desc()->TagIndex("TYPE");
     (*static_cast<DLongGDL*> (Struct->GetTag(typeTag, 0)))[0] = log;
     //CRANGE
-    unsigned crangeTag = Struct->Desc()->TagIndex("CRANGE");
+    static unsigned crangeTag = Struct->Desc()->TagIndex("CRANGE");
     //here, as this is called from a box-setting (or axis-setting) function, Start and End are already in LOG if case be.
     (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[0] = Start;
     (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[1] = End;
@@ -1425,15 +1419,18 @@ PLFLT gdlGetBoxNYSize() {
 
   void gdlStoreCLIP()
   {
-    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
-    DLong xsize=(*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_SIZE"), 0)))[0];
-    DLong ysize=(*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_SIZE"), 0)))[0];
+    static unsigned xSizeTag= SysVar::D()->Desc()->TagIndex("X_SIZE");
+    static unsigned ySizeTag= SysVar::D()->Desc()->TagIndex("Y_SIZE");
+    DLong xsize=(*static_cast<DLongGDL*>(SysVar::D()->GetTag(xSizeTag, 0)))[0];
+    DLong ysize=(*static_cast<DLongGDL*>(SysVar::D()->GetTag(ySizeTag, 0)))[0];
     //WINDOW
-    DFloat x0=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(SysVar::X()->Desc()->TagIndex("WINDOW"), 0)))[0];
-    DFloat x1=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(SysVar::X()->Desc()->TagIndex("WINDOW"), 0)))[1];
-    DFloat y0=(*static_cast<DFloatGDL*>(SysVar::Y()->GetTag(SysVar::Y()->Desc()->TagIndex("WINDOW"), 0)))[0];
-    DFloat y1=(*static_cast<DFloatGDL*>(SysVar::Y()->GetTag(SysVar::Y()->Desc()->TagIndex("WINDOW"), 0)))[1];
-    static unsigned clipTag=pStruct->Desc()->TagIndex("CLIP");
+    static unsigned windowTag= SysVar::X()->Desc()->TagIndex("WINDOW");
+    DFloat x0=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(windowTag, 0)))[0];
+    DFloat x1=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(windowTag, 0)))[1];
+    DFloat y0=(*static_cast<DFloatGDL*>(SysVar::Y()->GetTag(windowTag, 0)))[0];
+    DFloat y1=(*static_cast<DFloatGDL*>(SysVar::Y()->GetTag(windowTag, 0)))[1];
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset
+    static unsigned clipTag=SysVar::P()->Desc()->TagIndex("CLIP");
     (*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[0]=x0*xsize;
     (*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[1]=y0*ysize;
     (*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[2]=x1*xsize;
@@ -1443,14 +1440,14 @@ PLFLT gdlGetBoxNYSize() {
   }
 
   void gdlGetAxisType(int axisId, bool &log)
-  {
+{
+    static unsigned typeTag = SysVar::X()->Desc()->TagIndex("TYPE");
     DStructGDL* Struct;
     if ( axisId==XAXIS ) Struct=SysVar::X();
     else if ( axisId==YAXIS ) Struct=SysVar::Y();
     else if ( axisId==ZAXIS ) Struct=SysVar::Z();
     if ( Struct!=NULL )
     {
-      static unsigned typeTag=Struct->Desc()->TagIndex("TYPE");
       if ( (*static_cast<DLongGDL*>(Struct->GetTag(typeTag, 0)))[0]==1 )
         log=true;
       else
@@ -2042,7 +2039,8 @@ PLFLT gdlGetBoxNYSize() {
   bool T3Denabled()
   {
     DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
-    DLong ok4t3d=(*static_cast<DLongGDL*>(pStruct->GetTag(pStruct->Desc()->TagIndex("T3D"), 0)))[0];
+    static unsigned t3dTag = pStruct->Desc()->TagIndex("T3D");
+    DLong ok4t3d=(*static_cast<DLongGDL*>(pStruct->GetTag(t3dTag, 0)))[0];
     if (ok4t3d==0) return false; else return true;
   }
 
@@ -2327,10 +2325,11 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
   
   
     void gdlSetGraphicsBackgroundColorFromKw(EnvT *e, GDLGStream *a, bool kw) {
-    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
+    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
+    static unsigned bckgTag = SysVar::P()->Desc()->TagIndex("BACKGROUND");
     DLong background =
       (*static_cast<DLongGDL*>
-      (pStruct->GetTag(pStruct->Desc()->TagIndex("BACKGROUND"), 0)))[0];
+      (pStruct->GetTag(bckgTag, 0)))[0];
     if (kw) {
       int BACKGROUNDIx = e->KeywordIx("BACKGROUND");
       e->AssureLongScalarKWIfPresent(BACKGROUNDIx, background);
@@ -2341,9 +2340,10 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 
   void gdlSetGraphicsForegroundColorFromBackgroundKw(EnvT *e, GDLGStream *a, bool kw) {
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
+    static unsigned bckgTag = SysVar::P()->Desc()->TagIndex("BACKGROUND");
     DLong background =
       (*static_cast<DLongGDL*>
-      (pStruct->GetTag(pStruct->Desc()->TagIndex("BACKGROUND"), 0)))[0];
+      (pStruct->GetTag(bckgTag, 0)))[0];
     if (kw) {
       int BACKGROUNDIx = e->KeywordIx("BACKGROUND");
       e->AssureLongScalarKWIfPresent(BACKGROUNDIx, background);
@@ -2355,9 +2355,10 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
   void gdlSetGraphicsForegroundColorFromKw(EnvT *e, GDLGStream *a, string OtherColorKw) {
     // Get COLOR from PLOT system variable
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
+    static unsigned colorTag = SysVar::P()->Desc()->TagIndex("COLOR");
     DLong color =
       (*static_cast<DLongGDL*>
-      (pStruct->GetTag(pStruct->Desc()->TagIndex("COLOR"), 0)))[0];
+      (pStruct->GetTag(colorTag, 0)))[0];
 
     DLongGDL *colorVect;
     int colorIx = e->KeywordIx("COLOR");
@@ -2375,8 +2376,9 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 
   void gdlGetPsym(EnvT *e, DLong &psym) {
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
+    static unsigned psymTag = SysVar::P()->Desc()->TagIndex("PSYM");
     psym = (*static_cast<DLongGDL*>
-      (pStruct->GetTag(pStruct->Desc()->TagIndex("PSYM"), 0)))[0];
+      (pStruct->GetTag(psymTag, 0)))[0];
     int PSYMIx = e->KeywordIx("PSYM");
     e->AssureLongScalarKWIfPresent(PSYMIx, psym);
     if (psym > 10 || psym < -8 || psym == 9)
@@ -2386,8 +2388,9 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 
   void gdlSetSymsize(EnvT *e, GDLGStream *a) {
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
+    static unsigned symsizeTag = SysVar::P()->Desc()->TagIndex("SYMSIZE");
     DFloat symsize = (*static_cast<DFloatGDL*>
-      (pStruct->GetTag(pStruct->Desc()->TagIndex("SYMSIZE"), 0)))[0];
+      (pStruct->GetTag(symsizeTag, 0)))[0];
     //NOTE THAT AS OF IDL 8.2 !P.SYMSIZE, HOWEVER EXISTING, IS NOT TAKEN INTO ACCOUNT. We however do not want
     //to reproduce this feature.
     int SYMSIZEIx = e->KeywordIx("SYMSIZE");
@@ -2420,7 +2423,8 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     DDouble pmultiscale = 1.0;
     // get !P preference or !FANCY ... they should agree as charsize = 0.2*FANCY+0.8 
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
-    DFloat* charsizePos = &((*static_cast<DFloatGDL*> (pStruct->GetTag(pStruct->Desc()->TagIndex("CHARSIZE"), 0)))[0]);
+    static unsigned charsizeTag = SysVar::P()->Desc()->TagIndex("CHARSIZE");
+    DFloat* charsizePos = &((*static_cast<DFloatGDL*> (pStruct->GetTag(charsizeTag, 0)))[0]);
     charsize = charsizePos[0];
     //    //if charsize==0 see if !FANCY is set to something above 1 or below 1
     //    DIntGDL* fancy= SysVar::GetFancy();
@@ -2455,9 +2459,8 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
   void gdlSetPlotCharthick(EnvT *e, GDLGStream *a) {
     // get !P preference
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
-    DFloat charthick = (*static_cast<DFloatGDL*>
-      (pStruct->GetTag
-      (pStruct->Desc()->TagIndex("CHARTHICK"), 0)))[0];
+    static unsigned charthickTag = SysVar::P()->Desc()->TagIndex("CHARTHICK");
+    DFloat charthick = (*static_cast<DFloatGDL*>(pStruct->GetTag(charthickTag, 0)))[0];
     int charthickIx = e->KeywordIx("CHARTHICK"); //Charthick values may be vector in GDL, not in IDL!
     if (e->GetDefinedKW(charthickIx) != NULL) {
       DFloatGDL* charthickVect = e->GetKWAs<DFloatGDL>(charthickIx);
@@ -2501,9 +2504,8 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     charsize = 1.0;
     // get !P preference. Even if [xyz]charsize is absent, presence of charsize or !P.charsize must be taken into account.
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
-    charsize = (*static_cast<DFloatGDL*>
-      (pStruct->GetTag
-      (pStruct->Desc()->TagIndex("CHARSIZE"), 0)))[0];
+    static unsigned charsizeTag = SysVar::P()->Desc()->TagIndex("CHARSIZE");
+    charsize = (*static_cast<DFloatGDL*>(pStruct->GetTag(charsizeTag, 0)))[0];
     int CharsizeIx = e->KeywordIx("CHARSIZE");
     //cerr<<" CHARSIZE: "<< CharsizeIx<<" ("<< &CharsizeIx<<")"<<endl;
     e->AssureFloatScalarKWIfPresent(CharsizeIx, charsize); // option charsize overloads P.CHARSIZE
@@ -2528,7 +2530,6 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     }
 
     if (Struct != NULL) {
-      unsigned charsizeTag = Struct->Desc()->TagIndex("CHARSIZE"); //[XYZ].CHARSIZE
       DFloat axisCharsizeMultiplier = (*static_cast<DFloatGDL*> (Struct->GetTag(charsizeTag, 0)))[0];
       e->AssureFloatScalarKWIfPresent(choosenIx, axisCharsizeMultiplier); //option [XYZ]CHARSIZE overloads ![XYZ].CHARSIZE
       if (axisCharsizeMultiplier > 0.0) charsize *= axisCharsizeMultiplier; //IDL Behaviour...
@@ -2569,7 +2570,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     }
 
     if (Struct != NULL) {
-      unsigned gridstyleTag = Struct->Desc()->TagIndex("GRIDSTYLE");
+      static unsigned gridstyleTag = Struct->Desc()->TagIndex("GRIDSTYLE");
       axisGridstyle = (*static_cast<DLongGDL*> (Struct->GetTag(gridstyleTag, 0)))[0];
       e->AssureLongScalarKWIfPresent(choosenIx, axisGridstyle);
     }
@@ -2595,7 +2596,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     }
 
     if (Struct != NULL) {
-      unsigned marginTag = Struct->Desc()->TagIndex("MARGIN");
+      static unsigned marginTag = Struct->Desc()->TagIndex("MARGIN");
       start = (*static_cast<DFloatGDL*> (Struct->GetTag(marginTag, 0)))[0];
       end = (*static_cast<DFloatGDL*> (Struct->GetTag(marginTag, 0)))[1];
     }
@@ -2634,7 +2635,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       choosenIx = ZMINORIx;
     }
     if (Struct != NULL) {
-      unsigned AxisMinorTag = Struct->Desc()->TagIndex("MINOR");
+      static unsigned AxisMinorTag = Struct->Desc()->TagIndex("MINOR");
       axisMinor = (*static_cast<DLongGDL*> (Struct->GetTag(AxisMinorTag, 0)))[0];
     }
     e->AssureLongScalarKWIfPresent(choosenIx, axisMinor);
@@ -2661,7 +2662,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     }
     if (Struct != NULL) {
       DDouble test1, test2;
-      unsigned rangeTag = Struct->Desc()->TagIndex("RANGE");
+      static unsigned rangeTag = Struct->Desc()->TagIndex("RANGE");
       test1 = (*static_cast<DDoubleGDL*> (Struct->GetTag(rangeTag, 0)))[0];
       test2 = (*static_cast<DDoubleGDL*> (Struct->GetTag(rangeTag, 0)))[1];
       if (!((test1 - test2) == 0.0)) {
@@ -2706,7 +2707,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     }
 
     if (Struct != NULL) {
-      int styleTag = Struct->Desc()->TagIndex("STYLE");
+      static unsigned styleTag = Struct->Desc()->TagIndex("STYLE");
       style = (*static_cast<DLongGDL*> (Struct->GetTag(styleTag, 0)))[0];
     }
 
@@ -2735,7 +2736,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 
     if (Struct != NULL) {
       //not static!
-      int thickTag = Struct->Desc()->TagIndex("THICK");
+      static unsigned thickTag = Struct->Desc()->TagIndex("THICK");
       thick = (*static_cast<DFloatGDL*> (Struct->GetTag(thickTag, 0)))[0];
     }
     e->AssureFloatScalarKWIfPresent(choosenIx, thick);
@@ -2762,7 +2763,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     }
 
     if (Struct != NULL) {
-      unsigned AxisTickformatTag = Struct->Desc()->TagIndex("TICKFORMAT");
+      static unsigned AxisTickformatTag = Struct->Desc()->TagIndex("TICKFORMAT");
       axisTickformatVect = static_cast<DStringGDL*> (Struct->GetTag(AxisTickformatTag, 0));
     }
     if (e->GetDefinedKW(choosenIx) != NULL) {
@@ -2791,9 +2792,8 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     }
 
     if (Struct != NULL) {
-      axisTickinterval = (*static_cast<DDoubleGDL*>
-        (Struct->GetTag
-        (Struct->Desc()->TagIndex("TICKINTERVAL"), 0)))[0];
+      static unsigned AxisTickIntervalTag = Struct->Desc()->TagIndex("TICKINTERVAL");
+      axisTickinterval = (*static_cast<DDoubleGDL*>(Struct->GetTag(AxisTickIntervalTag, 0)))[0];
     }
     e->AssureDoubleScalarKWIfPresent(choosenIx, axisTickinterval);
     if (axisTickinterval < 0) axisTickinterval = 0;
@@ -2801,6 +2801,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 
   void gdlGetDesiredAxisTickLayout(EnvT* e, int axisId, DLong &axisTicklayout) {
     axisTicklayout = 0;
+    static unsigned AxisTickLayoutTag = SysVar::X()->Desc()->TagIndex("TICKLAYOUT");
     int XTICKLAYOUTIx = e->KeywordIx("XTICKLAYOUT");
     int YTICKLAYOUTIx = e->KeywordIx("YTICKLAYOUT");
     int ZTICKLAYOUTIx = e->KeywordIx("ZTICKLAYOUT");
@@ -2819,9 +2820,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       choosenIx = ZTICKLAYOUTIx;
     }
     if (Struct != NULL) {
-      axisTicklayout = (*static_cast<DLongGDL*>
-        (Struct->GetTag
-        (Struct->Desc()->TagIndex("TICKLAYOUT"), 0)))[0];
+      axisTicklayout = (*static_cast<DLongGDL*>(Struct->GetTag(AxisTickLayoutTag, 0)))[0];
     }
     e->AssureLongScalarKWIfPresent(choosenIx, axisTicklayout);
   }
@@ -2830,9 +2829,9 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     // order: !P.TICKLEN, TICKLEN, !X.TICKLEN, /XTICKLEN
     // get !P preference
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
-    ticklen = (*static_cast<DFloatGDL*>
-      (pStruct->GetTag
-      (pStruct->Desc()->TagIndex("TICKLEN"), 0)))[0]; //!P.TICKLEN, always exist, may be 0
+    static unsigned PticklenTag = SysVar::P()->Desc()->TagIndex("TICKLEN");
+    static unsigned XYZticklenTag = SysVar::X()->Desc()->TagIndex("TICKLEN");
+    ticklen = (*static_cast<DFloatGDL*>(pStruct->GetTag(PticklenTag, 0)))[0]; //!P.TICKLEN, always exist, may be 0
     int TICKLENIx = e->KeywordIx("TICKLEN");
     e->AssureFloatScalarKWIfPresent(TICKLENIx, ticklen); //overwritten by TICKLEN option
 
@@ -2854,14 +2853,14 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       choosenIx = ZTICKLENIx;
     }
     if (Struct != NULL) {
-      unsigned ticklenTag = Struct->Desc()->TagIndex("TICKLEN");
-      DFloat axisTicklen = (*static_cast<DFloatGDL*> (Struct->GetTag(ticklenTag, 0)))[0]; //![XYZ].TICKLEN (exist)
+      DFloat axisTicklen = (*static_cast<DFloatGDL*> (Struct->GetTag(XYZticklenTag, 0)))[0]; //![XYZ].TICKLEN (exist)
       e->AssureFloatScalarKWIfPresent(choosenIx, axisTicklen); //overriden by kw
       if (axisTicklen != 0.0) ticklen = axisTicklen;
     }
   }
 
   void gdlGetDesiredAxisTickName(EnvT* e, GDLGStream* a, int axisId, DStringGDL* &axisTicknameVect) {
+     static unsigned AxisTicknameTag = SysVar::X()->Desc()->TagIndex("TICKNAME");
 
     int XTICKNAMEIx = e->KeywordIx("XTICKNAME");
     int YTICKNAMEIx = e->KeywordIx("YTICKNAME");
@@ -2881,7 +2880,6 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       choosenIx = ZTICKNAMEIx;
     }
     if (Struct != NULL) {
-      unsigned AxisTicknameTag = Struct->Desc()->TagIndex("TICKNAME");
       axisTicknameVect = static_cast<DStringGDL*> (Struct->GetTag(AxisTicknameTag, 0));
     }
     if (e->GetDefinedKW(choosenIx) != NULL) {
@@ -2891,6 +2889,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
   }
 
   void gdlGetDesiredAxisTicks(EnvT* e, int axisId, DLong &axisTicks) {
+    static unsigned AxisTicksTag = SysVar::X()->Desc()->TagIndex("TICKS");
     axisTicks = 0;
 
     int XTICKSIx = e->KeywordIx("XTICKS");
@@ -2912,9 +2911,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     }
 
     if (Struct != NULL) {
-      axisTicks = (*static_cast<DLongGDL*>
-        (Struct->GetTag
-        (Struct->Desc()->TagIndex("TICKS"), 0)))[0];
+      axisTicks = (*static_cast<DLongGDL*>(Struct->GetTag(AxisTicksTag, 0)))[0];
     }
     e->AssureLongScalarKWIfPresent(choosenIx, axisTicks);
     if (axisTicks > 59) e->Throw("Value of number of ticks is out of allowed range.");
@@ -2926,6 +2923,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
   // This is conveyed by the code
 
   int gdlGetCalendarCode(EnvT* e, int axisId, int level) {
+    static unsigned AxisTickunitsTag = SysVar::X()->Desc()->TagIndex("TICKUNITS");
     int XTICKUNITSIx = e->KeywordIx("XTICKUNITS");
     int YTICKUNITSIx = e->KeywordIx("YTICKUNITS");
     int ZTICKUNITSIx = e->KeywordIx("ZTICKUNITS");
@@ -2945,7 +2943,6 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     }
     DStringGDL* axisTickunitsVect = NULL;
     if (Struct != NULL) {
-      unsigned AxisTickunitsTag = Struct->Desc()->TagIndex("TICKUNITS");
       axisTickunitsVect = static_cast<DStringGDL*> (Struct->GetTag(AxisTickunitsTag, 0));
     }
     if (e->GetDefinedKW(choosenIx) != NULL) {
@@ -2965,6 +2962,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
   }
 
   void gdlGetDesiredAxisTickUnits(EnvT* e, int axisId, DStringGDL* &axisTickunitsVect) {
+    static unsigned AxisTickunitsTag = SysVar::X()->Desc()->TagIndex("TICKUNITS");
     int XTICKUNITSIx = e->KeywordIx("XTICKUNITS");
     int YTICKUNITSIx = e->KeywordIx("YTICKUNITS");
     int ZTICKUNITSIx = e->KeywordIx("ZTICKUNITS");
@@ -2983,7 +2981,6 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       choosenIx = ZTICKUNITSIx;
     }
     if (Struct != NULL) {
-      unsigned AxisTickunitsTag = Struct->Desc()->TagIndex("TICKUNITS");
       axisTickunitsVect = static_cast<DStringGDL*> (Struct->GetTag(AxisTickunitsTag, 0));
     }
     if (e->GetDefinedKW(choosenIx) != NULL) {
@@ -2992,6 +2989,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
   }
 
   bool gdlHasTickUnits(EnvT* e, int axisId) {
+    static unsigned AxisTickunitsTag = SysVar::X()->Desc()->TagIndex("TICKUNITS");
     bool has = false;
     int XTICKUNITSIx = e->KeywordIx("XTICKUNITS");
     int YTICKUNITSIx = e->KeywordIx("YTICKUNITS");
@@ -3011,7 +3009,6 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       choosenIx = ZTICKUNITSIx;
     }
     if (Struct != NULL) {
-      unsigned AxisTickunitsTag = Struct->Desc()->TagIndex("TICKUNITS");
       DStringGDL* axisTickunitsVect = static_cast<DStringGDL*> (Struct->GetTag(AxisTickunitsTag, 0));
       for (auto i = 0; i < axisTickunitsVect->N_Elements(); ++i) {
         if ((*axisTickunitsVect)[i].size() > 0) {
@@ -3033,6 +3030,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
   }
 
   bool gdlGetDesiredAxisTickv(EnvT* e, int axisId, DDoubleGDL* &axisTickvVect) {
+    static unsigned AxisTickvTag = SysVar::X()->Desc()->TagIndex("TICKV");
     bool exist = false;
     int XTICKVIx = e->KeywordIx("XTICKV");
     int YTICKVIx = e->KeywordIx("YTICKV");
@@ -3052,7 +3050,6 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       choosenIx = ZTICKVIx;
     }
     if (Struct != NULL) {
-      unsigned AxisTickvTag = Struct->Desc()->TagIndex("TICKV");
       axisTickvVect = static_cast<DDoubleGDL*> (Struct->GetTag(AxisTickvTag, 0));
       exist = false; //but it could be all Zeros...
       for (auto i = 0; i < axisTickvVect->N_Elements(); ++i) if ((*axisTickvVect)[i] != 0) {
@@ -3117,6 +3114,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
   }
 
   void gdlGetDesiredAxisTitle(EnvT *e, int axisId, DString &title) {
+    static unsigned titleTag = SysVar::X()->Desc()->TagIndex("TITLE");
     int XTITLEIx = e->KeywordIx("XTITLE");
     int YTITLEIx = e->KeywordIx("YTITLE");
     int ZTITLEIx = e->KeywordIx("ZTITLE");
@@ -3136,7 +3134,6 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     }
 
     if (Struct != NULL) {
-      unsigned titleTag = Struct->Desc()->TagIndex("TITLE");
       title =
         (*static_cast<DStringGDL*> (Struct->GetTag(titleTag, 0)))[0];
     }
@@ -3146,9 +3143,8 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 
   void gdlSetLineStyle(EnvT *e, GDLGStream *a) {
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
-    DLong linestyle =
-      (*static_cast<DLongGDL*>
-      (pStruct->GetTag(pStruct->Desc()->TagIndex("LINESTYLE"), 0)))[0];
+    static unsigned pStyleTag= SysVar::P()->Desc()->TagIndex("LINESTYLE");
+    DLong linestyle =(*static_cast<DLongGDL*>(pStruct->GetTag(pStyleTag, 0)))[0];
 
     // if the LINESTYLE keyword is present, the value will be change
     DLong linestyleNew = -1111;
@@ -3174,9 +3170,9 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
   }
 
   DFloat gdlGetPenThickness(EnvT *e, GDLGStream *a) {
+    static unsigned pThickTag= SysVar::P()->Desc()->TagIndex("LINESTYLE");
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
-    DFloat thick = (*static_cast<DFloatGDL*>
-      (pStruct->GetTag(pStruct->Desc()->TagIndex("THICK"), 0)))[0];
+    DFloat thick = (*static_cast<DFloatGDL*>(pStruct->GetTag(pThickTag, 0)))[0];
 
     int THICKIx = e->KeywordIx("THICK");
     e->AssureFloatScalarKWIfPresent(THICKIx, thick);
@@ -3194,7 +3190,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
   bool gdlYaxisNoZero(EnvT* e) {
     //no explict range given?
     DDouble test1, test2;
-    unsigned rangeTag = SysVar::Y()->Desc()->TagIndex("RANGE");
+    static unsigned rangeTag = SysVar::Y()->Desc()->TagIndex("RANGE");
     test1 = (*static_cast<DDoubleGDL*> (SysVar::Y()->GetTag(rangeTag, 0)))[0];
     test2 = (*static_cast<DDoubleGDL*> (SysVar::Y()->GetTag(rangeTag, 0)))[1];
     if (!(test1 == 0.0 && test2 == 0.0)) return true;
@@ -3218,10 +3214,11 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 
   void gdlNextPlotHandlingNoEraseOption(EnvT *e, GDLGStream *a) {
     bool noErase = false;
-    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
-      DLong LnoErase = (*static_cast<DLongGDL*>
-        (pStruct->
-        GetTag(pStruct->Desc()->TagIndex("NOERASE"), 0)))[0];
+    static unsigned pNoeEraseTag = SysVar::P()->Desc()->TagIndex("NOERASE");
+    static unsigned pRegionTag = SysVar::P()->Desc()->TagIndex("REGION");
+    static unsigned pPositionTag = SysVar::P()->Desc()->TagIndex("POSITION");
+   DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
+      DLong LnoErase = (*static_cast<DLongGDL*>(pStruct->GetTag(pNoeEraseTag, 0)))[0];
       noErase = (LnoErase == 1);
       int NOERASEIx = e->KeywordIx("NOERASE");
 
@@ -3240,10 +3237,10 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     bool hasregion = false;
     bool hasposition = false;
     // system variable !P.REGION first 
-    pos1 = static_cast<DFloatGDL*> (pStruct-> GetTag(pStruct->Desc()->TagIndex("REGION"), 0));
+    pos1 = static_cast<DFloatGDL*> (pStruct-> GetTag(pRegionTag, 0));
     if ((*pos1)[0] != (*pos1)[2]) hasregion = true;
 
-    pos2 = static_cast<DFloatGDL*> (pStruct-> GetTag(pStruct->Desc()->TagIndex("POSITION"), 0));
+    pos2 = static_cast<DFloatGDL*> (pStruct-> GetTag(pPositionTag, 0));
     if ((*pos2)[0] != (*pos2)[2]) hasposition = true;
 
     // keyword
@@ -3394,9 +3391,9 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	  DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
 	  // Get !P.position values. !P.REGION is superseded by !P.POSITION
 	  if (pStruct != NULL) {
-		unsigned regionTag = pStruct->Desc()->TagIndex("REGION");
+		static unsigned regionTag = SysVar::P()->Desc()->TagIndex("REGION");
 		for (SizeT i = 0; i < 4; ++i) P_region_normed[i] = (PLFLT) (*static_cast<DFloatGDL*> (pStruct->GetTag(regionTag, 0)))[i];
-		unsigned positionTag = pStruct->Desc()->TagIndex("POSITION");
+		static unsigned positionTag = SysVar::P()->Desc()->TagIndex("POSITION");
 		for (SizeT i = 0; i < 4; ++i) P_position_normed[i] = (PLFLT) (*static_cast<DFloatGDL*> (pStruct->GetTag(positionTag, 0)))[i];
 	  }
 	  if (P_region_normed[0] != P_region_normed[2]) //exist, so it is a first approx to position: 
@@ -3615,6 +3612,8 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
  // where: 0 : both axes (UP+DOWN) ; 1: DOWN only 2: TOP only (used only with AXIS command)
 
   void gdlAxis(EnvT *e, GDLGStream *a, int axisId, DDouble Start, DDouble End, bool Log, DLong where) {
+    static unsigned titleTag = SysVar::P()->Desc()->TagIndex("TITLE");
+    static unsigned subTitleTag = SysVar::P()->Desc()->TagIndex("SUBTITLE");
 
 	//the various boxes used here
 	PLFLT refboxxmin, refboxxmax, refboxymin, refboxymax, boxxmin, boxxmax, boxymin, boxymax, wboxxmin, wboxxmax, wboxymin, wboxymax;
@@ -3638,8 +3637,6 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 
 	//Global Title and Subtitle is (as in IDL) relative to the original box
 	if (axisId == XAXIS) {
-	  unsigned titleTag = SysVar::P()->Desc()->TagIndex("TITLE");
-	  unsigned subTitleTag = SysVar::P()->Desc()->TagIndex("SUBTITLE");
 	  DString title = (*static_cast<DStringGDL*> (SysVar::P()->GetTag(titleTag, 0)))[0];
 	  DString subTitle = (*static_cast<DStringGDL*> (SysVar::P()->GetTag(subTitleTag, 0)))[0];
 
