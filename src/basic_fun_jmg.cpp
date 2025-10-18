@@ -508,12 +508,11 @@ namespace lib {
     }
 
     // FILE_LUN
-    string txt="Sorry, keyword ";
     if( e->KeywordSet(FILE_LUNIx)) {    
-      e->Throw(txt+"/FILE_LUN not supported yet, please contribute.");
+      e->Throw("Sorry, keyword /FILE_LUN not supported yet, please contribute.");
     }
     if( e->KeywordSet(FILE_OFFSETIx))  {
-      e->Throw(txt+"/FILE_OFFSET not supported yet, please contribute.");
+      e->Throw("Sorry, keyword /FILE_OFFSET not supported yet, please contribute.");
     }
 
     // N_DIMENSIONS

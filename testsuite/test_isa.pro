@@ -210,6 +210,8 @@ txt=' testing ISA for OBJECT'
 if (verb) then MESSAGE, /continue, 'Starting '+txt
 ;
 obj = OBJ_NEW()
+; test in passing the case #2090
+if N_elements(obj) ne 1 then ERRORS_ADD, nb_errors, 'NullObject n_elements() is not 1'
 if ISA(obj) eq 1 then ERRORS_ADD, nb_errors, 'Obj does exist'
 if ISA(obj,'OBJECT') eq 1 then ERRORS_ADD, nb_errors, 'Obj is not an Object'
 if ISA(obj,'OBJREF') eq 0 then ERRORS_ADD, nb_errors, 'Obj is not an Obref'
