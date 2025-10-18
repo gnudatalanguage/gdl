@@ -33,8 +33,10 @@ if (verb) then MESSAGE, /continue, 'Starting '+txt
 ; First basic tests
 ;
 data = LIST()
-if ISA(data) eq 0 then ERRORS_ADD, nb_errors, 'first 1 LIST()'
-if ISA(data,'LIST') eq 0 then ERRORS_ADD, nb_errors, '1 LIST() is LIST'
+if N_Elements(data) ne 0 then ERRORS_ADD, nb_errors, 'void LIST() N_Elements is not 0'
+if ISA(data) eq 0 then ERRORS_ADD, nb_errors, 'first 1 LIST() ISA pretends not LIST'
+if ISA(data,'LIST') eq 0 then ERRORS_ADD, nb_errors, '1 LIST() ISA LIST'
+if OBJ_ISA(data,'LIST') eq 0 then ERRORS_ADD, nb_errors, '1 LIST() OBJ_ISA LIST'
 if ISA(data,'OBJREF') eq 0 then ERRORS_ADD, nb_errors, '1 LIST() is is not OBJREF'
 if ISA(data,/NULL) eq 1 then ERRORS_ADD, nb_errors, '1 LIST() is is not NULL'
 if ISA(data,"UNDEFINED") eq 1 then ERRORS_ADD, nb_errors, '1 LIST() is defined ...'
@@ -127,8 +129,10 @@ if (verb) then MESSAGE, /continue, 'Starting '+txt
 ;
 data=HASH()
 ;
+if N_Elements(data) ne 0 then ERRORS_ADD, nb_errors, 'void HASH() N_Elements is not 0'
 if ISA(data) eq 0 then ERRORS_ADD, nb_errors, '1 HASH() does exist'
-if ISA(data,'HASH') eq 0 then ERRORS_ADD, nb_errors, '1 HASH() is a hash'
+if ISA(data,'HASH') eq 0 then ERRORS_ADD, nb_errors, '1 HASH() ISA hash'
+if OBJ_ISA(data,'HASH') eq 0 then ERRORS_ADD, nb_errors, '1 HASH() OBJ_ISA hash'
 if ISA(data,'OBJREF') eq 0 then ERRORS_ADD, nb_errors, '1 HASH() is an object'
 if ISA(data,/NULL) eq 1 then ERRORS_ADD, nb_errors, '1 HASH() is not null'
 if ISA(data,"UNDEFINED") eq 1 then ERRORS_ADD, nb_errors, '1 HASH() in defined'
