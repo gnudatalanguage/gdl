@@ -248,16 +248,9 @@ namespace lib {
 
         //orientation word is not orientation page depending on axes increment direction [0..1] vs. [1..0]
         PLFLT oriD = ((*orientation)[i % orientation->N_Elements()]); //ori DEVICE
-        PLFLT oriW = oriD; //ori WORLD
         oriD *= DEGTORAD;
-        if (sx[1] < 0) oriW = 180.0 - oriW;
-        if (sy[1] < 0) oriW *= -1;
-        oriW *= DEGTORAD;
-
         PLFLT cosOriD = cos(oriD);
         PLFLT sinOriD = sin(oriD);
-        PLFLT cosOriW = cos(oriW);
-        PLFLT sinOriW = sin(oriW);
 
         PLFLT align = (*alignement)[i % alignement->N_Elements()];
         align = max(align, 0.0);
@@ -272,7 +265,7 @@ namespace lib {
      
         string out = (*strVal)[i % strVal->N_Elements()];
         double returnedStringCharLength;
-        actStream->ptex(ptex_x, ptex_y, cosOriW, sinOriW * aspectw / aspectd, align, out.c_str(), &returnedStringCharLength);
+        actStream->ptex(ptex_x, ptex_y, cosOriD, sinOriD * aspectw / aspectd, align, out.c_str(), &returnedStringCharLength);
 
 
         if (singleArg || (i == minEl - 1)) //then x and y are not given and whatever the number of strings, are retrieved
