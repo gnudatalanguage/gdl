@@ -2000,7 +2000,7 @@ BaseGDL* list__toarray(EnvUDT* e) {
     else return new DByteGDL(1);
   }
 
-inline  SizeT LIST_count(DStructGDL* list) {// straight through, no checks
+  SizeT LIST_count(DStructGDL* list) {// straight through, no checks
     return NLIST(list);
   }
 
