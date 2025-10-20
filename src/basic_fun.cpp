@@ -798,7 +798,7 @@ namespace lib {
       }
       if (e->KeywordPresent(IS_ENABLEDIx))
         e->SetKW(IS_ENABLEDIx, new DByteGDL(IsEnabledGC()));
-      return new DIntGDL(0);
+      return new DIntGDL(1); //acknowledge 1 as IDL does
     }
 
     BaseGDL* p = e->GetPar(0);
@@ -7114,14 +7114,14 @@ namespace lib {
       className = GDL_CONTAINER_NAME;
     BaseGDL* p0 = e->GetPar(0);
     //nObjects is the number of objects or strings passed in array format.
-    SizeT nElem = p0->N_Elements();
+    SizeT nElem = p0->N_Elements(); // NULLOBJ has still 1 element
 
     DByteGDL* res = new DByteGDL(p0->Dim()); // zero
 
     if (p0->Type() == GDL_OBJ) {
       DObjGDL* pObj = static_cast<DObjGDL*> (p0);
       if (pObj) { //pObj protection probably overkill.
-        for (SizeT i = 0; i < nElem; ++i) {
+          for (SizeT i = 0; i < nElem; ++i) {
           if (e->Interpreter()->ObjValid((*pObj)[ i])) {
             DStructGDL* oStruct = e->GetObjHeap((*pObj)[i]);
             if (oStruct->Desc()->IsParent(className))
@@ -8810,8 +8810,8 @@ namespace lib {
         FindInStructList(structList, "IDL_TRACEBACK"),
         dimension(actIx));
 
-      int tRoutine, tFilename, tLine, tLevel, tFunction;
-      int tMethod = 0, tRestored = 0, tSystem = 0;
+      unsigned tRoutine, tFilename, tLine, tLevel, tFunction;
+      unsigned tMethod = 0, tRestored = 0, tSystem = 0;
 
       for (SizeT i = 0; i < actIx; ++i) {
 

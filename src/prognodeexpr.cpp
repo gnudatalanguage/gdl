@@ -3131,7 +3131,8 @@ BaseGDL* FCALL_LIB_N_ELEMENTSNode::Eval()
 		if(param->Type() == GDL_OBJ and param->Scalar()) 
 		{
 			DObj ID = (*static_cast<DObjGDL*>( param))[0];
-
+            // <NullObject> size is 1, see #2090
+            if (ID == 0) return new DLongGDL(1); //Only NullObject has ID==0
 			DStructGDL* s = NULL;
 			Guard<BaseGDL> guard(s);
 		   try {

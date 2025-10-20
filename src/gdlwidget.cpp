@@ -678,7 +678,7 @@ void GDLEventQueue::Purge( WidgetIDT parentID) {
   DLongGDL* list = w->GetAllHeirs();
   for (long i = dq.size() - 1; i >= 0; --i) {
     DStructGDL* ev = dq[i];
-    static int idIx = 0; // ev->Desc( )->TagIndex( "ID" ); //always 0
+    unsigned idIx = 0; // ev->Desc( )->TagIndex( "ID" ); //always 0
     DLong id = (*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0];
     //all events pertaining to any heirs of 'parentID' including 'parentID' are removed:
     for (DLong testid = 0; testid < list->N_Elements(); ++testid) {
@@ -1259,7 +1259,7 @@ void GDLWidget::HandleUnblockedWidgetEvents()
     DStructGDL* ev = NULL;
     while( (ev = GDLWidget::widgetEventQueue.Pop()) != NULL) {
     //check event's TOP base is either not managed or is tagged interactive (done in xmanager.pro with "undocumented" keyword /XMANAGER_ACTIVE_COMMAND)
-    static int topIx = ev->Desc()->TagIndex("TOP");
+    static unsigned topIx = ev->Desc()->TagIndex("TOP");
     WidgetIDT top = (*static_cast<DLongGDL*> (ev->GetTag(topIx, 0)))[0]; // get its id
     GDLWidget* w = GDLWidget::GetWidget(top);
     if (w //exists

@@ -22,6 +22,8 @@
 #include <omp.h>
 #endif
 
+#include "macro_for_objects.hpp" //For macros acessing object tags, see LIST and HASH
+
 //#include "datatypes.hpp" // for friend declaration
 #include "dinterpreter.hpp"
 
@@ -1937,39 +1939,14 @@ SizeT Data_<Sp>::N_Elements() const
 
 template<>
 SizeT Data_<SpDObj>::N_Elements() const 
-{  
-  if( !this->StrictScalar())
-    return dd.size();
-#if 1  // GJ change this and see how many problems it solves, creates. 2016/5/5 
-  else return 1;
-#elif 0
+{
+  if( !this->StrictScalar())  return dd.size();
+  // All the below will return 1, but I leave the different cases explicit to ease debug.
   DObj s = dd[0]; // is StrictScalar()
-  if( s == 0)  // no overloads for null object
-    return 1;
-  
+  if( s == 0)  return 1; // no overloads for null object
   DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
-  if( oStructGDL == NULL) // if object not valid -> default behaviour
-    return 1;
-  
-  DStructDesc* desc = oStructGDL->Desc();
-
-  if( desc->IsParent("LIST"))
-  {
-      // no static here, might vary in derived object
-      unsigned nListTag = desc->TagIndex( "NLIST");
-      SizeT listSize = (*static_cast<DLongGDL*>(oStructGDL->GetTag( nListTag, 0)))[0];
-      return listSize;
-  }
-  if( desc->IsParent("HASH"))
-  {
-      // no static here, might vary in derived object
-      unsigned nListTag = desc->TagIndex( "TABLE_COUNT");
-      SizeT listSize = (*static_cast<DLongGDL*>(oStructGDL->GetTag( nListTag, 0)))[0];
-      return listSize;
-  }
-
+  if( oStructGDL == NULL) return 1; // if object not valid -> default behaviour
   return 1;
-#endif  
 }
 
 

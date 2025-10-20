@@ -759,7 +759,6 @@ void Data_<SpDObj>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 {
   assert( ixList != NULL);
 
-  //  breakpoint(); // gdbg can not handle breakpoints in template functions
   Data_* src = static_cast<Data_*>(srcIn);
 
   SizeT srcElem= src->N_Elements();
@@ -1264,14 +1263,14 @@ BaseGDL* Data_<SpDObj>::NewIx( SizeT ix)
 
   if( desc->IsParent("LIST"))
   {
-      static DString cNodeName("GDL_CONTAINER_NODE");
       // because of .RESET_SESSION, we cannot use static here
       DStructDesc* containerDesc=structDesc::GDL_CONTAINER_NODE;
     
       // no static here, might vary in derived object
 //       unsigned pHeadTag = desc->TagIndex( "PHEAD");
-      static unsigned pTailTag = desc->TagIndex( "PTAIL");
+      unsigned pTailTag = desc->TagIndex( "PTAIL");
 
+      // these are fixed as GDL_CONTAINER_NODE is (should be) private - probably to be replaced by a std::map 
       static unsigned pNextTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PNEXT");
       static unsigned pDataTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PDATA");
 //       unsigned nListTag = desc->TagIndex( "NLIST");

@@ -2281,8 +2281,8 @@ BaseGDL* file_info( EnvT* e)
                        p0S->Rank() == 0 ? dimension(1) : p0S->Dim()
                        ); 
 
-    static int tName = res->Desc()->TagIndex("NAME");
-    static int tExists, tRead, tWrite, tExecute, tRegular, tDirectory, tBlockSpecial, 
+    static unsigned tName = res->Desc()->TagIndex("NAME");
+    static unsigned tExists, tRead, tWrite, tExecute, tRegular, tDirectory, tBlockSpecial, 
     tCharacterSpecial, tNamedPipe, tSetuid, tSetgid, tSocket, tStickyBit, 
     tSymlink, tDanglingSymlink, tMode, tAtime, tCtime, tMtime, tSize;
     static int indices_known = false;
