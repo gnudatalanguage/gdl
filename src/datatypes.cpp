@@ -1939,19 +1939,13 @@ SizeT Data_<Sp>::N_Elements() const
 
 template<>
 SizeT Data_<SpDObj>::N_Elements() const 
-{  
-  if( !this->StrictScalar())
-    return dd.size();
+{
+  if( !this->StrictScalar())  return dd.size();
+  // All the below will return 1, but I leave the different cases explicit to ease debug.
   DObj s = dd[0]; // is StrictScalar()
-  if( s == 0)  // no overloads for null object
-    return 1;
-  
+  if( s == 0)  return 1; // no overloads for null object
   DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
   if( oStructGDL == NULL) return 1; // if object not valid -> default behaviour
-  
-  DStructDesc* desc = oStructGDL->Desc();
-  if( desc->IsParent("LIST")) return NLIST(oStructGDL);
-  if( desc->IsParent("HASH")) return TABLE_COUNT(oStructGDL);
   return 1;
 }
 

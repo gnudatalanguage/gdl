@@ -759,7 +759,6 @@ void Data_<SpDObj>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 {
   assert( ixList != NULL);
 
-  //  breakpoint(); // gdbg can not handle breakpoints in template functions
   Data_* src = static_cast<Data_*>(srcIn);
 
   SizeT srcElem= src->N_Elements();

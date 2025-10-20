@@ -798,7 +798,7 @@ namespace lib {
       }
       if (e->KeywordPresent(IS_ENABLEDIx))
         e->SetKW(IS_ENABLEDIx, new DByteGDL(IsEnabledGC()));
-      return new DIntGDL(0);
+      return new DIntGDL(1); //acknowledge 1 as IDL does
     }
 
     BaseGDL* p = e->GetPar(0);
@@ -1201,9 +1201,11 @@ namespace lib {
       return new DLongGDL(1);
     if (p0->Type() == GDL_OBJ) {
       DStructGDL* s = GetObjStruct(p0, e);
-      if (s->Desc()->IsParent("LIST")) return new DLongGDL(LIST_count(s));
-      else if (s->Desc()->IsParent("HASH")) return new DLongGDL(HASH_count(s));
-      else return new DLongGDL(1); //#2090
+      if (s->Desc()->IsParent("LIST"))
+        return new DLongGDL(LIST_count(s));
+      else
+        if (s->Desc()->IsParent("HASH"))
+        return new DLongGDL(HASH_count(s));
     }
     if (p0->N_Elements() > 2147483647UL)
       return new DLong64GDL(p0->N_Elements());
@@ -7112,20 +7114,13 @@ namespace lib {
       className = GDL_CONTAINER_NAME;
     BaseGDL* p0 = e->GetPar(0);
     //nObjects is the number of objects or strings passed in array format.
-    SizeT nElem = p0->N_Elements();
+    SizeT nElem = p0->N_Elements(); // NULLOBJ has still 1 element
 
     DByteGDL* res = new DByteGDL(p0->Dim()); // zero
 
     if (p0->Type() == GDL_OBJ) {
       DObjGDL* pObj = static_cast<DObjGDL*> (p0);
       if (pObj) { //pObj protection probably overkill.
-        //empty obj for which nElem is 0 has still some type:
-        if (nElem == 0) {
-          DStructGDL* oStruct = e->GetObjHeap((*pObj)[0]);
-            if (oStruct->Desc()->IsParent(className)) (*res)[0] = 1;
-            return res;
-        }
-        // normal (non-empty) objs
           for (SizeT i = 0; i < nElem; ++i) {
           if (e->Interpreter()->ObjValid((*pObj)[ i])) {
             DStructGDL* oStruct = e->GetObjHeap((*pObj)[i]);
