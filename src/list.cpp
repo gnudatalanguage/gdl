@@ -2065,8 +2065,8 @@ BaseGDL* list__toarray(EnvUDT* e) {
 
     // find nodes to exchange
     // explore sequentially and record for the nodes to exchange, their pNEXT and the pNEXT of the previous Node
-    DLong indexmin=min(index1,index2);
-    DLong indexmax=max(index1,index2);
+    DLong indexmin=std::min(index1,index2);
+    DLong indexmax=std::max(index1,index2);
     DLong jump=indexmax-indexmin;
 
     DPtr previousPtr1,previousPtr2,ptr1,ptr2; //I am pointed by it
