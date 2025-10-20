@@ -34,21 +34,28 @@
 // for complex (of POD)
 const bool TreatPODComplexAsPOD = true;
 
+#define BUFFERSIZE 256 // Provision for std::string, size=32 .
+
+template <typename T> static const int FixedBufferSize(){
+	static const int sz=BUFFERSIZE/sizeof(T);
+	assert (sz != 0);
+	return sz;
+}
+
 template <typename T, bool IsPOD>
 class GDLArray {
 private:
 
   enum GDLArrayConstants {
-    smallArraySize = 27,
     maxCache = 1000 * 1000 // ComplexDbl is 16 bytes
   };
 
   typedef T Ty;
 
 #ifdef USE_EIGEN  
-  EIGEN_ALIGN16 char scalarBuf[ smallArraySize * sizeof (Ty)];
+  EIGEN_ALIGN16 char scalarBuf[ BUFFERSIZE ];
 #else
-  char scalarBuf[ smallArraySize * sizeof (Ty)];
+  char scalarBuf[ BUFFERSIZE ];
 #endif
 
   Ty* InitScalar();

@@ -20,7 +20,7 @@
 #include "gdlarray.hpp"
 template<class T, bool IsPOD>
 T* GDLArray<T,IsPOD>::InitScalar() {
-    assert(sz <= smallArraySize);
+    assert(sz <= FixedBufferSize<T>());
     if (IsPOD) {
       return reinterpret_cast<T*> (scalarBuf);
     } else {
@@ -76,7 +76,7 @@ template<class T, bool IsPOD>
 template<class T, bool IsPOD>
   GDLArray<T,IsPOD>::GDLArray(const GDLArray& cp) : sz(cp.size()) {
     try {
-      buf = (cp.size() > smallArraySize) ? New(cp.size()) /*new T[ cp.size()]*/ : InitScalar();
+      buf = (cp.size() > FixedBufferSize<T>()) ? New(cp.size()) /*new T[ cp.size()]*/ : InitScalar();
     } catch (std::bad_alloc&) {
       ThrowGDLException("Array requires more memory than available");
     }
@@ -92,7 +92,7 @@ template<class T, bool IsPOD>
 template<class T, bool IsPOD>
   GDLArray<T,IsPOD>::GDLArray(SizeT s, bool dummy) : sz(s) {
     try {
-      buf = (s > smallArraySize) ? New(s) /*T[ s]*/ : InitScalar();
+      buf = (s > FixedBufferSize<T>()) ? New(s) /*T[ s]*/ : InitScalar();
     } catch (std::bad_alloc&) {
       ThrowGDLException("Array requires more memory than available");
     }
@@ -101,7 +101,7 @@ template<class T, bool IsPOD>
 template<class T, bool IsPOD>
   GDLArray<T,IsPOD>::GDLArray(T val, SizeT s) : sz(s) {
     try {
-      buf = (s > smallArraySize) ? New(s) /*T[ s]*/ : InitScalar();
+      buf = (s > FixedBufferSize<T>()) ? New(s) /*T[ s]*/ : InitScalar();
     } catch (std::bad_alloc&) {
       ThrowGDLException("Array requires more memory than available");
     }
@@ -117,7 +117,7 @@ template<class T, bool IsPOD>
 template<class T, bool IsPOD>
   GDLArray<T,IsPOD>::GDLArray(const T* arr, SizeT s) : sz(s) {
     try {
-      buf = (s > smallArraySize) ? New(s) /*new T[ s]*/ : InitScalar();
+      buf = (s > FixedBufferSize<T>()) ? New(s) /*new T[ s]*/ : InitScalar();
     } catch (std::bad_alloc&) {
       ThrowGDLException("Array requires more memory than available");
     }
@@ -256,7 +256,7 @@ template<class T, bool IsPOD>
   {
     assert(sz == 0);
     sz = newSz;
-    if (sz > smallArraySize) {
+    if (sz > FixedBufferSize<T>()) {
       try {
         buf = New(sz) /*new T[ newSz]*/;
       }      catch (std::bad_alloc&) {
