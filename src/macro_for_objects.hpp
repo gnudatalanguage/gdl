@@ -57,10 +57,10 @@
 //#define DEFINE_HASHTABLEENTRY_TAGS(XXX)            \
 //    static unsigned pKeyTag = XXX->Desc()->TagIndex( "PKEY"); \
 //    static unsigned pValueTag = XXX->Desc()->TagIndex( "PVALUE");
-#define PKEY 0
-#define PVALUE 1
-#define DPtrKEY(XXX,YYY) ((*static_cast<DPtrGDL*>(XXX->GetTag( PKEY, YYY)))[0])
-#define DPtrVALUE(XXX,YYY) ((*static_cast<DPtrGDL*>(XXX->GetTag( PVALUE, YYY)))[0])
+#define PKEYTAG 0
+#define PVALUETAG 1
+#define DPtrKEY(XXX,YYY) ((*static_cast<DPtrGDL*>(XXX->GetTag( PKEYTAG, YYY)))[0])
+#define DPtrVALUE(XXX,YYY) ((*static_cast<DPtrGDL*>(XXX->GetTag( PVALUETAG, YYY)))[0])
 
 #define MAKE_LONGGDL(X, XLong) \
         DLongGDL* XLong=0; \
