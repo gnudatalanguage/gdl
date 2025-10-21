@@ -34,10 +34,13 @@
 // for complex (of POD)
 const bool TreatPODComplexAsPOD = true;
 
-#define BUFFERSIZE 256 // Provision for std::string, size=32 .
+#define GDL_VAR_BUFFERSIZE 32 // Provision for one std::string, size=32 .
+
+// for "normal" numerical objects, buffer is 1 string to 32 bytes, 4 doubles, 8 floats, 4 complex, 2 complexdbl 
 
 template <typename T> static const int FixedBufferSize(){
-	static const int sz=BUFFERSIZE/sizeof(T);
+	static const int sz=GDL_VAR_BUFFERSIZE/sizeof(T);
+//std::cerr<<typeid(T).name()<<": "<<sz<<" elements"<<std::endl;
 	assert (sz != 0);
 	return sz;
 }
@@ -53,9 +56,9 @@ private:
   typedef T Ty;
 
 #ifdef USE_EIGEN  
-  EIGEN_ALIGN16 char scalarBuf[ BUFFERSIZE ];
+  EIGEN_ALIGN16 char scalarBuf[ GDL_VAR_BUFFERSIZE ];
 #else
-  char scalarBuf[ BUFFERSIZE ];
+  char scalarBuf[ GDL_VAR_BUFFERSIZE ];
 #endif
 
   Ty* InitScalar();

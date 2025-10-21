@@ -129,7 +129,7 @@ volatile bool useDSFMTAcceleration;
 //Transpose() operations are faster with our method, but setting this may test if this is still true for future Eigen:: versions or platforms.
 volatile bool useEigenForTransposeOps=false;
 //experimental TPOOL use adaptive number of threads.
-volatile bool useSmartTpool=false;
+volatile bool useSmartTpool=true;
 
 void ResetObjects()
 {
@@ -1066,6 +1066,9 @@ void breakpoint()
   num++;
 }
 
+// GD I believe this is not completely satisfactory as of 2025. Removing this function and using the total number of threads,
+// as we enforce smart-tpool now.
+#if 0
 
 #ifndef _OPENMP
 int get_suggested_omp_num_threads() {
@@ -1181,4 +1184,4 @@ int get_suggested_omp_num_threads() {
 }
 #endif
 
-
+#endif // GD

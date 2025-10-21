@@ -86,26 +86,26 @@ void SetGDLGenericGSLErrorHandler(); // defined in gsl_fun.cpp
 void InitOpenMP() {
 #ifdef _OPENMP
   int suggested_num_threads, omp_num_core;  
-  suggested_num_threads=get_suggested_omp_num_threads();
-  omp_num_core=omp_get_num_procs();
+//  suggested_num_threads=get_suggested_omp_num_threads();
+//  omp_num_core=omp_get_num_procs();
 
   //  cerr << "estimated Threads :" << suggested_num_threads << endl;
 
   // we update iff needed (by default, "omp_num_threads" is initialiazed to "omp_num_core"
-  if ((suggested_num_threads > 0) && (suggested_num_threads < omp_num_core)) {
-
-    // update of !cpu.TPOOL_NTHREADS
-    DStructGDL* cpu = SysVar::Cpu();
-    static unsigned NTHREADSTag = cpu->Desc()->TagIndex( "TPOOL_NTHREADS");
-    (*static_cast<DLongGDL*>( cpu->GetTag( NTHREADSTag, 0)))[0] =suggested_num_threads;
-
-    // effective global change of num of treads using omp_set_num_threads()
-    CpuTPOOL_NTHREADS=suggested_num_threads;
-    omp_set_num_threads(suggested_num_threads);
-  } else {
+//  if ((suggested_num_threads > 0) && (suggested_num_threads < omp_num_core)) {
+//
+//    // update of !cpu.TPOOL_NTHREADS
+//    DStructGDL* cpu = SysVar::Cpu();
+//    static unsigned NTHREADSTag = cpu->Desc()->TagIndex( "TPOOL_NTHREADS");
+//    (*static_cast<DLongGDL*>( cpu->GetTag( NTHREADSTag, 0)))[0] =suggested_num_threads;
+//
+//    // effective global change of num of treads using omp_set_num_threads()
+//    CpuTPOOL_NTHREADS=suggested_num_threads;
+//    omp_set_num_threads(suggested_num_threads);
+//  } else {
     CpuTPOOL_NTHREADS=omp_get_num_procs();
     omp_set_num_threads(CpuTPOOL_NTHREADS);
-  }
+//  }
   //  cout << CpuTPOOL_NTHREADS <<endl;
 #endif
 }
@@ -311,7 +311,8 @@ int main(int argc, char *argv[])
       cerr << "  --no-dSFMT         Tells GDL not to use double precision SIMD oriented Fast Mersenne Twister(dSFMT) for random doubles." << endl;
       cerr << "                     Also disable by setting the environment variable GDL_NO_DSFMT to a non-null value." << endl;
       cerr << "  --with-eigen-transpose lets GDL use Eigen::transpose and related functions instead of our accelerated transpose function. Normally slower." <<endl;
-      cerr << "  --smart-tpool      switch to a mode where the number of threads is adaptive (experimental). Should enable better perfs on many core machines." <<endl;
+      cerr << "  --smart-tpool      switch to a mode where the number of threads is adaptive (DEFAULT). Should enable better perfs on many core machines." <<endl;
+      cerr << "  --no-smart-tpool   switch to a mode where the number of threads is NOT adaptive." <<endl;
       cerr << "  --silent           Supresses some messages (mainly \"Compiled Module XXX\" ." <<endl;
 #ifdef _WIN32
       cerr << "  --posix (Windows only): paths will be posix paths (experimental)." << endl;
@@ -421,6 +422,10 @@ int main(int argc, char *argv[])
       else if (string(argv[a]) == "--with-eigen-transpose")
       {
          useEigenForTransposeOps = true;
+      }
+      else if (string(argv[a]) == "--no-smart-tpool")
+      {
+         useSmartTpool = false;
       }
       else if (string(argv[a]) == "--smart-tpool")
       {
