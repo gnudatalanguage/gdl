@@ -45,7 +45,7 @@ extern VarListT      sysVarList;
 extern VarListT      obsoleteSysVarList;
 extern VarListT      sysVarRdOnlyList;
 extern VarListT      sysVarNoSaveList;
-
+extern StrArr        CurrentPathList;
 extern FunListT      funList;
 extern ProListT      proList;
 extern UnknownFunListT      unknownFunList;
@@ -126,7 +126,7 @@ void InitGDL(); // defined in gdl.cpp
 void SaveCallingArgs(int argc, char* argv[]);
 
 void InitObjects();
-void ResetObjects();
+void ResetObjects(bool atexit=false);
 
 DLong GetLUN();
 

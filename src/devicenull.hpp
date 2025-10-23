@@ -58,7 +58,7 @@ class DeviceNULL : public GraphicsDevice
   
 public:
   //  DeviceNULL(): GraphicsDevice(), fileName( "gdl.null"), actStream( NULL)
-  DeviceNULL(): GraphicsDevice()
+  DeviceNULL(): GraphicsDevice(), actStream( NULL)
   {
     name = "NULL";
 

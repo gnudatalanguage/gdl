@@ -86,8 +86,8 @@ namespace SysVar
 //  bool IsD( DVar* var)
 //  { 
 //    return var == sysVarList[ dIx];
-//  }
-
+//  }  
+  void CBPath(); //used below
   void SetGDLPath( DString& newPath)
   {
     FileListT sArr;
@@ -121,6 +121,7 @@ namespace SysVar
     // GJ version    path = sArr[nArr-1];
     // GJ version for( SizeT i=1; i<nArr; ++i)
     // GJ version  path += pathsep + sArr[nArr-i-1];
+    CBPath();
   }
   
   void SetDlmPath( DString& newPath)
@@ -210,53 +211,6 @@ namespace SysVar
 //  }
 
   // returns array of path strings
-
-  const StrArr& GDLPath() {
-    static StrArr sArr;
-
-    // clear whatever old value is stored
-    sArr.clear();
-
-    // get the path
-    DVar& pathSysVar = *sysVarList[pathIx];
-    DString& path = static_cast<DStringGDL&> (*pathSysVar.Data())[0];
-
-    if (path == "") return sArr;
-
-    SizeT d;
-    long sPos = 0;
-
-    do {
-      d = path.find(lib::SearchPathSeparator(), sPos);
-      sArr.push_back(path.substr(sPos, d - sPos));
-      sPos = d + 1;
-    }    while (d != path.npos);
-
-    return sArr;
-  }
-  const StrArr& DLMPath() {
-    static StrArr sArr;
-
-    // clear whatever old value is stored
-    sArr.clear();
-
-    // get the path
-    DVar& dlmpathSysVar = *sysVarList[dlmpathIx];
-    DString& dlmpath = static_cast<DStringGDL&> (*dlmpathSysVar.Data())[0];
-
-    if (dlmpath == "") return sArr;
-
-    SizeT d;
-    long sPos = 0;
-
-    do {
-      d = dlmpath.find(lib::SearchPathSeparator(), sPos);
-      sArr.push_back(dlmpath.substr(sPos, d - sPos));
-      sPos = d + 1;
-    }    while (d != dlmpath.npos);
-
-    return sArr;
-  }
 
   const string& Prompt()
   {
@@ -440,8 +394,25 @@ namespace SysVar
     *xstyle|=(value & 32 )>>3;
     *ystyle|=(value & 64 )>>4;
   }
-  void CBPath() { //could be interesting to know if path has changed. may be used to speedup procedures fining & compilation?
-//    std::cerr<<"PATH changed.\n";
+  
+  void CBPath() { //Updates CurrentPathList everytime PATH is changed
+    // clear whatever old value is stored
+    CurrentPathList.clear();
+
+    // get the path
+    DVar& pathSysVar = *sysVarList[pathIx];
+    DString& path = static_cast<DStringGDL&> (*pathSysVar.Data())[0];
+
+    if (path == "") return;
+
+    SizeT d;
+    long sPos = 0;
+
+    do {
+      d = path.find(lib::SearchPathSeparator(), sPos);
+      CurrentPathList.push_back(path.substr(sPos, d - sPos));
+      sPos = d + 1;
+    } while (d != path.npos);
   }
    void CBDlmPath() { //could be interesting to know if path has changed. may be used to speedup procedures fining & compilation?
 //    std::cerr<<"PATH changed.\n";
@@ -587,17 +558,18 @@ namespace SysVar
     SizeT clipDim = 6;
 //    DLong p_clipInit[] = { 0, 0, 1024, 1024, 0, 1000};
     DLong p_clipInit[] = { 0, 0, 639, 511, 0, 0};
-    DLongGDL* p_clip = new DLongGDL( dimension( &clipDim, one));
-    for( UInt i=0; i<clipDim; i++) (*p_clip)[ i] = p_clipInit[ i];
+//    DLongGDL* p_clip = new DLongGDL( dimension( &clipDim, one));
+//    for( UInt i=0; i<clipDim; i++) (*p_clip)[ i] = p_clipInit[ i];
     SizeT multiDim = 5;
     SizeT positionDim = 4;
     SizeT regionDim = 4;
     SizeT tDim[] = { 4, 4};
     DStructGDL*  plt = new DStructGDL( "!PLT");
-    plt->NewTag("BACKGROUND", new DLongGDL( 0)); 
-    plt->NewTag("CHARSIZE", new DFloatGDL( 0.0)); 
-    plt->NewTag("CHARTHICK", new DFloatGDL( 0.0)); 
-    plt->NewTag("CLIP", p_clip); 
+    plt->NewTag("BACKGROUND", new DLongGDL( 0)); //0 
+    plt->NewTag("CHARSIZE", new DFloatGDL( 0.0)); //1
+    plt->NewTag("CHARTHICK", new DFloatGDL( 0.0)); //2
+    plt->NewTag("CLIP", new DLongGDL( dimension( &clipDim, one))); //3 
+    for( UInt i=0; i<clipDim; i++) (*static_cast<DLongGDL*>(plt->GetTag(3)))[i] = p_clipInit[ i];
     plt->NewTag("COLOR", new DLongGDL( 255)); 
     plt->NewTag("FONT", new DLongGDL( -1)); 
     plt->NewTag("LINESTYLE", new DLongGDL( 0)); //tag 6 for obsolete !LINETYPE
@@ -629,35 +601,35 @@ namespace SysVar
     gdlpdotnoclip->SetBuffer((void*) &((*static_cast<DLongGDL*> (plt->GetTag(8, 0)))[0]));
     gdlpdotnoclip->SetBufferSize(1);
     gdlpdotnoclip->SetDim(dimension(1));
-    DVar *pdotnoclip = new DVar("IGNORE", gdlpdotnoclip);
+    DVar *pdotnoclip = new DVar("IGNORE", gdlpdotnoclip, true);
     pdotnoclipIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(pdotnoclip);
     DLongGDL* gdlpdotlinestyle = new DLongGDL(dimension(1), BaseGDL::NOALLOC);
     gdlpdotlinestyle->SetBuffer((void*) &((*static_cast<DLongGDL*> (plt->GetTag(6, 0)))[0]));
     gdlpdotlinestyle->SetBufferSize(1);
     gdlpdotlinestyle->SetDim(dimension(1));
-    DVar *pdotlinestyle = new DVar("LINETYPE", gdlpdotlinestyle);
+    DVar *pdotlinestyle = new DVar("LINETYPE", gdlpdotlinestyle, true);
     pdotlinestyleIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(pdotlinestyle);
     DLongGDL* gdlpdotnoerase = new DLongGDL(dimension(1), BaseGDL::NOALLOC);
     gdlpdotnoerase->SetBuffer((void*) &((*static_cast<DLongGDL*> (plt->GetTag(9, 0)))[0]));
     gdlpdotnoerase->SetBufferSize(1);
     gdlpdotnoerase->SetDim(dimension(1));
-    DVar *pdotnoerase = new DVar("NOERAS", gdlpdotnoerase);
+    DVar *pdotnoerase = new DVar("NOERAS", gdlpdotnoerase, true);
     pdotnoeraseIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(pdotnoerase);
     DLongGDL* gdlpdotnsum = new DLongGDL(dimension(1), BaseGDL::NOALLOC);
     gdlpdotnsum->SetBuffer((void*) &((*static_cast<DLongGDL*> (plt->GetTag(10, 0)))[0]));
     gdlpdotnsum->SetBufferSize(1);
     gdlpdotnsum->SetDim(dimension(1));
-    DVar *pdotnsum = new DVar("NSUM", gdlpdotnsum);
+    DVar *pdotnsum = new DVar("NSUM", gdlpdotnsum, true);
     pdotnsumIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(pdotnsum);
     DLongGDL* gdlpdotpsym = new DLongGDL(dimension(1), BaseGDL::NOALLOC);
     gdlpdotpsym->SetBuffer((void*) &((*static_cast<DLongGDL*> (plt->GetTag(12, 0)))[0]));
     gdlpdotpsym->SetBufferSize(1);
     gdlpdotpsym->SetDim(dimension(1));
-    DVar *pdotpsym = new DVar("PSYM", gdlpdotpsym);
+    DVar *pdotpsym = new DVar("PSYM", gdlpdotpsym, true);
     pdotpsymIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(pdotpsym);
    
@@ -665,7 +637,7 @@ namespace SysVar
     gdlpdottitle->SetBuffer((void*) &((*static_cast<DStringGDL*> (plt->GetTag(19, 0)))[0]));
     gdlpdottitle->SetBufferSize(1);
     gdlpdottitle->SetDim(dimension(1));
-    DVar *pdottitle = new DVar("MTITLE", gdlpdottitle);
+    DVar *pdottitle = new DVar("MTITLE", gdlpdottitle, true);
     pdottitleIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(pdottitle);
     //FANCY --> must be interpreted it looks like: !P.CHARSIZE = 0.206 * !FANCY + 0.73 (probably it's just 0.2)
@@ -689,7 +661,7 @@ namespace SysVar
     sc1Data->SetBuffer((void*) &(sc[0]));
     sc1Data->SetBufferSize(1);
     sc1Data->SetDim(dimension(1));
-    DVar *sc1 = new DVar("SC1", sc1Data);
+    DVar *sc1 = new DVar("SC1", sc1Data, true);
     sc1Ix = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(sc1);
     //SC2 --> must be interpreted !P.POSITION[2] * !D.X_VSIZE if !P.POSITION[2] is nonzero, or !X.WINDOW[1] * !D.X_VSIZE otherwise.  
@@ -697,7 +669,7 @@ namespace SysVar
     sc2Data->SetBuffer((void*) &(sc[1]));
     sc2Data->SetBufferSize(1);
     sc2Data->SetDim(dimension(1));
-    DVar *sc2 = new DVar("SC2", sc2Data);
+    DVar *sc2 = new DVar("SC2", sc2Data, true);
     sc2Ix = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(sc2);
     //SC3 --> must be interpreted !P.POSITION[1] * !D.X_VSIZE if !P.POSITION[2] is nonzero, or !Y.WINDOW[0] * !D.X_VSIZE otherwise. 
@@ -705,7 +677,7 @@ namespace SysVar
     sc3Data->SetBuffer((void*) &(sc[2]));
     sc3Data->SetBufferSize(1);
     sc3Data->SetDim(dimension(1));
-    DVar *sc3 = new DVar("SC3", sc3Data);
+    DVar *sc3 = new DVar("SC3", sc3Data, true);
     sc3Ix = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(sc3);
     //SC4 --> must be interpreted !P.POSITION[3] * !D.X_VSIZE if !P.POSITION[2] is nonzero, or !Y.WINDOW[1] * !D.X_VSIZE otherwise. 
@@ -713,7 +685,7 @@ namespace SysVar
     sc4Data->SetBuffer((void*) &(sc[3]));
     sc4Data->SetBufferSize(1);
     sc4Data->SetDim(dimension(1));
-    DVar *sc4 = new DVar("SC4", sc4Data);
+    DVar *sc4 = new DVar("SC4", sc4Data, true);
     sc4Ix = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(sc4);
     // some constants
@@ -949,7 +921,7 @@ namespace SysVar
     gdlxdottitle->SetBuffer((void*) &((*static_cast<DStringGDL*> (xAxis->GetTag(0, 0)))[0]));
     gdlxdottitle->SetBufferSize(1);
     gdlxdottitle->SetDim(dimension(1));
-    DVar *xdottitle = new DVar("XTITLE", gdlxdottitle);
+    DVar *xdottitle = new DVar("XTITLE", gdlxdottitle, true);
     xdottitleIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(xdottitle);
 
@@ -957,7 +929,7 @@ namespace SysVar
     gdlydottitle->SetBuffer((void*) &((*static_cast<DStringGDL*> (yAxis->GetTag(0, 0)))[0]));
     gdlydottitle->SetBufferSize(1);
     gdlydottitle->SetDim(dimension(1));
-    DVar *ydottitle = new DVar("YTITLE", gdlydottitle);
+    DVar *ydottitle = new DVar("YTITLE", gdlydottitle, true);
     ydottitleIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(ydottitle);
 
@@ -965,14 +937,14 @@ namespace SysVar
     xdotticksgdl->SetBuffer((void*) &((*static_cast<DLongGDL*> (xAxis->GetTag(3, 0)))[0]));
     xdotticksgdl->SetBufferSize(1);
     xdotticksgdl->SetDim(dimension(1));
-    DVar *xdotticks = new DVar("XTICKS", xdotticksgdl);
+    DVar *xdotticks = new DVar("XTICKS", xdotticksgdl, true);
     xdotticksIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(xdotticks);
     DLongGDL* ydotticksgdl = new DLongGDL(dimension(1), BaseGDL::NOALLOC);
     ydotticksgdl->SetBuffer((void*) &((*static_cast<DLongGDL*> (yAxis->GetTag(3, 0)))[0]));
     ydotticksgdl->SetBufferSize(1);
     ydotticksgdl->SetDim(dimension(1));
-    DVar *ydotticks = new DVar("YTICKS", ydotticksgdl);
+    DVar *ydotticks = new DVar("YTICKS", ydotticksgdl, true);
     ydotticksIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(ydotticks);
 
@@ -980,28 +952,28 @@ namespace SysVar
     xmingdl->SetBuffer((void*) &((*static_cast<DDoubleGDL*> (xAxis->GetTag(6, 0)))[0]));
     xmingdl->SetBufferSize(1);
     xmingdl->SetDim(dimension(1));
-    DVar *xmin = new DVar("XMIN", xmingdl);
+    DVar *xmin = new DVar("XMIN", xmingdl, true);
     xminIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(xmin);
     DDoubleGDL* xmaxgdl = new DDoubleGDL(dimension(1), BaseGDL::NOALLOC);
     xmaxgdl->SetBuffer((void*) &((*static_cast<DDoubleGDL*> (xAxis->GetTag(6, 0)))[1]));
     xmaxgdl->SetBufferSize(1);
     xmaxgdl->SetDim(dimension(1));
-    DVar *xmax = new DVar("XMAX", xmaxgdl);
+    DVar *xmax = new DVar("XMAX", xmaxgdl, true);
     xmaxIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(xmax);
     DDoubleGDL* ymingdl = new DDoubleGDL(dimension(1), BaseGDL::NOALLOC);
     ymingdl->SetBuffer((void*) &((*static_cast<DDoubleGDL*> (yAxis->GetTag(6, 0)))[0]));
     ymingdl->SetBufferSize(1);
     ymingdl->SetDim(dimension(1));
-    DVar *ymin = new DVar("YMIN", ymingdl);
+    DVar *ymin = new DVar("YMIN", ymingdl, true);
     yminIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(ymin);
     DDoubleGDL* ymaxgdl = new DDoubleGDL(dimension(1), BaseGDL::NOALLOC);
     ymaxgdl->SetBuffer((void*) &((*static_cast<DDoubleGDL*> (yAxis->GetTag(6, 0)))[1]));
     ymaxgdl->SetBufferSize(1);
     ymaxgdl->SetDim(dimension(1));
-    DVar *ymax = new DVar("YMAX", ymaxgdl);
+    DVar *ymax = new DVar("YMAX", ymaxgdl, true);
     ymaxIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(ymax);    
     
@@ -1009,28 +981,28 @@ namespace SysVar
     cxmingdl->SetBuffer((void*) &((*static_cast<DDoubleGDL*> (xAxis->GetTag(7, 0)))[0]));
     cxmingdl->SetBufferSize(1);
     cxmingdl->SetDim(dimension(1));
-    DVar *cxmin = new DVar("CXMIN", cxmingdl);
+    DVar *cxmin = new DVar("CXMIN", cxmingdl, true);
     cxminIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(cxmin);
     DDoubleGDL* cxmaxgdl = new DDoubleGDL(dimension(1), BaseGDL::NOALLOC);
     cxmaxgdl->SetBuffer((void*) &((*static_cast<DDoubleGDL*> (xAxis->GetTag(7, 0)))[1]));
     cxmaxgdl->SetBufferSize(1);
     cxmaxgdl->SetDim(dimension(1));
-    DVar *cxmax = new DVar("CXMAX", cxmaxgdl);
+    DVar *cxmax = new DVar("CXMAX", cxmaxgdl, true);
     cxmaxIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(cxmax);
     DDoubleGDL* cymingdl = new DDoubleGDL(dimension(1), BaseGDL::NOALLOC);
     cymingdl->SetBuffer((void*) &((*static_cast<DDoubleGDL*> (yAxis->GetTag(7, 0)))[0]));
     cymingdl->SetBufferSize(1);
     cymingdl->SetDim(dimension(1));
-    DVar *cymin = new DVar("CYMIN", cymingdl);
+    DVar *cymin = new DVar("CYMIN", cymingdl, true);
     cyminIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(cymin);
     DDoubleGDL* cymaxgdl = new DDoubleGDL(dimension(1), BaseGDL::NOALLOC);
     cymaxgdl->SetBuffer((void*) &((*static_cast<DDoubleGDL*> (yAxis->GetTag(7, 0)))[1]));
     cymaxgdl->SetBufferSize(1);
     cymaxgdl->SetDim(dimension(1));
-    DVar *cymax = new DVar("CYMAX", cymaxgdl);
+    DVar *cymax = new DVar("CYMAX", cymaxgdl, true);
     cymaxIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(cymax);    
     // !VERSION
@@ -1127,21 +1099,21 @@ namespace SysVar
     gdlerrorstatedoterror->SetBuffer((void*) &((*static_cast<DStringGDL*> (eStateData->GetTag(0, 0)))[0]));
     gdlerrorstatedoterror->SetBufferSize(1);
     gdlerrorstatedoterror->SetDim(dimension(1));
-    DVar *errorstatedoterror = new DVar("ERROR_NAME", gdlerrorstatedoterror);
+    DVar *errorstatedoterror = new DVar("ERROR_NAME", gdlerrorstatedoterror, true);
     errorstatedoterrorIx = obsoleteSysVarList.size(); //do not remove this!
     obsoleteSysVarList.push_back(errorstatedoterror); //must be in obsolete and cannot be Save/Restored.
     DStringGDL* gdlerrorstatedotmsgprefix = new DStringGDL(dimension(1), BaseGDL::NOALLOC);
     gdlerrorstatedotmsgprefix->SetBuffer((void*) &((*static_cast<DStringGDL*> (eStateData->GetTag(7, 0)))[0]));
     gdlerrorstatedotmsgprefix->SetBufferSize(1);
     gdlerrorstatedotmsgprefix->SetDim(dimension(1));
-    DVar *errorstatedotmsgprefix = new DVar("MSG_PREFIX", gdlerrorstatedotmsgprefix);
+    DVar *errorstatedotmsgprefix = new DVar("MSG_PREFIX", gdlerrorstatedotmsgprefix, true);
     errorstatedotmsgprefixIx = obsoleteSysVarList.size(); //do not remove this!
     obsoleteSysVarList.push_back(errorstatedotmsgprefix); //must be in obsolete and cannot be Save/Restored.
     DLongGDL* errorstatesyscodegdl = new DLongGDL(dimension(2), BaseGDL::NOALLOC);
     errorstatesyscodegdl->SetBuffer((void*) &((*static_cast<DLongGDL*> (eStateData->GetTag(3, 0)))[0]));
     errorstatesyscodegdl->SetBufferSize(2);
     errorstatesyscodegdl->SetDim(dimension(2));
-    DVar *errorstatesyscode = new DVar("SYSERROR", errorstatesyscodegdl);
+    DVar *errorstatesyscode = new DVar("SYSERROR", errorstatesyscodegdl, true);
     errorstatesyscodeIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(errorstatesyscode);
 

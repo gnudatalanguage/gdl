@@ -23,8 +23,8 @@
 
 using namespace std;
 
-DVar::DVar(const string& n, BaseGDL* data) :
-  name(n), d(data),callback(defaultDVarCallback)
+DVar::DVar(const string& n, BaseGDL* data, bool isacopy) : //isacopy to tell if this DVAR just points to another (used in some cases. These DVars MUST NOT be destroyed!)
+  name(n), d(data),callback(defaultDVarCallback),isAClone(isacopy)
 {}
 
 DVar::DVar() : name(), d(0) ,callback(defaultDVarCallback)
@@ -33,15 +33,18 @@ DVar::DVar() : name(), d(0) ,callback(defaultDVarCallback)
 DVar::~DVar() 
 {
   // Note: !NULL would be naturally destroyed from here at program end
-  // we explicitely preventing the deltion to be able to flag possible
+  // we explicitely preventing the deletion to be able to flag possible
   // other destructions of !NULL (which are bugs)
   //if( d != NullGDL::GetSingleInstance()) 
-  GDLDelete(d);
-}
+  if (!isAClone) GDLDelete(d);
+  name.clear();
+  d=NULL;
+  }
 
 void DVar::Delete() // for ResetObjects() to resolve COMMON/STRUCT mutual dependency
 {
-  GDLDelete( d);
+if (!isAClone)  GDLDelete( d);
+  name.clear();
   d = NULL;
 }
 

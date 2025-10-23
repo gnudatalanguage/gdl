@@ -56,6 +56,7 @@ VarListT      sysVarNoSaveList;
 FunListT      funList;
 ProListT      proList;
 
+StrArr        CurrentPathList;
 // for RESOLVE_ALL via ROUTINE_INFO
 UnknownFunListT      unknownFunList;
 UnknownProListT      unknownProList;
@@ -131,20 +132,21 @@ volatile bool useEigenForTransposeOps=false;
 //experimental TPOOL use adaptive number of threads.
 volatile bool useSmartTpool=true;
 
-void ResetObjects()
+void ResetObjects(bool atexit)
 {
-  
-  GraphicsDevice::DestroyDevices();
+  if (!atexit) GraphicsDevice::DestroyDevices(); else   GraphicsDevice::PurgeDeviceList();
 
   fileUnits.clear();
   cerr << flush; cout << flush; clog << flush;
 
   PurgeContainer(sysVarList);
-  sysVarRdOnlyList.clear(); // data is owned by sysVarList
-  obsoleteSysVarList.clear();
-  sysVarNoSaveList.clear();
+  PurgeContainer(obsoleteSysVarList); //deletion possible since all these 'clones' of some sysVarList variables are specially tagged 'isAClone'
+  sysVarRdOnlyList.clear(); // those are just pointers to already deleted vars in sysVarList. Just delete container.
+  sysVarNoSaveList.clear(); // those are just pointers to already deleted vars in sysVarList. Just delete container.
   PurgeContainer(funList);
   PurgeContainer(proList);
+  unknownFunList.clear();
+  unknownProList.clear();
 
   // delete common block data (which might be of type STRUCT)
   CommonListT::iterator i;
@@ -156,7 +158,7 @@ void ResetObjects()
  
   // should be ok now as data is already deleted //avoid purging commonlist-->crash (probably some COMMON structures already destroyed)
   PurgeContainer(commonList);
-  
+
   // don't purge library here
 //   PurgeContainer(libFunList);
 //   PurgeContainer(libProList);

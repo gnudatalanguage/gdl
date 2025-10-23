@@ -1415,8 +1415,8 @@ bool GDLWidget::InitWx() {
      wxInitialize();
   } catch (...) {return false;}
  //avoid using if no Display is present!
-  wxDisplay *d= new wxDisplay();
-  if(d->GetCount()<1) return false;
+  wxDisplay d;
+  if(d.GetCount()<1) return false;
   wxInitAllImageHandlers(); //do it here once for all
   
 #if wxCHECK_VERSION(3,1,6)
