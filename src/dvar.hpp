@@ -32,12 +32,12 @@ class DVar
 private:
   std::string     name; // the name
   BaseGDL* d;
+  bool isAClone=false;
   void (*callback)();
 public:
   DVar();
-  DVar(const std::string& n, BaseGDL* = 0); 
+  DVar(const std::string& n, BaseGDL* = 0, bool isacopy=false); 
   ~DVar();
-
   void Delete(); // for ResetObjects() to resolve COMMON/STRUCT mutual dependency
   
   const std::string& Name() const {return name;}

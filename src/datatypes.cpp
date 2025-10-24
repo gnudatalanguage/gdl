@@ -22,6 +22,8 @@
 #include <omp.h>
 #endif
 
+#define USE_PARALLEL_INITIALIZATION // see also gdlarray.cpp
+
 #include "macro_for_objects.hpp" //For macros acessing object tags, see LIST and HASH
 
 //#include "datatypes.hpp" // for friend declaration
@@ -507,6 +509,14 @@ template<class Sp>
 Data_<Sp>::Data_(const Data_& d_) : Sp(d_.dim), dd(this->dim.NDimElements(), false) { 
 //  this->dim.Purge(); //very bad, see #1537 
   SizeT sz = dd.size();
+  // using memcpy on the fixed-size buffer, when possible, apparently speeds up all
+  // 'small' operations present in all general scripting (all the small creation/ deletion of
+  // intermediary BaseGDL variables found everywhere in the code. 
+  if (Sp::IS_POD && this->NBytes() <= GDL_VAR_BUFFERSIZE){ //NBytes OK only for PODs here, anyway.
+    memcpy(&(dd[0]),&(d_[0]), sz*this->Sizeof());
+    return;
+  }
+#ifdef USE_PARALLEL_INITIALIZATION
   if ((GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION))==1) { //most frequent
     for (SizeT i = 0; i < sz; i++) dd[i] = d_.dd[i];
   } else {
@@ -514,6 +524,9 @@ Data_<Sp>::Data_(const Data_& d_) : Sp(d_.dim), dd(this->dim.NDimElements(), fal
 #pragma omp parallel for num_threads(GDL_NTHREADS)
     for (SizeT i = 0; i < sz; i++) dd[i] = d_.dd[i];
   }
+#else
+  for (SizeT i = 0; i < sz; i++) dd[i] = d_.dd[i];
+#endif
 }
 
 template<>

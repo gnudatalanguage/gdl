@@ -23,8 +23,6 @@ namespace SysVar
 {
   //  extern unsigned int pathIx, dIx;
   DFloat* GetSC();
-  // returns a StrArr with the path to search
-  const StrArr& GDLPath();
   void SetGDLPath( DString& newPath);
   void SetDlmPath( DString& newPath);
 

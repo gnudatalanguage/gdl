@@ -536,8 +536,7 @@ bool CompleteFileName(std::string& fn)
 
   if( PathGiven(fn)) return false;
 
-  StrArr path=SysVar::GDLPath();
-  if( path.size() == 0) 
+  if( CurrentPathList.size() == 0) 
   {
     std::string act = "./pro/"; // default path if no path is given
 
@@ -556,9 +555,9 @@ bool CompleteFileName(std::string& fn)
     }
   }
   else
-    for(unsigned p=0; p<path.size(); p++)
+    for(unsigned p=0; p<CurrentPathList.size(); p++)
       {
-	std::string act=path[p];
+	std::string act=CurrentPathList[p];
 	
 	AppendIfNeeded(act,lib::PathSeparator());
 	

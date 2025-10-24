@@ -21,7 +21,7 @@ calls="for k=0,limit do ret=(*small[k])"+what+"(*big[k])"
 for i=0,n_elements(what)-1 do z=execute(calls[i])
 ; big big, register time
 calls="for k=0,limit do ret=(*big[k])"+what+"(*big[k])"
-for i=0,n_elements(what)-1 do begin & clock=tic(what[i])  &  z=execute(calls[i]) &  toc,clock & endfor
+for i=0,n_elements(what)-1 do begin &s=memory(/current)& clock=tic(what[i])  & z=execute(calls[i]) &  toc,clock & print,"MemoryLoss: ",memory(/cur)-s& endfor
 end
 ; helper for repetitive test with self variable
 pro process_self,what,limit
@@ -41,7 +41,7 @@ pro process_self,what,limit
   for i=0,n_elements(what)-1 do z=execute(calls[i])
 ; big big, register time
   calls="for k=0,limit do begin & var=(*big[k]) & var"+what+"var & endfor"
-for i=0,n_elements(what)-1 do begin & clock=tic(what[i])  &  z=execute(calls[i]) &  toc,clock & endfor
+for i=0,n_elements(what)-1 do begin &s=memory(/current)& clock=tic(what[i])  & z=execute(calls[i]) &  toc,clock & print,"MemoryLoss: ",memory(/cur)-s& endfor
 end
 
 pro test_all_basic_functions, size=size, section=section
@@ -73,25 +73,25 @@ pro test_all_basic_functions, size=size, section=section
    
 ; array generation
 if (section eq 0 or section eq 1) then begin
-  command=["BYTARR","COMPLEXARR","DBLARR","DCOMPLEXARR","FLTARR","INTARR","LON64ARR","LONARR","UINTARR","ULON64ARR","ULONARR","OBJARR","PTRARR"]
-  calls="ret ="+command+"(size)"
-  for i=0,n_elements(command)-1 do begin  & clock=tic(command[i]) & z=execute(calls[i]) & toc,clock & end
+  what=["BYTARR","COMPLEXARR","DBLARR","DCOMPLEXARR","FLTARR","INTARR","LON64ARR","LONARR","UINTARR","ULON64ARR","ULONARR","OBJARR","PTRARR"]
+  calls="ret ="+what+"(size)"
+for i=0,n_elements(what)-1 do begin &s=memory(/current)& clock=tic(what[i])  & z=execute(calls[i]) &  toc,clock & print,"MemoryLoss: ",memory(/cur)-s& endfor
      print
 endif
     
 ;
 if (section eq 0 or section eq 2) then begin
-  command=["BINDGEN","CINDGEN","DCINDGEN","DINDGEN","FINDGEN","INDGEN","L64INDGEN","LINDGEN","SINDGEN","UINDGEN","UL64INDGEN","ULINDGEN"]
-  calls="ret ="+command+"(size)"
-  for i=0,n_elements(command)-1 do begin &  clock=tic(command[i]) & z=execute(calls[i]) & toc,clock & end
+  what=["BINDGEN","CINDGEN","DCINDGEN","DINDGEN","FINDGEN","INDGEN","L64INDGEN","LINDGEN","SINDGEN","UINDGEN","UL64INDGEN","ULINDGEN"]
+  calls="ret ="+what+"(size)"
+for i=0,n_elements(what)-1 do begin &s=memory(/current)& clock=tic(what[i])  & z=execute(calls[i]) &  toc,clock & print,"MemoryLoss: ",memory(/cur)-s& endfor
   print
 endif
 ; conversion
 if (section eq 0 or section eq 3) then begin
-command=["BYTE", "COMPLEX", "DCOMPLEX", "DOUBLE", "FIX", "FLOAT", $
+what=["BYTE", "COMPLEX", "DCOMPLEX", "DOUBLE", "FIX", "FLOAT", $
       "LONG", "LONG64", "ULONG", "ULONG64"]
-   calls="for k=0,all_numeric do ret="+command+"(*big[k])"
-   for i=0,n_elements(command)-1 do begin & clock=tic(command[i])  &  z=execute(calls[i]) & toc,clock & end
+   calls="for k=0,all_numeric do ret="+what+"(*big[k])"
+for i=0,n_elements(what)-1 do begin &s=memory(/current)& clock=tic(what[i])  & z=execute(calls[i]) &  toc,clock & print,"MemoryLoss: ",memory(/cur)-s& endfor
   print
 endif
 ; basic operators. They are 'optimized' inside GDL by calling
@@ -109,18 +109,17 @@ process_new,what, n_elements(what)-1
 ; operators 2
 what=[' # ',' ## ']
 calls="for k=0,all_numeric do  ret=(*big[k])"+what+"(*big[k])"
-for i=0,n_elements(what)-1 do begin & clock=tic(what[i])  &  z=execute(calls[i]) &  toc,clock & endfor
-
+for i=0,n_elements(what)-1 do begin &s=memory(/current)& clock=tic(what[i])  & z=execute(calls[i]) &  toc,clock & print,"MemoryLoss: ",memory(/cur)-s& endfor
 what=[' #= ',' ##= ']
 ; need to use another variable not to overwrite and change it big[] !
 calls="for k=0,all_numeric do begin & var=(*big[k]) & var"+what+"var & end"
-for i=0,n_elements(what)-1 do begin & clock=tic(what[i])  &  z=execute(calls[i]) &  toc,clock & endfor
+for i=0,n_elements(what)-1 do begin &s=memory(/current)& clock=tic(what[i])  & z=execute(calls[i]) &  toc,clock & print,"MemoryLoss: ",memory(/cur)-s& endfor
 
 ; operators 3
 what=[' ++ ',' -- ']
 ; need to use another variable not to overwrite and change it big[] !
 calls="for k=0,all_numeric do begin & var=(*big[k]) & var"+what+" & end"
-for i=0,n_elements(what)-1 do begin & clock=tic(what[i])  &  z=execute(calls[i]) &  toc,clock & endfor
+for i=0,n_elements(what)-1 do begin &s=memory(/current)& clock=tic(what[i])  & z=execute(calls[i]) &  toc,clock & print,"MemoryLoss: ",memory(/cur)-s& endfor
 
 ; operators 4
 what=[' AND ',' OR ',' EQ ',' NE ',' LE ',' LT ', ' GE ', ' GT ',' ^']
@@ -162,11 +161,11 @@ if (section eq 0 or section eq 5) then begin
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=logical_true(*big[k]) & toc,subclock & end ',$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=atan(*big[k],*big[k]) & toc,subclock & end ',$
    'print,what[i] & kernel=[ [0,1,0],[-1,0,1],[0,-1,0] ] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=convol(*big[k],kernel) & toc,subclock & end ',$
-   'print,what[i] & z=findgen(size) & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=interpolate(*big[k],z) & toc,subclock & end ',$
+   'print,what[i] & z=findgen(size) & for k=0,all_numeric do begin & subclock=tic(typenames[k]) &s=memory(/current) & ret=interpolate(*big[k],z) & print,"MemoryLoss: ",memory(/cur)-s & toc,subclock & end ',$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=poly_2d(*big[k],p,q) & toc,subclock & end ',$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & tvscl,(*big[k]) & toc,subclock & end ' ]
 
-for i=0,n_elements(calls)-1 do begin & clock=tic(what[i])  & z=execute(calls[i]) &  toc,clock & end
+for i=0,n_elements(calls)-1 do begin &s=memory(/current)& clock=tic(what[i])  & z=execute(calls[i]) &  toc,clock & print,"MemoryLoss: ",memory(/cur)-s& end
      print
   endif
 set_plot,olddev
@@ -192,7 +191,7 @@ if (section eq 0 or section eq 6) then begin
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=fft(*big[k]) & toc,subclock & end ',$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=fft(*big[k],dim=2) & toc,subclock & end ']
 
-for i=0,n_elements(calls)-1 do begin & clock=tic(what[i])  & z=execute(calls[i]) &  toc,clock & end
+for i=0,n_elements(calls)-1 do begin &s=memory(/current)& clock=tic(what[i])  & z=execute(calls[i]) &  toc,clock & print,"MemoryLoss: ",memory(/cur)-s& end
      print
   endif
 
@@ -216,7 +215,7 @@ if (section eq 0 or section eq 8) then begin
      'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & BYTEORDER,*big[k],/LSWAP & toc,subclock & end ',$
      'print,what[i] & x = FINDGEN(100)*0.02 & y=sin(x) & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & res=interpol(y,x,*big[k]) & toc,subclock & end ']
 
-   for i=0,n_elements(calls)-1 do begin & clock=tic(what[i])  & z=execute(calls[i]) &  toc,clock & end
+  for i=0,n_elements(calls)-1 do begin &s=memory(/current)& clock=tic(what[i])  & z=execute(calls[i]) &  toc,clock & print,"MemoryLoss: ",memory(/cur)-s& end
   print
 endif
 

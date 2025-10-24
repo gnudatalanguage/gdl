@@ -152,6 +152,7 @@ public:
 
   static void Init();
   static void DestroyDevices();
+  static void PurgeDeviceList();
   static void HandleEvents();
 
   static void LoadCT(UInt iCT);

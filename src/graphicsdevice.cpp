@@ -267,6 +267,17 @@ void GraphicsDevice::DestroyDevices()
   actDevice = NULL;
 }
 
+// this just to permit purging (in Atexit for example) without using DestroyDevices, 
+// that creates problems in this context (GDLWidget::UnInit())
+void GraphicsDevice::PurgeDeviceList()
+{
+  PurgeContainer( deviceList);
+  actDevice = NULL;
+#ifdef HAVE_LIBWXWIDGETS
+  wxUninitialize();
+#endif
+}
+
 void GraphicsDevice::DefineDStructDesc()
 {
   DStructDesc* dSysVarDesc = FindInStructList( structList, "!DEVICE");

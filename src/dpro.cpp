@@ -394,7 +394,8 @@ DSubUD::~DSubUD()
       DCommonRef* cRef=dynamic_cast<DCommonRef*>(*it);
       delete cRef; // also ok if cRef is NULL
     }
-
+  file.clear();
+  var.clear();
   labelList.Clear();
   delete tree;
   sccList.erase(this);

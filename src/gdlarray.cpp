@@ -18,9 +18,12 @@
 #include "basegdl.hpp"
 #include "dstructdesc.hpp"
 #include "gdlarray.hpp"
+
+#define USE_PARALLEL_INITIALIZATION // see also datatypes.cpp
+
 template<class T, bool IsPOD>
 T* GDLArray<T,IsPOD>::InitScalar() {
-    assert(sz <= smallArraySize);
+    assert(sz <= FixedBufferSize<T>());
     if (IsPOD) {
       return reinterpret_cast<T*> (scalarBuf);
     } else {
@@ -76,10 +79,11 @@ template<class T, bool IsPOD>
 template<class T, bool IsPOD>
   GDLArray<T,IsPOD>::GDLArray(const GDLArray& cp) : sz(cp.size()) {
     try {
-      buf = (cp.size() > smallArraySize) ? New(cp.size()) /*new T[ cp.size()]*/ : InitScalar();
+      buf = (cp.size() > FixedBufferSize<T>()) ? New(cp.size()) /*new T[ cp.size()]*/ : InitScalar();
     } catch (std::bad_alloc&) {
       ThrowGDLException("Array requires more memory than available");
     }
+#ifdef USE_PARALLEL_INITIALIZATION
     if ((GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION))==1) {
       for (SizeT i = 0; i < sz; ++i) buf[ i] = cp.buf[ i];
     } else {
@@ -87,12 +91,15 @@ template<class T, bool IsPOD>
 #pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < sz; ++i) buf[ i] = cp.buf[ i];
     }
+#else
+    for (SizeT i = 0; i < sz; ++i) buf[ i] = cp.buf[ i];
+#endif
   }
 
 template<class T, bool IsPOD>
   GDLArray<T,IsPOD>::GDLArray(SizeT s, bool dummy) : sz(s) {
     try {
-      buf = (s > smallArraySize) ? New(s) /*T[ s]*/ : InitScalar();
+      buf = (s > FixedBufferSize<T>()) ? New(s) /*T[ s]*/ : InitScalar();
     } catch (std::bad_alloc&) {
       ThrowGDLException("Array requires more memory than available");
     }
@@ -101,10 +108,11 @@ template<class T, bool IsPOD>
 template<class T, bool IsPOD>
   GDLArray<T,IsPOD>::GDLArray(T val, SizeT s) : sz(s) {
     try {
-      buf = (s > smallArraySize) ? New(s) /*T[ s]*/ : InitScalar();
+      buf = (s > FixedBufferSize<T>()) ? New(s) /*T[ s]*/ : InitScalar();
     } catch (std::bad_alloc&) {
       ThrowGDLException("Array requires more memory than available");
     }
+#ifdef USE_PARALLEL_INITIALIZATION
     if ((GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION))==1) {
       for (SizeT i = 0; i < sz; ++i) buf[ i] = val;
     } else {
@@ -112,15 +120,19 @@ template<class T, bool IsPOD>
 #pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < sz; ++i) buf[ i] = val;
     }
+#else
+    for (SizeT i = 0; i < sz; ++i) buf[ i] = val;
+#endif
   }
 
 template<class T, bool IsPOD>
   GDLArray<T,IsPOD>::GDLArray(const T* arr, SizeT s) : sz(s) {
     try {
-      buf = (s > smallArraySize) ? New(s) /*new T[ s]*/ : InitScalar();
+      buf = (s > FixedBufferSize<T>()) ? New(s) /*new T[ s]*/ : InitScalar();
     } catch (std::bad_alloc&) {
       ThrowGDLException("Array requires more memory than available");
     }
+#ifdef USE_PARALLEL_INITIALIZATION
     if ((GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION))==1) {
       for (SizeT i = 0; i < sz; ++i) buf[ i] = arr[ i];
     } else {
@@ -128,6 +140,9 @@ template<class T, bool IsPOD>
 #pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < sz; ++i) buf[ i] = arr[ i];
     }
+#else
+    for (SizeT i = 0; i < sz; ++i) buf[ i] = arr[ i];
+#endif
   }
 
 
@@ -157,6 +172,7 @@ template<class T, bool IsPOD>
     if (IsPOD) {
       std::memcpy((void*) buf, (void*) right.buf, sz * sizeof (T)); //explicitly cast the pointer to silence [-Wnontrivial-memcall] warning
     } else {
+#ifdef USE_PARALLEL_INITIALIZATION
       if ((GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION))==1) {
         for (SizeT i = 0; i < sz; ++i) buf[ i] = right.buf[ i];
       } else {
@@ -164,6 +180,9 @@ template<class T, bool IsPOD>
 #pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < sz; ++i) buf[ i] = right.buf[ i];
       }
+#else
+      for (SizeT i = 0; i < sz; ++i) buf[ i] = right.buf[ i];
+#endif
     }
   }
 
@@ -174,6 +193,7 @@ template<class T, bool IsPOD>
     if (IsPOD) {
       std::memcpy((void*) buf, (void*) right.buf, sz * sizeof (T)); //explicitly cast the pointer to silence [-Wnontrivial-memcall] warning
     } else {
+#ifdef USE_PARALLEL_INITIALIZATION
       if ((GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION))==1) {
         for (SizeT i = 0; i < sz; ++i) buf[ i] = right.buf[ i];
       } else {
@@ -181,13 +201,16 @@ template<class T, bool IsPOD>
 #pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < sz; ++i) buf[ i] = right.buf[ i];
       }
+#else
+      for (SizeT i = 0; i < sz; ++i) buf[ i] = right.buf[ i];
+#endif
     }
     return *this;
   }
 
 template<class T, bool IsPOD>
   GDLArray<T,IsPOD>& GDLArray<T,IsPOD>::operator+=(const GDLArray<T,IsPOD>& right) throw () {
-  if ((GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION))==1) {
+  if ((GDL_NTHREADS=parallelize( sz, TP_MEMORY_ACCESS))==1) {
       for (SizeT i = 0; i < sz; ++i) buf[ i] += right.buf[ i];
     } else {
       GDLARRAY_TRACEOMP(__FILE__, __LINE__)
@@ -199,7 +222,7 @@ template<class T, bool IsPOD>
 
 template<class T, bool IsPOD>
   GDLArray<T,IsPOD>& GDLArray<T,IsPOD>::operator-=(const GDLArray<T,IsPOD>& right) throw () {
-  if ((GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION))==1) {
+  if ((GDL_NTHREADS=parallelize( sz, TP_MEMORY_ACCESS))==1) {
       for (SizeT i = 0; i < sz; ++i) buf[ i] -= right.buf[ i];
     } else {
       GDLARRAY_TRACEOMP(__FILE__, __LINE__)
@@ -220,7 +243,7 @@ template<>
   }
 template<class T, bool IsPOD>
   GDLArray<T,IsPOD>& GDLArray<T,IsPOD>::operator+=(const T& right) throw () {
-  if ((GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION))==1) {
+  if ((GDL_NTHREADS=parallelize( sz, TP_MEMORY_ACCESS))==1) {
       for (SizeT i = 0; i < sz; ++i) buf[ i] += right;
     } else {
       GDLARRAY_TRACEOMP(__FILE__, __LINE__)
@@ -232,7 +255,7 @@ template<class T, bool IsPOD>
 
 template<class T, bool IsPOD>
   GDLArray<T,IsPOD>& GDLArray<T,IsPOD>::operator-=(const T& right) throw () {
-  if ((GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION))==1) {
+  if ((GDL_NTHREADS=parallelize( sz, TP_MEMORY_ACCESS))==1) {
       for (SizeT i = 0; i < sz; ++i) buf[ i] -= right;
     } else {
       GDLARRAY_TRACEOMP(__FILE__, __LINE__)
@@ -256,7 +279,7 @@ template<class T, bool IsPOD>
   {
     assert(sz == 0);
     sz = newSz;
-    if (sz > smallArraySize) {
+    if (sz > FixedBufferSize<T>()) {
       try {
         buf = New(sz) /*new T[ newSz]*/;
       }      catch (std::bad_alloc&) {
