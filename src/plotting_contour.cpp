@@ -636,7 +636,8 @@ namespace lib {
         {
           labels = new DLongGDL(dimension(nlevel), BaseGDL::ZERO);
           labels_guard.Init(labels);
-          for (SizeT i = 0; i < nlevel - 1; ++i)(*labels)[i] = (i + 1) % 2;
+          (*labels)[0]=1;
+          for (SizeT i = 1; i < nlevel; ++i) (*labels)[i] = (i - 1) % 2; //by default every other contour is labeled
           if (label) dolabels = true; //yes!
         }
         if (e->GetKW(c_linestyleIx) != NULL) {
@@ -778,6 +779,7 @@ namespace lib {
                 (oneDim) ? (PLCALLBACK::tr1) : (PLCALLBACK::tr2), (oneDim) ? (void *) &cgrid1 : (void *) &cgrid2);
               if (!dothick) gdlSetPenThickness(e, actStream);
             } else {
+              actStream->setcontlabelparam(0,0,0,0);
               actStream->cont(map, xEl, yEl, 1, xEl, 1, yEl, &(clevel[i]), 1,
                 (oneDim) ? (PLCALLBACK::tr1) : (PLCALLBACK::tr2), (oneDim) ? (void *) &cgrid1 : (void *) &cgrid2);
             }
@@ -810,6 +812,7 @@ namespace lib {
 
     virtual void post_call(EnvT*, GDLGStream * actStream) {
       if (recordPath) actStream->stransform(NULL, NULL);
+      actStream->setcontlabelparam(0,0,0,0);
       actStream->lsty(1); //reset linestyle
       actStream->sizeChar(1.0);
     }
