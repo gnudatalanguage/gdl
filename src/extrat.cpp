@@ -222,10 +222,10 @@ void ExtraT::ResolveExtra(EnvBaseT* callerIn) {
           if (entries.find(listName[i]) == entries.end()) entries[listName[i]]=listEnv.Grab(i);
         }
       }
-      extraStructDesc = new DStructDesc("$truct");
-      extraStruct = new DStructGDL(extraStructDesc);
-      if (!entries.empty()) { //dumb protection?
-        for (std::map<std::string, BaseGDL*>::iterator it=entries.begin(); it!=entries.end(); ++it) extraStruct->NewTag(it->first, it->second);
+      if (!entries.empty()) {
+        extraStructDesc = new DStructDesc("$truct");
+        extraStruct = new DStructGDL(extraStructDesc);
+        for (std::map<std::string, BaseGDL*>::iterator it = entries.begin(); it != entries.end(); ++it) extraStruct->NewTag(it->first, it->second);
       }
 
       assert(thisEnv->env.Loc(static_cast<SizeT> (pro->extraIx)) == NULL);

@@ -67,7 +67,7 @@
 
 function UNIQ, arr, index
 
-compile_opt idl2
+compile_opt idl2, hidden
 
 ON_ERROR, 2
 
@@ -75,13 +75,11 @@ ON_ERROR, 2
   if nEl le 1 then return,0
 
   if n_params() eq 1 then begin
-    ix = where(arr ne shift(arr, -1))
-    if ix[0] ne -1 then return, ix $
-    else return, nEl-1
+    ix = where(arr ne shift(arr, -1), howmuch)
+    if howmuch gt 0 then return, ix else return, nEl-1
   endif else begin
     tmp = arr[ index]
-    ix = where(tmp ne shift(tmp,-1))
-    if ix[0] ne -1 then return, index[ix] $
-    else return, nEl-1
+    ix = where(tmp ne shift(tmp,-1), howmuch)
+    if howmuch gt 0 then return, index[ix] else return, nEl-1
   endelse
 end
