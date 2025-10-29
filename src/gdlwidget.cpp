@@ -1413,6 +1413,7 @@ bool GDLWidget::InitWx() {
   // program was called from the command line (and isn't a bundle)
   try{
      wxInitialize();
+     wxGetApp().CallOnInit();
   } catch (...) {return false;}
  //avoid using if no Display is present!
   wxDisplay d;
