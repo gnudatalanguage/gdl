@@ -22,7 +22,8 @@
 
 static std::map<const char*,void*> SysFunDefinitions; 
 static std::map<const char*,void*> SysProDefinitions; 
-static std::vector<std::pair<void*, std::string> > AllDLMSymbols(64); //vector of possible function addresses and dDLM names 
+static std::map<void*, std::string> PassedVariables; 
+static std::vector<std::pair<void*, std::string> > AllDLMSymbols; //vector of possible function addresses and dDLM names 
 
 // list of memory (strings...) to be released when GDL_FreeResources() is called.
 // If each call is ended by freeing the resources, this list does not need to be private to each CallDllFunc/CallDllpro I guess.
@@ -119,6 +120,27 @@ inline void checkOK(EXPORT_VPTR v) {	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LIN
 	if (v->type == GDL_TYP_UNDEF) GDL_WillThrowAfterCleaning("Variable is undefined: <UNDEFINED>.");
 }
 
+inline EXPORT_VPTR NewNAMEDVPTR(UCHAR flag=0, EXPORT_StructDefPtr structdefptr=NULL) {	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+	EXPORT_VPTR ret = new EXPORT_VARIABLE();
+	ret->type = GDL_TYP_UNDEF;
+	ret->flags2 = 0;
+	memset(&(ret->value),0,sizeof(EXPORT_ALLTYPES));
+	ret->flags =flag;
+	if (flag & GDL_V_STRUCT  ) {
+		ret->type = GDL_TYP_STRUCT;
+		ret->flags |= GDL_V_DYNAMIC;
+		ret->flags |= GDL_V_ARR;
+		ret->value.arr= new EXPORT_ARRAY();
+		ret->value.arr->flags = GDL_A_NO_GUARD;
+		ret->value.s.sdef = structdefptr;
+	} else if (flag & GDL_V_ARR) {
+		ret->value.arr = new EXPORT_ARRAY();
+		ret->flags |= GDL_V_DYNAMIC;
+		ret->flags |= GDL_V_ARR;
+		ret->value.arr->flags = GDL_A_NO_GUARD;
+	}
+	return ret;
+}
 inline EXPORT_VPTR NewTMPVPTR(UCHAR flag=0, EXPORT_StructDefPtr structdefptr=NULL) {	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	EXPORT_VPTR ret = new EXPORT_VARIABLE();
 	ret->type = GDL_TYP_UNDEF;
@@ -157,7 +179,9 @@ inline EXPORT_VPTR NewTMPVPTRSTRUCTWithCB(EXPORT_StructDefPtr structdefptr=NULL,
 	return v;
 }
 inline EXPORT_VPTR NewTMPVPTRFromGDL(bool kw=false, bool tempo=true) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-EXPORT_VPTR ret=NewTMPVPTR(); if(kw) FreeKwList.push_back(ret); else if (tempo) FreeList.push_back(ret);
+EXPORT_VPTR ret;
+if (tempo) ret=NewTMPVPTR(); else ret=NewNAMEDVPTR(); 
+if(kw && tempo) FreeKwList.push_back(ret); else if (tempo) FreeList.push_back(ret);
 return ret;
 }	
 
@@ -777,8 +801,11 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_FindNamedVariable(char *name, int ienter){
 	return NULL;
 }
 DLL_PUBLIC char * GDL_CDECL IDL_VarName(EXPORT_VPTR v){TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+        std::map<void*, std::string>::iterator it=PassedVariables.find((void*)v);
+		if (it != PassedVariables.end())	{
+			return (char*)(it->second).c_str();
+        }
 		char* infoline=(char*) calloc(1,128);
-
 		if (v->type == GDL_TYP_UNDEF) {strncat(infoline,"<UNDEFINED> ",13); return infoline;}
 
         if ((v->flags & GDL_V_TEMP)==0) {
@@ -791,7 +818,7 @@ DLL_PUBLIC char * GDL_CDECL IDL_VarName(EXPORT_VPTR v){TRACE_ROUTINE(__FUNCTION_
 			}
 			return infoline;
 		}
-        strncat(infoline,"<Expression> ",14);
+        strncat(infoline,"<",2);
 		strncat(infoline,IDL_TypeNameFunc(v->type),9);
 		if (( v->flags & GDL_V_ARR) && (v->value.arr != NULL)) {
 			strncat(infoline,"Array[",7);
@@ -824,6 +851,7 @@ DLL_PUBLIC char * GDL_CDECL IDL_VarName(EXPORT_VPTR v){TRACE_ROUTINE(__FUNCTION_
 			}
 			strncat(infoline,")",2);
 		}
+        strncat(infoline,">",2);
 		return infoline;
 	}
 #undef DOCASE
@@ -2558,11 +2586,30 @@ DLL_PUBLIC void  GDL_CDECL IDL_Message(int code, int action, ...) {	TRACE_ROUTIN
 		}
 		if (action == EXPORT_MSG_INFO) Warning(finalMessage);
 	}
-DLL_PUBLIC void  GDL_CDECL IDL_MessageFromBlock(EXPORT_MSG_BLOCK block, int code, int action,...){if (action!=EXPORT_MSG_INFO) GDL_WillThrowAfterCleaning("exception caused by non-GDL (dlm) function call.");}//do nothing.
-DLL_PUBLIC void  GDL_CDECL IDL_MessageSyscode(int code, EXPORT_MSG_SYSCODE_T syscode_type, int syscode, int action, ...){if (action!=EXPORT_MSG_INFO) GDL_WillThrowAfterCleaning("exception caused by non-GDL (dlm) function call.");}//do nothing.
-DLL_PUBLIC void  GDL_CDECL IDL_MessageSyscodeFromBlock(EXPORT_MSG_BLOCK block, int code, EXPORT_MSG_SYSCODE_T syscode_type,  int syscode, int action, ...){if (action!=EXPORT_MSG_INFO) GDL_WillThrowAfterCleaning("exception caused by non-GDL (dlm) function call.");}
-DLL_PUBLIC void  GDL_CDECL IDL_MessageVarError(int code, EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO) GDL_WillThrowAfterCleaning("exception caused by non-GDL (dlm) function call.");}
-DLL_PUBLIC void  GDL_CDECL IDL_MessageVarErrorFromBlock(EXPORT_MSG_BLOCK block, int code, EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO) GDL_WillThrowAfterCleaning("exception caused by non-GDL (dlm) function call.");}
+//JUST IGNORE BLOCK for the moment
+DLL_PUBLIC void  GDL_CDECL IDL_MessageFromBlock(EXPORT_MSG_BLOCK block, int code, int action,...){
+	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+		std::string finalMessage = "";
+		char* s;
+			va_list args;
+			va_start(args, action);
+			s=va_arg(args,char*);
+			if (s != NULL) {
+				finalMessage += std::string(s);
+			}
+			va_end(args);
+		if (action == EXPORT_MSG_LONGJMP || EXPORT_MSG_RET) GDL_WillThrowAfterCleaning(finalMessage);
+		if (action == EXPORT_MSG_IO_LONGJMP) throw GDLIOException(finalMessage);
+		if (action == EXPORT_MSG_EXIT) {
+			Warning(finalMessage);
+			GDL_WillThrowAfterCleaning("IDL_MSG_EXIT forbidden for user-written routines.");
+		}
+		if (action == EXPORT_MSG_INFO) Warning(finalMessage);
+}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageSyscode(int code, EXPORT_MSG_SYSCODE_T syscode_type, int syscode, int action, ...){}//{if (action!=EXPORT_MSG_INFO) GDL_WillThrowAfterCleaning("exception caused by non-GDL (dlm) function call.");}//do nothing.
+DLL_PUBLIC void  GDL_CDECL IDL_MessageSyscodeFromBlock(EXPORT_MSG_BLOCK block, int code, EXPORT_MSG_SYSCODE_T syscode_type,  int syscode, int action, ...){}//{if (action!=EXPORT_MSG_INFO) GDL_WillThrowAfterCleaning("exception caused by non-GDL (dlm) function call.");}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageVarError(int code, EXPORT_VPTR var, int action){}//{if (action!=EXPORT_MSG_INFO) GDL_WillThrowAfterCleaning("exception caused by non-GDL (dlm) function call.");}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageVarErrorFromBlock(EXPORT_MSG_BLOCK block, int code, EXPORT_VPTR var, int action){}//{if (action!=EXPORT_MSG_INFO) GDL_WillThrowAfterCleaning("exception caused by non-GDL (dlm) function call.");}
 DLL_PUBLIC void  GDL_CDECL IDL_MessageResetSysvErrorState(void) {
 		try {
 			std::string command = ("message,/reset");
@@ -2982,17 +3029,27 @@ int GDL_CDECL IDL_SignalUnregister(int signo, EXPORT_SignalHandler_t func, int m
 
 	DLL_PUBLIC int GDL_CDECL IDL_SysRtnAdd(EXPORT_SYSFUN_DEF2 *defs, int is_function, int cnt) {
 		TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-		for (auto i = 0; i < cnt; ++i) {
-			const char* name=(const char*) defs[i].name;
-			void* addr=(void*)(defs[i].funct_addr.fun);
-			if (is_function){
-				if (SysFunDefinitions.count(name) > 0 ) return 1; //already done
-//				printf("%u %s %u %u %u %u\n", defs[i].funct_addr, name, defs[i].arg_min, defs[i].arg_max, defs[i].flags, defs[i].extra);
-				SysFunDefinitions[name]=addr;
-			} else {
-				if (SysProDefinitions.count(name) > 0 ) return 1;
-//				printf("%u %s %u %u %u %u\n", defs[i].funct_addr, name, defs[i].arg_min, defs[i].arg_max, defs[i].flags, defs[i].extra);
-				SysProDefinitions[name]=addr;
+		if (is_function) {
+			for (auto i = 0; i < cnt; ++i) {
+				const char* name = (const char*) defs[i].name;
+				void* addr = (void*) (defs[i].funct_addr.fun);
+//				printf("0x%x %s %u %u %u %u\n",addr, name, defs[i].arg_min, defs[i].arg_max, defs[i].flags, defs[i].extra);
+//				if (SysFunDefinitions.count(name)) {
+//					std::cerr << name << ": " << SysFunDefinitions[name] << std::endl;
+//					return 1;
+//				} //already done
+				SysFunDefinitions[name] = addr;
+			}
+		} else {
+			for (auto i = 0; i < cnt; ++i) {
+				const char* name = (const char*) defs[i].name;
+				void* addr = (void*) (defs[i].funct_addr.fun);
+//				printf("0x%x %s %u %u %u %u\n", addr, name, defs[i].arg_min, defs[i].arg_max, defs[i].flags, defs[i].extra);
+//				if (SysProDefinitions.count(name)) {
+//					std::cerr << name << ": " << SysProDefinitions[name] << std::endl;
+//					return 1;
+//				}//already done
+				SysProDefinitions[name] = addr;
 			}
 		}
 		return 1;
