@@ -68,12 +68,16 @@ namespace lib {
     int argc = e->NParam();
     EXPORT_VPTR argv[argc];
     bool tempo[argc];
-//    std::cerr<<"FUNCTION "<<MyFunName((size_t)calldllfunc)<<std::endl;
+#ifdef GDL_DEBUG
+    std::cerr<<"FUNCTION "<<MyFunName((size_t)calldllfunc)<<std::endl;
+#endif
     for (auto i = 0; i < argc; ++i) {
-//      std::cerr<<e->GetString(i)<<std::endl;
       tempo[i] = (e->GetString(i).find('>') != std::string::npos);      // tells if input parameter is temporary (expression)
       argv[i] = GDL_ToVPTR(e->GetPar(i), tempo[i]);
       if (!tempo[i]) PassedVariables[argv[i]]=e->GetString(i) ; //add to list of passed NAMED variables
+#ifdef GDL_DEBUG
+      std::cerr << e->GetString(i) << "="; if (e->GetPar(i)) e->GetPar(i)->ToStream(std::cerr); else std::cerr<<"<Undefined>"; std::cerr<<std::endl;
+#endif
     }
     char *argk = NULL;
     // keywords are passed as _REF_EXTRA struct, we just populate argk with our GDL_KEYWORDS_LIST struct
@@ -95,13 +99,19 @@ namespace lib {
             kws[i].readonly = 1;
             //pass the variable anyway using GetRefExtraList
             BaseGDL* gvar = e->GetRefExtraList((*refextra)[i]);
+            // Add var name to PassedVariables
+            kws[i].varname = e->Caller()->GetString(gvar);
             kws[i].varptr = gvar;
             if (gvar == NULL) kws[i].type = GDL_TYP_UNDEF;
           } else {
             kws[i].readonly = 0;
             kws[i].varptr = *gvarp;
             if (*gvarp == NULL) kws[i].type = GDL_TYP_UNDEF;
+            kws[i].varname = e->Caller()->GetString(*gvarp);
           }
+#ifdef GDL_DEBUG
+          std::cerr<<kws[i].name<<": "<<kws[i].varname<<"="; (kws[i].varptr)->ToStream(std::cerr);
+#endif
         }
       }
       passed.npassed = nkw;
@@ -119,7 +129,8 @@ namespace lib {
     }
     //check if some argk keywords have been returned too. A real variable must be associated to be replaced in return
     for (auto i = 0; i < nkw; ++i) {
-      if (kws[i].out != NULL) {
+        if (kws[i].out != NULL) {
+        PassedVariables.erase(kws[i].out); //remove map entry
         BaseGDL** gvarp = e->GetRefExtraListPtr((*refextra)[i]); //Ptr as the variable may not exist
         if (gvarp) { //replace parameter's value
           GDLDelete(*gvarp);
@@ -145,12 +156,16 @@ namespace lib {
     int argc = e->NParam();
     EXPORT_VPTR argv[argc];
     bool tempo[argc];
-//    std::cerr<<"PROCEDURE "<<MyProName((size_t)calldllpro)<<std::endl;
+#ifdef GDL_DEBUG
+    std::cerr<<"PROCEDURE "<<MyProName((size_t)calldllpro)<<std::endl;
+#endif
     for (auto i = 0; i < argc; ++i) {
-//      std::cerr<<e->GetString(i)<<std::endl;
       tempo[i] = (e->GetString(i).find('>') != std::string::npos);      // tells if input parameter is temporary (expression)
       argv[i] = GDL_ToVPTR(e->GetPar(i), tempo[i]);
       if (!tempo[i]) PassedVariables[argv[i]]=e->GetString(i) ; //add to list of passed NAMED variables
+#ifdef GDL_DEBUG
+      std::cerr << e->GetString(i) << "="; if (e->GetPar(i)) e->GetPar(i)->ToStream(std::cerr); else std::cerr<<"<Undefined>"; std::cerr<<std::endl;
+#endif
     }
     char *argk = NULL;
     // keywords are passed as _REF_EXTRA struct, we just populate argk with our GDL_KEYWORDS_LIST struct
@@ -172,13 +187,19 @@ namespace lib {
             kws[i].readonly = 1;
             //pass the variable anyway using GetRefExtraList
             BaseGDL* gvar = e->GetRefExtraList((*refextra)[i]);
+            // Add var name to PassedVariables
+            kws[i].varname=e->Caller()->GetString(gvar);
             kws[i].varptr = gvar;
             if (gvar == NULL) kws[i].type = GDL_TYP_UNDEF;
           } else {
             kws[i].readonly = 0;
             kws[i].varptr = *gvarp;
             if (*gvarp == NULL) kws[i].type = GDL_TYP_UNDEF;
+            kws[i].varname=e->Caller()->GetString(*gvarp);
           }
+#ifdef GDL_DEBUG
+          std::cerr<<kws[i].name<<": "<<kws[i].varname<<"="; (kws[i].varptr)->ToStream(std::cerr);
+#endif
         }
       }
       passed.npassed = nkw;

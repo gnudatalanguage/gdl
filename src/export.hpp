@@ -39,13 +39,13 @@ void* MyMalloc(size_t size){	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 }
 static std::vector<EXPORT_VPTR> FreeList;
 static std::vector<EXPORT_VPTR> FreeKwList;
-static std::vector<std::pair<EXPORT_VPTR,std::string> > ExportedNamesList;
 typedef struct {
   const char* name;
   BaseGDL* varptr; // pointer to some externally produced var if out=true
   EXPORT_VPTR out;
   UCHAR type;
   UCHAR readonly; // no associated variable
+  std::string varname; 
 } GDL_KEYWORDS_LIST;
 
 typedef struct {
@@ -792,12 +792,17 @@ extern "C" {
  case ty: {snprintf (&infoline[l], IDL_OutputFormatLen[v->type]+1, IDL_OutputFormat[v->type],v->value.what.r,v->value.what.i);  break;}
 DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_FindNamedVariable(char *name, int ienter){ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 	std::string s(name);
-	// should use std::find_if
-    for (std::vector<std::pair <EXPORT_VPTR, std::string>>::iterator it = ExportedNamesList.begin(); it != ExportedNamesList.end(); ++it) {
-				if (it->second == s) {
-					return it->first;
-				}
-	}
+		for (std::map<void*, std::string>::iterator it=PassedVariables.begin(); it !=PassedVariables.end() ; ++it) {
+			if (it->second == s) return (EXPORT_VPTR)(it->first);
+		}
+//    if (ienter) {
+//	  std::string command=s+"=0"; //define NAME
+//	  try {
+//	  DInterpreter::CallStackBack()->Interpreter()->ExecuteStringLine(command);
+//	  } catch (...) {std::cerr<<"Problem executing command: "<<command<<" ."<<std::endl; return 0;}
+//	  EXPORT_VPTR v=NewTMPVPTR();
+//	  PassedVariables[v]=s;
+//	}
 	return NULL;
 }
 DLL_PUBLIC char * GDL_CDECL IDL_VarName(EXPORT_VPTR v){TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
@@ -807,15 +812,8 @@ DLL_PUBLIC char * GDL_CDECL IDL_VarName(EXPORT_VPTR v){TRACE_ROUTINE(__FUNCTION_
         }
 		char* infoline=(char*) calloc(1,128);
 		if (v->type == GDL_TYP_UNDEF) {strncat(infoline,"<UNDEFINED> ",13); return infoline;}
-
         if ((v->flags & GDL_V_TEMP)==0) {
-			for (std::vector<std::pair <EXPORT_VPTR, std::string>>::iterator it = ExportedNamesList.begin(); it != ExportedNamesList.end(); ++it) {
-				if (it->first == v) {
-					strncat(infoline,it->second.c_str(),it->second.size());
-					break;
-				}
-				strncat(infoline,"<No Name>",10);
-			}
+		    strncat(infoline,"<No Name>",10);
 			return infoline;
 		}
         strncat(infoline,"<",2);
@@ -2456,8 +2454,9 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWProcessByOffset(int argc, EXPORT_VPTR *argv, cha
 			if (ipassed == -1) GdlExportAbsentKeyword(kw_requested[it->first], kw_result);
 			else if (ipassed >= 0) {
 				EXPORT_VPTR ret=GdlExportPresentKeyword(kw_requested[it->first], argk[it->second], kw_result);
-				if (ret != NULL) {
+			    if (ret != NULL) {
 					argk[ipassed].out=ret; //pass vptr back
+					PassedVariables[ret]=argk[ipassed].varname; //memorize GDL varname
 				}
 			}
 		}
