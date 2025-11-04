@@ -1170,28 +1170,21 @@ DLL_PUBLIC void  GDL_CDECL IDL_VarCopy(GDL_REGISTER EXPORT_VPTR src, GDL_REGISTE
 		dst->value.arr = NULL;
 	}
 	dst->type = src->type;
+	dst->flags = src->flags;
+	dst->flags2 = src->flags2;
 	dst->value = src->value; //copy pointers.
 	if (src->flags & GDL_V_STRUCT) { //must copy
 		GDL_WillThrowAfterCleaning("IDL_VarCopy not yet ready for structure, FIXME.");
 	} else if (src->flags & GDL_V_ARR) { //must copy
 		EXPORT_ARRAY *a = NewExportArray();
-		a->flags = GDL_A_NO_GUARD;
 		dst->value.arr = a;
-		dst->value.arr->n_dim = src->value.arr->n_dim;
-		dst->value.arr->n_elts = src->value.arr->n_elts;
-		for (auto i = 0; i < src->value.arr->n_dim; ++i) dst->value.arr->dim[i] = src->value.arr->dim[i];
-		dst->value.arr->elt_len = IDL_TypeSizeFunc(src->type);
-		dst->value.arr->arr_len = src->value.arr->n_elts * dst->value.arr->elt_len;
+		memcpy(dst->value.arr,src->value.arr,sizeof(EXPORT_ARRAY));
 		if (src->flags & GDL_V_TEMP) {
 			dst->value.arr->data = src->value.arr->data; //do not copy if src is temp, just pass.
 		} else {
 			void * addr = gdlAlignedMalloc(dst->value.arr->arr_len);
 			dst->value.arr->data = (UCHAR*) addr;
 			memcpy(dst->value.arr->data, src->value.arr->data, dst->value.arr->arr_len);
-		}
-		if (src->flags & GDL_V_TEMP) {
-			src->flags = GDL_V_TEMP; //only that.
-			src->type = GDL_TYP_UNDEF;
 		}
 	}
 }
@@ -1534,7 +1527,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_GettmpMEMINT(EXPORT_MEMINT value){TRACE_RO
 #undef DOIT
 
 #define DEFOUT(idl_dst_type)\
-    if (argc != 1) GDL_WillThrowAfterCleaning("IDL_CvtXXX: multiple argvuments not supported, fixme.");\
+    if (argc != 1) GDL_WillThrowAfterCleaning("IDL_CvtXXX: multiple arguments not supported, fixme.");\
 	if (argv[0]->type == idl_dst_type) return argv[0];\
 	EXPORT_VPTR ret = NewTMPVPTR(argv[0]->flags);\
 	ret->type = idl_dst_type;\
@@ -1553,6 +1546,15 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_GettmpMEMINT(EXPORT_MEMINT value){TRACE_RO
  			case idl_src_type: {\
 				const src_type *srcval=(src_type *)(srcArrayDescr->data);\
 				for (auto i=0; i< srcArrayDescr->n_elts; ++i) dstval[i]=srcval[i];\
+				break; }
+#define DOCASE_CVTBYTSCL_ARRAY(idl_src_type, src_type)\
+ 			case idl_src_type: {\
+				const src_type *srcval=(src_type *)(srcArrayDescr->data);\
+				src_type min=srcval[0];\
+				src_type max=min;\
+				for (auto i=1; i< srcArrayDescr->n_elts; ++i) { min=std::min(min,srcval[i]); max=std::max(max,srcval[i]); }\
+				src_type top=255; src_type range=max-min;\
+				for (auto i=0; i< srcArrayDescr->n_elts; ++i) dstval[i]=(top+0.999)*(srcval[i]-min)/range;\
 				break; }
 #define DOCASE_TO_CMP_ARRAY(idl_src_type, src_type)\
  			case idl_src_type: {\
@@ -1573,6 +1575,15 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_GettmpMEMINT(EXPORT_MEMINT value){TRACE_RO
  			case idl_src_type: {\
 				const src_type *srcval=(src_type *)(srcArrayDescr->data);\
 				for (auto i=0; i< srcArrayDescr->n_elts; ++i) dstval[i]=srcval[2*i];\
+				break; }
+#define DOCASE_CVTBYTSCL_ARRAY_FROM_CMP(idl_src_type, src_type)\
+ 			case idl_src_type: {\
+				const src_type *srcval=(src_type *)(srcArrayDescr->data);\
+				src_type min=srcval[0];\
+				src_type max=min;\
+				for (auto i=1; i< srcArrayDescr->n_elts; ++i) { min=std::min(min,srcval[2*i]); max=std::max(max,srcval[2*i]); }\
+				src_type top=255; src_type range=max-min;\
+				for (auto i=0; i< srcArrayDescr->n_elts; ++i) dstval[i]=(top+0.999)*(srcval[2*i]-min)/range;\
 				break; }
 #define DOCASE_TO_CMP(type, field1, field2)\
  case type: ret->value.field1.r=value.field2 ; break;
@@ -1622,37 +1633,26 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtBytscl(int argc, EXPORT_VPTR argv[], ch
 		if (argv[0]->flags & GDL_V_ARR) {
 			PREPARE_ARRAY(UCHAR);
 			switch (argv[0]->type) {
-					DOCASE_ARRAY(GDL_TYP_BYTE, UCHAR);
-					DOCASE_ARRAY(GDL_TYP_INT,  EXPORT_INT);
-					DOCASE_ARRAY(GDL_TYP_LONG, EXPORT_LONG);
-					DOCASE_ARRAY(GDL_TYP_FLOAT, float);
-					DOCASE_ARRAY(GDL_TYP_DOUBLE, double);
-					DOCASE_ARRAY_FROM_CMP(GDL_TYP_COMPLEX, float);
-					DOCASE_ARRAY_FROM_CMP(GDL_TYP_DCOMPLEX, double);
-					DOCASE_ARRAY(GDL_TYP_UINT, EXPORT_UINT);
-					DOCASE_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
-					DOCASE_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
-					DOCASE_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
+					DOCASE_CVTBYTSCL_ARRAY(GDL_TYP_BYTE, UCHAR);
+					DOCASE_CVTBYTSCL_ARRAY(GDL_TYP_INT,  EXPORT_INT);
+					DOCASE_CVTBYTSCL_ARRAY(GDL_TYP_LONG, EXPORT_LONG);
+					DOCASE_CVTBYTSCL_ARRAY(GDL_TYP_FLOAT, float);
+					DOCASE_CVTBYTSCL_ARRAY(GDL_TYP_DOUBLE, double);
+					DOCASE_CVTBYTSCL_ARRAY_FROM_CMP(GDL_TYP_COMPLEX, float);
+					DOCASE_CVTBYTSCL_ARRAY_FROM_CMP(GDL_TYP_DCOMPLEX, double);
+					DOCASE_CVTBYTSCL_ARRAY(GDL_TYP_UINT, EXPORT_UINT);
+					DOCASE_CVTBYTSCL_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
+					DOCASE_CVTBYTSCL_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
+					DOCASE_CVTBYTSCL_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
 				default: GDL_WillThrowAfterCleaning("unexpected type");
 			}
 		} else {
-			switch (argv[0]->type) {
-					DOCASE(GDL_TYP_BYTE, c, c);
-					DOCASE(GDL_TYP_INT, c, i);
-					DOCASE(GDL_TYP_LONG, c, l);
-					DOCASE(GDL_TYP_FLOAT, c, f);
-					DOCASE(GDL_TYP_DOUBLE, c, d);
-					DOCASE_FROM_CMP(GDL_TYP_COMPLEX, c, cmp);
-					DOCASE_FROM_CMP(GDL_TYP_DCOMPLEX, c, dcmp);
-					DOCASE(GDL_TYP_UINT, c, ui);
-					DOCASE(GDL_TYP_ULONG, c, ul);
-					DOCASE(GDL_TYP_LONG64, c, l64);
-					DOCASE(GDL_TYP_ULONG64, c, ul64);
-				default: GDL_WillThrowAfterCleaning("unexpected type");
-			}
+			//do nothing, CvtBytscl on 1 element gives 0
 		}
 		return ret;
 }
+#undef DOCASE_CVTBYTSCL_ARRAY_FROM_CMP
+#undef DOCASE_CVTBYTSCL_ARRAY
 
 DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtFix(int argc, EXPORT_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		checkOK(argv[0]);
