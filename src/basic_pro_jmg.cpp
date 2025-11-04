@@ -26,9 +26,6 @@
 #include "basic_pro_jmg.hpp"
 #include "gdlhelp.hpp" //for dlmInfo
 
-//#define GDL_DEBUG
-//#undef GDL_DEBUG
-
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #   include "gtdhelper.hpp" // just a workaround, using QueryPerformanceCounter is better
 typedef HMODULE handle_t;
@@ -122,7 +119,11 @@ namespace lib {
     try{
       ret = calldllfunc(argc, argv, argk);
     } catch (GDLException& e) { throw e;} 
-      catch (...) {e->Throw("error in DLM code / unsupported procedure, returning.");}
+      catch (...) {e->Throw("error in DLM code / unsupported procedure, returning.");
+    }
+    if (ret->type == GDL_TYP_UNDEF) e->Throw("Variable is undefined: <UNDEFINED>.");
+    BaseGDL* back = VPTR_ToGDL(ret, true); //protect data
+
     for (auto i = 0; i < argc; ++i) {
       if (!tempo[i]) e->SetPar(i, VPTR_ToGDL(argv[i]));
       if (!tempo[i]) PassedVariables.erase(argv[i]); //remove map entry
@@ -140,8 +141,6 @@ namespace lib {
         }
       }
     }
-    if (ret->type == GDL_TYP_UNDEF) e->Throw("Variable is undefined: <UNDEFINED>."); 
-    BaseGDL* back=VPTR_ToGDL(ret, true); //protect data
     GDL_FreeResources() ;
     return back;
   }
@@ -161,11 +160,14 @@ namespace lib {
 #endif
     for (auto i = 0; i < argc; ++i) {
       tempo[i] = (e->GetString(i).find('>') != std::string::npos);      // tells if input parameter is temporary (expression)
+#ifdef GDL_DEBUG
+      std::cerr << e->GetString(i) << "=";
+      if (e->GetPar(i)) e->GetPar(i)->ToStream(std::cerr);
+      else std::cerr << "<Undefined>";
+      std::cerr << std::endl;
+#endif
       argv[i] = GDL_ToVPTR(e->GetPar(i), tempo[i]);
       if (!tempo[i]) PassedVariables[argv[i]]=e->GetString(i) ; //add to list of passed NAMED variables
-#ifdef GDL_DEBUG
-      std::cerr << e->GetString(i) << "="; if (e->GetPar(i)) e->GetPar(i)->ToStream(std::cerr); else std::cerr<<"<Undefined>"; std::cerr<<std::endl;
-#endif
     }
     char *argk = NULL;
     // keywords are passed as _REF_EXTRA struct, we just populate argk with our GDL_KEYWORDS_LIST struct
@@ -716,7 +718,7 @@ void CleanupProc( DLibPro* proc ) {
     // if not, this would be a good place to call DllContainer::get( shrdimgName ); (see below)
   }
   
-  //linkimage is used by all DLM-related stuff, but shoul dbehave differently when called 'Ã  la DLM'.
+  //linkimage is used by all DLM-related stuff, but should behave differently when called 'a la DLM'.
   //Hence the use of DLM_INFO string array.
   
 #define COPYSTR(what)      IDL_SysvVersion.what.slen=what.length();\
