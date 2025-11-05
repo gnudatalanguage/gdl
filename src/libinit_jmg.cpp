@@ -356,5 +356,7 @@ void LibInit_jmg()
     "UNLOAD", "ALL_GDL", "STRUCT_ALIGN_BYTES","CDECL",
     "DEFAULT", "PORTABLE", "VAX_FLOAT" // obsoleted VMS
     , KLISTEND };
-  new DLibFunRetNew(lib::call_external, string("CALL_EXTERNAL"), -1, call_externalKey);
+  const string call_externalWarnKey[] = {"WRITE_WRAPPER","AUTO_GLUE","CC","COMPILE_DIRECTORY",
+    "EXTRA_FLAGS","EXTRA_CFLAGS","IGNORE_EXISTING_GLUE","LD","NOCLEANUP","SHOW_ALL_OUTPUT","VERBOSE",KLISTEND};
+  new DLibFunRetNew(lib::call_external, string("CALL_EXTERNAL"), -1, call_externalKey, call_externalWarnKey );
 }
