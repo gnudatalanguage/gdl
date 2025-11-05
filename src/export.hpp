@@ -31,25 +31,32 @@ static std::vector<std::pair<void*, std::string> > AllDLMSymbols; //vector of po
 // list of memory (strings...) to be released when GDL_FreeResources() is called.
 // If each call is ended by freeing the resources, this list does not need to be private to each CallDllFunc/CallDllpro I guess.
 static std::vector<void*> FreeAtEnd;
+
+inline void* MyMallocDestroyedOnExit(size_t size) {
+	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+			void* ret = malloc(size);
+	memset(ret, 0, size);
+	FreeAtEnd.push_back(ret);
+	return ret;
+}
+
+inline void* MyCallocDestroyedOnExit(size_t nmemb, size_t size) {
+	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+			void* ret = calloc(nmemb, size);
+	FreeAtEnd.push_back(ret);
+	return ret;
+}
+inline void MyFree(void* p) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+	free(p);
+}
 void FreeIntermediateMemory(){	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 for (auto it = FreeAtEnd.begin(); it != FreeAtEnd.end(); ++it) {
 #ifdef GDL_DEBUG
 	std::cerr<<std::hex<<"freeing #"<<(*it)<<std::endl;
 #endif  
-	free(*it);
+	MyFree(*it);
 }
 	FreeAtEnd.clear();
-}
-void* MyMallocDestroyedOnExit(size_t size){	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-	void* ret=malloc(size);
-    memset(ret,0,size);
-	FreeAtEnd.push_back(ret);
-	return ret;
-}
-void* MyCallocDestroyedOnExit(size_t nmemb, size_t size){	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-	void* ret=calloc(nmemb,size);
-	FreeAtEnd.push_back(ret);
-	return ret;
 }
 static std::vector<EXPORT_VPTR> FreeList;
 static std::vector<EXPORT_VPTR> FreeKwList;
@@ -88,9 +95,9 @@ DLL_PUBLIC void  GDL_CDECL IDL_Deltmp(GDL_REGISTER EXPORT_VPTR v) {
 		if (v->flags & GDL_V_DYNAMIC) {
 			if (v->value.arr != NULL) {
 				if (v->value.arr->free_cb != NULL) v->value.arr->free_cb(v->value.arr->data); //else free(v->value.arr->data);//No as long as we are not sure this has not been allocated by us (and released by GDL)
-				free(v->value.arr);
+				MyFree(v->value.arr);
 				v->value.arr=NULL;
-				if (v->type == GDL_TYP_STRUCT) {free(v->value.s.sdef);v->value.s.sdef=NULL;}
+				if (v->type == GDL_TYP_STRUCT) {MyFree(v->value.s.sdef);v->value.s.sdef=NULL;}
 			} else if (v->type == GDL_TYP_STRING) {
 				if (v->value.str.slen != 0 && v->value.str.stype==1) {
 					//free(v->value.str.s);//No as long as we are not sure this has not been allocated by us (and released by GDL)
@@ -1080,7 +1087,7 @@ DLL_PUBLIC void  GDL_CDECL IDL_StrDup(GDL_REGISTER EXPORT_STRING *str, GDL_REGIS
 DLL_PUBLIC void  GDL_CDECL IDL_StrDelete(EXPORT_STRING *str, EXPORT_MEMINT n) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 	for (auto i=0; i< n; ++i) {
 		if (str[i].slen > 0 && str[i].stype==1) {
-			//free(str[i].s); //No as long as we are not sure this has not been allocated by us (and released by GDL)
+			MyFree(str[i].s); //? No as long as we are not sure this has not been allocated by us (and released by GDL)
 			str[i].s=NULL;
 		}
 		str[i].slen=0;
@@ -1166,7 +1173,7 @@ DLL_PUBLIC void  GDL_CDECL IDL_VarCopy(GDL_REGISTER EXPORT_VPTR src, GDL_REGISTE
 	checkOK(src);
 	checkOK(dst);
 	if (dst->value.arr != NULL) {
-		//free(dst->value.arr->data); //No as long as we are not sure this has not been allocated by us (and released by GDL)
+		MyFree(dst->value.arr->data); // ?? No as long as we are not sure this has not been allocated by us (and released by GDL)
 		dst->value.arr = NULL;
 	}
 	dst->type = src->type;
@@ -3042,7 +3049,7 @@ DLL_PUBLIC EXPORT_MEMINT  GDL_CDECL IDL_StructTagInfoByName(EXPORT_StructDefPtr 
 		strncat(mess,"Tag name ",10);strncat(mess,name,strlen(name)+1);strncat(mess," is undefined for structure ",29);
 		if (sdef->id!=NULL && sdef->id->name !=NULL) strcat(mess,sdef->id->name); else strcat(mess,"<Anonymous>");
 		IDL_Message(EXPORT_M_GENERIC, msg_action, mess);
-		free(mess);
+		MyFree(mess);
 		return 0;
 	}
 
@@ -3055,7 +3062,7 @@ DLL_PUBLIC EXPORT_MEMINT  GDL_CDECL IDL_StructTagInfoByIndex(EXPORT_StructDefPtr
 		strncat(mess,"Tag number ",12);snprintf(mess,64,"%d",index); strncat(mess," is undefined for structure ",29);
 		if (sdef->id!=NULL && sdef->id->name !=NULL) strcat(mess,sdef->id->name); else strcat(mess,"<Anonymous>");
 		IDL_Message(EXPORT_M_GENERIC, msg_action, mess);
-		free(mess);
+		MyFree(mess);
 		return 0;
 	}
 
@@ -3068,7 +3075,7 @@ DLL_PUBLIC char * GDL_CDECL IDL_StructTagNameByIndex(EXPORT_StructDefPtr sdef, i
 		strncat(mess,"Tag number ",12);snprintf(mess,64,"%d",index); strncat(mess," is undefined for structure ",29);
 		if (sdef->id!=NULL && sdef->id->name !=NULL) strcat(mess,sdef->id->name); else strcat(mess,"<Anonymous>");
 		IDL_Message(EXPORT_M_GENERIC, msg_action, mess);
-		free(mess);
+		MyFree(mess);
 		return NULL;
 }
 
