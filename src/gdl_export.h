@@ -42,6 +42,8 @@ typedef EXPORT_ULONG EXPORT_HVID;
 #define GDL_TYP_ULONG		GDL_ULONG
 #define GDL_TYP_LONG64		GDL_LONG64
 #define GDL_TYP_ULONG64		GDL_ULONG64
+#define GDL_MAX_TYPE            15
+#define GDL_NUM_TYPES           16
 
 #define EXPORT_MEMINT	 SizeT
 #define EXPORT_FILEINT SizeT
@@ -192,6 +194,7 @@ typedef struct {
 } EXPORT_STRUCT_TAG_DEF;
 
 #define GDL_ENSURE_SIMPLE(v) IDL_VarEnsureSimple(v)
+#define GDL_EXCLUDE_FILE(v) { if ((v)->flags & GDL_V_FILE) IDL_MessageVE_NOFILE(v, EXPORT_MSG_LONGJMP); }
 
 #define GDL_KW_ARRAY (1 << 12)
 #define GDL_KW_OUT (1 << 13)
