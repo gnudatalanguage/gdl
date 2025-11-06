@@ -176,9 +176,8 @@ public:
 
     assert( *Desc() == *right.Desc());
     assert( &right != this);
-    
-    this->dim = right.dim;
-
+    this->dim = (right.dim);
+    (this->dim).MakeScalarIfOneElement();
     SizeT nTags = NTags();
     SizeT nEl   = N_Elements();
     for( SizeT e=0; e < nEl; ++e)

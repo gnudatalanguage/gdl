@@ -438,7 +438,13 @@ public:
     dim[0]=1;
     rank=1;
   }
-
+  void MakeScalarIfOneElement()
+  {
+	  if (rank==1 & dim[0]==1) {
+    dim[0]=0;
+    rank=0;
+	  }
+  }
 };
 
 #endif

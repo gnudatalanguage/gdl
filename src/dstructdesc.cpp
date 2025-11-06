@@ -207,25 +207,30 @@ bool operator==(const DStructDesc& left,
   //  if( left.parent.size() != right.parent.size()) return false;
   // compare all tag names
   // compare the tags (type and dim)
-  for( SizeT i=0; i < left.NTags(); i++)
-    {
-      //      if( left.TagName(i) != right.TagName(i)) return false;
-      if( left.tags[i]->Dim() != right.tags[i]->Dim()) return false;
-      if( left.tags[i]->Type() != right.tags[i]->Type()) return false;
-      if( left.tags[i]->Type() == GDL_STRUCT)
-	{
-	  SpDStruct* castLeft= 
-	    static_cast<SpDStruct*>(left.tags[i]);
-	  SpDStruct* castRight= 
-	    static_cast<SpDStruct*>(right.tags[i]);
-	  DStructDesc* leftD=castLeft->Desc();
-	  DStructDesc* rightD=castRight->Desc();
-	  
-	  // recursive call of operator ==
-	  if( (leftD != rightD) && !(*leftD == *rightD)) 
-	    return false;
-	}
+  for( SizeT i=0; i < left.NTags(); i++) {
+    //      if( left.TagName(i) != right.TagName(i)) return false;
+    // GD: bug #2015 insure 1-element of dimension 1 is equivalent to 1-element dimension 0 (scalar).
+    if (left.tags[i]->Dim() != right.tags[i]->Dim()) {
+      if ((left.tags[i]->Rank() <= 1 && left.tags[i]->N_Elements() == 1) //dimension 0 or 1, 1 element
+          && (right.tags[i]->Rank() <= 1 && right.tags[i]->N_Elements() == 1) //dimension 0 or 1, 1 element
+          ) {
+      }//OK 
+      else return false;
     }
+    if (left.tags[i]->Type() != right.tags[i]->Type()) return false;
+    if (left.tags[i]->Type() == GDL_STRUCT) {
+      SpDStruct* castLeft =
+          static_cast<SpDStruct*> (left.tags[i]);
+      SpDStruct* castRight =
+          static_cast<SpDStruct*> (right.tags[i]);
+      DStructDesc* leftD = castLeft->Desc();
+      DStructDesc* rightD = castRight->Desc();
+
+      // recursive call of operator ==
+      if ((leftD != rightD) && !(*leftD == *rightD))
+        return false;
+    }
+  }
   // compare all parents
   //  for( SizeT i=0; i < left.parent.size(); i++)
   //    {
