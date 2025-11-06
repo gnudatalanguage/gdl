@@ -491,6 +491,7 @@ public:
 
 //  private:
   virtual BaseGDL& operator=(const BaseGDL& right);
+  virtual BaseGDL& operator<<=(const BaseGDL& right); //for DStructGDL only
 //  public:
  
   virtual void InitFrom(const BaseGDL& right); // for structs

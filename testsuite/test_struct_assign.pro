@@ -17,6 +17,12 @@ pro test_struct_assign
   ; 
   c=CREATE_STRUCT(NAME='HasStruct', ['un','deux','trois'], [1,5], 2b, findgen(32))
   struct_assign,c,b,/nozero,/verb
+  ; issue #2083
+   a=replicate({x:{y:1}},3)
+   if size(a.x,/n_dim) ne 1 then  err++ 
+  ; issue #2105 (both ways)
+   x0 = {value:'zzzzz'} & xb={value:['test']} & test=xb & test[0]=x0 & if size(test.value,/n_dim) ne 1 then  err++
+   x0 = {value:'zzzzz'} & xb={value:['test']} & test=x0 & test[0]=xb & if size(test.value,/n_dim) ne 0 then  err++
 ;  print,err
     if err ne 0 then begin
       message, 'test FAILED with '+strtrim(err,2)+' errors', /conti

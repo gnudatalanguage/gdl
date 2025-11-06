@@ -67,6 +67,7 @@ class NullGDL: public BaseGDL
     }
 //  private:
   /*virtual*/ BaseGDL& operator=(const BaseGDL& right);
+  /*virtual*/ BaseGDL& operator<<=(const BaseGDL& right);
 //  public:
  
   /*virtual*/ void InitFrom(const BaseGDL& right); // for structs

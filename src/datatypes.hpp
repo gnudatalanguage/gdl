@@ -130,6 +130,7 @@ static	void operator delete( void *ptr);
   // operators
   // assignment. 
   Data_& operator=(const BaseGDL& right);
+  Data_& operator<<=(const BaseGDL& right);
 
   // for structs
   void InitFrom(const BaseGDL& right);
