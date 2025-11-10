@@ -45,7 +45,7 @@
 function WriteASimpleTag,unit,s
   writeu,unit,s.id,s.type,s.size
   point_lun,-unit,pos
-  writeu,unit,s.value
+  if s.type eq 3us then writeu,unit,fix(s.value) else writeu,unit,long(s.value[0])
   return, pos
 end
 pro  WritePadding,unit
@@ -60,7 +60,13 @@ pro AddtoTags,tags,index,id,type,size,value
   tags[index].id=fix(id)
   tags[index].type=fix(type)
   tags[index].size=long(size)
-  tags[index].value=long(value)
+  if type eq 3us then begin
+     case size of
+        1: tags[index].value[0]=value ; 1 long
+        2: tags[index].value=value ; 2 shrts written as long
+        else: tags[index].value=0 ; will be overwritten by offset
+     endcase
+     endif else tags[index].value[0]=value ; 1 long 
 end
 
 pro UpdateTagValueWithPosition,unit,offsettable,i
@@ -286,8 +292,7 @@ if dodcomplex then begin & image=fix(temporary(image),type=9) & bps=128 & endif 
    ;; PhotometricInterpretation
    case SamplePerPixel of
       1:   PhotometricInterpretation=1    ; Black is Zero
-      3:   PhotometricInterpretation=2    ; RGB
-      else:   PhotometricInterpretation=4 ;  ???
+      else:   PhotometricInterpretation=2 ; RGB
    endcase
    ;; Palette Image?
    doPalette=0
@@ -314,8 +319,6 @@ if dodcomplex then begin & image=fix(temporary(image),type=9) & bps=128 & endif 
    dotrange= keyword_set(dot_range)
    if dotrange then begin
       if n_elements(dot_range) ne 2 then Message,"Keyword array parameter DOT_RANGE must have 2 elements."
-      ;;trick to pass dot_range in a LONG
-      longasdotrange=long(dot_range[0]) & longasdotrange=ISHFT(longasdotrange,16) OR long(dot_range[1])
    endif
 
    ;; ICC PROFILE must be byte 1
@@ -334,19 +337,21 @@ if dodcomplex then begin & image=fix(temporary(image),type=9) & bps=128 & endif 
    if orientation eq 0 then orientation = 4
    if orientation lt 1 or orientation gt 8 then message,"Illegal keyword value for ORIENTATION."
    ;; sampleformat
-   sampleformat=samples[size(image,/type)]
+   sampleformat=replicate(samples[size(image,/type)],SamplePerPixel)
    ;; document_name
    if (n_elements(document_name) eq 0 ) then document_name=filename 
-   prop={id:0s, type:3s, size:1l, value:0l}
+   prop={id:0s, type:3s, size:1l, value:[0l,0l]} ; beware, passed value may be only 1 element and value must be short if 2 elements passed. 
    ntags=100
    tags=replicate(prop,ntags)
 
-   i=0 & AddtoTags,tags,i,256,tiffshort,1s,n ; ImageWidth
-   i++ & AddtoTags,tags,i,257,tiffshort,1s,m ; ImageHeight
+   i=0 & AddtoTags,tags,i,256,tifflong,1s,n ; ImageWidth
+   i++ & AddtoTags,tags,i,257,tifflong,1s,m ; ImageHeight
 
-if SamplePerPixel eq 1 then begin & i++ & AddtoTags,tags,i,258,tiffshort,SamplePerPixel,BitsPerSample & end ; BitsPerSample one-liner
-   if SamplePerPixel gt 1 then begin
-      i++ & AddtoTags,tags,i,258,tiffshort,SamplePerPixel,0 
+   if SamplePerPixel le 2 then begin
+      i++ & AddtoTags,tags,i,258,tiffshort,SamplePerPixel,BitsPerSample ; BitsPerSample one-liner
+      endif
+   if SamplePerPixel gt 2 then begin
+      i++ & AddtoTags,tags,i,258,tiffshort,SamplePerPixel,0 ; BitsPerSample
       BitsPerSampleIndex=i
    endif
    
@@ -388,21 +393,25 @@ if (hasypos) then begin & i++ & AddtoTags,tags,i,287,tiffrational,1s,0 & endif ;
    i++ & AddtoTags,tags,i,306,tiffascii,n_bytes(modifydate)+1,0 ; ModifyDate
    modifydateIndex=i                                            ; memo
    if (doPalette) then begin
-      i++ & AddtoTags,tags,i,320,tiffshort,3*2^BitsPerSample,0
+      i++ & AddtoTags,tags,i,320,tiffshort,3*2^BitsPerSample,0 ; colormap
       colormapindex=i
    endif
    
-if (dotrange) then begin & i++ & AddtoTags,tags,i,336,tiffshort,2,longasdotrange & endif ; DotRange
-if sampleformat ne 1 then begin
-   i++ & AddtoTags,tags,i,339,tifflong,1s,sampleformat                                   ; SampleFormat
-endif
-
+   if (dotrange) then begin & i++ & AddtoTags,tags,i,336,tiffshort,2,dot_range & endif ; DotRange
+   if SamplePerPixel le 2 then begin
+      i++ & AddtoTags,tags,i,339,tiffshort,SamplePerPixel,sampleformat  ; SampleFormat
+      endif
+   if SamplePerPixel gt 2 then begin
+      i++ & AddtoTags,tags,i,339,tiffshort,SamplePerPixel,0 ; SampleFormat
+      sampleformatindex=i
+   endif
+   
    ;;photoshop
-if (hasphotoshop) then begin & i++ & AddtoTags,tags,i,34377US,tiffbyte,n_elements(photoshop),0 & endif ; PHOTOSHOP
+   if (hasphotoshop) then begin & i++ & AddtoTags,tags,i,34377US,tiffbyte,n_elements(photoshop),0 & endif ; PHOTOSHOP
    if (hasphotoshop) then photoshopindex=i
 
    ;;icc_profile
-if (hasicc) then begin & i++ & AddtoTags,tags,i,34675US,tiffundef,n_elements(icc_profile),0 & endif ; ICC_PROFILE
+   if (hasicc) then begin & i++ & AddtoTags,tags,i,34675US,tiffundef,n_elements(icc_profile),0 & endif ; ICC_PROFILE
    if (hasicc) then iccIndex=i
    
    ntags=i+1
@@ -410,9 +419,12 @@ if (hasicc) then begin & i++ & AddtoTags,tags,i,34675US,tiffundef,n_elements(icc
    pos=replicate(0ULL,ntags)
    for i=0,ntags-1 do pos[i]=writeAsimpletag(unit,tags[i])
    WriteEndOfIFD,unit
-   if SamplePerPixel gt 1 then begin
-      UpdateTagValueWithPosition,unit,pos,BitsPerSampleIndex
+   if SamplePerPixel gt 2 then begin
+      UpdateTagValueWithPosition,unit,pos,BitsPerSampleIndex; BitsPerSample
       writeu,unit,fix(BitsPerSample)
+      WritePadding,unit
+      UpdateTagValueWithPosition,unit,pos,sampleformatindex; SampleFormat
+      writeu,unit,fix(sampleformat)
       WritePadding,unit
    endif
    UpdateTagValueWithPosition,unit,pos,XResolution
