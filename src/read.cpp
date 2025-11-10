@@ -61,7 +61,7 @@ std::stringstream accept_comma_and_complex_default_format(std::stringstream & is
 	while (is.get(c)) { //remove starting blanks, commas, tabs, newlines
 	  if (c == '(') open_brace++;
 	  if (c == ')') open_brace--;
-	  if (c != ',' && c != ' ' && c != '\t' && c != '\n') {
+	  if (c != ',' && c != ' ' && c != '\t' && c != '\n' && c != '\r') {
 		temp.put(c);
 		break;
 	  }
@@ -69,12 +69,12 @@ std::stringstream accept_comma_and_complex_default_format(std::stringstream & is
 	if (debug) std::cout << "after first while : " << temp.str() << std::endl;
 
 	while (is.get(c)) { //copy until new separator appears.
-	  if (c != ',' && c != ' ' && c != '\t' && c != '\n') {
+	  if (c != ',' && c != ' ' && c != '\t' && c != '\n' && c != '\r') {
 		if (c == '(') open_brace++;
 		if (c == ')') open_brace--;
 		temp.put(c);
 	  } else {
-		is.unget();
+		if (c != '\r' ) is.unget(); //remove cr if cr/lf
 		break;
 	  }
 	}
@@ -84,7 +84,7 @@ std::stringstream accept_comma_and_complex_default_format(std::stringstream & is
 
 	//	  if ((ielem > 10) || (ielem < -10)) break;
 
-	temp.put(' '); //put a spearator between values
+	temp.put('\n'); //put a separator between values
 
 	// this is a security if the input is really badly formatted 
 	if (loop > 5 * NToTransfer) break;
@@ -108,8 +108,6 @@ std::stringstream accept_comma_and_complex_default_format(std::istream *is, Base
   if ((parIn->Type() == GDL_COMPLEX) || (parIn->Type() == GDL_COMPLEXDBL)) flag_cplx = 1;
   SizeT NToTransfer=parIn->N_Elements();
   if (parIn->Type() == GDL_STRUCT) NToTransfer=parIn->ToTransfer();
-
-
   std::stringstream temp;
   char c;
   int loop = 0;
@@ -147,7 +145,7 @@ std::stringstream accept_comma_and_complex_default_format(std::istream *is, Base
 
 	//	  if ((ielem > 10) || (ielem < -10)) break;
 
-	temp.put(' '); //put a spearator between values
+	temp.put('\n'); //put a separator between values
 
 	// this is a security if the input is really badly formatted 
 	if (loop > 5 * NToTransfer) break;
