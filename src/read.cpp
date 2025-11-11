@@ -84,7 +84,7 @@ std::stringstream accept_comma_and_complex_default_format(std::stringstream & is
 
 	//	  if ((ielem > 10) || (ielem < -10)) break;
 
-	temp.put('\n'); //put a separator between values
+	temp.put(' '); //put a separator between values
 
 	// this is a security if the input is really badly formatted 
 	if (loop > 5 * NToTransfer) break;
@@ -145,7 +145,7 @@ std::stringstream accept_comma_and_complex_default_format(std::istream *is, Base
 
 	//	  if ((ielem > 10) || (ielem < -10)) break;
 
-	temp.put('\n'); //put a separator between values
+	temp.put(' '); //put a separator between values
 
 	// this is a security if the input is really badly formatted 
 	if (loop > 5 * NToTransfer) break;
@@ -368,7 +368,7 @@ void read_is(istream* is, EnvT* e, int parOffset) {
 			} while (strTrimLine == "" && parIn->Type() != GDL_STRING);
 
 			stringstream iss(line + "\n");
-			if (parIn->Type() != GDL_STRING) { //special treatment for decoding commas
+			if (parIn->Type() != GDL_STRING && parIn->Type() != GDL_STRUCT) { //special treatment for decoding commas
 			  std::stringstream temp=accept_comma_and_complex_default_format(iss,parIn);
 			  parIn->FromStream(temp);
 			} else { //so much simpler
@@ -382,7 +382,7 @@ void read_is(istream* is, EnvT* e, int parOffset) {
 #endif
 		  {
 
-			if (parIn->Type() != GDL_STRING) { //special treatment for decoding commas
+			if (parIn->Type() != GDL_STRING && parIn->Type() != GDL_STRUCT) { //special treatment for decoding commas
 			  std::stringstream temp=accept_comma_and_complex_default_format(is,parIn);
 			  parIn->FromStream(temp);
 			} else { //so much simpler

@@ -356,6 +356,31 @@ istream& operator>>(istream& i, Data_<SpDComplexDbl>& data_)
   return i;
 }
 
+static const std::string trimmable(" \t");
+//leading blanks
+
+  inline void trim1(std::string &s) {
+    std::size_t found = s.find_first_not_of(trimmable);
+    if (found != std::string::npos)
+      s.erase(0, found);
+    else
+      s.clear();
+  }
+  //trailing blanks
+
+  inline void trim0(std::string &s) {
+    std::size_t found = s.find_last_not_of(trimmable);
+    if (found != std::string::npos)
+      s.erase(found + 1);
+    else
+      s.clear();
+  }
+
+  inline void trim2(std::string &s) {
+    trim0(s);
+    trim1(s);
+  }
+
 istream& operator>>(istream& i, DStructGDL& data_)
 {
   SizeT nTags = data_.NTags();
@@ -370,6 +395,9 @@ istream& operator>>(istream& i, DStructGDL& data_)
 	    throw 
 	      GDLException("Internal error: Input of UNDEF struct element.");
 	  actEl->FromStream( i);
+      if (actEl->Type() == GDL_STRING) {//remove starting and ending blanks
+        trim2((*(static_cast<DStringGDL*>(actEl)))[0]);
+      }
 	}
     }
   return i;
