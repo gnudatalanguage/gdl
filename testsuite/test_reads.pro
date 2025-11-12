@@ -466,7 +466,7 @@ end
 ;
 ; -------------------------------------
 ;
-pro TEST_READSTRUCT, cumul_errors, help=help, verbose=verbose, no_exit=no_exit, test=test
+pro TEST_READS_STRUCT, cumul_errors, help=help, verbose=verbose, no_exit=no_exit, test=test
 errors=0
 ;
   rcd = {index: 0l, $
@@ -484,7 +484,7 @@ READS,data, rcd
 if  ~ICI_ARRAY_EQUAL(expected.date, rcd.date, debug=debug) then ERRORS_ADD, errors, 'case read structure'
 ; ----- final ----
 ;
-BANNER_FOR_TESTSUITE, 'TEST_READS_MIXING_TYPES', errors, /status
+BANNER_FOR_TESTSUITE, 'TEST_READS_STRUCT', errors, /status
 ERRORS_CUMUL, cumul_errors, errors
 ;
 if KEYWORD_SET(test) then STOP
@@ -516,7 +516,7 @@ TEST_READS_STRING, errors, verbose=verbose, test=test
 TEST_READS_MIXED, errors, verbose=verbose, test=test
 ;
 TEST_READS_MIXING_TYPES, errors, verbose=verbose, test=test
-TEST_READSTRUCT, errors, verbose=verbose, test=test
+TEST_READS_STRUCT, errors, verbose=verbose, test=test
 ;
 ; ----------------- final message ----------
 ;
