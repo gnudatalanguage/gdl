@@ -36,7 +36,8 @@
 #define isatty _isatty
 #endif
 
-std::stringstream accept_comma_and_complex_default_format(std::stringstream & is, BaseGDL* parIn) {
+//For STRINGS: LF is the end of the line and must be preserved.
+std::stringstream accept_comma_and_complex_default_format_string(std::stringstream & is, BaseGDL* parIn) {
   if (parIn->Type() == GDL_STRING) return std::stringstream(is.str());
 
   bool debug = false;
@@ -58,10 +59,14 @@ std::stringstream accept_comma_and_complex_default_format(std::stringstream & is
   for (int ielem = 0; ielem < NToTransfer; ++ielem) {
 
 	loop++;
-	while (is.get(c)) { //remove starting blanks, commas, tabs, newlines
-	  if (c == '(') open_brace++;
+	while (is.get(c)) { //remove starting blanks, commas, tabs
+	  if (c == '\n') {
+		temp.put(c);
+		return temp;
+      }
+      if (c == '(') open_brace++;
 	  if (c == ')') open_brace--;
-	  if (c != ',' && c != ' ' && c != '\t' && c != '\n' && c != '\r') {
+	  if (c != ',' && c != ' ' && c != '\t' && c != '\r') {
 		temp.put(c);
 		break;
 	  }
@@ -69,7 +74,7 @@ std::stringstream accept_comma_and_complex_default_format(std::stringstream & is
 	if (debug) std::cout << "after first while : " << temp.str() << std::endl;
 
 	while (is.get(c)) { //copy until new separator appears.
-	  if (c != ',' && c != ' ' && c != '\t' && c != '\n' && c != '\r') {
+	  if (c != ',' && c != ' ' && c != '\t' && c != '\r') {
 		if (c == '(') open_brace++;
 		if (c == ')') open_brace--;
 		temp.put(c);
@@ -92,12 +97,13 @@ std::stringstream accept_comma_and_complex_default_format(std::stringstream & is
   } // for loop
 
   // the way to output the content of "temp" :
-  if (debug) std::cout << "what is transmitted to processing : " << temp.str() << std::endl;
+  if (debug) std::cout << "what is transmitted to processing : \"" << temp.str() <<"\"" << std::endl;
   //	cout << "what remaind to be processed : " << is.str() << endl;
 
   return temp;
 }
-std::stringstream accept_comma_and_complex_default_format(std::istream *is, BaseGDL* parIn) {
+//for FILES:
+std::stringstream accept_comma_and_complex_default_format_file(std::istream *is, BaseGDL* parIn) {
   assert (parIn->Type() != GDL_STRING);
 
   bool debug = false;
@@ -153,7 +159,7 @@ std::stringstream accept_comma_and_complex_default_format(std::istream *is, Base
   } // for loop
 
   // the way to output the content of "temp" :
-  if (debug) std::cout << "what is transmitted to processing : " << temp.str() << std::endl;
+  if (debug) std::cout << "what is transmitted to processing : \"" << temp.str() <<"\"" << std::endl;
 
   return temp;
 }
@@ -369,7 +375,7 @@ void read_is(istream* is, EnvT* e, int parOffset) {
 
 			stringstream iss(line + "\n");
 			if (parIn->Type() != GDL_STRING && parIn->Type() != GDL_STRUCT) { //special treatment for decoding commas
-			  std::stringstream temp=accept_comma_and_complex_default_format(iss,parIn);
+			  std::stringstream temp=accept_comma_and_complex_default_format_string(iss,parIn);
 			  parIn->FromStream(temp);
 			} else { //so much simpler
 			  parIn->FromStream(iss);
@@ -383,7 +389,7 @@ void read_is(istream* is, EnvT* e, int parOffset) {
 		  {
 
 			if (parIn->Type() != GDL_STRING && parIn->Type() != GDL_STRUCT) { //special treatment for decoding commas
-			  std::stringstream temp=accept_comma_and_complex_default_format(is,parIn);
+			  std::stringstream temp=accept_comma_and_complex_default_format_file(is,parIn);
 			  parIn->FromStream(temp);
 			} else { //so much simpler
 			  parIn->FromStream(*is);
@@ -462,8 +468,8 @@ void read_is(istream* is, EnvT* e, int parOffset) {
 			parIn = *par;
 		  }
 
-		  if (parIn->Type() != GDL_STRING) { //special treatment for decoding commas
-			std::stringstream temp=accept_comma_and_complex_default_format(is,parIn);
+		  if (parIn->Type() != GDL_STRING && parIn->Type() != GDL_STRUCT) { //special treatment for decoding commas
+			std::stringstream temp=accept_comma_and_complex_default_format_string(is,parIn);
 			parIn->FromStream(temp);
 		  } else { //so much simpler
 			parIn->FromStream(is);

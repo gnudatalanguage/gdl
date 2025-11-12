@@ -66,6 +66,35 @@ end
 ;
 ; --------------------------------------------------------
 ;
+pro TEST_READS_STRUCT_2, verbose=verbose, no_erase=no_erase, errors=errors
+;
+lf=string(10b)
+data = replicate({x: 0, y:''}, 2)
+inarray=' 1 a          '+lf+' 2             b '+lf
+filename="inarray.txt"
+openw,fd,filename,/get_lun
+printf,fd,inarray
+CLOSE, fd
+openr,fd,filename
+ok=EXECUTE('READF, fd, data')
+;
+if ~ok then ERRORS_ADD, errors, 'EXECUTE failed !'
+if total(data.y eq [' a          ','             b ']) ne 2 then ERRORS_ADD, errors, 'bad values !'
+CLOSE, fd
+FREE_LUN, fd
+if NOT(KEYWORD_SET(no_erase)) then FILE_DELETE,filename
+;
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, 'TEST_READS_STRUCT_2', errors, /status
+ERRORS_CUMUL, cumul_errors, errors
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
+; --------------------------------------------------------
+;
 pro MINIREREADF, filename
 ;
 if N_PARAMS() EQ 0 then begin
@@ -186,6 +215,7 @@ TESTREADF, verbose=verbose, no_erase=no_erase, errors=errors, type='LF'
 TESTREADF, verbose=verbose, no_erase=no_erase, errors=errors, type='CRLF'
 ;
 TEST_BUG_573, verbose=verbose, no_erase=no_erase, errors=errors
+TEST_READS_STRUCT_2, verbose=verbose, no_erase=no_erase, errors=errors
 ;
 if ~KEYWORD_SET(no_exit) then begin
    if (errors GT 0) then EXIT, status=1
