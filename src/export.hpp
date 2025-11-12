@@ -3046,7 +3046,7 @@ DLL_PUBLIC EXPORT_MEMINT  GDL_CDECL IDL_StructTagInfoByName(EXPORT_StructDefPtr 
 			return sdef->tags[i].offset;
 		}
 		char* mess=(char*)calloc(256,1);
-		strncat(mess,"Tag name ",10);strncat(mess,name,strlen(name)+1);strncat(mess," is undefined for structure ",29);
+		strncat(mess,"Tag name ",10);strncat(mess,name,l+1);strncat(mess," is undefined for structure ",29);
 		if (sdef->id!=NULL && sdef->id->name !=NULL) strcat(mess,sdef->id->name); else strcat(mess,"<Anonymous>");
 		IDL_Message(EXPORT_M_GENERIC, msg_action, mess);
 		MyFree(mess);
