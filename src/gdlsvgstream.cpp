@@ -126,7 +126,7 @@ std::string GDLSVGStream::svg_to_png64(int width,int height,
    {
      *error=1;
        cerr<<"unable to create temporary file \""<<filename<<"\" for svg image"<<endl;
-       return NULL;
+       return std::string();
    } 
    
    fp = fdopen(fd,"w+");
@@ -134,7 +134,7 @@ std::string GDLSVGStream::svg_to_png64(int width,int height,
    {
      *error=1;
        cerr<<"unable to open temporary file \""<<filename<<"\" for svg image"<<endl;
-       return NULL;
+       return std::string();
    } 
    
    /* Create and initialize the png_struct with the desired error handler
@@ -150,7 +150,7 @@ std::string GDLSVGStream::svg_to_png64(int width,int height,
        fclose(fp);
        unlink(filename);
      *error=1;
-       return NULL;
+       return std::string();
    }
 
    /* Allocate/initialize the image information data.  REQUIRED */
@@ -161,7 +161,7 @@ std::string GDLSVGStream::svg_to_png64(int width,int height,
        unlink(filename);
        png_destroy_write_struct(&png_ptr,  (png_infopp)NULL);
      *error=1;
-       return NULL;
+       return std::string();
    }
 
    /* Set error handling.  REQUIRED if you aren't supplying your own
@@ -174,7 +174,7 @@ std::string GDLSVGStream::svg_to_png64(int width,int height,
        unlink(filename);
        png_destroy_write_struct(&png_ptr, &info_ptr);
      *error=1;
-       return NULL;
+       return std::string();
    }
 
 
