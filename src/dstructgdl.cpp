@@ -442,14 +442,14 @@ void DStructGDL::AssignAtIx( RangeT ixR, BaseGDL* srcIn)
     //(*this)[ix] = (*static_cast<Data_*>(srcIn))[0];
     for( SizeT tagIx=0; tagIx<nTags; ++tagIx)
       {
-	*GetTag( tagIx, ix) <<= *src->GetTag( tagIx); //note special operator
+	*GetTag( tagIx, ix) = *src->GetTag( tagIx);
       }
     return;
   } // ixR >= 0
   //(*this)[ixR] = (*static_cast<Data_*>(srcIn))[0];
   for( SizeT tagIx=0; tagIx<nTags; ++tagIx)
     {
-      *GetTag( tagIx, ixR) <<= *src->GetTag( tagIx); //note special operator
+      *GetTag( tagIx, ixR) = *src->GetTag( tagIx);
     }
 }
 void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList) 
@@ -477,7 +477,7 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 		{
 // 		  delete dd[cTag+tagIx];
 // 		  dd[ cTag+tagIx]=src->dd[tagIx]->Dup();
-		  *GetTag( tagIx, c) = *src->GetTag( tagIx); //may need special operator <<= TBC
+		  *GetTag( tagIx, c) = *src->GetTag( tagIx);
 		}
 	    }
 	}
@@ -494,7 +494,7 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 		{
 // 		  delete dd[cTag+tagIx];
 // 		  dd[ cTag+tagIx]=src->dd[tagIx]->Dup();
-		  *GetTag( tagIx, cTag) = *src->GetTag( tagIx); //may need special operator <<= TBC
+		  *GetTag( tagIx, cTag) = *src->GetTag( tagIx);
 		}
 	    }
 	}
@@ -517,7 +517,7 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 		{
 // 		  delete dd[cTag+tagIx];
 // 		  dd[ cTag+tagIx]=src->dd[srcTag+tagIx]->Dup();
-		  *GetTag( tagIx, c) = *src->GetTag( tagIx, c); //may need special operator <<= TBC
+		  *GetTag( tagIx, c) = *src->GetTag( tagIx, c);
 		}
 	    }
  	}
@@ -546,7 +546,7 @@ void DStructGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 		    {
 // 		      delete dd[cTag+tagIx];
 // 		      dd[ cTag+tagIx]=src->dd[srcTag+tagIx]->Dup();
-		      *GetTag( tagIx, cTag) = *src->GetTag( tagIx, c); //may need special operator <<= TBC
+		      *GetTag( tagIx, cTag) = *src->GetTag( tagIx, c);
 		    }
 		}
 	    }
@@ -577,7 +577,7 @@ void DStructGDL::AssignAt( BaseGDL* srcIn)
 	    {
 	      // 		  delete dd[cTag+tagIx];
 	      // 		  dd[ cTag+tagIx]=src->dd[tagIx]->Dup();
-	      *GetTag( tagIx, c) = *src->GetTag( tagIx); //may need special operator <<= TBC
+	      *GetTag( tagIx, c) = *src->GetTag( tagIx);
 	    }
 	}
     }
@@ -599,7 +599,7 @@ void DStructGDL::AssignAt( BaseGDL* srcIn)
 	    {
 	      // 		  delete dd[cTag+tagIx];
 	      // 		  dd[ cTag+tagIx]=src->dd[srcTag+tagIx]->Dup();
-	      *GetTag( tagIx, c) = *src->GetTag( tagIx, c); //may need special operator <<= TBC
+	      *GetTag( tagIx, c) = *src->GetTag( tagIx, c);
 	    }
 	}
     }
