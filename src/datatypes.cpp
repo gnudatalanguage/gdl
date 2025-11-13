@@ -1837,18 +1837,7 @@ Data_<SpDComplex>::Ty Data_<SpDComplex>::Sum() const { TRACE_ROUTINE(__FUNCTION_
 // typename Data_<Sp>::Ty& Data_<Sp>::operator[] (const SizeT d1) 
 // {  return (*this)[d1];}
 
-// really only used from DStructGDL -- only to provide a solution to #2105
-template<class Sp>
-Data_<Sp>& Data_<Sp>::operator<<=(const BaseGDL& r) {
-  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-  assert(r.Type() == this->Type());
-  const Data_<Sp>& right = static_cast<const Data_<Sp>&> (r);
-  assert(&right != this);
-  // this->dim = right.dim; //only for the special case #2105
-  dd = right.dd;
-  return *this;
-}
-// only used from DStructGDL ?
+// only used from DStructGDL
 template<class Sp> 
 Data_<Sp>&  Data_<Sp>::operator=(const BaseGDL& r)
 { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)

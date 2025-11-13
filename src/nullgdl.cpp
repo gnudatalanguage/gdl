@@ -67,10 +67,7 @@ BaseGDL& NullGDL::operator=(const BaseGDL& right)
 {
   return *this;
 }
-BaseGDL& NullGDL::operator<<=(const BaseGDL& right)
-{
-  throw GDLException("NullGDL::operator<<=(const BaseGDL& right) called.");
-}
+
 void  NullGDL::InitFrom(const BaseGDL& right)
 {
   throw GDLException("NullGDL::InitFrom(const BaseGDL& right) called.");
