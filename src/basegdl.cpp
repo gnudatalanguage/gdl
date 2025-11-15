@@ -55,7 +55,10 @@ BaseGDL& BaseGDL::operator=(const BaseGDL& right)
   this->dim = right.dim;
   return *this;
 }
-
+BaseGDL& BaseGDL::operator<<=(const BaseGDL& right)
+{
+  throw GDLException("BaseGDL::operator<<=(const BaseGDL& right) called.");
+}
 void  BaseGDL::InitFrom(const BaseGDL& right)
 {
   throw GDLException("BaseGDL::InitFrom(const BaseGDL& right) called.");
