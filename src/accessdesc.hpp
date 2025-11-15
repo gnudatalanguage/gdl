@@ -288,18 +288,19 @@ private:
   SizeT d;
   for (d = 0; d < nDot; ++d) {
    if (ix[d] == NULL) { // loop over all elements
-    if (dStruct[d]->N_Elements() > 1) dim >> dStruct[d]->Dim();
+    if (dStruct[d]->N_Elements() > 1) dim >> dStruct[d]->Dim(); //increase dimensionality only if meaningful (more than 1 element)
    } else {
     ix[d]->SetVariable(dStruct[d]);
-    if (ix[d]->N_Elements() > 1)      dim >> ix[d]->GetDim();
+    if (ix[d]->N_Elements() > 1)      dim >> ix[d]->GetDim(); //increase dimensionality only if meaningful (more than 1 element)
    }
   }
   //     dimension topDim;
   if (ix[d] == NULL) 
-  { // loop over all elements
-   // 	topDim=top->Dim();
-   // 	dim >> topDim;
-   dim >> top->Dim();
+  {
+	  //issue #2083: ONLY in case the tag is a struct of dimension 1 (a "scalar" struct), 
+	  // this dimension is treated by IDL as 'degenerate' and does
+	  // not add to the result's rank.
+   if (!(top->Type()==GDL_STRUCT && top->Rank() == 1 && top->N_Elements() == 1) ) dim >> top->Dim();
   } 
   else 
   {
