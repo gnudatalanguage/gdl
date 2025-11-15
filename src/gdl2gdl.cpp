@@ -232,7 +232,7 @@ messageBoxHandle StartIndividualClientMessageChannel(std::string & name){
 	strncpy(namet,name.c_str(),l);
     // Send the send right to the bootstrap server, so that it can be looked up by other processes.
     messageBoxHandle h;
-    kr = bootstrap_register(bootstrap_port, namet, port  );
+    kr = bootstrap_check_in(bootstrap_port, namet, &port  );
     if (kr != KERN_SUCCESS) {
         printf("bootstrap_register() failed with code 0x%x\n", kr);
 	    throw GDLException("gdl Server error");
