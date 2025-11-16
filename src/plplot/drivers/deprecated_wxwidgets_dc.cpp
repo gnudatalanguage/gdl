@@ -344,7 +344,7 @@ void wxPLDevDC::PSDrawTextToDC( char* utf8_string, bool drawText )
 //    SelfTransform3D(&posX, &posY);
 //    printf( "%i %i\n",posX,posY );
     
-    wxString str( wxConvUTF8.cMB2WC( utf8_string ), *wxConvCurrent );
+    wxString str( utf8_string , wxConvUTF8 );
 
     m_dc->GetTextExtent( str, &w, &h, &d, &l );
 
