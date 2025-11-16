@@ -2898,7 +2898,7 @@ static  BaseGDL* hash_create( EnvT* e, bool isordered=false)
         BaseGDL* p1 = e->GetParDefined( 1);
         // n_elements of 1 dictates behaviour:
         if (p1->N_Elements() > 1) {
-          if (p0->N_Elements() > 1 & (p0->N_Elements() != p1->N_Elements())) e->Throw("Key and Value must have the same number of elements.");
+          if (p0->N_Elements() > 1 && (p0->N_Elements() != p1->N_Elements())) e->Throw("Key and Value must have the same number of elements.");
         }
 	  } else { 
 	  if (nParam % 2 != 0) e->Throw("Incorrect number of arguments.");

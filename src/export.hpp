@@ -131,7 +131,7 @@ void GDL_FreeResources() {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	bool message = true;
     FreeIntermediateMemory();
     for (auto it = FreeList.begin(); it != FreeList.end(); ++it) {
-		if ((*it)->flags & GDL_V_TEMP != 0) continue;
+		if ((*it)->flags & GDL_V_TEMP) continue;
 		if ((*it)->flags & GDL_V_DYNAMIC) {
 			if (message) { message=false;
 				Message("Temporary variables are still checked out - cleaning up...");

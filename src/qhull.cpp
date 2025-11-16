@@ -272,7 +272,7 @@ int output_qhull_voronoi_local(Qhull* qhull, ostream* out, const char *outputfla
     static int delaunayIx=e->KeywordIx("DELAUNAY");
     bool isDelaunay= ( e->KeywordSet(delaunayIx) || isVoronoi); //switch to delaunay if a voronoi keyword is set
 
-    if(isConn & !isDelaunay) e->Throw("Keyword CONNECTIVITY requires the presence of keyword DELAUNAY/SPHERE.\nSPHERE is not implemented yet.");        
+    if(isConn && !isDelaunay) e->Throw("Keyword CONNECTIVITY requires the presence of keyword DELAUNAY/SPHERE.\nSPHERE is not implemented yet.");        
     if(isSphere) e->Throw("SPHERE is not implemented yet.");
 
     int nParam = e->NParam(2);
