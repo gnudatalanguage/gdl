@@ -305,7 +305,7 @@ namespace lib {
     
     if (status != 0) {
       
-      if ((status == -31) | (status == 2)) 
+      if ((status == -31) || (status == 2)) 
 	{
 	  // before any NetCDF stuff, we check whether the file exists ...
 	  if (!is_readable(s))

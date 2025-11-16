@@ -4628,7 +4628,7 @@ namespace lib {
 
       bool iseven = ((size % 2) == 0 && e->KeywordSet(evenIx));
 
-      if (p0->Type() == GDL_BYTE && twoD && oddsize & !rectangular) {
+      if (p0->Type() == GDL_BYTE && twoD && oddsize && !rectangular) {
         // for this special case we apply the constant-time algorithm described in Perreault et al,
         // Published in the September 2007 issue of IEEE Transactions on Image Processing. DOI: 10.1109/TIP.2007.902329
         DByteGDL* data = e->GetParAs<DByteGDL>(0);
