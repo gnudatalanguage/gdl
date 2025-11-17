@@ -17,31 +17,6 @@
  *                                                                         *
  ***************************************************************************/
 
-/*
-
-  Using the Erfs functions and Gammas function provides by GSL
-
-  ----------------------- Warning -------------
-
-  Since Erfs and Gammas functions are clones derivated from the first one,
-  please propagates bugs' correction and improvements.
-  Do not know how to simplified :-(
-
-  ----------------------- Note -------------
-
-  See http://www.netlib.org/specfun/erf for further details on how processing Erfcx.
-
-  ----------------------- Note ----------------
-
-  Variables are double because of the GSL.
-
-  ----------------------- Note ----------------
-
-  ExpInt code is partially adapted from Numerical Recipes in C, section 6.3.
-  See http://www.nrbook.com/b/bookcpdf/c6-3.pdf
-
-*/
-
 // Constants -----------------------------------------------------------------
 #define GM_EPS   1.0e-6
 #define GM_ITER  50
@@ -49,30 +24,6 @@
 
 // Macros --------------------------------------------------------------------
 #define GM_MIN(a, b) ((a) < (b) ? (a) : (b))
-
-/*
-  Table 3-115: IDL Type Codes and Names (IDL Help)
-  ================================================
-
-  Type Code | Type Name | Data Type
-  -------------------------------------------------
-  0     | UNDEFINED | Undefined
-  1     | GDL_BYTE      | Byte
-  2     | GDL_INT       | Integer
-  3     | GDL_LONG      | Longword integer
-  4     | GDL_FLOAT     | Floating point
-  5     | GDL_DOUBLE    | Double-precision floating
-  6     | GDL_COMPLEX   | Complex floating
-  7     | GDL_STRING    | String
-  8     | GDL_STRUCT    | Structure
-  9     | DCOMPLEX  | Double-precision complex
-  10     | POINTER   | Pointer
-  11     | OBJREF    | Object reference
-  12     | GDL_UINT      | Unsigned Integer
-  13     | GDL_ULONG     | Unsigned Longword Integer
-  14     | GDL_LONG64    | 64-bit Integer
-  15     | GDL_ULONG64   | Unsigned 64-bit Integer
-*/
 
 // Macros GM_xPy(a): - x must be replaced by the desired type code in the table above (set it to 2 if you want to get an int, etc.);
 //                   - P means parameter, don't replace it;
@@ -230,34 +181,6 @@ using std::isnan;
   double gm_expint(int n, double x);
   double gm_lentz(double a[], double b[], double tiny, int n, double eps);
 
-  BaseGDL* erf_fun(EnvT* e)
-  {
-    GM_CheckComplex_P0(1);
-    GM_5P0(1);
-    GM_DF1();
-    GM_NaN_Inf();
-
-    for (SizeT c = 0; c < nElp0; ++c)
-    {
-        if ((*p0)[c] == d_infinity)
-            (*res)[c] = 1.0;
-        else if ((*p0)[c] == -d_infinity)
-            (*res)[c] = -1.0;
-        else if (isnan((*p0)[c]) == 1)
-            (*res)[c] = d_nan;
-        else
-            (*res)[c] = gsl_sf_erf((*p0)[c]);
-    }
-
-    GM_CV1();
-  } // erf_fun
-
-    // ERRORF is the IDL old name of the ERF function. It is implemented to keep old syntax active.
-  BaseGDL* errorf_fun(EnvT* e)
-  {
-    return erf_fun(e);
-  } // errorf_fun
-
   // this a separable function : GAUSSINT(a,b)=GAUSSINT(a)*GAUSSINT(b)
   BaseGDL* gaussint_fun(EnvT* e)
   {
@@ -359,28 +282,6 @@ using std::isnan;
     GM_CV2();
 
   } // gaussint_fun
-
-  BaseGDL* erfc_fun(EnvT* e)
-  {
-    GM_CheckComplex_P0(1);
-    GM_5P0(1);
-    GM_DF1();
-    GM_NaN_Inf();
-
-    for (SizeT c = 0; c < nElp0; ++c)
-    {
-        if ((*p0)[c] == d_infinity)
-            (*res)[c] = 0.0;
-        else if ((*p0)[c] == -d_infinity)
-            (*res)[c] = 2.0;
-        else if (isnan((*p0)[c]) == 1)
-            (*res)[c] = d_nan;
-        else
-            (*res)[c] = gsl_sf_erfc((*p0)[c]);
-    }
-
-    GM_CV1();
-  } // erfc_fun
 
   BaseGDL* gamma_fun(EnvT* e)
   {

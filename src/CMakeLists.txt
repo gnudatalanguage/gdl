@@ -57,8 +57,10 @@ dstructgdl.cpp
 dvar.cpp
 eigenvalues_solvers.cpp
 envt.cpp
+errorfunctions.cpp
 extrat.cpp
 exists_fun.cpp
+faddeeva/Faddeeva.cc
 fftw.cpp
 file.cpp
 fmtnode.cpp
@@ -115,6 +117,7 @@ libinit.cpp
 libinit_ac.cpp
 libinit_cl.cpp
 libinit_gm.cpp
+libinit_errorfunctions.cpp
 libinit_jmg.cpp
 libinit_mes.cpp
 libinit_ng.cpp
