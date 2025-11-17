@@ -34,7 +34,7 @@
 #include "math_fun.hpp"
 #include "math_fun_ac.hpp"
 #include "math_fun_gm.hpp"
-#include "math_fun_ng.hpp"
+#include "errorfunctions.hpp"
 #include "plotting.hpp"
 #include "sorting.hpp"
 
@@ -72,6 +72,7 @@ void LibInit_cl(); // libinit_cl.cpp
 void LibInit_mes(); // libinit_mes.cpp
 void LibInit_ac(); // libinit_ac.cpp
 void LibInit_gm(); // libinit_gm.cpp
+void LibInit_errorfunctions(); //libinit_errorfunctions.cpp
 void LibInit_ng(); // libinit_ng.cpp
 void LibInit_jp(); // libinit_jp.cpp
 void LibInit_exists(); // libinit_exists.cpp
@@ -85,7 +86,8 @@ void LibInit()
   LibInit_ac();
   LibInit_gm();
   LibInit_ng(); 
-  LibInit_jp(); //absence of wxWidgets will trigger a message for each finction using widgets.
+  LibInit_jp(); //absence of wxWidgets will trigger a message for each function using widgets.
+  LibInit_errorfunctions();
   LibInit_exists();
 
   const char KLISTEND[] = "";

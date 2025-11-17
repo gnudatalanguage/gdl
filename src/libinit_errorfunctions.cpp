@@ -1,10 +1,10 @@
 /***************************************************************************
-                          math_fun_gm.cpp  -  math GDL library function (GM)
+                          libinit_errorfunctions.cpp  -  a math GDL library function
                              -------------------
-    begin                : 03 May 2007
-    copyright            : (C) 2007 by Gregory Marchal
-    email                : gregory.marchal_at_obspm.fr
-    website              : http://format.obspm.fr/~m1/gmarchal/
+    begin                : 
+    copyright            : 
+    email                : 
+    website              : 
 
 ****************************************************************************/
 
@@ -17,17 +17,20 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "envt.hpp"
+#include "includefirst.hpp"
 
-namespace lib {
+#include "errorfunctions.hpp"
 
-  BaseGDL* gamma_fun( EnvT* e);
-  BaseGDL* lngamma_fun( EnvT* e);
-  BaseGDL* igamma_fun( EnvT* e);
-  BaseGDL* beta_fun( EnvT* e);
-  BaseGDL* ibeta_fun( EnvT* e);
-  BaseGDL* expint_fun( EnvT* e);
-  BaseGDL* gaussint_fun( EnvT* e);
+using namespace std;
 
-} // namespace
+void LibInit_errorfunctions()
+{
+  new DLibFunRetNewTP(lib::erf_fun,string("ERF"),1);  //UsesThreadPOOL 
+  new DLibFunRetNew(lib::errorf_fun,string("ERRORF"),1);
+  new DLibFunRetNewTP(lib::erfc_fun,string("ERFC"),1);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::erfi_fun,string("ERFI"),1);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::erfcx_fun,string("ERFCX"),1);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::dawson_fun,string("DAWSON"),1);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::faddeeva_fun,string("FADDEEVA"),1);  //UsesThreadPOOL
+}
 

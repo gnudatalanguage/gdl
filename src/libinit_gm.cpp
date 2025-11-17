@@ -20,7 +20,6 @@
 #include "includefirst.hpp"
 
 #if defined(HAVE_LIBGSL)
-#include <gsl/gsl_sf_erf.h>
 #include <gsl/gsl_sf_gamma.h>
 #endif
 
@@ -33,15 +32,6 @@ void LibInit_gm()
   const char KLISTEND[] = "";
 
 #if defined(HAVE_LIBGSL)
-
-  const string erfKey[]={"DOUBLE",KLISTEND};
-  new DLibFunRetNewTP(lib::erf_fun,string("ERF"),1,erfKey);  //UsesThreadPOOL 
-
-  const string errorfKey[]={"DOUBLE",KLISTEND};
-  new DLibFunRetNew(lib::errorf_fun,string("ERRORF"),1,errorfKey);
-
-  const string erfcKey[]={"DOUBLE",KLISTEND};
-  new DLibFunRetNewTP(lib::erfc_fun,string("ERFC"),1,erfcKey);  //UsesThreadPOOL 
 
   const string gammaKey[]={"DOUBLE",KLISTEND};
   new DLibFunRetNewTP(lib::gamma_fun,string("GAMMA"),1,gammaKey);  //UsesThreadPOOL 
