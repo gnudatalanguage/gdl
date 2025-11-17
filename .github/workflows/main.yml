@@ -109,17 +109,29 @@ jobs:
           replacesArtifacts: true
           commit: ${{ github.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
-  build-linux-macos:
-    runs-on: ${{ matrix.os }}
-    needs: prelude
+
+  flatpak:
+    name: "Flatpak"
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:kde-6.10
+      options: --privileged
     strategy:
-      fail-fast: false
-      matrix: ${{ fromJson(needs.prelude.outputs.matrix-others) }}
-    env:
-      DEPS: ${{ matrix.deps }}
-      Configuration: ${{ matrix.configuration }}
-      ROOT_DIR: ${{ github.workspace }}/..
+      matrix:
+        variant:
+          - arch: x86_64
+            runner: ubuntu-24.04
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.variant.runner }}
     steps:
+      - uses: actions/checkout@v4
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: gdl.flatpak
+          manifest-path: org.gnome.zbrown.Palette.yml #certainly NOT that, just a test
+          cache-key: flatpak-builder-${{ github.sha }}
+          arch: ${{ matrix.variant.arch }}
+          verbose: true
       - name: Checkout GDL
         uses: actions/checkout@v4
         with:
@@ -127,14 +139,7 @@ jobs:
           fetch-depth: 0
       - name: Install Dependencies
         run: |
-          scripts/build_gdl.sh prep
-#      - name: Set HDF path on macOS usin brew
-#        # https://stackoverflow.com/questions/66741778/how-to-install-h5py-needed-for-keras-on-macos-with-m1
-#        if: contains(matrix.os, 'macos')
-#        run: echo HDF5_DIR="$(brew --prefix hdf5)" >> $GITHUB_ENV
-#      - name: Disable OpenMP for Apple Silicon (FIXME!)
-#        if: matrix.os == 'macos-14'
-#        run: echo WITH_OPENMP=OFF >> $GITHUB_ENV
+          scripts/build_gdl.sh prep    
       - name: Build GDL
         run: |
           scripts/build_gdl.sh configure
@@ -144,194 +149,3 @@ jobs:
           scripts/build_gdl.sh install
           scripts/build_gdl.sh pack
           scripts/build_gdl.sh prep_deploy
-      - name: Upload Build Artifacts
-        if: contains(matrix.os, 'macos')
-        uses: actions/upload-artifact@v4
-        with:
-          path: gdl-*-${{ matrix.deps }}.dmg
-          name: GDL (${{ matrix.os }}, ${{ matrix.deps }}, ${{ matrix.configuration }})
-      - name: Upload Build Artifacts
-        if: "!contains(matrix.os, 'macos')"
-        uses: actions/upload-artifact@v4
-        with:
-          path: gdl-*-${{ matrix.deps }}.zip
-          name: GDL (${{ matrix.os }}, ${{ matrix.deps }}, ${{ matrix.configuration }})
-      - name: Upload Release Assets (unstable)
-        if: (github.event_name == 'schedule' || github.event.inputs.type == 'release') && startsWith(matrix.os, 'macos-')
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: "gdl-*-${{ matrix.deps }}.dmg"
-          name: Weekly Binary Release (unstable)
-          body: Weekly Binary Release (unstable)
-          prerelease: true
-          allowUpdates: true
-          replacesArtifacts: true
-          commit: ${{ github.sha }}
-          tag: weekly-release
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Upload Release Assets (stable)
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: "gdl-*-${{ matrix.deps }}.zip"
-          name: ${{ github.event.release.tag_name }}
-          prerelease: false
-          allowUpdates: true
-          replacesArtifacts: true
-          commit: ${{ github.sha }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Test GDL
-        run: |
-          scripts/build_gdl.sh check
-
-  build-windows:
-    runs-on: windows-latest
-    needs: prelude
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJson(needs.prelude.outputs.matrix-windows) }}
-    env:
-      DEPS: ${{ matrix.deps }}
-      WORKSPACE: ${{ github.workspace }}
-      Platform: ${{ matrix.arch }}
-      Configuration: ${{ matrix.configuration }}
-    steps:
-      - name: Setup MSYS2
-        uses: msys2/setup-msys2@v2.22.0
-        with:
-          msystem: MSYS
-          update: false
-          release: false
-          install: >-
-            mingw-w64-${{ matrix.arch }}-toolchain
-            mingw-w64-${{ matrix.arch }}-cmake
-            mingw-w64-${{ matrix.arch }}-nsis
-            zip
-            unzip
-            tar
-            zstd
-            make
-            patch
-            git
-            rsync
-            patch
-      - name: Checkout GDL
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          fetch-depth: 0
-      - name: Cache Dependencies
-        if: matrix.arch == 'x86_64'
-        id: cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            C:\msys64\cache
-          key: cache-gdl-deps-windows-msys2-${{ matrix.arch }}-v9
-      - name: Install MSMPI
-        if: matrix.deps == 'debug' || matrix.deps == 'headless'
-        run: |
-          Invoke-WebRequest -Uri https://download.microsoft.com/download/a/5/2/a5207ca5-1203-491a-8fb8-906fd68ae623/msmpisetup.exe -OutFile MSMpiSetup.exe
-          .\MSMpiSetup.exe -unattend
-      - name: Install Dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        shell: msys2 {0}
-        run: |
-          pacman -Q | tr ' ' '-' | sort > ~/snapshot1.txt
-          scripts/build_gdl.sh prep
-          pacman -Q | tr ' ' '-' | sort > ~/snapshot2.txt
-          echo "Setting up cache..."
-          mkdir -p /cache
-          for package in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
-            echo "Caching ${package}..."
-            fn=`ls /var/cache/pacman/pkg/${package}-*.tar.{gz,bz2,xz,zst} 2> /dev/null || true`
-            tar xf $fn -C /cache
-          done
-          ADDTIONAL_FILES=( /mingw*/bin/mgwxdr-0.dll
-                            /mingw*/lib/libbsdxdr.*
-                            /mingw*/include/rpc/types.h
-                            /mingw*/include/rpc/xdr.h )
-          for fn in ${ADDTIONAL_FILES[@]}; do
-            cp --parents ${fn} /cache
-          done
-      - name: Restore Cache
-        if: steps.cache.outputs.cache-hit == 'true'
-        shell: msys2 {0}
-        run: |
-          rsync -rt --no-t --inplace /cache/ /
-      - name: Setup Python (64 bit)
-        id: setup-python-64
-        uses: actions/setup-python@v5
-        if: matrix.arch == 'x86_64'
-        with:
-          python-version: '3.x'
-          architecture: x64
-      - name: Setup Python (32 bit)
-        id: setup-python-32
-        uses: actions/setup-python@v5
-        if: matrix.arch == 'i686'
-        with:
-          python-version: '3.x'
-          architecture: x86
-      - name: Install Numpy
-        run: pip install numpy
-      - name: Build GDL
-        shell: msys2 {0}
-        run: |
-          export PATH=`cygpath "${pythonLocation}"`:$PATH
-          export PYTHON_EXECUTABLE=`cygpath "${pythonLocation}"`/python
-          if [[ -n "${{ steps.setup-python-32.outputs.python-version }}" ]]; then
-            export PYTHONVERSION="${{ steps.setup-python-32.outputs.python-version }}"
-          else
-            export PYTHONVERSION="${{ steps.setup-python-64.outputs.python-version }}"
-          fi
-          scripts/build_gdl.sh configure
-          scripts/build_gdl.sh build
-          scripts/build_gdl.sh install
-      - name: Package GDL
-        shell: msys2 {0}  
-        run: |
-          export GDLDE_VERSION=$(git ls-remote --refs --tags https://github.com/gnudatalanguage/gdlde | tail -n1 | cut -d '/' -f3)
-          scripts/build_gdl.sh pack
-          scripts/build_gdl.sh prep_deploy
-      - name: Upload GDL Installer
-        uses: actions/upload-artifact@v4
-        with:
-          name: GDL Installer (${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
-          path: gdlsetup-*-${{ matrix.deps }}.exe
-# STILL TRUE? DO NOT export .zip as artifact: (was due to necessary use of a precise location for our customized plplot drivers before plplot is integrated)
-# only an installer can be used (sets the correct environment variables) 
-#      - name: Upload Build Artifacts
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: GDL (windows-latest, ${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
-#          path: gdl-*-${{ matrix.deps }}.zip
-      - name: Upload Release Windows Installer (unstable)
-        if: github.event_name == 'schedule' || github.event.inputs.type == 'release'
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: "gdlsetup-*-${{ matrix.deps }}.exe,gdl-*-${{ matrix.deps }}.zip"
-          name: Weekly Release (unstable)
-          prerelease: true
-          allowUpdates: true
-          replacesArtifacts: true
-          tag: weekly-release
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-# supressed, same reason as above
-#       - name: Upload Release Assets (stable)
-#        if: startsWith(github.ref, 'refs/tags/v')
-#        uses: ncipollo/release-action@v1
-#        with:
-#          artifacts: "gdlsetup-*-${{ matrix.deps }}.exe,gdl-*-${{ matrix.deps }}.zip"
-#          name: ${{ github.event.release.tag_name }}
-#          prerelease: false
-#          allowUpdates: true
-#          replacesArtifacts: true
-#          commit: ${{ github.sha }}
-#          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Test GDL
-        shell: msys2 {0}
-        run: |
-          export PATH=`cygpath "${pythonLocation}"`:$PATH
-          scripts/build_gdl.sh check
