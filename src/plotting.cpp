@@ -3096,7 +3096,8 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 		sign=-1;
 	  }
 	  DDouble range=abs(max-min);
-	  DLong nint = ceil(range / TickInterval);
+	  //+1 ! AC 25/11/25 see #1778 and test_xyztick_get.pro
+	  DLong nint = ceil(range / TickInterval)+1;
 	  if (nint > 0) {
 		if (isLog) {
 		  DDouble first = ceil(min / TickInterval) * TickInterval;
