@@ -55,9 +55,10 @@ BaseGDL& BaseGDL::operator=(const BaseGDL& right)
   this->dim = right.dim;
   return *this;
 }
+//Only used in "relaxed assignment for struct copying 
 BaseGDL& BaseGDL::operator<<=(const BaseGDL& right)
 {
-  throw GDLException("BaseGDL::operator<<=(const BaseGDL& right) called.");
+return *this; // just DO NOTHING. It seems the best solution (one-liner) to #2124 // throw GDLException("BaseGDL::operator<<=(const BaseGDL& right) called.");
 }
 void  BaseGDL::InitFrom(const BaseGDL& right)
 {
