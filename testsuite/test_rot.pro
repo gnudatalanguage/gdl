@@ -3,9 +3,32 @@
 ;
 ; Assuming ROTATE() works fine !
 ;
-; Bug 
+; ------------------------------
+;
+pro TEST_ROT_ANGLE_CPLX, angle, cumul_errors, help=help
+;
+errors=0
+;
+in2d=COMPLEX(DIST(20,30), DIST(20,30))
+out2d=ROT(in2d, angle)
+realpart=FLOAT(out2d)
+imagpart=IMAGINARY(out2d)
+;
+if (TOTAL(ABS(realpart-imagpart)) GT 1.e-7) then begin
+   ERRORS_ADD, errors, 'unexpected rounding errors for angle='+STRING(angle)
+endif
+;
+; --------------
+;
+BANNER_FOR_TESTSUITE, "TEST_ROT_ANGLE_CPLX", errors, /short
+ERRORS_CUMUL, cumul_errors, errors
+if KEYWORD_SET(test) then STOP
+;
+end
 ;
 ; ------------------------------
+;
+; We use ROTATE() as a reference for orthogonal angles ...
 ;
 pro TEST_ROT_ROTATE, angle, cumul_errors, offset=offset, help=help
 ;
@@ -68,6 +91,14 @@ TEST_ROT_ROTATE, angle, cumul_errors, offset=3
 angle=270.
 print, 'Testing for angle =', angle
 TEST_ROT_ROTATE, angle, cumul_errors
+;
+print, 'Testing for Complex ...'
+angle=10.
+TEST_ROT_ANGLE_CPLX, angle, cumul_errors
+angle=123.
+TEST_ROT_ANGLE_CPLX, angle, cumul_errors
+angle=234.5
+TEST_ROT_ANGLE_CPLX, angle, cumul_errors
 ;
 ; ----------------- final message ----------
 ;
