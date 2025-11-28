@@ -2504,9 +2504,11 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     //default:
     charsize = 1.0;
     // get !P preference. Even if [xyz]charsize is absent, presence of charsize or !P.charsize must be taken into account.
+    static unsigned pcharsizeTag = SysVar::P()->Desc()->TagIndex("CHARSIZE");
+    static unsigned axischarsizeTag = SysVar::X()->Desc()->TagIndex("CHARSIZE"); //[XYZ].CHARSIZE
+
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
-    static unsigned charsizeTag = SysVar::P()->Desc()->TagIndex("CHARSIZE");
-    charsize = (*static_cast<DFloatGDL*>(pStruct->GetTag(charsizeTag, 0)))[0];
+    charsize = (*static_cast<DFloatGDL*>(pStruct->GetTag(pcharsizeTag, 0)))[0];
     int CharsizeIx = e->KeywordIx("CHARSIZE");
     //cerr<<" CHARSIZE: "<< CharsizeIx<<" ("<< &CharsizeIx<<")"<<endl;
     e->AssureFloatScalarKWIfPresent(CharsizeIx, charsize); // option charsize overloads P.CHARSIZE
@@ -2530,8 +2532,8 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       choosenIx = ZCharsizeIx;
     }
 
-    if (Struct != NULL) {
-      DFloat axisCharsizeMultiplier = (*static_cast<DFloatGDL*> (Struct->GetTag(charsizeTag, 0)))[0];
+   if (Struct != NULL) {
+      DFloat axisCharsizeMultiplier = (*static_cast<DFloatGDL*> (Struct->GetTag(axischarsizeTag, 0)))[0];
       e->AssureFloatScalarKWIfPresent(choosenIx, axisCharsizeMultiplier); //option [XYZ]CHARSIZE overloads ![XYZ].CHARSIZE
       if (axisCharsizeMultiplier > 0.0) charsize *= axisCharsizeMultiplier; //IDL Behaviour...
     }
