@@ -2132,15 +2132,16 @@ PLFLT gdlGetBoxNYSize() {
         do_color=true;
       }
     }
-    //IDL does not complain if thick is undefined.
-    do_thick=false;
-    thethick=0;
+    //IDL uses (and forces) thick=1 if thisk is not defined
+    do_thick=true; //to avoid changing too much code, I keep this old switch.
+    // would certainly speedup a bit the plots if removal of do_thick was was propagated to draw_polyline
+    thethick=1;
     int THICKIx = e->KeywordIx("THICK");
     if ( e->KeywordPresent(THICKIx))
     {
       if (e->IfDefGetKWAs<DFloatGDL>( THICKIx )) {
         e->AssureFloatScalarKW(THICKIx, thethick);
-        do_thick=true;
+        do_thick=true; //see above, not useful anymore after #2122
       }
     }    
     SetUsym(n, do_fill, x, y, do_color, thecolor, do_thick, thethick);
@@ -2503,9 +2504,11 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     //default:
     charsize = 1.0;
     // get !P preference. Even if [xyz]charsize is absent, presence of charsize or !P.charsize must be taken into account.
+    static unsigned pcharsizeTag = SysVar::P()->Desc()->TagIndex("CHARSIZE");
+    static unsigned axischarsizeTag = SysVar::X()->Desc()->TagIndex("CHARSIZE"); //[XYZ].CHARSIZE
+
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
-    static unsigned charsizeTag = SysVar::P()->Desc()->TagIndex("CHARSIZE");
-    charsize = (*static_cast<DFloatGDL*>(pStruct->GetTag(charsizeTag, 0)))[0];
+    charsize = (*static_cast<DFloatGDL*>(pStruct->GetTag(pcharsizeTag, 0)))[0];
     int CharsizeIx = e->KeywordIx("CHARSIZE");
     //cerr<<" CHARSIZE: "<< CharsizeIx<<" ("<< &CharsizeIx<<")"<<endl;
     e->AssureFloatScalarKWIfPresent(CharsizeIx, charsize); // option charsize overloads P.CHARSIZE
@@ -2529,8 +2532,8 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       choosenIx = ZCharsizeIx;
     }
 
-    if (Struct != NULL) {
-      DFloat axisCharsizeMultiplier = (*static_cast<DFloatGDL*> (Struct->GetTag(charsizeTag, 0)))[0];
+   if (Struct != NULL) {
+      DFloat axisCharsizeMultiplier = (*static_cast<DFloatGDL*> (Struct->GetTag(axischarsizeTag, 0)))[0];
       e->AssureFloatScalarKWIfPresent(choosenIx, axisCharsizeMultiplier); //option [XYZ]CHARSIZE overloads ![XYZ].CHARSIZE
       if (axisCharsizeMultiplier > 0.0) charsize *= axisCharsizeMultiplier; //IDL Behaviour...
     }

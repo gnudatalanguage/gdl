@@ -15,6 +15,7 @@ pro test_struct_assign
   if total(b.trois.deux) ne 4 then err++ ; show also that it is "relaxed"
   ; 
   c=CREATE_STRUCT(NAME='HasStruct', ['un','deux','trois'], [1,5], 2b, findgen(32))
+	print, "following error is EXPECTED:"
   struct_assign,c,b,/nozero,/verb
   ; issue #2083
    a=replicate({x:{y:1}},3)
