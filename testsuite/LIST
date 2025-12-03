@@ -1,6 +1,5 @@
 test_all_basic_functions.pro
 test_indepth_basic_functions.pro
-test_zero_divide.pro
 test_angles.pro
 test_antlr_issues.pro
 test_arg_present.pro
@@ -114,6 +113,7 @@ test_hist_2d.pro
 test_idl8.pro
 test_idl_validname.pro
 test_idlneturl.pro
+test_imsl_zeropoly.pro
 test_indgen.pro
 test_interpol.pro
 test_interpolate.pro
@@ -210,5 +210,5 @@ test_wordexp.pro
 test_wordexp_null_string.pro
 test_xdr.pro
 test_xmlsax.pro
-test_zeropoly.pro
 test_write_csv.pro
+test_zero_divide.pro

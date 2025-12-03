@@ -5,6 +5,7 @@
 ; Modifications history :
 ;
 ; 2018-April-06 : AC : creation, but not finished :(
+; 2025-Dec-02 : AC : fix some details ... working now in IDL and GDL
 ;
 ; ----------------------------------------------------
 ;
@@ -36,20 +37,32 @@ end
 pro TEST_GAUSSIAN_FUNCTION_NUMERIC, cumul_errors, verbose=verbose, test=test
 ;
 nb_errors=0
-eps=1.e-6
+eps=5.e-6
 ;
-gauss31=MOMENT(GAUSSIAN_FUNCTION(3.1))
-if (N_ELEMENTS(gauss31) NE 19) then $
-      ERRORS_ADD, nb_errors, 'case Gauss31 NbEl 19 : '+STRING(N_ELEMENTS(gauss31))
-exp_moment=[0.408123, 0.129434, 0.386746, -1.51982]
-
-
+gauss3p1=GAUSSIAN_FUNCTION(3.1)
+nbp3p1=N_ELEMENTS(gauss3p1)
+;
+if (nbp3p1 NE 23) then begin
+   ERRORS_ADD, nb_errors, 'case Gauss3p1 NbEl 23 : '+STRING(nbp3p1)
+endif
+;
+;exp_moment=[0.408123, 0.129434, 0.386746, -1.51982]
+exp_moment=[0.337784, 0.130470, 0.637705, -1.24552]
+;0.38026920, 0.12933515, 0.48781705, -1.3957111]
+;
+if (TOTAL(ABS(exp_moment-MOMENT(gauss3p1))) GT eps) then begin
+   ERRORS_ADD, nb_errors, 'case Gauss3p1 Moment'
+endif
+if KEYWORD_SET(verbose) then begin
+   print, 'Expected : ', exp_moment
+   print, 'Computed : ', MOMENT(gauss3p1)
+endif
 ;
 ; ----- final ----
 ;
 BANNER_FOR_TESTSUITE, 'TEST_GAUSSIAN_FUNCTION_NUMERIC', nb_errors, /status
 ERRORS_CUMUL, cumul_errors, nb_errors
-if KEYWORD_set(test) then STOP
+if KEYWORD_SET(test) then STOP
 ;
 end
 ;
@@ -64,29 +77,31 @@ the_max=1+FINDGEN(nbps)
 ;
 if ~KEYWORD_SET(width) then width=10
 ;
-; in Odd case, we are far from Max ;)
-if (width mod 2) EQ 0 then eps=0.25 else eps=1.e-6
+eps=1.e-6
 ;
 the_width=REPLICATE(width,nbps)
 ;
 for ii=0, nbps-1 do begin
    ;;
+   if KEYWORD_SET(verbose) then print, ii, the_width[ii],the_max[ii]
    mygauss=GAUSSIAN_FUNCTION(3, WIDTH=the_width[ii], MAXIMUM=the_max[ii], /double)
+;   if KEYWORD_SET(verbose) then print, ii, mygauss
    ;;
    exp_max_val=the_max[ii]
-   exp_max_pos=(the_width[ii]-1)/2
+   exp_max_pos=the_width[ii]/2
    ;;
+   ;;   print, moment(mygauss)
    res_max_val=MAX(mygauss, res_max_pos)
+   ;stop
    if ABS(res_max_val-exp_max_val) GT eps then $
       ERRORS_ADD, nb_errors, 'case max val @'+STRING(ii)
    ;;
    if (res_max_pos NE exp_max_pos) then $
       ERRORS_ADD, nb_errors, 'case pos @'+STRING(ii)
-
    ;;
    if KEYWORD_SET(verbose) then print, ii, exp_max_val, res_max_val, exp_max_pos, res_max_pos
-;;stop
-;;   print, MOMENT(mygauss)
+   ;;stop
+   ;;   print, MOMENT(mygauss)
 endfor
 ;
 ; ----- final ----
@@ -109,18 +124,18 @@ endif
 ;
 cumul_errors=0
 ;
-BANNER_FOR_TESTSUITE, 'TEST_GAUSSIAN_FUNCTION', 0, /line
 TEST_GAUSSIAN_FUNCTION_1D, cumul_errors, width=10, verbose=verbose
 TEST_GAUSSIAN_FUNCTION_1D, cumul_errors, width=11, verbose=verbose
 TEST_GAUSSIAN_FUNCTION_1D, cumul_errors, width=12, verbose=verbose
 TEST_GAUSSIAN_FUNCTION_1D, cumul_errors, width=20, verbose=verbose
 TEST_GAUSSIAN_FUNCTION_1D, cumul_errors, width=21, verbose=verbose
 ;
-BANNER_FOR_TESTSUITE, 'TEST_GAUSSIAN_FUNCTION', 0, /line
 TEST_GAUSSFUNC_SUM, cumul_errors, verbose=verbose
-BANNER_FOR_TESTSUITE, 'TEST_GAUSSIAN_FUNCTION', 0, /line
+;
+; testing 2D is not ready
 ;TEST_GAUSSIAN_FUNCTION_2D, cumul_errors, verbose=verbose
-;BANNER_FOR_TESTSUITE, 'TEST_GAUSSIAN_FUNCTION', 0, /line
+;
+TEST_GAUSSIAN_FUNCTION_NUMERIC, cumul_errors, verbose=verbose
 ;
 ; ----------------- final message ----------
 ;
