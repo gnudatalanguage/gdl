@@ -9,7 +9,9 @@
 ;   01-Sep-2006 : written by Joel Gales
 ;   14-Apr-2010 : Alain Coulais : complete re-writing
 ;   18-Jun-2010 : Alain Coulais and Lea N.: mandatory usage of /preserve_null
-;   24-Sep-2013 : Marc Schellens TEST_STR_SEP compliant version 
+;   24-Sep-2013 : Marc Schellens TEST_STR_SEP compliant version
+;   07-Dec-2025 : AC : remove test at the end, see "test_str_sep.pro"
+;   in the testsuite ! 
 ;
 ; LICENCE:
 ; Copyright (C) 2006, J. Gales
@@ -126,16 +128,4 @@ function OLD_STR_SEP, str, sep
   return, res
 end
 ;
-; --------- please add tests here ------------
-;
-pro TEST_STR_SEP, test=test
-;
-resu1=STR_SEP('../foo.txt','.')
-if n_elements(resu1) NE 4 then MESSAGE, 'problem 1'
-if resu1[3] NE '/foo' then MESSAGE, 'problem 1bis'
-if resu1[4] NE 'txt' then MESSAGE, 'problem 1ter'
-MESSAGE, /continue, 'First test OK'
-;
-if KEYWORD_SET(test) then STOP
-;
-end
+
