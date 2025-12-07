@@ -26,8 +26,10 @@
 ; -- tested with current (in 2018) QuerySimbad,'GAL045.45+00.06' in astrolib
 ; 2020-Jan-10 : GD  support most options for Get() etc.
 ; 2025-Feb-20 : GD  Added PUT
-; ----------------------------------------------------
+; 2025-Dec-06 : AC : remove 80 in URL_PORT: '',$  ; was 80 by default
+; Keep "idl.dat" for a special case
 ;
+; -----------------------------------------------------
 ;
 function get_percent,lun
   if eof(lun) then return,0
@@ -37,7 +39,9 @@ function get_percent,lun
   percent=0.01*strmid(a,5,5,/rev)
   return, percent
 end
-
+;
+; ---------------------------------------
+;
 function idlneturl::format_response_header,stringarray,response_header_size
     linefeed=string(10b) ; HTTP/1.1 defines the sequence CR LF as the end-of-line marker for all protocol elements except the entity-body
 ; we have the header size in bytes.
@@ -66,8 +70,12 @@ pro idlneturl::copy_header_to_response_header,header_filename
      self.response_header=string(response)
      file_delete,header_filename
 end
-
-function idlneturl::Get,       BUFFER=buffer, FILENAME=filename,            STRING_ARRAY=string_array, FTP_EXPLICIT_SSL=ftp_explicit_ssl, URL=url
+;
+; ---------------------------------------
+;
+function idlneturl::Get, BUFFER=buffer, FILENAME=filename,$
+                         STRING_ARRAY=string_array, $
+                         FTP_EXPLICIT_SSL=ftp_explicit_ssl, URL=url
   echocode='; echo $? '
   nowait="&"
   iswindows=0
@@ -77,12 +85,12 @@ function idlneturl::Get,       BUFFER=buffer, FILENAME=filename,            STRI
      iswindows=1
   endif
   
-  TMPDIR=getenv("IDL_TMPDIR") ; contains path_sep();  returns ok even on windows.
+  TMPDIR=GETENV("IDL_TMPDIR") ; contains path_sep();  returns ok even on windows.
   mycurl='curl'
-  if getenv("IDLNETURL_CODE") ne ""  then mycurl='curl --libcurl '+TMPDIR+'libcurl-code.c '
-  verbose=getenv("IDLNETURL_VERBOSE") ne ""
+  if GETENV("IDLNETURL_CODE") ne ""  then mycurl='curl --libcurl '+TMPDIR+'libcurl-code.c '
+  verbose=GETENV("IDLNETURL_VERBOSE") ne ""
 
-  if n_elements(filename) eq 0  then filename='idl.dat'
+  if N_ELEMENTS(filename) eq 0  then filename='idl.dat'
   if (STRLEN(self.URL_QUERY) GT 0) then filename=self.URL_QUERY
 
   scheme=self.URL_SCHEME
@@ -94,7 +102,7 @@ function idlneturl::Get,       BUFFER=buffer, FILENAME=filename,            STRI
   userpass+=' '
 
   id_cmd=userpass
-  if n_elements(url) gt 0 then begin
+  if N_ELEMENTS(url) gt 0 then begin
      id_cmd+=url
   endif else begin
      id_cmd+=self.URL_SCHEME+'://'+self.URL_HOSTNAME
@@ -117,15 +125,15 @@ function idlneturl::Get,       BUFFER=buffer, FILENAME=filename,            STRI
      endcase
   endif
 ; connect timeout  
-  if self.connect_timeout gt 0 then curl_cmd+='--connect-timeout '+strtrim(self.connect_timeout,2)+' ' 
+  if self.CONNECT_TIMEOUT gt 0 then curl_cmd+='--connect-timeout '+strtrim(self.connect_timeout,2)+' ' 
   
 ; encode
-  if self.encode GT 0 then curl_cmd+='--tr-encoding ' 
-  if self.ftp_connection_mode EQ 0 then curl_cmd+='--ftp-pasv '
+  if self.ENCODE GT 0 then curl_cmd+='--tr-encoding ' 
+  if self.FTP_CONNECTION_MODE EQ 0 then curl_cmd+='--ftp-pasv '
 ; headers
-  if ptr_valid(self.headers) and n_elements(*(self.headers)) gt 0 then begin
-     for i=0,n_elements(*(self.headers))-1 do begin ; note below curl under Windows accept only "-quote see #1465
-        if strlen((*self.headers)[i]) gt 0 then curl_cmd+='-H "'+strtrim((*self.headers)[i],2)+'" ' ; was: if strlen((*self.headers)[i]) gt 0 then curl_cmd+="-H '"+strtrim((*self.headers)[i],2)+"' "
+  if PTR_VALID(self.headers) and N_ELEMENTS(*(self.headers)) gt 0 then begin
+     for i=0,N_ELEMENTS(*(self.headers))-1 do begin ; note below curl under Windows accept only "-quote see #1465
+        if STRLEN((*self.headers)[i]) gt 0 then curl_cmd+='-H "'+strtrim((*self.headers)[i],2)+'" ' ; was: if strlen((*self.headers)[i]) gt 0 then curl_cmd+="-H '"+strtrim((*self.headers)[i],2)+"' "
      endfor
   endif
 
@@ -151,12 +159,12 @@ function idlneturl::Get,       BUFFER=buffer, FILENAME=filename,            STRI
   if self.timeout gt 0 then curl_cmd+='--max-time '+strtrim(self.timeout,2)+' '
 
   if strlen(self.CALLBACK_FUNCTION) gt 0 then begin
-; GD:
-; first, get the response header and treat it, eventually sending some
-; data to the callback. This because we cannot send the headers
-; asynchronously, we would have to wait until the entire file has
-; been downloaded. When we write this function directly in GDL using
-; libcurl, things will be way esaier.
+;; GD:
+;; first, get the response header and treat it, eventually sending some
+;; data to the callback. This because we cannot send the headers
+;; asynchronously, we would have to wait until the entire file has
+;; been downloaded. When we write this function directly in GDL using
+;; libcurl, things will be way esaier.
   curl_asyn_get_headers=mycurl+' -LI --silent --show-error --include '                                                             ; will get only headers
   curl_asyn_get_headers+='--write-out "%{size_header}\n%{content_type}\n%{response_code}\n%{size_download}\n" '    ; we get some useful values
   cmd=curl_asyn_get_headers+id_cmd+echocode
@@ -234,16 +242,16 @@ function idlneturl::Get,       BUFFER=buffer, FILENAME=filename,            STRI
         percent=get_percent(lun)
         if percent ge 1 then break                                                                        ;
         ProgressInfo[2]=percent*content_length
-        if call_function(self.CALLBACK_FUNCTION, StatusInfo, ProgressInfo, Callback_Data ) eq 0 then begin
+        if CALL_FUNCTION(self.CALLBACK_FUNCTION, StatusInfo, ProgressInfo, Callback_Data ) eq 0 then begin
            free_lun,lun
            goto, fin
         endif
-        gdlwait_responsive,0.1  ;special wait command, never use elsewhere
+        GDLWAIT_RESPONSIVE, 0.1  ;special wait command, never use elsewhere
      endwhile
-     free_lun,lun
+     FREE_LUN,lun
 done:
      ProgressInfo[2]=content_length
-     ret=call_function(self.CALLBACK_FUNCTION, StatusInfo, ProgressInfo, Callback_Data )
+     ret=CALL_FUNCTION(self.CALLBACK_FUNCTION, StatusInfo, ProgressInfo, Callback_Data )
   endif else begin
 no_callback:
 ; GD:
@@ -283,6 +291,7 @@ fin:
      file_delete,filename
      return, response
   endif else if KEYWORD_SET(string_array) then begin
+     if (verbose) then print, 'here we are ..', filename
      n=1
      istext=strpos(self.content_type,'text/') ge 0
      if istext then n=file_lines(filename)
@@ -290,7 +299,8 @@ fin:
      openr,lun,filename,/get
      for i=0,n-1 do begin & readf,lun,s & resp[i]=s & end
      free_lun,lun
-     file_delete,filename
+     ;; AC 2025-Dec-06 : we need to keep "idl.dat"
+     ;; file_delete,filename
      return, resp
   endif
 
@@ -315,27 +325,9 @@ end
 function idlneturl::GetFtpDirList, FTP_EXPLICIT_SSL=z , URL=url, SHORT=short
   message,/info,"idlneturl::GetFtpDirList not yet implemented, FIXME"
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+;
+; ---------------------------------------
+;
 function idlneturl::Put, data, BUFFER=buffer, FILENAME=filename, POST=post, STRING_ARRAY=string_array, FTP_EXPLICIT_SSL=ftp_explicit_ssl, URL=url
   echocode='; echo $? '
   if !version.os_family eq 'Windows' then echocode='& echo %ERRORLEVEL%'
@@ -456,13 +448,18 @@ function idlneturl::Put, data, BUFFER=buffer, FILENAME=filename, POST=post, STRI
      return, resp
    endif else return,FILE_SEARCH(oufile, /full)
 end
+;
+; ---------------------------------------
+;
 function idlneturl::URLDecode,String
   message,/info,"idlneturl::URLDecode not yet implemented, FIXME"
 end
 function idlneturl::URLEncode,String
   message,/info,"idlneturl::URLEncode not yet implemented, FIXME"
 end
-
+;
+; ---------------------------------------
+;
 pro idlneturl::SetProperty,$
    URL_SCHEME = URL_SCHEME, $
    URL_HOSTNAME = URL_HOSTNAME, $
@@ -527,7 +524,9 @@ IF N_ELEMENTS(SSL_VERSION) gt 0 then self.SSL_VERSION=SSL_VERSION
 IF N_ELEMENTS(TIMEOUT) gt 0 then self.TIMEOUT=TIMEOUT
 ;
 end
-
+;
+; ---------------------------------------
+;
 pro idlneturl::GetProperty,$
    URL_SCHEME = URL_SCHEME, $
    URL_HOSTNAME = URL_HOSTNAME, $
@@ -623,7 +622,7 @@ function idlneturl::Init,$
    TIMEOUT=TIMEOUT,_extra=extra
 
 IF ~KEYWORD_SET(URL_SCHEME) then URL_SCHEME='http'
-IF ~KEYWORD_SET(URL_PORT) then URL_PORT=80L
+IF ~KEYWORD_SET(URL_PORT) then URL_PORT=''; AC2025 : was 80 by default ;80L
 IF ~KEYWORD_SET(VERBOSE) then VERBOSE=0L
 IF ~KEYWORD_SET(CONNECT_TIMEOUT) then CONNECT_TIMEOUT=180L
 IF ~KEYWORD_SET(ENCODE) then ENCODE=3L
@@ -664,9 +663,11 @@ IF ~KEYWORD_SET(HEADERS) then HEADERS=''
                     SSL_VERSION=SSL_VERSION,$
                     TIMEOUT=TIMEOUT,_extra=extra
 return, 1
-
+;
 end
-
+;
+; ---------------------------------------
+;
 pro idlneturl__define
   struct = {IDLNETURL, $
             IDLNETURL_TOP : 0ll, $
@@ -674,7 +675,7 @@ pro idlneturl__define
             URL_SCHEME: 'http',$
             URL_HOSTNAME: '',$
             URL_PATH: '',$
-            URL_PORT: '80',$
+            URL_PORT: '',$  ; AC2025 : was 80 by default
             URL_QUERY: '',$
             URL_USERNAME: '',$
             IDLNETURL_BOTTOM : 0Ll,$

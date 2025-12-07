@@ -1,6 +1,5 @@
 test_all_basic_functions.pro
 test_indepth_basic_functions.pro
-test_zero_divide.pro
 test_angles.pro
 test_antlr_issues.pro
 test_arg_present.pro
@@ -62,6 +61,7 @@ test_bug_n000597.pro
 test_bug_n000599.pro
 test_bug_n000607.pro
 test_bug_n000608.pro
+test_byte_conversion.pro
 test_bytscl.pro
 test_call_external.pro
 test_call_function.pro
@@ -100,6 +100,7 @@ test_formats.pro
 test_fx_root.pro
 test_fz_roots.pro
 test_gaussfit.pro
+test_gaussian_function.pro
 test_gc.pro
 test_gdl2gdl.pro
 test_get_lun.pro
@@ -111,9 +112,11 @@ test_help.pro
 test_heap_refcount.pro
 test_histogram.pro
 test_hist_2d.pro
+test_hist_equal.pro
 test_idl8.pro
 test_idl_validname.pro
 test_idlneturl.pro
+test_imsl_zeropoly.pro
 test_indgen.pro
 test_interpol.pro
 test_interpolate.pro
@@ -137,6 +140,7 @@ test_message.pro
 test_modulo.pro
 test_mpi.pro
 test_multiroots.pro
+test_n_tags.pro
 test_nans_in_sort_and_median.pro
 test_nestedloop.pro
 test_netcdf.pro
@@ -146,6 +150,7 @@ test_numeric_limits.pro
 test_obj_destroy.pro
 test_obj_hasmethod.pro
 test_obj_isa.pro
+test_obj_new.pro
 test_obj_valid.pro
 test_operators.pro
 test_parse_url.pro
@@ -162,11 +167,13 @@ test_python.pro
 test_qhull.pro
 test_qromb.pro
 test_qromo.pro
+test_r_correlate.pro
 test_readf_with_crlf.pro
 test_readf.pro
 test_reads.pro
 test_rebin.pro
 test_rot.pro
+test_rounding.pro
 test_routine_dir.pro
 test_routine_filepath.pro
 test_routine_name.pro
@@ -210,5 +217,5 @@ test_wordexp.pro
 test_wordexp_null_string.pro
 test_xdr.pro
 test_xmlsax.pro
-test_zeropoly.pro
 test_write_csv.pro
+test_zero_divide.pro

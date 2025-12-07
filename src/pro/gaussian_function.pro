@@ -24,8 +24,12 @@
 ;       Quite easy to allocate too much memeory :(
 ;
 ; History:
-;	Original: 2020-03-27; James Tappin
-;       2020-06-08 : AC, managing Double, preserving odd/even ...
+;   Original: 2020-03-27; James Tappin
+;   2020-06-08 : AC, managing Double, preserving odd/even ...
+;   2025-12-02 : AC internal GAUSS1  renamed to INTERNAL_GAUSS1
+;   to avoid potential conflict with GAUSS1 provided by MPFIT
+;   2025-12-03 : AC : several pbs : /norm, max= + odd/even
+;      now the associated test is OK
 ;
 ;-
 ; LICENCE:
@@ -35,15 +39,12 @@
 ; the Free Software Foundation; either version 2 of the License, or     
 ; (at your option) any later version.                                   
 ;
-; AC 2020408 : all computation in Gauss1 are now in Double
+function INTERNAL_GAUSS1, sigma, width
 ;
-function GAUSS1, sigma, width, normalize = normalize
-x = DINDGEN(width)-(width-1)/2.
+x = DINDGEN(width)-width/2
 c =  (x/sigma)^2 / 2.
 gf = EXP(-c)
-;;
-if KEYWORD_SET(normalize) then gf /= sigma*SQRT(2.*!pi)
-;;
+;
 return, gf
 ;  
 end
@@ -53,10 +54,15 @@ end
 function GAUSSIAN_FUNCTION, sigma, width = width, maximum = maximum, $
                             normalize = normalize, double=double
 
-  ndims = N_ELEMENTS(sigma)
+
+ndims = N_ELEMENTS(sigma)
+if ndims EQ 0 then begin
+   sigma=1
+   ndims=1
+endif
 
   ;; managing Widths (odd + ndims) 
-  if ~KEYWORD_SET(width) then width = ROUND(sigma*6)
+  if ~KEYWORD_SET(width) then width = (CEIL(sigma*3) or 1)*2+1
   ;;
   ;; AC 2020-04-21 : the Gaussians can be Odd or Even ...
   ;; locs = WHERE(width mod 2 eq 0, nev)
@@ -69,16 +75,19 @@ function GAUSSIAN_FUNCTION, sigma, width = width, maximum = maximum, $
   nf = N_ELEMENTS(gf)
   
   perm = SHIFT(INDGEN(ndims), 1)
-  
+
   for j =  ndims-1, 0, -1 do begin
      gf = TRANSPOSE(gf, perm)
-     gf1 = GAUSS1(sigma[j], width[j], normalize = normalize)
+     gf1 = INTERNAL_GAUSS1(sigma[j], width[j])
      gf1r = gf1[*, INTARR(nf/width[j])]
      gf[*] *= gf1r[*]
   endfor
 
-  if KEYWORD_SET(maximum) && ~KEYWORD_SET(normalize) then $
+  if KEYWORD_SET(maximum) then begin
      gf *= maximum
+  endif else begin
+     if KEYWORD_SET(normalize) then gf=gf/TOTAL(gf)
+  endelse
 
   if KEYWORD_SET(double) OR ISA(maximum, 'double') then begin
      return, gf

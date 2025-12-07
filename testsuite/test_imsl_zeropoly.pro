@@ -1,6 +1,24 @@
+;
 ; by Sylwester Arabas <slayoo@igf.fuw.edu.pl>
-pro test_zeropoly
-  
+;
+; -------------------------------------------------
+;
+; Modifications history :
+; -2025-12-01 AC : renamed from test_zeropoly into test_imsl_zeropoly
+; in fact it is a test for IMSL_ZEROPOLY() !
+;
+; -------------------------------------------------
+;
+pro TEST_IMSL_ZEROPOLY, no_exit=no_exit
+
+if (GDL_IDL_FL() NE 'GDL') then begin
+   MESSAGE,/cont, "you need an ISML licence to test that in IDL"
+   if ~KEYWORD_SET(no_exit) then EXIT, status=77
+endif
+
+cumul_errors=0
+errors=0
+
   n = 4         ; number of test polynomials
   eps = 1e-6    ; a small value used for camparing floating point numbers
   c = ptrarr(n) ; polynomial coefficients
@@ -27,8 +45,7 @@ pro test_zeropoly
     z = imsl_zeropoly(fix(*c[i], type=t), double=double_kw)
     nz = n_elements(z) 
     if nz ne n_elements(*r[i]) then begin
-      message, 'TOTAL FAILURE!', /conti
-      exit, status=1
+       ERRORS_ADD, errors, 'TOTAL FAILURE!'
     endif
     ; checking the results (which might be ordered differently)
     for jz = 0, nz - 1 do for jr = 0, nz - 1 do begin
@@ -39,8 +56,7 @@ pro test_zeropoly
     endfor
     wh = where(finite(z), cnt)
     if cnt ne 0 then begin
-      message, 'FAILED for test ' + string(i), /conti
-      exit, status=1
+       ERRORS_ADD, errors, 'FAILED for test ' + string(i)
     endif
   endfor
 
@@ -48,4 +64,15 @@ pro test_zeropoly
   foreach i, c do ptr_free, i
   foreach i, c do ptr_free, i
 
+cumul_errors=errors
+;
+; ----------------- final message ----------
+;
+BANNER_FOR_TESTSUITE, 'TEST_IMSL_POLY', cumul_errors, short=short
+;
+if (cumul_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+;
+if KEYWORD_SET(test) then STOP
+;
 end
+

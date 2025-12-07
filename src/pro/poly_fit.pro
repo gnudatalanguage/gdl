@@ -23,81 +23,103 @@
 ; OUTPUTS:
 ;   a vector of coefficients of length = DEGREE+1.
 ;
+; ---------------------------
+; 
+; Modification history:
+;
+; - 2025-Dec-04 : AC. check size of the 2 input vectors
+;   Promote into Double the 2 input vectors
+;
 ;-
+; --------------------------------
 ; Polynomial Function
-PRO gdl_mpfit_polynomial, x, p, ymod, dp, _extra=extra
-  
-  COMPILE_OPT strictarr,hidden
-  ndeg=extra.degree
-  ymod=x*0+p[0]
-  for i = 1, ndeg do ymod+=p[i]*x^i 
+;
+PRO GDL_MPFIT_POLYNOMIAL, x, p, ymod, dp, _extra=extra
+;  
+COMPILE_OPT strictarr,hidden
+ndeg=extra.degree
+ymod=x*0+p[0]
+for i = 1, ndeg do ymod+=p[i]*x^i
+;
 end
-
-FUNCTION POLY_FIT, x, y, ndegree, $
-    oldyfit, oldyband, yerror_old, corrm, $     ; obsolete arguments
-    CHISQ=chisq, $
-    COVAR=covar, $
-    DOUBLE=double, $
-    MEASURE_ERRORS=measure_errors, $
-    SIGMA=sigma, $
-    STATUS=status, $
-    YBAND=yband, $
-    YERROR=yerror, $
-    YFIT=yfit
-
-  COMPILE_OPT strictarr, hidden
-  
- 
-  farg={DEGREE:ndegree}
+;
+; --------------------------------
+;
+FUNCTION POLY_FIT, x_in, y_in, ndegree, $
+                   oldyfit, oldyband, yerror_old, corrm, $ ; obsolete arguments
+                   CHISQ=chisq, $
+                   COVAR=covar, $
+                   DOUBLE=double, $
+                   MEASURE_ERRORS=measure_errors, $
+                   SIGMA=sigma, $
+                   STATUS=status, $
+                   YBAND=yband, $
+                   YERROR=yerror, $
+                   YFIT=yfit
+;
+COMPILE_OPT strictarr, hidden
+ON_ERROR,2
+;
+txt='X and Y must have same number of elements.'
+if N_ELEMENTS(x_in) NE N_ELEMENTS(y_in) then MESSAGE, txt
+;
+; AC 2025-12-04 : based on Zanardo data,
+; it is better to ensure the type of inputs to be double ...
+;
+x=DOUBLE(x_in)
+y=DOUBLE(y_in)
+;
+farg={DEGREE:ndegree}
 ; test if yband is wanted...
-  doyband=arg_present(yband) || arg_present(oldyband)
+doyband=ARG_PRESENT(yband) || arg_present(oldyband)
 ; test if measure_errors were given
-  haserrors=arg_present(measure_errors)
-
-  if (ndegree lt 1) then begin
-     m=n_elements(x)
-     p=mean(y)
-     sigma=(sigma(y))[0]
-     dummy=moment(y,sdev=yerror) ; get yerror
-     yfit=p
-     measure_errors=replicate(p,m)
-     covar=total((y-p)*(x-mean(x)))/(m-1)
-     chisq=total((y-p)^2/p)
-     goto, near_end
-  endif
- 
+haserrors=ARG_PRESENT(measure_errors)
+;
+if (ndegree lt 1) then begin
+   m=N_ELEMENTS(x)
+   p=MEAN(y)
+   sigma=(sigma(y))[0]
+   dummy=MOMENT(y,sdev=yerror)  ; get yerror
+   yfit=p
+   measure_errors=REPLICATE(p,m)
+   covar=TOTAL((y-p)*(x-MEAN(x)))/(m-1)
+   chisq=TOTAL((y-p)^2/p)
+   goto, near_end
+endif
+;
 ; weights w are based on measure_errors:
-  if (n_elements(measure_errors) gt 0) then w=1D/measure_errors^2 else w=x*0+1
-  p=dblarr(ndegree+1)+1.0
-  yfit=mpcurvefit(x, y, w, p, sigma, function_name="GDL_MPFIT_POLYNOMIAL", $
-                  functargs=farg, $
-                  chisq=chisq, $
-                  covar=covar, yerror=yerror, $
-                  STATUS=status,/noderivative, _EXTRA=extra, /quiet )
-  ; compute backprojection of correlation matrix on individual point's 
-  if (doyband) then begin
-     xx = x*0+1
-     yband = x*0+covar[0,0]
-     FOR k=1L,2*ndegree DO BEGIN
-        xx *= x ; x^1, x^2 ...                    
-        sum = 0
-        for j=0 > (k - ndegree), ndegree<k do sum += covar[j,k-j]
-        yband += sum * xx
-     ENDFOR
-     
-  ; special case for no MEASURE_ERRORS, as per the documentation
-     if (~haserrors) then yband *= yerror^2
-     
-     yband = sqrt( temporary(yband) )
-  endif
+if (N_ELEMENTS(measure_errors) gt 0) then w=1D/measure_errors^2 else w=x*0+1.
+p=DBLARR(ndegree+1)+1.0
+;;
+yfit=MPCURVEFIT(x, y, w, p, sigma, function_name="GDL_MPFIT_POLYNOMIAL", $
+                functargs=farg, $
+                chisq=chisq, $
+                covar=covar, yerror=yerror, $
+                STATUS=status, /noderivative, /quiet, _EXTRA=extra )
+; 
+; compute backprojection of correlation matrix on individual point's 
+if (doyband) then begin
+   xx = x*0+1
+   yband = x*0+covar[0,0]
+   FOR k=1L,2*ndegree DO BEGIN
+      xx *= x                   ; x^1, x^2 ...                    
+      sum = 0
+      for j=0 > (k - ndegree), ndegree<k do sum += covar[j,k-j]
+      yband += sum * xx
+   ENDFOR
+   ;; special case for no MEASURE_ERRORS, as per the documentation
+   if (~haserrors) then yband *= yerror^2
+   yband = SQRT(TEMPORARY(yband) )
+endif
 near_end:
 ; obsolete arguments?
-    if (n_params() ge 4) then begin
-        corrm = covar*yerror^2   ; was a correlation matrix
-        oldyerror = yerror
-        oldyfit = yfit
-        if (doyband) then oldyband = yband
-    ENDIF
-  
-  return,p
+if (n_params() ge 4) then begin
+   corrm = covar*yerror^2       ; was a correlation matrix
+   oldyerror = yerror
+   oldyfit = yfit
+   if (doyband) then oldyband = yband
+ENDIF
+;
+return, TRANSPOSE(p)
+;
 END
