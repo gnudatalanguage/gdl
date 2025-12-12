@@ -15,6 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
+#include <wx-3.0/wx/graphics.h>
+
 #include "includefirst.hpp"
 
 #ifdef HAVE_LIBWXWIDGETS
@@ -192,26 +194,41 @@ unsigned long GDLWXStream::GetWindowDepth() {
   return wxDisplayDepth();
 }
 
+// GD removed use of (wrong) plplot erase function
 void GDLWXStream::Clear() {
-      PLINT red,green,blue;
-      DByte r,g,b;
-      PLINT red0,green0,blue0;
-      
-      GraphicsDevice::GetCT()->Get(0,r,g,b);red=r;green=g;blue=b;
-      
-      red0=GraphicsDevice::GetDevice()->BackgroundR();
-      green0=GraphicsDevice::GetDevice()->BackgroundG();
-      blue0=GraphicsDevice::GetDevice()->BackgroundB();
-      plstream::scolbg(red0,green0,blue0); //overwrites col[0]
-      ::c_plbop();
-      ::c_plclear();
-      plstream::scolbg(red,green,blue); //resets col[0]
+  DByte r = (GraphicsDevice::GetDevice()->BackgroundR());
+  DByte g = (GraphicsDevice::GetDevice()->BackgroundG());
+  DByte b = (GraphicsDevice::GetDevice()->BackgroundB());
+  streamDC->SetBackground(wxBrush(wxColour(r,g,b)));
+  streamDC->Clear();
+  Update(); //see #1509
 }
 
-//FALSE: REPLACE With Clear(DLong chan) as in X //TBD
-void GDLWXStream::Clear(DLong bColor) {
-  Clear();
+void GDLWXStream::Clear(DLong chan) {
+  DByte r = (GraphicsDevice::GetDevice()->BackgroundR());
+  DByte g = (GraphicsDevice::GetDevice()->BackgroundG());
+  DByte b = (GraphicsDevice::GetDevice()->BackgroundB());
+  wxBitmap bmp=streamDC->GetAsBitmap();
+  wxImage image=bmp.ConvertToImage();
+  unsigned char* pixels=image.GetData();
+  SizeT size=image.GetHeight()*image.GetWidth();
+  DByte* colorComponent=&r;
+    switch(chan){
+      case 0: //R
+        colorComponent=&r;
+        break;
+      case 1:
+        colorComponent=&g;
+        break;
+      case 2:
+        colorComponent=&b;
+        break;
+    }
+  for (auto i=0; i<size; ++i) pixels[3*i+chan]=*colorComponent; 
+  streamDC->DrawBitmap(wxBitmap(image,3),0,0);
+  Update(); //see #1509
 }
+
 #include <wx/rawbmp.h>
 bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
         DLong trueColorOrder, DLong chan) {
