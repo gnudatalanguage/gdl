@@ -71,7 +71,7 @@ public:
 //    bool UnsetFocus(); UnsetFocus is dangerous: it prevents using wxEvents correctly.
     bool SetBackingStore(int value){return true;}
     void Clear();
-    void Clear( DLong bColor);
+    void Clear( DLong chan);
     void Raise();
     void Lower();
     void Iconic();
