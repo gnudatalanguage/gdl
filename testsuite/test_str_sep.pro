@@ -17,7 +17,7 @@
 ;
 ; -------------------------------------------
 ; Modifications history :
-
+;
 ; - 2012-Oct-18, include new cases.
 ;     While testing PSM soft (Planck Sky Model: 
 ;     http://www.apc.univ-paris7.fr/~delabrou/PSM/psm.html )
@@ -29,6 +29,50 @@
 ;   0 use "moderm" infra
 ;   1 move a small test code from "str_sep.pro" here
 ;   2 find a way to locate the code in "obsolete"
+;
+; - 2025-Dec-06 : AC.
+;   include an old bug 3286031 dedicated to STR_SEP()
+; -------------------------------------------
+;
+; (c) Sylwester Arabas and Alain Coulais, August 2011
+; under GNU GPL v2 or later
+;
+; We had some trouble in STR_SEP() due to bugs in STRSPLIT
+; It was trigged by this bug report
+;
+pro TEST_BUG_3286031, cumul_errors, test=test, verbose=verbose
+;
+errors=0
+;
+resultat=STR_SEP('ahasadfasdf','dfa')
+;
+if (resultat[0] NE 'ahasa') then ERRORS_ADD, errors, 'erreur 1'
+if (resultat[1] NE 'sdf') then ERRORS_ADD, errors, 'erreur 2'
+
+s_value=SIZE(STRLEN(resultat))
+s_expected=[1,2,3,2]
+if (ARRAY_EQUAL(s_value,s_expected) NE 1) then ERRORS_ADD, errors, 'erreur 3'
+;
+; part of code coming from "test_strsplit.pro"
+; bug found via STR_SEP 3286746 in the Patch section
+;
+tab=STR_SEP('ahasadfasdf','dfa')
+res=['ahasa','sdf']
+if (ARRAY_EQUAL(tab,res, /NO_TYPECONV) eq 0) then $
+   ERRORS_ADD, errors, 'error STR_SEP 3286746 a'
+;
+tab=STR_SEP('ahasadfasdfa','dfa')
+res=['ahasa','s','']
+if (ARRAY_EQUAL(tab,res, /NO_TYPECONV) eq 0) then $
+   ERRORS_ADD, errors, 'error STR_SEP 3286746 b'
+;
+; --------------
+;
+BANNER_FOR_TESTSUITE, "TEST_BUG_3286031", errors, /short, verb=verbose
+ERRORS_CUMUL, cumul_errors, errors
+if KEYWORD_SET(test) then STOP
+;
+end
 ;
 ; -------------------------------------------
 ;
@@ -136,6 +180,7 @@ endif
 ;
 ; now we do have the src/pro/obsolete path in !path !
 ;
+TEST_BUG_3286031, cumul_errors, test=test, verbose=verbose
 TEST_STR_SEP_BASIC, cumul_errors, test=test, verbose=verbose
 TEST_STR_SEP_PSM, cumul_errors, test=test, verbose=verbose
 TEST_STR_SEP_TRICKS, cumul_errors, test=test, verbose=verbose
