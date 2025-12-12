@@ -140,29 +140,8 @@ void GDLXStream::GetGeometry(long& xSize, long& ySize) {
     return true;
   }
 
-// plplot 5.3 does not provide the clear function for c++
-
 void GDLXStream::Clear() {
   Clear(-1);
-//  // this mimics better the *DL behaviour but plbop create a new page, etc..
-//  //plclear clears only the current subpage. But it clears it. One has
-//  //just to set the number of subpages to 1
-//  PLINT red, green, blue;
-//  DByte r, g, b;
-//  PLINT red0, green0, blue0;
-//
-//  GraphicsDevice::GetCT( )->Get( 0, r, g, b );
-//  red = r;
-//  green = g;
-//  blue = b;
-////we get around the index 0=background color "feature" of plplot. GDL uses a separate backgroud color.
-//  red0 = GraphicsDevice::GetDevice( )->BackgroundR( );
-//  green0 = GraphicsDevice::GetDevice( )->BackgroundG( );
-//  blue0 = GraphicsDevice::GetDevice( )->BackgroundB( );
-//  plstream::scolbg( red0, green0, blue0 ); //overwrites col[0]
-//  ::c_plbop( );
-////  ::c_plclear( );
-//  plstream::scolbg( red, green, blue ); //resets col[0]
 }
 
 void GDLXStream::Clear(DLong chan) {

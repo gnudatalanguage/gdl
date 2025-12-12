@@ -194,6 +194,7 @@ unsigned long GDLWXStream::GetWindowDepth() {
   return wxDisplayDepth();
 }
 
+// GD removed use of (wrong) plplot erase function
 void GDLWXStream::Clear() {
   DByte r = (GraphicsDevice::GetDevice()->BackgroundR());
   DByte g = (GraphicsDevice::GetDevice()->BackgroundG());
@@ -203,7 +204,6 @@ void GDLWXStream::Clear() {
   Update(); //see #1509
 }
 
-//FALSE: REPLACE With Clear(DLong chan) as in X //TBD
 void GDLWXStream::Clear(DLong chan) {
   DByte r = (GraphicsDevice::GetDevice()->BackgroundR());
   DByte g = (GraphicsDevice::GetDevice()->BackgroundG());
@@ -227,8 +227,8 @@ void GDLWXStream::Clear(DLong chan) {
   for (auto i=0; i<size; ++i) pixels[3*i+chan]=*colorComponent; 
   streamDC->DrawBitmap(wxBitmap(image,3),0,0);
   Update(); //see #1509
-//  Clear();
 }
+
 #include <wx/rawbmp.h>
 bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
         DLong trueColorOrder, DLong chan) {
