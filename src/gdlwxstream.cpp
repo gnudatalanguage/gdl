@@ -15,7 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#include <wx-3.0/wx/graphics.h>
+#include <wx/graphics.h>
 
 #include "includefirst.hpp"
 
