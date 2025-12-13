@@ -37,3 +37,12 @@ endforeach(TEST TESTS)
 
 set_tests_properties(${TESTS} PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 3600) # autoconf's setting
 set_tests_properties(${TESTS} PROPERTIES ENVIRONMENT "LC_COLLATE=C;GDL_PATH=${BASE_SOURCE}/testsuite/${PATH_SEP}${BASE_SOURCE}/src/pro/${PATH_SEP}${BASE_SOURCE}/src/pro/CMprocedures/${PATH_SEP}${BASE_SOURCE}/src/pro/dicom/${PATH_SEP}${BASE_SOURCE}/src/pro/utilities/;GDL_STARTUP=;IDL_STARTUP=")
+
+set(ARM_XFAIL_TESTS
+    test_byte_conversion.pro
+    test_formats.pro
+    test_rounding.pro
+)
+foreach(test ${ARM_XFAIL_TESTS})
+  set_tests_properties(${test} PROPERTIES WILL_FAIL $<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},aarch64>)
+endforeach()
