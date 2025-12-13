@@ -15,8 +15,6 @@
  *                                                                         *
  ***************************************************************************/
 
-#include <wx-3.0/wx/graphics.h>
-
 #include "includefirst.hpp"
 
 #ifdef HAVE_LIBWXWIDGETS
