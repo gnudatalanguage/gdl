@@ -102,7 +102,6 @@ test_fz_roots.pro
 test_gaussfit.pro
 test_gaussian_function.pro
 test_gc.pro
-test_gdl2gdl.pro
 test_get_lun.pro
 test_gh00178.pro
 test_gh00716.pro
