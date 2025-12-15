@@ -162,6 +162,7 @@ plotting_windows.cpp
 plotting_xyouts.cpp
 plotting.cpp
 poly_2d.cpp
+polynomial_roots.cpp
 print.cpp
 print_tree.cpp
 prognode.cpp
