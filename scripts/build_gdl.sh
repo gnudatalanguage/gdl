@@ -364,8 +364,6 @@ function prep_packages {
             fi
         fi
     elif [ ${BUILD_OS} == "macOS" ]; then
-        log "Checking xcode-select" 
-        xcode-select -p
         if ! command -v brew >/dev/null 2>&1; then
             log "Fatal error! Homebrew not found."
             exit 1
@@ -417,15 +415,15 @@ function configure_gdl {
     fi
     
     if [[ ${BUILD_OS} == "macOS" ]]; then
+#patch to be tested: should avoid the error "tried including <stddef.h> but didn't find libc++'s <stddef.h> header."
+            sudo xcode-select -s /Library/Developer/CommandLineTools
+#end patch
         if [[ ${Platform} == "arm64" ]]; then
             export LIBRARY_PATH=$LIBRARY_PATH:/opt/homebrew/opt/llvm/lib
             CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF -DREADLINEDIR=/opt/homebrew/opt/readline"
                                     "-DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++"
                                     "-DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang" ) 
         else
-#patch to be tested: should avoid the error "tried including <stddef.h> but didn't find libc++'s <stddef.h> header."
-#            sudo xcode-select -s /Library/Developer/CommandLineTools
-#end patch
             export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/opt/llvm/lib
             CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF -DREADLINEDIR=/usr/local/opt/readline"
                                     "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++"
