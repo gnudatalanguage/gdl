@@ -364,6 +364,8 @@ function prep_packages {
             fi
         fi
     elif [ ${BUILD_OS} == "macOS" ]; then
+        log "Checking xcode-select" 
+        xcode-select -p
         if ! command -v brew >/dev/null 2>&1; then
             log "Fatal error! Homebrew not found."
             exit 1
