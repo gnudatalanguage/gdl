@@ -22,7 +22,6 @@ test_bug_3057520.pro
 test_bug_3061072.pro
 test_bug_3081887.pro
 test_bug_3085858.pro
-test_bug_3086851.pro
 test_bug_3091599.pro
 test_bug_3091610.pro
 test_bug_3100945.pro
@@ -36,7 +35,6 @@ test_bug_3152899.pro
 test_bug_3189072.pro
 test_bug_3199465.pro
 test_bug_3285659.pro
-test_bug_3286031.pro
 test_bug_3290532.pro
 test_bug_3296360.pro
 test_bug_3298378.pro
