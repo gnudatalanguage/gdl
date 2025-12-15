@@ -369,6 +369,7 @@ function prep_packages {
             exit 1
         fi
         brew update-reset
+		export SDKROOT=$(xcrun --show-sdk-path) #solves IA64 brew problems?
         log "Installing packages: ${BREW_PACKAGES[@]}"
         if [ ${DRY_RUN} == "true" ]; then
             log "Please run below command to install required packages to build GDL."
