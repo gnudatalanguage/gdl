@@ -475,36 +475,14 @@ namespace lib
 	  if (log) { //no "leak factor" as below for the linear case: the axis range in the case xstyle=0 MUST cover an integer
 		// number of powers of ten, i.e., of AutoLogTickIntv(). As the intv depends on the range, it is necessary to converge towards a 'stable' value
 		PLFLT intv = AutoLogTickIntv(pow(10, min), pow(10, max));
-//		PLFLT intv = 0;
-//		//find the "good" intv
-//		PLFLT start=min;
-//		PLFLT end=max;
-//		while (intv != intvold) {
-//			intv = intvold;
-//			start= floor(start / intv) * intv;
-//			end = ceil(end / intv) * intv;
-//			intvold = AutoLogTickIntv(pow(10, start), pow(10, end));
-//		  }
 		//intv is OK, find nearest value for max and min
-		  if ( abs ( (floor(max / intv) * intv ) - max ) > intv/1000) max =  ceil(max / intv) * intv;
-		  if ( abs ( (ceil(min / intv) * intv ) - min ) > intv/1000)  min = floor(min / intv) * intv;
+		  max =  ceil(max / intv) * intv; //GD : do not jump to next tick if the difference is invisible ?? to be checked !!!
+		  min = floor(min / intv) * intv;
 	  } else {
 		PLFLT intv = AutoTickIntv(range,true);
-//		PLFLT intv = 0;
-//		//find the "good" intv
-//		PLFLT start=min;
-//		PLFLT end=max;
-////		while (intv != intvold) {
-//			intv = intvold;
-//			start= floor(start / intv) * intv;
-//			end = ceil(end / intv) * intv;
-//			range=end-start;
-//			intvold = AutoTickIntv(range,true);
-////		  }
-//			intv = intvold;
 		//intv is OK, find nearest value for max and min, do not jump to next tick if the difference is invisible:
-		  if ( abs ( (floor(max / intv) * intv ) - max ) > intv/1000) max =  ceil(max / intv) * intv;
-		  if ( abs ( (ceil(min / intv) * intv ) - min ) > intv/1000)  min = floor(min / intv) * intv;
+		  if ( abs ( (floor(max / intv) * intv ) - max ) >= 1E-6*intv) max =  ceil(max / intv) * intv; //OK tested. 10-6 may not be the EXACT value.
+		  if ( abs ( (ceil(min / intv) * intv ) - min ) >= 1E-6*intv)  min = floor(min / intv) * intv;
 		}
 	}
 

@@ -140,29 +140,8 @@ void GDLXStream::GetGeometry(long& xSize, long& ySize) {
     return true;
   }
 
-// plplot 5.3 does not provide the clear function for c++
-
 void GDLXStream::Clear() {
   Clear(-1);
-//  // this mimics better the *DL behaviour but plbop create a new page, etc..
-//  //plclear clears only the current subpage. But it clears it. One has
-//  //just to set the number of subpages to 1
-//  PLINT red, green, blue;
-//  DByte r, g, b;
-//  PLINT red0, green0, blue0;
-//
-//  GraphicsDevice::GetCT( )->Get( 0, r, g, b );
-//  red = r;
-//  green = g;
-//  blue = b;
-////we get around the index 0=background color "feature" of plplot. GDL uses a separate backgroud color.
-//  red0 = GraphicsDevice::GetDevice( )->BackgroundR( );
-//  green0 = GraphicsDevice::GetDevice( )->BackgroundG( );
-//  blue0 = GraphicsDevice::GetDevice( )->BackgroundB( );
-//  plstream::scolbg( red0, green0, blue0 ); //overwrites col[0]
-//  ::c_plbop( );
-////  ::c_plclear( );
-//  plstream::scolbg( red, green, blue ); //resets col[0]
 }
 
 void GDLXStream::Clear(DLong chan) {
@@ -683,9 +662,8 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
   PLINT yoff = (PLINT) pos[2]; //(pls->wpyoff / 24575 * dev->height + 1);
   PLINT xmax = dev->width - xoff;
   PLINT ymax = dev->height - yoff;
-  if (nx > xmax) nx = xmax;
-  if (ny > ymax) ny = ymax;
-  yoff=dev->height-yoff-ymax;
+  if (nx < xmax) xmax = nx;
+  if (ny < ymax) ymax = ny;
 
   PLINT rint[ctSize], gint[ctSize], bint[ctSize];
   //load original table
@@ -701,16 +679,16 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
     int (*oldErrorHandler)(Display*, XErrorEvent*);
     oldErrorHandler = XSetErrorHandler(GetImageErrorHandler);
     if (dev->write_to_pixmap == 1) {
-      ximg = XGetImage(xwd->display, dev->pixmap, xoff, yoff, nx, ny, AllPlanes, ZPixmap);
+      ximg = XGetImage(xwd->display, dev->pixmap, xoff, dev->height-yoff-ymax, xmax, ymax, AllPlanes, ZPixmap);
     } else {
-      ximg = XGetImage(xwd->display, dev->window, xoff, yoff, nx, ny, AllPlanes, ZPixmap);
+      ximg = XGetImage(xwd->display, dev->window, xoff, dev->height-yoff-ymax, xmax, ymax, AllPlanes, ZPixmap);
     }
     if (ximg == NULL) { //last chance!!!
 //      XSync(xwd->display, 0); //could be overkill...
       x = 0;
       y = 0;
       if (dev->write_to_pixmap == 1) {
-        XCopyArea(xwd->display, dev->pixmap, dev->window, dev->gc, xoff, yoff, nx, ny, x, y);
+        XCopyArea(xwd->display, dev->pixmap, dev->window, dev->gc, xoff, dev->height-yoff-ymax, xmax, ymax, x, y);
 //        XSync(xwd->display, 0); //could be overkill...
       }
     }
@@ -720,16 +698,16 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
       return false;
     }
   } else {
-    void *imgData=malloc(nx*ny*4); //too much size allocated, but keeps X11 happy (no need of scanline length computation)
-    ximg = XCreateImage(xwd->display, xwd->visual, xwd->depth, ZPixmap, 0, (char*)imgData , nx, ny, 8, 0); //8 seems reasonable, see XCreateImage doc.
+    void *imgData=malloc(xmax*ymax*4); //too much size allocated, but keeps X11 happy (no need of scanline length computation)
+    ximg = XCreateImage(xwd->display, xwd->visual, xwd->depth, ZPixmap, 0, (char*)imgData , xmax, ymax, 8, 0); //8 seems reasonable, see XCreateImage doc.
   }
 
   PLINT ix, iy;
   XColor curcolor;
   curcolor = xwd->fgcolor; //default
   PLINT iclr1, ired, igrn, iblu;
-  for (ix = 0; ix < nx; ++ix) {
-    for (iy = 0; iy < ny; ++iy) {
+  for (ix = 0; ix < xmax; ++ix) {
+    for (iy = 0; iy < ymax; ++iy) {
 
       if (xwd->color) {
         if (trueColorOrder == 0 && chan == 0) {
@@ -766,7 +744,7 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
             }
             curcolor.pixel = ired * 256 * 256 + igrn * 256 + iblu;
           } else { //channel mode -> ximg was got from display -> is reversed
-            unsigned long pixel = XGetPixel(ximg, ix, ny-1-iy);
+            unsigned long pixel = XGetPixel(ximg, ix, ymax-1-iy);
             if (chan == 1) { //1 byte bitmap passed
               pixel &= 0x00ffff;
               ired = idata[1 * (iy * nx + ix) + 0];
@@ -783,14 +761,16 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
           }
         }
       }
-      XPutPixel(ximg, ix, ny-1-iy, curcolor.pixel); //ximg IS reversed allways.
+      XPutPixel(ximg, ix, ymax-1-iy, curcolor.pixel); //ximg IS reversed allways.
     }
   }
   if (dev->write_to_pixmap == 1)
-    XPutImage(xwd->display, dev->pixmap, dev->gc, ximg, 0, 0,  xoff, yoff, nx, ny);
+    XPutImage(xwd->display, dev->pixmap, dev->gc, ximg, 0, 0,
+    xoff, dev->height-yoff-ymax, xmax, ymax);
 
   if (dev->write_to_window==1) //always write
-    XPutImage(xwd->display, dev->window, dev->gc, ximg, 0, 0,  xoff, yoff, nx, ny);
+    XPutImage(xwd->display, dev->window, dev->gc, ximg, 0, 0,
+    xoff, dev->height-yoff-ymax, xmax, ymax);
 
   XDestroyImage(ximg);
   return true;

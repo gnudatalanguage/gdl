@@ -1289,15 +1289,51 @@ namespace lib {
     T* res = new T(p0C->Dim(), BaseGDL::NOZERO);
     SizeT nEl = p0->N_Elements();
     if (nEl == 1) {
-      (*res)[0] = ((*p0C)[0] == 0)?0:signbit((*p0C)[0]);
+      (*res)[0] = ((*p0C)[0] == 0)?0:isfinite((*p0C)[0])?copysign(1,(*p0C)[0]):(*p0C)[0];
       return res;
     }
     if ((GDL_NTHREADS=parallelize( nEl))==1) {
-      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ((*p0C)[i] == 0)?0:signbit((*p0C)[ i]);
+      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ((*p0C)[i] == 0)?0:isfinite((*p0C)[i])?copysign(1,(*p0C)[ i]):(*p0C)[ i];
     } else {
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ((*p0C)[i] == 0)?0:signbit((*p0C)[ i]);
+      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ((*p0C)[i] == 0)?0:isfinite((*p0C)[i])?copysign(1,(*p0C)[ i]):(*p0C)[ i];
+    }
+    return res;
+  }
+  
+  BaseGDL* signum_fun_cmpx(BaseGDL* p0) {
+    DComplexGDL* p0C = static_cast<DComplexGDL*> (p0);
+    DComplexGDL* res = static_cast<DComplexGDL*>(p0->Dup());
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      if (abs((*p0C)[0]) != 0)  (*res)[0] /= abs((*p0C)[0]);
+      return res;
+    }
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
+      for (SizeT i = 0; i < nEl; ++i) if (abs((*p0C)[i]) != 0)  (*res)[i] /= abs((*p0C)[i]);
+    } else {
+      TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+      for (SizeT i = 0; i < nEl; ++i) if (abs((*p0C)[i]) != 0)  (*res)[i] /= abs((*p0C)[i]);
+    }
+    return res;
+  }
+
+  BaseGDL* signum_fun_dcmpx(BaseGDL* p0) {
+    DComplexDblGDL* p0C = static_cast<DComplexDblGDL*> (p0);
+    DComplexDblGDL* res = static_cast<DComplexDblGDL*>(p0->Dup());
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      if (abs((*p0C)[0]) != 0)  (*res)[0] /= abs((*p0C)[0]);
+      return res;
+    }
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
+      for (SizeT i = 0; i < nEl; ++i) if (abs((*p0C)[i]) != 0)  (*res)[i] /= abs((*p0C)[i]);
+    } else {
+      TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+      for (SizeT i = 0; i < nEl; ++i) if (abs((*p0C)[i]) != 0)  (*res)[i] /= abs((*p0C)[i]);
     }
     return res;
   }
@@ -1307,19 +1343,53 @@ namespace lib {
     T* p0C = static_cast<T*> (p0);
     SizeT nEl = p0->N_Elements();
     if (nEl == 1) {
-      (*p0C)[0] = ((*p0C)[0] == 0)?0:signbit((*p0C)[0]);
+      (*p0C)[0] = ((*p0C)[0] == 0)?0:isfinite((*p0C)[0])?copysign(1,(*p0C)[0]):(*p0C)[0];
       return p0;
     }
     if ((GDL_NTHREADS=parallelize( nEl))==1) {
-      for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = ((*p0C)[i] == 0)?0:signbit((*p0C)[ i]);
+      for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = ((*p0C)[i] == 0)?0:isfinite((*p0C)[i])?copysign(1,(*p0C)[ i]):(*p0C)[ i];
     } else {
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = ((*p0C)[i] == 0)?0:signbit((*p0C)[ i]);
+      for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = ((*p0C)[i] == 0)?0:isfinite((*p0C)[i])?copysign(1,(*p0C)[ i]):(*p0C)[ i];
     }
     return p0;
   }
 
+  BaseGDL* signum_fun_cmpx_grab(BaseGDL* p0) {
+    DComplexGDL* p0C = static_cast<DComplexGDL*> (p0);
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      if (abs((*p0C)[0]) != 0) (*p0C)[0] /= abs((*p0C)[0]);
+      return p0;
+    }
+    if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+      for (SizeT i = 0; i < nEl; ++i) if (abs((*p0C)[i]) != 0)  (*p0C)[i] /= abs((*p0C)[i]);
+    } else {
+      TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+          for (SizeT i = 0; i < nEl; ++i) if (abs((*p0C)[i]) != 0) (*p0C)[i] /= abs((*p0C)[i]);
+    }
+    return p0;
+  }
+
+  BaseGDL* signum_fun_dcmpx_grab(BaseGDL* p0) {
+    DComplexDblGDL* p0C = static_cast<DComplexDblGDL*> (p0);
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      if (abs((*p0C)[0]) != 0)   (*p0C)[0] /= abs((*p0C)[0]);
+      return p0;
+    }
+    if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+      for (SizeT i = 0; i < nEl; ++i) if (abs((*p0C)[i]) != 0)   (*p0C)[i] /= abs((*p0C)[i]);
+    } else {
+      TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+          for (SizeT i = 0; i < nEl; ++i)if (abs((*p0C)[i]) != 0)    (*p0C)[i] /= abs((*p0C)[i]);
+    }
+    return p0;
+  }
+  
    BaseGDL* signum_fun(BaseGDL* p0, bool isReference) {
     SizeT nEl = p0->N_Elements();
     DType p0Type = p0->Type();
@@ -1327,6 +1397,15 @@ namespace lib {
      if (p0Type == GDL_FLOAT)
       if (isReference) return signum_fun_template< DFloatGDL>(p0);
       else return signum_fun_template_grab< DFloatGDL>(p0);
+     else if (p0Type == GDL_DOUBLE)
+      if (isReference) return signum_fun_template< DDoubleGDL>(p0);
+      else return signum_fun_template_grab< DDoubleGDL>(p0);
+     else if (p0Type == GDL_COMPLEX)
+      if (isReference) return signum_fun_cmpx(p0);
+      else return signum_fun_cmpx_grab(p0);
+     else if (p0Type == GDL_COMPLEXDBL)
+      if (isReference) return signum_fun_dcmpx(p0);
+      else return signum_fun_dcmpx_grab(p0);
      else if (p0Type == GDL_BYTE)
       if (isReference) return signum_fun_template< DByteGDL>(p0);
       else return signum_fun_template_grab< DByteGDL>(p0);
