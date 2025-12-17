@@ -41,6 +41,7 @@
 #include "file.hpp"
 
 #include "gsl_fun.hpp"
+#include "polynomial_roots.hpp"
 
 #include "where.hpp"
 #include "convol.hpp"

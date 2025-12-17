@@ -29,6 +29,8 @@
 
 #include "smooth.hpp"
 
+#include "polynomial_roots.hpp"
+
 using namespace std;
 
 void LibInit_ac()

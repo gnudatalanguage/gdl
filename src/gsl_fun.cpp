@@ -32,12 +32,9 @@
 #ifdef _MSC_VER
 #include "gtdhelper.hpp" //for gettimeofday()
 #else
-
 #include <sys/time.h>
-
 #endif
-// ms: must not be inlcuded here
-//#include "libinit_ac.cpp"
+
 
 #include <gsl/gsl_sys.h>
 #include <gsl/gsl_linalg.h>
@@ -136,6 +133,25 @@ namespace lib {
     gsl_set_error_handler(GDLGenericGSLErrorHandler);
   }
 
+
+  // a simple error handler for GSL issuing GDL warning messages
+  // an initial call (with file=NULL, line=-1 and gsl_errno=-1) sets a prefix to "reason: "
+  // TODO: merge with the code of NEWTON/BROYDEN/IMSL_HYBRID
+  void gsl_err_2_gdl_warn(const char *reason, const char *file, int line, int gsl_errno) {
+    static string prefix;
+    if (line == -1 && gsl_errno == -1 && file == NULL) prefix = string(reason) + ": ";
+    else Warning(prefix + "GSL: " + reason);
+  }
+
+  class gsl_err_2_gdl_warn_guard {
+    gsl_error_handler_t *old_handler;
+  public:
+    gsl_err_2_gdl_warn_guard(gsl_error_handler_t *old_handler_) { old_handler = old_handler_; }
+
+    ~gsl_err_2_gdl_warn_guard() { gsl_set_error_handler(old_handler); }
+  };
+
+  
   template<typename T1, typename T2>
   int cp2data2_template(BaseGDL *p0, T2 *data, SizeT nEl,
 			SizeT offset, SizeT stride_in, SizeT stride_out) {
@@ -2712,59 +2728,6 @@ namespace lib {
 
   }
 
-
-  //FZ_ROOT:compute polynomial roots
-
-  BaseGDL *fz_roots_fun(EnvT *e) {
-
-    static int doubleIx = e->KeywordIx("DOUBLE");
-
-    // Ascending coefficient array
-    BaseGDL *p0 = e->GetNumericArrayParDefined(0);
-    DDoubleGDL *coef = e->GetParAs<DDoubleGDL>(0);
-
-    // GSL function
-
-    if (ComplexType(p0->Type())) {
-      e->Throw("Polynomials with complex coefficients not supported yet (FIXME!)");
-    }
-
-    if (coef->N_Elements() < 2) {
-      e->Throw("Degree of the polynomial must be strictly greather than zero");
-    }
-
-    for (int i = 0; i < coef->N_Elements(); i++) {
-      if (!isfinite((*coef)[i])) e->Throw("Not a number and infinity are not supported");
-    }
-
-    gsl_poly_complex_workspace *w = gsl_poly_complex_workspace_alloc(coef->N_Elements());
-    GDLGuard<gsl_poly_complex_workspace> g1(w, gsl_poly_complex_workspace_free);
-
-    SizeT resultSize = coef->N_Elements() - 1;
-    vector<double> tmp(2 * resultSize);
-
-    gsl_poly_complex_solve(&(*coef)[0], coef->N_Elements(), w, &(tmp[0]));
-
-    //     gsl_poly_complex_workspace_free (w);
-
-    int debug = 0;
-    if (debug) {
-      for (int i = 0; i < resultSize; i++) {
-	printf("z%d = %+.18f %+.18f\n", i, tmp[2 * i], tmp[2 * i + 1]);
-      }
-    }
-    DComplexDblGDL *result = new DComplexDblGDL(dimension(resultSize), BaseGDL::NOZERO);
-    for (SizeT i = 0; i < resultSize; ++i) {
-      (*result)[i] = complex<double>(tmp[2 * i], tmp[2 * i + 1]);
-    }
-
-    return result->Convert2(
-			    e->KeywordSet(doubleIx) || p0->Type() == GDL_DOUBLE
-			    ? GDL_COMPLEXDBL
-			    : GDL_COMPLEX,
-			    BaseGDL::CONVERT);
-  }
-
   //FX_ROOT
 
   class fx_root_param {
@@ -3186,22 +3149,6 @@ namespace lib {
   //     gsl_wavelet_workspace_guard(gsl_wavelet_workspace* workspace_) { workspace = workspace_; }
   //     ~gsl_wavelet_workspace_guard() { gsl_wavelet_workspace_free(workspace); }
   //   };
-  // a simple error handler for GSL issuing GDL warning messages
-  // an initial call (with file=NULL, line=-1 and gsl_errno=-1) sets a prefix to "reason: "
-  // TODO: merge with the code of NEWTON/BROYDEN/IMSL_HYBRID
-  void gsl_err_2_gdl_warn(const char *reason, const char *file, int line, int gsl_errno) {
-    static string prefix;
-    if (line == -1 && gsl_errno == -1 && file == NULL) prefix = string(reason) + ": ";
-    else Warning(prefix + "GSL: " + reason);
-  }
-
-  class gsl_err_2_gdl_warn_guard {
-    gsl_error_handler_t *old_handler;
-  public:
-    gsl_err_2_gdl_warn_guard(gsl_error_handler_t *old_handler_) { old_handler = old_handler_; }
-
-    ~gsl_err_2_gdl_warn_guard() { gsl_set_error_handler(old_handler); }
-  };
 
   // SA: 1. Numerical Recipes, and hence IDL as well, calculate the transform until there are
   //        two smoothing coefficients left, while GSL leaves out just one, thus:
@@ -3345,60 +3292,6 @@ namespace lib {
 			 );
   }
 
-
-  // SA: helper class for zeropoly
-  // an auto_ptr-like class for guarding the poly_complex_workspace
-  //   class gsl_poly_complex_workspace_guard
-  //   {
-  //     gsl_poly_complex_workspace* workspace;
-  //     public:
-  //     gsl_poly_complex_workspace_guard(gsl_poly_complex_workspace* workspace_) { workspace = workspace_; }
-  //     ~gsl_poly_complex_workspace_guard() { gsl_poly_complex_workspace_free(workspace); }
-  //   };
-  BaseGDL *zeropoly(EnvT *e) {
-    static int doubleIx = e->KeywordIx("DOUBLE");
-    static int jenkisTraubIx = e->KeywordIx("JENKINS_TRAUB");
-
-    //        SizeT nParam = e->NParam(1);
-    if (e->KeywordSet(jenkisTraubIx))
-      e->Throw("Jenkins-Traub method not supported yet (FIXME!)");
-
-    BaseGDL *p0 = e->GetNumericArrayParDefined(0);
-    if (ComplexType(p0->Type()))
-      e->Throw("Polynomials with complex coefficients not supported yet (FIXME!)");
-    if (p0->Rank() != 1)
-      e->Throw("The first argument must be a column vector: " + e->GetParString(0));
-    DDoubleGDL *coef = e->GetParAs<DDoubleGDL>(0);
-
-    // GSL error handling
-    gsl_error_handler_t *old_handler = gsl_set_error_handler(&gsl_err_2_gdl_warn);
-    gsl_err_2_gdl_warn_guard old_handler_guard(old_handler);
-    gsl_err_2_gdl_warn(e->GetProName().c_str(), NULL, -1, -1);
-
-    // initializing complex polynomial workspace
-    gsl_poly_complex_workspace *w = gsl_poly_complex_workspace_alloc(coef->N_Elements());
-    GDLGuard<gsl_poly_complex_workspace> g1(w, gsl_poly_complex_workspace_free);
-    //     gsl_poly_complex_workspace_guard w_guard(w);
-
-    SizeT resultSize = coef->N_Elements() - 1;
-    vector<double> tmp(2 * resultSize);
-
-    if (GSL_SUCCESS != gsl_poly_complex_solve(
-					      &(*coef)[0], coef->N_Elements(), w, &(tmp[0]))
-	)
-      e->Throw("Failed to compute the roots of the polynomial");
-
-    DComplexDblGDL *result = new DComplexDblGDL(dimension(resultSize), BaseGDL::NOZERO);
-    for (SizeT i = 0; i < resultSize; ++i)
-      (*result)[i] = complex<double>(tmp[2 * i], tmp[2 * i + 1]);
-
-    return result->Convert2(
-			    e->KeywordSet(doubleIx) || p0->Type() == GDL_DOUBLE
-			    ? GDL_COMPLEXDBL
-			    : GDL_COMPLEX,
-			    BaseGDL::CONVERT
-			    );
-  }
 
   // SA: GDL implementation of LEGENDRE uses gsl_sf_legendre_Plm, while SPHER_HARM implem.
   //     below uses gsl_sf_legendre_sphPlm which is intended for use with sph. harms

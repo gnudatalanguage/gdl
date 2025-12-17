@@ -3,110 +3,149 @@
 ; Benjamin Laurent, 15-Juin-2012
 ; 
 ; -------------------------------------------------
+; Modifications history :
 ;
-; to be extended ...
+; - 2018-FEB-04 : AC. Corrected "bug" when cumulating large number
+;   of byte ... large rewriting, trying to automatic
+;   and to have numerical cases at the limits ...
+;
+; - 2025-Dec-14 : AC. large rewritting.
+;   Adding cases with Complex coeffs
 ;
 ; -------------------------------------------------
 ;
-;usage:
-;GDL> test_fz_roots
-
-function poly, m, c , r , index, double;Return the maximum error between 'exact' roots and fz_roots 
-  resp=0
-  resn=0
-  epsref=1e-6
-  s=fz_roots(*c[m],/double)  
-  ;Sorting, index gives the relation
-  ;between 'exact' roots and fz_roots (cause to different orders...)
-  for j = 0,n_elements(*r[m])-1 do begin
-     for i = 0,n_elements(*r[m])-1 do begin
-        if ( abs(s[j]-(*r[m])[i]) lt epsref ) then begin
-           (*index[m])[j]=i
-        endif
-     endfor
-  endfor
-  
-  for j = 0,n_elements(*r[m])-1 do begin
-     resn=abs(s[j]-(*r[m])[(*index[m])[j]])
-     if (resn GT resp) then begin resp = resn
-     endif
-  endfor
-  return, resp
-end
-
-pro TEST_FZ_ROOTS_ON_POLY, numberpoly=numberpoly, eps=eps, help=help, test=test , c=c, r=r, index=index, double=double
-
-  if KEYWORD_SET(help) then begin
-     print, 'pro TEST_FZ_ROOTS_POLY, numberpoly=m, eps=eps, help=help, test=test, c=c, r=r, index=index, double=double'
-     return
-  endif
-
-;Error tolerance
-  if (N_ELEMENTS(eps) EQ 0) then begin eps=1e-6
-  endif
-  if (N_ELEMENTS(numberpoly) EQ 0) then begin m=0
-  endif
-  nb_errors=0
-
-  resuFZ=poly(numberpoly,c,r,index,double);maximum error
-
-  if resuFZ GT eps then begin nb_errors=nb_errors+1 ;comparing
-  endif
-
-  if (nb_errors GT 0) then begin
-     MESSAGE, /continue, STRING(nb_errors)+' Errors founded'
-     if ~KEYWORD_SET(test) then EXIT, status=1
-  endif else begin
-     MESSAGE, /continue, 'Polynomial '+string(format='(I1)',numberpoly)+' : No Errors founded'
-  endelse
-
-
+; approche gloutonne robuste ...
+; -------------------------------------------------
 ;
-  if KEYWORD_SET(test) then begin STOP
-  endif
+function MATCH_ROOTS, z, w
+;; Z, W : vecteurs réels ou complexes de même taille
+n = N_ELEMENTS(Z)
+D = FLTARR(n, n)
+FOR i = 0, n-1 DO $
+   FOR j = 0, n-1 DO $
+      D[i,j] = ABS(Z[i] - W[j])
+;;
+used = INTARR(n)
+match = INTARR(n)
+;;
+FOR k = 0, n-1 DO BEGIN
+   minval = MIN(D, pos)
+   i = pos MOD n
+   j = pos / n
+   ;;
+   match[i] = j
+   used[j] = 1
+   ;; neutralisation ligne + colonne
+   D[i,*] = 1e30
+   D[*,j] = 1e30
+ENDFOR
+RETURN, match
+END
+;
+; -------------------------------------------------
+pro CHECK_ROOTS, res, res_expected, errors, message, test=test
+;
+eps=1e-6
+tri=MATCH_ROOTS(res,res_expected) 
+liste_errors=ABS(res-res_expected[tri])
+pbs=WHERE(liste_errors GT eps, nb_pbs)
+if (nb_pbs GT 0) then ERRORS_ADD, errors, message
+if KEYWORD_set(test) then STOP
 ;
 end
-
-
-
-pro TEST_FZ_ROOTS
-
-n=5;number of polynomials
-c=ptrarr(n);polynomial coefficients
-r=ptrarr(n);polynomial roots
-
-c[0]=ptr_new([-1,0,0,0,0,1])
-r[0]=ptr_new(exp([0,2,4,6,8] * !PI * complex(0,1) / 5))
-
-c[1]=ptr_new([-1,0,0,0,0,1])
-r[1]=ptr_new(exp([0,2,4,6,8] * !PI * complex(0,1) / 5))
-
+;
+; -------------------------------------------------
+; When input coeffs are real, we do use the GSL method
+; which is known to be accurate and stable
+;
+pro TEST_FZ_ROOTS_REAL, cumul_errors, test=test, verbose=verbose
+;
+errors=0
+;
+c1=[-1,0,0,0,0,1]
+res_expected=EXP([0,2,4,6,8] * !PI * COMPLEX(0,1) / 5)
+res=FZ_ROOTS(c1,/double)
+CHECK_ROOTS, res, res_expected, errors, 'First Poly Real'
+;
 ; IDL-doc example (IMSL_ZEROPOLY)
-c[2] = ptr_new([-2, 4, -3, 1])
-r[2] = ptr_new([1, complex(1,-1), complex(1,1)])
-
+c2 = [-2, 4, -3, 1]
+res_expected = [1, COMPLEX(1,-1), COMPLEX(1,1)]
+res=FZ_ROOTS(c2,/double)
+CHECK_ROOTS, res, res_expected, errors, 'Second Poly Real'
+;
 ; IDL-doc examples (FZ_ROOTS)
-c[3] = ptr_new([-2, -9, -7, 6])
-r[3] = ptr_new([-.5, -1./3, 2.])
+c3=[-2, -9, -7, 6]
+res_expected = [-.5, -1./3, 2.]
+res=FZ_ROOTS(c3,/double)
+CHECK_ROOTS, res, res_expected, errors, 'Third Poly Real'
+;
+c4=[2, 0, 3, 0, 1]
+res_expected = COMPLEX(0,[-SQRT(2), SQRT(2), -1, 1])
+res=FZ_ROOTS(c4,/double)
+CHECK_ROOTS, res, res_expected, errors, 'Forth Poly Real'
+;
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, 'TEST_FZ_ROOTS_REAL', errors, /short
+ERRORS_CUMUL, cumul_errors, errors
+if KEYWORD_set(test) then STOP
+;
+end
+;
+;
+; -------------------------------------------------
+; When input coeffs are real, we do use the GSL method
+; which is known to be accurate and stable
+;
+pro TEST_FZ_ROOTS_COMPLEX, cumul_errors, test=test, verbose=verbose
+;
+errors=0
+;
+c1 = [COMPLEX(18,24), COMPLEX(-3,4), COMPLEX(-4,-4), 1.0]
+res_expected=[-2.,3., complex(3.,4.)]
+res=FZ_ROOTS(c1,/double)
+CHECK_ROOTS, res, res_expected, errors, 'First Poly COMPLEX'
+;
+c2 = [COMPLEX(1.,0), COMPLEX(1,0), COMPLEX(1,0)]
+res_expected = [COMPLEX(-.5,SQRT(3.)/2.), COMPLEX(-.5,-SQRT(3.)/2.)]
+res=FZ_ROOTS(c2,/double)
+CHECK_ROOTS, res, res_expected, errors, 'Second Poly COMPLEX'
+;
+c1r=COMPLEX([-1,0,0,0,0,1])
+res_expected=EXP([0,2,4,6,8] * !PI * COMPLEX(0,1) / 5)
+res=FZ_ROOTS(c1r,/double)
+CHECK_ROOTS, res, res_expected, errors, 'First Poly Real as a Complex'
 
-c[4] = ptr_new([2, 0, 3, 0, 1])
-r[4] = ptr_new(complex(0,[-sqrt(2), sqrt(2), -1, 1]))
-
-;c[5]=ptr_new([1]);To check error handling of degree zero polynomial
-;c[6]=ptr_new([complex(0,1),0,0,1]);To check error handling of complex coefficients polynomial
-   
-index=ptrarr(5)
-index[0]=ptr_new([0,0,0,0,0])
-index[1]=ptr_new([0,0,0,0,0])
-index[2]=ptr_new([0,0,0])
-index[3]=ptr_new([0,0,0])
-index[4]=ptr_new([0,0,0,0])
-
-TEST_FZ_ROOTS_ON_POLY, numberpoly=0, c=c, r=r, index=index, double=double
-TEST_FZ_ROOTS_ON_POLY, numberpoly=1, c=c, r=r, index=index, double=double
-TEST_FZ_ROOTS_ON_POLY, numberpoly=2, c=c, r=r, index=index, double=double
-TEST_FZ_ROOTS_ON_POLY, numberpoly=3, c=c, r=r, index=index, double=double
-TEST_FZ_ROOTS_ON_POLY, numberpoly=4, c=c, r=r, index=index, double=double
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, 'TEST_FZ_ROOTS_COMPLEX', errors, /short
+ERRORS_CUMUL, cumul_errors, errors
+if KEYWORD_set(test) then STOP
+;
+end
+;
+; -------------------------------------------------
+;
+pro TEST_FZ_ROOTS, help=help, test=test, verbose=verbose, no_exit=no_exit
+;
+if KEYWORD_SET(help) then begin
+   print, 'pro TEST_FZ_ROOTS, help=help, test=test, verbose=verbose, no_exit=no_exit'
+   return
+endif 
+;
+cumul_errors=0
+;
+TEST_FZ_ROOTS_REAL, cumul_errors, test=test, verbose=verbose
+TEST_FZ_ROOTS_COMPLEX, cumul_errors, test=test, verbose=verbose
+;
+; ----------------- final message ----------
+;
+BANNER_FOR_TESTSUITE, 'TEST_FZ_ROOTS', cumul_errors, short=short
+;
+if (cumul_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+;
+if KEYWORD_SET(test) then STOP
+;
 end
 
 

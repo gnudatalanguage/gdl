@@ -35,9 +35,9 @@
 namespace lib {
 
   //  BaseGDL* invert_fun( EnvT* e);
-//  BaseGDL* fft_fun( EnvT* e);
+  //  BaseGDL* fft_fun( EnvT* e);
   BaseGDL* random_fun( EnvT* e);
-
+  
   //GD: replaced la_trired from gsl by la_trired from eigen (if eigen is present) as it gives the same results as IDL's LA_TRIRED and is 5 times faster.
 #if  !defined(USE_EIGEN)
   void la_trired_pro( EnvT* e);
@@ -55,10 +55,13 @@ namespace lib {
   void inplacemxradixfft(double a[], double b[], 
 			 int ntot, int n, int nspan, int isn);
 
+  // AC 2025-12-15 : Moved in "polynomial_roots.cpp"
+  // BaseGDL* fz_roots_fun(EnvT* e);
+  // BaseGDL* zeropoly(EnvT* e);
+
   // the following by AC
   BaseGDL* qromb_fun(EnvT* e);
   BaseGDL* qromo_fun(EnvT* e);
-  BaseGDL* fz_roots_fun(EnvT* e);
   BaseGDL* fx_root_fun(EnvT* e);
 
   // the following by SA
@@ -68,7 +71,6 @@ namespace lib {
   BaseGDL* constant(EnvT* e);
   BaseGDL* binomialcoef(EnvT* e);
   BaseGDL* wtn(EnvT* e);
-  BaseGDL* zeropoly(EnvT* e);
   BaseGDL* spher_harm(EnvT* e);
   BaseGDL* gaussfit(EnvT* e);
   BaseGDL* random_fun_gsl(EnvT* e);
