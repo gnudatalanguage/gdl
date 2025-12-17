@@ -118,7 +118,7 @@ elif [ ${BUILD_OS} == "Linux" ]; then
 elif [ ${BUILD_OS} == "macOS" ]; then
     BREW_PACKAGES=(
         llvm libx11 libomp ncurses readline zlib libpng gsl wxwidgets graphicsmagick libtiff libgeotiff netcdf hdf5 fftw proj open-mpi python numpy udunits eigen
-        eccodes glpk shapelib expat gcc@11 qhull dylibbundler cmake
+        eccodes glpk shapelib expat gcc qhull dylibbundler cmake
     ) # JP 2021 Mar 21: HDF4 isn't available - not so critical I guess
       # JP 2021 May 25: Added GCC 10 which includes libgfortran, which the numpy tap relies on.
       # J-KL 2022 July 30: GCC 10 didn't work with apple silicon mac. So I replaced it with GCC 11
@@ -415,15 +415,15 @@ function configure_gdl {
     fi
     
     if [[ ${BUILD_OS} == "macOS" ]]; then
+#patch to be tested: should avoid the error "tried including <stddef.h> but didn't find libc++'s <stddef.h> header."
+            sudo xcode-select -s /Library/Developer/CommandLineTools
+#end patch
         if [[ ${Platform} == "arm64" ]]; then
             export LIBRARY_PATH=$LIBRARY_PATH:/opt/homebrew/opt/llvm/lib
             CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF -DREADLINEDIR=/opt/homebrew/opt/readline"
                                     "-DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++"
                                     "-DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang" ) 
         else
-#patch to be tested: should avoid the error "tried including <stddef.h> but didn't find libc++'s <stddef.h> header."
-            sudo xcode-select -s /Library/Developer/CommandLineTools
-#end patch
             export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/opt/llvm/lib
             CMAKE_ADDITIONAL_ARGS=( "-DMPI=OFF -DREADLINEDIR=/usr/local/opt/readline"
                                     "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++"
