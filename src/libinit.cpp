@@ -144,8 +144,9 @@ void LibInit()
   new DLibFunRetNew(lib::terminal_size_fun,string("TERMINAL_SIZE"),2);
 
   const string routine_infoKey[]={"FUNCTIONS","SYSTEM","DISABLED","ENABLED",
-				  "PARAMETERS","SOURCE","UNRESOLVED","VARIABLES", KLISTEND};
-  new DLibFunRetNew(lib::routine_info,string("ROUTINE_INFO"),1,routine_infoKey);
+				  "PARAMETERS","SOURCE","UNRESOLVED", KLISTEND};
+  const string routine_infoWarnKey[]={"VARIABLES", KLISTEND};
+  new DLibFunRetNew(lib::routine_info,string("ROUTINE_INFO"),1,routine_infoKey,routine_infoWarnKey);
 
   new DLibFunRetNew(lib::routine_name_fun,string("ROUTINE_NAME_INTERNALGDL"),1);
   new DLibFunRetNew(lib::routine_dir_fun,string("ROUTINE_DIR"),1);

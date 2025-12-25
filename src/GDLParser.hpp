@@ -140,10 +140,11 @@ public:
 	public: void case_body();
 	public: void endcase_mark();
 	public: void endcaseelse_mark();
-	public: void identifier_list();
+	public: void forward_identifier_list();
 	public: void keyword_declaration();
 	protected: std::string  object_name();
 	public: void compile_opt();
+	public: void identifier_list();
 	public: void endforeach_mark();
 	public: void endfor_mark();
 	public: void endrep_mark();
@@ -229,6 +230,7 @@ public:
 	public: void arrayindex();
 	public: void arrayindex_sloppy();
 	public: void arrayindex_list_sloppy();
+	public: void arrayindex_list_sloppy_silent();
 	public: void all_elements();
 	public: void sysvar();
 	public: void var();
@@ -243,7 +245,6 @@ public:
 	protected: SizeT  tag_access();
 	public: void deref_dot_expr();
 	protected: bool  member_function_call();
-	public: void member_function_call_dot();
 	public: void arrayexpr_mfcall();
 	public: void primary_expr();
 	public: void decinc_expr();

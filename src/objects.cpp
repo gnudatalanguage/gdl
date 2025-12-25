@@ -1007,6 +1007,41 @@ bool IsFun(antlr::RefToken rT1)
 			       Is_eq<DFun>(searchName));
   if( q != funList.end()) if( *q != NULL) return true;
 
+	// newly compiled DFun. ?
+  for ( UnknownFunListT::iterator r=unknownFunList.begin(); r!=unknownFunList.end(); ++r) {
+    if( (*r) == searchName )  return true;
+  }
+
+  //  cout << "Not found: " << searchName << endl;
+
+  return false;
+}
+
+// for semantic predicate
+bool IsPro(antlr::RefToken rT1)
+{
+  antlr::Token& T1=*rT1;
+
+  // search for T1.getText() in function table and path
+  string searchName=StrUpCase(T1.getText());
+
+//  cout << "IsFun: Searching for: " << searchName << endl;
+
+// Speeds up the process of finding (in gdlc.g) if a syntax like foo(bar) is a call to the function 'foo'
+// or the 'bar' element of array 'foo'.
+  LibProListT::iterator p=find_if(libProList.begin(),libProList.end(),
+			       Is_eq<DLibPro>(searchName));
+  if( p != libProList.end()) if( *p != NULL) return true;
+
+  ProListT::iterator q=find_if(proList.begin(),proList.end(),
+			       Is_eq<DPro>(searchName));
+  if( q != proList.end()) if( *q != NULL) return true;
+
+  // newly compiled DPro. ?
+  for ( UnknownProListT::iterator r=unknownProList.begin(); r!=unknownProList.end(); ++r) {
+    if( (*r) == searchName )  return true;
+  }
+
   //  cout << "Not found: " << searchName << endl;
 
   return false;
