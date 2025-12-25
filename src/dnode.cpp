@@ -602,9 +602,24 @@ void DNode::SetFunIx(const int ix) {
     WarnAboutObsoleteRoutine(this, funList[ix]->Name());
 }
 
+void doUpCasing( std::string& s)
+  {
+    unsigned len=s.length();
+    for(unsigned i=0;i<len;i++)
+    s[i]=std::toupper(s[i]);
+  }
+
+void DNode::MemorizeUncompiledFun(std::string & name) {
+  doUpCasing(name);
+  unknownFunList.insert(name);
+}
 void DNode::SetProIx(const int ix) {
   if (ix == -1) unknownProList.insert(getText());
   proIx = ix;
   if (ix != -1 && proList[ix]->isObsolete()) WarnAboutObsoleteRoutine(this, proList[ix]->Name());
 }
 
+void DNode::MemorizeUncompiledPro(std::string & name) {
+  doUpCasing(name);
+  unknownProList.insert(name);
+}

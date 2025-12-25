@@ -234,7 +234,9 @@ public:
   void SetArrayDepth(const int aD) { arrayDepth=aD;} 
 
   void SetFunIx(const int ix);
+  void MemorizeUncompiledFun(std::string & s);
   void SetProIx(const int ix);
+  void MemorizeUncompiledPro(std::string & s);
   void SetLibFun(DLibFun* const l) { libFun=l;}
   void SetLibPro(DLibPro* const l) { libPro=l;}
   void SetNDot(const int n) { nDot=n;}
