@@ -215,6 +215,7 @@ tokens {
     bool   searchForPro; // true -> procedure subName, false -> function subName 
     bool   SearchedRoutineFound; 
     unsigned int compileOpt=0;
+	bool allowInteractiveSyntax=false;
 	bool relaxed=false; // use of a bool speedups {}? constructs
     int fussy=((compileOpt & STRICTARR)!=0)?2:1; //auto recovery if compile opt is not strictarr
     int LastGoodPosition=0; // last position of start of PRO or FUNC -- used in recovery mode
@@ -322,11 +323,13 @@ translation_unit
         | forward_function end_unit
         | procedure_def 
             { 
+                allowInteractiveSyntax=true;
                 compileOpt=NONE; // reset compileOpt  
                 if( SearchedRoutineFound) goto bailOut;
             }
         |function_def 
             { 
+                allowInteractiveSyntax=true;
                 compileOpt=NONE; // reset compileOpt
                 if( SearchedRoutineFound) goto bailOut;
             }
@@ -419,7 +422,9 @@ interactive_compile!
 
 // interactive usage
 interactive
-{fussy=((compileOpt & STRICTARR)!=0)?2:0;
+{
+allowInteractiveSyntax=true;
+fussy=((compileOpt & STRICTARR)!=0)?2:0;
 relaxed=(fussy < 1);
 }
     :   ( end_unit (end_mark)? 
@@ -575,6 +580,7 @@ object_name! returns [std::string name] // !//
 
 procedure_def
 {
+    allowInteractiveSyntax=false;
     std::string name;
 	fussy=recovery?0:1; //recoverable fussy mode
 	relaxed=(fussy < 1);
@@ -595,11 +601,13 @@ procedure_def
             if( subName == name && searchForPro == true) SearchedRoutineFound=true;
             #p->SetCompileOpt( compileOpt); 
             #p->MemorizeUncompiledPro(name); //in case the Parser has to know that a procedure thus named exists. 
+		    allowInteractiveSyntax=true;
          }
   ;
 
 function_def
 {
+    allowInteractiveSyntax=false;
     std::string name;
 	fussy=recovery?0:1; //recoverable fussy mode
 	relaxed=(fussy < 1);
@@ -622,6 +630,7 @@ function_def
             #f->MemorizeUncompiledFun(name); //since a fun in the same .pro file is not yet 'compiled'
             //at this time (Parser) but the Parser has to know that it has ben defined for disambiguation
 			//of function calls in the 'sloppy' mode
+		    allowInteractiveSyntax=true;
         }
     ;
 
@@ -819,10 +828,11 @@ statement
                         #statement = #([MPCALL, "mpcall"], #statement);
                 }
             )
-			// use of IsPro prevent '!x.crange' to be interpreted as
-			// a call to a supposed procedure crange of the supposed object !x
-			// thus permitting autoprint.
-			| { IsPro(LT(1))}? d3:deref_dot_expr_keeplast formal_procedure_call
+			// use of IsPro prevent '!x.crange' to be interpreted as a call to a supposed procedure crange of the supposed object !x
+			// thus permitting autoprint. This must be available only in interactive mode of the Parser (not compiling a function/pro)
+			// If we are in translation mode, allowInteractiveSyntax==false and all constructs like !x.crange or list.invert
+			// will be interpreted as procedure calls (and !x.crange will fail).
+			| { (allowInteractiveSyntax==false || IsPro(LT(1))) }? d3:deref_dot_expr_keeplast formal_procedure_call
             { 
                     #statement = #([MPCALL, "mpcall"], #statement);
                     #statement->SetLine( #d3->getLine());
