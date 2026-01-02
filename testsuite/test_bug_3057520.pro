@@ -3,6 +3,7 @@
 ;
 pro TEST_BUG_3057520
 ;
+; must be called from test_netcdf
 if ~NCDF_EXISTS() then begin
    MESSAGE, /continue, 'GDL was compiled without NetCDF !'
    EXIT, status=77

@@ -21,6 +21,8 @@ if ~NCDF_EXISTS() then begin
 endif
 ;
 NC_TEST
+; /dev/null (used in below tests) WILL NOT be a file on Windows, come on!
+if !version.os_family eq 'Windows' then return
 TEST_BUG_3055720
 TEST_BUG_3057511
 TEST_BUG_3057520
