@@ -58,6 +58,7 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
     bool   searchForPro; // true -> procedure subName, false -> function subName 
     bool   SearchedRoutineFound; 
     unsigned int compileOpt=0;
+	bool allowInteractiveSyntax=false;
 	bool relaxed=false; // use of a bool speedups {}? constructs
     int fussy=((compileOpt & STRICTARR)!=0)?2:1; //auto recovery if compile opt is not strictarr
     int LastGoodPosition=0; // last position of start of PRO or FUNC -- used in recovery mode

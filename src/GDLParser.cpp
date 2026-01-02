@@ -775,6 +775,7 @@ void GDLParser::translation_unit() {
 				}
 				if ( inputState->guessing==0 ) {
 					
+					allowInteractiveSyntax=true;
 					compileOpt=NONE; // reset compileOpt  
 					if( SearchedRoutineFound) goto bailOut;
 					
@@ -789,6 +790,7 @@ void GDLParser::translation_unit() {
 				}
 				if ( inputState->guessing==0 ) {
 					
+					allowInteractiveSyntax=true;
 					compileOpt=NONE; // reset compileOpt
 					if( SearchedRoutineFound) goto bailOut;
 					
@@ -932,12 +934,12 @@ void GDLParser::translation_unit() {
 	catch ( antlr::NoViableAltForCharException& e) {
 		if (inputState->guessing==0) {
 			
-							recovery=false;
-							// this partially solves #59 (no line number in '@'-included files
-							printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
+						recovery=false;
+						// this partially solves #59 (no line number in '@'-included files
+						printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn());			
 						// LEXER SYNTAX ERROR
 			//			throw GDLException( e.getLine(), e.getColumn(), "Lexer syntax error: "+e.getMessage(), e.getFilename() );
-					
+			
 		} else {
 			throw;
 		}
@@ -1038,6 +1040,7 @@ void GDLParser::procedure_def() {
 	antlr::RefToken  n = antlr::nullToken;
 	RefDNode n_AST = RefDNode(antlr::nullAST);
 	
+	allowInteractiveSyntax=false;
 	std::string name;
 		fussy=recovery?0:1; //recoverable fussy mode
 		relaxed=(fussy < 1);
@@ -1149,6 +1152,7 @@ void GDLParser::procedure_def() {
 		if( subName == name && searchForPro == true) SearchedRoutineFound=true;
 		p_AST->SetCompileOpt( compileOpt); 
 		p_AST->MemorizeUncompiledPro(name); //in case the Parser has to know that a procedure thus named exists. 
+				    allowInteractiveSyntax=true;
 		
 	}
 	procedure_def_AST = RefDNode(currentAST.root);
@@ -1164,6 +1168,7 @@ void GDLParser::function_def() {
 	antlr::RefToken  n = antlr::nullToken;
 	RefDNode n_AST = RefDNode(antlr::nullAST);
 	
+	allowInteractiveSyntax=false;
 	std::string name;
 		fussy=recovery?0:1; //recoverable fussy mode
 		relaxed=(fussy < 1);
@@ -1277,6 +1282,7 @@ void GDLParser::function_def() {
 		f_AST->MemorizeUncompiledFun(name); //since a fun in the same .pro file is not yet 'compiled'
 		//at this time (Parser) but the Parser has to know that it has ben defined for disambiguation
 					//of function calls in the 'sloppy' mode
+				    allowInteractiveSyntax=true;
 		
 	}
 	function_def_AST = RefDNode(currentAST.root);
@@ -1585,6 +1591,8 @@ void GDLParser::interactive() {
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
 	RefDNode interactive_AST = RefDNode(antlr::nullAST);
+	
+	allowInteractiveSyntax=true;
 	fussy=((compileOpt & STRICTARR)!=0)?2:0;
 	relaxed=(fussy < 1);
 	
@@ -2671,7 +2679,7 @@ void GDLParser::statement() {
 						}
 						statement_AST = RefDNode(currentAST.root);
 					}
-					else if (((_tokenSet_4.member(LA(1))) && (_tokenSet_5.member(LA(2))))&&( IsPro(LT(1)))) {
+					else if (((_tokenSet_4.member(LA(1))) && (_tokenSet_5.member(LA(2))))&&( (allowInteractiveSyntax==false || IsPro(LT(1))) )) {
 						deref_dot_expr_keeplast();
 						if (inputState->guessing==0) {
 							d3_AST = returnAST;
