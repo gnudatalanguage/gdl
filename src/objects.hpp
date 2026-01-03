@@ -137,6 +137,7 @@ int LibProIx(const std::string& n);
 int LibFunIx(const std::string& n);
 
 bool IsFun(antlr::RefToken); // used by Lexer and Parser
+bool IsPro(antlr::RefToken); // used by Lexer and Parser
 bool IsTracingSyntaxErrors(); //tells if syntax is not strict (i.e. parenthesis for array indexes).
 void SetTraceSyntaxErrors(bool value);
 

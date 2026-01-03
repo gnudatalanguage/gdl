@@ -1,4 +1,5 @@
 pro test_bug_3061072
+; must be called from test_netcdf
   if ~ncdf_exists() then exit, status=77
 
   n = ncdf_create('/dev/null',/clo)

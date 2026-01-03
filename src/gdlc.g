@@ -158,7 +158,7 @@ tokens {
     NSTRUC_REF; // named struct reference
     ON_IOERROR_NULL;
     PCALL;
-    PCALL_LIB; // libraray procedure call
+    PCALL_LIB; // library procedure call
     PARADECL;
     PARAEXPR;  // parameter
     PARAEXPR_VN; // _VN Variable Number of parameters version
@@ -215,6 +215,7 @@ tokens {
     bool   searchForPro; // true -> procedure subName, false -> function subName 
     bool   SearchedRoutineFound; 
     unsigned int compileOpt=0;
+	bool allowInteractiveSyntax=false;
 	bool relaxed=false; // use of a bool speedups {}? constructs
     int fussy=((compileOpt & STRICTARR)!=0)?2:1; //auto recovery if compile opt is not strictarr
     int LastGoodPosition=0; // last position of start of PRO or FUNC -- used in recovery mode
@@ -322,11 +323,13 @@ translation_unit
         | forward_function end_unit
         | procedure_def 
             { 
+                allowInteractiveSyntax=true;
                 compileOpt=NONE; // reset compileOpt  
                 if( SearchedRoutineFound) goto bailOut;
             }
         |function_def 
             { 
+                allowInteractiveSyntax=true;
                 compileOpt=NONE; // reset compileOpt
                 if( SearchedRoutineFound) goto bailOut;
             }
@@ -419,7 +422,9 @@ interactive_compile!
 
 // interactive usage
 interactive
-{fussy=((compileOpt & STRICTARR)!=0)?2:0;
+{
+allowInteractiveSyntax=true;
+fussy=((compileOpt & STRICTARR)!=0)?2:0;
 relaxed=(fussy < 1);
 }
     :   ( end_unit (end_mark)? 
@@ -538,7 +543,7 @@ end_unit!
 
 
 forward_function
-  : FORWARD^ identifier_list
+  : FORWARD! i:forward_identifier_list 
   ;
 
 
@@ -575,6 +580,7 @@ object_name! returns [std::string name] // !//
 
 procedure_def
 {
+    allowInteractiveSyntax=false;
     std::string name;
 	fussy=recovery?0:1; //recoverable fussy mode
 	relaxed=(fussy < 1);
@@ -594,11 +600,14 @@ procedure_def
 			fussy=1; //set recoverable fussy mode
             if( subName == name && searchForPro == true) SearchedRoutineFound=true;
             #p->SetCompileOpt( compileOpt); 
-        }
+            #p->MemorizeUncompiledPro(name); //in case the Parser has to know that a procedure thus named exists. 
+		    allowInteractiveSyntax=true;
+         }
   ;
 
 function_def
 {
+    allowInteractiveSyntax=false;
     std::string name;
 	fussy=recovery?0:1; //recoverable fussy mode
 	relaxed=(fussy < 1);
@@ -617,7 +626,11 @@ function_def
 			recovery=false;
 //        	std::cerr<<"end fun "<<name<<" at "<<LastGoodPosition<<std::endl;
 			fussy=1; //set recoverable fussy mode
-            #f->SetCompileOpt( compileOpt); 
+            #f->SetCompileOpt( compileOpt);
+            #f->MemorizeUncompiledFun(name); //since a fun in the same .pro file is not yet 'compiled'
+            //at this time (Parser) but the Parser has to know that it has ben defined for disambiguation
+			//of function calls in the 'sloppy' mode
+		    allowInteractiveSyntax=true;
         }
     ;
 
@@ -645,6 +658,10 @@ common_block
 
 identifier_list
     : IDENTIFIER (COMMA! IDENTIFIER)*
+    ;
+
+forward_identifier_list
+    : i:IDENTIFIER! {std::string name=#i->getText();#i->MemorizeUncompiledFun(name);} (COMMA! j:IDENTIFIER! {std::string name=#j->getText();#j->MemorizeUncompiledFun(name);})*
     ;
 
 // no ASTs for end marks
@@ -811,8 +828,12 @@ statement
                         #statement = #([MPCALL, "mpcall"], #statement);
                 }
             )
-    | d3:deref_dot_expr_keeplast formal_procedure_call
-                { 
+			// use of IsPro prevent '!x.crange' to be interpreted as a call to a supposed procedure crange of the supposed object !x
+			// thus permitting autoprint. This must be available only in interactive mode of the Parser (not compiling a function/pro)
+			// If we are in translation mode, allowInteractiveSyntax==false and all constructs like !x.crange or list.invert
+			// will be interpreted as procedure calls (and !x.crange will fail).
+			| { (allowInteractiveSyntax==false || IsPro(LT(1))) }? d3:deref_dot_expr_keeplast formal_procedure_call
+            { 
                     #statement = #([MPCALL, "mpcall"], #statement);
                     #statement->SetLine( #d3->getLine());
                 }
@@ -1363,6 +1384,10 @@ arrayindex_list_sloppy
     : LBRACE! arrayindex_sloppy ({++rank <= MAXRANK}? COMMA! arrayindex_sloppy)* RBRACE!
     ; 
 
+arrayindex_list_sloppy_silent
+    : LBRACE! arrayindex_sloppy (COMMA! arrayindex_sloppy)* RBRACE!
+    ; 
+
 all_elements!
     : ASTERIX { #all_elements = #([ALL,"*"]);}
     ;
@@ -1603,7 +1628,7 @@ member_function_call returns [bool parent]
     : { parent = false;} MEMBER! 
         (s:IDENTIFIER METHOD! 
             { 
-        // here we translate IDL_OBECT to GDL_OBJECT for source code compatibility
+        // here we translate IDL_OBJECT to GDL_OBJECT for source code compatibility
         {
             if( #s->getText() == "IDL_OBJECT")
                 #s->setText(GDL_OBJECT_NAME);
@@ -1613,18 +1638,19 @@ member_function_call returns [bool parent]
                 parent = true;
             } )? formal_function_call
       ;
-member_function_call_dot
-    :  DOT! (s:IDENTIFIER METHOD!
-        // here we translate IDL_OBECT to GDL_OBJECT for source code compatibility
-        {
-            if( #s->getText() == "IDL_OBJECT")
-                #s->setText(GDL_OBJECT_NAME);
-            else if( #s->getText() == "IDL_CONTAINER")
-                #s->setText(GDL_CONTAINER_NAME);
-        }
-        ) formal_function_call
-      ;
-
+// Does not seem to be used???
+//member_function_call_dot
+//    :  DOT! (s:IDENTIFIER METHOD!
+//        {
+//        // here we translate IDL_OBECT to GDL_OBJECT for source code compatibility
+//            if( #s->getText() == "IDL_OBJECT")
+//                #s->setText(GDL_OBJECT_NAME);
+//            else if( #s->getText() == "IDL_CONTAINER")
+//                #s->setText(GDL_CONTAINER_NAME);
+//        }
+//        ) formal_function_call
+//      ;
+//
 assign_expr
     : LBRACE! deref_expr 
 	(
@@ -1676,7 +1702,10 @@ arrayexpr_mfcall!
                     }
            }        
         )
-        id:IDENTIFIER al:arrayindex_list
+//GD: here " a=hash("toto","tata"); b=a.HasKey("zzz") fails using arrayindex_list
+//when in 'fussy' (aka IDL2) mode since the () are ignored by the Parser because 'realxed' is false.
+//In order to enable it in this case, I replace by arrayindex_list_sloppy_silent hoping this may not have other effects.
+        id:IDENTIFIER al:arrayindex_list_sloppy_silent
         {
             if( nDot > 0)
                 #arrayexpr_mfcall = #([ARRAYEXPR_MFCALL,"arrayexpr_mfcall"], #tag, #id, #al);

@@ -7849,8 +7849,6 @@ namespace lib {
     bool parametersKW = e->KeywordSet(parametersIx);
     static int sourceIx = e->KeywordIx("SOURCE");
     bool sourceKW = e->KeywordSet(sourceIx);
-    static int VARIABLES = e->KeywordIx("VARIABLES");
-    bool variables = e->KeywordSet(VARIABLES);
     static int UNRESOLVED = e->KeywordIx("UNRESOLVED");
     bool unresolved = e->KeywordSet(UNRESOLVED);
 
@@ -7867,7 +7865,10 @@ namespace lib {
 	  }
 	  return res;
 	}
-	if (variables) return new DStringGDL("");
+// Job not done, "VARIABLES" is in WarnKwList in definition at libinit.cpp    
+//    static int VARIABLES = e->KeywordIx("VARIABLES");
+//    bool variables = e->KeywordSet(VARIABLES);
+//	if (variables) return new DStringGDL("");
     
     if (sourceKW) {
 
