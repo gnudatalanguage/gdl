@@ -307,6 +307,7 @@ identifier
 // file parsing
 translation_unit
 { 
+	unknownFunList.clear(); //clear previously used list of functions defined in a previous translation_unit
     SearchedRoutineFound=false;
     compileOpt=NONE; // reset compileOpt  
     retry:; 
@@ -423,6 +424,7 @@ interactive_compile!
 // interactive usage
 interactive
 {
+unknownFunList.clear(); //clear previously used list of functions defined in a previous translation_unit
 allowInteractiveSyntax=true;
 fussy=((compileOpt & STRICTARR)!=0)?2:0;
 relaxed=(fussy < 1);
