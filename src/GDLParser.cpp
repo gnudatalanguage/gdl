@@ -750,6 +750,7 @@ void GDLParser::translation_unit() {
 	antlr::ASTPair currentAST;
 	RefDNode translation_unit_AST = RefDNode(antlr::nullAST);
 	
+		unknownFunList.clear(); //clear previously used list of functions defined in a previous translation_unit
 	SearchedRoutineFound=false;
 	compileOpt=NONE; // reset compileOpt  
 	retry:; 
@@ -1592,6 +1593,7 @@ void GDLParser::interactive() {
 	antlr::ASTPair currentAST;
 	RefDNode interactive_AST = RefDNode(antlr::nullAST);
 	
+	unknownFunList.clear(); //clear previously used list of functions defined in a previous translation_unit
 	allowInteractiveSyntax=true;
 	fussy=((compileOpt & STRICTARR)!=0)?2:0;
 	relaxed=(fussy < 1);
