@@ -374,7 +374,7 @@ void wxPLDevGC::PSDrawTextToDC( char* utf8_string, bool drawText )
 
     wxDouble w, h, d, l;
 
-    wxString str( wxConvUTF8.cMB2WC( utf8_string ), *wxConvCurrent );
+        wxString str( utf8_string , wxConvUTF8 );
 
     w = 0;
     m_context->GetTextExtent( str, &w, &h, &d, &l );
