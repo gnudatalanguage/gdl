@@ -2614,9 +2614,30 @@ void file_delete( EnvT* e)
 
 static int copy_basic(const char *source, const char *dest) 
 {
-    u_int64_t tsize;
+//  // slower but simpler way, using C++ and avoid stack size problems. And shorter code.
+//    ifstream ssource(std::string(source), ios::binary);
+//    ofstream sdest(std::string(dest), ios::binary);
+//
+//    istreambuf_iterator<char> begin_source(ssource);
+//    istreambuf_iterator<char> end_source;
+//    ostreambuf_iterator<char> begin_dest(sdest); 
+//    try {
+//    copy(begin_source, end_source, begin_dest);
+//    }
+//    catch (...) {
+//      ssource.close();
+//      sdest.close();
+//      return 1;
+//    }
+//
+//    ssource.close();
+//    sdest.close();
+//    return 0;
+#define BIGBUFSIZ BUFSIZ*16
+        static char buf[BUFSIZ];
+        static char bigbuf[BIGBUFSIZ];
+        u_int64_t tsize;
     size_t size;
-
     struct stat64 statStruct;
     int status = stat64(source, &statStruct);
     if(status != 0) return status;
@@ -2625,30 +2646,17 @@ static int copy_basic(const char *source, const char *dest)
     FILE* src = fopen(source, "rb");
 // overwrite is prevented in calling procedure (unless /OVERWRITE)
     FILE* dst = fopen(dest, "w+b");
-    int doneyet = 0;
-    int bufsize = BUFSIZ;
  //   if(trace_me) printf(" copy_basic: %s  to: %s size = %d \n",source,dest, tsize);
-    if(tsize < BUFSIZ*16) {
-        char buf[BUFSIZ];
+    if(tsize < BIGBUFSIZ) {
         while ((size = fread( buf, 1, BUFSIZ, src )) > 0) {
 //              if( trace_me) printf(" 0:%d ",size );
             fwrite( buf, 1, size, dst);
         }
     }
-    else if( tsize < BUFSIZ*1024) {
-        char buf[BUFSIZ*16];
-        while(1) {
-            size = fread( buf, 1, BUFSIZ*16, src );
-//              if( trace_me) printf(" 1:%d ",size );
-            if (size <= 0) break;
-            fwrite( buf, 1, size, dst);
-        }
-    }
     else {
-        char buf[BUFSIZ*1024];
-        while ((size = fread( buf, 1, BUFSIZ*1024, src )) > 0) {
+        while ((size = fread( bigbuf, 1, BIGBUFSIZ, src )) > 0) {
 //              if( trace_me) printf(" 2:%d ",size );
-            fwrite( buf, 1, size, dst);
+            fwrite( bigbuf, 1, size, dst);
         }
     }
 //  if( trace_me) printf(" done \n");
