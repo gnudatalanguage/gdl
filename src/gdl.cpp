@@ -122,13 +122,13 @@ void AtExit()
 #ifndef _WIN32
 void GDLSetLimits()
 {
-#define GDL_PREFERED_STACKSIZE  1024000000 //1000000*1024 like IDL
+#define GDL_PREFERED_STACKSIZE  1024000000 //1000000*1024 like IDL // How was this measured??? Seems very huge.
 struct rlimit gdlstack;
   int r=getrlimit(RLIMIT_STACK,&gdlstack); 
 //  cerr <<"Current rlimit = "<<gdlstack->rlim_cur<<endl;
 //  cerr<<"Max rlimit = "<<  gdlstack->rlim_max<<endl;
   if (gdlstack.rlim_cur >= GDL_PREFERED_STACKSIZE ) return; //the bigger the better.
-  if (gdlstack.rlim_max > GDL_PREFERED_STACKSIZE ) gdlstack.rlim_cur=GDL_PREFERED_STACKSIZE; //not completely satisfactory.
+  if (gdlstack.rlim_max < GDL_PREFERED_STACKSIZE ) gdlstack.rlim_cur=GDL_PREFERED_STACKSIZE; //not completely satisfactory.
   r=setrlimit(RLIMIT_STACK,&gdlstack);
 }
 #endif
@@ -136,7 +136,7 @@ struct rlimit gdlstack;
 void InitGDL()
 {
 #ifndef _WIN32
-  GDLSetLimits();
+//  GDLSetLimits();
 #endif
 
 //rl_event_hook (defined below) uses a wxwidgets event loop, so wxWidgets must be started
