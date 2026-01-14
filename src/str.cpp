@@ -420,16 +420,20 @@ void WordExp(std::string& s, bool squash)
 {
   //AC 2018-04-25 : because crash of :  // openr, unit, '', ERROR=error,/get_lun
   if (s.length() == 0) return;
-  bool trace_me = false; //lib::trace_arg();
   
   std::string sEsc = "";
   int ipos = 0;
   // if squash (used for EXPAND_PATH but NOT FILE_EXAPND_PATH) :
   // escape blanks UNLESS those blanks are before a leading ~ issue #2024 problem 1: remove them first
+  // preserve also an initial "+"
   if (squash) {
-      size_t pos=s.find(" ~");
-    if (pos!=std::string::npos) {
+    size_t pos=std::string::npos;
+    bool hasPlus=(s[0]=='+');
+    size_t startOfThings=s.find_first_not_of("+ ~");
+    if (hasPlus) pos=s.find(" ~",1); else if (s[0]==' ') pos=s.find(" ~");
+    if (pos!=std::string::npos && pos < startOfThings) {
       s=s.substr(pos+1);
+      if (hasPlus) s.insert(0,"+"); 
     }
   }
   //created a string with escaped blanks
@@ -476,7 +480,7 @@ void WordExp(std::string& s, bool squash)
     wordfree(&p);
   }
 #endif
-  if (trace_me) std::cout << "WordExp  in: " << s << " -(modified original)- WordExp esc: " << sEsc << std::endl;
+  // std::cout << "WordExp  in: " << s << " -(modified original)- WordExp esc: " << sEsc << std::endl;
 }
 
 #endif //not def WIN32
