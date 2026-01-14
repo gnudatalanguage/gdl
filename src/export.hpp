@@ -3159,7 +3159,7 @@ int GDL_CDECL IDL_SignalRegister(int signo, EXPORT_SignalHandler_t func, int msg
 	}
 	sig_t ret=signal(signo,func);
 	if (ret==SIG_ERR) {
-			Warning("Attempt to set signal failed.\n"+std::string(strerror(errno)));
+			Warning("Attempt to set signal failed:"+std::string(strerror(errno)));
 			return 0;
 	}
 	return 1;
