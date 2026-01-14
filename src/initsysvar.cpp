@@ -1262,11 +1262,7 @@ namespace SysVar
     if( omp_get_dynamic())
 	omp_set_dynamic( 1);
 #endif
-#if defined (_WIN32)
 
-#define realpath(N,R) _fullpath((R),(N),_MAX_PATH) 
-// ref:http://sourceforge.net/p/mingw/patches/256/ Keith Marshall 2005-12-02
-#endif
     DStringGDL *dirData = new DStringGDL(gdlDataDir) ;
     std::string gdlDir=GetEnvPathString("GDL_DIR");
     if( gdlDir == "") gdlDir=GetEnvPathString("IDL_DIR");
