@@ -341,13 +341,29 @@ unsigned long int Str2UL( const std::string& s, int base)
 }
 #ifdef _WIN32
 
-void WordExp(std::string& s)
+void WordExp(std::string& s, bool squash)
 {
   if (s.length() == 0) return;
-  bool trace_me = false;
-
+  // if squash (used for EXPAND_PATH but NOT FILE_EXAPND_PATH) :
+  // escape blanks UNLESS those blanks are before a leading ~ issue #2024 problem 1: remove them first
+  // preserve also an initial "+"
+  if (squash) {
+    size_t pos=std::string::npos;
+    bool hasPlus=(s[0]=='+');
+    size_t startOfThings=s.find_first_not_of("+ ~");
+    if (hasPlus) pos=s.find(" ~",1); else if (s[0]==' ') pos=s.find(" ~");
+    if (pos!=std::string::npos && pos < startOfThings) {
+      s=s.substr(pos+1);
+      if (hasPlus) s.insert(0,"+"); 
+    }
+  }
+//note this is NOT as good as the linux version
   std::string sEsc = "";
   int ipos = 0;
+  if (s[ipos] == '+') {
+    sEsc.push_back('+');
+    ipos++;
+  }
   if (s[ipos] == '~') {
     char* homeDir = getenv("HOME");
     ipos++;
@@ -374,7 +390,7 @@ void WordExp(std::string& s)
       } else sEsc.push_back(achar);
     }
   }
-  if (trace_me) std::cout << "WordExp  in: " << s << " -(modified original)- WordExp esc: " << sEsc << std::endl;
+  //std::cout << "WordExp  in: " << s << " -(modified original)- WordExp esc: " << sEsc << std::endl;
   s = sEsc;
 }
 #endif
@@ -385,7 +401,6 @@ void WordExp(std::string& s)
 void ExpandShellVariables(std::string& s)
 {
   if (s.length() == 0) return;
-  bool trace_me = false; //lib::trace_arg();
 
   std::string sEsc = "";
   int i = 0;
@@ -421,8 +436,6 @@ void WordExp(std::string& s, bool squash)
   //AC 2018-04-25 : because crash of :  // openr, unit, '', ERROR=error,/get_lun
   if (s.length() == 0) return;
   
-  std::string sEsc = "";
-  int ipos = 0;
   // if squash (used for EXPAND_PATH but NOT FILE_EXAPND_PATH) :
   // escape blanks UNLESS those blanks are before a leading ~ issue #2024 problem 1: remove them first
   // preserve also an initial "+"
@@ -436,7 +449,9 @@ void WordExp(std::string& s, bool squash)
       if (hasPlus) s.insert(0,"+"); 
     }
   }
-  //created a string with escaped blanks
+  //create a string with escaped blanks
+  std::string sEsc = "";
+  int ipos = 0;
   for (int i = ipos; i < s.length(); ++i) {
     char achar = s[i];
     if (achar == ' ') sEsc += std::string("\\ ");
