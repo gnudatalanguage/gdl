@@ -416,7 +416,7 @@ void ExpandShellVariables(std::string& s)
   s=std::string(sEsc);
 }
 
-void WordExp(std::string& s)
+void WordExp(std::string& s, bool squash)
 {
   //AC 2018-04-25 : because crash of :  // openr, unit, '', ERROR=error,/get_lun
   if (s.length() == 0) return;
@@ -424,7 +424,15 @@ void WordExp(std::string& s)
   
   std::string sEsc = "";
   int ipos = 0;
-  // escape blanks
+  // if squash (used for EXPAND_PATH but NOT FILE_EXAPND_PATH) :
+  // escape blanks UNLESS those blanks are before a leading ~ issue #2024 problem 1: remove them first
+  if (squash) {
+      size_t pos=s.find(" ~");
+    if (pos!=std::string::npos) {
+      s=s.substr(pos+1);
+    }
+  }
+  //created a string with escaped blanks
   for (int i = ipos; i < s.length(); ++i) {
     char achar = s[i];
     if (achar == ' ') sEsc += std::string("\\ ");
