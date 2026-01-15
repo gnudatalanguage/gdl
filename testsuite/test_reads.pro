@@ -122,7 +122,9 @@ if ~ARRAY_EQUAL(x, 100) then ERRORS_ADD, errors, 'c2 bad value X !'
 if ~ARRAY_EQUAL(y, 800) then ERRORS_ADD, errors, 'c2 bad value Y !'
 if ~ARRAY_EQUAL(z, 600) then ERRORS_ADD, errors, 'c2 bad value Z !'
 ;
-;
+; this test just to check that no "% End of file encountered. Internal error: Stream not found." message is issued
+; this because of the blanks after 00 in the first element, was erroring on a previous version of accept_comma_and_complex_default_format_string() function
+a=['99 12 1 1200 00      ',      '99 12 1 1201 00'] & ymdhs = dblarr( 5,2) & reads, a, ymdhs
 ; ----- final ----
 ;
 BANNER_FOR_TESTSUITE, 'TEST_READS_ARRAYS', errors, /status

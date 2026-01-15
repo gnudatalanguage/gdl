@@ -62,7 +62,7 @@ std::stringstream accept_comma_and_complex_default_format_string(std::stringstre
 	while (is.get(c)) { //remove starting blanks, commas, tabs
 	  if (c == '\n') {
 		temp.put(c);
-		return temp;
+		if (ielem==NToTransfer-1) return temp;
       }
       if (c == '(') open_brace++;
 	  if (c == ')') open_brace--;
