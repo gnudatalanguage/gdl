@@ -937,7 +937,7 @@ DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
       }
         catch (GDLException& e) {
           std::string message=e.getMessage();
-          std::cerr<<message<<std::endl;
+//          std::cerr<<message<<std::endl;
           if ( message.rfind("unexpected end of file")==std::string::npos)  
           { ReportCompileError(e, f);
             continue;
@@ -955,7 +955,7 @@ DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
 //    std::cerr << "Produced: \n" << outs;
     if (in_procedure) {
       // internally compile 
-      std::cerr <<" will compile:\n"<<outs;
+//      std::cerr <<" will compile:\n"<<outs;
       istringstream internal(outs + "END\n");
       RefDNode theAST;
       try {
