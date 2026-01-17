@@ -219,7 +219,19 @@ tokens {
 	bool relaxed=false; // use of a bool speedups {}? constructs
     int fussy=((compileOpt & STRICTARR)!=0)?2:1; //auto recovery if compile opt is not strictarr
     int LastGoodPosition=0; // last position of start of PRO or FUNC -- used in recovery mode
-	bool recovery=false; //recovery mode going to 'fussy' if STRICTARR generated an error 
+	bool recovery=false; //recovery mode going to 'fussy' if STRICTARR generated an error
+
+// for .RUN and .RNEW: know when the entered commands define a PRO/FUN or if they are just statements.
+	bool statement_seen=false;
+	bool end_marker_seen=false;
+	bool is_in_procedure=false;
+	public: bool StatementSeen(){return statement_seen;}
+	public: void SetProcedureNotAllowed(bool b){statement_seen=b;}
+	public: void SetInProcedureAtStart(bool b){is_in_procedure=b;}
+	bool AProcedureIsAllowedHere(){return (statement_seen==false);}
+	bool EndMarkerSeen(){return end_marker_seen;}
+	bool IsInProcedure(){return is_in_procedure;}
+
     void AddCompileOpt( const std::string &opt)
     {
         if(      opt == "DEFINT32")          compileOpt |= DEFINT32;
@@ -419,6 +431,60 @@ interactive_compile!
         (METHOD IDENTIFIER)?
         (COMMA parameter_declaration)? 
         end_unit
+    ;
+
+// for .RUN and .RNEW One line at a time.
+interactive_run
+{
+unknownFunList.clear(); //clear previously used list of functions defined in a previous translation_unit
+allowInteractiveSyntax=true;
+fussy=((compileOpt & STRICTARR)!=0)?2:0;
+relaxed=(fussy < 1);
+}
+    :   ( end_unit
+	| (ENDIF! | ENDELSE!    | ENDCASE!   | ENDSWITCH!    | ENDFOR!    | ENDFOREACH!    | ENDWHILE!    | ENDREP!)
+	| END! {end_marker_seen=true;}
+        | interactive_statement {statement_seen=true;}
+		// make FUNCTION | PRO unavailable if an interactive statement was made earlier.
+		| {AProcedureIsAllowedHere()}? (FUNCTION | PRO)        IDENTIFIER       (METHOD IDENTIFIER)?        (COMMA parameter_declaration)? {is_in_procedure=true;}
+        )+
+        // catch lexer exceptions also
+        exception 
+        catch [ GDLException& e] 
+        { 
+          printLineErrorHelper(e.getFilename(), e.getLine(), e.getColumn(), e.toString());
+		  throw; //necessary for EXECUTE to get the error state. Alas.
+        }
+        catch [ antlr::NoViableAltException& e] 
+        {
+	  // here (interactive mode) the solving of #59 is delayed to the catching function (support for implied print and line continuation specifics! argh! all this an ANTLR2 problem) 
+            // PARSER SYNTAX ERROR
+            throw GDLException( e.getLine(), e.getColumn(), "Parser syntax error: "+
+                e.getMessage(), e.getFilename() );
+				}
+        catch [ antlr::NoViableAltForCharException& e] 
+        {
+	  // here (interactive mode) the solving of #59 is delayed to the catching function (support for implied print and line continuation specifics! argh! all this an ANTLR2 problem) 
+            // LEXER SYNTAX ERROR
+            throw GDLException( e.getLine(), e.getColumn(), "Lexer syntax error: "+
+                e.getMessage(), e.getFilename() );
+        }
+        catch [ antlr::RecognitionException& e]
+		{
+	  // here (interactive mode) the solving of #59 is delayed to the catching function (support for implied print and line continuation specifics! argh! all this an ANTLR2 problem) 
+            // SYNTAX ERROR
+            throw GDLException( e.getLine(), e.getColumn(), 
+                "Lexer/Parser syntax error: "+e.getMessage(), e.getFilename() );
+				}
+       catch [ antlr::TokenStreamIOException& e] 
+        {
+            // IO ERROR
+            throw GDLException( returnAST, "Input/Output error: "+e.getMessage());
+        }
+        catch [ antlr::TokenStreamException& e] 
+        {
+            throw GDLException( returnAST, "Token stream error: "+e.getMessage());
+        }
     ;
 
 // interactive usage
