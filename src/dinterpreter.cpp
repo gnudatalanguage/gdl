@@ -742,18 +742,18 @@ bool GDLInterpreter::CompileSaveFile(RefDNode theSemiCompiledAST)
   try
     {
       treeParser.translation_unit(theSemiCompiledAST);
-//     if( treeParser.ActiveProCompiled()) RetAll(); //should not happen as CompileSaveFile is not called in this case
+     if( treeParser.ActiveProCompiled()) RetAll(); //should not happen as CompileSaveFile is not called in this case
     }
   catch( GDLException& e)
     {
       ReportCompileError( e, "");
-//      if( treeParser.ActiveProCompiled()) RetAll();
+      if( treeParser.ActiveProCompiled()) RetAll();
       return false;
     }
   catch( ANTLRException& e)
     {
       std::cerr << "Compiler exception: " <<  e.getMessage() << endl;
-//      if( treeParser.ActiveProCompiled()) RetAll();
+      if( treeParser.ActiveProCompiled()) RetAll();
       return false;
     }
 #ifdef GDL_DEBUG
@@ -888,16 +888,97 @@ DInterpreter::CommandCode DInterpreter::CmdCompile( const string& command) {
 
   return CC_OK;
 }
-
+#include <iostream>
 DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
 {
+#if defined(HAVE_LIBREADLINE)
+  int edit_input = SysVar::Edit_Input() && isatty(0);
+#endif
+  static const string CmdRunPrompt="- ";
+  bool statement_seen=false;
+  bool exitAsDone=false;
+  bool in_procedure=false;
   string cmdstr = command;
   size_t sppos = cmdstr.find(" ",0);
-  if (sppos == string::npos) 
-    {
-      cout << "Interactive RUN not implemented yet." << endl;
-      return CC_OK;
+  if (sppos == string::npos) {
+    bool ok = true;
+    std::string outs;
+    // check each line individually, store in combined string if parser OK
+    while (ok) {
+      std::string f;
+#if defined(HAVE_LIBREADLINE)
+      if (edit_input != 0)
+        f = readline(const_cast<char*> (CmdRunPrompt.c_str()));
+      else
+        f = NoReadline(CmdRunPrompt);
+#else
+      f = NoReadline(CmdRunPrompt);
+#endif
+      istringstream in(f + "\n");
+//      std::cerr << "statement seen=" << statement_seen << std::endl;
+      try {
+        GDLLexer lexer(in, f, GDLParser::NONE);
+        GDLParser& parser = lexer.Parser();
+        // setup parsing state to accepting routine def or not using memorized state
+        parser.SetProcedureNotAllowed(statement_seen);
+        parser.SetInProcedureAtStart(in_procedure);
+        // parsing
+        parser.interactive_run(); // will error and throw if not authorized to parse a routine because in pure statement state
+        if (parser.IsInProcedure()) {
+          in_procedure = true;
+        }
+        // no error: check if started parsing routine, and memorize
+        if (parser.StatementSeen()) {
+          statement_seen = true;
+//          if (parser.IsInProcedure()) std::cerr << "procedure statement." << std::endl; 
+//          else std::cerr << "normal statement." << std::endl;
+        }
+        if (parser.EndMarkerSeen()) exitAsDone=true;
+      }
+        catch (GDLException& e) {
+          std::string message=e.getMessage();
+//          std::cerr<<message<<std::endl;
+          if ( message.rfind("unexpected end of file")==std::string::npos)  
+          { ReportCompileError(e, f);
+            continue;
+          }
+        } catch (...) {
+        cout << "invalid code (ignored): " << f << endl;
+        continue;
+        }
+//      cerr << "You entered: " << f << endl;
+      add_history(const_cast<char*> (f.c_str()));
+      outs.append(f);
+      outs.append("\n");
+      if (exitAsDone) break;
     }
+//    std::cerr << "Produced: \n" << outs;
+    if (in_procedure) {
+      // internally compile 
+//      std::cerr <<" will compile:\n"<<outs;
+      istringstream internal(outs + "END\n");
+      RefDNode theAST;
+      try {
+        GDLLexer lexer(internal, "", GDLParser::NONE, "", false);
+        GDLParser& parser = lexer.Parser();
+
+        // parsing
+        parser.translation_unit();
+
+        theAST = parser.getAST();
+
+        if (!theAST) {
+          cout << ".RUN: No parser output generated, please report." << endl;
+          return CC_OK;
+        }
+      } catch (...) {
+        cout << ".RUN: Parsing problems, please report." << endl;
+        return CC_OK;
+      }
+      CompileSaveFile(theAST);
+    } else DInterpreter::ExecuteStringLine(outs);
+    return CC_OK;
+  }
   bool retAll = false; // Remember if Retall is needed
 
   std::vector<string> files=ReturnListOfFiles(command);
