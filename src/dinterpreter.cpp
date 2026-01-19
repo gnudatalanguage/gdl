@@ -644,14 +644,16 @@ void GDLInterpreter::ReportCompileError( GDLException& e, const string& file)
 // compiles file, returns success
 // if untilPro is set to "" the whole file is compiled
 // procedure (searchForPro == true (default)) or function (searchForPro == false)
-bool GDLInterpreter::CompileFile(const string& f, const string& untilPro, bool searchForPro) 
+bool GDLInterpreter::CompileFile(const string& f, const string& untilPro, bool searchForPro, bool inlined) 
 {
-  ifstream in(f.c_str());
-  if( !in) return false; // maybe throw exception here
-  
+//Note that std::unique_ptr is better that raw pointers
+std::unique_ptr<std::istream> stream;
+//stream holds a string
+if (inlined) stream = std::make_unique<std::istringstream>(f); else stream = std::make_unique<std::ifstream>(std::ifstream{ f.c_str() });
+
   RefDNode theAST;
   try {  
-    GDLLexer   lexer(in, f, GDLParser::NONE, untilPro, searchForPro);
+    GDLLexer   lexer(*stream, f, GDLParser::NONE, untilPro, searchForPro);
     GDLParser& parser=lexer.Parser();
     
     // parsing

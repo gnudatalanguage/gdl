@@ -1604,6 +1604,57 @@ namespace lib {
     return int_fun(e);
   }
 
+  BaseGDL* lambda_fun(EnvT* e) {
+    static const std::string EOL("\n");
+    static int lambdanum=1;
+    DStringGDL* GDLexpr = e->GetParAs<DStringGDL>(0);
+    DString expr=(*GDLexpr)[0];
+    size_t pos=expr.find(":",0);
+    if (pos==std::string::npos) e->Throw("Code must be of the form \"arg1,arg2,... : statement\"");
+    std::string arguments=expr.substr(0,pos);
+    string lambdaFunName="IDL$LAMBDAF"+i2s(lambdanum++);
+    std::string functionText;
+    functionText+="FUNCTION ";
+    functionText+=lambdaFunName;
+    functionText+=",";
+    functionText+=arguments;
+    functionText+=EOL;
+    functionText+="COMPILE_OPT IDL2, hidden\nRETURN,";
+    functionText+=expr.substr(pos+1);
+    functionText+=EOL;
+    functionText+="END";
+    bool ok=GDLInterpreter::CompileFile(functionText,"", false, true);
+    if (!ok) e->Throw("Syntax error in code.");
+    
+    return new DStringGDL(lambdaFunName);
+  }
+  
+   BaseGDL* lambda_pro(EnvT* e) {
+    static const std::string EOL("\n");
+    static int lambdanum=1;
+    DStringGDL* GDLexpr = e->GetParAs<DStringGDL>(0);
+    DString expr=(*GDLexpr)[0];
+    size_t pos=expr.find(":",0);
+    if (pos==std::string::npos) e->Throw("Code must be of the form \"arg1,arg2,... : statement\"");
+    std::string arguments=expr.substr(0,pos);
+    string lambdaProName="IDL$LAMBDAP"+i2s(lambdanum++);
+    std::string proText;
+    proText+="PRO ";
+    proText+=lambdaProName;
+    proText+=",";
+    proText+=arguments;
+    proText+=EOL;
+    proText+="COMPILE_OPT IDL2, hidden";
+    proText+=EOL;
+    proText+=expr.substr(pos+1);
+    proText+=EOL;
+    proText+="END";
+    bool ok=GDLInterpreter::CompileFile(proText,"", false, true);
+    if (!ok) e->Throw("Syntax error in code.");
+    
+    return new DStringGDL(lambdaProName);
+  }
+   
   BaseGDL* call_function(EnvT* e) {
     int nParam = e->NParam();
     if (nParam == 0)

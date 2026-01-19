@@ -113,6 +113,9 @@ void LibInit()
   new DLibFunRetNew(lib::orderedhash_fun,string("ORDEREDHASH"),-1,hashKey);
 
   new DLibFun(lib::scope_level,string("SCOPE_LEVEL"),0);
+  //LAMBDA function
+  new DLibFun(lib::lambda_fun,string("LAMBDA"),1);
+  new DLibFun(lib::lambda_pro,string("LAMBDAP"),1);
 
   //SCOPE_VARFETCH WARNING: changes in lib::scope_varfetch_value must be reported also in lib::scope_varfetch_reference
   const string scope_varfetchKey[]={"LEVEL","ENTER", "REF_EXTRA", "COMMON", KLISTEND};
