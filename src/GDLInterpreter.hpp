@@ -178,7 +178,8 @@ public:
     // procedure (searchForPro == true) or function (searchForPro == false)
     static bool CompileFile(const std::string& f, 
 			    const std::string& untilPro="",
-			    bool searchForPro=true); 
+			    bool searchForPro=true,
+				bool inlined=false); 
     static bool CompileSaveFile(RefDNode theAST); 
     typedef RefHeap<BaseGDL> RefBaseGDL;
     typedef RefHeap<DStructGDL> RefDStructGDL;
