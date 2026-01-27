@@ -631,6 +631,9 @@ typedef std::vector<DPro*> ProListT;
 typedef std::set<std::string> UnknownFunListT;
 typedef std::set<std::string> UnknownProListT;
 
+typedef std::map<std::string, DFun*> LambdaFunListT;
+typedef std::map<std::string, DPro*> LambdaProListT;
+
 typedef std::vector<DLibFun*> LibFunListT;
 typedef std::vector<DLibPro*> LibProListT;
 

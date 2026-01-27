@@ -113,6 +113,9 @@ void LibInit()
   new DLibFunRetNew(lib::orderedhash_fun,string("ORDEREDHASH"),-1,hashKey);
 
   new DLibFun(lib::scope_level,string("SCOPE_LEVEL"),0);
+  //LAMBDA function
+  new DLibFun(lib::lambda_fun,string("LAMBDA"),1);
+  new DLibFun(lib::lambda_pro,string("LAMBDAP"),1);
 
   //SCOPE_VARFETCH WARNING: changes in lib::scope_varfetch_value must be reported also in lib::scope_varfetch_reference
   const string scope_varfetchKey[]={"LEVEL","ENTER", "REF_EXTRA", "COMMON", KLISTEND};
@@ -144,8 +147,9 @@ void LibInit()
   new DLibFunRetNew(lib::terminal_size_fun,string("TERMINAL_SIZE"),2);
 
   const string routine_infoKey[]={"FUNCTIONS","SYSTEM","DISABLED","ENABLED",
-				  "PARAMETERS","SOURCE","UNRESOLVED","VARIABLES", KLISTEND};
-  new DLibFunRetNew(lib::routine_info,string("ROUTINE_INFO"),1,routine_infoKey);
+				  "PARAMETERS","SOURCE","UNRESOLVED", KLISTEND};
+  const string routine_infoWarnKey[]={"VARIABLES", KLISTEND};
+  new DLibFunRetNew(lib::routine_info,string("ROUTINE_INFO"),1,routine_infoKey,routine_infoWarnKey);
 
   new DLibFunRetNew(lib::routine_name_fun,string("ROUTINE_NAME_INTERNALGDL"),1);
   new DLibFunRetNew(lib::routine_dir_fun,string("ROUTINE_DIR"),1);

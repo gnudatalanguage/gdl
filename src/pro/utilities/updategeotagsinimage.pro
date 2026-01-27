@@ -340,7 +340,7 @@ pro updategeotagsinimage,filename,g
   openu,unit,filename,/get_lun
   signature=0s
   magic=0s
-  offsetIFD=0LL
+  offsetIFD=0L
   readu,unit,signature,magic,offsetIFD
   if signature ne '4949'x then message,'Cannot update big-endian TIFF files; please FIXME'
 

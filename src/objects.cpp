@@ -1007,8 +1007,35 @@ bool IsFun(antlr::RefToken rT1)
 			       Is_eq<DFun>(searchName));
   if( q != funList.end()) if( *q != NULL) return true;
 
+	// newly compiled DFun. ?
+  for ( UnknownFunListT::iterator r=unknownFunList.begin(); r!=unknownFunList.end(); ++r) {
+    if( (*r) == searchName )  return true;
+  }
+
   //  cout << "Not found: " << searchName << endl;
 
+  return false;
+}
+
+// for semantic predicate
+bool IsPro(antlr::RefToken rT1)
+{
+  antlr::Token& T1=*rT1;
+
+  string searchName=StrUpCase(T1.getText());
+
+  LibProListT::iterator p=find_if(libProList.begin(),libProList.end(),
+			       Is_eq<DLibPro>(searchName));
+  if( p != libProList.end()) if( *p != NULL) return true;
+
+  ProListT::iterator q=find_if(proList.begin(),proList.end(),
+			       Is_eq<DPro>(searchName));
+  if( q != proList.end()) if( *q != NULL) return true;
+
+  // newly compiled DPro. ?
+  for ( UnknownProListT::iterator r=unknownProList.begin(); r!=unknownProList.end(); ++r) {
+    if( (*r) == searchName )  return true;
+  }
   return false;
 }
 
@@ -1017,14 +1044,44 @@ int ProIx(const string& n)
 SizeT nF=proList.size();
 for( SizeT i=0; i<nF; i++) if( Is_eq<DPro>(n)(proList[i])) 
   return (int)i;
-return -1;
-}
+  //may be a lambda list ? so it's a UD Pro
+  EnvT* requestedScope = (EnvT*) DInterpreter::CallStackBack();
+  DSubUD* pro = static_cast<DSubUD*> (requestedScope->GetPro());
+  int xI = pro->FindVar(n);
+  if (xI != -1) {
+    BaseGDL*& var = requestedScope->GetTheKW(xI);
+    if (var == NULL) return -1;
+    if (var->N_Elements() != 1) return -1;
+    if (var->Type() == GDL_STRING) { //examine string
+      DString *s = static_cast<DString*> (var->DataAddr());
+      if (s->find("IDL$LAMBDAP", 0) == 0) { //is a lambda
+        for (SizeT i = 0; i < nF; i++) if (Is_eq<DPro>(*s)(proList[i])) return (int) i;
+      }
+    }
+  }
+  return -1;
+ }
 
 int FunIx(const string& n)
 {
 SizeT nF=funList.size();
 for( SizeT i=0; i<nF; i++) if( Is_eq<DFun>(n)(funList[i]))
   return (int)i;
+//may be a lambda list ? so it's a UD Fun
+    EnvT* requestedScope = (EnvT*) DInterpreter::CallStackBack();
+    DSubUD* pro = static_cast<DSubUD*> (requestedScope->GetPro());
+    int xI = pro->FindVar(n);
+    if (xI != -1) {
+      BaseGDL*& var = requestedScope->GetTheKW(xI);
+      if (var == NULL) return -1;
+      if (var->N_Elements() !=1) return -1;
+      if (var->Type() == GDL_STRING) { //examine string
+        DString *s=static_cast<DString*>(var->DataAddr());
+        if (s->find("IDL$LAMBDAF",0)==0) { //is a lambda
+          for( SizeT i=0; i<nF; i++) if( Is_eq<DFun>(*s)(funList[i])) return (int)i;
+        }
+      }
+    }
 return -1;
 }
 
@@ -1034,7 +1091,7 @@ int LibProIx(const string& n)
   for( SizeT i=0; i<nF; i++) 
     {
       if( Is_eq<DLibPro>(n)(libProList[i])) return (int)i;
-    }
+  }
   return -1;
 }
 

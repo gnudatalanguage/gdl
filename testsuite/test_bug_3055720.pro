@@ -1,4 +1,5 @@
 pro test_bug_3055720
+; must be called from test_netcdf
   if ~ncdf_exists() then exit, status=77
   nc = ncdf_create('test_bug_3055720.nc', /clo)
   nc_va = ncdf_vardef(nc, 'A', [ncdf_dimdef(nc, 'X', 10)])

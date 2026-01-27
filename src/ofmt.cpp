@@ -945,8 +945,8 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, const std::string &s, i
    static string cApa[2]={"Am","Pm"};
    static string cAPa[2]={"AM","PM"};
  
-  static DLong *iMonth, *iDay, *iYear, *iHour, *iMinute, *dow, *icap;
-  static DDouble *Second;
+  static DLong *iMonth=NULL, *iDay=NULL, *iYear=NULL, *iHour=NULL, *iMinute=NULL, *dow=NULL, *icap=NULL;
+  static DDouble *Second=NULL;
   static ostringstream **local_os;
   bool cmplx=FALSE;
   SizeT nTrans = ToTransfer();
@@ -963,15 +963,16 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, const std::string &s, i
           i++;
           delete local_os[j];
         }
-        delete local_os;
-        delete iMonth;
-        delete iDay ;
-        delete iYear;
-        delete iHour;
-        delete iMinute;
-        delete dow;
-        delete icap;
-        delete Second;
+        if (iMonth) { //use iMonth as a marker to test if COMPUTE was called.
+          free(iMonth); iMonth=NULL;
+        free(iDay) ;
+        free(iYear);
+        free(iHour);
+        free(iMinute);
+        free(dow);
+        free(icap);
+        free(Second);
+        }
       break;
     case BaseGDL::COMPUTE:
       iMonth=(DLong*)calloc(r,sizeof(DLong));

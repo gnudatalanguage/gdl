@@ -52,7 +52,7 @@ inline void AppendIfNeeded(std::string &s, const std::string& a)
 
 void ExpandShellVariables(std::string& s);
 // wrapper for wordexp
-void WordExp( std::string& s);
+void WordExp( std::string& s, bool squash_start_blanks=false);
 
 // Tries to find file "fn" along GDLPATH.
 // If found, sets fn to the full pathname.

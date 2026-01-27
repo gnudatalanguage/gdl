@@ -39,7 +39,7 @@
 #ifndef PATH_MAX
 #define PATH_MAX 4096
 #endif 
-//#ifndef _MSC_VER
+
 #ifndef _WIN32
 #   include <fnmatch.h>
 #   include <glob.h> // glob in MinGW ok for mingw >=3.21 11/2014
@@ -661,6 +661,66 @@ static void ExpandPathN( FileListT& result,
       }
 
   }
+  // Source - https://stackoverflow.com/a
+  // Posted by sjnarv, modified by community. See post 'Timeline' for change history
+  // Retrieved 2026-01-14, License - CC BY-SA 3.0
+
+  int
+  pathcanon(const char *srcpath, char *dstpath, size_t sz) {
+    size_t plen = strlen(srcpath) + 1, chk;
+    char wtmp[plen], *tokv[plen], *s, *tok, *sav;
+    int i, ti, relpath;
+
+    relpath = (*srcpath == '/') ? 0 : 1;
+
+    /* make a local copy of srcpath so strtok(3) won't mangle it */
+
+    ti = 0;
+    (void) strcpy(wtmp, srcpath);
+
+    tok = strtok_r(wtmp, "/", &sav);
+    while (tok != NULL) {
+      if (strcmp(tok, "..") == 0) {
+        if (ti > 0) {
+          ti--;
+        }
+      } else if (strcmp(tok, ".") != 0) {
+        tokv[ti++] = tok;
+      }
+      tok = strtok_r(NULL, "/", &sav);
+    }
+
+    chk = 0;
+    s = dstpath;
+
+    /*
+     * Construct canonicalized result, checking for room as we
+     * go. Running out of space leaves dstpath unusable: written
+     * to and *not* cleanly NUL-terminated.
+     */
+    for (i = 0; i < ti; i++) {
+      size_t l = strlen(tokv[i]);
+
+      if (i > 0 || !relpath) {
+        if (++chk >= sz) return -1;
+        *s++ = '/';
+      }
+
+      chk += l;
+      if (chk >= sz) return -1;
+
+      strcpy(s, tokv[i]);
+      s += l;
+    }
+
+    if (s == dstpath) {
+      if (++chk >= sz) return -1;
+      *s++ = relpath ? '.' : '/';
+    }
+    *s = '\0';
+
+    return 0;
+  }
 
   BaseGDL* expand_path( EnvT* e)
   {
@@ -712,8 +772,6 @@ static void ExpandPathN( FileListT& result,
       }
     }
 
-    // normal expand follows
-    WordExp(pathString);
     FileListT sArr;
 
     SizeT d;
@@ -729,6 +787,10 @@ static void ExpandPathN( FileListT& result,
     do {
       d=pathString.find(pathsep[0], sPos);
       std::string act = pathString.substr(sPos, d - sPos);
+      if (act.length()==0) { //remove '::' constructs
+        sPos = d + 1;
+        continue;
+      }
       //add only if not already present -- clumsy
       bool notPresent=true;
       for (unsigned i = 0; i < pathList.size(); i++) {
@@ -742,6 +804,18 @@ static void ExpandPathN( FileListT& result,
     }    while (d != pathString.npos);
     
     for (unsigned i = 0; i < pathList.size(); i++)  {
+      // normal expand follows
+      WordExp(pathList[i], true); //EXPAND_PATH removes leading blanks before ~ if at start of string
+      char *symlinkpath = const_cast<char*> (pathList[i].c_str());
+      char canonical_path[PATH_MAX];
+      char *fullpath = canonical_path;
+      int nok = pathcanon(symlinkpath, canonical_path, PATH_MAX);
+      if (nok) {
+        fullpath = symlinkpath;
+//        std::cerr << "error in pathcanon()" << std::endl;
+      }
+      pathList[i] = string(fullpath);
+
       ExpandPath( sArr, pathList[i], pattern, all_dirs);
     }
 
@@ -806,7 +880,7 @@ DWORD dwattrib;
 //     modifications        : 2014, 2015 by Greg Jung
 
 static void PatternSearch( FileListT& fL, const DString& dirN, const DString& pat,
-        bool recursive,
+      bool recursive,
         bool accErr,   bool mark,  bool quote, 
         bool match_dot,bool forceAbsPath,bool fold_case,
         bool onlyDir,  bool *tests = NULL)
@@ -839,11 +913,11 @@ static void PatternSearch( FileListT& fL, const DString& dirN, const DString& pa
     int endR = root.length()-1;
     while(  (endR > 0) &&       // find end of root's viable name.
         ( (rootC[ endR] == PS) ||  (rootC[ endR] == '/')
-                                || (rootC[ endR] == ' '))) endR--;
+        || (rootC[ endR] == ' '))) endR--;
     if( endR >= 0)   root = root.substr( 0, endR+1);
 
     FileListT recurDir;
-    
+
     DIR* dir;
     if( root != "")
       dir = opendir( dirN.c_str());
@@ -853,21 +927,21 @@ static void PatternSearch( FileListT& fL, const DString& dirN, const DString& pa
       if( accErr)
         throw GDLException( "FILE_SEARCH: Error opening dir: "+root);
       else
-    return;
+        return;
     }
 
     DString prefix = root;
 
     if(root != "") AppendIfNeeded(prefix,PathSeparator());
-// If Dir_specification does not have a "/" at end then we will include <dirspec>/.. 
-// but this is a fix for other issues.
-//    if(onlyDir) fL.push_back(prefix);
+    // If Dir_specification does not have a "/" at end then we will include <dirspec>/.. 
+    // but this is a fix for other issues.
+    //    if(onlyDir) fL.push_back(prefix);
     if( onlyDir && (pat == "" ) ) {
         fL.push_back(prefix); return;
     }
-// file_search('nn','') != file_search('nn/','')
-//  where 'nn' is a directory in CWD.
-//
+    // file_search('nn','') != file_search('nn/','')
+    //  where 'nn' is a directory in CWD.
+    //
     if(prefix == "./") prefix="";
     int accessmode = 0;
     if(dotest) {
@@ -876,66 +950,66 @@ static void PatternSearch( FileListT& fL, const DString& dirN, const DString& pa
 #ifndef _WIN32
     if( tests[2]) accessmode |= X_OK;
 #endif
-      }
+    }
     const char* patC = pat.c_str();
-//  if(pat == "") patC = "*";   // pat="" can be done by sending pat=" "
+    //  if(pat == "") patC = "*";   // pat="" can be done by sending pat=" "
     while(*patC == ' ')patC++;  // doesn't work with leading blanks.
 #ifdef _WIN32
     wchar_t patW[MAX_PATH+1];
     wchar_t entryWstr[MAX_PATH+1];
-      MultiByteToWideChar(CP_UTF8, 0,
+    MultiByteToWideChar(CP_UTF8, 0,
                   (LPCSTR)patC, -1,
               patW, MAX_PATH+1);
 #endif
     DString filepath;
     const char* fpC;
-//      if(trace_me) std::cout << " prefix:" << prefix; 
+    //      if(trace_me) std::cout << " prefix:" << prefix; 
     struct stat64    statStruct, statlink;
     for(;;)
       {
     struct dirent* entry = readdir( dir);
     if( entry == NULL)
-      break;
+        break;
 
     DString entryStr( entry->d_name);
         if( entryStr == "." || entryStr == "..") continue;
-        const char* entryStrC = entryStr.c_str();
+      const char* entryStrC = entryStr.c_str();
 
         filepath = prefix + entryStr; fpC = filepath.c_str();
-//      if(trace_me) std::cout << "| "<< entryStr;
+      //      if(trace_me) std::cout << "| "<< entryStr;
 
         int actStat = lstat64( fpC, &statStruct);
 
 #ifdef _WIN32
         if(*entryStrC == '.' && !match_dot) continue;
-        MultiByteToWideChar(CP_UTF8, 0,
+      MultiByteToWideChar(CP_UTF8, 0,
                         (LPCSTR)entryStrC, -1,
                                 entryWstr, MAX_PATH+1);
-        int match = !PathMatchSpecW(entryWstr, patW);
+      int match = !PathMatchSpecW(entryWstr, patW);
 #else
         int match = fnmatch( patC, entryStrC, fnFlags);
 #endif
- 
+
             if( match == 0) {
             if(  onlyDir ) {
                 if( mark ) filepath.append(PathSeparator());
                 if(S_ISDIR(statStruct.st_mode) != 0) fL.push_back( filepath);
-                continue;
-            }
+          continue;
+        }
 #ifdef _WIN32
         DWORD dwattrib;
         int addlink = 0;
-            fstat_win32(filepath, addlink, dwattrib);
+        fstat_win32(filepath, addlink, dwattrib);
         statStruct.st_mode |= addlink;
 #endif
 
         bool isaDir = (S_ISDIR(statStruct.st_mode) != 0);
-            bool isaSymLink = (S_ISLNK(statStruct.st_mode) != 0);
+        bool isaSymLink = (S_ISLNK(statStruct.st_mode) != 0);
             if(isaSymLink) {
                 actStat = stat64( fpC, &statlink);
           statStruct.st_mode |= statlink.st_mode;
           isaDir = (S_ISDIR(statlink.st_mode) != 0);
-        }   
+        }
             if(dotest) {
                 if( tests[testregular] &&
                     (S_ISREG( statStruct.st_mode) == 0)) continue;
@@ -944,25 +1018,25 @@ static void PatternSearch( FileListT& fL, const DString& dirN, const DString& pa
 
 
         if( tests[testzero] &&
-            (statStruct.st_size != 0)) continue;
-        // now read, write, execute:
+              (statStruct.st_size != 0)) continue;
+          // now read, write, execute:
                 if(accessmode != 0 &&
                     (access(fpC, accessmode) != 0) ) continue;
-                }
+        }
             if( isaDir and mark) {
                  filepath.append(PathSeparator()); fpC = filepath.c_str();
-          }
+        }
             if(forceAbsPath) {
         char actualpath [PATH_MAX+1];
-        char *ptr;
+          char *ptr;
                 ptr = realpath(fpC, actualpath);
                 if( ptr != NULL ) {
 #ifdef _WIN32
     if (lib::posixpaths) for(int i=0;ptr[i] != 0;i++) if(ptr[i] == '\\') ptr[i] = '/';
 #endif          
                     fL.push_back( string(ptr));
-                }
           }
+      }
           else
                   fL.push_back( filepath);
             }
@@ -972,14 +1046,14 @@ static void PatternSearch( FileListT& fL, const DString& dirN, const DString& pa
         if( (S_ISDIR(statStruct.st_mode) != 0) && 
            ( S_ISLNK(statStruct.st_mode) == 0)
                  ) recurDir.push_back( filepath);
-      }
+    }
 
     int c = closedir( dir);
     if( c == -1) {
       if( accErr)
     throw GDLException( "FILE_SEARCH: Error closing dir: "+dirN);
       else
-    return;
+        return;
     }
     // recursive search
     if( !recursive ) return;
@@ -993,7 +1067,7 @@ static void PatternSearch( FileListT& fL, const DString& dirN, const DString& pa
               accErr,  mark, quote,
               match_dot,  forceAbsPath,fold_case,
             onlyDir,     tests);
-      }
+    }
     return;
   }
 
@@ -1420,9 +1494,7 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 //          << fileList.size() << std::endl;
 }
 
-
-//     modifications        : 2014, 2015 by Greg Jung
-  BaseGDL* file_expand_path( EnvT* e)
+  BaseGDL* file_expand_path(EnvT* e)
   {
     // always 1
     SizeT nParam=e->NParam(1);
@@ -1433,38 +1505,35 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
       e->Throw("String expression required in this context: " + e->GetParString(0));
     DStringGDL* p0S = static_cast<DStringGDL*>(p0);
 
+    //will prepend CWD if reconstructed canonical pathname does not start with '/'
+    char* cwd;
+    char buff[PATH_MAX + 1];
+    cwd = getcwd(buff, PATH_MAX + 1);
+
     SizeT nPath = p0S->N_Elements();
 
     DStringGDL* res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
     for( SizeT r=0; r<nPath ; ++r) {
       string tmp=(*p0S)[r];
-
-      if (tmp.length() == 0) {
-    char* cwd;
-    char buff[PATH_MAX + 1];
-    cwd = getcwd( buff, PATH_MAX + 1 );
-    if( cwd != NULL ){
-      (*res)[r]= string(cwd);
-    } 
-    else {
-      (*res)[r]=""; //( errors are not managed ...)
-    }
-      } else {
-    WordExp(tmp);
-    char *symlinkpath =const_cast<char*> (tmp.c_str());
-    char actualpath [PATH_MAX+1];
-    char *ptr;
-    ptr = realpath(symlinkpath, actualpath);
-#ifdef _WIN32
-    if (lib::posixpaths) for(int i=0;ptr[i] != 0;i++) if(ptr[i] == '\\') ptr[i] = '/';
-#endif          
-    if( ptr != NULL ){
-      (*res)[r] =string(ptr);
-    } else {
-      //( errors are not managed ...)
-      (*res)[r] = tmp ;
-    }
+      if (tmp.length()==0) { //append cwd
+        if( cwd != NULL ) (*res)[r]= string(cwd);
+        continue ; // next string
       }
+      bool addCwd=(tmp.substr(0,1) != "/");
+      if (addCwd) {
+        tmp.insert(0,"/");
+        tmp.insert(0,cwd);
+      }
+      WordExp(tmp, false); //does not try to gooble eventual blank(s) before eventual first "~" (IDL behaviour) 
+      char *symlinkpath =const_cast<char*> (tmp.c_str());
+      char canonical_path[PATH_MAX];
+      char *fullpath=canonical_path;
+      int nok=pathcanon(symlinkpath, canonical_path, PATH_MAX);
+      if (nok) {
+        fullpath=symlinkpath;
+//        std::cerr<<"error in pathcanon()"<<std::endl;
+      }
+      (*res)[r] = string(fullpath);
     }
     return res;
   }
@@ -2614,9 +2683,30 @@ void file_delete( EnvT* e)
 
 static int copy_basic(const char *source, const char *dest) 
 {
-    u_int64_t tsize;
+//  // slower but simpler way, using C++ and avoid stack size problems. And shorter code.
+//    ifstream ssource(std::string(source), ios::binary);
+//    ofstream sdest(std::string(dest), ios::binary);
+//
+//    istreambuf_iterator<char> begin_source(ssource);
+//    istreambuf_iterator<char> end_source;
+//    ostreambuf_iterator<char> begin_dest(sdest); 
+//    try {
+//    copy(begin_source, end_source, begin_dest);
+//    }
+//    catch (...) {
+//      ssource.close();
+//      sdest.close();
+//      return 1;
+//    }
+//
+//    ssource.close();
+//    sdest.close();
+//    return 0;
+#define BIGBUFSIZ BUFSIZ*16
+        static char buf[BUFSIZ];
+        static char bigbuf[BIGBUFSIZ];
+        u_int64_t tsize;
     size_t size;
-
     struct stat64 statStruct;
     int status = stat64(source, &statStruct);
     if(status != 0) return status;
@@ -2625,30 +2715,17 @@ static int copy_basic(const char *source, const char *dest)
     FILE* src = fopen(source, "rb");
 // overwrite is prevented in calling procedure (unless /OVERWRITE)
     FILE* dst = fopen(dest, "w+b");
-    int doneyet = 0;
-    int bufsize = BUFSIZ;
  //   if(trace_me) printf(" copy_basic: %s  to: %s size = %d \n",source,dest, tsize);
-    if(tsize < BUFSIZ*16) {
-        char buf[BUFSIZ];
+    if(tsize < BIGBUFSIZ) {
         while ((size = fread( buf, 1, BUFSIZ, src )) > 0) {
 //              if( trace_me) printf(" 0:%d ",size );
             fwrite( buf, 1, size, dst);
         }
     }
-    else if( tsize < BUFSIZ*1024) {
-        char buf[BUFSIZ*16];
-        while(1) {
-            size = fread( buf, 1, BUFSIZ*16, src );
-//              if( trace_me) printf(" 1:%d ",size );
-            if (size <= 0) break;
-            fwrite( buf, 1, size, dst);
-        }
-    }
     else {
-        char buf[BUFSIZ*1024];
-        while ((size = fread( buf, 1, BUFSIZ*1024, src )) > 0) {
+        while ((size = fread( bigbuf, 1, BIGBUFSIZ, src )) > 0) {
 //              if( trace_me) printf(" 2:%d ",size );
-            fwrite( buf, 1, size, dst);
+            fwrite( bigbuf, 1, size, dst);
         }
     }
 //  if( trace_me) printf(" done \n");

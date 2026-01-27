@@ -58,10 +58,23 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
     bool   searchForPro; // true -> procedure subName, false -> function subName 
     bool   SearchedRoutineFound; 
     unsigned int compileOpt=0;
+	bool allowInteractiveSyntax=false;
 	bool relaxed=false; // use of a bool speedups {}? constructs
     int fussy=((compileOpt & STRICTARR)!=0)?2:1; //auto recovery if compile opt is not strictarr
     int LastGoodPosition=0; // last position of start of PRO or FUNC -- used in recovery mode
-	bool recovery=false; //recovery mode going to 'fussy' if STRICTARR generated an error 
+	bool recovery=false; //recovery mode going to 'fussy' if STRICTARR generated an error
+
+// for .RUN and .RNEW: know when the entered commands define a PRO/FUN or if they are just statements.
+	bool statement_seen=false;
+	bool end_marker_seen=false;
+	bool is_in_procedure=false;
+	public: bool StatementSeen(){return statement_seen;}
+	public: void SetProcedureNotAllowed(bool b){statement_seen=b;}
+	public: void SetInProcedureAtStart(bool b){is_in_procedure=b;}
+	bool AProcedureIsAllowedHere(){return (statement_seen==false);}
+	bool EndMarkerSeen(){return end_marker_seen;}
+	bool IsInProcedure(){return is_in_procedure;}
+
     void AddCompileOpt( const std::string &opt)
     {
         if(      opt == "DEFINT32")          compileOpt |= DEFINT32;
@@ -127,9 +140,10 @@ public:
 	public: void statement_list();
 	public: void interactive_compile();
 	public: void parameter_declaration();
+	public: void interactive_run();
+	public: void interactive_statement();
 	public: void interactive();
 	public: void end_mark();
-	public: void interactive_statement();
 	public: void statement();
 	public: void switch_statement();
 	public: void expr();
@@ -140,10 +154,11 @@ public:
 	public: void case_body();
 	public: void endcase_mark();
 	public: void endcaseelse_mark();
-	public: void identifier_list();
+	public: void forward_identifier_list();
 	public: void keyword_declaration();
 	protected: std::string  object_name();
 	public: void compile_opt();
+	public: void identifier_list();
 	public: void endforeach_mark();
 	public: void endfor_mark();
 	public: void endrep_mark();
@@ -229,6 +244,7 @@ public:
 	public: void arrayindex();
 	public: void arrayindex_sloppy();
 	public: void arrayindex_list_sloppy();
+	public: void arrayindex_list_sloppy_silent();
 	public: void all_elements();
 	public: void sysvar();
 	public: void var();
@@ -243,7 +259,6 @@ public:
 	protected: SizeT  tag_access();
 	public: void deref_dot_expr();
 	protected: bool  member_function_call();
-	public: void member_function_call_dot();
 	public: void arrayexpr_mfcall();
 	public: void primary_expr();
 	public: void decinc_expr();
@@ -323,6 +338,8 @@ private:
 	static const antlr::BitSet _tokenSet_23;
 	static const unsigned long _tokenSet_24_data_[];
 	static const antlr::BitSet _tokenSet_24;
+	static const unsigned long _tokenSet_25_data_[];
+	static const antlr::BitSet _tokenSet_25;
 };
 
 #endif /*INC_GDLParser_hpp_*/

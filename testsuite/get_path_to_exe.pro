@@ -11,7 +11,7 @@ known_case=0
 ;
 ; On Linux, this is fine with GDL, IDL & FL
 ;
-if (STRLOWCASE(!version.os) EQ 'linux') then begin
+if STRLOWCASE(!version.os) NE 'darwin" AND STRLOWCASE(!version.os_family) EQ 'unix' then begin ; Not BSD not Mac see #2158
    get_pid=FILE_READLINK('/proc/self')
    get_abspath_to_exe=FILE_READLINK('/proc/'+get_pid+'/exe')
    known_case=1

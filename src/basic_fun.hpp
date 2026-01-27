@@ -179,7 +179,9 @@ namespace lib {
   BaseGDL** scope_varfetch_reference( EnvT* e); // special version for LEval()
   BaseGDL* scope_varname_fun( EnvT* e);
   BaseGDL* mean_fun(EnvT* e); 
-  BaseGDL* moment_fun(EnvT* e); 
+  BaseGDL* moment_fun(EnvT* e);
+  BaseGDL* lambda_fun(EnvT* e);
+  BaseGDL* lambda_pro(EnvT* e);
 } // namespace
 
 #endif

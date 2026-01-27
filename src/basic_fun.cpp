@@ -1603,7 +1603,88 @@ namespace lib {
     }
     return int_fun(e);
   }
+// LAMBDAS
+static  std::map<unsigned int, int> lambdaFunMemory;
+static  std::map<unsigned int, int> lambdaProMemory;
+  
+//deemed dangerous, but should be enough to uniquely identify if 2 lambdas are the same  
+unsigned int JSHash(const std::string& str)
+ {
+      unsigned int hash = 1315423911;
 
+      for(std::size_t i = 0; i < str.length(); i++)
+      {
+          hash ^= ((hash << 5) + str[i] + (hash >> 2));
+      }
+
+      return (hash & 0x7FFFFFFF);
+ }
+
+  BaseGDL* lambda_fun(EnvT* e) {
+    static const std::string EOL("\n");
+    static int lambdanum=1;
+    DStringGDL* GDLexpr = e->GetParAs<DStringGDL>(0);
+    DString expr=(*GDLexpr)[0];
+    unsigned int hash=JSHash(expr);
+    std::map<unsigned int,int>::iterator it;
+    it = lambdaFunMemory.find(hash);
+    if (it != lambdaFunMemory.end()) return new DStringGDL("IDL$LAMBDAF"+i2s((*it).second));
+
+    size_t pos=expr.find(":",0);
+    if (pos==std::string::npos) e->Throw("Code must be of the form \"arg1,arg2,... : statement\"");
+    std::string arguments=expr.substr(0,pos);
+    string lambdaFunName="IDL$LAMBDAF"+i2s(lambdanum);
+    std::string functionText;
+    functionText+="FUNCTION ";
+    functionText+=lambdaFunName;
+    functionText+=",";
+    functionText+=arguments;
+    functionText+=EOL;
+    functionText+="COMPILE_OPT IDL2, hidden\nRETURN,";
+    functionText+=expr.substr(pos+1);
+    functionText+=EOL;
+    functionText+="END";
+    bool ok=GDLInterpreter::CompileFile(functionText,"", false, true);
+    if (!ok) e->Throw("Syntax error in code.");
+
+    lambdaFunMemory.insert(std::pair<unsigned int,int>(hash,lambdanum));
+    lambdanum++;
+    return new DStringGDL(lambdaFunName);
+  }
+  
+   BaseGDL* lambda_pro(EnvT* e) {
+    static const std::string EOL("\n");
+    static int lambdanum=1;
+    DStringGDL* GDLexpr = e->GetParAs<DStringGDL>(0);
+    DString expr=(*GDLexpr)[0];
+    unsigned int hash=JSHash(expr);
+    std::map<unsigned int,int>::iterator it;
+    it = lambdaProMemory.find(hash);
+    if (it != lambdaProMemory.end()) return new DStringGDL("IDL$LAMBDAP"+i2s((*it).second));
+
+    size_t pos=expr.find(":",0);
+    if (pos==std::string::npos) e->Throw("Code must be of the form \"arg1,arg2,... : statement\"");
+    std::string arguments=expr.substr(0,pos);
+    string lambdaProName="IDL$LAMBDAP"+i2s(lambdanum);
+    std::string proText;
+    proText+="PRO ";
+    proText+=lambdaProName;
+    proText+=",";
+    proText+=arguments;
+    proText+=EOL;
+    proText+="COMPILE_OPT IDL2, hidden";
+    proText+=EOL;
+    proText+=expr.substr(pos+1);
+    proText+=EOL;
+    proText+="END";
+    bool ok=GDLInterpreter::CompileFile(proText,"", false, true);
+    if (!ok) e->Throw("Syntax error in code.");
+    
+    lambdaProMemory.insert(std::pair<unsigned int,int>(hash,lambdanum));
+    lambdanum++;
+    return new DStringGDL(lambdaProName);
+  }
+   
   BaseGDL* call_function(EnvT* e) {
     int nParam = e->NParam();
     if (nParam == 0)
@@ -7849,8 +7930,6 @@ namespace lib {
     bool parametersKW = e->KeywordSet(parametersIx);
     static int sourceIx = e->KeywordIx("SOURCE");
     bool sourceKW = e->KeywordSet(sourceIx);
-    static int VARIABLES = e->KeywordIx("VARIABLES");
-    bool variables = e->KeywordSet(VARIABLES);
     static int UNRESOLVED = e->KeywordIx("UNRESOLVED");
     bool unresolved = e->KeywordSet(UNRESOLVED);
 
@@ -7867,7 +7946,10 @@ namespace lib {
 	  }
 	  return res;
 	}
-	if (variables) return new DStringGDL("");
+// Job not done, "VARIABLES" is in WarnKwList in definition at libinit.cpp    
+//    static int VARIABLES = e->KeywordIx("VARIABLES");
+//    bool variables = e->KeywordSet(VARIABLES);
+//	if (variables) return new DStringGDL("");
     
     if (sourceKW) {
 
