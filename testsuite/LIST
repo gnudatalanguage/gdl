@@ -68,6 +68,7 @@ test_constants.pro
 test_convert2.pro
 test_convert_coord.pro
 test_correlate.pro
+test_csv.pro
 test_delvarrnew.pro
 test_diag_matrix.pro
 test_dilate.pro
@@ -210,5 +211,4 @@ test_wordexp.pro
 test_wordexp_null_string.pro
 test_xdr.pro
 test_xmlsax.pro
-test_write_csv.pro
 test_zero_divide.pro
