@@ -64,17 +64,18 @@ public:
   ogzstream* ogzStream; // for gzip compressed output
   std::basic_streambuf<char> *old_rdbuf_in;
   std::basic_streambuf<char> *old_rdbuf_out;
- //public:
+  //public:
+  // AC2006 : see as a potential bug that the order pin/pout was not enforced below
   AnyStream()
     : ispipe(false)
+    , pin_fd(-1)
+    , pout_fd(-1)
     , fStream(NULL) 
     , ofStream(NULL) 
     , igzStream(NULL) 
     , ogzStream(NULL)
     , old_rdbuf_in(NULL)
     , old_rdbuf_out(NULL)
-    , pin_fd(-1)
-    , pout_fd(-1)
   {}
 
   void Flush() ;
