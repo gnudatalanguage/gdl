@@ -80,6 +80,7 @@ test_fft.pro
 test_fft_dim.pro
 test_file_basename.pro
 test_file_copy.pro
+test_file_delete.pro
 test_file_dirname.pro
 test_file_lines.pro
 test_file_mkdir.pro

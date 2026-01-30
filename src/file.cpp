@@ -2591,52 +2591,85 @@ void file_mkdir( EnvT* e)
       } // for (int j=0; j<pi->N_Elements(); j++)
     }
 } // file_mkdir
-  
-static void FileDelete( DString& name, bool verbose, bool recursive)
-{
-    struct stat64 statStruct;
-       bool isaDir, isaSymLink;
-       
-       int actStat = filestat(name.c_str(), statStruct, isaDir, isaSymLink);
-    if(actStat != 0) {
-        cout << " (status="<<actStat<<") FileDelete ERROR: malformed: "+name<<std::endl;
-        return;
-    }
-//  if(trace_me) printf(" trace: FileDelete= %s \n",name.c_str());
-    if(isaDir) {
-        DIR* dir = opendir( name.c_str());
-        if( dir == NULL) return;
-        struct dirent* entry;
-        int nument=0;
-        while( (entry = readdir( dir)) != NULL) nument++;
-        closedir( dir);
-        if(nument > 2 && recursive) {
-            dir = opendir( name.c_str());
-            while( (entry = readdir( dir)) != NULL) {
-                DString entryStr( entry->d_name);
-                if( entryStr == "." || entryStr == "..") continue;
-                entryStr = name+"/"+entryStr;
-                FileDelete( entryStr, verbose, recursive);
-                }
-            closedir(dir);
-            }
-        else if(nument > 2) {
-            if(verbose) 
-                cout << " /RECURSIVE keyword needed to remove non-empty directory"<<endl;
-            return;
-             }
-      rmdir(name.c_str());
-     if(verbose) cout << " FILE_DELETE: directory "+name<<endl;
-         }
-    else 
-      remove(name.c_str());
 
-     if(verbose) cout << " FILE_DELETE: deleted "+name<<endl;
-} // static void FileDelete
+enum FileDeleteStatus {
+		       FD_FAIL = 0, // Generic failure
+		       FD_SUCCESS, // Success (never called)
+		       FD_NOT_FOUND, // File not found
+		       FD_NO_REC_DIR, // Attempt directory deletion without /rec
+		       FD_FILE_REMOVED, // File deleted
+		       FD_SYMLINK_REMOVED, // Symlink deleted
+		       FD_DIR_REMOVED // Directory deleted
+};
+
+// This function is an int so it can convey its status without saying messages
+// FileDelete operates on literal paths only,
+// Wildcard expansion MUST be done by PathSearch() before calling this function.
+static int FileDelete(const DString& name, bool recursive)
+{
+  struct stat64 st;
+
+  // Use lstat64 to know the file/path type, without wildcard expansion
+  if (lstat64(name.c_str(), &st) != 0) {
+    if (errno == ENOENT) return FD_NOT_FOUND;
+    return FD_FAIL;
+  }
+  
+  bool isDir = S_ISDIR(st.st_mode);
+  bool isSymLink = S_ISLNK(st.st_mode);
+
+  // Testing symlink first: if using rmdir on a symlink, dangerous
+  // It is removed like a file
+  if (isSymLink) {
+    if (remove(name.c_str()) == 0) return FD_SYMLINK_REMOVED;
+    return FD_FAIL;
+  }
+
+  // Directory
+  if (isDir) {
+    DIR* dir = opendir(name.c_str());
+    if (!dir) return FD_FAIL;
+
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != NULL) {
+      // If the directory only contains "." or "..", it is empty
+      // Delete without recursive is possible
+      if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) continue;
+
+      // If there is no /recursive, we want it to fail
+      // There should be no directory suppression without '/recursive')
+      if (!recursive) {
+	closedir(dir);
+	return FD_NO_REC_DIR;
+      }
+
+      // Recursively delete the directory entry.
+      // If a FileDelete fails, close directory --> stops recursive suppression
+      int recStatus = FileDelete(name+"/"+entry->d_name, recursive);
+      if (recStatus == FD_FAIL || recStatus == FD_NO_REC_DIR) {
+	closedir(dir);
+	return recStatus;
+      }
+    }
+
+    // Close directory that is either empty or entries were deleted
+    closedir(dir);
+    
+    // rmdir to remove empty directory. Return success status
+    if (rmdir(name.c_str()) == 0) return FD_DIR_REMOVED;
+    return FD_FAIL;
+  }
+
+  // To use if path is a regular file (or similar). Also return success status
+  if (remove(name.c_str()) == 0) return FD_FILE_REMOVED;
+  return FD_FAIL;
+}
+
+  
 void file_delete( EnvT* e)
 {
     // sanity checks
-    SizeT nParam=e->NParam( 1);
+    SizeT nParam=e->NParam(1);
     static int noexpand_pathIx = e->KeywordIx( "NOEXPAND_PATH");
     bool noexpand_path = e->KeywordSet( noexpand_pathIx);
     static int noexistokIx = e->KeywordIx( "ALLOW_NONEXISTENT");
@@ -2649,35 +2682,96 @@ void file_delete( EnvT* e)
     bool verbose = e->KeywordSet( verboseIx);
     
 
-    EnvBaseT* caller = e->Caller();
-
-//  trace_me = trace_arg(); // set trace
-
     for (int i=0; i<nParam; i++)
     {
       DStringGDL* pi = dynamic_cast<DStringGDL*>(e->GetParDefined(i));
 
       if (pi == NULL) {
-          if (quiet) continue;
-
-          cout << " file_delete: error parameter "
-               << caller->GetString( e->GetPar(i),false)
-               <<" is not a string "<<endl;
-               continue;
+	e->Throw("FILE_DELETE: parameter must be a string");
       }
 
       for (SizeT j=0; j<pi->N_Elements(); j++) {
         DString srctmp = (*pi)[j];
         FileListT fileList;
-        PathSearch( fileList, srctmp, noexpand_path );
-        for(SizeT k=0; k < fileList.size(); k++) {
-            if(!noexpand_path) WordExp(fileList[k]);
-           FileDelete( fileList[k], verbose, recursive);
-           }    
-        }
-    }
+	
+        // Verifying if filename contains a wildcard
+	bool hasWildcard =
+	  srctmp.find('*') != string::npos || srctmp.find('?') != string::npos;
 
+	if (hasWildcard && !noexpand_path) {
+	  PathSearch(fileList, srctmp, true);
+
+	  // IDL behavior: wildcard expands to ONLY one file
+	  if (fileList.size() > 1) {
+	    fileList.resize(1);
+	  }
+	}
+	
+	// Adding to the file_list
+	else {
+	  fileList.push_back(srctmp);
+	}	
+
+	if (fileList.size() == 0) {
+	  if (!quiet) {
+	    if (hasWildcard) {
+	      e->Throw("Unable to expand wildcards in file path, or file does not exist: "
+		       + srctmp);
+	    } else if (!noexistok) {
+	      e->Throw("Unable to delete file. File: " + srctmp +
+			 "\n No such file or directory");
+	    }
+	  }
+	  continue;
+	}
+	
+        for (SizeT k = 0; k < fileList.size(); k++) {
+	  const DString& filename = fileList[k];
+	  int status = FileDelete(filename, recursive);
+
+	  // get the basename
+	  size_t pos = filename.find_last_of("/\\");
+	  DString basename = (pos == string::npos) ? filename : filename.substr(pos+1);
+
+	  switch (status) {
+	  case FD_FILE_REMOVED:
+	  case FD_SYMLINK_REMOVED:
+	    if (verbose && !quiet) {
+	      cout << "FILE_DELETE: Removed file: " << basename << endl;
+	    }
+	    break;
+	    
+	  case FD_DIR_REMOVED:
+	    if (verbose && !quiet) {
+	      cout << "FILE_DELETE: Removed directory: " << basename << endl;
+	    }
+	    break;
+
+	  case FD_NOT_FOUND:
+	    if (!quiet && !noexistok) {
+	      e->Throw("Unable to delete file. File: " + basename +
+		       "\n No such file or directory");
+	    }
+	    break;
+
+	  case FD_NO_REC_DIR:
+	    if (!quiet) {
+	       e->Throw("Unable to delete file. File: " + basename +
+			"\n Directory not empty"); // without /RECURSIVE
+	    }
+	    break;
+
+	  case FD_FAIL:
+	  default:
+	    if (!quiet) e->Throw("Unable to delete file. File: " + basename);
+	    break;	     
+	  }
+	}
+      }
+    }
 }
+
+
 
 #include <utime.h>
 
