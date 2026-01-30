@@ -29,7 +29,8 @@
 #include "graphicsdevice.hpp"
 #include "overload.hpp"
 
-//#include "dinterpreter.hpp"
+// AC 26-01-30 this include is mandatory for compilation without WxWidgets
+#include "dinterpreter.hpp"
 
 #ifdef _OPENMP
 #include <omp.h>
