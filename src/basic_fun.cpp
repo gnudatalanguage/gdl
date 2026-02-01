@@ -1590,9 +1590,12 @@ namespace lib {
 
         Guard<EnvT> guard(newEnv);
 
-        newEnv->SetNextPar(&e->GetPar(0)); // pass as global
+	BaseGDL* par0 = e->GetPar(0)->Dup();
+	newEnv->SetNextPar(&par0);
+ 
+	//        newEnv->SetNextPar(e->GetPar(0)); // pass as global
 
-        static int printIx = e->KeywordIx("PRINT");
+        int printIx = e->KeywordIx("PRINT");
 
         if (e->KeywordSet(printIx) && e->GetPar(0)->Type() == GDL_BYTE) {
           newEnv->SetKeyword("PRINT", new DIntGDL(1));

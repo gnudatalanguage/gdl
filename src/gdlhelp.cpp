@@ -187,7 +187,7 @@ static void help_files(ostream& os, EnvT* e) {
 
 // AC 2020-04-28 derivated work from get_kbrd().
 // Not sure what happen without ReadLine
-char my_get_kbrd()
+char my_get_kbrd_old()
 {
 #if defined(HAVE_LIBREADLINE)
 #include <readline/readline.h>
@@ -223,6 +223,48 @@ char my_get_kbrd()
 #endif
     return c; 
   }
+
+// AC 2026-02-01 revised version with chatgpt
+// follwing a message running Valgrind
+
+char my_get_kbrd()
+{
+#if defined(HAVE_LIBREADLINE)
+#include <readline/readline.h>
+  rl_prep_terminal(0);
+#endif
+
+  char c = '\0';
+  int fd = fileno(stdin);
+
+#ifndef _WIN32
+  struct termios orig, get;
+
+  tcgetattr(fd, &orig);
+  get = orig;
+
+  get.c_lflag &= ~ICANON;
+  get.c_lflag |= ISIG;
+
+  get.c_cc[VTIME] = 0;
+  get.c_cc[VMIN]  = 1;
+
+  tcsetattr(fd, TCSANOW, &get);
+#endif
+
+  std::cin.get(c);
+
+#ifndef _WIN32
+  tcsetattr(fd, TCSANOW, &orig);
+#endif
+
+#if defined(HAVE_LIBREADLINE)
+  rl_deprep_terminal();
+#endif
+
+  return c;
+}
+
 
 static void help_keys(ostream& ostr)
   { 
