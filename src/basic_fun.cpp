@@ -1537,8 +1537,22 @@ namespace lib {
   }
 
   BaseGDL* fix_fun(EnvT* e) {
+    
     SizeT np = e->NParam(1);
+    BaseGDL* arg0 = e->GetPar(0);
 
+    if (arg0 == NULL) e->Throw("Variable is undefined: "+ e->GetParString(0)); 
+    
+    // managing few basic cases we don't have to process later
+
+    if ((np > 1) && (arg0->Type() == GDL_STRING))
+      e->Throw("String expression not allowed in this context:" + e->GetParString(0));
+    
+    if (arg0->Type() == GDL_STRUCT) e->Throw("Struct expression not allowed in this context: "+ e->GetParString(0));
+    if (arg0->Type() == GDL_PTR) e->Throw("Pointer expression not allowed in this context: "+ e->GetParString(0));
+    if (arg0->Type() == GDL_OBJ) e->Throw("Object reference expression not allowed in this context: "+ e->GetParString(0));
+
+    
     DIntGDL* type = e->IfDefGetKWAs<DIntGDL>(0); //"TYPE" keyword
 
     int typ = 0;
@@ -1582,6 +1596,8 @@ namespace lib {
       if (typ == GDL_OBJ) e->Throw("Unable to convert variable to type object reference.");
 
       if (typ == GDL_STRING) {
+	if (np >  1) e->Throw("The Offset and Dimension arguments are not allowed when converting to string type.");
+	
         // SA: calling GDL_STRING() with correct parameters
         int stringIx = LibFunIx("STRING");
         //assert(stringIx >= 0);
