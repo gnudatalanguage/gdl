@@ -53,6 +53,10 @@
 ;
 ;  2014-Aug-09, AC : FORWARD_FUNCTION
 ;
+;  2026-Feb-02, AC : see bug report #2172
+;    removing "mid=MAGICK_OPEN(filename)" since it is done
+;    in READ_ANYGRAPHICSFILEWITHMAGICK
+;
 ;-
 ; LICENCE:
 ; Copyright (C) 2004, 2011, 2012, 2014
@@ -90,8 +94,6 @@ if (FILE_TEST(filename, /regular) EQ 0) then MESSAGE, "Not a regular File: "+fil
 ; testing whether the format is as expected
 ;
 if ~MAGICK_PING(filename, 'PNG') then MESSAGE, "File "+filename+" is not in PNG format."
-;
-mid=MAGICK_OPEN(filename)
 ;
 ;;flip if order is set
 ;
