@@ -6549,7 +6549,8 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style,
   this->setFont(); //set fancy font before computing sizes!
   style |= wxLB_SINGLE;
   wxSize wLocalSize = computeWidgetSize();
-  if ((frameWidth > 0) && (wLocalSize.y > 2*gdlSCROLL_HEIGHT_X)) //IDL seems to do that
+  wxSize fontSize = getFontSize();
+  if (wLocalSize.y / fontSize.y > gdlSCROLL_HEIGHT_X) //IDL seems to do that
     style|=wxLB_ALWAYS_SB; else   style|=wxLB_NO_SB;
 
   wxListBox * list=new wxListBox(widgetPanel, widgetID, wxDefaultPosition, wLocalSize , choices, style);
