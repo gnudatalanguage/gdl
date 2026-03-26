@@ -116,11 +116,9 @@ namespace lib {
       argk = (char*) (&passed);
     }
     EXPORT_VPTR ret;
-    try{
-      ret = calldllfunc(argc, argv, argk);
-    } catch (GDLException& e) { throw e;} 
-      catch (...) {e->Throw("error in DLM code / unsupported procedure, returning.");
-    }
+    int jumpret = setjmp(callerEnv); //point to return instead of a Throw when something bad happened inside called export functions.
+    if (jumpret) e->Throw("unexpected problem in function "+MyFunName((size_t)calldllfunc)+" of DLM "+ AllDLMSymbols[pos].second);
+    ret = calldllfunc(argc, argv, argk);
     if (ret->type == GDL_TYP_UNDEF) e->Throw("Variable is undefined: <UNDEFINED>.");
     BaseGDL* back = VPTR_ToGDL(ret, true); //protect data
 
@@ -208,10 +206,9 @@ namespace lib {
       passed.passed = kws;
       argk = (char*) (&passed);
     }
-    try{
-      calldllpro(argc, argv, argk);
-    } catch (GDLException& e) { throw e;} 
-      catch (...) {e->Throw("error in DLM code / unsupported procedure, returning.");}
+    int jumpret = setjmp(callerEnv); //point to return instead of a Throw when something bad happened inside called export functions.
+    if (jumpret) e->Throw("unexpected problem in procedure "+MyProName((size_t)calldllpro)+" of DLM "+ AllDLMSymbols[pos].second);
+    calldllpro(argc, argv, argk);
     for (auto i = 0; i < argc; ++i) {
       if (!tempo[i]) e->SetPar(i, VPTR_ToGDL(argv[i]));
       if (!tempo[i]) PassedVariables.erase(argv[i]); //remove map entry
