@@ -18,7 +18,7 @@
 #include "includefirst.hpp"
 
 #include <cstdio> // std::remove(...)
-
+#include <fcntl.h>
 #include "objects.hpp"
 #include "io.hpp"
 #ifdef __MINGW32__
@@ -672,7 +672,7 @@ void GDLStream::Socket(const string& host,
 
   name = host;
 
-  sockNum = socket(AF_INET, SOCK_STREAM, 0);
+  sockNum = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
 
   c_timeout = c_timeout_;
   r_timeout = r_timeout_;
@@ -689,18 +689,26 @@ void GDLStream::Socket(const string& host,
   m_addr.sin_port = htons(port);
 
   // Convert host to IPv4 format
-  struct hostent *h;
-  if ((h = gethostbyname(host.c_str())) == NULL) { // get the host info
+  struct addrinfo hints, *result;
+  int err;
+  memset(&hints, 0, sizeof(hints));
+ hints.ai_family = AF_INET;    /* Allow IPv4 or IPv6 */
+ hints.ai_socktype = SOCK_STREAM; /* Sequenced, reliable, connection-based
+				   byte streams.  */
+   
+  if ((err = getaddrinfo(host.c_str(),NULL,&hints, &result)) != 0) { // get the host info
+    std::cerr<<gai_strerror(err)<<std::endl;
     throw GDLIOException("Unable to lookup host.");
   }
+struct in_addr addr;
+addr.s_addr = ((struct sockaddr_in *)(result->ai_addr))->sin_addr.s_addr;
 
-  //  cout << inet_ntoa(*((struct in_addr *)h->h_addr)) << endl;
+// printf("ip address : %s\n", inet_ntoa(addr));
 
-  int status = inet_pton(AF_INET, inet_ntoa(*((struct in_addr *) h->h_addr)),
-    &m_addr.sin_addr);
+  int status ; if (status = inet_pton(AF_INET, inet_ntoa(addr), &m_addr.sin_addr) != 1) perror(__func__);
 
-  status = connect(sockNum, (sockaddr *) & m_addr, sizeof (m_addr));
-
+  if (status = connect(sockNum, (sockaddr *) & m_addr, sizeof (m_addr)) != 0) perror(__func__);
+  fcntl(sockNum,F_SETFD, FD_CLOEXEC);
   swapEndian = swapEndian_;
 
   // BIG limit on socket send width to avoid leading \n in CheckNL
@@ -731,7 +739,6 @@ void GDLStream::Close() {
     if (deleteOnClose)
       std::remove(name.c_str());
   }
-  name = "";
   f77 = false;
   swapEndian = false;
   compress = false;
@@ -741,7 +748,8 @@ void GDLStream::Close() {
   xdrs = NULL;
 
   width = defaultStreamWidth;
-
+  //Do not forget sockets!
+  if (sockNum != -1) close(sockNum);
   sockNum = -1;
   c_timeout = 0.0;
   r_timeout = 0.0;
