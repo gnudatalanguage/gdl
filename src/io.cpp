@@ -18,7 +18,6 @@
 #include "includefirst.hpp"
 
 #include <cstdio> // std::remove(...)
-#include <fcntl.h>
 #include "objects.hpp"
 #include "io.hpp"
 #ifdef __MINGW32__
@@ -660,6 +659,59 @@ void GDLStream::Open(const string& name_,
   width = width_;
 }
 
+#ifdef __MINGW32__
+
+// Use obsolete code, as I've no time to adapt new code to Windows.
+
+void GDLStream::Socket(const string& host,
+    DUInt port, bool swapEndian_,
+    DDouble c_timeout_, DDouble r_timeout_,
+    DDouble w_timeout_) {
+  if (iSocketStream == NULL)
+    iSocketStream = new istringstream;
+
+  if (recvBuf == NULL)
+    recvBuf = new string;
+
+  name = host;
+
+  sockNum = socket(AF_INET, SOCK_STREAM, 0);
+
+  c_timeout = c_timeout_;
+  r_timeout = r_timeout_;
+  w_timeout = w_timeout_;
+
+  int on = 1;
+  if (setsockopt(sockNum, SOL_SOCKET, SO_REUSEADDR,
+      (const char*) &on, sizeof (on)) == -1) {
+    throw GDLIOException("Error opening file.");
+  }
+
+  sockaddr_in m_addr;
+  m_addr.sin_family = AF_INET;
+  m_addr.sin_port = htons(port);
+
+  // Convert host to IPv4 format
+  struct hostent *h;
+  if ((h = gethostbyname(host.c_str())) == NULL) { // get the host info
+    throw GDLIOException("Unable to lookup host.");
+  }
+
+  //  cout << inet_ntoa(*((struct in_addr *)h->h_addr)) << endl;
+
+  int status = inet_pton(AF_INET, inet_ntoa(*((struct in_addr *) h->h_addr)),
+      &m_addr.sin_addr);
+
+  status = connect(sockNum, (sockaddr *) & m_addr, sizeof (m_addr));
+
+  swapEndian = swapEndian_;
+
+  // BIG limit on socket send width to avoid leading \n in CheckNL
+  width = 32768;
+}
+#else
+//New code suppressing call to obsolete functions
+#include <fcntl.h>
 void GDLStream::Socket(const string& host,
   DUInt port, bool swapEndian_,
   DDouble c_timeout_, DDouble r_timeout_,
@@ -714,7 +766,7 @@ addr.s_addr = ((struct sockaddr_in *)(result->ai_addr))->sin_addr.s_addr;
   // BIG limit on socket send width to avoid leading \n in CheckNL
   width = 32768;
 }
-
+#endif
 void AnyStream::Flush() {
   if (fStream != NULL) {
     fStream->flush();
