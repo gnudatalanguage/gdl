@@ -21,7 +21,9 @@
 #include "GDLInterpreter.hpp"
 #include "terminfo.hpp"
 #include <setjmp.h>
+#if !defined(_WIN32) || defined(__CYGWIN__)
 #include <execinfo.h>
+#endif
 #define BT_BUF_SIZE 100
 static void* bt_buffer[BT_BUF_SIZE];
 
@@ -151,9 +153,12 @@ void GDL_FreeResources() {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 void GDL_WillThrowAfterCleaning(const char *f, const std::string &s) {
 	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	std::cerr << " Unexpected error happened at \"" << f << "\", message is: \"" << s << "\"." << std::endl;
+#if !defined(_WIN32) || defined(__CYGWIN__)
+	//backtrace is not present under windows. If you need a backtrace, please provide patch for windows.
 	int nptrs = backtrace(bt_buffer, BT_BUF_SIZE);
 	fprintf(stderr, "backtrace:\n");
 	backtrace_symbols_fd(bt_buffer, nptrs, STDERR_FILENO);
+#endif
 	GDL_FreeResources();
 	longjmp(callerEnv, 1);
 }
