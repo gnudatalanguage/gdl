@@ -28,6 +28,8 @@
 static void* bt_buffer[BT_BUF_SIZE];
 
 #define GDL_TYP_COMPLEXDBL GDL_TYP_DCOMPLEX
+#define JUMP_THROW 1
+#define JUMP_RETURN 2
 
 static std::map<const char*,void*> SysFunDefinitions; 
 static std::map<const char*,void*> SysProDefinitions; 
@@ -160,7 +162,14 @@ void GDL_WillThrowAfterCleaning(const char *f, const std::string &s) {
 	backtrace_symbols_fd(bt_buffer, nptrs, STDERR_FILENO);
 #endif
 	GDL_FreeResources();
-	longjmp(callerEnv, 1);
+	longjmp(callerEnv, JUMP_THROW);
+}
+
+void GDL_WillReturnAfterCleaning(const std::string &s) {
+	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+	Message(s);
+	GDL_FreeResources();
+	longjmp(callerEnv, JUMP_RETURN);
 }
 
 inline EXPORT_ARRAY* NewExportArray() {EXPORT_ARRAY* ret=new EXPORT_ARRAY(); memset(ret,0,sizeof(EXPORT_ARRAY));return ret;}
@@ -1082,8 +1091,16 @@ DLL_PUBLIC char* GDL_CDECL IDL_VarGetString(EXPORT_VPTR s) {
 	}
 }
 DLL_PUBLIC EXPORT_STRING *GDL_CDECL IDL_VarGet1EltStringDesc(EXPORT_VPTR v, EXPORT_VPTR *tc_v, int like_print){
-	GDL_WillThrowAfterCleaning(__func__, "IDL_VarGet1EltStringDesc() used but not yet programmed, please report.");
-	return NULL;
+	checkOK(v);
+	if (v->type != GDL_TYP_STRING) GDL_WillThrowAfterCleaning(__func__, "String expression required in this context:"+std::string(IDL_VarName(v)));
+	void* stringdescPtrs=MyMallocDestroyedOnExit(1*sizeof(EXPORT_STRING*));
+	EXPORT_STRING* s=(EXPORT_STRING*)stringdescPtrs;
+	s->slen=v->value.str.slen;
+	if (s->slen > 0) {
+		s->s=(char*)MyMallocDestroyedOnExit(s->slen+1);
+	    strncpy(s->s,v->value.str.s,s->slen);
+	}
+	return s;
 }
 // str below is a supposed to be a copy of the string descriptor(s).
 // to properly duplicate, one has to create copies of the string(s) and update the descriptor(s)
@@ -2269,7 +2286,7 @@ int l=IDL_TypeSizeFunc(type);
 memset((void*) (address), 0, l);
 }
 
-EXPORT_VPTR GdlExportPresentKeyword(GDL_KW_PAR requested, GDL_KEYWORDS_LIST passed, void* kw_result) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+EXPORT_VPTR GdlExportPresentKeywordByOffset(GDL_KW_PAR requested, GDL_KEYWORDS_LIST passed, void* kw_result) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 static const int ok = 1;
 static const int cleanMem = 1;
 EXPORT_VPTR toBeReturned = NULL;
@@ -2421,7 +2438,7 @@ void GdlExportAbsentKeywordInOldApi(GDL_KW_PAR requested, void* address) {TRACE_
 		}
 	}
 
-void GdlExportAbsentKeyword(GDL_KW_PAR requested, void* kw_result) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+void GdlExportAbsentKeywordByOffset(GDL_KW_PAR requested, void* kw_result) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		static const int ok = 1;
 		static const int nok = 0;
 		
@@ -2520,6 +2537,7 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWGetParams(int argc, EXPORT_VPTR *argv, char *arg
 				EXPORT_VPTR ret = GdlExportPresentKeywordInOldApi(kw_requested[it->first], argk[it->second], kw_requested[it->first].value);
 				if (ret != NULL) {
 					argk[ipassed].out = ret; //pass vptr back
+					PassedVariables[ret] = argk[ipassed].varname; //memorize GDL varname
 				}
 			}
 			irequested++;
@@ -2597,9 +2615,9 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWProcessByOffset(int argc, EXPORT_VPTR *argv, cha
 		//rewind: 
 		for (it = requested.begin(); it != requested.end(); ++it) {
 			int ipassed = it->second;
-			if (ipassed == -1) GdlExportAbsentKeyword(kw_requested[it->first], kw_result);
+			if (ipassed == -1) GdlExportAbsentKeywordByOffset(kw_requested[it->first], kw_result);
 			else if (ipassed >= 0) {
-				EXPORT_VPTR ret=GdlExportPresentKeyword(kw_requested[it->first], argk[it->second], kw_result);
+				EXPORT_VPTR ret=GdlExportPresentKeywordByOffset(kw_requested[it->first], argk[it->second], kw_result);
 			    if (ret != NULL) {
 					argk[ipassed].out=ret; //pass vptr back
 					PassedVariables[ret]=argk[ipassed].varname; //memorize GDL varname
@@ -2609,7 +2627,76 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWProcessByOffset(int argc, EXPORT_VPTR *argv, cha
 		return argc;
 	}
 
-DLL_PUBLIC int GDL_CDECL IDL_KWProcessByAddr(int argc, EXPORT_VPTR *argv, char *argk,  GDL_KW_PAR *kw_list, EXPORT_VPTR *plain_args, int mask, int *free_required){
+DLL_PUBLIC int GDL_CDECL IDL_KWProcessByAddr(int argc, EXPORT_VPTR *argv, char *argk_passed,  GDL_KW_PAR *kw_requested, EXPORT_VPTR *plain_args, int mask, int *free_required) {
+		// this is always true with GDL:
+		if (plain_args) for (auto i = 0; i < argc; ++i) plain_args[i] = argv[i];
+		//argk is a pointer to a  GDL_PASS_KEYWORDS_LIST struct
+		GDL_PASS_KEYWORDS_LIST* container = (GDL_PASS_KEYWORDS_LIST*) argk_passed;
+		int npassed = 0;
+		GDL_KEYWORDS_LIST* argk;
+		if (container) {
+			npassed = container->npassed;
+			argk = container->passed;
+		}
+		//build a vector of desired keywords 
+		int ikw = 0;
+		int irequested = 0;
+		const char * kw;
+		if (kw_requested == NULL) {
+			return argc;
+		}
+		kw = kw_requested[0].keyword;
+		if (kw == NULL) {
+			return argc;
+		}
+		//get the list of expected KWs. Initial value of <int> in map will be: -1 (take into account) -2:ignored
+		std::map<int, int> requested;
+		std::map<int, int>::iterator it;
+		while ((kw = kw_requested[ikw].keyword) != NULL) {
+			int code = -1;
+			if ((kw_requested[ikw].mask & mask) == 0) code = -2;
+			requested.insert(std::pair<int, int>(ikw, code));
+			ikw++;
+		}
+		for (auto ipassed = 0; ipassed < npassed; ++ipassed) {
+			const char* s = argk[ipassed].name;
+			int l = strlen(s);
+			bool found = false;
+			bool ignored = false;
+			for (it = requested.begin(); it != requested.end(); ++it) {
+				const char* expected_kw = kw_requested[it->first].keyword;
+				if (strncmp(expected_kw, s, l) == 0) { //found
+					if (it->second == -2) { //ignored
+						ignored = true;
+						break;
+					}
+					it->second = ipassed;
+					found = true;
+					break;
+				}
+			}
+			if (!found && !ignored) {
+				GDL_WillThrowAfterCleaning(__func__, "Invalid keyword " + std::string(s));
+			} else {
+				for (++it; it != requested.end(); ++it) { //search for ambiguous KW
+					const char* expected_kw = kw_requested[it->first].keyword;
+					if (strncmp(expected_kw, s, l) == 0) GDL_WillThrowAfterCleaning(__func__, "Ambiguous keyword abbreviation: " + std::string(s));
+				}
+			}
+		}
+		//populate all passed addresses
+		for (it = requested.begin(); it != requested.end(); ++it) {
+			int ipassed = it->second;
+			if (ipassed == -1) GdlExportAbsentKeywordInOldApi(kw_requested[it->first], kw_requested[it->first].value);
+			else if (ipassed >= 0) {
+				EXPORT_VPTR ret = GdlExportPresentKeywordInOldApi(kw_requested[it->first], argk[it->second], kw_requested[it->first].value);
+				if (ret != NULL) {
+					argk[ipassed].out = ret; //pass vptr back
+					PassedVariables[ret] = argk[ipassed].varname; //memorize GDL varname
+				}
+			}
+			irequested++;
+		}
 	return argc;
 }
 
@@ -2625,7 +2712,7 @@ DLL_PUBLIC void * GDL_CDECL IDL_MemRealloc(void *ptr, EXPORT_MEMINT n, const cha
 
 DLL_PUBLIC void  GDL_CDECL IDL_MemFree(GDL_REGISTER void *m, const char *err_str, int msg_action){ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) gdlAlignedFree(m);}
 
-DLL_PUBLIC void * GDL_CDECL IDL_MemAllocPerm(EXPORT_MEMINT n, const char *err_str,  int action){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) GDL_WillThrowAfterCleaning(__func__, "MemAllocPerm is not currently supported.");return NULL;}
+DLL_PUBLIC void * GDL_CDECL IDL_MemAllocPerm(EXPORT_MEMINT n, const char *err_str,  int action){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) return gdlAlignedMalloc(n);}
 
 DLL_PUBLIC char * GDL_CDECL IDL_GetScratch(GDL_REGISTER EXPORT_VPTR *p, GDL_REGISTER EXPORT_MEMINT n_elts,  GDL_REGISTER EXPORT_MEMINT elt_size){ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) return (char*)gdlAlignedMalloc (n_elts*elt_size);}
 
@@ -2724,7 +2811,7 @@ DLL_PUBLIC void  GDL_CDECL IDL_Message(int code, int action, ...) {	TRACE_ROUTIN
 			va_end(args);
 		} else GDL_WillThrowAfterCleaning(__func__, "Invalid Error Code given to IDL_Message() by user-written routine.");
 		if (action == EXPORT_MSG_INFO || action == EXPORT_MSG_RET) {Warning(finalMessage); return;}
-		if (action == EXPORT_MSG_LONGJMP || action == EXPORT_MSG_IO_LONGJMP) GDL_WillThrowAfterCleaning(__func__, finalMessage);//exit directly back to the interpreter
+		if (action == EXPORT_MSG_LONGJMP || action == EXPORT_MSG_IO_LONGJMP) GDL_WillReturnAfterCleaning(finalMessage);//exit directly back to the interpreter
 		if (action == EXPORT_MSG_EXIT) {
 			Warning(finalMessage);
 			GDL_WillThrowAfterCleaning(__func__, "IDL_MSG_EXIT forbidden for user-written routines.");
@@ -2742,8 +2829,8 @@ DLL_PUBLIC void  GDL_CDECL IDL_MessageFromBlock(EXPORT_MSG_BLOCK block, int code
 				finalMessage += std::string(s);
 			}
 			va_end(args);
-		if (action == EXPORT_MSG_INFO || action == EXPORT_MSG_RET) {Warning(finalMessage); return;}
-		if (action == EXPORT_MSG_LONGJMP ||action == EXPORT_MSG_IO_LONGJMP) GDL_WillThrowAfterCleaning(__func__, finalMessage);
+		if (action == EXPORT_MSG_INFO || action == EXPORT_MSG_RET)  {Warning(finalMessage); return;}
+		if (action == EXPORT_MSG_LONGJMP ||action == EXPORT_MSG_IO_LONGJMP) GDL_WillReturnAfterCleaning(finalMessage);
 		if (action == EXPORT_MSG_EXIT) {
 			Warning(finalMessage);
 			GDL_WillThrowAfterCleaning(__func__, "IDL_MSG_EXIT forbidden for user-written routines.");

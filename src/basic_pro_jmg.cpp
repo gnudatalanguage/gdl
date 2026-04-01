@@ -117,7 +117,8 @@ namespace lib {
     }
     EXPORT_VPTR ret;
     int jumpret = setjmp(callerEnv); //point to return instead of a Throw when something bad happened inside called export functions.
-    if (jumpret) e->Throw("unexpected problem in function "+MyFunName((size_t)calldllfunc)+" of DLM "+ AllDLMSymbols[pos].second);
+    if (jumpret == JUMP_THROW ) e->Throw("unexpected problem in function "+MyFunName((size_t)calldllfunc)+" of DLM "+ AllDLMSymbols[pos].second);
+    if (jumpret == JUMP_RETURN ) return  NullGDL::GetSingleInstance();
     ret = calldllfunc(argc, argv, argk);
     if (ret->type == GDL_TYP_UNDEF) e->Throw("Variable is undefined: <UNDEFINED>.");
     BaseGDL* back = VPTR_ToGDL(ret, true); //protect data
@@ -207,7 +208,8 @@ namespace lib {
       argk = (char*) (&passed);
     }
     int jumpret = setjmp(callerEnv); //point to return instead of a Throw when something bad happened inside called export functions.
-    if (jumpret) e->Throw("unexpected problem in procedure "+MyProName((size_t)calldllpro)+" of DLM "+ AllDLMSymbols[pos].second);
+    if (jumpret == JUMP_THROW) e->Throw("unexpected problem in procedure "+MyProName((size_t)calldllpro)+" of DLM "+ AllDLMSymbols[pos].second);
+    if (jumpret == JUMP_RETURN) return;
     calldllpro(argc, argv, argk);
     for (auto i = 0; i < argc; ++i) {
       if (!tempo[i]) e->SetPar(i, VPTR_ToGDL(argv[i]));
