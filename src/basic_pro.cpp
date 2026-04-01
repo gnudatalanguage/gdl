@@ -652,7 +652,9 @@ namespace lib {
   void openu(EnvT* e) {
     open_lun(e, fstream::in | fstream::out);
   }
-
+#ifndef _WIN32
+#include <netdb.h>
+#endif
   void socket(EnvT* e) {
     int nParam = e->NParam(3);
 
@@ -675,7 +677,17 @@ namespace lib {
     DUInt port;
     BaseGDL* p2 = e->GetParDefined(2);
     if (p2->Type() == GDL_STRING) {
+      DString s;
+      e->AssureScalarPar<DStringGDL>(2,s);
+#ifndef _WIN32
       // look up /etc/services
+      struct servent *servent=getservbyname(s.c_str(),NULL);
+      if (servent==NULL)        e->Throw("Unable to connect to host. Unit: "+i2s(lun)+", File: "+host+"."+s);
+      else port=servent->s_port;
+      endservent();
+#else 
+      e->Throw("Unable to connect to host. Unit: "+i2s(lun)+", File: "+host+"."+s);
+#endif      
     } else if (p2->Type() == GDL_UINT) {
       e->AssureScalarPar<DUIntGDL>(2, port);
     } else if (p2->Type() == GDL_INT) {
@@ -726,7 +738,7 @@ namespace lib {
 
     try {
       fileUnits[lun - 1].Socket(host, port, swapEndian,
-        c_timeout, r_timeout, c_timeout);
+        c_timeout, r_timeout, c_timeout, width);
     } catch (GDLException& ex) {
       DString errorMsg = ex.toString() + " Unit: " + i2s(lun) +
         ", File: " + fileUnits[lun - 1].Name();

@@ -199,22 +199,27 @@ namespace lib {
           is = &fileUnits[ lun - 1].IStream();
 
       } else {
-        //  *** Socket Read *** //
         string *recvBuf = &fileUnits[ lun - 1].RecvBuf();
-        recvBuf->clear();
-        recvBuf->reserve(1000);
-          char c;
-          recvBuf->clear();
+        char c;
         while (1) {
-          int nread = read(sockNum, &c, 1); //, 0); //IDL reads byte by byte to test for \n and stop reading
-          if (nread < 0)  break; //error
-          if (nread) recvBuf->push_back(c);
-          if (c == '\n') break;
+          int nread = recv(sockNum, &c, 1, MSG_DONTWAIT); //cannot reproduce behaviour of IDL since we use buffered processing in read_is().
+          // we need to use lower level C reads, not read_is() in this special case OR find a way to get a socket behave like a file.
+//          int nread = read(sockNum, &c, 1); //, 0); //IDL reads byte by byte to test for \n and stop reading
+          if (nread == 0)  break; //closed 
+          if (nread < 1) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) break; //nothing more yet.
+            else e->Throw("Error accessing underlying socket, reason: "+std::string(strerror(errno)));
+          }
+          recvBuf->push_back(c);
         }
-        // Get istringstream, write recv string, & assign to istream
+        //ALL READ.
         istringstream *iss = &fileUnits[ lun - 1].ISocketStream();
         iss->str(*recvBuf);
         is = iss;
+        streampos one = 1;
+        streampos readpos=read_is(is, e, 1);
+        recvBuf->erase(0,readpos-one); //consume already read. Note this is a readf, so at every call, one line is consumed.
+        return;
       }
     }
 
@@ -226,7 +231,7 @@ namespace lib {
     read_is( &cin, e, 0);
   }
   
-void read_is(istream* is, EnvT* e, int parOffset) {
+streampos read_is(istream* is, EnvT* e, int parOffset) {
 	// PROMPT keyword
 	BaseGDL* prompt = e->GetKW(4);
 	if (prompt != NULL && !prompt->Scalar())
@@ -254,7 +259,7 @@ void read_is(istream* is, EnvT* e, int parOffset) {
 	  bool noPrompt = true;
 
 	  int nParam = e->NParam();
-	  if (nParam == parOffset) return;
+	  if (nParam == parOffset) { return is->tellg() ;}
 
 	  ostringstream oss;
 
@@ -355,7 +360,7 @@ void read_is(istream* is, EnvT* e, int parOffset) {
 			}
 
 			if (sigControlC)
-			  return;
+			  return is->tellg();
 		  } 
 		  else
 #endif
@@ -385,6 +390,7 @@ void read_is(istream* is, EnvT* e, int parOffset) {
 		DStringGDL gdlString("");
 		gdlString.FromStream(*is);
 	  }
+      return is->tellg();
 	}
 
 	void reads(EnvT * e) {

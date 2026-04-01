@@ -666,7 +666,7 @@ void GDLStream::Open(const string& name_,
 void GDLStream::Socket(const string& host,
     DUInt port, bool swapEndian_,
     DDouble c_timeout_, DDouble r_timeout_,
-    DDouble w_timeout_) {
+    DDouble w_timeout_, SizeT width) {
   if (iSocketStream == NULL)
     iSocketStream = new istringstream;
 
@@ -706,8 +706,8 @@ void GDLStream::Socket(const string& host,
 
   swapEndian = swapEndian_;
 
-  // BIG limit on socket send width to avoid leading \n in CheckNL
-  width = 32768;
+  // GD: ?????? // BIG limit on socket send width to avoid leading \n in CheckNL
+  //width = 32768;
 }
 #else
 //New code suppressing call to obsolete functions
@@ -715,14 +715,14 @@ void GDLStream::Socket(const string& host,
 void GDLStream::Socket(const string& host,
   DUInt port, bool swapEndian_,
   DDouble c_timeout_, DDouble r_timeout_,
-  DDouble w_timeout_) {
+  DDouble w_timeout_, SizeT width) {
   if (iSocketStream == NULL)
     iSocketStream = new istringstream;
 
   if (recvBuf == NULL)
     recvBuf = new string;
 
-  name = host;
+  name = host + "." + i2s(port);
 
   sockNum = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
 
@@ -747,7 +747,7 @@ void GDLStream::Socket(const string& host,
  hints.ai_family = AF_INET;    /* Allow IPv4 or IPv6 */
  hints.ai_socktype = SOCK_STREAM; /* Sequenced, reliable, connection-based
 				   byte streams.  */
-   
+  
   if ((err = getaddrinfo(host.c_str(),NULL,&hints, &result)) != 0) { // get the host info
     std::cerr<<gai_strerror(err)<<std::endl;
     throw GDLIOException("Unable to lookup host.");
@@ -763,10 +763,11 @@ addr.s_addr = ((struct sockaddr_in *)(result->ai_addr))->sin_addr.s_addr;
   fcntl(sockNum,F_SETFD, FD_CLOEXEC);
   swapEndian = swapEndian_;
 
-  // BIG limit on socket send width to avoid leading \n in CheckNL
-  width = 32768;
+// GD ?????  // BIG limit on socket send width to avoid leading \n in CheckNL
+//  width = 32768;
 }
 #endif
+
 void AnyStream::Flush() {
   if (fStream != NULL) {
     fStream->flush();
