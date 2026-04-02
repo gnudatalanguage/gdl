@@ -1156,6 +1156,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_StrToSTRING(const char *s) {TRACE_ROUTINE(
  case type: {dest->value.what.r=value->what.r; dest->value.what.i=value->what.i;  break;}
 DLL_PUBLIC void  GDL_CDECL IDL_StoreScalar(EXPORT_VPTR dest, int type,	EXPORT_ALLTYPES * value) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 	GDL_ENSURE_SIMPLE(dest);
+    if (dest->flags & GDL_V_TEMP) GDL_WillReturnAfterCleaning("Attempt to store into an expression:"+std::string(IDL_VarName(dest)));
 		dest->type=type;
 		switch (type) {
 				DOCASE(GDL_TYP_BYTE, c);
@@ -1169,6 +1170,7 @@ DLL_PUBLIC void  GDL_CDECL IDL_StoreScalar(EXPORT_VPTR dest, int type,	EXPORT_AL
 				DOCASE(GDL_TYP_ULONG, ul);
 				DOCASE(GDL_TYP_LONG64, l64);
 				DOCASE(GDL_TYP_ULONG64, ul64);
+				DOCASE(GDL_TYP_STRING, str);
 			default: GDL_WillThrowAfterCleaning(__func__, "IDL_StoreScalar: unexpected type "+i2s(type));
 		}
 	}
@@ -1177,10 +1179,13 @@ DLL_PUBLIC void  GDL_CDECL IDL_StoreScalar(EXPORT_VPTR dest, int type,	EXPORT_AL
 
 #define DOCASE(type, what)\
  case type: {dest->value.what=0; break;}
+#define DOCASESTR(type, what)\
+ case type: {dest->value.what={0,0,0}; break;}
 #define DOCASE_CMP(type, what)\
  case type: {dest->value.what.r=0; dest->value.what.i=0;  break;}
 DLL_PUBLIC void  GDL_CDECL IDL_StoreScalarZero(EXPORT_VPTR dest, int type) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 	GDL_ENSURE_SIMPLE(dest);
+		if (dest->flags & GDL_V_TEMP) GDL_WillReturnAfterCleaning("Attempt to store into an expression:" + std::string(IDL_VarName(dest)));
 		dest->type=type;
 		switch (type) {
 				DOCASE(GDL_TYP_BYTE, c);
@@ -1194,6 +1199,7 @@ DLL_PUBLIC void  GDL_CDECL IDL_StoreScalarZero(EXPORT_VPTR dest, int type) {TRAC
 				DOCASE(GDL_TYP_ULONG, ul);
 				DOCASE(GDL_TYP_LONG64, l64);
 				DOCASE(GDL_TYP_ULONG64, ul64);
+				DOCASESTR(GDL_TYP_STRING, str);
 			default: GDL_WillThrowAfterCleaning(__func__, "IDL_StoreScalar: unexpected type "+i2s(type));
 		}
 	}
