@@ -58,6 +58,7 @@ typedef EXPORT_ULONG EXPORT_HVID;
 
 #define EXPORT_FILEINT_64 DULong64
 #define GDL_TYP_FILEINT	  GDL_TYP_LONG64
+#define GDL_TYP_B_ALL               65535
 #define GDL_TYP_B_SIMPLE            62207
 
 #define GDL_V_CONST         1	
@@ -218,6 +219,7 @@ typedef struct {
   char *data;			/* Address of array to receive data. */ \
   EXPORT_MEMINT nmin;		/* Minimum # of elements allowed. */ \
   EXPORT_MEMINT nmax;		/* Maximum # of elements allowed. */
+
 typedef struct {		/* Descriptor for array's that are returned */
   GDL_KW_COMMON_ARR_DESC_TAGS
   EXPORT_MEMINT n;			/* # present, (Returned value). */

@@ -160,7 +160,6 @@ DLL_PUBLIC void IDL_InterpCurrentSysrtn(){CONTENT}
 DLL_PUBLIC void IDL_IsFileCompiled(){CONTENT}
 DLL_PUBLIC void IDL_IsMainProg(){CONTENT}
 DLL_PUBLIC void IDL_IsModuleProfiled(){CONTENT}
-DLL_PUBLIC void IDL_KWCleanup(){CONTENT}
 DLL_PUBLIC void IDL_LinkNodeAlloc(){CONTENT}
 DLL_PUBLIC void IDL_LinkNodeFree(){CONTENT}
 DLL_PUBLIC void IDL_LinkNodeFreeLength(){CONTENT}
