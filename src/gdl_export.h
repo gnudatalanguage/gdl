@@ -69,7 +69,7 @@ typedef EXPORT_ULONG EXPORT_HVID;
 #define GDL_V_STRUCT        32
 #define GDL_V_NULL          64
 #define GDL_V_BOOLEAN      128
-#define GDL_V_NOT_SCALAR    (GDL_V_ARR | GDL_V_FILE | GDL_V_STRUCT)
+#define GDL_V_NOT_SCALAR    (GDL_V_ARR |GDL_V_FILE | GDL_V_STRUCT)
 #define GDL_A_FILE          1
 #define GDL_A_NO_GUARD      2
 #define GDL_A_FILE_PACKED   4
@@ -159,8 +159,6 @@ typedef struct {
 } EXPORT_VARIABLE;
 typedef EXPORT_VARIABLE *EXPORT_VPTR;
 
-typedef void (* EXPORT_SYSRTN_PRO)(int argc, EXPORT_VPTR argv[], char *argk);
-typedef EXPORT_VPTR (* EXPORT_SYSRTN_FUN)(int argc, EXPORT_VPTR argv[], char *argk);
 typedef void (* EXPORT_SYSRTN_PRO)(int argc, EXPORT_VPTR argv[], char *argk);
 typedef EXPORT_VPTR (* EXPORT_SYSRTN_FUN)(int argc, EXPORT_VPTR argv[], char *argk);
 

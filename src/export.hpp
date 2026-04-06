@@ -117,9 +117,10 @@ void printvar(EXPORT_VPTR v);
 	}
 //--------------------------------------------
 void GDL_WillThrowAfterCleaning(const char* f, const std::string &s);
+void GDL_WillReturnAfterCleaning(const std::string &s);
 inline void checkOK(EXPORT_VPTR v) {	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-	if (v == NULL ) GDL_WillThrowAfterCleaning(__func__, "Internal error: null VPTR encountered in checkOK().");
-	if ((v->type < 0) || (v->type > GDL_MAX_TYPE)) GDL_WillThrowAfterCleaning(__func__, "Internal error: Bad variable type encountered in checkOK().");
+	if (v == NULL ) GDL_WillReturnAfterCleaning("Internal error: null VPTR encountered in checkOK().");
+	if ((v->type < 0) || (v->type > GDL_MAX_TYPE)) GDL_WillReturnAfterCleaning("Internal error: Bad variable type encountered in checkOK().");
 }
 
 EXPORT_STRUCT_TAG_DEF* GDL_Make_EXPORT_STRUCT_TAG_DEF(DStructGDL* gdlstruct);
@@ -164,7 +165,7 @@ DLL_PUBLIC void GDL_CDECL IDL_DeleteDescriptors(GDL_REGISTER EXPORT_VPTR v) {
 DLL_PUBLIC void  GDL_CDECL IDL_Freetmp(GDL_REGISTER EXPORT_VPTR v) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	IDL_Deltmp(v);
 }
-}
+} //extern "C"
 
 void GDL_FreeResources() {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	bool message = true;
@@ -206,13 +207,10 @@ void GDL_WillReturnAfterCleaning(const std::string &s) {
 
 inline EXPORT_ARRAY* NewExportArray() {EXPORT_ARRAY* ret=new EXPORT_ARRAY(); memset(ret,0,sizeof(EXPORT_ARRAY));return ret;}
 
-inline EXPORT_VPTR NewNAMEDVPTR(UCHAR flag=0, EXPORT_StructDefPtr structdefptr=NULL) {	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+inline EXPORT_VPTR NewVPTR(UCHAR flag=0, EXPORT_StructDefPtr structdefptr=NULL) {	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	EXPORT_VPTR ret = new EXPORT_VARIABLE();
     //zero everything
     memset(ret,0,sizeof(EXPORT_VARIABLE));
-//	ret->type = GDL_TYP_UNDEF; //already zeroed
-//	ret->flags2 = 0;
-	memset(&(ret->value),0,sizeof(EXPORT_ALLTYPES));
 	ret->flags =flag;
 	if (flag & GDL_V_STRUCT  ) {
 		ret->type = GDL_TYP_STRUCT;
@@ -229,27 +227,12 @@ inline EXPORT_VPTR NewNAMEDVPTR(UCHAR flag=0, EXPORT_StructDefPtr structdefptr=N
 	}
 	return ret;
 }
+//Alias expressing the fact that these are not TEMPO VPTRS.
+inline EXPORT_VPTR NewNAMEDVPTR(UCHAR flag=0, EXPORT_StructDefPtr structdefptr=NULL){
+	return NewVPTR(flag,structdefptr);
+}
 inline EXPORT_VPTR NewTMPVPTR(UCHAR flag=0, EXPORT_StructDefPtr structdefptr=NULL) {	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-	EXPORT_VPTR ret = new EXPORT_VARIABLE(); 
-//zero everything
-    memset(ret,0,sizeof(EXPORT_VARIABLE));
-//	ret->type = GDL_TYP_UNDEF; //already zeroed
-//	ret->flags2 = 0;
-	ret->flags = GDL_V_TEMP | flag;
-	if (flag & GDL_V_STRUCT  ) {
-		ret->type = GDL_TYP_STRUCT;
-		ret->flags |= GDL_V_DYNAMIC;
-		ret->flags |= GDL_V_ARR;
-		ret->value.arr= NewExportArray();
-		ret->value.arr->flags = GDL_A_NO_GUARD;
-		ret->value.s.sdef = structdefptr;
-	} else if (flag & GDL_V_ARR) {
-		ret->value.arr = NewExportArray();
-		ret->flags |= GDL_V_DYNAMIC;
-		ret->flags |= GDL_V_ARR;
-		ret->value.arr->flags = GDL_A_NO_GUARD;
-	}
-	return ret;
+	return NewVPTR(flag|GDL_V_TEMP,structdefptr);
 }
 inline EXPORT_VPTR NewTMPVPTRARRAY() {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	return NewTMPVPTR(GDL_V_ARR);
@@ -580,8 +563,6 @@ DStringGDL* GDL_GetString(EXPORT_VPTR v) { TRACE_ROUTINE(__FUNCTION__,__FILE__,_
 				if ( ss[i].slen > 0) 
 					(*gdls)[i]=std::string(ss[i].s,ss[i].slen);
 			}
-//thus, delete v if temp, it deletes the original data, we're left with a copy			
-			IDL_Deltmp(v);
 			return gdls;
 }
 extern "C" {
@@ -600,6 +581,10 @@ int IDL_OutputFormatLenFunc(int type) {
 }
 char *EXPORT_OutputFormatFull[EXPORT_NUM_TYPES] = {C_"<Undefined>", C_"%4d", C_"%8d", C_"%12d", C_"%#16.8g", C_"%#25.17g",
 	C_"(%#16.8g,%#16.8g)", C_"%s", C_"", C_"(%#25.17g,%#25.17g)", C_"%12lu", C_"%12lu", C_"%8u", C_"%12u", C_"%22ld"};
+
+char *EXPORT_InputFormat[EXPORT_NUM_TYPES] = {C_"", C_"%i", C_"%i", C_"%i", C_"%g", C_"%g",
+	C_"(%g,%g)", C_"%s", C_"", C_"(%g,%g)", C_"%d", C_"%d", C_"%d", C_"%d", C_"%d"};
+
 int IDL_OutputFormatFullLen[EXPORT_NUM_TYPES] = {11, 4, 8, 12, 16, 25, 35, 0, 0, 53, 12, 12, 8, 12, 22};
 
 char *EXPORT_OutputFormatNatural[EXPORT_NUM_TYPES] = {C_"<Undefined>", C_"%d", C_"%d", C_"%d", C_"%g", C_"%g", C_"(%g,%g)", C_"%s", C_"", C_"(%g,%g)", C_"%u", C_"%u", C_"%u", C_"%u", C_"%ld"};
@@ -781,7 +766,7 @@ BaseGDL* VPTR_ToGDL(EXPORT_VPTR v, bool protect=false) {	TRACE_ROUTINE(__FUNCTIO
 				DOCASE_ARRAY(GDL_TYP_ULONG, DULongGDL);
 				DOCASE_ARRAY(GDL_TYP_LONG64, DLong64GDL);
 				DOCASE_ARRAY(GDL_TYP_ULONG64, DULong64GDL);
-			default: GDL_WillThrowAfterCleaning(__func__, "VPTR_ToGDL: bad array case.");
+			default: GDL_WillReturnAfterCleaning("VPTR_ToGDL: bad array case.");
 		}
 //	  if ((SizeT) (arraydescr->data) %16 == 0) std::cerr << "ALIGNED!!!\n"; else std::cerr << "unaligned: "<<(SizeT) (arraydescr->data)<<std::endl; 
 		if (IsADefinedVar) { //just plug in the address, saves copies and loss memory
@@ -820,7 +805,7 @@ BaseGDL* VPTR_ToGDL(EXPORT_VPTR v, bool protect=false) {	TRACE_ROUTINE(__FUNCTIO
 				return new DComplexGDL(std::complex<float>(v->value.cmp.r, v->value.cmp.i));
 			case GDL_TYP_DCOMPLEX:
 				return new DComplexDblGDL(std::complex<double>(v->value.dcmp.r, v->value.dcmp.i));
-			default: GDL_WillThrowAfterCleaning(__func__, "ReturnEXPORT_VPTR_AsGDL: bad array case.");
+			default: GDL_WillReturnAfterCleaning("ReturnEXPORT_VPTR_AsGDL: bad array case.");
 		}
 	}
 	return NULL;
@@ -833,7 +818,7 @@ extern "C" {
 DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_ImportArray(int n_dim, EXPORT_MEMINT dim[], int type, UCHAR *data, EXPORT_ARRAY_FREE_CB free_cb,  EXPORT_StructDefPtr s){	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 
 	if (type == GDL_TYP_STRUCT){
-	 if (s==NULL) GDL_WillThrowAfterCleaning(__func__, "EXPORT_ImportArray() defines a struct without passing a valid EXPORT_StructDefPtr");
+	 if (s==NULL) GDL_WillReturnAfterCleaning("EXPORT_ImportArray() defines a struct without passing a valid EXPORT_StructDefPtr");
 	 EXPORT_VPTR v= NewTMPVPTRSTRUCTWithCB(s,free_cb);
 		v->type = type;
 		SizeT l = 1;
@@ -894,7 +879,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_ImportNamedArray(char *name, int n_dim, EX
 			DOCASE(GDL_TYP_ULONG64, DULong64GDL);
 			DOCASE(GDL_TYP_STRING, DStringGDL);
 		default:
-			GDL_WillThrowAfterCleaning(__func__, "CreateNewGDLArray failure.");
+			GDL_WillReturnAfterCleaning("CreateNewGDLArray failure.");
 	}
 	return NULL;
 }
@@ -965,7 +950,7 @@ fprintf(stderr, "IDL_VARNAME() called on: "); if (v && v->type != GDL_TYP_UNDEF)
 				DOCASE(GDL_TYP_ULONG64, ul64);
 				DOCASE_STR(GDL_TYP_STRING);
 				DOCASE(GDL_TYP_STRUCT, s.sdef->id->name);
-			default: GDL_WillThrowAfterCleaning(__func__, "IDL_VarName: unexpected type "+i2s(v->type));
+			default: GDL_WillReturnAfterCleaning("IDL_VarName: unexpected type "+i2s(v->type));
 			}
 			strncat(infoline,")",2);
 		}
@@ -980,7 +965,7 @@ fprintf(stderr, "IDL_VARNAME() called on: "); if (v && v->type != GDL_TYP_UNDEF)
 #undef DOCASE_STR
 
 DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_GetVarAddr1(char *name, int enter){
-	GDL_WillThrowAfterCleaning(__func__, "IDL_GetVarAddr is not currently programmed -- as it would never be the address of a real GDL variable. Use parameters in call to get a copy of GDL variables.");
+	GDL_WillReturnAfterCleaning("IDL_GetVarAddr is not currently programmed -- as it would never be the address of a real GDL variable. Use parameters in call to get a copy of GDL variables.");
 	return NULL;
 }
 
@@ -991,7 +976,9 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_GetVarAddr(char *name){
 DLL_PUBLIC void  GDL_CDECL IDL_VarEnsureSimple(EXPORT_VPTR v) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 	checkOK(v);
     static char* message= (char*)"Expression must not be a file variable, a structure variable, a pointer heap variable, or an object reference heap variable in this context: ";
-	if ( v->flags & GDL_V_NOT_SCALAR ) GDL_WillThrowAfterCleaning(__func__, message+std::string(IDL_VarName(v)));
+	if ( v->flags & (GDL_V_STRUCT|GDL_V_FILE) ) GDL_WillReturnAfterCleaning(message+std::string(IDL_VarName(v)));
+	else if ( v->type == GDL_TYP_PTR ) GDL_WillReturnAfterCleaning(message+std::string(IDL_VarName(v)));
+	else if ( v->type == GDL_TYP_OBJREF ) GDL_WillReturnAfterCleaning(message+std::string(IDL_VarName(v)));
 }
 DLL_PUBLIC EXPORT_VPTR GDL_CDECL IDL_VarTypeConvert(EXPORT_VPTR v, GDL_REGISTER int type) {
 	checkOK(v);
@@ -1020,8 +1007,8 @@ DLL_PUBLIC void GDL_CDECL GDL_Print(int argc, EXPORT_VPTR *argv, char *argk, boo
 		if (print_to_file) {
 			EXPORT_LONG lun = argv[0]->value.l;
 			start = 1;
-			if (lun < -2 || lun > maxLun) GDL_WillThrowAfterCleaning(__func__, "File unit is not within allowed range: " + i2s(lun) + ".");
-			if (lun == 0) GDL_WillThrowAfterCleaning(__func__, "Cannot print to standard input.");
+			if (lun < -2 || lun > maxLun) GDL_WillReturnAfterCleaning("File unit is not within allowed range: " + i2s(lun) + ".");
+			if (lun == 0) GDL_WillReturnAfterCleaning("Cannot print to standard input.");
 			if (lun > 0) { //need a special treatment, as our luns are not at all file descriptors...
 				int proIx = LibProIx("PRINTF");
 				EnvT* newEnv = new EnvT(DInterpreter::CallStackBack()->CallingNode(), libProList[proIx]);
@@ -1073,10 +1060,9 @@ DLL_PUBLIC void GDL_CDECL GDL_Print(int argc, EXPORT_VPTR *argv, char *argk, boo
 								w = 0;
 							}
 						}
-						fprintf(stdout, "\n");
 					}
 						break;
-				default: GDL_WillThrowAfterCleaning(__func__, "IDL_Print: unexpected type " + i2s(v->type));
+				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[v->type])+".");
 				}
 			} else {
 				switch (v->type) {
@@ -1093,9 +1079,10 @@ DLL_PUBLIC void GDL_CDECL GDL_Print(int argc, EXPORT_VPTR *argv, char *argk, boo
 						DOCASE(GDL_TYP_LONG64, l64);
 						DOCASE(GDL_TYP_ULONG64, ul64);
 						DOCASE(GDL_TYP_STRING, str.s);
-			default: GDL_WillThrowAfterCleaning(__func__, "IDL_Print: unexpected type " + i2s(v->type));
+			default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[v->type])+".");
 				}
 			}
+			fprintf(stdout, "\n");
 		}
 	}
 #undef DOCASE
@@ -1119,7 +1106,7 @@ DLL_PUBLIC void  GDL_CDECL IDL_StrStore(EXPORT_STRING *s, const char *fs){TRACE_
 }
 DLL_PUBLIC char* GDL_CDECL IDL_VarGetString(EXPORT_VPTR s) {
 	checkOK(s);
-	if (s->type != GDL_TYP_STRING) GDL_WillThrowAfterCleaning(__func__, "IDL_VarGetString: variable is not a string.");
+	if (s->type != GDL_TYP_STRING) GDL_WillReturnAfterCleaning("IDL_VarGetString: variable is not a string.");
 	GDL_ENSURE_SIMPLE(s);
 	if (s->value.str.slen==0) {
 		return (char*) MyCallocDestroyedOnExit(1,1);
@@ -1158,7 +1145,7 @@ DLL_PUBLIC EXPORT_STRING *GDL_CDECL IDL_VarGet1EltStringDesc(EXPORT_VPTR v, EXPO
 				DOCASE_STRING(GDL_TYP_LONG64, l64);
 				DOCASE_STRING(GDL_TYP_ULONG64, ul64);
 				DOCASE_STRING(GDL_TYP_STRING, str);
-			default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+			default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[v->type])+".");
 		}
 	} else {
 		s->slen = v->value.str.slen;
@@ -1197,7 +1184,7 @@ DLL_PUBLIC void  GDL_CDECL IDL_StrDelete(EXPORT_STRING *str, EXPORT_MEMINT n) {T
 
 // n: The number of characters the string must be able to contain, not including the terminating NULL character.
 DLL_PUBLIC void  GDL_CDECL IDL_StrEnsureLength(EXPORT_STRING *s, int n) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-        if (n<0) GDL_WillThrowAfterCleaning(__func__, "IDL_StrEnsureLength() passed a negative string length!");
+        if (n<0) GDL_WillReturnAfterCleaning("IDL_StrEnsureLength() passed a negative string length!");
 		if (s->slen < n) {
 			IDL_StrDelete(s, 1); //takes into account slen==0
 			s->slen=n;
@@ -1239,7 +1226,7 @@ DLL_PUBLIC void  GDL_CDECL IDL_StoreScalar(EXPORT_VPTR dest, int type,	EXPORT_AL
 				DOCASE(GDL_TYP_LONG64, l64);
 				DOCASE(GDL_TYP_ULONG64, ul64);
 				DOCASE(GDL_TYP_STRING, str);
-			default: GDL_WillThrowAfterCleaning(__func__, "IDL_StoreScalar: unexpected type "+i2s(type));
+			default: GDL_WillReturnAfterCleaning("IDL_StoreScalar: unexpected type "+i2s(type));
 		}
 	}
 #undef DOCASE
@@ -1267,7 +1254,7 @@ DLL_PUBLIC void  GDL_CDECL IDL_StoreScalarZero(EXPORT_VPTR dest, int type) {TRAC
 				DOCASE(GDL_TYP_LONG64, l64);
 				DOCASE(GDL_TYP_ULONG64, ul64);
 				DOCASESTR(GDL_TYP_STRING, str);
-			default: GDL_WillThrowAfterCleaning(__func__, "IDL_StoreScalar: unexpected type "+i2s(type));
+			default: GDL_WillReturnAfterCleaning("IDL_StoreScalar: unexpected type "+i2s(type));
 		}
 	}
 #undef DOCASE
@@ -1318,7 +1305,7 @@ DLL_PUBLIC double  GDL_CDECL IDL_DoubleScalar(GDL_REGISTER EXPORT_VPTR v) {TRACE
 				DOCASE(double, GDL_TYP_ULONG, ul);
 				DOCASE(double, GDL_TYP_LONG64, l64);
 				DOCASE(double, GDL_TYP_ULONG64, ul64);
-			default: GDL_WillThrowAfterCleaning(__func__, "IDL_DoubleScalar: unexpected type "+i2s(v->type));
+			default: GDL_WillReturnAfterCleaning("IDL_DoubleScalar: unexpected type "+i2s(v->type));
 		}
 		return 0;
 	}
@@ -1336,7 +1323,7 @@ DLL_PUBLIC EXPORT_ULONG  GDL_CDECL IDL_ULongScalar(GDL_REGISTER EXPORT_VPTR v) {
 				DOCASE(EXPORT_ULONG, GDL_TYP_ULONG, ul);
 				DOCASE(EXPORT_ULONG, GDL_TYP_LONG64, l64);
 				DOCASE(EXPORT_ULONG, GDL_TYP_ULONG64, ul64);
-			default: GDL_WillThrowAfterCleaning(__func__, "IDL_ULongScalar: unexpected type "+i2s(v->type));
+			default: GDL_WillReturnAfterCleaning("IDL_ULongScalar: unexpected type "+i2s(v->type));
 		}
 		return 0;
 	}
@@ -1372,7 +1359,7 @@ DLL_PUBLIC EXPORT_LONG64  GDL_CDECL IDL_Long64Scalar(GDL_REGISTER EXPORT_VPTR v)
 				DOCASE(EXPORT_LONG64, GDL_TYP_ULONG, ul);
 				DOCASE(EXPORT_LONG64, GDL_TYP_LONG64, l64);
 				DOCASE(EXPORT_LONG64, GDL_TYP_ULONG64, ul64);
-			default: return (EXPORT_LONG64) 0;
+			default: GDL_WillReturnAfterCleaning("IDL_ULong64Scalar: unexpected type "+i2s(v->type));
 		}
 		return 0;
 	}
@@ -1390,7 +1377,7 @@ DLL_PUBLIC EXPORT_ULONG64  GDL_CDECL IDL_ULong64Scalar(GDL_REGISTER EXPORT_VPTR 
 				DOCASE(EXPORT_ULONG64, GDL_TYP_ULONG, ul);
 				DOCASE(EXPORT_ULONG64, GDL_TYP_LONG64, l64);
 				DOCASE(EXPORT_ULONG64, GDL_TYP_ULONG64, ul64);
-			default: GDL_WillThrowAfterCleaning(__func__, "IDL_ULong64Scalar: unexpected type "+i2s(v->type));
+			default: GDL_WillReturnAfterCleaning("IDL_ULong64Scalar: unexpected type "+i2s(v->type));
 		}
 		return 0;
 	}
@@ -1408,7 +1395,7 @@ DLL_PUBLIC EXPORT_MEMINT  GDL_CDECL IDL_MEMINTScalar(GDL_REGISTER EXPORT_VPTR v)
 				DOCASE(EXPORT_MEMINT, GDL_TYP_ULONG, ul);
 				DOCASE(EXPORT_MEMINT, GDL_TYP_LONG64, l64);
 				DOCASE(EXPORT_MEMINT, GDL_TYP_ULONG64, ul64);
-			default: GDL_WillThrowAfterCleaning(__func__, "IDL_ULong64Scalar: unexpected type "+i2s(v->type));
+			default: GDL_WillReturnAfterCleaning("IDL_MEMINTScalar: unexpected type "+i2s(v->type));
 		}
 		return 0;
 	}
@@ -1426,7 +1413,7 @@ DLL_PUBLIC EXPORT_FILEINT  GDL_CDECL IDL_FILEINTScalar(GDL_REGISTER EXPORT_VPTR 
 				DOCASE(EXPORT_FILEINT, GDL_TYP_ULONG, ul);
 				DOCASE(EXPORT_FILEINT, GDL_TYP_LONG64, l64);
 				DOCASE(EXPORT_FILEINT, GDL_TYP_ULONG64, ul64);
-			default: GDL_WillThrowAfterCleaning(__func__, "IDL_ULong64Scalar: unexpected type "+i2s(v->type));
+			default: GDL_WillReturnAfterCleaning("IDL_FILEINTScalar: unexpected type "+i2s(v->type));
 		}
 		return 0;
 	}
@@ -1451,7 +1438,7 @@ void gdlInitVector(void* arr, int type, size_t nelts) {			TRACE_ROUTINE(__FUNCTI
 						DOCASE_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 						DOCASE_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 						DOCASE_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-					default: GDL_WillThrowAfterCleaning(__func__, "IDL_MakeTempVector: unexpected type " + i2s(type));
+					default: GDL_WillReturnAfterCleaning("gdlInitVector: unexpected type " + i2s(type));
 			}
 		}
 #undef DOCASE_ARRAY
@@ -1544,7 +1531,7 @@ return (char*) addr;
 }
 
 DLL_PUBLIC char * GDL_CDECL IDL_MakeTempStruct(EXPORT_StructDefPtr sdef, int  n_dim, EXPORT_MEMINT *dim, EXPORT_VPTR *var, int zero){ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-	if (sdef == NULL) GDL_WillThrowAfterCleaning(__func__, "EXPORT_VarMakeTempFromTemplate() defines a struct without passing a valid EXPORT_StructDefPtr");
+	if (sdef == NULL) GDL_WillReturnAfterCleaning("EXPORT_VarMakeTempFromTemplate() defines a struct without passing a valid EXPORT_StructDefPtr");
 	EXPORT_VPTR v = NewTMPVPTRSTRUCT(sdef);
 	if (zero) memset(&(v->value),0,sizeof(EXPORT_ALLTYPES));
 	return (char*) 	&(v->value);
@@ -1556,7 +1543,7 @@ EXPORT_VPTR t = template_var;
 checkOK(t);
 EXPORT_VPTR v;
 if (t->flags & GDL_V_STRUCT) {
-	if (sdef == NULL) GDL_WillThrowAfterCleaning(__func__, "IDL_VarMakeTempFromTemplate() defines a struct without passing a valid IDL_StructDefPtr");
+	if (sdef == NULL) GDL_WillReturnAfterCleaning("IDL_VarMakeTempFromTemplate() defines a struct without passing a valid IDL_StructDefPtr");
 	v = NewTMPVPTRSTRUCT(sdef);
 } else if (t->flags & GDL_V_ARR) {
 	v = NewTMPVPTRARRAY();
@@ -1638,7 +1625,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_GettmpMEMINT(EXPORT_MEMINT value){TRACE_RO
 #undef DOIT
 
 #define DEFOUT(idl_dst_type)\
-    if (argc != 1) GDL_WillThrowAfterCleaning(__func__, "IDL_CvtXXX: multiple arguments not supported, fixme.");\
+    if (argc != 1) GDL_WillReturnAfterCleaning("IDL_CvtXXX: multiple arguments not supported, fixme.");\
 	if (argv[0]->type == idl_dst_type) return argv[0];\
 	EXPORT_VPTR ret = NewTMPVPTR(argv[0]->flags);\
 	ret->type = idl_dst_type;\
@@ -1680,6 +1667,10 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_GettmpMEMINT(EXPORT_MEMINT value){TRACE_RO
 #define DOCASE(type, field1, field2)\
  case type: ret->value.field1=value.field2 ; break;
 
+#define DOCASE_FROM_STRING(type, field1, field2)\
+				case type:  {int nread=sscanf(argv[0]->value.str.s,EXPORT_InputFormat[field1],&(ret->value.field2));\
+				if (nread < 0) GDL_WillReturnAfterCleaning("Error converting input to "+std::string(IDL_TypeName[field1]));} break;
+
 #define DOCASE_FROM_CMP(type, field1, field2)\
  case type: ret->value.field1=value.field2.r ; break;
 #define DOCASE_ARRAY_FROM_CMP(idl_src_type, src_type)\
@@ -1717,7 +1708,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtByte(int argc, EXPORT_VPTR argv[]) {TRA
 		DOCASE_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG );
 		DOCASE_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64 );
 		DOCASE_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-			default: GDL_WillThrowAfterCleaning(__func__, "IDL_CvtByte: unexpected type");
+			default: GDL_WillReturnAfterCleaning("IDL_CvtByte: unexpected type");
 		}
 	} else {
 		switch (argv[0]->type) {
@@ -1732,7 +1723,8 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtByte(int argc, EXPORT_VPTR argv[]) {TRA
 		DOCASE(GDL_TYP_ULONG, c, ul);
 		DOCASE(GDL_TYP_LONG64, c, l64);
 		DOCASE(GDL_TYP_ULONG64, c, ul64);
-			default: GDL_WillThrowAfterCleaning(__func__, "IDL_CvtByte: unexpected type");
+		DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_BYTE, c);
+			default: GDL_WillReturnAfterCleaning("IDL_CvtByte: unexpected type");
 		}
 	}
 	return ret;
@@ -1755,7 +1747,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtBytscl(int argc, EXPORT_VPTR argv[], ch
 					DOCASE_CVTBYTSCL_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_CVTBYTSCL_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_CVTBYTSCL_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-				default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
 			}
 		} else {
 			//do nothing, CvtBytscl on 1 element gives 0
@@ -1782,7 +1774,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtFix(int argc, EXPORT_VPTR argv[]) {TRAC
 					DOCASE_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-				default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
 			}
 		} else {
 			switch (argv[0]->type) {
@@ -1797,7 +1789,8 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtFix(int argc, EXPORT_VPTR argv[]) {TRAC
 					DOCASE(GDL_TYP_ULONG, i, ul);
 					DOCASE(GDL_TYP_LONG64, i, l64);
 					DOCASE(GDL_TYP_ULONG64, i, ul64);
-				default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+				    DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_INT, i);
+				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
 			}
 		}
 		return ret;
@@ -1821,7 +1814,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtUInt(int argc, EXPORT_VPTR argv[]) {TRA
 					DOCASE_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-				default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
 			}
 		} else {
 		switch (argv[0]->type) {
@@ -1836,7 +1829,8 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtUInt(int argc, EXPORT_VPTR argv[]) {TRA
 				DOCASE(GDL_TYP_ULONG, ui, ul);
 				DOCASE(GDL_TYP_LONG64, ui, l64);
 				DOCASE(GDL_TYP_ULONG64, ui, ul64);
-			default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+				DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_UINT, ui);
+			default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
 		}
 	}
 		return ret;
@@ -1859,7 +1853,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtLng(int argc, EXPORT_VPTR argv[]) {TRAC
 					DOCASE_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-				default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
 			}
 		} else {
 		switch (argv[0]->type) {
@@ -1874,7 +1868,8 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtLng(int argc, EXPORT_VPTR argv[]) {TRAC
 				DOCASE(GDL_TYP_ULONG, l, ul);
 				DOCASE(GDL_TYP_LONG64, l, l64);
 				DOCASE(GDL_TYP_ULONG64, l, ul64);
-			default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+			    DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_LONG, l);
+			default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
 		}
 	}
 		return ret;
@@ -1898,7 +1893,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtULng(int argc, EXPORT_VPTR argv[]) {TRA
 					DOCASE_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-				default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
 			}
 		} else {
 		switch (argv[0]->type) {
@@ -1913,7 +1908,8 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtULng(int argc, EXPORT_VPTR argv[]) {TRA
 				DOCASE(GDL_TYP_ULONG, ul, ul);
 				DOCASE(GDL_TYP_LONG64, ul, l64);
 				DOCASE(GDL_TYP_ULONG64, ul, ul64);
-			default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+			    DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_ULONG, ul);
+			default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
 		}
 	}
 		return ret;
@@ -1937,7 +1933,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtLng64(int argc, EXPORT_VPTR argv[]) {TR
 					DOCASE_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-				default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
 			}
 		} else {
 		switch (argv[0]->type) {
@@ -1952,7 +1948,8 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtLng64(int argc, EXPORT_VPTR argv[]) {TR
 				DOCASE(GDL_TYP_ULONG, l64, ul);
 				DOCASE(GDL_TYP_LONG64, l64, l64);
 				DOCASE(GDL_TYP_ULONG64, l64, ul64);
-			default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+			    DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_LONG64, l64);
+			default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
 		}
 	}
 		return ret;
@@ -1976,7 +1973,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtULng64(int argc, EXPORT_VPTR argv[]) {T
 					DOCASE_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-				default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
 			}
 		} else {
 		switch (argv[0]->type) {
@@ -1991,7 +1988,8 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtULng64(int argc, EXPORT_VPTR argv[]) {T
 				DOCASE(GDL_TYP_ULONG, ul64, ul);
 				DOCASE(GDL_TYP_LONG64, ul64, l64);
 				DOCASE(GDL_TYP_ULONG64, ul64, ul64);
-			default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+			    DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_ULONG64, ul64);
+			default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
 		}
 	}
 		return ret;
@@ -1999,13 +1997,17 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtULng64(int argc, EXPORT_VPTR argv[]) {T
 	}
 
 DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtMEMINT(int argc, EXPORT_VPTR argv[]) {
-	EXPORT_VPTR v=IDL_CvtULng64(argc, argv);
+	EXPORT_VPTR v;
+	static const bool arch64= (sizeof(EXPORT_VPTR) == 64);
+	if (arch64) v=IDL_CvtULng64(argc, argv); else v=IDL_CvtULng(argc, argv);
 	v->type=GDL_TYP_MEMINT;
 	return v;
 }
 
 DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtFILEINT(int argc, EXPORT_VPTR argv[]) {
-	EXPORT_VPTR v=IDL_CvtULng64(argc, argv);
+	EXPORT_VPTR v;
+	static const bool arch64= (sizeof(EXPORT_VPTR) == 64);
+	if (arch64) v=IDL_CvtULng64(argc, argv); else v=IDL_CvtULng(argc, argv);
 	v->type=GDL_TYP_FILEINT;
 	return v;
 }
@@ -2027,7 +2029,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtFlt(int argc, EXPORT_VPTR argv[]) {TRAC
 					DOCASE_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-				default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
 			}
 		} else {
 		switch (argv[0]->type) {
@@ -2042,7 +2044,8 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtFlt(int argc, EXPORT_VPTR argv[]) {TRAC
 				DOCASE(GDL_TYP_ULONG, f, ul);
 				DOCASE(GDL_TYP_LONG64, f, l64);
 				DOCASE(GDL_TYP_ULONG64, f, ul64);
-			default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+				DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_FLOAT, f);
+			default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
 		}
 	}
 		return ret;
@@ -2065,7 +2068,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtDbl(int argc, EXPORT_VPTR argv[]){TRACE
 					DOCASE_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-				default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
 			}
 		} else {
 			switch (argv[0]->type) {
@@ -2080,13 +2083,14 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtDbl(int argc, EXPORT_VPTR argv[]){TRACE
 					DOCASE(GDL_TYP_ULONG, d, ul);
 					DOCASE(GDL_TYP_LONG64, d, l64);
 					DOCASE(GDL_TYP_ULONG64, d, ul64);
-				default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+				    DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_DOUBLE, d);
+				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
 			}
 		}
 		return ret;
 	}
 
-DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtComplex(int argc, EXPORT_VPTR argv[], char *argk=NULL) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtComplex(int argc, EXPORT_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		checkOK(argv[0]);
 		DEFOUT(GDL_TYP_COMPLEX);
 		if (argv[0]->flags & GDL_V_ARR) {
@@ -2103,7 +2107,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtComplex(int argc, EXPORT_VPTR argv[], c
 					DOCASE_TO_CMP_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_TO_CMP_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_TO_CMP_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-				default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
 			}
 		} else {
 			switch (argv[0]->type) {
@@ -2118,7 +2122,8 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtComplex(int argc, EXPORT_VPTR argv[], c
 					DOCASE_TO_CMP(GDL_TYP_ULONG, dcmp, ul);
 					DOCASE_TO_CMP(GDL_TYP_LONG64, dcmp, l64);
 					DOCASE_TO_CMP(GDL_TYP_ULONG64, dcmp, ul64);
-				default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+				    DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_COMPLEX, cmp);
+				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
 			}
 		}
 		return ret;
@@ -2141,7 +2146,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtDComplex(int argc, EXPORT_VPTR argv[]) 
 					DOCASE_TO_CMP_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_TO_CMP_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_TO_CMP_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-				default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+			default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
 			}
 		} else {
 			switch (argv[0]->type) {
@@ -2156,7 +2161,8 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtDComplex(int argc, EXPORT_VPTR argv[]) 
 					DOCASE_TO_CMP(GDL_TYP_ULONG, cmp, ul);
 					DOCASE_TO_CMP(GDL_TYP_LONG64, cmp, l64);
 					DOCASE_TO_CMP(GDL_TYP_ULONG64, cmp, ul64);
-				default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+				    DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_DCOMPLEX, dcmp);
+			default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
 			}
 		}
 		return ret;
@@ -2169,6 +2175,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtDComplex(int argc, EXPORT_VPTR argv[]) 
 #undef DOCASE_TO_CMP_ARRAY
 #undef DOCASE_TO_CMP_ARRAY_FROM_CMP
 #undef DOCASE_TO_CMP_FROM_CMP
+#undef DOCASE_FROM_STRING
 
 #define DOCASE_STRING(type, field2)\
 				case type: { \
@@ -2222,7 +2229,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtString(int argc, EXPORT_VPTR argv[], ch
 					DOCASE_STRING_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_STRING_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_STRING_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-				default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
 			}
 		} else {
 			switch (argv[0]->type) {
@@ -2238,7 +2245,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtString(int argc, EXPORT_VPTR argv[], ch
 					DOCASE_STRING(GDL_TYP_ULONG, ul);
 					DOCASE_STRING(GDL_TYP_LONG64, l64);
 					DOCASE_STRING(GDL_TYP_ULONG64, ul64);
-				default: GDL_WillThrowAfterCleaning(__func__, "unexpected type");
+				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
 			}
 		}
 		return ret;
@@ -2249,7 +2256,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtString(int argc, EXPORT_VPTR argv[], ch
 #undef PREPARE_ARRAY
 #undef DEFOUT
 
-char* GDLWriteVarAtAddr(BaseGDL* var, std::string name, UCHAR type, size_t address, bool isoutput, bool isarray){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+char* GDLConvertToAndWriteVarAtAddr(BaseGDL* var, std::string name, UCHAR type, size_t address, bool isoutput, bool isarray){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		switch (type) {
 			case GDL_TYP_BYTE:
 			{
@@ -2348,16 +2355,16 @@ char* GDLWriteVarAtAddr(BaseGDL* var, std::string name, UCHAR type, size_t addre
 			}
 			case GDL_TYP_UNDEF:
 			{
-				if (!isoutput) GDL_WillThrowAfterCleaning(__func__, "GDLWriteVarAtAddr: variable " + name + " is not writeable.");
+				if (!isoutput) GDL_WillReturnAfterCleaning("GDLWriteVarAtAddr: variable " + name + " is not writeable.");
 				break;
 			}
 //			case GDL_TYP_PTR:
-//				GDL_WillThrowAfterCleaning(__func__, "Unable to convert variable to type pointer.");
+//				GDL_WillReturnAfterCleaning("Unable to convert variable to type pointer.");
 //				break;
 //			case GDL_TYP_OBJREF:
-//				GDL_WillThrowAfterCleaning(__func__, "Unable to convert variable to type object.");
+//				GDL_WillReturnAfterCleaning("Unable to convert variable to type object.");
 //				break;
-			default: GDL_WillThrowAfterCleaning(__func__, "GDLWriteVarAtAddr: unsupported case.");
+			default: GDL_WillReturnAfterCleaning("GDLWriteVarAtAddr: unsupported case.");
 		}
 		return NULL;
 	}
@@ -2366,7 +2373,7 @@ void GDLZeroAtAddr(size_t address, int type ){TRACE_ROUTINE(__FUNCTION__,__FILE_
 int l=IDL_TypeSizeFunc(type);
 memset((void*) (address), 0, l);
 }
-
+DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_BasicTypeConversion(int argc, EXPORT_VPTR argv[], GDL_REGISTER int type);
 EXPORT_VPTR GdlExportPresentKeywordByOffset(GDL_KW_PAR requested, GDL_KEYWORDS_LIST passed, void* kw_result) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 static const int ok = 1;
 static const int cleanMem = 1;
@@ -2390,16 +2397,16 @@ if (requested.specified != NULL) { // need write 0 or 1 in a special int in KW s
 }
 if (requested.value != NULL) { // need to pass either an address of a EXPORT_VPTR or fill in static elements of the structure exchanged with routine
 	size_t global_address = (size_t) (kw_result)+(size_t) (requested.value);
-	if (isoutput && passed.readonly) GDL_WillThrowAfterCleaning(__func__, "Keyword " + std::string(requested.keyword) + " must be a named variable.");
+	if (isoutput && passed.readonly) GDL_WillReturnAfterCleaning("Keyword " + std::string(requested.keyword) + " must be a named variable.");
 	BaseGDL* var = passed.varptr;
 	//if requested var is NULL here, it is an undefined var, which MAY be returned as good value.
-	if (var == NULL && !isoutput) GDL_WillThrowAfterCleaning(__func__, "GDLExportKeyword: variable " + std::string(requested.keyword) + " is not defined.");
+	if (var == NULL && !isoutput) GDL_WillReturnAfterCleaning("GDLExportKeyword: variable " + std::string(requested.keyword) + " is not defined.");
 	if (iszero) { //zero before write.
 		
 		GDLZeroAtAddr(global_address, requested.type);
 	}
 	if (var != NULL) {
-		if (!isarray && (var->N_Elements() > 1)) GDL_WillThrowAfterCleaning(__func__, "Expression must be a scalar or 1 element array in this context: " + std::string(passed.name) + ".");
+		if (!isarray && (var->N_Elements() > 1)) GDL_WillReturnAfterCleaning("Expression must be a scalar or 1 element array in this context: " + std::string(passed.name) + ".");
 		if (inputByReference) {//address (relative) of a EXPORT_VPTR with input only value
 			EXPORT_VPTR temp = GDL_ToVPTR(var,tempo, true);
 			memcpy((void*) (global_address), (void*) (&temp), sizeof (EXPORT_VPTR)); //pass by address of a EXPORT_VAR
@@ -2411,31 +2418,31 @@ if (requested.value != NULL) { // need to pass either an address of a EXPORT_VPT
 			GDL_KW_ARR_DESC_R* arr_desc = (GDL_KW_ARR_DESC_R*) (array_desc_address);
 			//check limits
 			if ((var->N_Elements() > (*arr_desc).nmax) || (var->N_Elements() < (*arr_desc).nmin))
-				GDL_WillThrowAfterCleaning(__func__, 
+				GDL_WillReturnAfterCleaning(
 					"Keyword array parameter " + std::string(requested.keyword) + " must have from " + i2s(arr_desc->nmin) + " to " + i2s(arr_desc->nmax) + " elements.");
 			//and these are offsets!
 			size_t copy_address_offset = (size_t) (kw_result)+(size_t) ((*arr_desc).n_offset);
 			EXPORT_MEMINT passedArraySize = var->N_Elements();
 			memcpy((void*) copy_address_offset, (void*) &passedArraySize, sizeof (EXPORT_MEMINT)); //number of passed elements
 			size_t data_address = (size_t) (kw_result)+(size_t) ((*arr_desc).data); //address where to pass elements
-			if (GDLWriteVarAtAddr(var, std::string(requested.keyword), requested.type, data_address, isoutput, true) != NULL) {
+			if (GDLConvertToAndWriteVarAtAddr(var, std::string(requested.keyword), requested.type, data_address, isoutput, true) != NULL) {
 				memcpy(kw_result, &cleanMem, sizeof (int)); //make GDL_KW_FREE in called program call GDL_KWFree();
 			}
 		} else {
 			//here GDL_KW_VALUE may appear
 			if (byMask) {
-				if (requested.type != GDL_TYP_LONG) GDL_WillThrowAfterCleaning(__func__, "Invalid use of GDL_KW_VALUE on non-integer keyword.");
+				if (requested.type != GDL_TYP_LONG) GDL_WillReturnAfterCleaning("Invalid use of GDL_KW_VALUE on non-integer keyword.");
 				long mask = GDL_KW_VALUE_MASK & requested.flags;
 				long *val = (long*) global_address;
 				*val |= mask;
 			} else {
-				if (GDLWriteVarAtAddr(var, std::string(requested.keyword), requested.type, global_address, isoutput, false) != NULL) {
+				if (GDLConvertToAndWriteVarAtAddr(var, std::string(requested.keyword), requested.type, global_address, isoutput, false) != NULL) {
 					memcpy(kw_result, &cleanMem, sizeof (int)); //make GDL_KW_FREE in called program call GDL_KWFree();
 				}
 			}
 		}
 	} else if (isoutput) {
-				toBeReturned = IDL_Gettmp();
+				toBeReturned = NewNAMEDVPTR(); //create a EXPORT_VPTR that will returns a real variable
 				memcpy((void*) (global_address), (void*) (&toBeReturned), sizeof (EXPORT_VPTR)); //pass address of a EXPORT_VAR that will contain the result.
 	}
 }
@@ -2456,13 +2463,15 @@ if (requested.specified != NULL) {
 	memcpy((void*) requested.specified, &ok, sizeof (int)); //requested is in offset
 }
 if (requested.value != NULL) { // need to fill in static elements of the structure exchanged with routine
-	if (isoutput && passed.readonly) GDL_WillThrowAfterCleaning(__func__, "Keyword " + std::string(requested.keyword) + " must be a named variable.");
+//	if (isoutput && passed.readonly) GDL_WillReturnAfterCleaning("Keyword " + std::string(requested.keyword) + " must be a named variable.");
+	if (iszero) GDLZeroAtAddr((size_t) requested.value, requested.type);
+
 	BaseGDL* var = passed.varptr;
 	//if requested var is NULL here, it is an undefined var, which MAY be returned as good value.
-	if (var == NULL && !isoutput) GDL_WillThrowAfterCleaning(__func__, "GDLExportKeyword: variable " + std::string(requested.keyword) + " is not defined.");
-	if (iszero) GDLZeroAtAddr((size_t) requested.value, requested.type);
+//	if (var == NULL && !isoutput) GDL_WillReturnAfterCleaning("GDLExportKeyword: variable " + std::string(requested.keyword) + " is not defined.");
+
 	if (var != NULL) {
-		if (!isarray && (var->N_Elements() > 1)) GDL_WillThrowAfterCleaning(__func__, "Expression must be a scalar or 1 element array in this context: " + std::string(passed.name) + ".");
+		if (!isarray && (var->N_Elements() > 1)) GDL_WillReturnAfterCleaning("Expression must be a scalar or 1 element array in this context: " + std::string(passed.name) + ".");
 		if (inputByReference) {//address of a EXPORT_VPTR with input only value
 			EXPORT_VPTR temp = GDL_ToVPTR(var,tempo,true);
 			memcpy((void*) requested.value, (void*) (&temp), sizeof (EXPORT_VPTR)); //pass by address of a EXPORT_VAR
@@ -2474,24 +2483,24 @@ if (requested.value != NULL) { // need to fill in static elements of the structu
 			GDL_KW_ARR_DESC* arr_desc = (GDL_KW_ARR_DESC*) (array_desc_address);
 			//check limits
 			if ((var->N_Elements() > (*arr_desc).nmax) || (var->N_Elements() < (*arr_desc).nmin))
-				GDL_WillThrowAfterCleaning(__func__, 
+				GDL_WillReturnAfterCleaning(
 					"Keyword array parameter " + std::string(requested.keyword) + " must have from " + i2s(arr_desc->nmin) + " to " + i2s(arr_desc->nmax) + " elements.");
 			(*arr_desc).n = var->N_Elements();
 			size_t data_address = (size_t) ((*arr_desc).data); //address where to pass elements
-			GDLWriteVarAtAddr(var, std::string(requested.keyword), requested.type, data_address, isoutput, true);
+			GDLConvertToAndWriteVarAtAddr(var, std::string(requested.keyword), requested.type, data_address, isoutput, true);
 		} else {
 			//here GDL_KW_VALUE may appear
 			if (byMask) {
-				if (requested.type != GDL_TYP_LONG) GDL_WillThrowAfterCleaning(__func__, "Invalid use of GDL_KW_VALUE on non-integer keyword.");
+				if (requested.type != GDL_TYP_LONG) GDL_WillReturnAfterCleaning("Invalid use of GDL_KW_VALUE on non-integer keyword.");
 				long mask = GDL_KW_VALUE_MASK & requested.flags;
 				long *val = (long*) requested.value;
 				*val |= mask;
 			} else {
-				GDLWriteVarAtAddr(var, std::string(requested.keyword), requested.type, (size_t) requested.value, isoutput, false);
+				GDLConvertToAndWriteVarAtAddr(var, std::string(requested.keyword), requested.type, (size_t) requested.value, isoutput, false);
 			}
 		}
 	} else if (isoutput) {
-				toBeReturned = IDL_Gettmp();
+				toBeReturned = NewNAMEDVPTR(); //create a EXPORT_VPTR that will returns a real variable
 				memcpy((void*) requested.value, (void*) (&toBeReturned), sizeof (EXPORT_VPTR)); //pass address of a EXPORT_VAR that will contain the result.
 	}
 }
@@ -2545,16 +2554,21 @@ void GdlExportAbsentKeywordByOffset(GDL_KW_PAR requested, void* kw_result) {TRAC
 			}
 		}
 	}
-
+#define ACCEPT -1
+#define IGNORE -2
 DLL_PUBLIC int  GDL_CDECL IDL_KWGetParams(int argc, EXPORT_VPTR *argv, char *argk_passed, GDL_KW_PAR *kw_requested, EXPORT_VPTR *plain_args, int mask) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-		if (plain_args) for (auto i = 0; i < argc; ++i) plain_args[i] = argv[i];
-		//argk is a pointer to a  GDL_PASS_KEYWORDS_LIST struct
+		int hasplain=(plain_args != NULL);
+        
+//		if (hasplain) std::cerr << "IDL_KWGetParams: HAS PLAIN ARGS" << std::endl;
+
 		GDL_PASS_KEYWORDS_LIST* container = (GDL_PASS_KEYWORDS_LIST*) argk_passed;
 		int npassed = 0;
+		int nplain=argc;
 		GDL_KEYWORDS_LIST* argk;
 		if (container) {
 			npassed = container->npassed;
 			argk = container->passed;
+			nplain=argc-npassed;
 		}
 		//build a vector of desired keywords 
 		int ikw = 0;
@@ -2562,23 +2576,25 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWGetParams(int argc, EXPORT_VPTR *argv, char *arg
 		const char * kw;
 		bool do_fast_scan = false; // not yet used, but retrieved.
 		if (kw_requested == NULL) {
-			return argc;
+			if (hasplain) { for (auto i = 0; i < argc; ++i) plain_args[i] = argv[i];}  return nplain;
 		}
 		kw = kw_requested[0].keyword;
 		if (kw == NULL) {
-			return argc;
+			if (hasplain) { for (auto i = 0; i < argc; ++i) plain_args[i] = argv[i];} return nplain;
 		}
 		if (kw[0] == 0) {
 			do_fast_scan = true;
 			ikw++; // start at 1 next item
 			irequested++; //start at 1 too below
 		}
-		//get the list of expected KWs. Initial value of <int> in map will be: -1 (take into account) -2:ignored
+		if (hasplain) { for (auto i = 0; i < argc-npassed; ++i) plain_args[i] = argv[i]; }
+		//get the list of expected KWs. Initial value of <int> in map will be: ACCEPT (take into account) IGNORE:ignored
 		std::map<int, int> requested;
 		std::map<int, int>::iterator it;
 		while ((kw = kw_requested[ikw].keyword) != NULL) {
-			int code = -1;
-			if ((kw_requested[ikw].mask & mask) == 0) code = -2;
+//			std::cerr << "requested kw: " << kw << std::endl;
+			int code = ACCEPT;
+			if ((kw_requested[ikw].mask & mask) == 0) code = IGNORE;
 			requested.insert(std::pair<int, int>(ikw, code));
 			ikw++;
 		}
@@ -2590,7 +2606,8 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWGetParams(int argc, EXPORT_VPTR *argv, char *arg
 			for (it = requested.begin(); it != requested.end(); ++it) {
 				const char* expected_kw = kw_requested[it->first].keyword;
 				if (strncmp(expected_kw, s, l) == 0) { //found
-					if (it->second == -2) { //ignored
+//					std::cerr<<"found kw: "<<expected_kw<<std::endl;
+					if (it->second == IGNORE) { //ignored
 						ignored = true;
 						break;
 					}
@@ -2600,18 +2617,18 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWGetParams(int argc, EXPORT_VPTR *argv, char *arg
 				}
 			}
 			if (!found && !ignored) {
-				GDL_WillThrowAfterCleaning(__func__, "Invalid keyword " + std::string(s));
+				GDL_WillReturnAfterCleaning("Invalid keyword " + std::string(s));
 			} else {
 				for (++it; it != requested.end(); ++it) { //search for ambiguous KW
 					const char* expected_kw =  kw_requested[it->first].keyword;
-					if (strncmp(expected_kw, s, l) == 0) GDL_WillThrowAfterCleaning(__func__, "Ambiguous keyword abbreviation: " + std::string(s));
+					if (strncmp(expected_kw, s, l) == 0) GDL_WillReturnAfterCleaning("Ambiguous keyword abbreviation: " + std::string(s));
 				}
 			}
 		}
 		//populate all passed addresses
 		for (it = requested.begin(); it != requested.end(); ++it) {
 			int ipassed = it->second;
-			if (ipassed == -1) GdlExportAbsentKeywordInOldApi(kw_requested[it->first], kw_requested[it->first].value);
+			if (ipassed == ACCEPT) GdlExportAbsentKeywordInOldApi(kw_requested[it->first], kw_requested[it->first].value);
 			else if (ipassed >= 0) {
 				EXPORT_VPTR ret = GdlExportPresentKeywordInOldApi(kw_requested[it->first], argk[it->second], kw_requested[it->first].value);
 				if (ret != NULL) {
@@ -2621,20 +2638,24 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWGetParams(int argc, EXPORT_VPTR *argv, char *arg
 			}
 			irequested++;
 		}
-		return 0;
+		return nplain;
 	}
 
 DLL_PUBLIC int  GDL_CDECL IDL_KWProcessByOffset(int argc, EXPORT_VPTR *argv, char *argk_passed, GDL_KW_PAR *kw_requested, EXPORT_VPTR *plain_args, int mask, void *kw_result) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 				static const int NoClean = 0;
-		// this is always true with GDL:
-		if (plain_args) for (auto i = 0; i < argc; ++i) plain_args[i] = argv[i];
+		int hasplain=(plain_args != NULL);
+        
+//		if (hasplain) std::cerr << "IDL_KWGetParams: HAS PLAIN ARGS" << std::endl;
+
 		//argk is a pointer to a  GDL_PASS_KEYWORDS_LIST struct
 		GDL_PASS_KEYWORDS_LIST* container = (GDL_PASS_KEYWORDS_LIST*) argk_passed;
 		int npassed = 0;
+		int nplain=argc;
 		GDL_KEYWORDS_LIST* argk;
 		if (container) {
 			npassed = container->npassed;
 			argk = container->passed;
+			nplain=argc-npassed;
 		}
 		//build a vector of desired keywords 
 		int ikw = 0;
@@ -2642,23 +2663,24 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWProcessByOffset(int argc, EXPORT_VPTR *argv, cha
 		const char * kw;
 		bool do_fast_scan = false; // not yet used, but retrieved.
 		if (kw_requested == NULL) {
-			return argc;
+			if (hasplain) { for (auto i = 0; i < argc; ++i) plain_args[i] = argv[i];}  return nplain;
 		}
 		kw = kw_requested[0].keyword;
 		if (kw == NULL) {
-			return argc;
+			if (hasplain) { for (auto i = 0; i < argc; ++i) plain_args[i] = argv[i];} return nplain;
 		}
 		if (kw[0] == 0) {
 			do_fast_scan = true;
 			ikw++; // start at 1 next item
 			irequested++; //start at 1 too below
 		}
-		//get the list of expected KWs. Initial value of <int> in map will be: -1 (take into account) -2:ignored
+		if (hasplain) { for (auto i = 0; i < argc-npassed; ++i) plain_args[i] = argv[i]; }
+		//get the list of expected KWs. Initial value of <int> in map will be: ACCEPT (take into account) IGNORE:ignored
 		std::map<int, int> requested;
 		std::map<int, int>::iterator it;
 		while ((kw = kw_requested[ikw].keyword) != NULL) {
-			int code = -1;
-			if ((kw_requested[ikw].mask & mask) == 0) code = -2;
+			int code = ACCEPT;
+			if ((kw_requested[ikw].mask & mask) == 0) code = IGNORE;
 			requested.insert(std::pair<int, int>(ikw, code));
 			ikw++;
 		}
@@ -2670,7 +2692,7 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWProcessByOffset(int argc, EXPORT_VPTR *argv, cha
 			for (it = requested.begin(); it != requested.end(); ++it) {
 				const char* expected_kw = kw_requested[it->first].keyword;
 				if (strncmp(expected_kw, s, l) == 0) { //found
-					if (it->second == -2) { //ignored
+					if (it->second == IGNORE) { //ignored
 						ignored = true;
 						break;
 					}
@@ -2680,11 +2702,11 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWProcessByOffset(int argc, EXPORT_VPTR *argv, cha
 				}
 			}
 			if (!found && !ignored) {
-				GDL_WillThrowAfterCleaning(__func__, "Invalid keyword " + std::string(s));
+				GDL_WillReturnAfterCleaning("Invalid keyword " + std::string(s));
 			} else {
 				for (++it; it != requested.end(); ++it) { //search for ambiguous KW
 					const char* expected_kw =  kw_requested[it->first].keyword;
-					if (strncmp(expected_kw, s, l) == 0) GDL_WillThrowAfterCleaning(__func__, "Ambiguous keyword abbreviation: " + std::string(s));
+					if (strncmp(expected_kw, s, l) == 0) GDL_WillReturnAfterCleaning("Ambiguous keyword abbreviation: " + std::string(s));
 				}
 			}
 		}
@@ -2694,7 +2716,7 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWProcessByOffset(int argc, EXPORT_VPTR *argv, cha
 		//rewind: 
 		for (it = requested.begin(); it != requested.end(); ++it) {
 			int ipassed = it->second;
-			if (ipassed == -1) GdlExportAbsentKeywordByOffset(kw_requested[it->first], kw_result);
+			if (ipassed == ACCEPT) GdlExportAbsentKeywordByOffset(kw_requested[it->first], kw_result);
 			else if (ipassed >= 0) {
 				EXPORT_VPTR ret=GdlExportPresentKeywordByOffset(kw_requested[it->first], argk[it->second], kw_result);
 			    if (ret != NULL) {
@@ -2703,8 +2725,11 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWProcessByOffset(int argc, EXPORT_VPTR *argv, cha
 				}
 			}
 		}
-		return argc;
+		return nplain;
 	}
+
+#undef ACCEPT
+#undef IGNORE
 
 DLL_PUBLIC int GDL_CDECL IDL_KWProcessByAddr(int argc, EXPORT_VPTR *argv, char *argk_passed,  GDL_KW_PAR *kw_requested, EXPORT_VPTR *plain_args, int mask, int *free_required) {
 	*free_required=0;
@@ -2825,12 +2850,12 @@ DLL_PUBLIC void  GDL_CDECL IDL_Message(int code, int action, ...) {	TRACE_ROUTIN
 				finalMessage += std::string(s);
 			}
 			va_end(args);
-		} else GDL_WillThrowAfterCleaning(__func__, "Invalid Error Code given to IDL_Message() by user-written routine.");
+		} else GDL_WillReturnAfterCleaning("Invalid Error Code given to IDL_Message() by user-written routine.");
 		if (action == EXPORT_MSG_INFO || action == EXPORT_MSG_RET) {Warning(finalMessage); return;}
 		if (action == EXPORT_MSG_LONGJMP || action == EXPORT_MSG_IO_LONGJMP) GDL_WillReturnAfterCleaning(finalMessage);//exit directly back to the interpreter
 		if (action == EXPORT_MSG_EXIT) {
 			Warning(finalMessage);
-			GDL_WillThrowAfterCleaning(__func__, "IDL_MSG_EXIT forbidden for user-written routines.");
+			GDL_WillReturnAfterCleaning("IDL_MSG_EXIT forbidden for user-written routines.");
 		}
 	}
 //JUST IGNORE BLOCK for the moment
@@ -2849,13 +2874,13 @@ DLL_PUBLIC void  GDL_CDECL IDL_MessageFromBlock(EXPORT_MSG_BLOCK block, int code
 		if (action == EXPORT_MSG_LONGJMP ||action == EXPORT_MSG_IO_LONGJMP) GDL_WillReturnAfterCleaning(finalMessage);
 		if (action == EXPORT_MSG_EXIT) {
 			Warning(finalMessage);
-			GDL_WillThrowAfterCleaning(__func__, "IDL_MSG_EXIT forbidden for user-written routines.");
+			GDL_WillReturnAfterCleaning("IDL_MSG_EXIT forbidden for user-written routines.");
 		}
 }
-DLL_PUBLIC void  GDL_CDECL IDL_MessageSyscode(int code, EXPORT_MSG_SYSCODE_T syscode_type, int syscode, int action, ...){}//{if (action!=EXPORT_MSG_INFO) GDL_WillThrowAfterCleaning(__func__, "exception caused by non-GDL (dlm) function call.");}//do nothing.
-DLL_PUBLIC void  GDL_CDECL IDL_MessageSyscodeFromBlock(EXPORT_MSG_BLOCK block, int code, EXPORT_MSG_SYSCODE_T syscode_type,  int syscode, int action, ...){}//{if (action!=EXPORT_MSG_INFO) GDL_WillThrowAfterCleaning(__func__, "exception caused by non-GDL (dlm) function call.");}
-DLL_PUBLIC void  GDL_CDECL IDL_MessageVarError(int code, EXPORT_VPTR var, int action){}//{if (action!=EXPORT_MSG_INFO) GDL_WillThrowAfterCleaning(__func__, "exception caused by non-GDL (dlm) function call.");}
-DLL_PUBLIC void  GDL_CDECL IDL_MessageVarErrorFromBlock(EXPORT_MSG_BLOCK block, int code, EXPORT_VPTR var, int action){}//{if (action!=EXPORT_MSG_INFO) GDL_WillThrowAfterCleaning(__func__, "exception caused by non-GDL (dlm) function call.");}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageSyscode(int code, EXPORT_MSG_SYSCODE_T syscode_type, int syscode, int action, ...){}//{if (action!=EXPORT_MSG_INFO) GDL_WillReturnAfterCleaning("exception caused by non-GDL (dlm) function call.");}//do nothing.
+DLL_PUBLIC void  GDL_CDECL IDL_MessageSyscodeFromBlock(EXPORT_MSG_BLOCK block, int code, EXPORT_MSG_SYSCODE_T syscode_type,  int syscode, int action, ...){}//{if (action!=EXPORT_MSG_INFO) GDL_WillReturnAfterCleaning("exception caused by non-GDL (dlm) function call.");}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageVarError(int code, EXPORT_VPTR var, int action){}//{if (action!=EXPORT_MSG_INFO) GDL_WillReturnAfterCleaning("exception caused by non-GDL (dlm) function call.");}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageVarErrorFromBlock(EXPORT_MSG_BLOCK block, int code, EXPORT_VPTR var, int action){}//{if (action!=EXPORT_MSG_INFO) GDL_WillReturnAfterCleaning("exception caused by non-GDL (dlm) function call.");}
 DLL_PUBLIC void  GDL_CDECL IDL_MessageResetSysvErrorState(void) {
 		try {
 			std::string command = ("message,/reset");
@@ -2865,25 +2890,25 @@ DLL_PUBLIC void  GDL_CDECL IDL_MessageResetSysvErrorState(void) {
 }
 DLL_PUBLIC void  GDL_CDECL IDL_MessageSJE(void *value){} //do nothing (?)
 DLL_PUBLIC void * GDL_CDECL IDL_MessageGJE(void){return NULL;}//do nothing (?)
-DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_UNDEFVAR(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO) GDL_WillThrowAfterCleaning(__func__, "Variable is Undefined.");}
-DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOTARRAY(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillThrowAfterCleaning(__func__, "Expression must be an array in this context.");}
-DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOTSCALAR(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillThrowAfterCleaning(__func__, "Expression must be a scalar in this context.");}
-DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOEXPR(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillThrowAfterCleaning(__func__, "Expression must be a named variable in this context");}
-DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOCONST(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillThrowAfterCleaning(__func__, "Constant not allowed in this context.");}
-DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOFILE(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillThrowAfterCleaning(__func__, "File expression not allowed in this context.");}
-DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOCOMPLEX(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillThrowAfterCleaning(__func__, "Variable is not of complex type/");}
-DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOSTRING(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillThrowAfterCleaning(__func__, "String expression not allowed in this context.");}
-DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOSTRUCT(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillThrowAfterCleaning(__func__, "Struct expression not allowed in this context.");}
-DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_REQSTR(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillThrowAfterCleaning(__func__, "String expression required in this context.");}
-DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOSCALAR(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillThrowAfterCleaning(__func__, "Scalar variable not allowed in this context.");}
-DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NULLSTR(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillThrowAfterCleaning(__func__, "Null string not allowed in this context.");}
-DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOPTR(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillThrowAfterCleaning(__func__, "Pointer expression not allowed in this context.");}
-DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOOBJREF(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillThrowAfterCleaning(__func__, "Object reference expression not allowed in this context.");}
-DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOMEMINT64(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillThrowAfterCleaning(__func__, "This routine is 32-bit limited and cannot handle this many elements.");}
-DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_STRUC_REQ(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillThrowAfterCleaning(__func__, "Expression must be a structure in this context.");}
-DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_REQPTR(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillThrowAfterCleaning(__func__, "Pointer type required in this context.");}
-DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_REQOBJREF(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillThrowAfterCleaning(__func__, "Object reference required in this context");}
-DLL_PUBLIC void  GDL_CDECL IDL_Message_BADARRDNUM(int action){if (action!=EXPORT_MSG_INFO)GDL_WillThrowAfterCleaning(__func__, "Arrays are allowed 1 - 8 dimensions");}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_UNDEFVAR(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO) GDL_WillReturnAfterCleaning("Variable is Undefined.");}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOTARRAY(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillReturnAfterCleaning("Expression must be an array in this context.");}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOTSCALAR(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillReturnAfterCleaning("Expression must be a scalar in this context.");}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOEXPR(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillReturnAfterCleaning("Expression must be a named variable in this context");}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOCONST(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillReturnAfterCleaning("Constant not allowed in this context.");}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOFILE(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillReturnAfterCleaning("File expression not allowed in this context.");}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOCOMPLEX(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillReturnAfterCleaning("Variable is not of complex type/");}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOSTRING(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillReturnAfterCleaning("String expression not allowed in this context.");}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOSTRUCT(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillReturnAfterCleaning("Struct expression not allowed in this context.");}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_REQSTR(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillReturnAfterCleaning("String expression required in this context.");}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOSCALAR(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillReturnAfterCleaning("Scalar variable not allowed in this context.");}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NULLSTR(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillReturnAfterCleaning("Null string not allowed in this context.");}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOPTR(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillReturnAfterCleaning("Pointer expression not allowed in this context.");}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOOBJREF(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillReturnAfterCleaning("Object reference expression not allowed in this context.");}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_NOMEMINT64(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillReturnAfterCleaning("This routine is 32-bit limited and cannot handle this many elements.");}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_STRUC_REQ(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillReturnAfterCleaning("Expression must be a structure in this context.");}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_REQPTR(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillReturnAfterCleaning("Pointer type required in this context.");}
+DLL_PUBLIC void  GDL_CDECL IDL_MessageVE_REQOBJREF(EXPORT_VPTR var, int action){if (action!=EXPORT_MSG_INFO)GDL_WillReturnAfterCleaning("Object reference required in this context");}
+DLL_PUBLIC void  GDL_CDECL IDL_Message_BADARRDNUM(int action){if (action!=EXPORT_MSG_INFO)GDL_WillReturnAfterCleaning("Arrays are allowed 1 - 8 dimensions");}
 DLL_PUBLIC EXPORT_MEMINT  GDL_CDECL IDL_SysRtnNumEnabled(int is_function, int enabled){return 1;} //why not - this is a stub
 DLL_PUBLIC void  GDL_CDECL IDL_SysRtnGetEnabledNames(int is_function, EXPORT_STRING *str, int enabled){str->slen=0;};
 DLL_PUBLIC void  GDL_CDECL IDL_SysRtnEnable(int is_function, EXPORT_STRING *names, EXPORT_MEMINT n, int option,  EXPORT_SYSRTN_GENERIC disfcn){}// do nothing
@@ -2919,7 +2944,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_BasicTypeConversion(int argc, EXPORT_VPTR 
 		case GDL_TYP_LONG64:    return IDL_CvtLng64(1, &argv[i]);
 		case GDL_TYP_ULONG64:    return IDL_CvtULng64(1, &argv[i]);
 		case GDL_TYP_STRING:    return IDL_CvtString(1, &argv[i], NULL);
-		default: GDL_WillThrowAfterCleaning(__func__, "Wrong type in IDL_BasicTypeConversion!");
+		default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[type])+".");
 	}
 	return NULL;
 	}
@@ -2965,7 +2990,7 @@ DLL_PUBLIC int  GDL_CDECL IDL_Execute(int argc, char *argv[]){
   return 1;
 }
 DLL_PUBLIC int  GDL_CDECL IDL_RuntimeExec(char *file){Warning("IDL_RuntimeExec function not allowed in GDL.");return 0;}
-DLL_PUBLIC void  GDL_CDECL IDL_Runtime(EXPORT_INIT_DATA_OPTIONS_T options, int *argc, char *argv[], char *file){GDL_WillThrowAfterCleaning(__func__, "IDL_Runtime function not allowed in GDL.");}
+DLL_PUBLIC void  GDL_CDECL IDL_Runtime(EXPORT_INIT_DATA_OPTIONS_T options, int *argc, char *argv[], char *file){GDL_WillReturnAfterCleaning("IDL_Runtime function not allowed in GDL.");}
 
 #define DOCASE_TAG(type, gdltype, tagname, pardim)\
  case type: { gdltype entry(pardim); stru_desc->AddTag(std::string(tagname), &entry);} break;
@@ -2986,7 +3011,7 @@ DLL_PUBLIC void  GDL_CDECL IDL_Runtime(EXPORT_INIT_DATA_OPTIONS_T options, int *
 				dim = new dimension(&(def.dims[1]), ndim);
 			}
 			if (def.type == NULL) { /*If this field is NULL, it indicates that we should search for a structure of the given name and fill in the pointer to its structure definition. */
-				if (def.name == NULL) GDL_WillThrowAfterCleaning(__func__, "IDL_MakeStruct(): no name for inherited structure!");
+				if (def.name == NULL) GDL_WillReturnAfterCleaning("IDL_MakeStruct(): no name for inherited structure!");
 				std::string passed_name = std::string(def.name);
 				assert(passed_name != "$truct"); // named struct
 				passed_name = StrUpCase(passed_name);
@@ -3016,7 +3041,7 @@ DLL_PUBLIC void  GDL_CDECL IDL_Runtime(EXPORT_INIT_DATA_OPTIONS_T options, int *
 						DOCASE_TAG(GDL_TYP_ULONG, SpDULong, def.name, *dim)
 						DOCASE_TAG(GDL_TYP_ULONG64, SpDULong64, def.name, *dim)
 						DOCASE_TAG(GDL_TYP_LONG64, SpDLong64, def.name, *dim)
-					default: GDL_WillThrowAfterCleaning(__func__, "GDL_GetStructDesc(EXPORT_STRUCT_TAG_DEF): bad case.");
+					default: GDL_WillReturnAfterCleaning("GDL_GetStructDesc(EXPORT_STRUCT_TAG_DEF): bad case.");
 				}
 			}
 		}
@@ -3068,7 +3093,7 @@ DLL_PUBLIC EXPORT_StructDefPtr  GDL_CDECL IDL_MakeStruct(char *name, EXPORT_STRU
 		memhash = tagid; //chain
 		void* thetypePtr = def.type;
 		if (thetypePtr == NULL) {    /*If this field is NULL, it indicates that we should search for a structure of the given name and fill in the pointer to its structure definition. */
-		  if (def.name == NULL) GDL_WillThrowAfterCleaning(__func__, "IDL_MakeStruct(): no name for inherited structure!");
+		  if (def.name == NULL) GDL_WillReturnAfterCleaning("IDL_MakeStruct(): no name for inherited structure!");
 		  std::string passed_name = std::string(def.name);
 		  assert(passed_name != "$truct") ; // named struct
 		  passed_name = StrUpCase(passed_name);
@@ -3301,6 +3326,8 @@ int GDL_CDECL IDL_SignalUnregister(int signo, EXPORT_SignalHandler_t func, int m
 //					return 1;
 //				} //already done
 				SysFunDefinitions[name] = addr;
+				if (defs[i].flags & EXPORT_SYSFUN_DEF_F_OBSOLETE) Warning("Obsolete function "+std::string(defs[i].name)+" found in loaded DLM.");
+				if (defs[i].flags & EXPORT_SYSFUN_DEF_F_METHOD) throw GDLException("Unsupported object method "+std::string(defs[i].name)+" found in loaded DLM.");
 			}
 		} else {
 			for (auto i = 0; i < cnt; ++i) {
@@ -3312,6 +3339,8 @@ int GDL_CDECL IDL_SignalUnregister(int signo, EXPORT_SignalHandler_t func, int m
 //					return 1;
 //				}//already done
 				SysProDefinitions[name] = addr;
+				if (defs[i].flags & EXPORT_SYSFUN_DEF_F_OBSOLETE) Warning("Obsolete function " + std::string(defs[i].name) + " found in loaded DLM.");
+				if (defs[i].flags & EXPORT_SYSFUN_DEF_F_METHOD) throw GDLException("Unsupported object method " + std::string(defs[i].name) + " found in loaded DLM.");
 			}
 		}
 		return 1;
