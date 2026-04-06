@@ -1,4 +1,4 @@
-#define CONTENT throw GDLException("Fatal - Calling Unsupported or Proprietary Function "+std::string(__func__)+".");
+#define CONTENT GDL_WillThrowAfterCleaning(__func__,"Fatal - Calling Unsupported or Proprietary Function "+std::string(__func__)+".");
 
 DLL_PUBLIC void DllMain(){CONTENT}
 DLL_PUBLIC void IDL_ActiveWinNotifyResize(){CONTENT}
