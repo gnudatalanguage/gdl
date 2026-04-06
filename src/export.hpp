@@ -3181,7 +3181,7 @@ DLL_PUBLIC EXPORT_MEMINT  GDL_CDECL IDL_StructTagInfoByName(EXPORT_StructDefPtr 
 		int l = strlen(name);
 		for (auto i = 0; i < sdef->ntags; ++i) {
 			if (sdef->tags[i].id->len == l && strncmp(name, sdef->tags[i].id->name, l)) {
-			 *var=&(sdef->tags[i].var);
+			if (var) *var=&(sdef->tags[i].var);
 			}
 			return sdef->tags[i].offset;
 		}
@@ -3195,7 +3195,7 @@ DLL_PUBLIC EXPORT_MEMINT  GDL_CDECL IDL_StructTagInfoByName(EXPORT_StructDefPtr 
 
 DLL_PUBLIC EXPORT_MEMINT  GDL_CDECL IDL_StructTagInfoByIndex(EXPORT_StructDefPtr   sdef, int index, int msg_action, EXPORT_VPTR *var){ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		if (sdef->ntags > index) {
-			 *var=&(sdef->tags[index].var);
+			 if (var) *var=&(sdef->tags[index].var);
 			return sdef->tags[index].offset;
 		}
 		char* mess=(char*)calloc(256,1);
