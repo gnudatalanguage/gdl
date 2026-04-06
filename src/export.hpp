@@ -1478,7 +1478,7 @@ return (char*) addr;
 
 DLL_PUBLIC char * GDL_CDECL IDL_MakeTempStructVector(EXPORT_StructDefPtr sdef, EXPORT_MEMINT dim, EXPORT_VPTR *var, int zero) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 EXPORT_VPTR v = NewTMPVPTRSTRUCT(sdef);
-*var = v;
+if (var) *var = v;
 v->value.s.arr=NewExportArray();
 v->type=GDL_TYP_STRUCT; //already done, just for clarity.
 v->value.arr->dim[0]=dim;
@@ -1496,10 +1496,11 @@ return (char*) addr;
 
 DLL_PUBLIC char * GDL_CDECL IDL_MakeTempArray(int type, int n_dim, EXPORT_MEMINT  dim[], int init, EXPORT_VPTR *var){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 EXPORT_VPTR v=NewTMPVPTRARRAY();
-*var=v;
+if (var) *var=v;
 v->type=type;
 SizeT l=1;
-for (auto i=0; i< n_dim; ++i) {
+v->value.arr->dim[0] = 1;
+if (dim) for (auto i=0; i< n_dim; ++i) {
 	l*=dim[i];
 	v->value.arr->dim[i] = dim[i];
 }
@@ -1507,7 +1508,7 @@ v->value.arr->n_elts=l;
 v->value.arr->n_dim = n_dim;
 EXPORT_LONG64 sz=IDL_TypeSizeFunc(type);
 v->value.arr->elt_len = sz;
-l=sz; for (auto i=0; i<n_dim; ++i) l*=dim[i];
+l=sz; if (dim) for (auto i=0; i<n_dim; ++i) l*=dim[i];
 void * addr=gdlAlignedMalloc(l); //aka GDL_ARR_INI_NOP
 v->value.arr->arr_len=l;
 v->value.arr->data = (UCHAR*) addr;
@@ -1533,8 +1534,23 @@ return (char*) addr;
 DLL_PUBLIC char * GDL_CDECL IDL_MakeTempStruct(EXPORT_StructDefPtr sdef, int  n_dim, EXPORT_MEMINT *dim, EXPORT_VPTR *var, int zero){ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 	if (sdef == NULL) GDL_WillReturnAfterCleaning("EXPORT_VarMakeTempFromTemplate() defines a struct without passing a valid EXPORT_StructDefPtr");
 	EXPORT_VPTR v = NewTMPVPTRSTRUCT(sdef);
-	if (zero) memset(&(v->value),0,sizeof(EXPORT_ALLTYPES));
-	return (char*) 	&(v->value);
+if (var) *var=v;
+SizeT l=1;
+v->value.arr->dim[0] = 1;
+if (dim) for (auto i=0; i< n_dim; ++i) {
+	l*=dim[i];
+	v->value.arr->dim[i] = dim[i];
+}
+v->value.arr->n_elts=l;
+v->value.arr->n_dim = n_dim;
+EXPORT_LONG64 sz=v->value.s.sdef->length;
+v->value.arr->elt_len = sz;
+l=sz; if (dim) for (auto i=0; i<n_dim; ++i) l*=dim[i];
+void * addr=gdlAlignedMalloc(l); //aka GDL_ARR_INI_NOP
+v->value.arr->arr_len=l;
+v->value.arr->data = (UCHAR*) addr;
+if (zero)  memset((void*)addr, 0, l);
+return (char*) addr;
 }
 
 
