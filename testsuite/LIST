@@ -63,6 +63,7 @@ test_call_procedure.pro
 test_call_procedure_extra.pro
 test_chisqr_cvf.pro
 test_clip.pro
+test_color_convert.pro
 test_common.pro
 test_constants.pro
 test_convert2.pro

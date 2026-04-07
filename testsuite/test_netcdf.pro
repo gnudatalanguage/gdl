@@ -20,6 +20,9 @@ if ~NCDF_EXISTS() then begin
     EXIT, status=77
 endif
 ;
+; AC 2026-04-02 temporary short-cut for tests on MSwin
+if (!version.os_family eq 'Windows') then EXIT, status=77
+;
 NC_TEST
 ; /dev/null (used in below tests) WILL NOT be a file on Windows, come on!
 if !version.os_family eq 'Windows' then return

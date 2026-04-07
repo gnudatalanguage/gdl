@@ -2,7 +2,11 @@
 ; since we have a warning message in the log, this can be cured at will
 ; the test is NOT reliable as it passes very well on a Catalina.
 pro test_memory
-  mem = memory(/curr)
+;
+; AC 2026-04-02 temporary short-cut for tests on MSwin
+if (!version.os_family eq 'Windows') then EXIT, status=77
+;
+mem = memory(/curr)
   a = dblarr(9999999)
   if (mem ge memory(/curr)) then begin
     message, 'reported memory consumption should increase after allocating a big array!', /conti

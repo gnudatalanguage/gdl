@@ -3152,7 +3152,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
   }
 
   DFloat gdlGetPenThickness(EnvT *e, GDLGStream *a) {
-    static unsigned pThickTag= SysVar::P()->Desc()->TagIndex("LINESTYLE");
+    static unsigned pThickTag= SysVar::P()->Desc()->TagIndex("THICK");
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
     DFloat thick = (*static_cast<DFloatGDL*>(pStruct->GetTag(pThickTag, 0)))[0];
 

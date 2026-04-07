@@ -859,6 +859,8 @@ namespace lib {
 
     if( p0->Rank() != 2)
       e->Throw( "Array must have 2 dimensions: "+ e->GetParString(0));
+    if ((p0->Dim(0) == 1))
+      e->Throw( "2D Array cannot be [1,N] "+ e->GetParString(0));
 
     switch (p0->Type()) {
     case GDL_BYTE:{ long int a=0;
@@ -1006,6 +1008,9 @@ namespace lib {
 
     if( p0->Rank() != 2)
       e->Throw( "Array must have 2 dimensions: "+ e->GetParString(0));
+
+    if ((p0->Dim(0) == 1))
+	e->Throw( "2D Array cannot be [1,N] "+ e->GetParString(0));
 
     switch (p0->Type()) {
     case GDL_BYTE:{

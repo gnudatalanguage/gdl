@@ -3,7 +3,7 @@
 ;  Bin Wu <bin.wu (at) edinsights.no>
 ;  Aug. 2018
 ;
-;  Arguments (from IDL): Image Structure X0 Y0 Z0
+;  Arguments (from IDL): Image, Structure, [ X0, Y0, Z0]
 ;  Keywords (from IDL):
 ;    GRAY (a boolean keyword)
 ;        Set this keyword to perform grayscale, rather than binary, erosion. Nonzero
@@ -31,7 +31,16 @@
 ;         | , /ULONG]] [, VALUES=array] )
 ;  Ref: http://www.harrisgeospatial.com/docs/ERODE.html
 ;
-FUNCTION ERODE, Image, Structure, X0, Y0, Z0, $
+; ---------------------
+; Modification history:
+;
+; 2026-03-16 : Alain C.
+; - use RefStructure to avoid change it when going back to call
+; - see "test_erode.pro" which have a problem To Be Solved !
+; 
+; ---------------------
+;
+FUNCTION ERODE, Image, RefStructure, X0, Y0, Z0, $
                 GRAY=GRAY, PRESERVE_TYPE=PRESERVE_TYPE, $
                 UINT=UINT, ULONG=ULONG, VALUES=VALUES
 ; Return the caller of a procedure in the event of an error.
@@ -41,6 +50,11 @@ FUNCTION ERODE, Image, Structure, X0, Y0, Z0, $
   IF (N_PARAMS() LE 1) THEN BEGIN
      MESSAGE, 'Incorrect number of arguments.'
   ENDIF
+
+; AC 2026 adding tests, I realize that the "structure"
+; is change inside this code. I am quite sure it should not !
+
+  Structure=RefStructure
 
 ; Get the Structure size.
   dimStt = SIZE(Structure)

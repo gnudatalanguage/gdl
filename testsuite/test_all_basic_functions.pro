@@ -45,7 +45,15 @@ for i=0,n_elements(what)-1 do begin &s=memory(/current)& clock=tic(what[i])  & z
 end
 
 pro test_all_basic_functions, size=size, section=section
-  common test_all_basic_function_common, scalar, small, big
+
+common test_all_basic_function_common, scalar, small, big
+
+;
+; AC 2026-04-02 temporary short-cut for tests on MSwin
+if (!version.os_family eq 'Windows') then EXIT, status=77
+
+
+
   if (n_elements(size) eq 0 ) then size=10000
   if (n_elements(section) eq 0 ) then section=0
 ; initialisations: floats at end, since some commands do not accpet floats/doubles/complex

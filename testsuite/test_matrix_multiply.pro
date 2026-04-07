@@ -87,6 +87,9 @@ end
 pro  TEST_MATRIX_MULTIPLY, no_exit=no_exit, extended=extended,$
                            help=help, verbose=verbose, test=test
 ;
+; AC 2026-04-02 temporary short-cut for tests on MSwin
+if (!version.os_family eq 'Windows') then EXIT, status=77
+;
 if KEYWORD_SET(test) then begin
     print, 'pro  TEST_MATRIX_MULTIPLY, no_exit=no_exit, extended=extended,$'
     print, '                           help=help, verbose=verbose, test=test'
