@@ -25,6 +25,7 @@ typedef EXPORT_ULONG EXPORT_HVID;
 
 #define EXPORT_NUM_TYPES           16
 #define EXPORT_MAX_TYPE           15
+#define GDL_MAX_ARRAY_DIM  MAXRANK
 
 #define GDL_TYP_UNDEF	GDL_UNDEF
 #define GDL_TYP_BYTE     GDL_BYTE
@@ -193,8 +194,9 @@ typedef struct {
 } EXPORT_STRUCT_TAG_DEF;
 
 #define GDL_ENSURE_SIMPLE(v) IDL_VarEnsureSimple(v)
+#define GDL_ENSURE_ARRAY(v) { if (!((v)->flags & GDL_V_ARR)) IDL_MessageVE_NOTARRAY(v, EXPORT_MSG_LONGJMP); }
 #define GDL_EXCLUDE_FILE(v) { if ((v)->flags & GDL_V_FILE) IDL_MessageVE_NOFILE(v, EXPORT_MSG_LONGJMP); }
-
+#define GDL_ENSURE_SCALAR(v) { if ((v)->flags & GDL_V_NOT_SCALAR) IDL_MessageVE_NOTSCALAR(v, EXPORT_MSG_LONGJMP);}
 #define GDL_KW_ARRAY (1 << 12)
 #define GDL_KW_OUT (1 << 13)
 #define GDL_KW_VIN (GDL_KW_OUT | GDL_KW_ARRAY)
