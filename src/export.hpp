@@ -8,7 +8,7 @@
 //#define GDL_DEBUG
 //#undef GDL_DEBUG
 
-//#define TRACE_OPCALLS
+#define TRACE_OPCALLS
 
 #if defined(TRACE_OPCALLS)
 #define TRACE_ROUTINE(func,file,line) std::cout << func << "\t" << file << "\t" << line << std::endl;
@@ -1814,6 +1814,20 @@ printf(" offset=%d , ndim=%d, dims=[%d",myOff,myExportArray.n_dim, myExportArray
 				const src_type *srcval=(src_type *)(srcArrayDescr->data+myOff);\
 				for (auto i=0; i< dstArrayDescr->n_elts; ++i) dstval[i]=srcval[i];\
 				break; }
+
+
+#define DOCASE_ARRAY_FROM_STRING(idl_src_type, desired_type, src_type)\
+ 			case idl_src_type: {\
+				const src_type *s=(src_type *)(srcArrayDescr->data+myOff);\
+				for (auto i=0; i< dstArrayDescr->n_elts; ++i) {\
+							char buf[s[i].slen + 1];\
+							strncpy(buf, s[i].s, s[i].slen);\
+							buf[s[i].slen] = 0;\
+							sscanf(buf,EXPORT_InputFormat[desired_type],&(dstval[i]));\
+						}\
+				break; }
+
+
 #define DOCASE_CVTBYTSCL_ARRAY(idl_src_type, src_type)\
  			case idl_src_type: {\
 				const src_type *srcval=(src_type *)(srcArrayDescr->data+myOff);\
@@ -1877,7 +1891,8 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtByte(int argc, EXPORT_VPTR argv[]) {TRA
 		DOCASE_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG );
 		DOCASE_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64 );
 		DOCASE_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-			default: GDL_WillReturnAfterCleaning("IDL_CvtByte: unexpected type");
+		DOCASE_ARRAY_FROM_STRING(GDL_TYP_STRING, GDL_TYP_BYTE, EXPORT_STRING);
+				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 		}
 	} else {
 		switch (argv[0]->type) {
@@ -1893,7 +1908,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtByte(int argc, EXPORT_VPTR argv[]) {TRA
 		DOCASE(GDL_TYP_LONG64, c, l64);
 		DOCASE(GDL_TYP_ULONG64, c, ul64);
 		DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_BYTE, c);
-			default: GDL_WillReturnAfterCleaning("IDL_CvtByte: unexpected type");
+				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 		}
 	}
 	return ret;
@@ -1915,7 +1930,8 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtBytscl(int argc, EXPORT_VPTR argv[], ch
 					DOCASE_CVTBYTSCL_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_CVTBYTSCL_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_CVTBYTSCL_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
+					DOCASE_ARRAY_FROM_STRING(GDL_TYP_STRING, GDL_TYP_BYTE, EXPORT_STRING);
+				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 			}
 		} else {
 			//do nothing, CvtBytscl on 1 element gives 0
@@ -1941,7 +1957,8 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtFix(int argc, EXPORT_VPTR argv[]) {TRAC
 					DOCASE_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
+					DOCASE_ARRAY_FROM_STRING(GDL_TYP_STRING, GDL_TYP_INT, EXPORT_STRING);
+				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 			}
 		} else {
 			switch (argv[0]->type) {
@@ -1957,7 +1974,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtFix(int argc, EXPORT_VPTR argv[]) {TRAC
 					DOCASE(GDL_TYP_LONG64, i, l64);
 					DOCASE(GDL_TYP_ULONG64, i, ul64);
 				    DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_INT, i);
-				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
+				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 			}
 		}
 		return ret;
@@ -1980,7 +1997,8 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtUInt(int argc, EXPORT_VPTR argv[]) {TRA
 					DOCASE_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
+					DOCASE_ARRAY_FROM_STRING(GDL_TYP_STRING, GDL_TYP_UINT, EXPORT_STRING);
+				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 			}
 		} else {
 		switch (argv[0]->type) {
@@ -1996,7 +2014,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtUInt(int argc, EXPORT_VPTR argv[]) {TRA
 				DOCASE(GDL_TYP_LONG64, ui, l64);
 				DOCASE(GDL_TYP_ULONG64, ui, ul64);
 				DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_UINT, ui);
-			default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
+			default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 		}
 	}
 		return ret;
@@ -2018,7 +2036,8 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtLng(int argc, EXPORT_VPTR argv[]) {TRAC
 					DOCASE_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
+					DOCASE_ARRAY_FROM_STRING(GDL_TYP_STRING, GDL_TYP_LONG, EXPORT_STRING);
+				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 			}
 		} else {
 		switch (argv[0]->type) {
@@ -2034,7 +2053,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtLng(int argc, EXPORT_VPTR argv[]) {TRAC
 				DOCASE(GDL_TYP_LONG64, l, l64);
 				DOCASE(GDL_TYP_ULONG64, l, ul64);
 			    DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_LONG, l);
-			default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
+			default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 		}
 	}
 		return ret;
@@ -2057,7 +2076,8 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtULng(int argc, EXPORT_VPTR argv[]) {TRA
 					DOCASE_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
+					DOCASE_ARRAY_FROM_STRING(GDL_TYP_STRING, GDL_TYP_ULONG, EXPORT_STRING);
+				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 			}
 		} else {
 		switch (argv[0]->type) {
@@ -2073,7 +2093,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtULng(int argc, EXPORT_VPTR argv[]) {TRA
 				DOCASE(GDL_TYP_LONG64, ul, l64);
 				DOCASE(GDL_TYP_ULONG64, ul, ul64);
 			    DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_ULONG, ul);
-			default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
+			default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 		}
 	}
 		return ret;
@@ -2096,7 +2116,8 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtLng64(int argc, EXPORT_VPTR argv[]) {TR
 					DOCASE_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
+					DOCASE_ARRAY_FROM_STRING(GDL_TYP_STRING, GDL_TYP_LONG64, EXPORT_STRING);
+				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 			}
 		} else {
 		switch (argv[0]->type) {
@@ -2112,7 +2133,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtLng64(int argc, EXPORT_VPTR argv[]) {TR
 				DOCASE(GDL_TYP_LONG64, l64, l64);
 				DOCASE(GDL_TYP_ULONG64, l64, ul64);
 			    DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_LONG64, l64);
-			default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
+			default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 		}
 	}
 		return ret;
@@ -2135,7 +2156,8 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtULng64(int argc, EXPORT_VPTR argv[]) {T
 					DOCASE_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
+					DOCASE_ARRAY_FROM_STRING(GDL_TYP_STRING, GDL_TYP_ULONG64, EXPORT_STRING);
+				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 			}
 		} else {
 		switch (argv[0]->type) {
@@ -2151,7 +2173,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtULng64(int argc, EXPORT_VPTR argv[]) {T
 				DOCASE(GDL_TYP_LONG64, ul64, l64);
 				DOCASE(GDL_TYP_ULONG64, ul64, ul64);
 			    DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_ULONG64, ul64);
-			default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
+			default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 		}
 	}
 		return ret;
@@ -2190,7 +2212,8 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtFlt(int argc, EXPORT_VPTR argv[]) {TRAC
 					DOCASE_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
+					DOCASE_ARRAY_FROM_STRING(GDL_TYP_STRING, GDL_TYP_FLOAT, EXPORT_STRING);
+				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 			}
 		} else {
 		switch (argv[0]->type) {
@@ -2206,7 +2229,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtFlt(int argc, EXPORT_VPTR argv[]) {TRAC
 				DOCASE(GDL_TYP_LONG64, f, l64);
 				DOCASE(GDL_TYP_ULONG64, f, ul64);
 				DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_FLOAT, f);
-			default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
+			default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 		}
 	}
 		return ret;
@@ -2228,7 +2251,8 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtDbl(int argc, EXPORT_VPTR argv[]){TRACE
 					DOCASE_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
+					DOCASE_ARRAY_FROM_STRING(GDL_TYP_STRING, GDL_TYP_DOUBLE, EXPORT_STRING);
+				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 			}
 		} else {
 			switch (argv[0]->type) {
@@ -2244,7 +2268,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtDbl(int argc, EXPORT_VPTR argv[]){TRACE
 					DOCASE(GDL_TYP_LONG64, d, l64);
 					DOCASE(GDL_TYP_ULONG64, d, ul64);
 				    DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_DOUBLE, d);
-				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
+				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 			}
 		}
 		return ret;
@@ -2266,7 +2290,8 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtComplex(int argc, EXPORT_VPTR argv[], c
 					DOCASE_TO_CMP_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_TO_CMP_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_TO_CMP_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
+					DOCASE_ARRAY_FROM_STRING(GDL_TYP_STRING, GDL_TYP_COMPLEX, EXPORT_STRING);
+				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 			}
 		} else {
 			switch (argv[0]->type) {
@@ -2282,7 +2307,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtComplex(int argc, EXPORT_VPTR argv[], c
 					DOCASE_TO_CMP(GDL_TYP_LONG64, dcmp, l64);
 					DOCASE_TO_CMP(GDL_TYP_ULONG64, dcmp, ul64);
 				    DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_COMPLEX, cmp);
-				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
+				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 			}
 		}
 		return ret;
@@ -2304,7 +2329,8 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtDComplex(int argc, EXPORT_VPTR argv[]) 
 					DOCASE_TO_CMP_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_TO_CMP_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_TO_CMP_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-			default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
+					DOCASE_ARRAY_FROM_STRING(GDL_TYP_STRING, GDL_TYP_DCOMPLEX, EXPORT_STRING);
+			default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 			}
 		} else {
 			switch (argv[0]->type) {
@@ -2320,7 +2346,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtDComplex(int argc, EXPORT_VPTR argv[]) 
 					DOCASE_TO_CMP(GDL_TYP_LONG64, cmp, l64);
 					DOCASE_TO_CMP(GDL_TYP_ULONG64, cmp, ul64);
 				    DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_DCOMPLEX, dcmp);
-			default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
+			default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 			}
 		}
 		return ret;
@@ -2387,7 +2413,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtString(int argc, EXPORT_VPTR argv[], ch
 					DOCASE_STRING_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
 					DOCASE_STRING_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_STRING_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
+				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 			}
 		} else {
 			switch (argv[0]->type) {
@@ -2403,7 +2429,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtString(int argc, EXPORT_VPTR argv[], ch
 					DOCASE_STRING(GDL_TYP_ULONG, ul);
 					DOCASE_STRING(GDL_TYP_LONG64, l64);
 					DOCASE_STRING(GDL_TYP_ULONG64, ul64);
-				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[argv[0]->type])+".");
+				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 			}
 		}
 		return ret;
@@ -3066,7 +3092,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_BasicTypeConversion(int argc, EXPORT_VPTR 
 		case GDL_TYP_LONG64:    return IDL_CvtLng64(argc, argv);
 		case GDL_TYP_ULONG64:    return IDL_CvtULng64(argc, argv);
 		case GDL_TYP_STRING:    if (argc==1) return IDL_CvtString(argc, argv, NULL); else GDL_WillReturnAfterCleaning("String expression not allowed in this context:" + std::string(IDL_VarName(argv[0])) + ".");
-		default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[type])+".");
+				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 	}
 	return NULL;
 	}
