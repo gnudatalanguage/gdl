@@ -8,7 +8,7 @@
 //#define GDL_DEBUG
 //#undef GDL_DEBUG
 
-#define TRACE_OPCALLS
+//#define TRACE_OPCALLS
 
 #if defined(TRACE_OPCALLS)
 #define TRACE_ROUTINE(func,file,line) std::cout << func << "\t" << file << "\t" << line << std::endl;
