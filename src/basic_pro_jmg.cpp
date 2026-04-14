@@ -88,15 +88,26 @@ namespace lib {
     // a DllPro is defined with only 1 key: the key[0]="_REF_EXTRA"; We need to add the REAL (unknown) keywords.
     //pass in "argk" as a_REF_EXTRA 
     //we cannot directly use the _EXTRA mechanism as some passed values should be writeable or are not defined at the time of calling this function
-    if (e->KeywordPresentAndDefined(0)) { // some KW present
+//    if (e->KeywordPresentAndDefined(0)) { // some KW present
+//      refextra = e->GetKWAs<DStringGDL>(0);
+//      nkw = refextra->N_Elements();
+//      }
+     if (e->KeywordPresentAndDefined(0)) { // in fact, _REF_EXTRA IS always present AND defined.
       refextra = e->GetKWAs<DStringGDL>(0);
-      nkw = refextra->N_Elements();
+      for (auto i=0; i< refextra->N_Elements() ; ++i) {
+        if ((*refextra)[i].size() >0 && ((*refextra)[i])[0] != 32) nkw++; // for some reason _REF_EXTRA size by default is 10 and when no KW
+                                                                          // KW is present, has 10 keywords "        0", "        1" etc.
+      }
+      // if some keywords are passed, we NEED to pass the KW sorted alphabetically:
+      
     }
-    // create argv adding space for all keywords
+   // create argv adding space for all keywords
     EXPORT_VPTR argv[nparams + nkw];
     int argc = 0;
     for (; argc < nparams; ++argc) argv[argc] = PassedVariables[argc].v;
-    if (e->KeywordPresentAndDefined(0)) { // some KW present
+    
+    // Note: this implies that the _REF_EXTRA list of Keywords is sorted alphabetically!
+    if (nkw > 0) { // some KW really present
       kws = (GDL_KEYWORDS_LIST*) calloc(nkw,sizeof (GDL_KEYWORDS_LIST));
       for (auto i = 0; i < nkw; ++i) {
         kws[i].name = (*refextra)[i].c_str();
@@ -137,7 +148,7 @@ namespace lib {
     for (auto i = 0; i < PassedVariables.size(); ++i) if (PassedVariables[i].global) e->SetPar(i, VPTR_ToGDL(PassedVariables[i].v)); //global var //not argv[i] ? should be the same.
     // due to IDL_FindNamedVariable() PassedVariable.size may be greater than nparams
     for (auto i = nparams; i < PassedVariables.size(); ++i) {
-      std::cerr<<"extra variable "<<i<<": "<<IDL_VarName(PassedVariables[i].v)<<std::endl;
+//      std::cerr<<"extra variable "<<i<<": "<<IDL_VarName(PassedVariables[i].v)<<std::endl;
 //      if (std::get<2>(PassedVariables[i])) {
 //        BaseGDL** par = std::get<1>(PassedVariables[i]);
 //        GDLDelete(*par);
@@ -194,15 +205,23 @@ namespace lib {
     // a DllPro is defined with only 1 key: the key[0]="_REF_EXTRA"; We need to add the REAL (unknown) keywords.
     //pass in "argk" as a_REF_EXTRA 
     //we cannot directly use the _EXTRA mechanism as some passed values should be writeable or are not defined at the time of calling this function
-    if (e->KeywordPresentAndDefined(0)) { // some KW present
+//    if (e->KeywordPresentAndDefined(0)) { // some KW present
+//      refextra = e->GetKWAs<DStringGDL>(0);
+//      nkw = refextra->N_Elements();
+//    }
+     if (e->KeywordPresentAndDefined(0)) { // in fact, _REF_EXTRA IS always present AND defined.
       refextra = e->GetKWAs<DStringGDL>(0);
-      nkw = refextra->N_Elements();
+      for (auto i=0; i< refextra->N_Elements() ; ++i) {
+        if ((*refextra)[i].size() >0 && ((*refextra)[i])[0] != 32) nkw++; // for some reason _REF_EXTRA size by default is 10 and when no KW
+                                                                          // KW is present, has 10 keywords "        0", "        1" etc.
+      }
     }
     // create argv adding space for all keywords
     EXPORT_VPTR argv[nparams + nkw];
     int argc = 0;
     for (; argc < nparams; ++argc) argv[argc] = PassedVariables[argc].v;
-    if (e->KeywordPresentAndDefined(0)) { // some KW present
+    if (nkw > 0) { // some KW present and defined
+    // Note: this implies that the _REF_EXTRA list of Keywords is sorted alphabetically!
       kws = (GDL_KEYWORDS_LIST*) calloc(nkw,sizeof (GDL_KEYWORDS_LIST));
       for (auto i = 0; i < nkw; ++i) {
         kws[i].name = (*refextra)[i].c_str();
