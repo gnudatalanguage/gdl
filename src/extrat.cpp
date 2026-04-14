@@ -188,9 +188,12 @@ void ExtraT::ResolveExtra(EnvBaseT* callerIn) {
     if (nEl > 0) {
       dimension dim(&nEl, 1);
       DStringGDL* extraString = new DStringGDL(dim, BaseGDL::NOZERO);
-      for (SizeT i = 0; i < nEl; i++)
-        (*extraString)[i] = listName[i];
-
+      //GD: _REF_EXTRA strings must be sorted !
+      std::vector<std::string>keywordNames; 
+      for (SizeT i = 0; i < nEl; i++) keywordNames.push_back(listName[i]);
+      std::sort(keywordNames.begin(),keywordNames.end());
+      for (SizeT i = 0; i < nEl; i++)  (*extraString)[i] = keywordNames[i];
+      keywordNames.clear();
       // 	  assert( thisEnv->env.Loc(static_cast<SizeT>(pro->extraIx)) == NULL /*|| thisEnv->env.Loc(static_cast<SizeT>(pro->extraIx)) == NullGDL::GetSingleInstance()*/);
       // 	  assert( thisEnv->env.Env(static_cast<SizeT>(pro->extraIx)) == NULL );
 
