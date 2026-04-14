@@ -9046,6 +9046,7 @@ unsigned int JSHash(const std::string& str)
     DString varName;
     e->AssureScalarPar<DStringGDL>(0, varName);
     varName = StrUpCase(varName);
+    if (varName.find("!",0,1)==0) e->Throw("System Variables not allowed in this context: "+ varName);
     DSubUD* pro = static_cast<DSubUD*> (callStack[desiredlevnum - 1]->GetPro());
     SizeT nVar = pro->Size(); // # var in GDL for desired level
     int nKey = pro->NKey();
@@ -9154,6 +9155,7 @@ unsigned int JSHash(const std::string& str)
     DString varName;
     e->AssureScalarPar<DStringGDL>(0, varName);
     varName = StrUpCase(varName);
+    if (varName.find("!", 0, 1) == 0) e->Throw("System Variables not allowed in this context: " + varName);
     DSubUD* pro = static_cast<DSubUD*> (callStack[desiredlevnum - 1]->GetPro());
     SizeT nVar = pro->Size(); // # var in GDL for desired level
     int nKey = pro->NKey();
