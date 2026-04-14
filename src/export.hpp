@@ -32,8 +32,17 @@ static void* bt_buffer[BT_BUF_SIZE];
 #define JUMP_RETURN 2
 
 static std::map<const char*,void*> SysFunDefinitions; 
-static std::map<const char*,void*> SysProDefinitions; 
-static std::map<void*, std::string> PassedVariables; 
+static std::map<const char*,void*> SysProDefinitions;
+typedef struct {
+  EXPORT_VPTR v;
+  BaseGDL** par;
+  bool global;
+  DLong scope_level;
+  bool create;
+} varInfo;
+
+static std::vector<varInfo>PassedVariables; 
+static std::map<void*, std::string>PassedVariablesNames; 
 static std::vector<std::pair<void*, std::string> > AllDLMSymbols; //vector of possible function addresses and dDLM names 
 
 // list of memory (strings...) to be released when GDL_FreeResources() is called.
@@ -460,8 +469,9 @@ EXPORT_VPTR GDL_ToVPTR(BaseGDL* var, bool tempo=false, bool is_kw=false) { TRACE
       v->flags |= (GDL_V_ARR | GDL_V_DYNAMIC);
       EXPORT_ARRAY* arraydescr=NewExportArray();
       arraydescr->arr_len = var->NBytes();
-      arraydescr->data = (UCHAR*) (var->DataAddr());
-//	  if ((SizeT) (arraydescr->data) %16 == 0) std::cerr << "ALIGNED!!!\n"; else std::cerr << "unaligned: "<<(SizeT) (arraydescr->data)<<std::endl; 
+	  arraydescr->data = (UCHAR*) MyMallocDestroyedOnExit(arraydescr->arr_len);
+	  memcpy(arraydescr->data, var->DataAddr(), arraydescr->arr_len);
+//	  v->flags2 = GDL_V_SHAREDDATA; //data in GDL_VPTR is the same as the corresponding GDL variable
       for (int i = 0; i < var->Rank(); ++i) arraydescr->dim[i] = var->Dim(i);
       arraydescr->n_dim = var->Rank();
       arraydescr->n_elts = var->N_Elements();
@@ -941,14 +951,13 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_ImportNamedArray(char *name, int n_dim, EX
 	return NULL;
 }
 #undef DOCASE
-  
-extern "C" {
+
+
+		  extern "C" {
+  EXPORT_VPTR findGDLVar(std::string varName, bool acceptNew, bool doMain=false) ;
 DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_FindNamedVariable(char *name, int ienter){ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 	std::string s(name);
-		for (auto it=PassedVariables.begin(); it !=PassedVariables.end() ; ++it) {
-			if (it->second == s) return (EXPORT_VPTR)(it->first);
-		}
-	return NULL;
+	return findGDLVar(s, (ienter>0), false );
 }
 DLL_PUBLIC void  GDL_CDECL IDL_Print(int argc, EXPORT_VPTR *argv, char *argk);
 
@@ -956,7 +965,7 @@ DLL_PUBLIC void  GDL_CDECL IDL_Print(int argc, EXPORT_VPTR *argv, char *argk);
 #define DOCASE(ty, what)\
  case ty: {snprintf (&infoline[l], IDL_OutputFormatLen[v->type]+1, IDL_OutputFormat[v->type],v->value.what);break;}
 #define DOCASE_STR(ty)\
- case ty: {snprintf (&infoline[l], v->value.str.slen+1 , IDL_OutputFormat[v->type],v->value.str.s);break;}
+ case ty: {snprintf (&infoline[l], v->value.str.slen+3 , "'%s'" ,v->value.str.s);break;}
 #define DOCASE_CMP(ty, what)\
  case ty: {snprintf (&infoline[l], IDL_OutputFormatLen[v->type]+1, IDL_OutputFormat[v->type],v->value.what.r,v->value.what.i);  break;}
 
@@ -965,8 +974,8 @@ DLL_PUBLIC char * GDL_CDECL IDL_VarName(EXPORT_VPTR v){TRACE_ROUTINE(__FUNCTION_
 #ifdef GDL_DEBUG
 fprintf(stderr, "IDL_VARNAME() called on: "); if (v && v->type != GDL_TYP_UNDEF) IDL_Print(1, &v, NULL); else std::cerr<<"<Undefined>";
 #endif		
-        auto it=PassedVariables.find((void*)v);
-		if (it != PassedVariables.end())	{
+        auto it=PassedVariablesNames.find((void*)v);
+		if (it != PassedVariablesNames.end())	{
 #ifdef GDL_DEBUG
 			std::cerr<<" (was : "<<it->second<<")"<<std::endl;
 #endif
@@ -974,10 +983,6 @@ fprintf(stderr, "IDL_VARNAME() called on: "); if (v && v->type != GDL_TYP_UNDEF)
         }
 		char* infoline=(char*) MyCallocDestroyedOnExit(1,128);
 		if (v->type == GDL_TYP_UNDEF) {strncat(infoline,"<UNDEFINED> ",13); return infoline;}
-        if ((v->flags & GDL_V_TEMP)==0) {
-		    strncat(infoline,"<No Name>",10);
-			return infoline;
-		}
         strncat(infoline,"<",2);
 		strncat(infoline,IDL_TypeNameFunc(v->type),9);
 		if (( v->flags & GDL_V_ARR) && (v->value.arr != NULL)) {
@@ -1021,9 +1026,9 @@ fprintf(stderr, "IDL_VARNAME() called on: "); if (v && v->type != GDL_TYP_UNDEF)
 #undef DOCASE_CMP
 #undef DOCASE_STR
 
-DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_GetVarAddr1(char *name, int enter){
-	GDL_WillReturnAfterCleaning("IDL_GetVarAddr is not currently programmed -- as it would never be the address of a real GDL variable. Use parameters in call to get a copy of GDL variables.");
-	return NULL;
+DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_GetVarAddr1(char *name, int ienter) {
+		std::string s(name);
+		return findGDLVar(s, (ienter > 0), true);
 }
 
 DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_GetVarAddr(char *name){
@@ -1042,11 +1047,15 @@ DLL_PUBLIC EXPORT_VPTR GDL_CDECL IDL_VarTypeConvert(EXPORT_VPTR v, GDL_REGISTER 
 	v->type=type;
 	return v;
 }
+
+DLL_PUBLIC int  GDL_CDECL IDL_StructNumTags(EXPORT_StructDefPtr sdef){return sdef->ntags;}
+DLL_PUBLIC EXPORT_MEMINT  GDL_CDECL IDL_StructTagInfoByIndex(EXPORT_StructDefPtr   sdef, int index, int msg_action, EXPORT_VPTR *var);
+
 #define DOCASE(ty, what)\
  case ty: fprintf (stdout,IDL_OutputFormat[v->type],v->value.what);break;
 #define DOCASE_ARRAY(ty, c_ty)\
  case ty: {\
- const c_ty *val=(c_ty *) v->value.arr->data;\
+ const c_ty *val=(c_ty *) ((address)? address: v->value.arr->data);\
  int i=0;\
  int w=0;\
  int l=IDL_OutputFormatLen[v->type];\
@@ -1054,10 +1063,10 @@ DLL_PUBLIC EXPORT_VPTR GDL_CDECL IDL_VarTypeConvert(EXPORT_VPTR v, GDL_REGISTER 
  w+=l;\
  fprintf (stdout,IDL_OutputFormat[v->type],val[i]);\
  if (w>=ncols) {fprintf (stdout,"\n");w=0;} }\
- fprintf (stdout,"\n");}\
+ }\
  break;
 
-DLL_PUBLIC void GDL_CDECL GDL_Print(int argc, EXPORT_VPTR *argv, char *argk, bool print_to_file) {
+DLL_PUBLIC void GDL_CDECL GDL_Print(int argc, EXPORT_VPTR *argv, char *argk, bool print_to_file, UCHAR* address=NULL) {
 		//argk is to be set to NULL by users according to the doc.
 		int start = 0;
 		int ncols = TermWidth();
@@ -1106,7 +1115,7 @@ DLL_PUBLIC void GDL_CDECL GDL_Print(int argc, EXPORT_VPTR *argv, char *argk, boo
 						int nEl = v->value.arr->n_elts;
 						void* stringdescPtrs = MyMallocDestroyedOnExit(nEl * sizeof (EXPORT_STRING*));
 						EXPORT_STRING** p = (EXPORT_STRING**) stringdescPtrs;
-						for (SizeT i = 0; i < nEl; ++i) p[i] = (EXPORT_STRING*) ((SizeT) v->value.arr->data + (i * sizeof (EXPORT_STRING)));
+						for (SizeT i = 0; i < nEl; ++i) p[i] = (EXPORT_STRING*) ((SizeT) (address?address:v->value.arr->data) + (i * sizeof (EXPORT_STRING)));
 						for (auto i = 0; i < nEl; ++i) {
 							w += p[i]->slen;
 							if (p[i]->slen > 0) {
@@ -1119,6 +1128,19 @@ DLL_PUBLIC void GDL_CDECL GDL_Print(int argc, EXPORT_VPTR *argv, char *argk, boo
 						}
 					}
 						break;
+					case GDL_TYP_STRUCT:
+					{   fprintf(stdout, "{");
+						int ntags=IDL_StructNumTags(v->value.s.sdef);
+						UCHAR* start=v->value.s.arr->data;
+						for (auto i=0; i< ntags; ++i) {
+							EXPORT_VPTR var;
+							EXPORT_MEMINT offset=IDL_StructTagInfoByIndex(v->value.s.sdef,i, EXPORT_MSG_INFO, &var);
+							
+							GDL_Print(1, &var, argk, print_to_file, (UCHAR*) (start+offset) );
+						}
+						fprintf(stdout, "}");
+					}
+					break;
 				default: GDL_WillReturnAfterCleaning("Unable to convert variable to type "+std::string(IDL_TypeName[v->type])+".");
 				}
 			} else {
@@ -1163,7 +1185,7 @@ DLL_PUBLIC void  GDL_CDECL IDL_StrStore(EXPORT_STRING *s, const char *fs){TRACE_
 }
 DLL_PUBLIC char* GDL_CDECL IDL_VarGetString(EXPORT_VPTR s) {
 	checkOK(s);
-	if (s->type != GDL_TYP_STRING) GDL_WillReturnAfterCleaning("IDL_VarGetString: variable is not a string.");
+	if (s->type != GDL_TYP_STRING) GDL_WillReturnAfterCleaning("String expression required in this context: "+std::string(IDL_VarName(s))+".");
 	GDL_ENSURE_SIMPLE(s);
 	if (s->value.str.slen==0) {
 		return (char*) MyCallocDestroyedOnExit(1,1);
@@ -1269,7 +1291,12 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_StrToSTRING(const char *s) {TRACE_ROUTINE(
 #define DOCASE_CMP(type, what)\
  case type: {dest->value.what.r=value->what.r; dest->value.what.i=value->what.i;  break;}
 DLL_PUBLIC void  GDL_CDECL IDL_StoreScalar(EXPORT_VPTR dest, int type,	EXPORT_ALLTYPES * value) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-	GDL_ENSURE_SIMPLE(dest);
+//	GDL_ENSURE_SIMPLE(dest); //NO! : storescalar can overwrite a struct for example.
+checkOK(dest);
+dest->flags = 0; { //remove all dynamic parts :
+	// data and arr descr proper should be deallocated at exit from pro/fun.
+	// just remove the GDL_V_ARR and GDl_V_DYNAMIC
+}
 		dest->type=type;
 		switch (type) {
 				DOCASE(GDL_TYP_BYTE, c);
@@ -1297,7 +1324,12 @@ DLL_PUBLIC void  GDL_CDECL IDL_StoreScalar(EXPORT_VPTR dest, int type,	EXPORT_AL
 #define DOCASE_CMP(type, what)\
  case type: {dest->value.what.r=0; dest->value.what.i=0;  break;}
 DLL_PUBLIC void  GDL_CDECL IDL_StoreScalarZero(EXPORT_VPTR dest, int type) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-	GDL_ENSURE_SIMPLE(dest);
+//	GDL_ENSURE_SIMPLE(dest); //NO! : storescalar can overwrite a struct for example.
+checkOK(dest);
+dest->flags = 0; { //remove all dynamic parts :
+	// data and arr descr proper should be deallocated at exit from pro/fun.
+	// just remove the GDL_V_ARR and GDl_V_DYNAMIC
+}
 		dest->type=type;
 		switch (type) {
 				DOCASE(GDL_TYP_BYTE, c);
@@ -2546,6 +2578,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtString(int argc, EXPORT_VPTR argv[], ch
 #undef PREPARE_ARRAY
 #undef DEFOUT
 #undef TREAT_MULTIPLE_ARGS
+#undef DOCASE_ARRAY_FROM_STRING
 
 char* GDLConvertToAndWriteVarAtAddr(BaseGDL* var, std::string name, UCHAR type, size_t address, bool isoutput, bool isarray){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		switch (type) {
@@ -2755,7 +2788,7 @@ if (requested.specified != NULL) {
 }
 if (requested.value != NULL) { // need to fill in static elements of the structure exchanged with routine
 //	if (isoutput && passed.readonly) GDL_WillReturnAfterCleaning("Keyword " + std::string(requested.keyword) + " must be a named variable.");
-	if (iszero) GDLZeroAtAddr((size_t) requested.value, requested.type);
+	if (iszero) GDLZeroAtAddr((size_t) address, requested.type);
 
 	BaseGDL* var = passed.varptr;
 	//if requested var is NULL here, it is an undefined var, which MAY be returned as good value.
@@ -2926,7 +2959,7 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWGetParams(int argc, EXPORT_VPTR *argv, char *arg
 				EXPORT_VPTR ret = GdlExportPresentKeywordInOldApi(kw_requested[it->first], argk[it->second], kw_requested[it->first].value);
 				if (ret != NULL) {
 					argk[ipassed].out = ret; //pass vptr back
-					PassedVariables[ret] = argk[ipassed].varname; //memorize GDL varname
+					PassedVariablesNames[ret] = argk[ipassed].varname; //memorize GDL varname
 				}
 			}
 			irequested++;
@@ -3014,7 +3047,7 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWProcessByOffset(int argc, EXPORT_VPTR *argv, cha
 				EXPORT_VPTR ret=GdlExportPresentKeywordByOffset(kw_requested[it->first], argk[it->second], kw_result);
 			    if (ret != NULL) {
 					argk[ipassed].out=ret; //pass vptr back
-					PassedVariables[ret]=argk[ipassed].varname; //memorize GDL varname
+					PassedVariablesNames[ret]=argk[ipassed].varname; //memorize GDL varname
 				}
 			}
 		}
@@ -3508,7 +3541,7 @@ EXPORT_STRUCT_TAG_DEF* GDL_Make_EXPORT_STRUCT_TAG_DEF(DStructGDL* gdlstruct){ TR
 	return tagarray;
 }
 
-DLL_PUBLIC int  GDL_CDECL IDL_StructNumTags(EXPORT_StructDefPtr sdef){return sdef->ntags;}
+
 
 #include <signal.h>
 
@@ -3625,7 +3658,36 @@ DLL_PUBLIC EXPORT_VPTR IDL_transpose(int argc, EXPORT_VPTR *argv) {
 }
 
 #endif
-	
+
+  EXPORT_VPTR findGDLVar(std::string varName, bool acceptNew, bool doMain) {
+	EnvStackT& callStack = DInterpreter::CallStack();
+    DLong curlevnum = callStack.size();
+    // normal name
+    varName = StrUpCase(varName);
+	DLong desiredLevel=(doMain)?0:curlevnum-1; //either current level or level zero
+		DSubUD* pro = static_cast<DSubUD*> (callStack[desiredLevel]->GetPro());
+		SizeT nVar = pro->Size(); // # var in GDL for desired level
+		int nKey = pro->NKey();
+
+		int xI = pro->FindVar(varName);
+		if (xI != -1) { //exists
+			BaseGDL*& par = callStack[desiredLevel]->GetTheKW(xI);
+			EXPORT_VPTR v = GDL_ToVPTR(par, true);
+			varInfo info={v,&par,true,desiredLevel,false}; //exists at desiredlevel
+			PassedVariables.push_back(info);
+			return v;
+		} else if (acceptNew) {
+			SizeT u = pro->AddVar(varName);
+			SizeT s = callStack[desiredLevel]->AddEnv();
+			BaseGDL*& par = ((EnvT*) (callStack[desiredLevel]))->GetPar(s - nKey);
+			EXPORT_VPTR v = GDL_ToVPTR(par, true);
+			varInfo info={v,&par,true,desiredLevel,true};
+			PassedVariables.push_back(info);
+			return v;
+		} 
+    return NULL; // compiler shut-up
+  }
+ 	
 	
 #include "export_notsupported.hpp"
 }

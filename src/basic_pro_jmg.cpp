@@ -55,6 +55,7 @@ namespace lib {
         return "Unknown";
     }
   
+
   BaseGDL* CallDllFunc(EnvT* e) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
   SizeT pos=(SizeT)(static_cast<DLibFun*> (e->GetPro())->GetFunAddress());
   EXPORT_SYSRTN_FUN calldllfunc= (EXPORT_SYSRTN_FUN) AllDLMSymbols[pos].first;
@@ -62,22 +63,21 @@ namespace lib {
       std::cout<<"Loaded DLM: "<<AllDLMSymbols[pos].second<<std::endl;
       ClearDlmStringReference(AllDLMSymbols[pos].second);
     }
-    int argc=0;
     int nparams = e->NParam();
-    int nkeys=e->GetPro()->NKey();
-    EXPORT_VPTR argv[nparams+nkeys];
-    bool tempo[nparams];
 #ifdef GDL_DEBUG
     std::cerr<<"FUNCTION "<<MyFunName((size_t)calldllfunc)<<std::endl;
 #endif
     for (auto i = 0; i < nparams; ++i) {
-      tempo[i]=false;
-      try { e->AssureGlobalPar(i);} catch (...) { tempo[i]=true;} //get global status
-      argv[i] = GDL_ToVPTR(e->GetPar(i), tempo[i]);
-      if (!tempo[i]) PassedVariables[argv[i]]=e->GetString(i) ; //add to list of passed NAMED variables
+      bool global=true;
+      try { e->AssureGlobalPar(i);} catch (...) { global=false;} //get global status
 #ifdef GDL_DEBUG
-      std::cerr << e->GetString(i) << "="; if (e->GetPar(i)) e->GetPar(i)->ToStream(std::cerr); else std::cerr<<"<Undefined>"; std::cerr<<std::endl;
+      std::cerr <<"i="<<i<<": "<< e->GetString(i) <<" tempo="<<global<< std::endl;
 #endif
+      BaseGDL* par=e->GetPar(i);
+      EXPORT_VPTR v = GDL_ToVPTR(par, global);    
+			varInfo info={v,&par,(global)?true:false};
+			PassedVariables.push_back(info);
+      if (global) PassedVariablesNames[v]==e->GetString(i) ; //add to list of passed NAMED variables
     }
     char *argk = NULL;
     // keywords are passed as _REF_EXTRA struct, we just populate argk with our GDL_KEYWORDS_LIST struct
@@ -85,43 +85,47 @@ namespace lib {
     GDL_PASS_KEYWORDS_LIST passed;
     GDL_KEYWORDS_LIST* kws = NULL;
     DStringGDL* refextra;
-    argc=nparams;
-    if (nkeys > 0) {
-      //pass in "argk" as a_REF_EXTRA 
-      //we cannot directly use the _EXTRA mechanism as some passed values should be writeable or are not defined at the time of calling this function
-      if (e->KeywordPresentAndDefined(0)) {
-        refextra = e->GetKWAs<DStringGDL>(0);
-        nkw = refextra->N_Elements();
-        kws = (GDL_KEYWORDS_LIST*) calloc(nkw,sizeof (GDL_KEYWORDS_LIST));
-        for (auto i = 0; i < nkw; ++i) {
-          kws[i].name = (*refextra)[i].c_str();
-          BaseGDL** gvarp = e->GetRefExtraListPtr((*refextra)[i]); //check as Ptr as the variable may not exist
-          if (gvarp == NULL) {
-            kws[i].readonly = 1;
-            //pass the variable anyway using GetRefExtraList
-            BaseGDL* gvar = e->GetRefExtraList((*refextra)[i]);
-            // Add var name to PassedVariables
-            kws[i].varname = e->Caller()->GetString(gvar);
-            kws[i].varptr = gvar;
-            if (gvar == NULL) kws[i].type = GDL_TYP_UNDEF;
-          } else {
-            kws[i].readonly = 0;
-            kws[i].varptr = *gvarp;
-            if (*gvarp == NULL) kws[i].type = GDL_TYP_UNDEF;
-            kws[i].varname = e->Caller()->GetString(*gvarp);
-          }
-          // Add this variable to argv and increase pointer
-          argv[argc++] = GDL_ToVPTR(kws[i].varptr, kws[i].readonly);
+    // a DllPro is defined with only 1 key: the key[0]="_REF_EXTRA"; We need to add the REAL (unknown) keywords.
+    //pass in "argk" as a_REF_EXTRA 
+    //we cannot directly use the _EXTRA mechanism as some passed values should be writeable or are not defined at the time of calling this function
+    if (e->KeywordPresentAndDefined(0)) { // some KW present
+      refextra = e->GetKWAs<DStringGDL>(0);
+      nkw = refextra->N_Elements();
+    }
+    // create argv adding space for all keywords
+    EXPORT_VPTR argv[nparams + nkw];
+    int argc = 0;
+    for (; argc < nparams; ++argc) argv[argc] = PassedVariables[argc].v;
+    if (e->KeywordPresentAndDefined(0)) { // some KW present
+      kws = (GDL_KEYWORDS_LIST*) calloc(nkw,sizeof (GDL_KEYWORDS_LIST));
+      for (auto i = 0; i < nkw; ++i) {
+        kws[i].name = (*refextra)[i].c_str();
+        BaseGDL** gvarp = e->GetRefExtraListPtr((*refextra)[i]); //check as Ptr as the variable may not exist
+        if (gvarp == NULL) {
+          kws[i].readonly = 1;
+          //pass the variable anyway using GetRefExtraList
+          BaseGDL* gvar = e->GetRefExtraList((*refextra)[i]);
+          kws[i].varname=e->Caller()->GetString(gvar);
+          kws[i].varptr = gvar;
+          if (gvar == NULL) kws[i].type = GDL_TYP_UNDEF;
+        } else {
+          kws[i].readonly = 0;
+          kws[i].varptr = *gvarp;
+          if (*gvarp == NULL) kws[i].type = GDL_TYP_UNDEF;
+          kws[i].varname=e->Caller()->GetString(*gvarp);
+        }
+        // Add this variable to argv and increase pointer
+        argv[argc++] = GDL_ToVPTR(kws[i].varptr, kws[i].readonly);
 
 #ifdef GDL_DEBUG
-          std::cerr<<kws[i].name<<": "<<kws[i].varname<<"="; (kws[i].varptr)->ToStream(std::cerr);
+        std::cerr<<kws[i].name<<": "<<kws[i].varname<<"="; (kws[i].varptr)->ToStream(std::cerr);
 #endif
-        }
       }
-      passed.npassed = nkw;
-      passed.passed = kws;
-      argk = (char*) (&passed);
     }
+    passed.npassed = nkw;
+    passed.passed = kws;
+    argk = (char*) (&passed);
+
     EXPORT_VPTR ret;
     int jumpret = setjmp(callerEnv); //point to return instead of a Throw when something bad happened inside called export functions.
     if (jumpret == JUMP_THROW ) e->Throw("unexpected problem in function "+MyFunName((size_t)calldllfunc)+" of DLM "+ AllDLMSymbols[pos].second);
@@ -130,16 +134,21 @@ namespace lib {
     if (ret->type == GDL_TYP_UNDEF) e->Throw("Variable is undefined: <UNDEFINED>.");
     BaseGDL* back = VPTR_ToGDL(ret, true); //protect data
 
-    for (auto i = 0; i < nparams; ++i) {
-      if (!tempo[i]) {
-        e->SetPar(i, VPTR_ToGDL(argv[i]));
-        PassedVariables.erase(argv[i]); //remove map entry
-      }
+    for (auto i = 0; i < PassedVariables.size(); ++i) if (PassedVariables[i].global) e->SetPar(i, VPTR_ToGDL(PassedVariables[i].v)); //global var //not argv[i] ? should be the same.
+    // due to IDL_FindNamedVariable() PassedVariable.size may be greater than nparams
+    for (auto i = nparams; i < PassedVariables.size(); ++i) {
+      std::cerr<<"extra variable "<<i<<": "<<IDL_VarName(PassedVariables[i].v)<<std::endl;
+//      if (std::get<2>(PassedVariables[i])) {
+//        BaseGDL** par = std::get<1>(PassedVariables[i]);
+//        GDLDelete(*par);
+//        *par = VPTR_ToGDL(*(std::get<0>(PassedVariables[i])));
+//      }
     }
+    PassedVariables.clear(); //remove vector
+    PassedVariablesNames.clear(); //remove map entries
     //check if some argk keywords have been returned too. A real variable must be associated to be replaced in return
     for (auto i = 0; i < nkw; ++i) {
-        if (kws[i].out != NULL) {
-        PassedVariables.erase(kws[i].out); //remove map entry
+      if (kws[i].out != NULL) {
         BaseGDL** gvarp = e->GetRefExtraListPtr((*refextra)[i]); //Ptr as the variable may not exist
         if (gvarp) { //replace parameter's value
           GDLDelete(*gvarp);
@@ -160,25 +169,21 @@ namespace lib {
       std::cout<<"Loaded DLM: "<<AllDLMSymbols[pos].second<<std::endl;
       ClearDlmStringReference(AllDLMSymbols[pos].second);
     }
-    int argc=0;
     int nparams = e->NParam();
-    int nkeys=e->GetPro()->NKey();
-    EXPORT_VPTR argv[nparams+nkeys];
-    bool tempo[nparams];
 #ifdef GDL_DEBUG
     std::cerr<<"PROCEDURE "<<MyProName((size_t)calldllpro)<<std::endl;
 #endif
     for (auto i = 0; i < nparams; ++i) {
-      tempo[i]=false;
-      try { e->AssureGlobalPar(i);} catch (...) { tempo[i]=true;} //get global status
+      bool global=true;
+      try { e->AssureGlobalPar(i);} catch (...) { global=false;} //get global status
 #ifdef GDL_DEBUG
-      std::cerr << e->GetString(i) << "=";
-      if (e->GetPar(i)) e->GetPar(i)->ToStream(std::cerr);
-      else std::cerr << "<Undefined>";
-      std::cerr << std::endl;
+      std::cerr <<"i="<<i<<": "<< e->GetString(i) <<" tempo="<<global<< std::endl;
 #endif
-      argv[i] = GDL_ToVPTR(e->GetPar(i), tempo[i]);    
-      if (!tempo[i]) PassedVariables[argv[i]]=e->GetString(i) ; //add to list of passed NAMED variables
+      BaseGDL * par=e->GetPar(i);
+      EXPORT_VPTR v = GDL_ToVPTR(par, global);    
+			varInfo info={v,&par,(global)?true:false};
+			PassedVariables.push_back(info);
+      if (global) PassedVariablesNames[v] == e->GetString(i); //add to list of passed NAMED variables
     }
     char *argk = NULL;
     // keywords are passed as _REF_EXTRA struct, we just populate argk with our GDL_KEYWORDS_LIST struct
@@ -186,53 +191,63 @@ namespace lib {
     GDL_PASS_KEYWORDS_LIST passed;
     GDL_KEYWORDS_LIST* kws = NULL;
     DStringGDL* refextra;
-    argc=nparams;
-    if (nkeys > 0) {
-      //pass in "argk" as a_REF_EXTRA 
-      //we cannot directly use the _EXTRA mechanism as some passed values should be writeable or are not defined at the time of calling this function
-      if (e->KeywordPresentAndDefined(0)) {
-        refextra = e->GetKWAs<DStringGDL>(0);
-        nkw = refextra->N_Elements();
-        kws = (GDL_KEYWORDS_LIST*) calloc(nkw,sizeof (GDL_KEYWORDS_LIST));
-        for (auto i = 0; i < nkw; ++i) {
-          kws[i].name = (*refextra)[i].c_str();
-          BaseGDL** gvarp = e->GetRefExtraListPtr((*refextra)[i]); //check as Ptr as the variable may not exist
-          if (gvarp == NULL) {
-            kws[i].readonly = 1;
-            //pass the variable anyway using GetRefExtraList
-            BaseGDL* gvar = e->GetRefExtraList((*refextra)[i]);
-            // Add var name to PassedVariables
-            kws[i].varname=e->Caller()->GetString(gvar);
-            kws[i].varptr = gvar;
-            if (gvar == NULL) kws[i].type = GDL_TYP_UNDEF;
-          } else {
-            kws[i].readonly = 0;
-            kws[i].varptr = *gvarp;
-            if (*gvarp == NULL) kws[i].type = GDL_TYP_UNDEF;
-            kws[i].varname=e->Caller()->GetString(*gvarp);
-          }
-          // Add this variable to argv and increase pointer
-          argv[argc++] = GDL_ToVPTR(kws[i].varptr, kws[i].readonly);
+    // a DllPro is defined with only 1 key: the key[0]="_REF_EXTRA"; We need to add the REAL (unknown) keywords.
+    //pass in "argk" as a_REF_EXTRA 
+    //we cannot directly use the _EXTRA mechanism as some passed values should be writeable or are not defined at the time of calling this function
+    if (e->KeywordPresentAndDefined(0)) { // some KW present
+      refextra = e->GetKWAs<DStringGDL>(0);
+      nkw = refextra->N_Elements();
+    }
+    // create argv adding space for all keywords
+    EXPORT_VPTR argv[nparams + nkw];
+    int argc = 0;
+    for (; argc < nparams; ++argc) argv[argc] = PassedVariables[argc].v;
+    if (e->KeywordPresentAndDefined(0)) { // some KW present
+      kws = (GDL_KEYWORDS_LIST*) calloc(nkw,sizeof (GDL_KEYWORDS_LIST));
+      for (auto i = 0; i < nkw; ++i) {
+        kws[i].name = (*refextra)[i].c_str();
+        BaseGDL** gvarp = e->GetRefExtraListPtr((*refextra)[i]); //check as Ptr as the variable may not exist
+        if (gvarp == NULL) {
+          kws[i].readonly = 1;
+          //pass the variable anyway using GetRefExtraList
+          BaseGDL* gvar = e->GetRefExtraList((*refextra)[i]);
+          kws[i].varname=e->Caller()->GetString(gvar);
+          kws[i].varptr = gvar;
+          if (gvar == NULL) kws[i].type = GDL_TYP_UNDEF;
+        } else {
+          kws[i].readonly = 0;
+          kws[i].varptr = *gvarp;
+          if (*gvarp == NULL) kws[i].type = GDL_TYP_UNDEF;
+          kws[i].varname=e->Caller()->GetString(*gvarp);
+        }
+        // Add this variable to argv and increase pointer
+        argv[argc++] = GDL_ToVPTR(kws[i].varptr, kws[i].readonly);
 
 #ifdef GDL_DEBUG
-          std::cerr<<kws[i].name<<": "<<kws[i].varname<<"="; (kws[i].varptr)->ToStream(std::cerr);
+        std::cerr<<kws[i].name<<": "<<kws[i].varname<<"="; (kws[i].varptr)->ToStream(std::cerr);
 #endif
-        }
       }
-      passed.npassed = nkw;
-      passed.passed = kws;
-      argk = (char*) (&passed);
     }
+    passed.npassed = nkw;
+    passed.passed = kws;
+    argk = (char*) (&passed);
+
     int jumpret = setjmp(callerEnv); //point to return instead of a Throw when something bad happened inside called export functions.
     if (jumpret == JUMP_THROW) e->Throw("unexpected problem in procedure "+MyProName((size_t)calldllpro)+" of DLM "+ AllDLMSymbols[pos].second);
     if (jumpret == JUMP_RETURN) return;
     calldllpro(argc, argv, argk);
-    for (auto i = 0; i < nparams; ++i) {
-      if (!tempo[i]) {
-        e->SetPar(i, VPTR_ToGDL(argv[i]));
-        PassedVariables.erase(argv[i]); //remove map entry
+    for (auto i = 0; i < nparams; ++i) if (PassedVariables[i].global) e->SetPar(i, VPTR_ToGDL(argv[i])); //global var 
+    // due to IDL_FindNamedVariable() PassedVariable.size may be greater than nparams
+    for (auto i = nparams; i < PassedVariables.size(); ++i) {
+//      std::cerr << "extra variable " << i << ": " << IDL_VarName(PassedVariables[i].v) << std::endl;
+      if (PassedVariables[i].global) {
+        BaseGDL** par = PassedVariables[i].par;
+        GDLDelete(*par);
+        *par = VPTR_ToGDL(PassedVariables[i].v);
       }
     }
+    PassedVariables.clear(); //remove vector
+    PassedVariablesNames.clear(); //remove map entries
     //check if some argk keywords have been returned too. A real variable must be associated to be replaced in return
     for (auto i = 0; i < nkw; ++i) {
       if (kws[i].out != NULL) {
@@ -241,7 +256,7 @@ namespace lib {
           GDLDelete(*gvarp);
           *gvarp = (BaseGDL*) VPTR_ToGDL((EXPORT_VPTR) (kws[i].out));
         } else {
-          e->Throw("Unexpected error, variable not existing. Please report.");
+          e->Throw("Unexpected error, variable \""+std::string(kws[i].name)+"\" not existing? Please report.");
         }
       }
     }

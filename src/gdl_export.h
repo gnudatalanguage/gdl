@@ -62,6 +62,7 @@ typedef EXPORT_ULONG EXPORT_HVID;
 #define GDL_TYP_B_ALL               65535
 #define GDL_TYP_B_SIMPLE            62207
 
+#define GDL_V_SHAREDDATA   4096
 #define GDL_V_CONST         1	
 #define GDL_V_TEMP          2
 #define GDL_V_ARR           4
