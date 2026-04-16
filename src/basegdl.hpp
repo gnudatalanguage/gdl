@@ -526,7 +526,7 @@ public:
 
   virtual int HashCompare( BaseGDL* p2) const;
   
-  virtual BaseGDL* Transpose( DUInt* perm);
+  virtual BaseGDL* Transpose( DUInt* perm, int ndim=0);
   virtual BaseGDL* Rotate( DLong dir);
   virtual void Reverse( DLong dim);
   virtual BaseGDL* DupReverse( DLong dim);
