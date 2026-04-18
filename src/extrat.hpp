@@ -119,6 +119,7 @@ public:
   void ResolveExtra(EnvBaseT* caller);
   BaseGDL* GetRefExtraList(DString &s);
   BaseGDL** GetRefExtraListPtr(DString &s);
+  SizeT GetExtraCount(){return listName.size();}
 };
 
 #endif
