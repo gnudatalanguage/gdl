@@ -92,14 +92,9 @@ namespace lib {
 //      refextra = e->GetKWAs<DStringGDL>(0);
 //      nkw = refextra->N_Elements();
 //      }
-     if (e->KeywordPresentAndDefined(0)) { // in fact, _REF_EXTRA IS always present AND defined.
+    nkw=e->GetExtraCount();
+     if (nkw>0) {
       refextra = e->GetKWAs<DStringGDL>(0);
-      for (auto i=0; i< refextra->N_Elements() ; ++i) {
-        if ((*refextra)[i].size() >0 && ((*refextra)[i])[0] != 32) nkw++; // for some reason _REF_EXTRA size by default is 10 and when no KW
-                                                                          // KW is present, has 10 keywords "        0", "        1" etc.
-      }
-      // if some keywords are passed, we NEED to pass the KW sorted alphabetically:
-      
     }
    // create argv adding space for all keywords
     EXPORT_VPTR argv[nparams + nkw];
@@ -209,12 +204,9 @@ namespace lib {
 //      refextra = e->GetKWAs<DStringGDL>(0);
 //      nkw = refextra->N_Elements();
 //    }
-     if (e->KeywordPresentAndDefined(0)) { // in fact, _REF_EXTRA IS always present AND defined.
+    nkw=e->GetExtraCount();
+    if (nkw > 0) {
       refextra = e->GetKWAs<DStringGDL>(0);
-      for (auto i=0; i< refextra->N_Elements() ; ++i) {
-        if ((*refextra)[i].size() >0 && ((*refextra)[i])[0] != 32) nkw++; // for some reason _REF_EXTRA size by default is 10 and when no KW
-                                                                          // KW is present, has 10 keywords "        0", "        1" etc.
-      }
     }
     // create argv adding space for all keywords
     EXPORT_VPTR argv[nparams + nkw];
@@ -275,7 +267,7 @@ namespace lib {
           GDLDelete(*gvarp);
           *gvarp = (BaseGDL*) VPTR_ToGDL((EXPORT_VPTR) (kws[i].out));
         } else {
-          e->Throw("Unexpected error, variable \""+std::string(kws[i].name)+"\" not existing? Please report.");
+          e->Throw("Expression must be named variable in this context: "+std::string(kws[i].name));
         }
       }
     }

@@ -11,6 +11,9 @@ DLL_PUBLIC EXPORT_LONG GDL_CDECL IDL_grMesh_Clip(float fPlane[4], short clipSide
         float **pfVout, EXPORT_LONG *iNVout,  EXPORT_LONG **piCout, EXPORT_LONG *iNCout, 
         EXPORT_VPTR vpAuxInKW, EXPORT_VPTR vpAuxOutKW,  EXPORT_VPTR vpCut){CONTENT return 0;
 }
+	DLL_PUBLIC char * GDL_CDECL IDL_GetScratchOnThreshold(GDL_REGISTER char *auto_buf, GDL_REGISTER EXPORT_MEMINT auto_elts, GDL_REGISTER EXPORT_MEMINT n_elts, GDL_REGISTER EXPORT_MEMINT elt_size, EXPORT_VPTR *tempvar) {
+		CONTENT return 0;
+	}
 
 DLL_PUBLIC void DllMain(){CONTENT}
 DLL_PUBLIC void IDL_ActiveWinNotifyResize(){CONTENT}
