@@ -14,6 +14,7 @@
 #define GDL_REGISTER
 
 typedef DByte UCHAR ; //typedef unsigned char UCHAR;	/* Unsigned character type */
+typedef DByte EXPORT_BYTE ; //added by us
 typedef DInt EXPORT_INT;
 typedef DUInt EXPORT_UINT;
 typedef DLong EXPORT_LONG;

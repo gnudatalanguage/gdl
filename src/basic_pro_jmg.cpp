@@ -132,13 +132,13 @@ namespace lib {
     passed.passed = kws;
     argk = (char*) (&passed);
 
+    BaseGDL* function_return_variable;
     EXPORT_VPTR ret;
     int jumpret = setjmp(callerEnv); //point to return instead of a Throw when something bad happened inside called export functions.
-    if (jumpret == JUMP_THROW ) e->Throw("unexpected problem in function "+MyFunName((size_t)calldllfunc)+" of DLM "+ AllDLMSymbols[pos].second);
-    if (jumpret == JUMP_RETURN ) return  NullGDL::GetSingleInstance();
+    if (jumpret != 0) goto early_return;
     ret = calldllfunc(argc, argv, argk);
     if (ret->type == GDL_TYP_UNDEF) e->Throw("Variable is undefined: <UNDEFINED>.");
-    BaseGDL* back = VPTR_ToGDL(ret, true); //protect data
+    function_return_variable = VPTR_ToGDL(ret, true); //protect data
 
     for (auto i = 0; i < PassedVariables.size(); ++i) if (PassedVariables[i].global) e->SetPar(i, VPTR_ToGDL(PassedVariables[i].v)); //global var //not argv[i] ? should be the same.
     // due to IDL_FindNamedVariable() PassedVariable.size may be greater than nparams
@@ -150,9 +150,7 @@ namespace lib {
 //        *par = VPTR_ToGDL(*(std::get<0>(PassedVariables[i])));
 //      }
     }
-    PassedVariables.clear(); //remove vector
-    PassedVariablesNames.clear(); //remove map entries
-    //check if some argk keywords have been returned too. A real variable must be associated to be replaced in return
+   //check if some argk keywords have been returned too. A real variable must be associated to be replaced in return
     for (auto i = 0; i < nkw; ++i) {
       if (kws[i].out != NULL) {
         BaseGDL** gvarp = e->GetRefExtraListPtr((*refextra)[i]); //Ptr as the variable may not exist
@@ -164,8 +162,13 @@ namespace lib {
         }
       }
     }
-    GDL_FreeResources() ;
-    return back;
+early_return:
+    PassedVariables.clear(); //remove vector
+    PassedVariablesNames.clear(); //remove map entries
+    GDL_FreeResources();
+    if (jumpret == JUMP_THROW)  e->Throw("unexpected problem in function " + MyFunName((size_t) calldllfunc));
+    if (jumpret == JUMP_RETURN) e->Throw("returning to MAIN.");
+    return function_return_variable;
   }
 
   void CallDllPro(EnvT* e) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
@@ -244,8 +247,7 @@ namespace lib {
     argk = (char*) (&passed);
 
     int jumpret = setjmp(callerEnv); //point to return instead of a Throw when something bad happened inside called export functions.
-    if (jumpret == JUMP_THROW) e->Throw("unexpected problem in procedure "+MyProName((size_t)calldllpro)+" of DLM "+ AllDLMSymbols[pos].second);
-    if (jumpret == JUMP_RETURN) return;
+    if (jumpret != 0 ) goto early_return;
     calldllpro(argc, argv, argk);
     for (auto i = 0; i < nparams; ++i) if (PassedVariables[i].global) e->SetPar(i, VPTR_ToGDL(argv[i])); //global var 
     // due to IDL_FindNamedVariable() PassedVariable.size may be greater than nparams
@@ -257,8 +259,6 @@ namespace lib {
         *par = VPTR_ToGDL(PassedVariables[i].v);
       }
     }
-    PassedVariables.clear(); //remove vector
-    PassedVariablesNames.clear(); //remove map entries
     //check if some argk keywords have been returned too. A real variable must be associated to be replaced in return
     for (auto i = 0; i < nkw; ++i) {
       if (kws[i].out != NULL) {
@@ -271,7 +271,12 @@ namespace lib {
         }
       }
     }
-    GDL_FreeResources() ;
+early_return:
+    PassedVariables.clear(); //remove vector
+    PassedVariablesNames.clear(); //remove map entries
+    GDL_FreeResources();
+    if (jumpret == JUMP_THROW)  e->Throw("unexpected problem in procedure " + MyFunName((size_t) calldllpro));
+    if (jumpret == JUMP_RETURN) e->Throw("returning to MAIN.");
   }
 
 void CleanupProc( DLibPro* proc ) {
