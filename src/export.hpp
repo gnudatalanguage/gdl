@@ -2518,7 +2518,8 @@ memset((void*) (address), 0, l);
 
 DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_BasicTypeConversion(int argc, EXPORT_VPTR argv[], GDL_REGISTER int type);
 
-EXPORT_VPTR GdlExportPresentKeywordByOffset(GDL_KW_PAR requested, GDL_KEYWORDS_LIST passed, void* kw_result) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+//works for OLD an NEW API, by checking if kw_result is NULL.
+EXPORT_VPTR GdlExportPresentKeyword(GDL_KW_PAR requested, GDL_KEYWORDS_LIST passed, void* kw_result) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 static const int ok = 1;
 static const int cleanMem = 1;
 EXPORT_VPTR toBeReturned = NULL;
@@ -2570,123 +2571,42 @@ if (requested.value != NULL) { // need to pass either an address of a EXPORT_VPT
 			if ((var->N_Elements() > (*arr_desc).nmax) || (var->N_Elements() < (*arr_desc).nmin))
 				GDL_WillReturnAfterCleaning(
 					"Keyword array parameter " + std::string(requested.keyword) + " must have from " + i2s(arr_desc->nmin) + " to " + i2s(arr_desc->nmax) + " elements.");
-			//and these are offsets!
-			size_t copy_address_offset = (size_t) (kw_result)+(size_t) ((*arr_desc).n_offset);
-			EXPORT_MEMINT passedArraySize = var->N_Elements();
-			memcpy((void*) copy_address_offset, (void*) &passedArraySize, sizeof (EXPORT_MEMINT)); //number of passed elements
+			//and these are offsets if kw_result is not NULL (new API, by offset in the kw_result structure)
+			int *passedArraySize;
+			if (kw_result) passedArraySize=(int *) ( (size_t) (kw_result)+(size_t) ((*arr_desc).n_offset)); 
+			else passedArraySize=(int *) &((*arr_desc).n_offset); //n_offset may also be the odl api "n"
+			*passedArraySize = var->N_Elements();
 			size_t data_address = (size_t) (kw_result)+(size_t) ((*arr_desc).data); //address where to pass elements
 			if (GDLConvertToAndWriteVarAtAddr(var, std::string(requested.keyword), requested.type, data_address, isoutput, true) != NULL) {
-				memcpy(kw_result, &cleanMem, sizeof (int)); //make GDL_KW_FREE in called program call GDL_KWFree();
+				if (kw_result) memcpy(kw_result, &cleanMem, sizeof (int)); //make GDL_KW_FREE in called program call GDL_KWFree();
 			}
 		} else {
 			//here GDL_KW_VALUE may appear
 			if (byMask) {
+				// Be sure that the type field contains TYP_LONG.
 				if (requested.type != GDL_TYP_LONG) GDL_WillReturnAfterCleaning("Invalid use of GDL_KW_VALUE on non-integer keyword.");
-				long mask = GDL_KW_VALUE_MASK & requested.flags;
-				long *val = (long*) global_address;
-				*val |= mask;
+				// and its value is non-zero ...
+				// must convert to long...
+				if (var->LogTrue()) {
+					long mask = GDL_KW_VALUE_MASK & requested.flags;
+					long *val = (long*) global_address;
+					*val |= mask;
+				}
 			} else {
 				if (GDLConvertToAndWriteVarAtAddr(var, std::string(requested.keyword), requested.type, global_address, isoutput, false) != NULL) {
-					memcpy(kw_result, &cleanMem, sizeof (int)); //make GDL_KW_FREE in called program call GDL_KWFree();
+					if (kw_result) memcpy(kw_result, &cleanMem, sizeof (int)); //make GDL_KW_FREE in called program call GDL_KWFree();
 				}
 			}
 		}
 	} else if (isoutput) {
 				toBeReturned = NewNAMEDVPTR(); //create a EXPORT_VPTR that will return a real variable
-				memcpy((void*) (global_address), (void*) (&toBeReturned), sizeof (EXPORT_VPTR)); //pass address of a EXPORT_VAR that will contain the result.
-	}
-}
-return toBeReturned;
-}
-
-EXPORT_VPTR GdlExportPresentKeywordInOldApi(GDL_KW_PAR requested, GDL_KEYWORDS_LIST passed, void* address) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-static const int ok = 1;
-EXPORT_VPTR toBeReturned = NULL;
-
-bool tempo=(passed.readonly==0);
-bool iszero = ((requested.flags & GDL_KW_ZERO) == GDL_KW_ZERO); //zero field if requested
-bool inputByReference = ((requested.flags & GDL_KW_VIN) == GDL_KW_VIN); // input, but passed by reference
-bool isoutput = ((requested.flags & GDL_KW_OUT) == GDL_KW_OUT);
-bool isarray = ((requested.flags & GDL_KW_ARRAY) == GDL_KW_ARRAY); //var must be an array, field is a GDL_KW_ARR_DESC_R*
-bool byMask = ((requested.flags & GDL_KW_VALUE) == GDL_KW_VALUE);
-if (requested.specified != NULL) { 
-	memcpy((void*) requested.specified, &ok, sizeof (int)); //requested is in offset
-}
-if (requested.value != NULL) { // need to fill in static elements of the structure exchanged with routine
-//	if (isoutput && passed.readonly) GDL_WillReturnAfterCleaning("Keyword " + std::string(requested.keyword) + " must be a named variable.");
-	if (iszero) {
-		if (isoutput) {memset((void*) (address), 0, sizeof(EXPORT_VPTR*)); /* Special hint:
-   to find out if a IDL_KW_OUT parameter is specified, use 0 for the type,
-   and IDL_KW_OUT | IDL_KW_ZERO for the flags.  The value field will either
-   contain NULL or the pointer to the variable. */
-		} else {
-			GDLZeroAtAddr((size_t) address, requested.type); //will complain if type is 0
-		}
-	}
-	BaseGDL* var = passed.varptr;
-	//if requested var is NULL here, it is an undefined var, which MAY be returned as good value.
-//	if (var == NULL && !isoutput) GDL_WillReturnAfterCleaning("GDLExportKeyword: variable " + std::string(requested.keyword) + " is not defined.");
-
-	if (var != NULL) {
-//		if (!isarray && (var->N_Elements() > 1)) GDL_WillReturnAfterCleaning("Expression must be a scalar or 1 element array in this context: " + std::string(passed.name) + ".");
-		if (inputByReference) {//address of a EXPORT_VPTR with input only value
-			EXPORT_VPTR temp = GDL_ToVPTR(var,tempo,true);
-			memcpy((void*) requested.value, (void*) (&temp), sizeof (EXPORT_VPTR)); //pass by address of a EXPORT_VAR
-		} else if (isoutput) { //address of a EXPORT_VPTR where input/output value is written (if existing) and will be returned 
-			toBeReturned = GDL_ToVPTR(var,false,true);
-			memcpy((void*) requested.value, (void*) (&toBeReturned), sizeof (EXPORT_VPTR)); //pass address of a EXPORT_VAR that will contain the result.
-		} else if (isarray) {
-			size_t array_desc_address = (size_t) (requested.value);
-			GDL_KW_ARR_DESC* arr_desc = (GDL_KW_ARR_DESC*) (array_desc_address);
-			//check limits
-			if ((var->N_Elements() > (*arr_desc).nmax) || (var->N_Elements() < (*arr_desc).nmin))
-				GDL_WillReturnAfterCleaning(
-					"Keyword array parameter " + std::string(requested.keyword) + " must have from " + i2s(arr_desc->nmin) + " to " + i2s(arr_desc->nmax) + " elements.");
-			(*arr_desc).n = var->N_Elements();
-			size_t data_address = (size_t) ((*arr_desc).data); //address where to pass elements
-			GDLConvertToAndWriteVarAtAddr(var, std::string(requested.keyword), requested.type, data_address, isoutput, true);
-		} else {
-			//here GDL_KW_VALUE may appear
-			if (byMask) {  //If this bit is set and the keyword is present
-				// Be sure that the type field contains TYP_LONG.
-				if (requested.type != GDL_TYP_LONG) GDL_WillReturnAfterCleaning("Invalid use of IDL_KW_VALUE on non-integer keyword.");
-				long *val = (long*) requested.value;
-				// and its value is non-zero//	???			if (*val == 0) GDL_WillReturnAfterCleaning("Invalid use of IDL_KW_VALUE (must be >0).");
-				long mask = GDL_KW_VALUE_MASK & requested.flags; //make a long with only 12 bits available.
-				*val |= mask; //truncate to mask.
-			} else {
-				GDLConvertToAndWriteVarAtAddr(var, std::string(requested.keyword), requested.type, (size_t) requested.value, isoutput, false);
-			}
-		}
-	} else if (isoutput) {
-				toBeReturned = NewNAMEDVPTR(); //create a EXPORT_VPTR that will returns a real variable
 				memcpy((void*) requested.value, (void*) (&toBeReturned), sizeof (EXPORT_VPTR)); //pass address of a EXPORT_VAR that will contain the result.
 	}
 }
 return toBeReturned;
 }
 
-void GdlExportAbsentKeywordInOldApi(GDL_KW_PAR requested, void* address) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-				static const int ok = 1;
-		static const int nok = 0;
-
-		bool iszero = ((requested.flags & GDL_KW_ZERO) == GDL_KW_ZERO); //zero field if requested
-		bool byAddress = ((requested.flags & GDL_KW_VIN) == GDL_KW_VIN); // input, but passed by address
-//		bool isarray = (!byAddress && (requested.flags & GDL_KW_ARRAY) == GDL_KW_ARRAY); //var will be an arry
-//		bool isoutput = ((requested.flags & GDL_KW_OUT) == GDL_KW_OUT); // output, hence passed by address
-//		bool byMask = ((requested.flags & GDL_KW_VALUE) == GDL_KW_VALUE);
-		// tag 'out' those that will get a return value
-		if (requested.specified != NULL) { // need write 0 or 1 in a special int in KW structure
-			memcpy((void*) (address), &nok, sizeof (int)); //requested is in offset
-		}
-		if (requested.value != NULL) { 
-			//if requested var is not present, this has to be returned
-			if (iszero) memset(address,0,sizeof(size_t));
-			//GDLZeroAtAddr((size_t)address, requested.type);
-		}
-	}
-
-void GdlExportAbsentKeywordByOffset(GDL_KW_PAR requested, void* kw_result) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+void GdlExportAbsentKeyword(GDL_KW_PAR requested, void* kw_result) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		static const int ok = 1;
 		static const int nok = 0;
 		
@@ -2723,9 +2643,9 @@ void dumpkw(GDL_KW_PAR kw){
 	if (kw.flags & GDL_KW_VIN) std::cerr<<"VIN,";
 	if (kw.flags & GDL_KW_ZERO) std::cerr<<"ZERO ,";
 	if (kw.flags & GDL_KW_VALUE) std::cerr<<"VALUE ,";
-	if (kw.flags & GDL_KW_VALUE_MASK) std::cerr<<"VALUE_MASK ,";
+	if (kw.flags & GDL_KW_VALUE_MASK) {std::cerr<<"VALUE_MASK (";long mask = GDL_KW_VALUE_MASK & kw.flags; fprintf(stderr," %d [ ox%x ] )",mask,mask);}
 	std::cerr<<"\n mask: "<<kw.mask<<std::endl;
-	std::cerr<<" specified: "<<kw.specified<<std::endl;
+	std::cerr<<" specified: 0x"<<std::hex<<kw.specified<<std::endl;
 	std::cerr<<" type: "<<(int) kw.type<<std::endl;
 	std::cerr<<" value: 0x"<<std::hex<<(size_t)kw.value<<std::endl;
 }
@@ -2808,9 +2728,9 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWGetParams(int argc, EXPORT_VPTR *argv, char *arg
 		//populate all passed addresses
 		for (it = requested.begin(); it != requested.end(); ++it) {
 			int ipassed = it->second;
-			if (ipassed == ACCEPT) GdlExportAbsentKeywordInOldApi(kw_requested[it->first], kw_requested[it->first].value);
+			if (ipassed == ACCEPT) GdlExportAbsentKeyword(kw_requested[it->first], NULL);
 			else if (ipassed >= 0) {
-			EXPORT_VPTR ret = GdlExportPresentKeywordInOldApi(kw_requested[it->first], argk[it->second], kw_requested[it->first].value);
+			EXPORT_VPTR ret = GdlExportPresentKeyword(kw_requested[it->first], argk[it->second], NULL);
 				if (ret != NULL) {
 					argk[ipassed].out = ret; //pass vptr back
 					PassedVariablesNames[ret] = argk[ipassed].varname; //memorize GDL varname
@@ -2902,9 +2822,9 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWProcessByOffset(int argc, EXPORT_VPTR *argv, cha
 		//rewind: 
 		for (it = requested.begin(); it != requested.end(); ++it) {
 			int ipassed = it->second;
-			if (ipassed == ACCEPT) GdlExportAbsentKeywordByOffset(kw_requested[it->first], kw_result);
+			if (ipassed == ACCEPT) GdlExportAbsentKeyword(kw_requested[it->first], kw_result);
 			else if (ipassed >= 0) {
-				EXPORT_VPTR ret=GdlExportPresentKeywordByOffset(kw_requested[it->first], argk[it->second], kw_result);
+				EXPORT_VPTR ret=GdlExportPresentKeyword(kw_requested[it->first], argk[it->second], kw_result);
 			    if (ret != NULL) {
 					argk[ipassed].out=ret; //pass vptr back
 					PassedVariablesNames[ret]=argk[ipassed].varname; //memorize GDL varname
