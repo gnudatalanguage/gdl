@@ -4219,17 +4219,18 @@ unsigned int JSHash(const std::string& str)
       e->Throw("Struct expression not allowed in this context: " +
       e->GetParString(0));
 
-    SizeT rank = p0->Rank();
-    if (rank == 0)
+    SizeT inputRank = p0->Rank();
+    if (inputRank == 0)
       e->Throw("Expression must be an array "
       "in this context: " + e->GetParString(0));
 
     if (nParam == 2) {
-
+      bool differ=false;
       BaseGDL* p1 = e->GetParDefined(1);
-      if (p1->N_Elements() != rank)
+      SizeT rank=p1->N_Elements(); // may be smaller than input array, see #2182
+      if (rank > inputRank)
         e->Throw("Incorrect number of elements in permutation.");
-
+      if (rank < inputRank) differ=true;
       DUInt* perm = new DUInt[rank];
       ArrayGuard<DUInt> perm_guard(perm);
 
@@ -4238,19 +4239,18 @@ unsigned int JSHash(const std::string& str)
       for (SizeT i = 0; i < rank; ++i) perm[i] = (*p1L)[ i];
       GDLDelete(p1L);
 
-      // check permutation vector
+      // check permutation vector. Dimensions cannot be found twice and cannot be <0 or >inputRank-1
+      int found[inputRank]={0};
       for (SizeT i = 0; i < rank; ++i) {
-        DUInt j;
-        for (j = 0; j < rank; ++j) if (perm[j] == i) break;
-        if (j == rank)
-          e->Throw("Incorrect permutation vector.");
+        if (perm[i] < 0 ||perm[i] > inputRank-1||found[perm[i]]) e->Throw("Value of "+e->GetParString(1)+" is out of allowed range");
+        else found[perm[i]]=1;
       }
       //check we transpose something
-      bool identical=true;
+      bool identical=!differ;
       for (SizeT i = 0; i < rank; ++i) if (perm[i] != i) identical=false;
       if (identical) return p0->Dup();
       
-      return p0->Transpose(perm);
+      return p0->Transpose(perm,differ?rank:0);
     }
 
     return p0->Transpose(NULL);
@@ -9046,6 +9046,7 @@ unsigned int JSHash(const std::string& str)
     DString varName;
     e->AssureScalarPar<DStringGDL>(0, varName);
     varName = StrUpCase(varName);
+    if (varName.find("!",0,1)==0) e->Throw("System Variables not allowed in this context: "+ varName);
     DSubUD* pro = static_cast<DSubUD*> (callStack[desiredlevnum - 1]->GetPro());
     SizeT nVar = pro->Size(); // # var in GDL for desired level
     int nKey = pro->NKey();

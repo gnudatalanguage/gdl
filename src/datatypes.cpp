@@ -513,7 +513,7 @@ Data_<Sp>::Data_(const Data_& d_) : Sp(d_.dim), dd(this->dim.NDimElements(), fal
   // 'small' operations present in all general scripting (all the small creation/ deletion of
   // intermediary BaseGDL variables found everywhere in the code. 
   if (Sp::IS_POD && this->NBytes() <= GDL_VAR_BUFFERSIZE){ //NBytes OK only for PODs here, anyway.
-    memcpy(&(dd[0]),&(d_[0]), sz*this->Sizeof());
+    memcpy((void*)(&(dd[0])),&(d_[0]), sz*this->Sizeof());
     return;
   }
 #ifdef USE_PARALLEL_INITIALIZATION
@@ -1291,12 +1291,12 @@ DUInt* InitPermDefault()
 }
 
 template<class Sp>
-BaseGDL* Data_<Sp>::Transpose(DUInt* perm) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  SizeT rank = this->Rank();
+BaseGDL* Data_<Sp>::Transpose(DUInt* perm, int ndim) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+  SizeT inputRank = this->Rank();
 
- if (rank == 1) // special case: vector
+ if (inputRank == 1) // special case: vector
   {
-    if (perm != NULL) // must be [0]
+    if (perm != NULL || this->N_Elements()==1) // must be [0]
     {
       return Dup();
     } else {
@@ -1309,195 +1309,111 @@ BaseGDL* Data_<Sp>::Transpose(DUInt* perm) { TRACE_ROUTINE(__FUNCTION__,__FILE__
   // 2 - MAXRANK
   static DUInt* permDefault = InitPermDefault();
   if (perm == NULL) {
-
-    // following 2D code is now slower than multi-dim multicore solution below. 
-    //    if (rank == 2) {
-    //      SizeT srcDim0 = this->dim[0];
-    //      SizeT srcDim1 = this->dim[1];
-    //      Data_* res = new Data_(dimension(srcDim1, srcDim0), BaseGDL::NOZERO);
-    //
-    //      SizeT srcIx = 0;
-    //      for (SizeT srcIx1 = 0; srcIx1 < srcDim1; ++srcIx1) // src dim 1
-    //      {
-    //        SizeT resIx = srcIx1;
-    //        SizeT srcLim = srcIx + srcDim0; // src dim 0
-    //        for (; srcIx < srcLim; ++srcIx) {
-    //          (*res)[ resIx] = (*this)[ srcIx];
-    //          resIx += srcDim1;
-    //        }
-    //      }
-    //      return res;
-    //    }
-
-    // perm == NULL, rank != 2
-    perm = &permDefault[ MAXRANK - rank];
+    perm = &permDefault[ MAXRANK - inputRank];
   }
 
-  //new version, parallell the job on a multithreaded machine. Gain is 3/4 number of threads.  
-  SizeT resDim[ MAXRANK]; // permutated!
+ 
+  SizeT rank=(ndim)?ndim:inputRank;
+  if (ndim) { // this is not filtered inside the TRANSPOSE command. Must check permutation vector. Dimensions cannot be found twice and cannot be <0 or >inputRank-1
+    int found[MAXRANK] = {0};
+    for (SizeT i = 0; i < rank; ++i) {
+      if (perm[i] < 0 || perm[i] > inputRank - 1 || found[perm[i]]) throw GDLException("Invalid permutation in Transpose().");
+      else found[perm[i]] = 1;
+    }
+  }
+
+  SizeT resDim[ MAXRANK];
+  for (auto i=0; i< MAXRANK; ++i) resDim[i]=1;// initiated to 1 for the absent dimensions that will still be explored (below)
   for (SizeT d = 0; d < rank; ++d) {
     resDim[ d] = this->dim[ perm[ d]];
   }
- 
   Data_* res = new Data_(dimension(resDim, rank), BaseGDL::NOZERO);
 
   // src stride
   SizeT srcStride[ MAXRANK + 1];
-  this->dim.Stride(srcStride, rank);
-
-// GD: Tests show that we are way faster than eigen (below) with our 'parallell' method in ALL CASES on my intel I7.  
-// But this may not be true on other platforms, so keep the possibility via a -- switch.
-  if (useEigenForTransposeOps) {
-#ifdef USE_EIGEN
-  //for some reason, this simple eigen::code dos not like dimensions == 1, so cannot be used if this is the case.
-  bool try_eigen=true;
-  for (auto i=0; i< MAXRANK; ++i) if (this->dim[i]==1) try_eigen=false;
-  // eigen dims are long, and template deduction mechanism may throw on a narrowing of SizeT dim to long .
-  long indim[ MAXRANK ];
-   for (auto i=0; i< MAXRANK; ++i) indim[i]=this->dim[i];
-  long outdim[ MAXRANK ];
-   for (auto i=0; i< MAXRANK; ++i) outdim[i]=res->dim[i];     
-  if (try_eigen && rank == 2) // special case: eigen x 2
-  {
-    Eigen::Map<Eigen::Array<Ty, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Aligned> mThis(&(*this)[0],  indim[0],  indim[1]);
-    Eigen::Map<Eigen::Array<Ty, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Aligned> mRes(&(*res)[0],  outdim[0],  outdim[1]);
-    mRes=mThis.transpose();
-    return res;
-  }
-#endif
-  
-#ifdef EIGEN_HAS_TENSOR  
-  else if (try_eigen && rank == 3) // special case: eigen x 3
-  {
- Eigen::TensorMap<Eigen::Tensor<Ty, 3>> mThis(&(*this)[0], indim[0],  indim[1], indim[2]); 
- Eigen::TensorMap<Eigen::Tensor<Ty, 3>> mRes(&(*res)[0], outdim[0],  outdim[1], outdim[2]);
- mRes=mThis.shuffle(perm);
- return res;
-  }
-  
-  else if (try_eigen && rank == 4) // special case: eigen x 4
-  {
- Eigen::TensorMap<Eigen::Tensor<Ty, 4>> mThis(&(*this)[0], indim[0],  indim[1], indim[2], indim[3]); 
- Eigen::TensorMap<Eigen::Tensor<Ty, 4>> mRes(&(*res)[0], outdim[0],  outdim[1], outdim[2], outdim[3]);
- mRes=mThis.shuffle(perm);
- return res;
-  }
-  else if (try_eigen && rank == 5) // special case: eigen x 5
-  {
- Eigen::TensorMap<Eigen::Tensor<Ty, 5>> mThis(&(*this)[0], indim[0],  indim[1], indim[2], indim[3], indim[4]); 
- Eigen::TensorMap<Eigen::Tensor<Ty, 5>> mRes(&(*res)[0], outdim[0],  outdim[1], outdim[2], outdim[3], outdim[4]);
- mRes=mThis.shuffle(perm);
- return res;
-  }
-  else if (try_eigen && rank == 6) // special case: eigen x 6
-  {
- Eigen::TensorMap<Eigen::Tensor<Ty, 6>> mThis(&(*this)[0], indim[0],  indim[1], indim[2], indim[3], indim[4], indim[5]); 
- Eigen::TensorMap<Eigen::Tensor<Ty, 6>> mRes(&(*res)[0], outdim[0],  outdim[1], outdim[2], outdim[3], outdim[4], outdim[5]);
- mRes=mThis.shuffle(perm);
- return res;
-  }
-  else if (try_eigen && rank == 7) // special case: eigen x 7
-  {
- Eigen::TensorMap<Eigen::Tensor<Ty, 7>> mThis(&(*this)[0], indim[0],  indim[1], indim[2], indim[3], indim[4], indim[5], indim[6]); 
- Eigen::TensorMap<Eigen::Tensor<Ty, 7>> mRes(&(*res)[0], outdim[0],  outdim[1], outdim[2], outdim[3], outdim[4], outdim[5], outdim[6]);
- mRes=mThis.shuffle(perm);
- return res;
-  }
-  else if (try_eigen && rank == 8) // special case: eigen x 8
-  {
- Eigen::TensorMap<Eigen::Tensor<Ty, 8>> mThis(&(*this)[0], indim[0],  indim[1], indim[2], indim[3], indim[4], indim[5], indim[6], indim[7]); 
- Eigen::TensorMap<Eigen::Tensor<Ty, 8>> mRes(&(*res)[0], outdim[0],  outdim[1], outdim[2], outdim[3], outdim[4], outdim[5], outdim[6], outdim[7]);
- mRes=mThis.shuffle(perm);
- return res;
-  }
-
-#endif
-  
-  } //will have returned if eigen ops exist.
-  
-  SizeT nElem = dd.size();
-  long chunksize = nElem;
-  long nchunk = 1;
-  bool do_parallel = false;
-  GDL_NTHREADS=parallelize( nElem, TP_CPU_INTENSIVE);
-  if (GDL_NTHREADS > 1) { //no use start parallel threading for small numbers.
-    chunksize = nElem /  GDL_NTHREADS;
-    nchunk = nElem / chunksize;
-    if (chunksize * nchunk < nElem) ++nchunk;
-    do_parallel = true;
-  }
-
-  //compute start parameter for each multiWalk chunks:
-  // pool of accelerators
-  SizeT srcDimPool[nchunk][MAXRANK];
-  for (SizeT i = 0; i < rank; ++i) for (int iloop = 0; iloop < nchunk; ++iloop) srcDimPool[iloop][i] = 0;
-  //template accelerator
-  SizeT templateDim[MAXRANK];
-  for (SizeT i = 0; i < rank; ++i) templateDim[i] = 0;
-
-  //compute iloop's accelerator with fast direct method
-  for (long iloop = 0; iloop < nchunk; ++iloop) {
-    SizeT e = iloop*chunksize;
-    SizeT sizeleft = e;
-    for (long i = 0; i < rank; ++i) {
-      DUInt pi = perm[i]; //note the transpose effect.
-      sizeleft /= resDim[i];
-      templateDim[pi] = e - sizeleft * resDim[i];
-      e = sizeleft;
-    }
-    //memorize current state accelerator for chunk iloop:
-    for (long j = 0; j < rank; ++j) srcDimPool[iloop][j] = templateDim[j];
-  }
-
-  if (!do_parallel) {
-    for (long iloop = 0; iloop < nchunk; ++iloop) {
-      // populate src multi dim
-      SizeT srcDim[MAXRANK];
-      for (SizeT i = 0; i < rank; ++i) srcDim[i] = srcDimPool[iloop][i];
-      //inner loop
-      for (SizeT e = iloop * chunksize; (e < (iloop + 1) * chunksize && e < nElem); ++e) {
-        // src multi dim to one dim src offset index
-        SizeT ix = 0;
-        for (SizeT i = 0; i < rank; ++i) ix += srcDim[i] * srcStride[i];
-        (*res)[ e] = (*this)[ ix];
-        // update src multi dim for next dest offset index: here is the transpose effect.
-        for (SizeT i = 0; i < rank; ++i) {
-          DUInt pi = perm[i];
-          srcDim[pi]++;
-          if (srcDim[pi] < resDim[i]) break;
-          srcDim[pi] = 0;
+  this->dim.Stride(srcStride, inputRank);
+  SizeT k = 0;
+  switch (rank) {
+    case 1:
+      for (SizeT i = 0; i < resDim[0] * srcStride[perm[0]]; i += srcStride[perm[0]]) {
+        (*res)[k++] = (*this)[i];
+      }
+      break;
+    case 2:
+      for (SizeT j = 0; j < resDim[1] * srcStride[perm[1]]; j += srcStride[perm[1]]) {
+        for (SizeT i = 0; i < resDim[0] * srcStride[perm[0]]; i += srcStride[perm[0]]) {
+          (*res)[k++] = (*this)[i + j];
         }
       }
-    }
-  } else {
-
-    TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel num_threads(nchunk) 
-    {
-#pragma omp for 
-      for (long iloop = 0; iloop < nchunk; ++iloop) {
-        // populate src multi dim
-        SizeT srcDim[MAXRANK];
-        for (SizeT i = 0; i < rank; ++i) srcDim[i] = srcDimPool[iloop][i];
-        //inner loop
-        for (SizeT e = iloop * chunksize; (e < (iloop + 1) * chunksize && e < nElem); ++e) {
-          // src multi dim to one dim src offset index
-          SizeT ix = 0;
-          for (SizeT i = 0; i < rank; ++i) ix += srcDim[i] * srcStride[i];
-          (*res)[ e] = (*this)[ ix];
-          // update src multi dim for next dest offset index: here is the transpose effect.
-          for (SizeT i = 0; i < rank; ++i) {
-            DUInt pi = perm[i];
-            srcDim[pi]++;
-            if (srcDim[pi] < resDim[i]) break;
-            srcDim[pi] = 0;
+      break;
+    case 3:
+      for (SizeT h = 0; h < resDim[2] * srcStride[perm[2]]; h += srcStride[perm[2]]) {
+        for (SizeT j = 0; j < resDim[1] * srcStride[perm[1]]; j += srcStride[perm[1]]) { SizeT jj=j+h;
+          for (SizeT i = 0; i < resDim[0] * srcStride[perm[0]]; i += srcStride[perm[0]]) {
+            (*res)[k++] = (*this)[i + jj];
           }
         }
       }
+      break;
+    case 4:
+      for (SizeT l = 0; l < resDim[3] * srcStride[perm[3]]; l += srcStride[perm[3]]) {
+        for (SizeT h = 0; h < resDim[2] * srcStride[perm[2]]; h += srcStride[perm[2]]) { SizeT hh=l+h;
+          for (SizeT j = 0; j < resDim[1] * srcStride[perm[1]]; j += srcStride[perm[1]]) { SizeT jj=j+hh;
+            for (SizeT i = 0; i < resDim[0] * srcStride[perm[0]]; i += srcStride[perm[0]]) {
+              (*res)[k++] = (*this)[i + jj];
+            }
+          }
+        }
+      }
+      break;
+    case 5:
+      for (SizeT m = 0; m < resDim[4] * srcStride[perm[4]]; m += srcStride[perm[4]]) {
+        for (SizeT l = 0; l < resDim[3] * srcStride[perm[3]]; l += srcStride[perm[3]]) {
+          for (SizeT h = 0; h < resDim[2] * srcStride[perm[2]]; h += srcStride[perm[2]]) {
+            for (SizeT j = 0; j < resDim[1] * srcStride[perm[1]]; j += srcStride[perm[1]]) {
+              for (SizeT i = 0; i < resDim[0] * srcStride[perm[0]]; i += srcStride[perm[0]]) {
+                (*res)[k++] = (*this)[i + j + h + l + m];
+              }
+            }
+          }
+        }
+      }
+      break;
+    case 6:
+      for (SizeT n = 0; n < resDim[5] * srcStride[perm[5]]; n += srcStride[perm[5]]) {
+        for (SizeT m = 0; m < resDim[4] * srcStride[perm[4]]; m += srcStride[perm[4]]) {
+          for (SizeT l = 0; l < resDim[3] * srcStride[perm[3]]; l += srcStride[perm[3]]) {
+            for (SizeT h = 0; h < resDim[2] * srcStride[perm[2]]; h += srcStride[perm[2]]) {
+              for (SizeT j = 0; j < resDim[1] * srcStride[perm[1]]; j += srcStride[perm[1]]) {
+                for (SizeT i = 0; i < resDim[0] * srcStride[perm[0]]; i += srcStride[perm[0]]) {
+                  (*res)[k++] = (*this)[i + j + h + l + m + n];
+                }
+              }
+            }
+          }
+        }
+      }
+      break;
+      default:
+        break;
     }
+  //  
+//  SizeT k=0;
+//  for (SizeT l = 0; l < resDim[3]; ++l) {
+//    SizeT ll = l * srcStride[perm[3]];
+//    for (SizeT h = 0; h < resDim[2]; ++h) {
+//      SizeT hh = ll + h * srcStride[perm[2]];
+//      for (SizeT j = 0; j < resDim[1]; ++j) {
+//        SizeT jj = hh + j * srcStride[perm[1]];
+//        for (SizeT i = 0; i < resDim[0]; ++i) {
+//          SizeT z = jj + i * srcStride[perm[0]];
+//          (*res)[k++] = (*this)[z];
+//        }
+//      }
+//    }
+//  }
+    return res;
   }
-  return res;
-}
 
 // used by reverse
 // NOT A TP function
