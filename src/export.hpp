@@ -1981,46 +1981,6 @@ extract_offset_and_dims(argc, argv, ret, &myOff, &myExportArray);
 #undef TARGET_GDL_TYPE
 #undef TARGET_EXPORT_TYPE
 
-//	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-//		DEFOUT(GDL_TYP_BYTE);
-//		TREAT_MULTIPLE_ARGS()
-//		if (isArray(argv[0])) {
-//			PREPARE_ARRAY(UCHAR);
-//			switch (argv[0]->type) {
-//					DOCASE_ARRAY(GDL_TYP_BYTE, UCHAR);
-//					DOCASE_ARRAY(GDL_TYP_INT, EXPORT_INT);
-//					DOCASE_ARRAY(GDL_TYP_LONG, EXPORT_LONG);
-//					DOCASE_ARRAY(GDL_TYP_FLOAT, float);
-//					DOCASE_ARRAY(GDL_TYP_DOUBLE, double);
-//					DOCASE_ARRAY_FROM_CMP_NOT_TESTED(GDL_TYP_COMPLEX, float);
-//					DOCASE_ARRAY_FROM_CMP_NOT_TESTED(GDL_TYP_DCOMPLEX, double);
-//					DOCASE_ARRAY(GDL_TYP_UINT, EXPORT_UINT);
-//					DOCASE_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG);
-//					DOCASE_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
-//					DOCASE_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
-//					DOCASE_ARRAY_FROM_STRING(GDL_TYP_STRING, GDL_TYP_BYTE, EXPORT_STRING);
-//				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
-//			}
-//		} else {
-//			switch (argv[0]->type) {
-//					DOCASE(GDL_TYP_BYTE, c, c);
-//					DOCASE(GDL_TYP_INT, c, i);
-//					DOCASE(GDL_TYP_LONG, c, l);
-//					DOCASE(GDL_TYP_FLOAT, c, f);
-//					DOCASE(GDL_TYP_DOUBLE, c, d);
-//					DOCASE_FROM_CMP(GDL_TYP_COMPLEX, c, cmp);
-//					DOCASE_FROM_CMP(GDL_TYP_DCOMPLEX, c, dcmp);
-//					DOCASE(GDL_TYP_UINT, c, ui);
-//					DOCASE(GDL_TYP_ULONG, c, ul);
-//					DOCASE(GDL_TYP_LONG64, c, l64);
-//					DOCASE(GDL_TYP_ULONG64, c, ul64);
-//					DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_BYTE, c);
-//				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
-//			}
-//		}
-//		return ret;
-//	}
-
 DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtByte(int argc, EXPORT_VPTR argv[]) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
     if (argc !=1 || (argv[0]->type != GDL_TYP_STRING) ) return GDL_Other_CvtByte(argc, argv); // sole case not same asIDL_BasicTypeConversion()
 	// only left: argc=1 and type is gdl_typ_string
@@ -2090,6 +2050,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtByte(int argc, EXPORT_VPTR argv[]) {TRA
 				break; }
 
 DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtBytscl(int argc, EXPORT_VPTR argv[], char *argk) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+		if (argv[0]->type == GDL_TYP_STRING) GDL_WillReturnAfterCleaning("String expression not allowed in this context: " + std::string(IDL_VarName(argv[0])) + ".");
 		 DEFOUT(GDL_TYP_BYTE);
 		TREAT_MULTIPLE_ARGS();
 		if (isArray(argv[0])) {
@@ -2256,7 +2217,6 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtDbl(int argc, EXPORT_VPTR argv[]){TRACE
 #undef DOCASE_ARRAY
 #undef DOCASE_FROM_CMP
 #undef DOCASE_TO_CMP_SINGLE
-#undef DOCASE_TO_CMP_TO_CMP
 #undef DOCASE_TO_CMP_ARRAY_NO_CONVERT
 #undef DOCASE_TO_CMP_ARRAY_FROM_CMP
 #undef DOCASE_TO_CMP_FROM_CMP_SINGLE
@@ -2340,8 +2300,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtDbl(int argc, EXPORT_VPTR argv[]){TRACE
 	}
 
 DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtString(int argc, EXPORT_VPTR argv[], char *argk=NULL){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-//    if (argc !=1 || (argv[0]->type != GDL_TYP_BYTE) ) 
-		return GDL_Other_CvtString(argc, argv); 
+    if (argc !=1 || (argv[0]->type != GDL_TYP_BYTE) ) return GDL_Other_CvtString(argc, argv); 
 	// only left: argc=1 and type is gdl_typ_byte. We expect strings as results.
 		EXPORT_VPTR ret = NewTMPVPTR();
 		ret->type = GDL_TYP_STRING;
@@ -3033,7 +2992,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_BasicTypeConversion(int argc, EXPORT_VPTR 
 		case GDL_TYP_ULONG:    return IDL_CvtULng(argc, argv);
 		case GDL_TYP_LONG64:    return IDL_CvtLng64(argc, argv);
 		case GDL_TYP_ULONG64:    return IDL_CvtULng64(argc, argv);
-		case GDL_TYP_STRING:    return IDL_CvtString(argc, argv, NULL); 
+		case GDL_TYP_STRING:    return GDL_Other_CvtString(argc, argv, NULL); 
 		default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
 	}
 	return NULL;
