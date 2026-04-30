@@ -18,7 +18,6 @@
 #include "includefirst.hpp"
 
 #include <cstdio> // std::remove(...)
-
 #include "objects.hpp"
 #include "io.hpp"
 #ifdef __MINGW32__
@@ -660,17 +659,21 @@ void GDLStream::Open(const string& name_,
   width = width_;
 }
 
+#ifdef __MINGW32__
+
+// Use obsolete code, as I've no time to adapt new code to Windows.
+
 void GDLStream::Socket(const string& host,
-  DUInt port, bool swapEndian_,
-  DDouble c_timeout_, DDouble r_timeout_,
-  DDouble w_timeout_) {
+    DUInt port, bool swapEndian_,
+    DDouble c_timeout_, DDouble r_timeout_,
+    DDouble w_timeout_, SizeT width) {
   if (iSocketStream == NULL)
     iSocketStream = new istringstream;
 
   if (recvBuf == NULL)
     recvBuf = new string;
 
-  name = host;
+  name = host + "." + i2s(port);;
 
   sockNum = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -680,7 +683,7 @@ void GDLStream::Socket(const string& host,
 
   int on = 1;
   if (setsockopt(sockNum, SOL_SOCKET, SO_REUSEADDR,
-    (const char*) &on, sizeof (on)) == -1) {
+      (const char*) &on, sizeof (on)) == -1) {
     throw GDLIOException("Error opening file.");
   }
 
@@ -697,15 +700,73 @@ void GDLStream::Socket(const string& host,
   //  cout << inet_ntoa(*((struct in_addr *)h->h_addr)) << endl;
 
   int status = inet_pton(AF_INET, inet_ntoa(*((struct in_addr *) h->h_addr)),
-    &m_addr.sin_addr);
+      &m_addr.sin_addr);
 
   status = connect(sockNum, (sockaddr *) & m_addr, sizeof (m_addr));
 
   swapEndian = swapEndian_;
 
-  // BIG limit on socket send width to avoid leading \n in CheckNL
-  width = 32768;
+  // GD: ?????? // BIG limit on socket send width to avoid leading \n in CheckNL
+  //width = 32768;
 }
+#else
+//New code suppressing call to obsolete functions
+#include <fcntl.h>
+void GDLStream::Socket(const string& host,
+  DUInt port, bool swapEndian_,
+  DDouble c_timeout_, DDouble r_timeout_,
+  DDouble w_timeout_, SizeT width) {
+  if (iSocketStream == NULL)
+    iSocketStream = new istringstream;
+
+  if (recvBuf == NULL)
+    recvBuf = new string;
+
+  name = host + "." + i2s(port);
+
+  sockNum = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
+
+  c_timeout = c_timeout_;
+  r_timeout = r_timeout_;
+  w_timeout = w_timeout_;
+
+  int on = 1;
+  if (setsockopt(sockNum, SOL_SOCKET, SO_REUSEADDR,
+    (const char*) &on, sizeof (on)) == -1) {
+    throw GDLIOException("Error opening file.");
+  }
+
+  sockaddr_in m_addr;
+  m_addr.sin_family = AF_INET;
+  m_addr.sin_port = htons(port);
+
+  // Convert host to IPv4 format
+  struct addrinfo hints, *result;
+  int err;
+  memset(&hints, 0, sizeof(hints));
+ hints.ai_family = AF_INET;    /* Allow IPv4 or IPv6 */
+ hints.ai_socktype = SOCK_STREAM; /* Sequenced, reliable, connection-based
+				   byte streams.  */
+  
+  if ((err = getaddrinfo(host.c_str(),NULL,&hints, &result)) != 0) { // get the host info
+    std::cerr<<gai_strerror(err)<<std::endl;
+    throw GDLIOException("Unable to lookup host.");
+  }
+struct in_addr addr;
+addr.s_addr = ((struct sockaddr_in *)(result->ai_addr))->sin_addr.s_addr;
+
+// printf("ip address : %s\n", inet_ntoa(addr));
+
+  int status ; if (status = inet_pton(AF_INET, inet_ntoa(addr), &m_addr.sin_addr) != 1) perror(__func__);
+
+  if (status = connect(sockNum, (sockaddr *) & m_addr, sizeof (m_addr)) != 0) perror(__func__);
+  int flags = fcntl(sockNum, F_GETFL, 0); fcntl(sockNum,F_SETFD, flags|FD_CLOEXEC);
+  swapEndian = swapEndian_;
+
+// GD ?????  // BIG limit on socket send width to avoid leading \n in CheckNL
+//  width = 32768;
+}
+#endif
 
 void AnyStream::Flush() {
   if (fStream != NULL) {
@@ -731,7 +792,6 @@ void GDLStream::Close() {
     if (deleteOnClose)
       std::remove(name.c_str());
   }
-  name = "";
   f77 = false;
   swapEndian = false;
   compress = false;
@@ -741,7 +801,8 @@ void GDLStream::Close() {
   xdrs = NULL;
 
   width = defaultStreamWidth;
-
+  //Do not forget sockets!
+  if (sockNum != -1) close(sockNum);
   sockNum = -1;
   c_timeout = 0.0;
   r_timeout = 0.0;

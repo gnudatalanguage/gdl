@@ -167,93 +167,71 @@ namespace lib {
   
   using namespace std;
 
-  void readf_pro( EnvT* e)
-  {
-    SizeT nParam=e->NParam();
-    if( nParam < 1)
-      e->Throw( "Incorrect number of arguments.");
+  void readf_pro(EnvT* e) {
+    SizeT nParam = e->NParam();
+    if (nParam < 1)
+      e->Throw("Incorrect number of arguments.");
 
     DLong lun;
-    e->AssureLongScalarPar( 0, lun);
+    e->AssureLongScalarPar(0, lun);
 
     istream* is;
 
-    bool stdLun = check_lun( e, lun);
-    if( stdLun)
-      {
-	if( lun != 0)
-	  e->Throw( "Cannot read from stdout and stderr."
-		    " Unit: "+i2s( lun));
-	is = &cin;
+    bool stdLun = check_lun(e, lun);
+    if (stdLun) {
+      if (lun != 0)
+        e->Throw("Cannot read from stdout and stderr."
+          " Unit: " + i2s(lun));
+      is = &cin;
+    } else {
+      if (fileUnits[ lun - 1].F77())
+        e->Throw("Formatted IO not allowed with F77_UNFORMATTED "
+          "files. Unit: " + i2s(lun));
+
+      int sockNum = fileUnits[ lun - 1].SockNum();
+      //	cout << "sockNum: " << sockNum << endl;
+
+      if (sockNum == -1) {
+        // *** File Read *** //
+        if (fileUnits[ lun - 1].Compress())
+          is = &fileUnits[ lun - 1].IgzStream();
+        else
+          is = &fileUnits[ lun - 1].IStream();
+
+      } else {
+        string *recvBuf = &fileUnits[ lun - 1].RecvBuf();
+        char c=0;
+        while (1) {
+//does not work on windows          int nread = recv(sockNum, &c, 1, MSG_DONTWAIT); //cannot reproduce behaviour of IDL since we use buffered processing in read_is().
+          // we need to use lower level C reads, not read_is() in this special case OR find a way to get a socket behave like a file.
+          int nread = read(sockNum, &c, 1); //, 0); //IDL reads byte by byte to test for \n and stop reading
+          if (nread == 0)  break; //closed 
+          if (nread < 1) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) break; //nothing more yet.
+            else e->Throw("Error accessing underlying socket, reason: "+std::string(strerror(errno)));
+          }
+          if (c=='\n') break; else recvBuf->push_back(c);
+        }
+        //ALL READ.
+        istringstream *iss = &fileUnits[ lun - 1].ISocketStream();
+        iss->str(*recvBuf);
+        is = iss;
+        streampos one = 1;
+        streampos readpos=read_is(is, e, 1);
+        recvBuf->erase(0,readpos-one); //consume already read. Note this is a readf, so at every call, one line is consumed.
+        return;
       }
-    else
-      {
-	if( fileUnits[ lun-1].F77())
-	  e->Throw( "Formatted IO not allowed with F77_UNFORMATTED "
-		    "files. Unit: "+i2s( lun));
-
-	int sockNum = fileUnits[ lun-1].SockNum();
-	//cout << "sockNum: " << sockNum << endl;
-
-       	if (sockNum == -1) {
-	  // *** File Read *** //
-	  if( fileUnits[ lun-1].Compress())
-	    is = &fileUnits[ lun-1].IgzStream();
-	  else
-	    is = &fileUnits[ lun-1].IStream();
-
-	} else {
-	  //  *** Socket Read *** //
-	  string *recvBuf = &fileUnits[ lun-1].RecvBuf();
-
-	  // Setup recv buffer & string
-	  const int MAXRECV = 2048*8;
-	  char buf[MAXRECV+1];
-
-	  // Read socket until finished & store in recv string
-	  int totalread = 0;
-	  while (1) {
-	    memset(buf, 0, MAXRECV+1);
-	    int status = recv(sockNum, buf, MAXRECV, 0);
-	    //	    cout << "Bytes received: " << status << endl;
-	    if (status == 0) break;
-
-	    recvBuf->append(buf, status);
-
-	    //	    for( SizeT i=0; i<status; i++) 
-	    // recvBuf->push_back(buf[i]);
-
-	    totalread += status;
-	    //cout << "recvBuf size: " << recvBuf->size() << endl;
-	    //cout << "Total bytes read: " << totalread << endl << endl;
-	  }
-	  //  if (totalread > 0) cout << "Total bytes read: " << totalread << endl;
-
-	  // Get istringstream, write recv string, & assign to istream
-	  istringstream *iss = &fileUnits[ lun-1].ISocketStream();
-	  iss->str(*recvBuf);
-	  is = iss;
-	}
-      }
-
-    read_is( is, e, 1);
-
-    // If socket strip off leading line
-    if (lun > 0 && fileUnits[ lun-1].SockNum() != -1) {
-      string *recvBuf = &fileUnits[ lun-1].RecvBuf();
-      int pos = is->tellg();
-      recvBuf->erase(0, pos);
-
-      //      int pos = recvBuf->find("\n", 0);
-      //recvBuf->erase(0, pos+1);
     }
-  }
+
+    read_is(is, e, 1);
+    }
 
   void read_pro( EnvT* e)
   {
     read_is( &cin, e, 0);
   }
-void read_is(istream* is, EnvT* e, int parOffset) {
+  
+streampos read_is(istream* is, EnvT* e, int parOffset) {
 	// PROMPT keyword
 	BaseGDL* prompt = e->GetKW(4);
 	if (prompt != NULL && !prompt->Scalar())
@@ -281,7 +259,7 @@ void read_is(istream* is, EnvT* e, int parOffset) {
 	  bool noPrompt = true;
 
 	  int nParam = e->NParam();
-	  if (nParam == parOffset) return;
+	  if (nParam == parOffset) { return is->tellg() ;}
 
 	  ostringstream oss;
 
@@ -382,7 +360,7 @@ void read_is(istream* is, EnvT* e, int parOffset) {
 			}
 
 			if (sigControlC)
-			  return;
+			  return is->tellg();
 		  } 
 		  else
 #endif
@@ -412,6 +390,7 @@ void read_is(istream* is, EnvT* e, int parOffset) {
 		DStringGDL gdlString("");
 		gdlString.FromStream(*is);
 	  }
+      return is->tellg();
 	}
 
 	void reads(EnvT * e) {

@@ -652,7 +652,9 @@ namespace lib {
   void openu(EnvT* e) {
     open_lun(e, fstream::in | fstream::out);
   }
-
+#ifndef _WIN32
+#include <netdb.h>
+#endif
   void socket(EnvT* e) {
     int nParam = e->NParam(3);
 
@@ -675,7 +677,17 @@ namespace lib {
     DUInt port;
     BaseGDL* p2 = e->GetParDefined(2);
     if (p2->Type() == GDL_STRING) {
+      DString s;
+      e->AssureScalarPar<DStringGDL>(2,s);
+#ifndef _WIN32
       // look up /etc/services
+      struct servent *servent=getservbyname(s.c_str(),NULL);
+      if (servent==NULL)        e->Throw("Unable to connect to host. Unit: "+i2s(lun)+", File: "+host+"."+s);
+      else port=servent->s_port;
+      endservent();
+#else 
+      e->Throw("Unable to connect to host. Unit: "+i2s(lun)+", File: "+host+"."+s);
+#endif      
     } else if (p2->Type() == GDL_UINT) {
       e->AssureScalarPar<DUIntGDL>(2, port);
     } else if (p2->Type() == GDL_INT) {
@@ -726,7 +738,7 @@ namespace lib {
 
     try {
       fileUnits[lun - 1].Socket(host, port, swapEndian,
-        c_timeout, r_timeout, c_timeout);
+        c_timeout, r_timeout, c_timeout, width);
     } catch (GDLException& ex) {
       DString errorMsg = ex.toString() + " Unit: " + i2s(lun) +
         ", File: " + fileUnits[lun - 1].Name();
@@ -986,29 +998,38 @@ namespace lib {
         " Unit: " + i2s(lun));
       is = &cin;
     } else if (sockNum != -1) {
-      // Socket Read
+      // GD: Socket Read: we use an intermediate buffer seen as a istringstream. (yes all this is too complicated!)
+      // So we NEED to get the EXACT amount of bytes to be "read". In order to get the rest to be read next time.
+      // the code was wrong in this respect.
+      // Get total amount of bytes to transfer. Should be factorized between the various cases.
+      SizeT nBytes=0;
+      for (SizeT i = 1; i < nParam; i++) {
+        BaseGDL* p = e->GetPar(i);
+        if (p == NULL) nBytes+=sizeof(DFloat); // will be a DFloatGDL
+        else nBytes = p->NBytes();
+        if (p->Type() == GDL_STRUCT) nBytes = static_cast<DStructGDL*> (p)->NBytesToTransfer(); //p->NBytes does not give sum of length of struct elements, due to alignment.We decompose.
+      }        
       swapEndian = fileUnits[lun - 1].SwapEndian();
-
       compress = fileUnits[lun - 1].Compress();
-
       string *recvBuf = &fileUnits[lun - 1].RecvBuf();
-
-      // Setup recv buffer & string
-      const int MAXRECV = 2048 * 8;
-      char buf[MAXRECV + 1];
-
-      // Read socket until finished & store in recv string
-      while (1) {
-        memset(buf, 0, MAXRECV + 1);
-        int status = recv(sockNum, buf, MAXRECV, 0);
-        //	  cout << "Bytes received: " << status << endl;
-        if (status == 0) break;
-        for (SizeT i = 0; i < status; i++)
-          recvBuf->push_back(buf[i]);
-      }
+      recvBuf->clear();
+      recvBuf->reserve(nBytes+1); //make recvBuf great again
 
       // Get istringstream, write recv string, & assign to istream
       istringstream *iss = &fileUnits[lun - 1].ISocketStream();
+      // Read socket until finished & store in recv string
+      char c;
+      int nread;
+      for (auto i=0; i< nBytes;) {
+        nread = read(sockNum, &c, 1);//, 0);
+        if (nread < 0) {
+          e->Throw("read associated Socket error.");
+        }
+        if (nread) {
+          recvBuf->push_back(c);
+          i++;
+        }
+      }
       iss->str(*recvBuf);
       is = iss;
     } else {
@@ -1083,11 +1104,9 @@ namespace lib {
 
           DLong nRec2;
           memcpy(&nRec2, hdr, 4);
-// 2018 April 14
-// G.Jung I don't think this works right for stuctures.
-//   I have a method (RealBytes) that computes the actual byte count,
-//  it needs entries across several different files.
+
           SizeT nBytes = p->NBytes();
+        if (p->Type() == GDL_STRUCT) nBytes = static_cast<DStructGDL*> (p)->NBytesToTransfer(); //p->NBytes does not give sum of length of struct elements, due to alignment.We decompose.
 
           // In variable length VMS files, each record is prefixed
           // with a count byte that contains the number of bytes

@@ -706,15 +706,19 @@ namespace lib {
       { // normal file
 	GDLStream& actUnit = fileUnits[ lun-1];
 
-	if( !actUnit.IsOpen()) 
+	if( !actUnit.IsOpen() && actUnit.SockNum()==-1) 
 	  return fileStatus; // OPEN tag is init to zero (SpDByte::GetInstance())
 
 	struct stat buffer;
-    // int status = //status will be bad on the units used by SPAWN, UNIT=XXX; Do not check status
-    stat(actUnit.Name().c_str(), &buffer); 
+    int status=0;
+    if (status =stat(actUnit.Name().c_str(), &buffer) !=0) status=fstat(lun, &buffer); //if (status) perror(strerror(errno));
 
 	fileStatus->InitTag("NAME", DStringGDL( actUnit.Name()));
-	fileStatus->InitTag("OPEN", DByteGDL( 1)); 
+	fileStatus->InitTag("OPEN", DByteGDL( 1));
+    
+    //early return for sockets! these are not files!
+    if (actUnit.SockNum()!=-1) return fileStatus;
+    
 	if (big) fileStatus->InitTag("SIZE", DLong64GDL( buffer.st_size));//size)); 
 	else fileStatus->InitTag("SIZE", DLongGDL( buffer.st_size));//size));
         DByte is_a_tty=isatty(lun);

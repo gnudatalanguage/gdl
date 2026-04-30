@@ -461,13 +461,15 @@ void LibInit()
   new DLibPro(lib::openu,string("OPENU"),3,openKey);
   new DLibPro(lib::get_lun,string("GET_LUN"),1);
 
-  const string socketKey[]={"ERROR","GET_LUN","STDIO",
+  const string socketWarnKey[]={"ACCEPT","LISTEN","RAWIO","PORT",KLISTEND};
+  const string socketKey[]={"ERROR","GET_LUN",
+                "STDIO", //not used but not signaled also.
 			    "SWAP_ENDIAN","SWAP_IF_BIG_ENDIAN",
 			    "SWAP_IF_LITTLE_ENDIAN","WIDTH",
 			    "CONNECT_TIMEOUT","READ_TIMEOUT",
 			    "WRITE_TIMEOUT",
 			    KLISTEND};
-  new DLibPro(lib::socket,string("SOCKET"),3,socketKey);
+  new DLibPro(lib::socket,string("SOCKET"),3,socketKey,socketWarnKey);
 
   new DLibPro(lib::flush_lun,string("FLUSH"),-1);
 
