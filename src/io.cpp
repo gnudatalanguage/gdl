@@ -673,7 +673,7 @@ void GDLStream::Socket(const string& host,
   if (recvBuf == NULL)
     recvBuf = new string;
 
-  name = host;
+  name = host + "." + i2s(port);;
 
   sockNum = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -760,7 +760,7 @@ addr.s_addr = ((struct sockaddr_in *)(result->ai_addr))->sin_addr.s_addr;
   int status ; if (status = inet_pton(AF_INET, inet_ntoa(addr), &m_addr.sin_addr) != 1) perror(__func__);
 
   if (status = connect(sockNum, (sockaddr *) & m_addr, sizeof (m_addr)) != 0) perror(__func__);
-  fcntl(sockNum,F_SETFD, FD_CLOEXEC);
+  int flags = fcntl(sockNum, F_GETFL, 0); fcntl(sockNum,F_SETFD, flags|FD_CLOEXEC);
   swapEndian = swapEndian_;
 
 // GD ?????  // BIG limit on socket send width to avoid leading \n in CheckNL

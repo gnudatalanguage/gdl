@@ -200,17 +200,17 @@ namespace lib {
 
       } else {
         string *recvBuf = &fileUnits[ lun - 1].RecvBuf();
-        char c;
+        char c=0;
         while (1) {
-          int nread = recv(sockNum, &c, 1, MSG_DONTWAIT); //cannot reproduce behaviour of IDL since we use buffered processing in read_is().
+//does not work on windows          int nread = recv(sockNum, &c, 1, MSG_DONTWAIT); //cannot reproduce behaviour of IDL since we use buffered processing in read_is().
           // we need to use lower level C reads, not read_is() in this special case OR find a way to get a socket behave like a file.
-//          int nread = read(sockNum, &c, 1); //, 0); //IDL reads byte by byte to test for \n and stop reading
+          int nread = read(sockNum, &c, 1); //, 0); //IDL reads byte by byte to test for \n and stop reading
           if (nread == 0)  break; //closed 
           if (nread < 1) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) break; //nothing more yet.
             else e->Throw("Error accessing underlying socket, reason: "+std::string(strerror(errno)));
           }
-          recvBuf->push_back(c);
+          if (c=='\n') break; else recvBuf->push_back(c);
         }
         //ALL READ.
         istringstream *iss = &fileUnits[ lun - 1].ISocketStream();
