@@ -513,7 +513,7 @@ Data_<Sp>::Data_(const Data_& d_) : Sp(d_.dim), dd(this->dim.NDimElements(), fal
   // 'small' operations present in all general scripting (all the small creation/ deletion of
   // intermediary BaseGDL variables found everywhere in the code. 
   if (Sp::IS_POD && this->NBytes() <= GDL_VAR_BUFFERSIZE){ //NBytes OK only for PODs here, anyway.
-    memcpy(&(dd[0]),&(d_[0]), sz*this->Sizeof());
+    memcpy((void*)(&(dd[0])),&(d_[0]), sz*this->Sizeof());
     return;
   }
 #ifdef USE_PARALLEL_INITIALIZATION
@@ -1315,7 +1315,7 @@ BaseGDL* Data_<Sp>::Transpose(DUInt* perm, int ndim) { TRACE_ROUTINE(__FUNCTION_
  
   SizeT rank=(ndim)?ndim:inputRank;
   if (ndim) { // this is not filtered inside the TRANSPOSE command. Must check permutation vector. Dimensions cannot be found twice and cannot be <0 or >inputRank-1
-    int found[inputRank] = {0};
+    int found[MAXRANK] = {0};
     for (SizeT i = 0; i < rank; ++i) {
       if (perm[i] < 0 || perm[i] > inputRank - 1 || found[perm[i]]) throw GDLException("Invalid permutation in Transpose().");
       else found[perm[i]] = 1;
