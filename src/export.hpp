@@ -184,7 +184,7 @@ EXPORT_VPTR  GDL_CDECL IDL_ImportArray(int n_dim, EXPORT_MEMINT dim[], int type,
 
 DLL_PUBLIC void  GDL_CDECL IDL_Deltmp(GDL_REGISTER EXPORT_VPTR v) {
 	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-		checkOK(v);//, true); //ignore nulls ???
+		checkOK(v, true); //ignore nulls ???
 		if (v->flags & GDL_V_TEMP) {
 			if (v->flags & GDL_V_DYNAMIC) {
 				if (v->value.arr != NULL) {
@@ -286,7 +286,10 @@ inline EXPORT_VPTR NewVPTR(UCHAR flag=0, EXPORT_StructDefPtr structdefptr=NULL) 
 }
 //Alias expressing the fact that these are not TEMPO VPTRS.
 inline EXPORT_VPTR NewNAMEDVPTR(UCHAR flag=0, EXPORT_StructDefPtr structdefptr=NULL){ 	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-	return NewVPTR(flag,structdefptr);
+	EXPORT_VPTR v=NewVPTR(flag,structdefptr);
+    v->flags &= ~ GDL_V_TEMP; //make permanent
+    v->flags &= ~ GDL_V_DYNAMIC; //make permanent
+	return v;
 }
 inline EXPORT_VPTR NewTMPVPTR(UCHAR flag=0, EXPORT_StructDefPtr structdefptr=NULL) {	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	return NewVPTR(flag|GDL_V_TEMP,structdefptr);
@@ -2559,7 +2562,7 @@ if (requested.value != NULL) { // need to pass either an address of a EXPORT_VPT
 		}
 	} else if (isoutput) {
 				toBeReturned = NewNAMEDVPTR(); //create a EXPORT_VPTR that will return a real variable
-				memcpy((void*) requested.value, (void*) (&toBeReturned), sizeof (EXPORT_VPTR)); //pass address of a EXPORT_VAR that will contain the result.
+				memcpy((void*) global_address, (void*) (&toBeReturned), sizeof (EXPORT_VPTR)); //pass address of a EXPORT_VAR that will contain the result.
 	}
 }
 return toBeReturned;
@@ -2828,13 +2831,8 @@ DLL_PUBLIC void  GDL_CDECL IDL_KWFreeAll(void) {TRACE_ROUTINE(__FUNCTION__, __FI
 
 	DLL_PUBLIC char * GDL_CDECL IDL_GetScratch(GDL_REGISTER EXPORT_VPTR *v, GDL_REGISTER EXPORT_MEMINT n_elts, GDL_REGISTER EXPORT_MEMINT elt_size) {
 		TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-		if (*v==NULL) *v=NewTMPVPTRARRAY();
-		if (isScalar(*v)) {
-			(*v)->value.arr = NewExportArray();
-			(*v)->flags |= GDL_V_DYNAMIC;
-			(*v)->flags |= GDL_V_ARR;
-			(*v)->value.arr->flags = GDL_A_NO_GUARD;
-		}
+		*v=NewTMPVPTRARRAY();
+		(*v)->type=1;
 		(*v)->value.arr->data=(UCHAR*) gdlAlignedMalloc(n_elts * elt_size);
 		(*v)->value.arr->arr_len=n_elts * elt_size;
 		(*v)->value.arr->dim[0]=n_elts;

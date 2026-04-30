@@ -124,7 +124,7 @@ namespace lib {
         argv[argc++] = GDL_ToVPTR(kws[i].varptr, kws[i].readonly);
 
 #ifdef GDL_DEBUG
-        std::cerr<<kws[i].name<<": "<<kws[i].varname<<"="; (kws[i].varptr)->ToStream(std::cerr);
+       std::cerr<<kws[i].name<<" (keyword, input) : "<<kws[i].varname<<"=";  if (kws[i].varptr!=NULL)  (kws[i].varptr)->ToStream(std::cerr);
 #endif
       }
     }
@@ -238,7 +238,7 @@ early_return:
         argv[argc++] = GDL_ToVPTR(kws[i].varptr, kws[i].readonly);
 
 #ifdef GDL_DEBUG
-        std::cerr<<kws[i].name<<": "<<kws[i].varname<<"="; (kws[i].varptr)->ToStream(std::cerr);
+        std::cerr<<kws[i].name<<" (keyword, input) : "<<kws[i].varname<<"="; if (kws[i].varptr!=NULL) (kws[i].varptr)->ToStream(std::cerr);
 #endif
       }
     }
