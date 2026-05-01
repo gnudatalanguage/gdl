@@ -93,7 +93,7 @@ BaseGDL* BaseGDL::CShift( DLong d[MAXRANK]) const
 }
 
   
-BaseGDL* BaseGDL::Transpose( DUInt* perm)
+BaseGDL* BaseGDL::Transpose( DUInt* perm, int ndim)
 {
   throw GDLException("BaseGDL::Transpose(...) called.");
 }
