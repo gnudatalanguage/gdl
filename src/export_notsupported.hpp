@@ -1,4 +1,19 @@
-#define CONTENT throw GDLException("Fatal - Calling Unsupported or Proprietary Function "+std::string(__func__)+".");
+
+#include "gdl_export.h"
+#include "basegdl.hpp"
+
+#define CONTENT GDL_WillThrowAfterCleaning(__func__,"Fatal - Calling Unsupported or Proprietary Function "+std::string(__func__)+".");
+DLL_PUBLIC EXPORT_VPTR GDL_CDECL IDL_nonavailable_rtn(int argc, EXPORT_VPTR argv[],char *argk){CONTENT ; return NULL;}
+DLL_PUBLIC EXPORT_VPTR GDL_CDECL IDL_stregex(int argc, EXPORT_VPTR argv[], char *argk){CONTENT; return NULL;}
+DLL_PUBLIC void GDL_CDECL IDL_unform_io(int type, int argc, EXPORT_VPTR *argv,char *argk){CONTENT}
+DLL_PUBLIC EXPORT_LONG GDL_CDECL IDL_grMesh_Clip(float fPlane[4], short clipSide,
+         float *pfVin, EXPORT_LONG iNVerts,  EXPORT_LONG *piCin, EXPORT_LONG iNConn, 
+        float **pfVout, EXPORT_LONG *iNVout,  EXPORT_LONG **piCout, EXPORT_LONG *iNCout, 
+        EXPORT_VPTR vpAuxInKW, EXPORT_VPTR vpAuxOutKW,  EXPORT_VPTR vpCut){CONTENT return 0;
+}
+	DLL_PUBLIC char * GDL_CDECL IDL_GetScratchOnThreshold(GDL_REGISTER char *auto_buf, GDL_REGISTER EXPORT_MEMINT auto_elts, GDL_REGISTER EXPORT_MEMINT n_elts, GDL_REGISTER EXPORT_MEMINT elt_size, EXPORT_VPTR *tempvar) {
+		CONTENT return 0;
+	}
 
 DLL_PUBLIC void DllMain(){CONTENT}
 DLL_PUBLIC void IDL_ActiveWinNotifyResize(){CONTENT}
@@ -89,9 +104,7 @@ DLL_PUBLIC void IDL_FilePathExpand(){CONTENT}
 DLL_PUBLIC void IDL_FilePathFromDist(){CONTENT}
 DLL_PUBLIC void IDL_FilePathFromDistBin(){CONTENT}
 DLL_PUBLIC void IDL_FilePathFromDistHelp(){CONTENT}
-DLL_PUBLIC void IDL_FilePathFromRoot(){CONTENT}
 DLL_PUBLIC void IDL_FilePathGetNextSegment(){CONTENT}
-DLL_PUBLIC void IDL_FilePathGetTmpDir(){CONTENT}
 DLL_PUBLIC void IDL_FilePos(){CONTENT}
 DLL_PUBLIC void IDL_FileSetClose(){CONTENT}
 DLL_PUBLIC void IDL_FileSetMode(){CONTENT}
@@ -160,7 +173,6 @@ DLL_PUBLIC void IDL_InterpCurrentSysrtn(){CONTENT}
 DLL_PUBLIC void IDL_IsFileCompiled(){CONTENT}
 DLL_PUBLIC void IDL_IsMainProg(){CONTENT}
 DLL_PUBLIC void IDL_IsModuleProfiled(){CONTENT}
-DLL_PUBLIC void IDL_KWCleanup(){CONTENT}
 DLL_PUBLIC void IDL_LinkNodeAlloc(){CONTENT}
 DLL_PUBLIC void IDL_LinkNodeFree(){CONTENT}
 DLL_PUBLIC void IDL_LinkNodeFreeLength(){CONTENT}
@@ -176,7 +188,6 @@ DLL_PUBLIC void IDL_MMPointMatMult_d(){CONTENT}
 DLL_PUBLIC void IDL_MSComImportIDispatch(){CONTENT}
 DLL_PUBLIC void IDL_MakeArray(){CONTENT}
 DLL_PUBLIC void IDL_MakeArrayErrstate(){CONTENT}
-DLL_PUBLIC void IDL_MakeStructInternal(){CONTENT}
 DLL_PUBLIC void IDL_MakeTempArrayErrstate(){CONTENT}
 DLL_PUBLIC void IDL_MakeTempVectorErrstate(){CONTENT}
 DLL_PUBLIC void IDL_MemAllocErrstate(){CONTENT}
@@ -509,7 +520,6 @@ DLL_PUBLIC void IDL_anMakeEdge(){CONTENT}
 DLL_PUBLIC void IDL_anPrepEdgeListDouble(){CONTENT}
 DLL_PUBLIC void IDL_anPrepEdgeListFloat(){CONTENT}
 DLL_PUBLIC void IDL_anUpdateActiveEdges(){CONTENT}
-DLL_PUBLIC void IDL_conj(){CONTENT}
 DLL_PUBLIC void IDL_containerPurge(){CONTENT}
 DLL_PUBLIC void IDL_containerWalk(){CONTENT}
 DLL_PUBLIC void IDL_gluScaleImage(){CONTENT}
@@ -557,14 +567,14 @@ DLL_PUBLIC void IDL_managed_events_pending(){CONTENT}
 DLL_PUBLIC void IDL_prf_profiler(){CONTENT}
 DLL_PUBLIC void IDL_prf_report_profile(){CONTENT}
 DLL_PUBLIC void IDL_prf_reset_profiler(){CONTENT}
-DLL_PUBLIC void IDL_setup_color_stride(){CONTENT}
-DLL_PUBLIC void IDL_transpose(){CONTENT}
+DLL_PUBLIC void IDL_setup_color_stride(){CONTENT
+}
+
 DLL_PUBLIC void IDL_tt_GetGlyph(){CONTENT}
 DLL_PUBLIC void IDL_tt_GetGlyphMetrics(){CONTENT}
 DLL_PUBLIC void IDL_tt_SetCodePage(){CONTENT}
 DLL_PUBLIC void IDL_tt_SetFontSize(){CONTENT}
 DLL_PUBLIC void IDL_tt_WalkString(){CONTENT}
-DLL_PUBLIC void IDL_unform_io(){CONTENT}
 DLL_PUBLIC void IDL_zero_edges(){CONTENT}
 DLL_PUBLIC void goptD(){CONTENT}
 DLL_PUBLIC void goptF(){CONTENT}

@@ -988,6 +988,10 @@ void EnvBaseT::ResolveExtra()
 {
   if( extra != NULL) extra->ResolveExtra( NULL);
 }
+SizeT EnvBaseT::GetExtraCount()
+{
+  if( extra != NULL) return extra->GetExtraCount(); return 0;
+}
 // returns the variable whose KW is listed in _REF_EXTRA array of Kws. Or null if KW is not present (was not passed).
 BaseGDL* EnvBaseT::GetRefExtraList(DString &s)
 {

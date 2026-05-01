@@ -260,6 +260,7 @@ public:
 
   // called after parameter definition
   void ResolveExtra();
+  SizeT GetExtraCount();
   BaseGDL* GetRefExtraList(DString &s);
   BaseGDL** GetRefExtraListPtr(DString &s);
   friend class ExtraT;

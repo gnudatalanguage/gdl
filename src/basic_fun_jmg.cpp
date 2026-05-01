@@ -711,7 +711,7 @@ namespace lib {
 
 	struct stat buffer;
     int status=0;
-    if (status =stat(actUnit.Name().c_str(), &buffer) !=0) status=fstat(lun, &buffer); //if (status) perror(strerror(errno));
+    if ((status =stat(actUnit.Name().c_str(), &buffer)) !=0) status=fstat(lun, &buffer); //if (status) perror(strerror(errno));
 
 	fileStatus->InitTag("NAME", DStringGDL( actUnit.Name()));
 	fileStatus->InitTag("OPEN", DByteGDL( 1));

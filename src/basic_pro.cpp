@@ -1010,7 +1010,9 @@ namespace lib {
         if (p->Type() == GDL_STRUCT) nBytes = static_cast<DStructGDL*> (p)->NBytesToTransfer(); //p->NBytes does not give sum of length of struct elements, due to alignment.We decompose.
       }        
       swapEndian = fileUnits[lun - 1].SwapEndian();
+
       compress = fileUnits[lun - 1].Compress();
+
       string *recvBuf = &fileUnits[lun - 1].RecvBuf();
       recvBuf->clear();
       recvBuf->reserve(nBytes+1); //make recvBuf great again
@@ -1106,7 +1108,7 @@ namespace lib {
           memcpy(&nRec2, hdr, 4);
 
           SizeT nBytes = p->NBytes();
-        if (p->Type() == GDL_STRUCT) nBytes = static_cast<DStructGDL*> (p)->NBytesToTransfer(); //p->NBytes does not give sum of length of struct elements, due to alignment.We decompose.
+          if (p->Type() == GDL_STRUCT) nBytes = static_cast<DStructGDL*> (p)->NBytesToTransfer(); //p->NBytes does not give sum of length of struct elements, due to alignment.We decompose.
 
           // In variable length VMS files, each record is prefixed
           // with a count byte that contains the number of bytes

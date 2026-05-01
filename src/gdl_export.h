@@ -14,6 +14,7 @@
 #define GDL_REGISTER
 
 typedef DByte UCHAR ; //typedef unsigned char UCHAR;	/* Unsigned character type */
+typedef DByte EXPORT_BYTE ; //added by us
 typedef DInt EXPORT_INT;
 typedef DUInt EXPORT_UINT;
 typedef DLong EXPORT_LONG;
@@ -25,6 +26,7 @@ typedef EXPORT_ULONG EXPORT_HVID;
 
 #define EXPORT_NUM_TYPES           16
 #define EXPORT_MAX_TYPE           15
+#define GDL_MAX_ARRAY_DIM  MAXRANK
 
 #define GDL_TYP_UNDEF	GDL_UNDEF
 #define GDL_TYP_BYTE     GDL_BYTE
@@ -58,8 +60,10 @@ typedef EXPORT_ULONG EXPORT_HVID;
 
 #define EXPORT_FILEINT_64 DULong64
 #define GDL_TYP_FILEINT	  GDL_TYP_LONG64
+#define GDL_TYP_B_ALL               65535
 #define GDL_TYP_B_SIMPLE            62207
 
+#define GDL_V_SHAREDDATA   4096
 #define GDL_V_CONST         1	
 #define GDL_V_TEMP          2
 #define GDL_V_ARR           4
@@ -68,7 +72,7 @@ typedef EXPORT_ULONG EXPORT_HVID;
 #define GDL_V_STRUCT        32
 #define GDL_V_NULL          64
 #define GDL_V_BOOLEAN      128
-#define GDL_V_NOT_SCALAR    (GDL_V_ARR | GDL_V_FILE | GDL_V_STRUCT)
+#define GDL_V_NOT_SCALAR    (GDL_V_ARR |GDL_V_FILE | GDL_V_STRUCT)
 #define GDL_A_FILE          1
 #define GDL_A_NO_GUARD      2
 #define GDL_A_FILE_PACKED   4
@@ -160,8 +164,6 @@ typedef EXPORT_VARIABLE *EXPORT_VPTR;
 
 typedef void (* EXPORT_SYSRTN_PRO)(int argc, EXPORT_VPTR argv[], char *argk);
 typedef EXPORT_VPTR (* EXPORT_SYSRTN_FUN)(int argc, EXPORT_VPTR argv[], char *argk);
-typedef void (* EXPORT_SYSRTN_PRO)(int argc, EXPORT_VPTR argv[], char *argk);
-typedef EXPORT_VPTR (* EXPORT_SYSRTN_FUN)(int argc, EXPORT_VPTR argv[], char *argk);
 
 typedef struct _idlgdl_structure *EXPORT_StructDefPtr;
 typedef struct _idlgdl_tagdef  {	/* Definition of each instance of a tag
@@ -194,8 +196,9 @@ typedef struct {
 } EXPORT_STRUCT_TAG_DEF;
 
 #define GDL_ENSURE_SIMPLE(v) IDL_VarEnsureSimple(v)
+#define GDL_ENSURE_ARRAY(v) { if (!((v)->flags & GDL_V_ARR)) IDL_MessageVE_NOTARRAY(v, EXPORT_MSG_LONGJMP); }
 #define GDL_EXCLUDE_FILE(v) { if ((v)->flags & GDL_V_FILE) IDL_MessageVE_NOFILE(v, EXPORT_MSG_LONGJMP); }
-
+#define GDL_ENSURE_SCALAR(v) { if ((v)->flags & GDL_V_NOT_SCALAR) IDL_MessageVE_NOTSCALAR(v, EXPORT_MSG_LONGJMP);}
 #define GDL_KW_ARRAY (1 << 12)
 #define GDL_KW_OUT (1 << 13)
 #define GDL_KW_VIN (GDL_KW_OUT | GDL_KW_ARRAY)
@@ -218,6 +221,7 @@ typedef struct {
   char *data;			/* Address of array to receive data. */ \
   EXPORT_MEMINT nmin;		/* Minimum # of elements allowed. */ \
   EXPORT_MEMINT nmax;		/* Maximum # of elements allowed. */
+
 typedef struct {		/* Descriptor for array's that are returned */
   GDL_KW_COMMON_ARR_DESC_TAGS
   EXPORT_MEMINT n;			/* # present, (Returned value). */
