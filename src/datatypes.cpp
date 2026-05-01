@@ -1334,18 +1334,34 @@ BaseGDL* Data_<Sp>::Transpose(DUInt* perm, int ndim) { TRACE_ROUTINE(__FUNCTION_
   this->dim.Stride(srcStride, inputRank);
   SizeT k = 0;
   switch (rank) {
-    case 1:
+    case 1:  //this is not the special case: vector above. it is a slice of 1
       for (SizeT i = 0; i < resDim[0] * srcStride[perm[0]]; i += srcStride[perm[0]]) {
         (*res)[k++] = (*this)[i];
       }
       break;
     case 2:
-      for (SizeT j = 0; j < resDim[1] * srcStride[perm[1]]; j += srcStride[perm[1]]) {
-        for (SizeT i = 0; i < resDim[0] * srcStride[perm[0]]; i += srcStride[perm[0]]) {
-          (*res)[k++] = (*this)[i + j];
+      if (resDim[0] > resDim[1]) { //improve locality for speed gain
+          SizeT srcDim0 = this->dim[0];
+          SizeT srcDim1 = this->dim[1];
+          SizeT srcIx = 0;
+          for (SizeT srcIx1 = 0; srcIx1 < srcDim1; ++srcIx1) // src dim 1
+          {
+            SizeT destIx = srcIx1;
+            SizeT srcLim = srcIx + srcDim0; // src dim 0
+            for (; srcIx < srcLim; ++srcIx) {
+              (*res)[ destIx] = (*this)[ srcIx];
+              destIx += srcDim1;
+            }
+          }
+      } else {
+        for (SizeT j = 0; j < resDim[1] * srcStride[perm[1]]; j += srcStride[perm[1]]) {
+          for (SizeT i = 0; i < resDim[0] * srcStride[perm[0]]; i += srcStride[perm[0]]) {
+            (*res)[k++] = (*this)[i + j];
+          }
         }
       }
       break;
+      // for greater dimensionalities the speed difference with IDL does not seem to need the added complexity used in dimension 2 above.
     case 3:
       for (SizeT h = 0; h < resDim[2] * srcStride[perm[2]]; h += srcStride[perm[2]]) {
         for (SizeT j = 0; j < resDim[1] * srcStride[perm[1]]; j += srcStride[perm[1]]) { SizeT jj=j+h;
@@ -1357,7 +1373,7 @@ BaseGDL* Data_<Sp>::Transpose(DUInt* perm, int ndim) { TRACE_ROUTINE(__FUNCTION_
       break;
     case 4:
       for (SizeT l = 0; l < resDim[3] * srcStride[perm[3]]; l += srcStride[perm[3]]) {
-        for (SizeT h = 0; h < resDim[2] * srcStride[perm[2]]; h += srcStride[perm[2]]) { SizeT hh=l+h;
+        for (SizeT h = 0; h < resDim[2] * srcStride[perm[2]]; h += srcStride[perm[2]]) { SizeT hh=h+l;
           for (SizeT j = 0; j < resDim[1] * srcStride[perm[1]]; j += srcStride[perm[1]]) { SizeT jj=j+hh;
             for (SizeT i = 0; i < resDim[0] * srcStride[perm[0]]; i += srcStride[perm[0]]) {
               (*res)[k++] = (*this)[i + jj];
@@ -1368,11 +1384,11 @@ BaseGDL* Data_<Sp>::Transpose(DUInt* perm, int ndim) { TRACE_ROUTINE(__FUNCTION_
       break;
     case 5:
       for (SizeT m = 0; m < resDim[4] * srcStride[perm[4]]; m += srcStride[perm[4]]) {
-        for (SizeT l = 0; l < resDim[3] * srcStride[perm[3]]; l += srcStride[perm[3]]) {
-          for (SizeT h = 0; h < resDim[2] * srcStride[perm[2]]; h += srcStride[perm[2]]) {
-            for (SizeT j = 0; j < resDim[1] * srcStride[perm[1]]; j += srcStride[perm[1]]) {
+        for (SizeT l = 0; l < resDim[3] * srcStride[perm[3]]; l += srcStride[perm[3]]) { SizeT ll=l+m;
+          for (SizeT h = 0; h < resDim[2] * srcStride[perm[2]]; h += srcStride[perm[2]]) { SizeT hh=h+ll;
+            for (SizeT j = 0; j < resDim[1] * srcStride[perm[1]]; j += srcStride[perm[1]]) { SizeT jj=j+hh;
               for (SizeT i = 0; i < resDim[0] * srcStride[perm[0]]; i += srcStride[perm[0]]) {
-                (*res)[k++] = (*this)[i + j + h + l + m];
+                (*res)[k++] = (*this)[i + jj];
               }
             }
           }
@@ -1381,12 +1397,12 @@ BaseGDL* Data_<Sp>::Transpose(DUInt* perm, int ndim) { TRACE_ROUTINE(__FUNCTION_
       break;
     case 6:
       for (SizeT n = 0; n < resDim[5] * srcStride[perm[5]]; n += srcStride[perm[5]]) {
-        for (SizeT m = 0; m < resDim[4] * srcStride[perm[4]]; m += srcStride[perm[4]]) {
-          for (SizeT l = 0; l < resDim[3] * srcStride[perm[3]]; l += srcStride[perm[3]]) {
-            for (SizeT h = 0; h < resDim[2] * srcStride[perm[2]]; h += srcStride[perm[2]]) {
-              for (SizeT j = 0; j < resDim[1] * srcStride[perm[1]]; j += srcStride[perm[1]]) {
+        for (SizeT m = 0; m < resDim[4] * srcStride[perm[4]]; m += srcStride[perm[4]]) { SizeT mm=m+n;
+          for (SizeT l = 0; l < resDim[3] * srcStride[perm[3]]; l += srcStride[perm[3]]) { SizeT ll=l+mm;
+            for (SizeT h = 0; h < resDim[2] * srcStride[perm[2]]; h += srcStride[perm[2]]) { SizeT hh=h+ll;
+              for (SizeT j = 0; j < resDim[1] * srcStride[perm[1]]; j += srcStride[perm[1]]) { SizeT jj=j+hh;
                 for (SizeT i = 0; i < resDim[0] * srcStride[perm[0]]; i += srcStride[perm[0]]) {
-                  (*res)[k++] = (*this)[i + j + h + l + m + n];
+                  (*res)[k++] = (*this)[i + jj];
                 }
               }
             }
@@ -1394,24 +1410,45 @@ BaseGDL* Data_<Sp>::Transpose(DUInt* perm, int ndim) { TRACE_ROUTINE(__FUNCTION_
         }
       }
       break;
-      default:
+    case 7:
+      for (SizeT o = 0; o < resDim[6] * srcStride[perm[6]]; o += srcStride[perm[6]]) {
+        for (SizeT n = 0; n < resDim[5] * srcStride[perm[5]]; n += srcStride[perm[5]]) { SizeT nn=n+o;
+          for (SizeT m = 0; m < resDim[4] * srcStride[perm[4]]; m += srcStride[perm[4]]) { SizeT mm=m+nn;
+            for (SizeT l = 0; l < resDim[3] * srcStride[perm[3]]; l += srcStride[perm[3]]) { SizeT ll=l+mm;
+              for (SizeT h = 0; h < resDim[2] * srcStride[perm[2]]; h += srcStride[perm[2]]) { SizeT hh=h+ll;
+                for (SizeT j = 0; j < resDim[1] * srcStride[perm[1]]; j += srcStride[perm[1]]) { SizeT jj=j+hh;
+                  for (SizeT i = 0; i < resDim[0] * srcStride[perm[0]]; i += srcStride[perm[0]]) {
+                    (*res)[k++] = (*this)[i + jj];
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      break;
+    case 8:
+      for (SizeT p = 0; p < resDim[7] * srcStride[perm[7]]; p += srcStride[perm[7]]) {
+        for (SizeT o = 0; o < resDim[6] * srcStride[perm[6]]; o += srcStride[perm[6]]) {SizeT oo=o+p;
+          for (SizeT n = 0; n < resDim[5] * srcStride[perm[5]]; n += srcStride[perm[5]]) { SizeT nn=n+oo;
+            for (SizeT m = 0; m < resDim[4] * srcStride[perm[4]]; m += srcStride[perm[4]]) { SizeT mm=m+nn;
+              for (SizeT l = 0; l < resDim[3] * srcStride[perm[3]]; l += srcStride[perm[3]]) { SizeT ll=l+mm;
+                for (SizeT h = 0; h < resDim[2] * srcStride[perm[2]]; h += srcStride[perm[2]]) { SizeT hh=h+ll;
+                  for (SizeT j = 0; j < resDim[1] * srcStride[perm[1]]; j += srcStride[perm[1]]) { SizeT jj=j+hh;
+                    for (SizeT i = 0; i < resDim[0] * srcStride[perm[0]]; i += srcStride[perm[0]]) {
+                      (*res)[k++] = (*this)[i + jj];
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      break;
+    default:
         break;
     }
-  //  
-//  SizeT k=0;
-//  for (SizeT l = 0; l < resDim[3]; ++l) {
-//    SizeT ll = l * srcStride[perm[3]];
-//    for (SizeT h = 0; h < resDim[2]; ++h) {
-//      SizeT hh = ll + h * srcStride[perm[2]];
-//      for (SizeT j = 0; j < resDim[1]; ++j) {
-//        SizeT jj = hh + j * srcStride[perm[1]];
-//        for (SizeT i = 0; i < resDim[0]; ++i) {
-//          SizeT z = jj + i * srcStride[perm[0]];
-//          (*res)[k++] = (*this)[z];
-//        }
-//      }
-//    }
-//  }
     return res;
   }
 
@@ -4160,7 +4197,7 @@ BaseGDL* Data_<Sp>::Rebin(const dimension& newDim, bool sample) { TRACE_ROUTINE(
   // 1st compress
   //optimization: start by compressing the dimension that will decrease total size the most.
   //the key is used to keep the map always in increasing order of key, so it's the compression factor,
-  //but we cannot sore 2 identical compression factors, on 2 difeerent dimensions, in the map since the key must be unique.
+  //but we cannot sore 2 identical compression factors, on 2 different dimensions, in the map since the key must be unique.
   // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
   
   std::map<float, SizeT>expand;
