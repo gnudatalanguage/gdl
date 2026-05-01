@@ -157,6 +157,24 @@ inline DType PromoteComplexOperand( DType aTy, DType bTy)
 
 namespace gdl_type_lookup {
 
+const bool IsConvertableToLoopIndexType[]={
+  false, 	//GDL_UNDEF
+  true, 	//GDL_BYTE
+  true, 	//GDL_INT
+  true, 	//GDL_LONG,	
+  true, 	//GDL_FLOAT,	
+  true, 	//GDL_DOUBLE,	
+  false, 	//GDL_COMPLEX,	
+  false, 	//GDL_STRING,	
+  false, 	//GDL_STRUCT,	
+  false, 	//GDL_COMPLEXDBL,	
+  false, 	//GDL_PTR,		
+  false, 	//GDL_OBJ,
+  true, 	//GDL_UINT,	
+  true, 	//GDL_ULONG,
+  true, 	//GDL_LONG64,
+  true  	//GDL_ULONG64
+};
 const bool IsConvertableType[]={
   false, 	//GDL_UNDEF
   true, 	//GDL_BYTE

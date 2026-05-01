@@ -3012,7 +3012,11 @@ bool DStructGDL::ForCheck( BaseGDL** lEnd, BaseGDL** lStep)
 template<class Sp>
 bool Data_<Sp>::ForAddCondUp( BaseGDL* endLoopVar)
 { 
-  if( endLoopVar->Type() != this->t) throw GDLException("Type of FOR index variable changed.");
+  DType t=endLoopVar->Type();
+  if( t != this->t) {
+    if (gdl_type_lookup::IsConvertableToLoopIndexType[t] ) {} 
+    else return false; // IDL just stops // Was : throw GDLException("Type of FOR index variable changed.");
+  }
   Data_* lEnd=static_cast<Data_*>(endLoopVar);
   bool what=true;
   if ((*this)[0] == (*lEnd)[0]) //This way, loop will stop on good end value and loop index will be incremented... 
@@ -3027,14 +3031,24 @@ bool Data_<Sp>::ForAddCondUp( BaseGDL* endLoopVar)
 template<class Sp>
 bool Data_<Sp>::ForCondUp( BaseGDL* lEndIn)
 { 
-  if( lEndIn->Type() != this->t) throw GDLException("Type of FOR index variable changed.");
+  DType t=lEndIn->Type();
+  if( t != this->t) {
+    if (gdl_type_lookup::IsConvertableToLoopIndexType[t] ) {} 
+    else return false; // IDL just stops // Was : throw GDLException("Type of FOR index variable changed.");
+  }
+//  if( lEndIn->Type() != this->t) throw GDLException("Type of FOR index variable changed.");
   Data_* lEnd=static_cast<Data_*>(lEndIn);
   return (*this)[0] <= (*lEnd)[0];
 }
 template<class Sp>
 bool Data_<Sp>::ForCondDown( BaseGDL* lEndIn)
 { 
-  if( lEndIn->Type() != this->t) throw GDLException("Type of FOR index variable changed.");
+  DType t=lEndIn->Type();
+  if( t != this->t) {
+    if (gdl_type_lookup::IsConvertableToLoopIndexType[t] ) {} 
+    else return false; // IDL just stops // Was : throw GDLException("Type of FOR index variable changed.");
+  }
+//  if( lEndIn->Type() != this->t) throw GDLException("Type of FOR index variable changed.");
   Data_* lEnd=static_cast<Data_*>(lEndIn);
   return (*this)[0] >= (*lEnd)[0];
 }
