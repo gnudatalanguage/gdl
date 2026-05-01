@@ -319,6 +319,7 @@ void CleanupProc( DLibPro* proc ) {
     std::string DllLoadErrorMessage;
     bool addedToHelpDll=false;
     bool IsOK(){return isok;}
+    void NotOK(){isok=false;}
     bool IsHelpAdded(){return addedToHelpDll;}
     void HelpAdded(bool b){addedToHelpDll=b;}
     DllContainer( const DllContainer& ) = delete;
@@ -396,7 +397,7 @@ void CleanupProc( DLibPro* proc ) {
             break;
           }
         }
-        if (!found) throw runtime_error("DLM's IDL_Load() does not define procedure " + proc_name);
+        if (!found) /*throw runtime_error*/ Warning("DLM's IDL_Load() does not define procedure " + proc_name);
         } else {
         bool found = false;
         for (std::map<const char*, void*>::iterator it = SysFunDefinitions.begin(); it != SysFunDefinitions.end(); ++it) {
@@ -407,7 +408,7 @@ void CleanupProc( DLibPro* proc ) {
             break;
           }
         }
-        if (!found) throw runtime_error("DLM's IDL_Load()  does not define function " + proc_name);
+        if (!found) /*throw runtime_error*/ Warning("DLM's IDL_Load()  does not define function " + proc_name);
         }
       }
     
@@ -450,7 +451,7 @@ void CleanupProc( DLibPro* proc ) {
 	my_funcs.erase( proc_name );
       }
     }
-    //for IDL-compatible library, try IDL_Load, that may define useful variables or structures before the use of the othe functions/procedures inside.
+    //for IDL-compatible library, try IDL_Load, that may define useful variables or structures before the use of the functions/procedures inside.
     int CallLoadToDefineEntryLocations(){
       if (my_handles.count(handle) > 0) return 1; //already known
       void* fPtr=NULL;
@@ -473,7 +474,7 @@ void CleanupProc( DLibPro* proc ) {
         return ret;
 early_return:
         Warning("unexpected problem while loading DLM library");
-        return 0;
+        return -1;
      }
       return 0;
     }
@@ -878,7 +879,7 @@ early_return:
             try {
               ret = lib.CallLoadToDefineEntryLocations();
             } catch (GDLException ex) { Warning((*info)[0]+": Recovering from error: "+ex.toString()); e->Interpreter()->RetAll();}
-            if (ret) { //if we got directly symbol addresses, use a special function
+            if (ret > 0) { //if we got directly symbol addresses, use a special function
               lib.RegisterSymbolDefinedByIDL_Load((*info)[0],funcName, funcType, max_args, min_args, hasKeywords);
               if (!lib.IsHelpAdded()) { //can still be unloaded due to problems.
                 help_AddDlmInfo(info->Dup()); //only once
@@ -889,16 +890,13 @@ early_return:
                 } else {
                 int proIx=LibProIx(funcName);
                 }
+            } else if (ret==-1) { lib.NotOK(); //got an error while trying to use IDL_Load (undefined function used in IDL_Load)
             } else lib.RegisterSymbol((*info)[0], entryName, funcName, funcType, max_args, min_args, hasKeywords); //not a dlm, or dlm does not have ILD_Load()
           }
         }
       } else {
-        e->Throw("Error linking procedure/DLL: " + funcName + " -> " + entryName + "  (" + shrdimgName + ") : " +lib.DllLoadErrorMessage); e->Interpreter()->RetAll();}
-//    } catch (GDLException ex) {
-//      e->Throw(ex.toString());
-//    } catch (const std::exception& ex) {
-//      e->Throw("Error linking procedure/DLL: " + funcName + " -> " + entryName + "  (" + shrdimgName + ") : " + ex.what());
-//    } catch (...) { e->Throw("Unexpected exception.");}
+        Warning("Error linking procedure/DLL: " + funcName + " -> " + entryName + "  (" + shrdimgName + ") : " +lib.DllLoadErrorMessage); //e->Interpreter()->RetAll();
+      }
   }
   
   void unlinkimage( EnvT* e ) {

@@ -247,6 +247,11 @@ namespace SysVar
     static_cast<DLongGDL&>(*qSysVar.Data())[0]=1;
   }
   
+  void Make_Loud()
+  {
+    DVar& qSysVar=*sysVarList[quietIx];
+    static_cast<DLongGDL&>(*qSysVar.Data())[0]=0;
+  }
   void SetC( DLong cVal)
   {
     DVar& cSysVar=*sysVarList[cIx];
