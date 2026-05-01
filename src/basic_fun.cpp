@@ -4240,7 +4240,7 @@ unsigned int JSHash(const std::string& str)
       GDLDelete(p1L);
 
       // check permutation vector. Dimensions cannot be found twice and cannot be <0 or >inputRank-1
-      int found[inputRank]={0};
+      int found[MAXRANK]={0};
       for (SizeT i = 0; i < rank; ++i) {
         if (perm[i] < 0 ||perm[i] > inputRank-1||found[perm[i]]) e->Throw("Value of "+e->GetParString(1)+" is out of allowed range");
         else found[perm[i]]=1;
@@ -9155,6 +9155,7 @@ unsigned int JSHash(const std::string& str)
     DString varName;
     e->AssureScalarPar<DStringGDL>(0, varName);
     varName = StrUpCase(varName);
+    if (varName.find("!", 0, 1) == 0) e->Throw("System Variables not allowed in this context: " + varName);
     DSubUD* pro = static_cast<DSubUD*> (callStack[desiredlevnum - 1]->GetPro());
     SizeT nVar = pro->Size(); // # var in GDL for desired level
     int nKey = pro->NKey();
