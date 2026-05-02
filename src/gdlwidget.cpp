@@ -1982,7 +1982,7 @@ GDLWidget::~GDLWidget()
       std::cout << "~GDLWidget("<< widgetID <<"): destroy follower "<< followers.back()<< endl;
 #endif
       GDLWidget* follower=GetWidget(followers.back()); followers.pop_back();
-    if (follower) delete follower;
+    // To Be Investigated: creates double deletion : if (follower) delete follower;
   }
 
   GDLWidget* gdlParent = GetMyParent();
