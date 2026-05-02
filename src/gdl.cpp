@@ -611,10 +611,12 @@ int main(int argc, char *argv[])
   
   //always between try{} catch{} when calling ExecuteStringLine!
   try {
+     SysVar::Make_Quiet();
     unknownProList.insert("DLM_REGISTER"); //necessary as "DLM_REGISTER" is not yet known by parser at this time.
   std::string dlmCommand=("dlm_register,/silent");
   interpreter.ExecuteStringLine(dlmCommand);
   } catch (...) {std::cerr<<"Problem starting DLMs\n";}
+  if (!setQuietSysvar) SysVar::Make_Loud();
   interpreter.InterpreterLoop( startup, batch_files, statement);
 
   return 0;

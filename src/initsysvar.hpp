@@ -92,6 +92,7 @@ namespace SysVar
   void Suppress_Edit_Input();
   DLong Quiet();
   void Make_Quiet();
+  void Make_Loud();
   DInt More();
   
   // get and set !JOURNAL (journal file LUN)
