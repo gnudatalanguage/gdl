@@ -1710,7 +1710,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     if ( Hashisfoldcase( GetOBJ( e->GetTheKW( 0), e)) ) return new DByteGDL(1);
      else return new DByteGDL(0);
   }
-
+  
   BaseGDL* hash__count( EnvUDT* e)
   {
     static int kwSELFIx = 0;
@@ -1878,7 +1878,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     
   BaseGDL* hash__haskey( EnvUDT* e)
   {
-    
+
     
 
     // see overload.cpp
@@ -2086,29 +2086,6 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     }
   }
 BaseGDL* hash_subset(DStructGDL* thisTable, BaseGDL* index, bool isfoldcase);
-BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
-    // new hash
-    
-    
-    static unsigned fold_case_mask = 0x00000001;
-
-    DLong initialTableSize = GetInitialTableSize(nEntries); 
-    DStructGDL* hashStruct= new DStructGDL( structDesc::HASH, dimension());
-    DObj objID= BaseGDL::interpreter->NewObjHeap( 1, hashStruct);
-
-    if( isfoldcase) TABLE_BITS( hashStruct) = fold_case_mask;
-    BaseGDL* newObj = new DObjGDL( objID);
-    Guard<BaseGDL> newObjGuard( newObj);
-
-    DStructGDL* hashTable= new DStructGDL( structDesc::GDL_HASHTABLEENTRY, dimension(initialTableSize));
-    DPtr hashTableID= BaseGDL::interpreter->NewHeap( 1, hashTable);
-    DPtrTABLE_DATA( hashStruct) = hashTableID;
-    TABLE_SIZE( hashStruct) = initialTableSize;
-
-    newObjGuard.Release();
-    return newObj;
-
-}
 
     void hash_leftinsertion( EnvUDT* e, DStructGDL* theStruct, int iprm  )
 {
@@ -2401,7 +2378,6 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
                     if(trace_me) std::cout<<" newhash(0)";
                     theref = 
                         hash_subset( hashTable, 0, isfoldcase);
-//                  theref = hash_newhash( 0, isfoldcase);
 // Now we must insert this new hash before proceeding down the nest.                    
                     bool stolen = e->StealLocalKW(iprm + prmbeg);
                     if( !stolen) XX = XX->Dup();
@@ -2835,23 +2811,11 @@ BaseGDL* hash_duplicate(DStructGDL* self) {
 
   BaseGDL* orderedhash_fun( EnvT* e)
   {
-    BaseGDL* par = hash_create( e , true);
-    static unsigned ordmask = 0x00000010;
-    static unsigned TableBitsTag = structDesc::HASH->TagIndex( "TABLE_BITS");
-    
-    DObj s = (*static_cast<DObjGDL*>(par))[0]; // is StrictScalar()
-    if( s == 0) e->Throw(" fail ( s == 0) in ordered hash! ");
-    DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
-    if( oStructGDL == NULL) e->Throw(" fail ( struct == NULL) in ordered hash! ");
-    DStructDesc* desc = oStructGDL->Desc();
-    
-    static unsigned TableBitsIx = desc->TagIndex("TABLE_BITS");
-    (*static_cast<DLongGDL*>(oStructGDL->GetTag( TableBitsIx, 0)))[0] = ordmask;
-    return par;
+    return hash_create( e , true);
   }
 } // namespace lib
   
-static  BaseGDL* hash_create( EnvT* e, bool isordered=false)
+ static  BaseGDL* hash_create( EnvT* e, bool isordered=false)
   {
     static int kwNO_COPYIx = e->KeywordIx("NO_COPY");
     bool kwNO_COPY = false;
