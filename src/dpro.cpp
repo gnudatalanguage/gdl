@@ -213,7 +213,7 @@ DLib::DLib( const string& n, const string& o, const int nPar_,
     key.resize(1);
     key[0]="_REF_EXTRA";
     extra_type = REFEXTRA;
-    extraIx = 0; // initialise the possibility of KEYWORDS.
+    extraIx = 0; // initialize the possibility of KEYWORDS.
   }
 }
 
@@ -362,6 +362,10 @@ DLibFunRetNew::DLibFunRetNew( LibFun f, const string& n, const int nPar_,
 			      const string keyNames[], const string warnKeyNames[], bool rConstant,
 			      const int nParMin_)
   : DLibFun(f,n,nPar_,keyNames, warnKeyNames, nParMin_), retConstant( rConstant)
+{}
+
+DLibFunRetNew::DLibFunRetNew(  LibFun f, void* mediator, const string& n, const int nPar_, const int nParMin_, const bool hasKeys)
+  : DLibFun(f,mediator,n,nPar_,nParMin_, hasKeys)
 {}
 
 DLibFunRetNewTP::DLibFunRetNewTP( LibFun f, const string& n, const int nPar_, 
