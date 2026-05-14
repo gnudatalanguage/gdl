@@ -308,7 +308,7 @@ public:
 		 const int nPar_=0, 
 		 const std::string keyNames[]=NULL,
 		 const std::string warnKeyNames[]=NULL, const int nParMin_=0);
-
+  DLibFunRetNew(  LibFun f, void* mediator, const std::string& n, const int nPar_, const int nParMin_, const bool hasKeys);
   bool RetNew() { return true;}
   bool RetConstant() { return this->retConstant;}
 };
