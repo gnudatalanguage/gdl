@@ -1,6 +1,6 @@
 		DEFOUT(TARGET_GDL_TYPE);
 		if (argc == 1) {
-			if (isArray(argv[0])) {
+			if (ISARRAY(argv[0])) {
 				TREAT_MULTIPLE_ARGS();
 				PREPARE_ARRAY(TARGET_EXPORT_TYPE);
 				switch (argv[0]->type) {
@@ -37,7 +37,7 @@
 			}
 			return ret;
 		} else if (argc == 2 && normal_mode ) { //default case, adds imaginary part
-			if (isScalar(argv[0]) && isScalar(argv[1])) { //two numbers
+			if (ISSCALAR(argv[0]) && ISSCALAR(argv[1])) { //two numbers
 				switch (argv[0]->type) {
 						DOCASE_TO_CMP_FROM_CMP_VARIANT(GDL_TYP_BYTE, cmp, c);
 						DOCASE_TO_CMP_FROM_CMP_VARIANT(GDL_TYP_INT, cmp, i);
@@ -71,7 +71,7 @@
 			return ret;
 		} else {
 			TREAT_MULTIPLE_ARGS();
-			if (isArray(argv[0])) {
+			if (ISARRAY(argv[0])) {
 				PREPARE_ARRAY(TARGET_EXPORT_TYPE);
 				switch (argv[0]->type) {
 						DOCASE_TO_CMP_ARRAY_NO_CONVERT(GDL_TYP_BYTE, UCHAR, TARGET_EXPORT_TYPE);

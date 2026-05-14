@@ -1,7 +1,7 @@
 		DEFOUT(TARGET_GDL_TYPE); //define size of output element, or return if conversion is unnecessary.
 		TREAT_MULTIPLE_ARGS(); // check that output is able to be extracted from input (input arr_len limit) and creates appropriate EXPORT_ARRAY
 		if (argc == 1) {
-			if (isArray(argv[0])) { //simple conversion, strings accepted
+			if (ISARRAY(argv[0])) { //simple conversion, strings accepted
 			PREPARE_ARRAY(TARGET_EXPORT_TYPE); //make target an array using above EXPORT_ARRAY
 			switch (argv[0]->type) {
 					DOCASE_ARRAY(GDL_TYP_BYTE, UCHAR);
@@ -38,7 +38,7 @@
 		}
 		return ret;
 	} else { // case Y=CONVERT(X,offset,dim1,[dim2,dim3],...). No "conversion" the byte stream is just reinterpreted.
-			if (isArray(argv[0])) {
+			if (ISARRAY(argv[0])) {
 				PREPARE_ARRAY(TARGET_EXPORT_TYPE);
 				switch (argv[0]->type) {
 						DOCASE_ARRAY_NO_CONVERT(GDL_TYP_BYTE, UCHAR, TARGET_EXPORT_TYPE);
