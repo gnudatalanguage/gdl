@@ -442,7 +442,7 @@ void DSubUD::DelTree()
 DSubUD* DSubUD::AddPar(const string& p)
 {
   var.push_back(p);
-  nPar++;
+  if (nPar >= 0) nPar++;
   return this;
 }
 

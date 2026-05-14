@@ -86,6 +86,7 @@ namespace structDesc {
   // set in InitStructs()
   DStructDesc* LIST = NULL;
   DStructDesc* HASH = NULL;
+  DStructDesc* ORDEREDHASH = NULL;
   DStructDesc* GDL_CONTAINER = NULL;
   DStructDesc* GDL_CONTAINER_NODE = NULL;
   DStructDesc* GDL_HASHTABLEENTRY = NULL;
@@ -261,6 +262,7 @@ void InitStructs()
   structList.push_back(gdlContainer);
   structDesc::GDL_CONTAINER = gdlContainer;
 
+  //HASHes in GDL are actually ORDEREDHASHES, as the order of insertion etc is kept (at the moment). 
   DStructDesc* gdlHash = new DStructDesc( "HASH");
   // use operator overloading (note: gdl_object's operators are not set yet)
   gdlHash->AddParent(gdl_object);
@@ -274,6 +276,16 @@ void InitStructs()
   // insert into structList
   structList.push_back(gdlHash);
   structDesc::HASH = gdlHash;
+
+  // ORDEREDHASH struct, for compatibility, as it is equivalent to HASH in any other aspects.
+  DStructDesc* gdlOrderedHash = new DStructDesc( "ORDEREDHASH");
+  // use operator overloading (note: gdl_object's operators are not set yet)
+  gdlOrderedHash->AddParent(gdlHash);
+  gdlOrderedHash->AddTag("DATA_LIST", &aObjRef  );
+  gdlOrderedHash->AddTag("DATA_FOREACH", &aObjRef  );
+  // insert into structList
+  structList.push_back(gdlOrderedHash);
+  structDesc::ORDEREDHASH = gdlOrderedHash;
 
   DStructDesc* gdlHashTE = new DStructDesc( "GDL_HASHTABLEENTRY");
   gdlHashTE->AddTag("PKEY", &aPtrRef);
@@ -941,7 +953,7 @@ void InitObjects()
 
   // initialize struct descriptors which are not system variables
   InitStructs();
-  // add internal memeber subroutines
+  // add internal member subroutines
   SetupOverloadSubroutines();
   
   // graphic devices must be initialized after system variables.

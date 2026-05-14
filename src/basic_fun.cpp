@@ -728,7 +728,7 @@ namespace lib {
   //       else return ret;
   //  }
 
-  BaseGDL* obj_new(EnvT* e) {
+ BaseGDL* obj_new(EnvT* e) {
     //     StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
 
     int nParam = e->NParam();
@@ -742,7 +742,46 @@ namespace lib {
 
     // this is a struct name -> convert to UPPERCASE
     objName = StrUpCase(objName);
-    if (objName == "IDL_OBJECT")
+    if (objName == "HASH" | objName=="ORDEREDHASH") {
+    int funIx = LibFunIx(objName);
+      EnvT* newEnv = e->NewEnv(libFunList[funIx], 1);
+      Guard<EnvT> guard(newEnv);
+    int nkw=e->GetExtraCount();
+    if (nkw > 0) {
+      DStringGDL* refextra = e->GetKWAs<DStringGDL>(0);
+      for (auto i=0; i< refextra->N_Elements(); ++i) {
+         BaseGDL* val = e->GetRefExtraList((*refextra)[i]);
+        DString s=(*refextra)[i];
+        int l=s.length();
+        if (s.compare(0,l,"EXTRACT",l)==0) {newEnv->SetKeyword("EXTRACT",val); continue;}
+        if (s.compare(0,l,"FOLD_CASE",l)==0) {newEnv->SetKeyword("FOLD_CASE",val); continue;}
+        if (s.compare(0,l,"NO_COPY",l)==0) {newEnv->SetKeyword("NO_COPY",val); continue;}
+        if (s.compare(0,l,"LOWERCASE",l)==0) {newEnv->SetKeyword("LOWERCASE",val); continue;}
+        e->Throw("Keyword "+s+" not allowed in call to: "+objName+"::INIT");
+        }
+      }
+      return static_cast<DLibFun*> (newEnv->GetPro())->Fun()(newEnv);
+    }
+    else  if (objName == "LIST") {
+    int funIx = LibFunIx(objName);
+      EnvT* newEnv = e->NewEnv(libFunList[funIx], 1);
+      Guard<EnvT> guard(newEnv);
+    int nkw=e->GetExtraCount();
+    if (nkw > 0) {
+      DStringGDL* refextra = e->GetKWAs<DStringGDL>(0);
+      for (auto i=0; i< refextra->N_Elements(); ++i) {
+         BaseGDL* val = e->GetRefExtraList((*refextra)[i]);
+        DString s=(*refextra)[i];
+        int l=s.length();
+        if (s.compare(0,l,"EXTRACT",l)==0) {newEnv->SetKeyword("EXTRACT",val); continue;}
+        if (s.compare(0,l,"LENGTH",l)==0) {newEnv->SetKeyword("LENGTH",val); continue;}
+        if (s.compare(0,l,"NO_COPY",l)==0) {newEnv->SetKeyword("NO_COPY",val); continue;}
+        e->Throw("Keyword "+s+" not allowed in call to: "+objName+"::INIT");
+        }
+      }
+      return static_cast<DLibFun*> (newEnv->GetPro())->Fun()(newEnv);
+    }
+    else if (objName == "IDL_OBJECT")
       objName = GDL_OBJECT_NAME; // replacement also done in GDLParser
     else if (objName == "IDL_CONTAINER")
       objName = GDL_CONTAINER_NAME;

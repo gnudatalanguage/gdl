@@ -1989,8 +1989,6 @@ BaseGDL* list__toarray(EnvUDT* e) {
   }
 
   BaseGDL* list__isempty(EnvUDT* e) {
-    std::cout << "par par ici et lÃ " << std::endl;
-
 
     static int kwSELFIx = 0;
     DStructGDL* self = GetOBJ(e->GetTheKW(kwSELFIx), e);
