@@ -121,6 +121,17 @@ pro dlm_register,filein,silent=silent,verbose=verbose
         dlm_info[2]+=", Source: "+source
      endif
      dlm_info[3]="Path: "+image
+
+; find eventual structures defined
+     findpos=strpos(s , "STRUCTURE")
+     w=where(findpos gt -1, count)
+     if (count ge 1) then begin
+        for istruct=0,count-1 do begin
+           iline=w[istruct]
+           structname=strtrim(strmid(s[iline],findpos[iline]+9,strlen(s[iline])),2)
+           if n_elements(structlist) eq 0 then structlist=structname else structlist=[structlist,structname] 
+        endfor
+     endif
      
      ;get functions or procedures
      findpos=strpos(s , "PROCEDURE")
@@ -142,7 +153,7 @@ endif
           if keyword_set(verbose)  then print,"linkimage,""",rtname,""",""",image,'",',strtrim(isfunct,2),',"',entry,""",min_args=",strtrim(minargs,2),",max_args=",strtrim(maxargs,2)
            if (is_gdl) then begin
               linkimage,rtname,image,isfunct,entry,min_args=minargs,max_args=maxargs,keywords=gdl_kw,dlm_info=dlm_info,/NATIVE
-           endif else linkimage,rtname,image,isfunct,entry,min_args=minargs,max_args=maxargs,keywords=strlen(option),dlm_info=dlm_info
+           endif else linkimage,rtname,image,isfunct,entry,min_args=minargs,max_args=maxargs,keywords=strlen(option),dlm_info=dlm_info,DEFINE_STRUCTURE=structlist
 nextpro:
         endfor
      endif
@@ -166,7 +177,7 @@ endif
           if keyword_set(verbose)  then print,"linkimage,""",rtname,""",""",image,'",',strtrim(isfunct,2),',"',entry,""",min_args=",strtrim(minargs,2),",max_args=",strtrim(maxargs,2)
           if (is_gdl) then begin
            linkimage,rtname,image,isfunct,entry,min_args=minargs,max_args=maxargs,keywords=gdl_kw,dlm_info=dlm_info,/NATIVE
-        endif else linkimage,rtname,image,isfunct,entry,min_args=minargs,max_args=maxargs,keywords=strlen(option),dlm_info=dlm_info
+        endif else linkimage,rtname,image,isfunct,entry,min_args=minargs,max_args=maxargs,keywords=strlen(option),dlm_info=dlm_info,DEFINE_STRUCTURE=structlist
 nextfunc:
         endfor
      endif
