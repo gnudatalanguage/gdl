@@ -2690,8 +2690,8 @@ void dumpkw(GDL_KW_PAR kw){
 	std::cerr<<" type: "<<(int) kw.type<<std::endl;
 	std::cerr<<" value: 0x"<<std::hex<<(size_t)kw.value<<std::endl;
 }
-#define ACCEPT -1
-#define IGNORE -2
+#define KEYWORD_ACCEPT -1
+#define KEYWORD_IGNORE -2
 DLL_PUBLIC int  GDL_CDECL IDL_KWGetParams(int argc, EXPORT_VPTR *argv, char *argk_passed, GDL_KW_PAR *kw_requested, EXPORT_VPTR *plain_args, int mask) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		int hasplain=(plain_args != NULL);
         
@@ -2732,8 +2732,8 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWGetParams(int argc, EXPORT_VPTR *argv, char *arg
 			std::cerr << "\nrequested kw: " << kw << std::endl;
 			dumpkw(kw_requested[ikw]);
 #endif
-			int code = ACCEPT;
-			if ((kw_requested[ikw].mask & mask) == 0) code = IGNORE;
+			int code = KEYWORD_ACCEPT;
+			if ((kw_requested[ikw].mask & mask) == 0) code = KEYWORD_IGNORE;
 			requested.insert(std::pair<int, int>(ikw, code));
 			ikw++;
 		}
@@ -2747,7 +2747,7 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWGetParams(int argc, EXPORT_VPTR *argv, char *arg
 				if (strncmp(expected_kw, s, l) == 0) { //found
 					found = true;
 //					std::cerr<<"found kw: "<<expected_kw<<std::endl;
-					if (it->second == IGNORE) { //ignored
+					if (it->second == KEYWORD_IGNORE) { //ignored
 						ignored = true;
 						break;
 					}
@@ -2769,7 +2769,7 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWGetParams(int argc, EXPORT_VPTR *argv, char *arg
 		//populate all passed addresses
 		for (it = requested.begin(); it != requested.end(); ++it) {
 			int ipassed = it->second;
-			if (ipassed == ACCEPT) GdlExportAbsentKeyword(kw_requested[it->first], NULL);
+			if (ipassed == KEYWORD_ACCEPT) GdlExportAbsentKeyword(kw_requested[it->first], NULL);
 			else if (ipassed >= 0) {
 			argk[ipassed].out = false;
 			EXPORT_VPTR ret = GdlExportPresentKeyword(kw_requested[it->first], argk[it->second], NULL);
@@ -2826,8 +2826,8 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWProcessByOffset(int argc, EXPORT_VPTR *argv, cha
 			std::cerr << "\nrequested kw: " << kw << std::endl;
 			dumpkw(kw_requested[ikw]);
 #endif
-			int code = ACCEPT;
-			if ((kw_requested[ikw].mask & mask) == 0) code = IGNORE;
+			int code = KEYWORD_ACCEPT;
+			if ((kw_requested[ikw].mask & mask) == 0) code = KEYWORD_IGNORE;
 			requested.insert(std::pair<int, int>(ikw, code));
 			ikw++;
 		}
@@ -2840,7 +2840,7 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWProcessByOffset(int argc, EXPORT_VPTR *argv, cha
 				const char* expected_kw = kw_requested[it->first].keyword;
 				if (strncmp(expected_kw, s, l) == 0) { //found
 					found = true;
-					if (it->second == IGNORE) { //ignored
+					if (it->second == KEYWORD_IGNORE) { //ignored
 						ignored = true;
 						break;
 					}
@@ -2866,7 +2866,7 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWProcessByOffset(int argc, EXPORT_VPTR *argv, cha
 		for (it = requested.begin(); it != requested.end(); ++it) {
 			int ipassed = it->second;
 			argk[ipassed].out = false;
-			if (ipassed == ACCEPT) GdlExportAbsentKeyword(kw_requested[it->first], kw_result);
+			if (ipassed == KEYWORD_ACCEPT) GdlExportAbsentKeyword(kw_requested[it->first], kw_result);
 			else if (ipassed >= 0) {
 				EXPORT_VPTR ret=GdlExportPresentKeyword(kw_requested[it->first], argk[it->second], kw_result);
 			    if (ret != NULL) {
@@ -2879,8 +2879,8 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWProcessByOffset(int argc, EXPORT_VPTR *argv, cha
 		return nplain;
 	}
 
-#undef ACCEPT
-#undef IGNORE
+#undef KEYWORD_ACCEPT
+#undef KEYWORD_IGNORE
 
 DLL_PUBLIC int GDL_CDECL IDL_KWProcessByAddr(int argc, EXPORT_VPTR *argv, char *argk_passed,  GDL_KW_PAR *kw_requested, EXPORT_VPTR *plain_args, int mask, int *free_required) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__) 
 	*free_required=0;
