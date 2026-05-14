@@ -1,0 +1,65 @@
+
+if (CollectedDLMSymbols[pos].name.size()) {
+	//mimics IDL's behaviour although we do not use the same logic, the dlls are loaded when the dlm is read, not when an entry is called.
+	std::cout << "Loaded DLM: " << CollectedDLMSymbols[pos].name << std::endl;
+	CollectedDLMSymbols[pos].name.clear();
+}
+int nparams = e->NParam();
+// a DllPro is defined with only 1 key: the key[0]="_REF_EXTRA" IF the procedure has Keywords.
+int add = (CollectedDLMSymbols[pos].haskeywords)?1:0; // DLM PRO/FUN accepts keywords. This adds parameter 0 (_REF_EXTRA) and our parameters start at index 1
+for (auto i = 0; i < nparams; ++i) {
+	bool global = e->GlobalKW(i + add); //get global status
+	std::cerr << "i=" << i << ": " << e->GetString(i + add) << " global=" << global << std::endl;
+	BaseGDL * par = e->GetParDefined(i); //getParDefined take into account key.size() which is 1.
+	EXPORT_VPTR v = GDL_ToVPTR(par, global, false);
+	varInfo info = {v, &par, global, DInterpreter::CallStack().size(), false};
+	PassedVariables.push_back(info);
+	if (global) PassedVariablesNames[v] == e->GetString(i + add); //add to list of passed NAMED variables
+}
+char *argk = NULL;
+// keywords are passed as _REF_EXTRA struct, we just populate argk with our GDL_KEYWORDS_LIST struct
+GDL_PASS_KEYWORDS_LIST passed;
+GDL_KEYWORDS_LIST* kws = NULL;
+DStringGDL* refextra;
+// a DllPro is defined with only 1 key: the key[0]="_REF_EXTRA" IF the procedure has Keywords.
+SizeT nkw = e->GetExtraCount();
+if (nkw > 0) {
+	refextra = e->GetKWAs<DStringGDL>(0);
+}
+// create argv adding space for all keywords
+EXPORT_VPTR argv[nparams + nkw];
+int argc = 0;
+for (; argc < nparams; ++argc) argv[argc] = PassedVariables[argc].v;
+
+if (nkw > 0) { // some KW really present
+// Note: this implies that the _REF_EXTRA list of Keywords is sorted alphabetically!
+	kws = (GDL_KEYWORDS_LIST*) calloc(nkw, sizeof (GDL_KEYWORDS_LIST));
+	for (auto i = 0; i < nkw; ++i) {
+		kws[i].name = (*refextra)[i].c_str();
+		BaseGDL** gvarp = e->GetRefExtraListPtr((*refextra)[i]); //check as Ptr as the variable may not exist
+		if (gvarp == NULL) {
+			kws[i].global = false;
+			//pass the variable anyway using GetRefExtraList
+			BaseGDL* gvar = e->GetRefExtraList((*refextra)[i]);
+			kws[i].varname = e->Caller()->GetString(gvar);
+			kws[i].gdlVarPtr = gvar;
+			if (gvar == NULL) kws[i].type = GDL_TYP_UNDEF;
+		} else {
+			kws[i].global = true;
+			kws[i].gdlVarPtr = *gvarp;
+			if (*gvarp == NULL) kws[i].type = GDL_TYP_UNDEF;
+			kws[i].varname = e->Caller()->GetString(*gvarp);
+		}
+        // Convert this to a VPTR, update current kws structure, add variable to argv and increase pointer
+        kws[i].convertedVPTR = GDL_ToVPTR(kws[i].gdlVarPtr, kws[i].global, true); //is a KW
+        argv[argc++] = kws[i].convertedVPTR;
+
+#ifdef GDL_DEBUG
+		std::cerr << kws[i].name << " (keyword, input) : " << kws[i].varname << "=";
+		if (kws[i].gdlVarPtr != NULL) (kws[i].gdlVarPtr)->ToStream(std::cerr);
+#endif
+	}
+}
+passed.npassed = nkw;
+passed.passed = kws;
+argk = (char*) (&passed);
