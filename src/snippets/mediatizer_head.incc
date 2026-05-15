@@ -9,7 +9,7 @@ int nparams = e->NParam();
 int add = (CollectedDLMSymbols[pos].haskeywords)?1:0; // DLM PRO/FUN accepts keywords. This adds parameter 0 (_REF_EXTRA) and our parameters start at index 1
 for (auto i = 0; i < nparams; ++i) {
 	bool global = e->GlobalKW(i + add); //get global status
-	std::cerr << "i=" << i << ": " << e->GetString(i + add) << " global=" << global << std::endl;
+//	std::cerr << "i=" << i << ": " << e->GetString(i + add) << " global=" << global << std::endl;
 	BaseGDL * par = e->GetParDefined(i); //getParDefined take into account key.size() which is 1.
 	EXPORT_VPTR v = GDL_ToVPTR(par, global, false);
 	varInfo info = {v, &par, global, DInterpreter::CallStack().size(), false};
@@ -41,23 +41,20 @@ if (nkw > 0) { // some KW really present
 			kws[i].global = false;
 			//pass the variable anyway using GetRefExtraList
 			BaseGDL* gvar = e->GetRefExtraList((*refextra)[i]);
-			kws[i].varname = e->Caller()->GetString(gvar);
+			kws[i].varname = e->GetString(gvar);
 			kws[i].gdlVarPtr = gvar;
 			if (gvar == NULL) kws[i].type = GDL_TYP_UNDEF;
+//			std::cerr << "local: "<<kws[i].varname<< std::endl;
 		} else {
 			kws[i].global = true;
 			kws[i].gdlVarPtr = *gvarp;
 			if (*gvarp == NULL) kws[i].type = GDL_TYP_UNDEF;
 			kws[i].varname = e->Caller()->GetString(*gvarp);
+//			std::cerr << "global: "<<kws[i].varname<< std::endl;
 		}
         // Convert this to a VPTR, update current kws structure, add variable to argv and increase pointer
         kws[i].convertedVPTR = GDL_ToVPTR(kws[i].gdlVarPtr, kws[i].global, true); //is a KW
         argv[argc++] = kws[i].convertedVPTR;
-
-#ifdef GDL_DEBUG
-		std::cerr << kws[i].name << " (keyword, input) : " << kws[i].varname << "=";
-		if (kws[i].gdlVarPtr != NULL) (kws[i].gdlVarPtr)->ToStream(std::cerr);
-#endif
 	}
 }
 passed.npassed = nkw;

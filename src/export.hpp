@@ -43,6 +43,10 @@ static void* bt_buffer[BT_BUF_SIZE];
 #define JUMP_THROW 1
 #define JUMP_RETURN 2
 
+//inline bool pdata_warn() { std::cerr<<"using PROTECT_SHARED_DATA"<<std::endl; return false;}
+//#define PROTECT_SHARED_DATA pdata_warn() // unless data is shared in GDLToVPTR and VPTRToGDL, this needs to be set to false.
+#define PROTECT_SHARED_DATA false // unless data is shared in GDLToVPTR and VPTRToGDL, this needs to be set to false.
+
 static std::map<const char*,void*> SysFunDefinitions; 
 static std::map<const char*,void*> SysProDefinitions;
 typedef struct {
@@ -1026,7 +1030,7 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_ImportArray(int n_dim, EXPORT_MEMINT dim[]
 }
 DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_ImportNamedArray(char *name, int n_dim, EXPORT_MEMINT dim[],  int type, UCHAR *data,  EXPORT_ARRAY_FREE_CB free_cb, EXPORT_StructDefPtr s){TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	EXPORT_VPTR v = IDL_ImportArray(n_dim, dim,  type, data, free_cb, s);		
-	BaseGDL* gdlvar = VPTR_ToGDL(v, true); //protect data as this is passed to *MAIN* GDL
+	BaseGDL* gdlvar = VPTR_ToGDL(v, PROTECT_SHARED_DATA); //protect data as this is passed to *MAIN* GDL
 	restoreNormalVariable(std::string(name), gdlvar);
 	return v;
 }
@@ -1191,7 +1195,7 @@ DLL_PUBLIC void GDL_CDECL GDL_Print(int argc, EXPORT_VPTR *argv, char *argk, boo
 				for (SizeT iarg = 1; iarg < nParam; ++iarg) {
 					EXPORT_VPTR v = argv[iarg];
 					checkOK(v);
-					const BaseGDL* par = VPTR_ToGDL(v);
+					const BaseGDL* par = VPTR_ToGDL(v, PROTECT_SHARED_DATA);
 					newEnv->SetNextPar(par->Dup());
 				}
 				static_cast<DLibPro*> (newEnv->GetPro())->Pro()(newEnv);
@@ -2436,119 +2440,6 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_CvtString(int argc, EXPORT_VPTR argv[], ch
 #undef TREAT_MULTIPLE_ARGS
 #undef DOCASE_ARRAY_FROM_STRING
 
-char* GDLConvertToAndWriteVarAtAddr(BaseGDL* var, std::string name, UCHAR type, size_t address, bool isoutput, bool isarray){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-		switch (type) {
-			case GDL_TYP_BYTE:
-			{
-				DByteGDL* res = static_cast<DByteGDL*> (var->Convert2(GDL_BYTE));
-				memcpy((void*) (address), res->DataAddr(), res->N_Elements() * sizeof (UCHAR));
-				break;
-			}
-			case GDL_TYP_INT:
-			{
-				DIntGDL* res = static_cast<DIntGDL*> (var->Convert2(GDL_INT));
-				memcpy((void*) (address), res->DataAddr(), res->N_Elements() * sizeof (EXPORT_INT));
-				break;
-			}
-			case GDL_TYP_LONG:
-			{
-				DLongGDL* res = static_cast<DLongGDL*> (var->Convert2(GDL_LONG));
-				memcpy((void*) (address), res->DataAddr(), res->N_Elements() * sizeof (EXPORT_LONG));
-				break;
-			}
-			case GDL_TYP_FLOAT:
-			{
-				DFloatGDL* res = static_cast<DFloatGDL*> (var->Convert2(GDL_FLOAT));
-				memcpy((void*) (address), res->DataAddr(), res->N_Elements() * sizeof (float));
-				break;
-			}
-			case GDL_TYP_DOUBLE:
-			{
-				DDoubleGDL* res = static_cast<DDoubleGDL*> (var->Convert2(GDL_DOUBLE));
-				memcpy((void*) (address), res->DataAddr(), res->N_Elements() * sizeof (double));
-				break;
-			}
-			case GDL_TYP_COMPLEX:
-			{
-				DComplexGDL* res = static_cast<DComplexGDL*> (var->Convert2(GDL_COMPLEX));
-				memcpy((void*) (address), res->DataAddr(), res->N_Elements() * sizeof (EXPORT_COMPLEX));
-				break;
-			}
-			case GDL_TYP_DCOMPLEX:
-			{
-				DComplexDblGDL* res = static_cast<DComplexDblGDL*> (var->Convert2(GDL_COMPLEXDBL));
-				memcpy((void*) (address), res->DataAddr(), res->N_Elements() * sizeof (EXPORT_DCOMPLEX));
-				break;
-			}
-			case GDL_TYP_UINT:
-			{
-				DUIntGDL* res = static_cast<DUIntGDL*> (var->Convert2(GDL_UINT));
-				memcpy((void*) (address), res->DataAddr(), res->N_Elements() * sizeof (EXPORT_UINT));
-				break;
-			}
-			case GDL_TYP_ULONG:
-			{
-				DULongGDL* res = static_cast<DULongGDL*> (var->Convert2(GDL_ULONG));
-				memcpy((void*) (address), res->DataAddr(), res->N_Elements() * sizeof (EXPORT_ULONG));
-				break;
-			}
-			case GDL_TYP_ULONG64:
-			{
-				DULong64GDL* res = static_cast<DULong64GDL*> (var->Convert2(GDL_ULONG64));
-				memcpy((void*) (address), res->DataAddr(), res->N_Elements() * sizeof (EXPORT_ULONG64));
-				break;
-			}
-			case GDL_TYP_LONG64:
-			{
-				DLong64GDL* res = static_cast<DLong64GDL*> (var->Convert2(GDL_LONG64));
-				memcpy((void*) (address), res->DataAddr(), res->N_Elements() * sizeof (EXPORT_LONG64));
-				break;
-			}
-			case GDL_TYP_STRING:
-			{
-				DStringGDL* res = static_cast<DStringGDL*> (var->Convert2(GDL_STRING));
-				if (isarray) {
-					SizeT nEl=var->N_Elements();
-					void* allstringdescr=MyMallocDestroyedOnExit(nEl*sizeof(EXPORT_STRING));
-					memset(allstringdescr,0,nEl*sizeof(EXPORT_STRING));
-					void* stringdescPtrs=MyMallocDestroyedOnExit(nEl*sizeof(EXPORT_STRING*));
-					EXPORT_STRING** p=(EXPORT_STRING**)stringdescPtrs;
-					for (SizeT i=0; i< nEl; ++i) p[i]=(EXPORT_STRING*)((SizeT)allstringdescr+(i*sizeof(EXPORT_STRING)));
-					for (auto i=0; i< nEl; ++i) {
-						p[i]->slen = ((*res)[i]).size();
-						if (p[i]->slen > 0) {
-							p[i]->s = (char*) MyMallocDestroyedOnExit(p[i]->slen + 1);
-						    strncpy(p[i]->s, (*res)[i].c_str(), p[i]->slen + 1);
-						}
-					}
-					return (char*)allstringdescr;
-				//write an array of string descriptors at address; return vector of addresses to be destroyed when GDL_KWFree will be called
-				} else {
-					EXPORT_STRING *s=(EXPORT_STRING*) (address); //string descr is at address
-					s->slen = res->NBytes();
-					if (s->slen > 0) {
-						s->s = (char*) MyMallocDestroyedOnExit(s->slen + 1);
-					    strncpy(s->s, (*res)[0].c_str(), s->slen + 1);
-					} else s->s=NULL;
-					return (char*)s;
-				}
-			}
-			case GDL_TYP_UNDEF:
-			{
-				if (!isoutput) GDL_WillReturnAfterCleaning("GDLWriteVarAtAddr: variable " + name + " is not writeable.");
-				break;
-			}
-//			case GDL_TYP_PTR:
-//				GDL_WillReturnAfterCleaning("Unable to convert variable to type pointer.");
-//				break;
-//			case GDL_TYP_OBJREF:
-//				GDL_WillReturnAfterCleaning("Unable to convert variable to type object.");
-//				break;
-			default: GDL_WillReturnAfterCleaning("GDLWriteVarAtAddr: unsupported case.");
-		}
-		return NULL;
-	}
-	
 void GDLZeroAtAddr(size_t address, int type ){TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 int l=IDL_TypeSizeFunc(type);
 memset((void*) (address), 0, l);
@@ -2615,9 +2506,9 @@ if (requested.value != NULL) { // need to pass either an address of a EXPORT_VPT
 			else passedArraySize=(int *) &((*arr_desc).n_offset); //n_offset may also be the odl api "n"
 			*passedArraySize = var->N_Elements();
 			size_t data_address = (size_t) (kw_result)+(size_t) ((*arr_desc).data); //address where to pass elements
-			if (GDLConvertToAndWriteVarAtAddr(var, std::string(requested.keyword), requested.type, data_address, isoutput, true) != NULL) {
-				if (kw_result) memcpy(kw_result, &cleanMem, sizeof (int)); //make GDL_KW_FREE in called program call GDL_KWFree();
-			}
+			EXPORT_VPTR v=IDL_BasicTypeConversion(1,&passed.convertedVPTR,requested.type);
+			memcpy((void*) data_address, v->value.arr->data, v->value.arr->arr_len);
+			if (kw_result) memcpy(kw_result, &cleanMem, sizeof (int)); //make GDL_KW_FREE in called program call GDL_KWFree();
 			return NULL;
 		} else {
 			//here GDL_KW_VALUE may appear
@@ -2632,9 +2523,10 @@ if (requested.value != NULL) { // need to pass either an address of a EXPORT_VPT
 					*val |= mask;
 				}
 			} else {
-				if (GDLConvertToAndWriteVarAtAddr(var, std::string(requested.keyword), requested.type, global_address, isoutput, false) != NULL) {
+					EXPORT_VPTR v=IDL_BasicTypeConversion(1,&passed.convertedVPTR,requested.type);
+					if (ISARRAY(v))	memcpy((void*) global_address, v->value.arr->data, v->value.arr->arr_len);
+					else memcpy((void*) global_address, &v->value, IDL_TypeSize[v->type]);
 					if (kw_result) memcpy(kw_result, &cleanMem, sizeof (int)); //make GDL_KW_FREE in called program call GDL_KWFree();
-				}
 			}
 			return NULL;
 		}
@@ -3500,11 +3392,11 @@ DLL_PUBLIC EXPORT_VPTR GDL_CDECL IDL_conj(EXPORT_VPTR v){		TRACE_ROUTINE(__FUNCT
 		TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 
 		GDL_ENSURE_ARRAY(argv[0]);
-	    BaseGDL* tmp = VPTR_ToGDL(argv[0]);
+	    BaseGDL* tmp = VPTR_ToGDL(argv[0], PROTECT_SHARED_DATA);
 		if (argc > 1) {
 			checkOK(argv[1]);
 			GDL_ENSURE_ARRAY(argv[1]);
-			BaseGDL* thePerm = VPTR_ToGDL(argv[1])->Convert2(GDL_UINT);
+			BaseGDL* thePerm = VPTR_ToGDL(argv[1], PROTECT_SHARED_DATA)->Convert2(GDL_UINT);
 				DUInt perm[GDL_MAX_ARRAY_DIM] = {0};
 				for (int i = 0; i < argv[1]->value.arr->n_elts; ++i) {
 					perm[i] = (*static_cast<DUIntGDL*> (thePerm))[i];
@@ -3599,9 +3491,9 @@ typedef struct {
 
 	DLL_PUBLIC void GDL_CDECL IDL_ObjInsertDef(EXPORT_TEST *s) {
 		TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-//#ifdef GDL_DEBUG
+#ifdef GDL_DEBUG
 		std::cerr<<"IDL_ObjInsertDef, name= "<<s->name<<std::endl;
-//#endif
+#endif
 	}
 	
 	DLL_PUBLIC EXPORT_VPTR GDL_CDECL IDL_ObjReference(EXPORT_VPTR v) {

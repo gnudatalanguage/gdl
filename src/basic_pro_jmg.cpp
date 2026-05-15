@@ -35,7 +35,6 @@ typedef void* handle_t;
 
 #include "export.hpp"
 
-#define PROTECT_SHARED_DATA false // unless data is shared in GDLToVPTR and VPTRToGDL, this needs to be set to false.
 static SizeT increment=0;
 
 namespace lib {

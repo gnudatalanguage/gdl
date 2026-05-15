@@ -4,7 +4,8 @@
     // has been modified internally at the exit of the called function, so we must use e->SetPar even if the GDL variable was untouched.
     // It would be better if the data part was directly passed to the called function, in which case the following code should be removed.
 
-// due to IDL_FindNamedVariable() PassedVariable.size may be greater than nparams
+// due to IDL_FindNamedVariable() PassedVariable.size may be greater than nparams. debug: test here
+if (PassedVariables.size() != nparams) std::cerr<<"Parameter stack size has changed!"<<std::endl;
     for (auto i = 0; i < PassedVariables.size(); ++i) {
       if (PassedVariables[i].global  && !ISTEMP(PassedVariables[i].v)) {
 //        std::cerr << "updating parameter #" << i << ": " << IDL_VarName(PassedVariables[i].v) << std::endl;
@@ -15,6 +16,7 @@
     //SetKW will NOT work, since the only KW of each of the four CallDllXXX routines is _REF_EXTRA. 
     for (auto i = 0; i < nkw; ++i) {
       if (kws[i].out) {
+		  assert(kws[i].global); // only global kw here
 //      std::cerr << "passing back Keyword #" << i << " name \"" << kws[i].varname << "\": " << IDL_VarName(kws[i].convertedVPTR) << std::endl;
 	  BaseGDL* gdlvar = VPTR_ToGDL(kws[i].convertedVPTR, PROTECT_SHARED_DATA); //protect data as this is passed to *MAIN* GDL
 	  restoreNormalVariable(kws[i].varname, gdlvar);
