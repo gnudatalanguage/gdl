@@ -2,7 +2,8 @@
 #include "gdl_export.h"
 #include "basegdl.hpp"
 
-#define CONTENT GDL_WillThrowAfterCleaning(__func__,"Fatal - Calling Unsupported or Proprietary Function "+std::string(__func__)+".");
+#define CONTENT ExitDlmFunctionAndThrow(__func__,"Fatal - Calling Unsupported or Proprietary Function "+std::string(__func__)+".");
+//#define CONTENT GDL_WillReturnAfterCleaning("Fatal - Calling Unsupported or Proprietary Function "+std::string(__func__)+".");
 DLL_PUBLIC EXPORT_VPTR GDL_CDECL IDL_nonavailable_rtn(int argc, EXPORT_VPTR argv[],char *argk){CONTENT ; return NULL;}
 DLL_PUBLIC EXPORT_VPTR GDL_CDECL IDL_stregex(int argc, EXPORT_VPTR argv[], char *argk){CONTENT; return NULL;}
 DLL_PUBLIC void GDL_CDECL IDL_unform_io(int type, int argc, EXPORT_VPTR *argv,char *argk){CONTENT}
@@ -102,6 +103,7 @@ DLL_PUBLIC void IDL_FilePathBasenameStart(){CONTENT}
 DLL_PUBLIC void IDL_FilePathDirname(){CONTENT}
 DLL_PUBLIC void IDL_FilePathExpand(){CONTENT}
 DLL_PUBLIC void IDL_FilePathFromDist(){CONTENT}
+//DLL_PUBLIC char* IDL_FilePathFromRoot(int flags, char *pathbuf, char *root, char *file, char *ext,  int nsubdir, char **subdir){CONTENT}
 DLL_PUBLIC void IDL_FilePathFromDistBin(){CONTENT}
 DLL_PUBLIC void IDL_FilePathFromDistHelp(){CONTENT}
 DLL_PUBLIC void IDL_FilePathGetNextSegment(){CONTENT}
@@ -153,7 +155,6 @@ DLL_PUBLIC void IDL_GraphText(){CONTENT}
 DLL_PUBLIC void IDL_HeapVarDelete(){CONTENT}
 DLL_PUBLIC void IDL_HeapVarFromVar(){CONTENT}
 DLL_PUBLIC void IDL_HeapVarGC(){CONTENT}
-DLL_PUBLIC void IDL_HeapVarHashFind(){CONTENT}
 DLL_PUBLIC void IDL_HeapVarHelp(){CONTENT}
 DLL_PUBLIC void IDL_HeapVarName(){CONTENT}
 DLL_PUBLIC void IDL_HeapVarNew(){CONTENT}
@@ -224,15 +225,13 @@ DLL_PUBLIC void IDL_ObjCallMethod(){CONTENT}
 DLL_PUBLIC void IDL_ObjCallMethodByString(){CONTENT}
 DLL_PUBLIC void IDL_ObjClass(){CONTENT}
 DLL_PUBLIC void IDL_ObjContainsClassByID(){CONTENT}
-DLL_PUBLIC void IDL_ObjContainsClassByStr(){CONTENT}
+DLL_PUBLIC int IDL_ObjContainsClassByStr(){return 1;}
 DLL_PUBLIC void IDL_ObjDestroy(){CONTENT}
-DLL_PUBLIC void IDL_ObjGetInstanceData(){CONTENT}
 DLL_PUBLIC void IDL_ObjHasMethodByHVID(){CONTENT}
 DLL_PUBLIC void IDL_ObjHelp(){CONTENT}
-DLL_PUBLIC void IDL_ObjInsertDef(){CONTENT}
 DLL_PUBLIC void IDL_ObjIsA(){CONTENT}
 DLL_PUBLIC void IDL_ObjNew(){CONTENT}
-DLL_PUBLIC void IDL_ObjReference(){CONTENT}
+//DLL_PUBLIC void IDL_ObjReference(){CONTENT}
 DLL_PUBLIC void IDL_ObjRuntimeDefine(){CONTENT}
 DLL_PUBLIC void IDL_ObjSetSessionResetFunc(){CONTENT}
 DLL_PUBLIC void IDL_ObjValid(){CONTENT}

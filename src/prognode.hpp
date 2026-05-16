@@ -1504,6 +1504,7 @@ public:
   explicit CommandNode( const RefDNode& refNode): DefaultNode( refNode) {}
 };
 
+class EnvUDT;
 // call C++ function as GDL FUNCTION
 // for internal member functions (like GDL_OBJECT::_overload...)
 // this has some overhead compared to calling library subroutines,
@@ -1512,7 +1513,6 @@ public:
 // For member calls this search must be done a runtime (as the object
 // definition is not available at compile time).
 // While library subroutine calls are resolved at compile time.
-class EnvUDT;
 class WRAPPED_FUNNode: public CommandNode
 {
   BaseGDL* (*fun)( EnvUDT*);
@@ -1521,13 +1521,32 @@ public:
   explicit WRAPPED_FUNNode( BaseGDL* (*fun_)( EnvUDT*)): CommandNode(), fun(fun_) {}
   RetCode Run();
 };
-// call C++ function as GDL PRO
+// call DLM-defined (C) void function as GDL PRO
+class WRAPPED_MEDIATIZED_FUNNode : public CommandNode {
+	BaseGDL* (*fun)(EnvUDT*, void*);
+	void* target;
+public:
+    bool IsWrappedNode() { return true;}
+	explicit WRAPPED_MEDIATIZED_FUNNode(BaseGDL* (*fun_)( EnvUDT*, void*), void* target_) : CommandNode(), fun(fun_), target(target_) {}
+	RetCode Run();
+}; 
+
+// call C++ void function as GDL PRO
 class WRAPPED_PRONode: public CommandNode
 {
   void (*pro)( EnvUDT*);
 public:
   bool IsWrappedNode() { return true;}
   explicit WRAPPED_PRONode( void (*pro_)( EnvUDT*)): CommandNode(), pro(pro_) {}
+  RetCode Run();
+};
+// call DLM-defined (C) void function as GDL PRO
+class WRAPPED_MEDIATIZED_PRONode: public CommandNode {
+ void (*pro)( EnvUDT*, void*);
+ void* target;
+public:
+  bool IsWrappedNode() { return true;}
+  explicit WRAPPED_MEDIATIZED_PRONode( void (*pro_)( EnvUDT*, void*), void* target_): CommandNode(), pro(pro_), target(target_) {}
   RetCode Run();
 };
 

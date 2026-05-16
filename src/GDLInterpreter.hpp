@@ -83,7 +83,9 @@ private:
     friend class REF_EXPRVNNode;
     friend class ParameterVNNode;
     friend class WRAPPED_FUNNode;
+    friend class WRAPPED_MEDIATIZED_FUNNode;
     friend class WRAPPED_PRONode;
+    friend class WRAPPED_MEDIATIZED_PRONode;
 
 public: 
 //     RetCode returnCode;    

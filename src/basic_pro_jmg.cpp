@@ -44,7 +44,7 @@ namespace lib {
     //mimics IDL's behaviour although we do not use the same logic, the dlls are loaded when the dlm is read, not when an entry is called.
     void ClearDlmStringReference(std::string &s){
       std::string local_s=s;
-      for (auto i=0; i< AllDLMSymbols.size() ;++i) if (AllDLMSymbols[i].second.size() && AllDLMSymbols[i].second == local_s) AllDLMSymbols[i].second.clear();
+      for (auto i=0; i< CollectedDLMSymbols.size() ;++i) if (CollectedDLMSymbols[i].name == local_s) CollectedDLMSymbols[i].name.clear();
     }
     std::string MyFunName(size_t t){
         for (std::map<const char*, void*>::iterator it = SysFunDefinitions.begin(); it != SysFunDefinitions.end(); ++it) if ((size_t)(it->second)==t) return it->first;
@@ -54,76 +54,108 @@ namespace lib {
         for (std::map<const char*, void*>::iterator it = SysProDefinitions.begin(); it != SysProDefinitions.end(); ++it) if ((size_t)(it->second)==t) return it->first;
         return "Unknown";
     }
-  
-  BaseGDL* CallDllFunc(EnvT* e) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-  SizeT pos=(SizeT)(static_cast<DLibFun*> (e->GetPro())->GetFunAddress());
-  EXPORT_SYSRTN_FUN calldllfunc= (EXPORT_SYSRTN_FUN) AllDLMSymbols[pos].first;
-    if ((AllDLMSymbols[pos].second).size()) {
-      std::cout<<"Loaded DLM: "<<AllDLMSymbols[pos].second<<std::endl;
-      ClearDlmStringReference(AllDLMSymbols[pos].second);
+
+  static DStructGDL* GetOBJ(BaseGDL* Objptr, EnvUDT* e) {
+    if (Objptr == 0 || Objptr->Type() != GDL_OBJ)
+      ThrowFromInternalUDSub(e, "Objptr not of type OBJECT. Please report.");
+    if (!Objptr->Scalar())
+      ThrowFromInternalUDSub(e, "Objptr must be a scalar. Please report.");
+    DObjGDL* Object = static_cast<DObjGDL*> (Objptr);
+    DObj ID = (*Object)[0];
+    try {
+      return BaseGDL::interpreter->GetObjHeap(ID);
+    } catch (GDLInterpreter::HeapException& hEx) {
+      ThrowFromInternalUDSub(e, "Object ID <" + i2s(ID) + "> not found.");
     }
-    int nparams = e->NParam();
-#ifdef GDL_DEBUG
-    std::cerr<<"FUNCTION "<<MyFunName((size_t)calldllfunc)<<std::endl;
-#endif
+
+    assert(false);
+    return NULL;
+  }
+
+#define MEDIATIZER_TYPE EXPORT_SYSRTN_FUN
+  BaseGDL* CallDllFunc(EnvT* e) {
+
+    TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+    SizeT pos = (SizeT) (static_cast<DLibFun*> (e->GetPro())->GetFunAddress());
+    MEDIATIZER_TYPE calldllentry = (MEDIATIZER_TYPE) CollectedDLMSymbols[pos].symbol;
+
+#include "snippets/mediatizer_head.incc"
+    BaseGDL* function_return_variable;
+    EXPORT_VPTR ret;
+    int jumpret = setjmp(callerEnv); //point to return instead of a Throw when something bad happened inside called export functions.
+    if (jumpret != 0) goto early_return;
+    ret = calldllentry(argc, argv, argk);
+    if (ret->type == GDL_TYP_UNDEF) e->Throw("Variable is undefined: <UNDEFINED>.");
+    function_return_variable = VPTR_ToGDL(ret, PROTECT_SHARED_DATA); //protect data against destruction at function exit
+
+#include "snippets/mediatizer_bottom.incc"
+
+early_return:
+      if (kws) free(kws);
+      PassedVariables.clear(); //remove vector
+      PassedVariablesNames.clear(); //remove map entries
+      MimickedHeap.clear();
+      GDL_FreeResources();
+      if (jumpret == JUMP_RETURN) e->Throw("returning to MAIN.");
+      if (jumpret == JUMP_THROW) e->Throw("unexpected problem in " + MyFunName((size_t) calldllentry));
+    return function_return_variable;
+  }
+    
+  BaseGDL* CallDllUDFunc(EnvUDT* e, void* target) {
+    TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+    DStructGDL* self = GetOBJ(e->GetParDefined(0), e);
+    EXPORT_SYSRTN_FUN calldllfunc = (EXPORT_SYSRTN_FUN) (target);
+    int nparams = e->NParam(1);
+    // a DllUDFunc is defined with only 1 key: the key[0]="_REF_EXTRA" IF the procedure has Keywords.
+    SizeT nkw = e->GetExtraCount();
+    int add = (nkw != 0); // kw are present in command.
     for (auto i = 0; i < nparams; ++i) {
-      bool global=true;
-      try { e->AssureGlobalPar(i);} catch (...) { global=false;} //get global status
-#ifdef GDL_DEBUG
-      std::cerr <<"i="<<i<<": "<< e->GetString(i) <<" tempo="<<global<< std::endl;
-#endif
-      BaseGDL* par=e->GetPar(i);
-      EXPORT_VPTR v = GDL_ToVPTR(par, global);    
-			varInfo info={v,&par,(global)?true:false};
-			PassedVariables.push_back(info);
-      if (global) PassedVariablesNames[v]==e->GetString(i) ; //add to list of passed NAMED variables
+      bool global = e->GlobalKW(i + add); //get global status
+      std::cerr << "i=" << i << ": " << e->GetString(i + add) << " global=" << global << std::endl;
+      BaseGDL * par = e->GetParDefined(i); //getParDefined take into account key.size() which is 1.
+      EXPORT_VPTR v = GDL_ToVPTR(par, global, false);
+      varInfo info = {v, &par, global,	DInterpreter::CallStack().size(), false};
+      PassedVariables.push_back(info);
+      if (global) PassedVariablesNames[v] == e->GetString(i + add); //add to list of passed NAMED variables
     }
     char *argk = NULL;
-    // keywords are passed as _REF_EXTRA struct, we just populate argk with our GDL_KEYWORDS_LIST struct
-    SizeT nkw = 0;
     GDL_PASS_KEYWORDS_LIST passed;
     GDL_KEYWORDS_LIST* kws = NULL;
     DStringGDL* refextra;
-    // a DllPro is defined with only 1 key: the key[0]="_REF_EXTRA"; We need to add the REAL (unknown) keywords.
-    //pass in "argk" as a_REF_EXTRA 
     //we cannot directly use the _EXTRA mechanism as some passed values should be writeable or are not defined at the time of calling this function
-//    if (e->KeywordPresentAndDefined(0)) { // some KW present
-//      refextra = e->GetKWAs<DStringGDL>(0);
-//      nkw = refextra->N_Elements();
-//      }
-    nkw=e->GetExtraCount();
-     if (nkw>0) {
-      refextra = e->GetKWAs<DStringGDL>(0);
+    // keywords are passed as _REF_EXTRA struct, we just populate argk with our GDL_KEYWORDS_LIST struct
+    if (nkw > 0) {
+      refextra = (DStringGDL*) (e->GetKW(0));
     }
-   // create argv adding space for all keywords
+    // create argv adding space for all keywords
     EXPORT_VPTR argv[nparams + nkw];
     int argc = 0;
     for (; argc < nparams; ++argc) argv[argc] = PassedVariables[argc].v;
-    
-    // Note: this implies that the _REF_EXTRA list of Keywords is sorted alphabetically!
-    if (nkw > 0) { // some KW really present
-      kws = (GDL_KEYWORDS_LIST*) calloc(nkw,sizeof (GDL_KEYWORDS_LIST));
+    if (nkw > 0) { // some KW present and defined
+      // Note: this implies that the _REF_EXTRA list of Keywords is sorted alphabetically!
+      kws = (GDL_KEYWORDS_LIST*) calloc(nkw, sizeof (GDL_KEYWORDS_LIST));
       for (auto i = 0; i < nkw; ++i) {
         kws[i].name = (*refextra)[i].c_str();
         BaseGDL** gvarp = e->GetRefExtraListPtr((*refextra)[i]); //check as Ptr as the variable may not exist
         if (gvarp == NULL) {
-          kws[i].readonly = 1;
+          kws[i].global = false;
           //pass the variable anyway using GetRefExtraList
           BaseGDL* gvar = e->GetRefExtraList((*refextra)[i]);
-          kws[i].varname=e->Caller()->GetString(gvar);
-          kws[i].varptr = gvar;
+          kws[i].varname = e->Caller()->GetString(gvar);
+          kws[i].gdlVarPtr = gvar;
           if (gvar == NULL) kws[i].type = GDL_TYP_UNDEF;
         } else {
-          kws[i].readonly = 0;
-          kws[i].varptr = *gvarp;
+          kws[i].global = true;
+          kws[i].gdlVarPtr = *gvarp;
           if (*gvarp == NULL) kws[i].type = GDL_TYP_UNDEF;
-          kws[i].varname=e->Caller()->GetString(*gvarp);
+          kws[i].varname = e->Caller()->GetString(*gvarp);
         }
         // Add this variable to argv and increase pointer
-        argv[argc++] = GDL_ToVPTR(kws[i].varptr, kws[i].readonly);
+        argv[argc++] = GDL_ToVPTR(kws[i].gdlVarPtr, kws[i].global, true);
 
 #ifdef GDL_DEBUG
-       std::cerr<<kws[i].name<<" (keyword, input) : "<<kws[i].varname<<"=";  if (kws[i].varptr!=NULL)  (kws[i].varptr)->ToStream(std::cerr);
+        std::cerr << kws[i].name << " (keyword, input) : " << kws[i].varname << "=";
+        if (kws[i].gdlVarPtr != NULL) (kws[i].gdlVarPtr)->ToStream(std::cerr);
 #endif
       }
     }
@@ -133,111 +165,123 @@ namespace lib {
 
     BaseGDL* function_return_variable;
     EXPORT_VPTR ret;
+
     int jumpret = setjmp(callerEnv); //point to return instead of a Throw when something bad happened inside called export functions.
     if (jumpret != 0) goto early_return;
     ret = calldllfunc(argc, argv, argk);
     if (ret->type == GDL_TYP_UNDEF) e->Throw("Variable is undefined: <UNDEFINED>.");
-    function_return_variable = VPTR_ToGDL(ret, true); //protect data
-
-    for (auto i = 0; i < PassedVariables.size(); ++i) if (PassedVariables[i].global) e->SetPar(i, VPTR_ToGDL(PassedVariables[i].v)); //global var //not argv[i] ? should be the same.
+    function_return_variable = VPTR_ToGDL(ret, PROTECT_SHARED_DATA); //protect data, ignore if ret is TEMP
     // due to IDL_FindNamedVariable() PassedVariable.size may be greater than nparams
     for (auto i = nparams; i < PassedVariables.size(); ++i) {
-//      std::cerr<<"extra variable "<<i<<": "<<IDL_VarName(PassedVariables[i].v)<<std::endl;
-//      if (std::get<2>(PassedVariables[i])) {
-//        BaseGDL** par = std::get<1>(PassedVariables[i]);
-//        GDLDelete(*par);
-//        *par = VPTR_ToGDL(*(std::get<0>(PassedVariables[i])));
-//      }
+      std::cerr << "extra variable " << i << ": " << IDL_VarName(PassedVariables[i].v) << std::endl;
+      if (PassedVariables[i].global  && !ISTEMP(PassedVariables[i].v)) {
+        BaseGDL** par = PassedVariables[i].par;
+        GDLDelete(*par);
+        *par = VPTR_ToGDL(PassedVariables[i].v, PROTECT_SHARED_DATA);
+      }
     }
-   //check if some argk keywords have been returned too. A real variable must be associated to be replaced in return
+    //check if some argk keywords have been returned too. A real variable must be associated to be replaced in return
     for (auto i = 0; i < nkw; ++i) {
-      if (kws[i].out != NULL) {
+      if (kws[i].out) {
         BaseGDL** gvarp = e->GetRefExtraListPtr((*refextra)[i]); //Ptr as the variable may not exist
-        if (gvarp) { //replace parameter's value
+        if (gvarp) {
           GDLDelete(*gvarp);
-          *gvarp = (BaseGDL*) VPTR_ToGDL((EXPORT_VPTR) (kws[i].out));
+          *gvarp = (BaseGDL*) VPTR_ToGDL((EXPORT_VPTR) (kws[i].convertedVPTR), PROTECT_SHARED_DATA);
         } else {
-          e->Throw("Unexpected error, variable not existing. Please report.");
+          e->Throw("Expression must be named variable in this context: " + std::string(kws[i].name));
         }
       }
     }
 early_return:
     PassedVariables.clear(); //remove vector
     PassedVariablesNames.clear(); //remove map entries
+    MimickedHeap.clear();
     GDL_FreeResources();
-    if (jumpret == JUMP_THROW)  e->Throw("unexpected problem in function " + MyFunName((size_t) calldllfunc));
+    if (jumpret == JUMP_THROW) e->Throw("unexpected problem in function " + MyFunName((size_t) calldllfunc));
     if (jumpret == JUMP_RETURN) e->Throw("returning to MAIN.");
+
     return function_return_variable;
   }
+#undef MEDIATIZER_TYPE
 
-  void CallDllPro(EnvT* e) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-  SizeT pos=(SizeT)(static_cast<DLibPro*> (e->GetPro())->GetProAddress());
-    EXPORT_SYSRTN_PRO calldllpro = (EXPORT_SYSRTN_PRO) AllDLMSymbols[pos].first;
-    if ((AllDLMSymbols[pos].second).size()) {
-      std::cout<<"Loaded DLM: "<<AllDLMSymbols[pos].second<<std::endl;
-      ClearDlmStringReference(AllDLMSymbols[pos].second);
+#define MEDIATIZER_TYPE EXPORT_SYSRTN_PRO
+  void CallDllPro(EnvT* e) {
+    TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+    SizeT pos = (SizeT) (static_cast<DLibPro*> (e->GetPro())->GetProAddress());
+    MEDIATIZER_TYPE calldllentry = (MEDIATIZER_TYPE) CollectedDLMSymbols[pos].symbol;
+#include "snippets/mediatizer_head.incc"
+    int jumpret = setjmp(callerEnv); //point to return instead of a Throw when something bad happened inside called export functions.
+    if (jumpret != 0) goto early_return;
+    calldllentry(argc, argv, argk);
+
+#include "snippets/mediatizer_bottom.incc"
+
+early_return:
+      if (kws) free(kws);
+      PassedVariables.clear(); //remove vector
+      PassedVariablesNames.clear(); //remove map entries
+      MimickedHeap.clear();
+      GDL_FreeResources();
+      if (jumpret == JUMP_RETURN) e->Throw("returning to MAIN.");
+      if (jumpret == JUMP_THROW) e->Throw("unexpected problem in " + MyProName((size_t) calldllentry));
     }
-    int nparams = e->NParam();
-#ifdef GDL_DEBUG
-    std::cerr<<"PROCEDURE "<<MyProName((size_t)calldllpro)<<std::endl;
-#endif
+
+  void CallDllUDPro(EnvUDT* e, void* target) {
+    TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+    DStructGDL* self = GetOBJ(e->GetParDefined(0), e);
+    EXPORT_SYSRTN_PRO calldllpro = (EXPORT_SYSRTN_PRO) (target);
+    int nparams = e->NParam(1);
+    // a DllUDPro is defined with only 1 key: the key[0]="_REF_EXTRA" IF the procedure has Keywords.
+    SizeT nkw = e->GetExtraCount();
+    int add = (nkw != 0); // kw are present in command.
     for (auto i = 0; i < nparams; ++i) {
-      bool global=true;
-      try { e->AssureGlobalPar(i);} catch (...) { global=false;} //get global status
-#ifdef GDL_DEBUG
-      std::cerr <<"i="<<i<<": "<< e->GetString(i) <<" tempo="<<global<< std::endl;
-#endif
-      BaseGDL * par=e->GetPar(i);
-      EXPORT_VPTR v = GDL_ToVPTR(par, global);    
-			varInfo info={v,&par,(global)?true:false};
-			PassedVariables.push_back(info);
-      if (global) PassedVariablesNames[v] == e->GetString(i); //add to list of passed NAMED variables
+      bool global = e->GlobalKW(i + add); //get global status
+      std::cerr << "i=" << i << ": " << e->GetString(i + add) << " global=" << global << std::endl;
+      BaseGDL * par = e->GetParDefined(i); //getParDefined take into account key.size() which is 1.
+      EXPORT_VPTR v = GDL_ToVPTR(par, global, false);
+      varInfo info = {v, &par, global,	DInterpreter::CallStack().size(), false};
+      PassedVariables.push_back(info);
+      if (global) PassedVariablesNames[v] == e->GetString(i + add); //add to list of passed NAMED variables
     }
     char *argk = NULL;
+    //we cannot directly use the _EXTRA mechanism as some passed values should be writeable or are not defined at the time of calling this function
     // keywords are passed as _REF_EXTRA struct, we just populate argk with our GDL_KEYWORDS_LIST struct
-    SizeT nkw = 0;
     GDL_PASS_KEYWORDS_LIST passed;
     GDL_KEYWORDS_LIST* kws = NULL;
     DStringGDL* refextra;
-    // a DllPro is defined with only 1 key: the key[0]="_REF_EXTRA"; We need to add the REAL (unknown) keywords.
-    //pass in "argk" as a_REF_EXTRA 
-    //we cannot directly use the _EXTRA mechanism as some passed values should be writeable or are not defined at the time of calling this function
-//    if (e->KeywordPresentAndDefined(0)) { // some KW present
-//      refextra = e->GetKWAs<DStringGDL>(0);
-//      nkw = refextra->N_Elements();
-//    }
-    nkw=e->GetExtraCount();
+    nkw = e->GetExtraCount();
     if (nkw > 0) {
-      refextra = e->GetKWAs<DStringGDL>(0);
+      refextra = (DStringGDL*) (e->GetKW(0));
     }
     // create argv adding space for all keywords
     EXPORT_VPTR argv[nparams + nkw];
     int argc = 0;
     for (; argc < nparams; ++argc) argv[argc] = PassedVariables[argc].v;
     if (nkw > 0) { // some KW present and defined
-    // Note: this implies that the _REF_EXTRA list of Keywords is sorted alphabetically!
-      kws = (GDL_KEYWORDS_LIST*) calloc(nkw,sizeof (GDL_KEYWORDS_LIST));
+      // Note: this implies that the _REF_EXTRA list of Keywords is sorted alphabetically!
+      kws = (GDL_KEYWORDS_LIST*) calloc(nkw, sizeof (GDL_KEYWORDS_LIST));
       for (auto i = 0; i < nkw; ++i) {
         kws[i].name = (*refextra)[i].c_str();
         BaseGDL** gvarp = e->GetRefExtraListPtr((*refextra)[i]); //check as Ptr as the variable may not exist
         if (gvarp == NULL) {
-          kws[i].readonly = 1;
+          kws[i].global = false;
           //pass the variable anyway using GetRefExtraList
           BaseGDL* gvar = e->GetRefExtraList((*refextra)[i]);
-          kws[i].varname=e->Caller()->GetString(gvar);
-          kws[i].varptr = gvar;
+          kws[i].varname = e->Caller()->GetString(gvar);
+          kws[i].gdlVarPtr = gvar;
           if (gvar == NULL) kws[i].type = GDL_TYP_UNDEF;
         } else {
-          kws[i].readonly = 0;
-          kws[i].varptr = *gvarp;
+          kws[i].global = true;
+          kws[i].gdlVarPtr = *gvarp;
           if (*gvarp == NULL) kws[i].type = GDL_TYP_UNDEF;
-          kws[i].varname=e->Caller()->GetString(*gvarp);
+          kws[i].varname = e->Caller()->GetString(*gvarp);
         }
         // Add this variable to argv and increase pointer
-        argv[argc++] = GDL_ToVPTR(kws[i].varptr, kws[i].readonly);
+        argv[argc++] = GDL_ToVPTR(kws[i].gdlVarPtr, kws[i].global, true);
 
 #ifdef GDL_DEBUG
-        std::cerr<<kws[i].name<<" (keyword, input) : "<<kws[i].varname<<"="; if (kws[i].varptr!=NULL) (kws[i].varptr)->ToStream(std::cerr);
+        std::cerr << kws[i].name << " (keyword, input) : " << kws[i].varname << "=";
+        if (kws[i].gdlVarPtr != NULL) (kws[i].gdlVarPtr)->ToStream(std::cerr);
 #endif
       }
     }
@@ -246,38 +290,40 @@ early_return:
     argk = (char*) (&passed);
 
     int jumpret = setjmp(callerEnv); //point to return instead of a Throw when something bad happened inside called export functions.
-    if (jumpret != 0 ) goto early_return;
+    if (jumpret != 0) goto early_return;
     calldllpro(argc, argv, argk);
-    for (auto i = 0; i < nparams; ++i) if (PassedVariables[i].global) e->SetPar(i, VPTR_ToGDL(argv[i])); //global var 
     // due to IDL_FindNamedVariable() PassedVariable.size may be greater than nparams
     for (auto i = nparams; i < PassedVariables.size(); ++i) {
-//      std::cerr << "extra variable " << i << ": " << IDL_VarName(PassedVariables[i].v) << std::endl;
-      if (PassedVariables[i].global) {
+      std::cerr << "extra variable " << i << ": " << IDL_VarName(PassedVariables[i].v) << std::endl;
+      if (PassedVariables[i].global  && !ISTEMP(PassedVariables[i].v)) {
         BaseGDL** par = PassedVariables[i].par;
         GDLDelete(*par);
-        *par = VPTR_ToGDL(PassedVariables[i].v);
+        *par = VPTR_ToGDL(PassedVariables[i].v, PROTECT_SHARED_DATA);
       }
     }
     //check if some argk keywords have been returned too. A real variable must be associated to be replaced in return
     for (auto i = 0; i < nkw; ++i) {
-      if (kws[i].out != NULL) {
+      if (kws[i].out) {
         BaseGDL** gvarp = e->GetRefExtraListPtr((*refextra)[i]); //Ptr as the variable may not exist
         if (gvarp) {
           GDLDelete(*gvarp);
-          *gvarp = (BaseGDL*) VPTR_ToGDL((EXPORT_VPTR) (kws[i].out));
+          *gvarp = (BaseGDL*) VPTR_ToGDL(kws[i].convertedVPTR, PROTECT_SHARED_DATA);
         } else {
-          e->Throw("Expression must be named variable in this context: "+std::string(kws[i].name));
+          e->Throw("Expression must be named variable in this context: " + std::string(kws[i].name));
         }
       }
     }
 early_return:
     PassedVariables.clear(); //remove vector
     PassedVariablesNames.clear(); //remove map entries
+    MimickedHeap.clear();
     GDL_FreeResources();
-    if (jumpret == JUMP_THROW)  e->Throw("unexpected problem in procedure " + MyFunName((size_t) calldllpro));
+    if (jumpret == JUMP_THROW) e->Throw("unexpected problem in procedure " + MyFunName((size_t) calldllpro));
     if (jumpret == JUMP_RETURN) e->Throw("returning to MAIN.");
   }
 
+#undef MEDIATIZER_TYPE
+  
 void CleanupProc( DLibPro* proc ) {
 // this does not work (double deletion at exit due to ~DllContainer() { unload( true ); } that already uses unlinksymbol.
 //    auto it = libProList.begin();
@@ -391,27 +437,72 @@ void CleanupProc( DLibPro* proc ) {
         bool found = false;
         for (std::map<const char*, void*>::iterator it = SysProDefinitions.begin(); it != SysProDefinitions.end(); ++it) {
           if (strcmp(it->first, name) == 0) {
-            //find lib_symbol in SysPropDefinitions
-            RegisterMediatizedProc(dlm_name, it->second, proc_name, max_args, min_args, has_keys);
-            found = true;
+            size_t pos = proc_name.find("::",0);
+            if (pos != std::string::npos) { //register an object's symbol
+              std::string proName=proc_name.substr(pos+2);
+              std::string objectName=proc_name.substr(0,pos);
+              DStructDesc* objectDesc = FindInStructList(structList, objectName);
+              assert(objectDesc != NULL);
+              DPro *MyDPro = new DPro(proName, objectName, INTERNAL_LIBRARY_STR);
+              MyDPro->AddKey("_REF_EXTRA","_REF_EXTRA");
+              for (auto i=0; i<max_args; ++i) {
+                MyDPro->AddPar("ARGV_"+i2s(i+1)); //ARGV[0]=SELF
+              }
+              WRAPPED_MEDIATIZED_PRONode* wrapped_pronode = new WRAPPED_MEDIATIZED_PRONode(CallDllUDPro, it->second);
+              MyDPro->SetTree(wrapped_pronode);
+              objectDesc->ProList().push_back(MyDPro);
+            } else RegisterMediatizedProc(dlm_name, it->second, proc_name, max_args, min_args, has_keys);
+            found = true; 
             break;
           }
         }
-        if (!found) /*throw runtime_error*/ Warning("DLM's IDL_Load() does not define procedure " + proc_name);
+        if (!found) /*throw runtime_error*/ Warning("DLM's IDL_Load() does not define procedure " + proc_name); //IDL Throws, and we should. This is a test.
         } else {
         bool found = false;
         for (std::map<const char*, void*>::iterator it = SysFunDefinitions.begin(); it != SysFunDefinitions.end(); ++it) {
           if (strcmp(it->first, name) == 0) {
-            //find lib_symbol in SysFunDefinitions
-            RegisterMediatizedFunc(dlm_name, it->second, proc_name, max_args, min_args, has_keys);
+            size_t pos = proc_name.find("::",0);
+            if (pos != std::string::npos) { //register an object's symbol
+              std::string funName=proc_name.substr(pos+2);
+              std::string objectName=proc_name.substr(0,pos);
+              DStructDesc* objectDesc = FindInStructList(structList, objectName);
+              assert(objectDesc != NULL);
+              DFun *MyDFun = new DFun(funName, objectName, INTERNAL_LIBRARY_STR);
+              MyDFun->AddKey("_REF_EXTRA","_REF_EXTRA");
+              for (auto i=0; i<max_args; ++i) {
+                MyDFun->AddPar("ARGV_"+i2s(i)); //ARGV[0]=SELF
+              }
+              WRAPPED_MEDIATIZED_FUNNode* wrapped_funnode = new WRAPPED_MEDIATIZED_FUNNode(CallDllUDFunc, it->second);
+              MyDFun->SetTree(wrapped_funnode);
+              objectDesc->FunList().push_back(MyDFun);
+            } else RegisterMediatizedFunc(dlm_name, it->second, proc_name, max_args, min_args, has_keys);
             found = true;
             break;
-          }
-        }
-        if (!found) /*throw runtime_error*/ Warning("DLM's IDL_Load()  does not define function " + proc_name);
+          }         }
+        if (!found) /*throw runtime_error*/ Warning("DLM's IDL_Load()  does not define function " + proc_name);//IDL Throws, and we should. This is a test.
         }
       }
     
+    void RegisterStructHintedAtByDlm(const string& struct_name){
+       if (!handle) throw runtime_error("Library not loaded!");
+       void* fPtr=NULL;
+      char* error = nullptr;
+      std::string s="IDL_StructDefPtr_"+struct_name;
+      const char* what=s.c_str();
+
+#if defined(_WIN32) && !defined(__CYGWIN__)
+       void* func = (void *)GetProcAddress(handle,what.c_str());
+#else
+      error = dlerror();  // clear error
+      fPtr = dlsym( handle,what);
+      error = dlerror(); 
+#endif
+      if(fPtr) {EXPORT_StructDefPtr p=(EXPORT_StructDefPtr)fPtr;
+//   NO more:    IDL_MakeStruct((char*)struct_name.c_str(),NULL);
+        return;
+      }
+    }
+
     void RegisterSymbol(const string & dlm_name, const string& entry_name, const string& proc_name, DLong funcType, DLong max_args=16, DLong min_args=0, bool has_keys=false) {
       if( !handle ) {
 	throw runtime_error( "Library not loaded!" );
@@ -552,10 +643,9 @@ early_return:
       }
       return fPtr;
     }
-#define ADD_PROC_TO_INFOLIST_AND_INCREMENT_COUNTER std::pair <void*, std::string> newpair;\
-      newpair.first=target;\
-      newpair.second=dlm_name;\
-      AllDLMSymbols.push_back(newpair);
+#define ADD_SYMBOL_TO_CollectedDLMSymbols \
+       callableInfo me={target,dlm_name,has_keys}; \
+      CollectedDLMSymbols.push_back(me);
 
     void RegisterMediatizedProc(const string& dlm_name, void* target, const string& proc_name, DLong max_args, DLong min_args, bool has_keys) {
       if (all_procs.count(proc_name)) return;
@@ -566,7 +656,7 @@ early_return:
           CleanupProc
           );
       my_procs.insert(proc_name);
-      ADD_PROC_TO_INFOLIST_AND_INCREMENT_COUNTER
+      ADD_SYMBOL_TO_CollectedDLMSymbols
     }
     
     void RegisterNativeProc( const string& lib_symbol, const string& proc_name, DLong max_args, DLong min_args, const string keyNames[]) { 
@@ -582,17 +672,17 @@ early_return:
       if( all_funcs.count( func_name ) ) return;
       // this method of 'cleaning' is excellent but show a problem when exiting, seen only with valgrind.
       all_funcs[func_name].reset(
-				 new DLibFun((BaseGDL* (*)(EnvT* e)) (increment++), (void*)CallDllFunc , func_name, max_args,  min_args, has_keys),
+				 new DLibFunRetNew((BaseGDL* (*)(EnvT* e)) (increment++), (void*)CallDllFunc , func_name, max_args,  min_args, has_keys),
 				 CleanupFunc
 				 );
       my_funcs.insert(func_name);
-      ADD_PROC_TO_INFOLIST_AND_INCREMENT_COUNTER
+      ADD_SYMBOL_TO_CollectedDLMSymbols
      }
 
-     void RegisterNativeFunc( const string& lib_symbol, const string& func_name, DLong max_args, DLong min_args,  string keyNames[]) { 
+    void RegisterNativeFunc( const string& lib_symbol, const string& func_name, DLong max_args, DLong min_args,  string keyNames[]) { 
       if( all_funcs.count( func_name ) ) return;
       all_funcs[func_name].reset(
-				 new DLibFun( LinkAs<LibFun>( lib_symbol, func_name ), func_name.c_str(), max_args, keyNames, NULL, min_args),
+				 new DLibFunRetNew( LinkAs<LibFun>( lib_symbol, func_name ), func_name.c_str(), max_args, keyNames, NULL, min_args),
 				 CleanupFunc
 				 );
       my_funcs.insert(func_name);
@@ -776,7 +866,7 @@ early_return:
   strncpy(IDL_SysvVersion.what.s,what.c_str(),what.length());
  
   void linkimage( EnvT* e ) {
-    
+    // first time used, initialize some values to be reported by IDL_SysXXXX functions (lazy programming)
     static bool IdlStaticsUninitialized=true;
     if (IdlStaticsUninitialized) {
       IdlStaticsUninitialized=false;
@@ -841,7 +931,12 @@ early_return:
     bool isNativeGdl=e->KeywordSet(nativeIx); //this is a GDL-native .so 
     static int dlminfoIx = e->KeywordIx("DLM_INFO");
     bool isDlm=e->KeywordSet(dlminfoIx);
-
+    static int definestructIx = e->KeywordIx("DEFINE_STRUCTURE");
+    bool definesStruct=e->KeywordSet(definestructIx);
+    DStringGDL* structure_to_define=NULL;
+    if (definesStruct) {
+      structure_to_define=e->GetKWAs<DStringGDL>(definestructIx);
+    }
     if( e->KeywordSet( functIx ) ) funcType = 1;
     
     DLong max_args = 16;
@@ -853,14 +948,22 @@ early_return:
     //if 'native' (gdl) then if keywords, these are a DStringGDL
     
     if( entryName.empty() ) {
-      entryName = funcName;
+      entryName = funcName; //funcname better by lowercase here
     }
+    funcName=StrUpCase(funcName);
 
-//    try {
       DStringGDL* info = NULL;
-      if (isDlm) info = e->GetKWAs<DStringGDL>(dlminfoIx);
+    if (isDlm) {
+      if (funcType) {//insert DLM name in lib/pro structure to enable the "Loaded XXXX" message at first use.
+        if (LibFunIx(funcName) != -1) Warning("Dynamically loadable module " + shrdimgName + " redefines existing routine " + funcName);
+      } else {
+        if (LibProIx(funcName) != -1) Warning("Dynamically loadable module " + shrdimgName + " redefines existing routine " + funcName);
+      }
+      info = e->GetKWAs<DStringGDL>(dlminfoIx);
+    }
       DllContainer& lib = DllContainer::get(shrdimgName);
       if (lib.IsOK()) {
+      try {
         if (isNativeGdl) {
           //if 'native' (gdl) then if keywords, these are a DStringGDL
           if (hasKeywords) {
@@ -875,7 +978,7 @@ early_return:
         } else {
           int ret = 0;
           if (isDlm) {
-            // test if "IDL_Load() can be called to give, noot symbol names, but symbols addresses
+            // test if "IDL_Load() can be called to give, not symbol names, but symbols addresses
             try {
               ret = lib.CallLoadToDefineEntryLocations();
             } catch (GDLException ex) { Warning((*info)[0]+": Recovering from error: "+ex.toString()); e->Interpreter()->RetAll();}
@@ -885,15 +988,14 @@ early_return:
                 help_AddDlmInfo(info->Dup()); //only once
                 lib.HelpAdded(true);
               }
-              if (funcType) {//insert DLM name in lib/pro structure to enable the "Loaded XXXX" message at first use.
-                int funIx=LibFunIx(funcName);
-                } else {
-                int proIx=LibProIx(funcName);
-                }
+              if (definesStruct) {
+                for (auto i=0; i<structure_to_define->N_Elements(); ++i) lib.RegisterStructHintedAtByDlm((*structure_to_define)[i]);
+              }
             } else if (ret==-1) { lib.NotOK(); //got an error while trying to use IDL_Load (undefined function used in IDL_Load)
             } else lib.RegisterSymbol((*info)[0], entryName, funcName, funcType, max_args, min_args, hasKeywords); //not a dlm, or dlm does not have ILD_Load()
           }
         }
+      } catch (...) {Warning("problem while loading routine "+ funcName + "in Dynamically loadable module " + shrdimgName +".");}
       } else {
         Warning("Error linking procedure/DLL: " + funcName + " -> " + entryName + "  (" + shrdimgName + ") : " +lib.DllLoadErrorMessage); //e->Interpreter()->RetAll();
       }

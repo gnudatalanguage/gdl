@@ -335,4 +335,15 @@ typedef struct {
 } EXPORT_INIT_DATA;
 
 typedef void (* EXPORT_EXIT_HANDLER_FUNC)(void);
+
+typedef struct export_heap_variable {
+  struct export_heap_variable *hash; 
+  EXPORT_HVID hash_id;
+  EXPORT_LONG refcount;
+  int flags;
+  EXPORT_VARIABLE var;
+  
+} EXPORT_HEAP_VARIABLE;
+typedef EXPORT_HEAP_VARIABLE *EXPORT_HEAP_VPTR;
+
 #endif 

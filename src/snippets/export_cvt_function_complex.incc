@@ -1,6 +1,6 @@
 		DEFOUT(TARGET_GDL_TYPE);
 		if (argc == 1) {
-			if (isArray(argv[0])) {
+			if (ISARRAY(argv[0])) {
 				TREAT_MULTIPLE_ARGS();
 				PREPARE_ARRAY(TARGET_EXPORT_TYPE);
 				switch (argv[0]->type) {
@@ -15,7 +15,7 @@
 					DOCASE_TO_CMP_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG, TARGET_EXPORT_TYPE);
 					DOCASE_TO_CMP_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64, TARGET_EXPORT_TYPE);
 					DOCASE_TO_CMP_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64, TARGET_EXPORT_TYPE);
-					default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
+					default: ExitDlmFunctionAndThrow(__func__, "Internal error: Unknown combination in convert()..");
 				}
 
 			} else {
@@ -32,12 +32,12 @@
 						DOCASE_TO_CMP_SINGLE(GDL_TYP_LONG64, cmp, l64);
 						DOCASE_TO_CMP_SINGLE(GDL_TYP_ULONG64, cmp, ul64);
 						case GDL_TYP_UNDEF: break; //do nothing
-					default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
+					default: ExitDlmFunctionAndThrow(__func__, "Internal error: Unknown combination in convert()..");
 				}
 			}
 			return ret;
 		} else if (argc == 2 && normal_mode ) { //default case, adds imaginary part
-			if (isScalar(argv[0]) && isScalar(argv[1])) { //two numbers
+			if (ISSCALAR(argv[0]) && ISSCALAR(argv[1])) { //two numbers
 				switch (argv[0]->type) {
 						DOCASE_TO_CMP_FROM_CMP_VARIANT(GDL_TYP_BYTE, cmp, c);
 						DOCASE_TO_CMP_FROM_CMP_VARIANT(GDL_TYP_INT, cmp, i);
@@ -50,7 +50,7 @@
 						DOCASE_TO_CMP_FROM_CMP_VARIANT(GDL_TYP_ULONG, cmp, ul);
 						DOCASE_TO_CMP_FROM_CMP_VARIANT(GDL_TYP_LONG64, cmp, l64);
 						DOCASE_TO_CMP_FROM_CMP_VARIANT(GDL_TYP_ULONG64, cmp, ul64);
-					default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
+					default: ExitDlmFunctionAndThrow(__func__, "Internal error: Unknown combination in convert()..");
 				}
 				return ret;
 			}
@@ -66,12 +66,12 @@
 					DOCASE_TO_CMP_CONVERT_2ARGS(GDL_TYP_ULONG, EXPORT_ULONG, TARGET_EXPORT_TYPE,);
 					DOCASE_TO_CMP_CONVERT_2ARGS(GDL_TYP_LONG64, EXPORT_LONG64, TARGET_EXPORT_TYPE,);
 					DOCASE_TO_CMP_CONVERT_2ARGS(GDL_TYP_ULONG64, EXPORT_ULONG64, TARGET_EXPORT_TYPE,);
-				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
+				default: ExitDlmFunctionAndThrow(__func__, "Internal error: Unknown combination in convert()..");
 			}
 			return ret;
 		} else {
 			TREAT_MULTIPLE_ARGS();
-			if (isArray(argv[0])) {
+			if (ISARRAY(argv[0])) {
 				PREPARE_ARRAY(TARGET_EXPORT_TYPE);
 				switch (argv[0]->type) {
 						DOCASE_TO_CMP_ARRAY_NO_CONVERT(GDL_TYP_BYTE, UCHAR, TARGET_EXPORT_TYPE);
@@ -85,7 +85,7 @@
 						DOCASE_TO_CMP_ARRAY_NO_CONVERT(GDL_TYP_ULONG, EXPORT_ULONG, TARGET_EXPORT_TYPE);
 						DOCASE_TO_CMP_ARRAY_NO_CONVERT(GDL_TYP_LONG64, EXPORT_LONG64, TARGET_EXPORT_TYPE);
 						DOCASE_TO_CMP_ARRAY_NO_CONVERT(GDL_TYP_ULONG64, EXPORT_ULONG64, TARGET_EXPORT_TYPE);
-					default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
+					default: ExitDlmFunctionAndThrow(__func__, "Internal error: Unknown combination in convert()..");
 				}
 			}
 			return ret;
