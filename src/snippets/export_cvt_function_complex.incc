@@ -15,7 +15,7 @@
 					DOCASE_TO_CMP_ARRAY(GDL_TYP_ULONG, EXPORT_ULONG, TARGET_EXPORT_TYPE);
 					DOCASE_TO_CMP_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64, TARGET_EXPORT_TYPE);
 					DOCASE_TO_CMP_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64, TARGET_EXPORT_TYPE);
-					default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
+					default: ExitDlmFunctionAndThrow(__func__, "Internal error: Unknown combination in convert()..");
 				}
 
 			} else {
@@ -32,7 +32,7 @@
 						DOCASE_TO_CMP_SINGLE(GDL_TYP_LONG64, cmp, l64);
 						DOCASE_TO_CMP_SINGLE(GDL_TYP_ULONG64, cmp, ul64);
 						case GDL_TYP_UNDEF: break; //do nothing
-					default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
+					default: ExitDlmFunctionAndThrow(__func__, "Internal error: Unknown combination in convert()..");
 				}
 			}
 			return ret;
@@ -50,7 +50,7 @@
 						DOCASE_TO_CMP_FROM_CMP_VARIANT(GDL_TYP_ULONG, cmp, ul);
 						DOCASE_TO_CMP_FROM_CMP_VARIANT(GDL_TYP_LONG64, cmp, l64);
 						DOCASE_TO_CMP_FROM_CMP_VARIANT(GDL_TYP_ULONG64, cmp, ul64);
-					default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
+					default: ExitDlmFunctionAndThrow(__func__, "Internal error: Unknown combination in convert()..");
 				}
 				return ret;
 			}
@@ -66,7 +66,7 @@
 					DOCASE_TO_CMP_CONVERT_2ARGS(GDL_TYP_ULONG, EXPORT_ULONG, TARGET_EXPORT_TYPE,);
 					DOCASE_TO_CMP_CONVERT_2ARGS(GDL_TYP_LONG64, EXPORT_LONG64, TARGET_EXPORT_TYPE,);
 					DOCASE_TO_CMP_CONVERT_2ARGS(GDL_TYP_ULONG64, EXPORT_ULONG64, TARGET_EXPORT_TYPE,);
-				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
+				default: ExitDlmFunctionAndThrow(__func__, "Internal error: Unknown combination in convert()..");
 			}
 			return ret;
 		} else {
@@ -85,7 +85,7 @@
 						DOCASE_TO_CMP_ARRAY_NO_CONVERT(GDL_TYP_ULONG, EXPORT_ULONG, TARGET_EXPORT_TYPE);
 						DOCASE_TO_CMP_ARRAY_NO_CONVERT(GDL_TYP_LONG64, EXPORT_LONG64, TARGET_EXPORT_TYPE);
 						DOCASE_TO_CMP_ARRAY_NO_CONVERT(GDL_TYP_ULONG64, EXPORT_ULONG64, TARGET_EXPORT_TYPE);
-					default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
+					default: ExitDlmFunctionAndThrow(__func__, "Internal error: Unknown combination in convert()..");
 				}
 			}
 			return ret;

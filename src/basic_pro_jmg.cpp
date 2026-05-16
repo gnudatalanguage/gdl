@@ -40,6 +40,12 @@ static SizeT increment=0;
 namespace lib {
     using namespace std;
 
+    //search in AllDLMSymbols all functions/procs referring to this dlm name, and clears them to indicate that the "Loaded DLM" message has already been activated.
+    //mimics IDL's behaviour although we do not use the same logic, the dlls are loaded when the dlm is read, not when an entry is called.
+    void ClearDlmStringReference(std::string &s){
+      std::string local_s=s;
+      for (auto i=0; i< CollectedDLMSymbols.size() ;++i) if (CollectedDLMSymbols[i].name == local_s) CollectedDLMSymbols[i].name.clear();
+    }
     std::string MyFunName(size_t t){
         for (std::map<const char*, void*>::iterator it = SysFunDefinitions.begin(); it != SysFunDefinitions.end(); ++it) if ((size_t)(it->second)==t) return it->first;
         return "Unknown";
@@ -485,14 +491,14 @@ void CleanupProc( DLibPro* proc ) {
       const char* what=s.c_str();
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
-      fPtr = dlsym( handle,what.c_str());
+       void* func = (void *)GetProcAddress(handle,what.c_str());
 #else
       error = dlerror();  // clear error
       fPtr = dlsym( handle,what);
       error = dlerror(); 
 #endif
       if(fPtr) {EXPORT_StructDefPtr p=(EXPORT_StructDefPtr)fPtr;
-//       IDL_MakeStruct((char*)struct_name.c_str(),NULL);
+//   NO more:    IDL_MakeStruct((char*)struct_name.c_str(),NULL);
         return;
       }
     }
@@ -637,7 +643,7 @@ early_return:
       }
       return fPtr;
     }
-#define ADD_PROC_TO_CollectedDLMSymbols_AND_INCREMENT_COUNTER \
+#define ADD_SYMBOL_TO_CollectedDLMSymbols \
        callableInfo me={target,dlm_name,has_keys}; \
       CollectedDLMSymbols.push_back(me);
 
@@ -650,7 +656,7 @@ early_return:
           CleanupProc
           );
       my_procs.insert(proc_name);
-      ADD_PROC_TO_CollectedDLMSymbols_AND_INCREMENT_COUNTER
+      ADD_SYMBOL_TO_CollectedDLMSymbols
     }
     
     void RegisterNativeProc( const string& lib_symbol, const string& proc_name, DLong max_args, DLong min_args, const string keyNames[]) { 
@@ -670,7 +676,7 @@ early_return:
 				 CleanupFunc
 				 );
       my_funcs.insert(func_name);
-      ADD_PROC_TO_CollectedDLMSymbols_AND_INCREMENT_COUNTER
+      ADD_SYMBOL_TO_CollectedDLMSymbols
      }
 
     void RegisterNativeFunc( const string& lib_symbol, const string& func_name, DLong max_args, DLong min_args,  string keyNames[]) { 

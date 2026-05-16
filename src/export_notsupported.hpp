@@ -2,7 +2,7 @@
 #include "gdl_export.h"
 #include "basegdl.hpp"
 
-#define CONTENT GDL_WillThrowAfterCleaning(__func__,"Fatal - Calling Unsupported or Proprietary Function "+std::string(__func__)+".");
+#define CONTENT ExitDlmFunctionAndThrow(__func__,"Fatal - Calling Unsupported or Proprietary Function "+std::string(__func__)+".");
 //#define CONTENT GDL_WillReturnAfterCleaning("Fatal - Calling Unsupported or Proprietary Function "+std::string(__func__)+".");
 DLL_PUBLIC EXPORT_VPTR GDL_CDECL IDL_nonavailable_rtn(int argc, EXPORT_VPTR argv[],char *argk){CONTENT ; return NULL;}
 DLL_PUBLIC EXPORT_VPTR GDL_CDECL IDL_stregex(int argc, EXPORT_VPTR argv[], char *argk){CONTENT; return NULL;}

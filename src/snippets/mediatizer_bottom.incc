@@ -7,8 +7,10 @@
 // due to IDL_FindNamedVariable() PassedVariable.size may be greater than nparams. debug: test here
 if (PassedVariables.size() != nparams) std::cerr<<"Parameter stack size has changed!"<<std::endl;
     for (auto i = 0; i < PassedVariables.size(); ++i) {
-      if (PassedVariables[i].global  && !ISTEMP(PassedVariables[i].v)) {
-//        std::cerr << "updating parameter #" << i << ": " << IDL_VarName(PassedVariables[i].v) << std::endl;
+      if (PassedVariables[i].global) {
+#ifdef DEBUG
+        std::cerr << "updating parameter #" << i << ": " << IDL_VarName(PassedVariables[i].v) << std::endl;
+#endif
         e->SetPar(i, VPTR_ToGDL(PassedVariables[i].v, PROTECT_SHARED_DATA)); //global var //not argv[i] ? should be the same.
       }
     }
@@ -17,7 +19,9 @@ if (PassedVariables.size() != nparams) std::cerr<<"Parameter stack size has chan
     for (auto i = 0; i < nkw; ++i) {
       if (kws[i].out) {
 		  assert(kws[i].global); // only global kw here
-//      std::cerr << "passing back Keyword #" << i << " name \"" << kws[i].varname << "\": " << IDL_VarName(kws[i].convertedVPTR) << std::endl;
+#ifdef DEBUG
+      std::cerr << "passing back Keyword #" << i << " name \"" << kws[i].varname << "\": " << IDL_VarName(kws[i].convertedVPTR) << std::endl;
+#endif
 	  BaseGDL* gdlvar = VPTR_ToGDL(kws[i].convertedVPTR, PROTECT_SHARED_DATA); //protect data as this is passed to *MAIN* GDL
 	  restoreNormalVariable(kws[i].varname, gdlvar);
 	  }
