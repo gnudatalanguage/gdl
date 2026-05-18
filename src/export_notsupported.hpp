@@ -222,7 +222,7 @@ DLL_PUBLIC void IDL_ObjBridgeClassName(){CONTENT}
 DLL_PUBLIC void IDL_ObjBridgeDefineClass(){CONTENT}
 DLL_PUBLIC void IDL_ObjBridgeRegister(){CONTENT}
 DLL_PUBLIC void IDL_ObjCallMethod(){CONTENT}
-DLL_PUBLIC void IDL_ObjCallMethodByString(){CONTENT}
+//DLL_PUBLIC void IDL_ObjCallMethodByString(){CONTENT}
 DLL_PUBLIC void IDL_ObjClass(){CONTENT}
 DLL_PUBLIC void IDL_ObjContainsClassByID(){CONTENT}
 DLL_PUBLIC int IDL_ObjContainsClassByStr(){return 1;}
@@ -230,7 +230,7 @@ DLL_PUBLIC void IDL_ObjDestroy(){CONTENT}
 DLL_PUBLIC void IDL_ObjHasMethodByHVID(){CONTENT}
 DLL_PUBLIC void IDL_ObjHelp(){CONTENT}
 DLL_PUBLIC void IDL_ObjIsA(){CONTENT}
-DLL_PUBLIC void IDL_ObjNew(){CONTENT}
+//DLL_PUBLIC void IDL_ObjNew(){CONTENT}
 //DLL_PUBLIC void IDL_ObjReference(){CONTENT}
 DLL_PUBLIC void IDL_ObjRuntimeDefine(){CONTENT}
 DLL_PUBLIC void IDL_ObjSetSessionResetFunc(){CONTENT}

@@ -147,6 +147,10 @@ typedef struct {
 
 extern "C" {  
   DLL_PUBLIC char * GDL_CDECL IDL_VarName(EXPORT_VPTR v);
+  DLL_PUBLIC  EXPORT_HEAP_VPTR GDL_CDECL IDL_HeapVarHashFind(EXPORT_HVID hash_id);
+  DLL_PUBLIC void  GDL_CDECL IDL_Print(int argc, EXPORT_VPTR *argv, char *argk);
+  DLL_PUBLIC EXPORT_MEMINT GDL_CDECL IDL_StructTagInfoByIndex(EXPORT_StructDefPtr sdef, int index, int msg_action, EXPORT_VPTR *var);
+  DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_BasicTypeConversion(int argc, EXPORT_VPTR argv[], GDL_REGISTER int type);
 
 	//--------------temporary utilities------------------
 void GdlExportPrintVar(EXPORT_VPTR v);
@@ -468,6 +472,7 @@ EXPORT_VPTR GDL_ToVPTR(BaseGDL* var, bool global = false, bool is_kw = false, EX
 	}
 
 	if (var->Type() == GDL_OBJ) {
+		if (var->N_Elements() > 1 ) ExitDlmFunctionAndWarn("internal: GDL_ToVPTR: Cannot transfer arrays of Objects. Report for a quick fix!.");
 		EXPORT_HEAP_VPTR h = (EXPORT_HEAP_VPTR) MyMallocDestroyedOnExit(sizeof (EXPORT_HEAP_VARIABLE));
 		EXPORT_LONG refcount;
 		DStructGDL* objstruct = GetOBJ(var, &refcount);
@@ -494,6 +499,7 @@ EXPORT_VPTR GDL_ToVPTR(BaseGDL* var, bool global = false, bool is_kw = false, EX
 	}
 
 	if (var->Type() == GDL_PTR) {
+		if (var->N_Elements() > 1 ) ExitDlmFunctionAndWarn("internal: GDL_ToVPTR: Cannot transfer arrays of Pointers. Report for a quick fix!.");
 		DPtrGDL* varPtr = static_cast<DPtrGDL*> (var);
 		DPtr actPtrID = (*varPtr)[0];
 		if (!DInterpreter::PtrValid(actPtrID)) ExitDlmFunctionAndThrow(__func__, "GDL_ToVPTR: Wrong PTR.");
@@ -592,12 +598,6 @@ EXPORT_VPTR GDL_ToVPTR(BaseGDL* var, bool global = false, bool is_kw = false, EX
 					v->value.str.s = (char*) MyMallocDestroyedOnExit(v->value.str.slen + 1);
 					strncpy(v->value.str.s, s.c_str(), v->value.str.slen + 1);
 				}
-				break;
-			}
-			case GDL_PTR:
-			{
-				v->type = GDL_TYP_PTR;
-				v->value.ptrint = (*static_cast<DPtrGDL*> (var))[0];
 				break;
 			}
 			default: ExitDlmFunctionAndThrow(__func__, "GDL_ToVPTR: unsupported case.");
@@ -935,6 +935,16 @@ BaseGDL* VPTR_ToGDL(EXPORT_VPTR v, bool protectVPTRData=false, EXPORT_ARRAY* new
 		for (int i = 0; i < rank; ++i) arraydim[i] = arraydescr->dim[i];
 		dimension dim(arraydim, rank);
 		return GDL_MakeGDLStruct(v, dim);
+	} else if (v->type == GDL_TYP_OBJREF) {
+		ExitDlmFunctionAndThrow(__func__ , "Exchange of Objects with a DLM is not yet written, please report!");
+		return NULL;
+	} else if (v->type == GDL_TYP_PTR) {
+		ExitDlmFunctionAndThrow(__func__ , "Exchange of Pointers with a DLM is not yet written, please report!");
+//		EXPORT_HEAP_VPTR h = IDL_HeapVarHashFind(v->value.hvid);
+//		BaseGDL* var= VPTR_ToGDL(&(h->var), PROTECT_SHARED_DATA);
+//		DPtr heapID=;
+//        return new DPtrGDL(h->);
+		return NULL;
 	} else if (ISARRAY(v)) {
 		EXPORT_ARRAY* arraydescr = (newArrayDescr)?newArrayDescr:v->value.arr;
 		if (protectVPTRData) v->flags &= ~GDL_V_TEMP; //will no destroy allocated data (because, hopefully, it was not allocated) at exit from func.
@@ -1102,7 +1112,6 @@ DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_FindNamedVariable(char *name, int ienter){
 	std::string s(name);
 	return findGDLVar(s, (ienter>0), false );
 }
-DLL_PUBLIC void  GDL_CDECL IDL_Print(int argc, EXPORT_VPTR *argv, char *argk);
 
 
 #define DOCASE(ty, what)\
@@ -1189,7 +1198,6 @@ DLL_PUBLIC void  GDL_CDECL IDL_VarEnsureSimple(EXPORT_VPTR v) {TRACE_ROUTINE(__F
 }
 
 DLL_PUBLIC int  GDL_CDECL IDL_StructNumTags(EXPORT_StructDefPtr sdef){	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__) return sdef->ntags;}
-DLL_PUBLIC EXPORT_MEMINT  GDL_CDECL IDL_StructTagInfoByIndex(EXPORT_StructDefPtr   sdef, int index, int msg_action, EXPORT_VPTR *var);
 
 #define DOCASE(ty, what)\
  case ty: fprintf (stdout,IDL_OutputFormat[v->type],v->value.what);break;
@@ -1208,7 +1216,6 @@ DLL_PUBLIC EXPORT_MEMINT  GDL_CDECL IDL_StructTagInfoByIndex(EXPORT_StructDefPtr
  fprintf (stdout,"\n");\
  }\
  break;
-DLL_PUBLIC  EXPORT_HEAP_VPTR GDL_CDECL IDL_HeapVarHashFind(EXPORT_HVID hash_id);
 DLL_PUBLIC void GDL_CDECL GDL_Print(int argc, EXPORT_VPTR *argv, char *argk, bool print_to_file, UCHAR* use_address=NULL) {
 		//argk is to be set to NULL by users according to the doc.
 		int start = 0;
@@ -2478,7 +2485,6 @@ int l=IDL_TypeSizeFunc(type);
 memset((void*) (address), 0, l);
 }
 
-DLL_PUBLIC EXPORT_VPTR  GDL_CDECL IDL_BasicTypeConversion(int argc, EXPORT_VPTR argv[], GDL_REGISTER int type);
 
 //works for OLD an NEW API, by checking if kw_result is NULL.
 EXPORT_VPTR GdlExportPresentKeyword(GDL_KW_PAR requested, GDL_KEYWORDS_LIST passed, void* kw_result) {TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
@@ -3091,8 +3097,8 @@ DLL_PUBLIC void  GDL_CDECL IDL_Runtime(EXPORT_INIT_DATA_OPTIONS_T options, int *
 						DOCASE_TAG(GDL_TYP_COMPLEX, SpDComplex, def.name, *dim)
 						DOCASE_TAG(GDL_TYP_DCOMPLEX, SpDComplexDbl, def.name, *dim)
 						DOCASE_TAG(GDL_TYP_STRING, SpDString, def.name, *dim)
-						DOCASE_TAG(GDL_TYP_PTR, DPtrGDL, def.name, *dim)
-						DOCASE_TAG(GDL_TYP_OBJREF, DObjGDL, def.name, *dim)
+						DOCASE_TAG(GDL_TYP_PTR, SpDPtr, def.name, *dim)
+						DOCASE_TAG(GDL_TYP_OBJREF, SpDObj, def.name, *dim)
 						DOCASE_TAG(GDL_TYP_UINT, SpDUInt, def.name, *dim)
 						DOCASE_TAG(GDL_TYP_ULONG, SpDULong, def.name, *dim)
 						DOCASE_TAG(GDL_TYP_ULONG64, SpDULong64, def.name, *dim)
@@ -3541,7 +3547,26 @@ try {pointed=MimickedHeap.at(hash_id);} catch (const std::out_of_range& oor) {Ex
 }
 DLL_PUBLIC UCHAR* IDL_ObjGetInstanceData(EXPORT_VPTR v){TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 		return v->value.s.arr->data;}
-
+DLL_PUBLIC EXPORT_VPTR GDL_CDECL  IDL_ObjNew(int argc, EXPORT_VPTR* argv, char* keywords_list){TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+	// in all cases argv[0] is the OBJECT name. Thus argc=1 min. argc=0 makes a void object and this is an error.
+	// this defines the new object.
+	// then all following argvs[1..n] are passed to OBJECT::init. if keywords are accepted by the ::INIT, then keywords_list CAN point
+	// to a chain of strings ("\0KEYWORD1\0KEYWORD2\0...") BUT starting with as many \0 as there are parameters
+	// passed to ::INIT, including "self". So if there are 3 parameters, that make 4 with "self", the keywords_list string starts with 4 \0 .
+return NULL;
+}
+//IDL_ObjCallMethodByString
+//char* Method, IDL_HVID hvid, void* return_vptr, int argc, IDL_VPTR* argv, char* keywords)
+DLL_PUBLIC EXPORT_VPTR GDL_CDECL IDL_ObjCallMethodByString(char* Method, EXPORT_HVID hvid, void* return_vptr, int argc, EXPORT_VPTR* argv, char* keywords){TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+// if Method has Keywords, then see IDL_ObjNew(). For example with 
+		// toto=obj_new('IDLgrWindow')
+		// toto->setproperty,dimensions=[100,100] 
+		// we have IDL_ObjCallMethodByString("SETPROPERTY", object's_hvid, NULL, 1, (vptr vector [100,100]), "\0DIMENSIONS\0" )
+		// we could have also IDL_ObjCallMethodByString("GetProperty", object's_hvid, NULL, 1, vptr out, "\0DIMENSIONS\0" )
+// if method has no kw, idem.
+		//if method returns a value (it is a function) it is in return_vptr (and is GDL_V_TEMP)
+return NULL;
+}
 #include "export_notsupported.hpp"
 }
 #endif
