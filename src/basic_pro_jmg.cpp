@@ -116,7 +116,7 @@ early_return:
       EXPORT_VPTR v = GDL_ToVPTR(par, global, false);
       varInfo info = {v, &par, global,	DInterpreter::CallStack().size(), false};
       PassedVariables.push_back(info);
-      if (global) PassedVariablesNames[v] == e->GetString(i + add); //add to list of passed NAMED variables
+      if (global) PassedVariablesNames[v] = e->GetString(i + add); //add to list of passed NAMED variables
     }
     char *argk = NULL;
     GDL_PASS_KEYWORDS_LIST passed;
@@ -241,7 +241,7 @@ early_return:
       EXPORT_VPTR v = GDL_ToVPTR(par, global, false);
       varInfo info = {v, &par, global,	DInterpreter::CallStack().size(), false};
       PassedVariables.push_back(info);
-      if (global) PassedVariablesNames[v] == e->GetString(i + add); //add to list of passed NAMED variables
+      if (global) PassedVariablesNames[v] = e->GetString(i + add); //add to list of passed NAMED variables
     }
     char *argk = NULL;
     //we cannot directly use the _EXTRA mechanism as some passed values should be writeable or are not defined at the time of calling this function
@@ -491,7 +491,7 @@ void CleanupProc( DLibPro* proc ) {
       const char* what=s.c_str();
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
-       void* func = (void *)GetProcAddress(handle,what.c_str());
+       void* func = (void *)GetProcAddress(handle,what);
 #else
       error = dlerror();  // clear error
       fPtr = dlsym( handle,what);
