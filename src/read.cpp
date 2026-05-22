@@ -207,7 +207,8 @@ namespace lib {
           int nread = read(sockNum, &c, 1); //, 0); //IDL reads byte by byte to test for \n and stop reading
           if (nread == 0)  break; //closed 
           if (nread < 1) {
-            if (errno == EAGAIN || errno == EWOULDBLOCK) break; //nothing more yet.
+            if (errno == EAGAIN) break; //nothing more yet in pipeline.
+            if (errno == EWOULDBLOCK) break; //idem.
             else e->Throw("Error accessing underlying socket, reason: "+std::string(strerror(errno)));
           }
           if (c=='\n') break; else recvBuf->push_back(c);

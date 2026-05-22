@@ -2799,9 +2799,8 @@ namespace lib {
       e->AssureLongScalarKWIfPresent(stopIx, stop);
     }
 
-    if (stop != 0 || stop != 1 || isfinite(stop) == 0) {
-      DLong stop = 0;
-    }
+    // 0 or 1 only -- previous code was using a logical setup that was always true [-Wlogical-op]
+    stop = (stop==1)?1:0;
 
     //5-th argument : tolerance criterion
     DDouble tol = 0.0001;

@@ -1,7 +1,7 @@
 		DEFOUT(TARGET_GDL_TYPE); //define size of output element, or return if conversion is unnecessary.
 		TREAT_MULTIPLE_ARGS(); // check that output is able to be extracted from input (input arr_len limit) and creates appropriate EXPORT_ARRAY
 		if (argc == 1) {
-			if (isArray(argv[0])) { //simple conversion, strings accepted
+			if (ISARRAY(argv[0])) { //simple conversion, strings accepted
 			PREPARE_ARRAY(TARGET_EXPORT_TYPE); //make target an array using above EXPORT_ARRAY
 			switch (argv[0]->type) {
 					DOCASE_ARRAY(GDL_TYP_BYTE, UCHAR);
@@ -16,7 +16,7 @@
 					DOCASE_ARRAY(GDL_TYP_LONG64, EXPORT_LONG64);
 					DOCASE_ARRAY(GDL_TYP_ULONG64, EXPORT_ULONG64);
 					DOCASE_ARRAY_FROM_STRING(GDL_TYP_STRING, GDL_TYP_INT, EXPORT_STRING); //string accepted
-				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
+				default: ExitDlmFunctionAndThrow(__func__, "Internal error: Unknown combination in convert()..");
 			}
 		} else {
 			switch (argv[0]->type) {
@@ -33,12 +33,12 @@
 					DOCASE(GDL_TYP_ULONG64, i, ul64);
 					DOCASE_FROM_STRING(GDL_TYP_STRING, GDL_TYP_INT, i); //string accepted
 					case GDL_TYP_UNDEF: break; //do nothing
-				default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
+				default: ExitDlmFunctionAndThrow(__func__, "Internal error: Unknown combination in convert()..");
 			}
 		}
 		return ret;
 	} else { // case Y=CONVERT(X,offset,dim1,[dim2,dim3],...). No "conversion" the byte stream is just reinterpreted.
-			if (isArray(argv[0])) {
+			if (ISARRAY(argv[0])) {
 				PREPARE_ARRAY(TARGET_EXPORT_TYPE);
 				switch (argv[0]->type) {
 						DOCASE_ARRAY_NO_CONVERT(GDL_TYP_BYTE, UCHAR, TARGET_EXPORT_TYPE);
@@ -52,10 +52,10 @@
 						DOCASE_ARRAY_NO_CONVERT(GDL_TYP_ULONG, EXPORT_ULONG, TARGET_EXPORT_TYPE);
 						DOCASE_ARRAY_NO_CONVERT(GDL_TYP_LONG64, EXPORT_LONG64, TARGET_EXPORT_TYPE);
 						DOCASE_ARRAY_NO_CONVERT(GDL_TYP_ULONG64, EXPORT_ULONG64, TARGET_EXPORT_TYPE);
-					default: GDL_WillThrowAfterCleaning(__func__, "Internal error: Unknown combination in convert()..");
+					default: ExitDlmFunctionAndThrow(__func__, "Internal error: Unknown combination in convert()..");
 				}
 			} else { 
-					GDL_WillThrowAfterCleaning(__func__, "Internal error: unprogrammed case in convert()..");
+					ExitDlmFunctionAndThrow(__func__, "Internal error: unprogrammed case in convert()..");
 //					DOCASE_NO_CONVERT(GDL_TYP_BYTE, i, c);
 //					DOCASE_NO_CONVERT(GDL_TYP_INT, i, i);
 //					DOCASE_NO_CONVERT(GDL_TYP_LONG, i, l);
