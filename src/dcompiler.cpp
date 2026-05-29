@@ -290,7 +290,7 @@ void DCompiler::EndFun() // inserts in funList
 	}
       searchList = &dStruct->FunList();
 
-      // operator overlaoding
+      // operator overloading
       // consider only FUNCTION operators
       int operatorIndex = OverloadOperatorIndexFun( name);
       // insert in operator list if operator
