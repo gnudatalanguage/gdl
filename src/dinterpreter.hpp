@@ -80,8 +80,7 @@ private:
   bool inInnerInterpreterLoop=false;
   // execute GDL command (.run, .step, ...)
   CommandCode ExecuteCommand(const std::string& command);
-  CommandCode CmdCompile(const std::string& command);
-  CommandCode CmdRun(const std::string& command);
+  CommandCode CmdCompileOrRun(const std::string& command, bool doRun=false);
   CommandCode CmdReset();
   CommandCode CmdFullReset();
 
