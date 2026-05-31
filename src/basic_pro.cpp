@@ -2300,14 +2300,15 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     for (int i = 0; i < nEl; ++i) {
       DString pro = (*p0S)[i];
 
-      string what = StrLowCase(pro);
-      string proFile = what;
+      string proFile =StrLowCase(pro);
+      bool isAsave=false; 
       bool added=AppendIfNeeded(proFile, ".pro"); //look for .pro //Resolve_routine needs to find .sav also
       bool found = CompleteFileName(proFile);
       if (!found  && added) {
-          string savFile = what;
-          AppendIfNeeded(savFile, ".sav"); //Resolve_routine needs to find .sav also. 
-          found = CompleteFileName(savFile);
+        proFile = StrLowCase(pro);
+        AppendIfNeeded(proFile, ".sav"); //Resolve_routine needs to find .sav also. 
+        found = CompleteFileName(proFile);
+        if (found) isAsave=true;
       }
       if (!found) {
         if (!quiet)
@@ -2332,7 +2333,16 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
 		}		
 	  }
       if (exists && norecompileKeyword) continue;
-
+      if (isAsave) { //unless no_recompile is set, we restore again a .sav just as we will recompile a .pro
+        try {
+          std::string Command("RESTORE, \"" + proFile +"\", /VERB");
+          DInterpreter::CallStackBack()->Interpreter()->ExecuteStringLine(Command);
+        } catch (...) {
+          if (!quiet) e->Throw("Failed to restore file: " + proFile); //please check this is the good behaviour
+          return;
+        }
+        return;
+      }
       bool success = GDLInterpreter::CompileFile(proFile,cff?StrUpCase(pro):""); // this might trigger recursion
 	  //here the compilation may have produced BOTH a PRO and a FUNC (e.g;: TIC and TOC. Check:
       bool isPro = false; //is pro (GD).
