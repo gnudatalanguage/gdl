@@ -40,6 +40,9 @@
 #define PATH_MAX 4096
 #endif 
 
+#define EXPAND_A_ROUTINE_WILDCARD "*.[ps][ra][ov]" //.pro and .sav, char by char. not perfect ( .pav would pass) but ExpandPath uses wildcards.
+#define EXPAND_A_HELP_WILDCARD "*.[phc][dth][fm]*" // same for help extensions, many errors possible but who cares.
+
 #ifndef _WIN32
 #   include <fnmatch.h>
 #   include <glob.h> // glob in MinGW ok for mingw >=3.21 11/2014
@@ -727,7 +730,7 @@ static void ExpandPathN( FileListT& result,
     e->NParam( 1);
 
     int specialization=0;
-    DString pattern = "*.pro";
+    DString pattern = EXPAND_A_ROUTINE_WILDCARD ; //magic wildcard 
 
     static int all_dirsIx = e->KeywordIx("ALL_DIRS");
     bool all_dirs = e->KeywordSet(all_dirsIx);
@@ -749,24 +752,24 @@ static void ExpandPathN( FileListT& result,
     if (pathString.find("<", 0) != std::string::npos) {
       if (pathString.find("<IDL_DEFAULT_PATH", 0) != std::string::npos) {
         pathString = replaceAllOccurencesOfDefaultTokens(pathString, "<IDL_DEFAULT_PATH>", gdl_default_path);
-        pattern = "*.pro"; //in fact, should be "([^\\s]+(\\.(?i)(pro|sav))$)"
+        pattern = EXPAND_A_ROUTINE_WILDCARD ; //a wildcard. if it was a regexp it should really be "([^\\s]+(\\.(?i)(pro|sav))$)"
       } else if (pathString.find("<IDL_DEFAULT_DLM", 0) != std::string::npos) {
         pathString = replaceAllOccurencesOfDefaultTokens(pathString, "<IDL_DEFAULT_DLM>", gdl_default_dlm);
         pattern = "*.dlm";
         all_dirs=true; //DLM search use implicitely ALL_DIRS
       } else if (pathString.find("<IDL_DEFAULT_HELP", 0) != std::string::npos) {
         pathString = replaceAllOccurencesOfDefaultTokens(pathString, "<IDL_DEFAULT_HELP>", gdl_default_help);
-        pattern = "*.*"; //should be "([^\\s]+(\\.(?i)(pdf|html|chm))$)"
+        pattern = EXPAND_A_HELP_WILDCARD ; //see above. if it was a regexp it should really be  "([^\\s]+(\\.(?i)(pdf|html|chm))$)"
       } else if (pathString.find("<IDL_DEFAULT>", 0) != std::string::npos) {
         switch (specialization) {
           case 0: pathString = replaceAllOccurencesOfDefaultTokens(pathString, "<IDL_DEFAULT>", gdl_default_path);
-            pattern = "*.pro"; //in fact, should be "([^\\s]+(\\.(?i)(pro|sav))$)"
+            pattern = EXPAND_A_ROUTINE_WILDCARD ; 
             break;
           case 1: pathString = replaceAllOccurencesOfDefaultTokens(pathString, "<IDL_DEFAULT>", gdl_default_dlm);
             pattern = "*.dlm";
             break;
           case 2: pathString = replaceAllOccurencesOfDefaultTokens(pathString, "<IDL_DEFAULT>", gdl_default_help);
-            pattern = "*.*"; //should be "([^\\s]+(\\.(?i)(pdf|html|chm))$)"
+            pattern = EXPAND_A_HELP_WILDCARD ; 
             break;
         }
       }

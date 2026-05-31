@@ -381,10 +381,32 @@ bool GDLInterpreter::SearchCompilePro(const string& pro, bool searchForPro)
   }
   static StrArr openFiles;
 
-  string proFile=StrLowCase(pro)+".pro";
-  //AppendIfNeeded( proFile, ".pro");
-
-  bool found=CompleteFileName(proFile);
+  string proFile=StrLowCase(pro);
+  bool added=AppendIfNeeded( proFile, ".pro"); //look for .pro first
+  bool found = CompleteFileName(proFile);
+  if (!found && added) {
+    proFile = StrLowCase(pro);
+    AppendIfNeeded(proFile, ".sav"); //Resolve_routine needs to find .sav also. 
+    found = CompleteFileName(proFile);
+    if (found) { //restore and return. Forget about "openFiles" as the restored routine has no associated file.
+      try {
+        std::string Command("RESTORE, \"" + proFile +"\"");
+        DInterpreter::CallStackBack()->Interpreter()->ExecuteStringLine(Command);
+      } catch (...) {
+        return false;
+      }
+      // routine has been added, is it a pro or not?
+      if (searchForPro) {
+        for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+              if ((*i)->ObjectName() == name_in_list) return true;
+        }
+      } else {
+        for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
+          if ((*i)->ObjectName() == name_in_list) return true;
+        }
+      }
+    }
+  }
   if( !found) return false;
   
   // file already opened?

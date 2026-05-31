@@ -2300,11 +2300,16 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     for (int i = 0; i < nEl; ++i) {
       DString pro = (*p0S)[i];
 
-      string proFile = StrLowCase(pro);
-      AppendIfNeeded(proFile, ".pro");
-
+      string what = StrLowCase(pro);
+      string proFile = what;
+      bool added=AppendIfNeeded(proFile, ".pro"); //look for .pro //Resolve_routine needs to find .sav also
       bool found = CompleteFileName(proFile);
-      if (!found ) {
+      if (!found  && added) {
+          string savFile = what;
+          AppendIfNeeded(savFile, ".sav"); //Resolve_routine needs to find .sav also. 
+          found = CompleteFileName(savFile);
+      }
+      if (!found) {
         if (!quiet)
           e->Throw("Not found: " + proFile);
         else return;
@@ -2356,7 +2361,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
       if (success) {
         // Message("RESOLVE_ROUTINE: Compiled file: " + proFile);
       } else
-        if (!quiet) e->Throw("Failed to compiled file: " + proFile); //please check this is the good behaviour
+        if (!quiet) e->Throw("Failed to compile file: " + proFile); //please check this is the good behaviour
     }
   }
 
