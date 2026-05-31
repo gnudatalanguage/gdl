@@ -1078,8 +1078,7 @@ for( SizeT i=0; i<nF; i++) if( Is_eq<DPro>(n)(proList[i]))
 int FunIx(const string& n)
 {
 SizeT nF=funList.size();
-for( SizeT i=0; i<nF; i++) if( Is_eq<DFun>(n)(funList[i]))
-  return (int)i;
+for( SizeT i=0; i<nF; i++) if( Is_eq<DFun>(n)(funList[i])) return (int)i;
 //may be a lambda list ? so it's a UD Fun
     EnvT* requestedScope = (EnvT*) DInterpreter::CallStackBack();
     DSubUD* pro = static_cast<DSubUD*> (requestedScope->GetPro());

@@ -116,7 +116,8 @@ void LibInit()
   //LAMBDA function
   new DLibFun(lib::lambda_fun,string("LAMBDA"),1);
   new DLibFun(lib::lambda_pro,string("LAMBDAP"),1);
-
+  // COMPILE_CODE
+  new DLibPro(lib::compile_code_pro,string("COMPILE_CODE"),1);
   //SCOPE_VARFETCH WARNING: changes in lib::scope_varfetch_value must be reported also in lib::scope_varfetch_reference
   const string scope_varfetchKey[]={"LEVEL","ENTER", "REF_EXTRA", "COMMON", KLISTEND};
   new DLibFun(lib::scope_varfetch_value,string("SCOPE_VARFETCH"),-1,scope_varfetchKey);
