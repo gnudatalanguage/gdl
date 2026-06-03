@@ -423,6 +423,31 @@ bool GDLInterpreter::SearchCompilePro(const string& pro, bool searchForPro)
   return CompileFile( proFile, pro, searchForPro); // this might trigger recursion
 }
 
+// searches routine  'pro'
+// if already present because it has been restored/compiled return 1 for a PRO and 2 for a FUNC
+// if routine is present (by name, in PATH) but not already compiled, return 0
+// if routine name is not found return -1
+int GDLInterpreter::SearchRoutineNoCompile(const string& routine) {
+  std::string name_in_list = StrUpCase(routine);
+  for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+    if ((*i)->ObjectName() == name_in_list) return 1;
+  }
+  for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
+    if ((*i)->ObjectName() == name_in_list) return 2;
+  }
+  string proFile = StrLowCase(routine);
+  bool added = AppendIfNeeded(proFile, ".pro"); //look for .pro first
+  bool found = CompleteFileName(proFile);
+  if (found) return 0;
+  else if (added) {
+    proFile = StrLowCase(routine);
+    AppendIfNeeded(proFile, ".sav"); //Resolve_routine needs to find .sav also. 
+    found = CompleteFileName(proFile);
+    if (found) return 0;
+  }
+  return -1;
+}
+
 // returns the struct descriptor with name 'name'
 // read/compiles 'name'__define.pro if necessary
 // cN is the calling node, passed for (runtime) debug information
@@ -489,10 +514,10 @@ DStructDesc* GDLInterpreter::GetStruct(const string& name, ProgNodeP cN)
 void GDLInterpreter::SetFunIx( ProgNodeP f)
 {
   if( f->funIx == -1)
-    f->funIx=GetFunIx(f);
+    f->funIx=GetFunIx(f, false);
 }
 
-int GDLInterpreter::GetFunIx( ProgNodeP f)
+int GDLInterpreter::GetFunIx( ProgNodeP f, bool dothrow)
 {
   string subName = f->getText();
   int funIx=FunIx(subName);
@@ -502,7 +527,7 @@ int GDLInterpreter::GetFunIx( ProgNodeP f)
       /*bool found=*/ SearchCompilePro(subName, false);
             
       funIx=FunIx(subName);
-      if( funIx == -1)
+      if( funIx == -1 && dothrow)
 	{
 	  throw GDLException(f, "Function not found: "+subName, true, false);
 	}

@@ -727,7 +727,47 @@ namespace lib {
   //    if(isscalar) return new DByteGDL( (*ret)[0] );
   //       else return ret;
   //  }
+ BaseGDL* class_name_to_obj_new(EnvT* e) {
+   DString objName=StrUpCase(e->GetProName());
+    int nParam = e->NParam();
+    for (auto i=0; i< nParam; ++i) std::cerr<<e->GetParString(i)<<std::endl;
+    if (objName == "IDL_OBJECT")
+      objName = GDL_OBJECT_NAME; // replacement also done in GDLParser
+    else if (objName == "IDL_CONTAINER")
+      objName = GDL_CONTAINER_NAME;
+    DStructDesc* objDesc = e->Interpreter()->GetStruct(objName, e->CallingNode());
 
+    DStructGDL* objStruct = new DStructGDL(objDesc, dimension(1));
+
+    DObj objID = e->NewObjHeap(1, objStruct); // owns objStruct
+
+    DObjGDL* newObj = new DObjGDL(objID); // the object
+
+    try {
+      // call INIT function
+      DFun* objINIT = objDesc->GetFun("INIT");
+      if (objINIT != NULL) {
+        StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
+
+        // morph to obj environment and push it onto the stack again
+        e->PushNewEnvUD(objINIT, 0, &newObj);
+
+        BaseGDL* res = e->Interpreter()->call_fun(objINIT->GetTree());
+
+        if (res == NULL || (!res->Scalar()) || res->False()) {
+          GDLDelete(res);
+          return new DObjGDL(0);
+        }
+        GDLDelete(res);
+      }
+    } catch (...) {
+      e->FreeObjHeap(objID); // newObj might be changed
+      GDLDelete(newObj);
+      throw;
+    }
+
+    return newObj;
+}
  BaseGDL* obj_new(EnvT* e) {
     //     StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
 
@@ -739,7 +779,7 @@ namespace lib {
 
     DString objName;
     e->AssureScalarPar<DStringGDL>(0, objName);
-
+    
     // this is a struct name -> convert to UPPERCASE
     objName = StrUpCase(objName);
     if (objName == "HASH" | objName=="ORDEREDHASH") {
@@ -1754,7 +1794,7 @@ unsigned int JSHash(const std::string& str)
     // this is a function name -> convert to UPPERCASE
     callF = StrUpCase(callF);
 
-    // first search library funcedures
+    // first search library functions
     int funIx = LibFunIx(callF);
     if (funIx != -1) {
       //  e->PushNewEnv( libFunList[ funIx], 1);

@@ -46,6 +46,7 @@ namespace lib {
 
   BaseGDL* ptr_new( EnvT* e);
   BaseGDL* obj_new( EnvT* e);
+  BaseGDL* class_name_to_obj_new( EnvT* e);
 
   BaseGDL* heap_refcount( EnvT* e);
 
