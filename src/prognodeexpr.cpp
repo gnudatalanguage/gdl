@@ -3549,7 +3549,7 @@ BaseGDL** FCALLNode::EvalRefCheck( BaseGDL*& rEval)
 {
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
     ProgNode::interpreter->SetFunIx( this);
-	if( this->funIx < -1) throw GDLException(this," FCALLNode::EvalRefcheck - AutoObj",true,false);
+	if( this->funIx < 0) throw GDLException(this," FCALLNode::EvalRefcheck - AutoObj",true,false);
     EnvUDT* newEnv=new EnvUDT( this, funList[this->funIx], EnvUDT::LRFUNCTION);
 
     ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
@@ -3617,7 +3617,7 @@ BaseGDL** FCALLNode::LEval()
     ProgNodeP	_t = this->getFirstChild();
 
     ProgNode::interpreter->SetFunIx( this);
-	if( this->funIx < -1) throw GDLException(this," FCALLNode::LEval- AutoObj",true,false);
+	if( this->funIx < 0) throw GDLException(this," FCALLNode::LEval- AutoObj",true,false);
     EnvUDT* newEnv=new EnvUDT( this, funList[this->funIx], EnvUDT::LFUNCTION);
 
     ProgNode::interpreter->parameter_def(_t, newEnv);
@@ -3683,8 +3683,31 @@ BaseGDL* FCALLNode::Eval()
 {
     // better than auto_ptr: auto_ptr wouldn't remove newEnv from the stack
     StackGuard<EnvStackT> guard(ProgNode::interpreter->CallStack());
+    //should ideally transform a=myobject(etc...) into a=obj_new("myobject",etc...) reproducing IDL's behaviour for direct def of objects.
     ProgNode::interpreter->SetFunIx( this);
-	if( this->funIx < -1) throw GDLException(this," FCALLNode::Eval - AutoObj",true,false);
+  if (this->funIx < 0) { //create a new function on the spot
+    int ret = GDLInterpreter::SearchRoutineNoCompile(this->getText() + "__DEFINE");
+    if (ret >= 0) {//create a new function name on the spot, linked to a facilitator lib function (class_name_to_obj_new(EnvT* e))
+      //which will call obj_new(this->getText(),args...)
+      const string keyNames[] = {"_EXTRA", ""};
+      new DLibFunRetNew(lib::class_name_to_obj_new, this->getText(), 100, keyNames);
+      int funIx = LibFunIx(this->getText());
+      if (funIx < 0) throw GDLException(this, " FCALLNode::Eval - " + this->getText() + " not found!", true, false);
+      EnvT* newEnv = new EnvT(this, libFunList[funIx]);
+
+      ProgNode::interpreter->parameter_def_nocheck(this->getFirstChild(), newEnv);
+
+      Guard<EnvT> guardEnv(newEnv);
+      // make the call
+      BaseGDL* res = static_cast<LibFun> (libFunList[funIx]->Fun())(newEnv);
+      // *** MUST always return a defined expression
+      assert(res != NULL);
+      if (newEnv->GetPtrToReturnValue() != NULL)
+        return res->Dup();
+      return res;
+    }
+  }
+	if( this->funIx < 0) throw GDLException(this," FCALLNode::Eval - AutoObj",true,false);
     EnvUDT* newEnv=new EnvUDT( this, funList[this->funIx]);
 
     ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
