@@ -394,7 +394,10 @@ BaseGDL* _GDL_OBJECT_OverloadReportIllegalOperation(EnvUDT* e) {
 }
 
 // set up the _overload... subroutines for GDL_OBJECT
-
+//needeed here
+namespace lib {
+BaseGDL* class_name_to_obj_new(EnvT* e);
+}
 void SetupOverloadSubroutines() {
   //   // The call
   //   BaseGDL* res=interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
@@ -423,7 +426,12 @@ void SetupOverloadSubroutines() {
 
   WRAPPED_FUNNode *treeFun;
   WRAPPED_PRONode *treePro;
-
+  //Need to define a LibFunRetNew() for "GDL_OBJECT_NAME" and "GDL_CONTAINER_NAME" as "gdl_object__define.pro" does not exist, so the
+  //general mechanism to use equivalently x=class(params...) or x=obj_new("class", params...) does not work if a class__define.pro is not present in !PATH
+        const string keyNames[] = {"_EXTRA", ""};
+        new DLibFunRetNew(lib::class_name_to_obj_new, GDL_OBJECT_NAME, 100, keyNames);
+        new DLibFunRetNew(lib::class_name_to_obj_new, GDL_CONTAINER_NAME, 100, keyNames);
+  
   // automatically adds "SELF" parameter (object name is != "")
   DFun *_overloadIsTrue = new DFun("_OVERLOADISTRUE", GDL_OBJECT_NAME, INTERNAL_LIBRARY_STR);
   treeFun = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadIsTrue);

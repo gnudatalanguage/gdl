@@ -730,7 +730,7 @@ namespace lib {
  BaseGDL* class_name_to_obj_new(EnvT* e) {
    DString objName=StrUpCase(e->GetProName());
     int nParam = e->NParam();
-    for (auto i=0; i< nParam; ++i) std::cerr<<e->GetParString(i)<<std::endl;
+//    for (auto i=0; i< nParam; ++i) std::cerr<<e->GetParString(i)<<std::endl;
     if (objName == "IDL_OBJECT")
       objName = GDL_OBJECT_NAME; // replacement also done in GDLParser
     else if (objName == "IDL_CONTAINER")
