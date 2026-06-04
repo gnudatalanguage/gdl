@@ -208,10 +208,13 @@ namespace structDesc {
   // one can still use these as they get updated on every new creation in InitStructs()
   extern DStructDesc* LIST;
   extern DStructDesc* HASH;
+  extern DStructDesc* ORDEREDHASH;
   extern DStructDesc* GDL_CONTAINER;
   extern DStructDesc* GDL_CONTAINER_NODE;
   extern DStructDesc* GDL_HASHTABLEENTRY;
-  
+  extern DStructDesc* IDLFFSHAPE;
+  extern DStructDesc* IDLFFXMLSAX;
+  extern DStructDesc* IDL_IDLBRIDGE;
 }
 
 #endif

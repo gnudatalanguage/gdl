@@ -84,6 +84,7 @@ static bool enabled_GC=true;
 
 namespace structDesc {
   // set in InitStructs()
+  // should always be reported as EXTERN in objects.hpp? please check.
   DStructDesc* LIST = NULL;
   DStructDesc* HASH = NULL;
   DStructDesc* ORDEREDHASH = NULL;
