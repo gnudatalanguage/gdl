@@ -2345,8 +2345,8 @@ BaseGDL* file_info( EnvT* e)
       if( p0S == NULL)
     e->Throw( "String expression required in this context: "+
           e->GetParString(0));
-
-    bool noexpand_path = e->KeywordSet( "NOEXPAND_PATH");
+      static int NOEXPAND_PATH = e->KeywordIx( "NOEXPAND_PATH");
+    bool noexpand_path = e->KeywordSet(NOEXPAND_PATH);
 
       DStructGDL* res = new DStructGDL(
                        FindInStructList(structList, "FILE_INFO"), 
@@ -2967,13 +2967,20 @@ void file_copy( EnvT* e)
     struct stat64 statStruct, srcStruct;
 
 //    trace_me = trace_arg();     
-    bool recursive = e->KeywordSet( "RECURSIVE");
-    bool noexpand_path = e->KeywordSet( "NOEXPAND_PATH");
-    bool copy_symlink = e->KeywordSet( "COPY_SYMLINK");
-    bool allow_same = e->KeywordSet( "ALLOW_SAME");
-    bool overwrite = e->KeywordSet( "OVERWRITE");
-    bool require_directory = e->KeywordSet( "REQUIRE_DIRECTORY");
-    bool verbose = e->KeywordSet( "VERBOSE");
+    static int RECURSIVE = e->KeywordIx("RECURSIVE");
+    static int NOEXPAND_PATH = e->KeywordIx("NOEXPAND_PATH");
+    static int COPY_SYMLINK = e->KeywordIx("COPY_SYMLINK");
+    static int ALLOW_SAME = e->KeywordIx("ALLOW_SAME");
+    static int OVERWRITE = e->KeywordIx("OVERWRITE");
+    static int REQUIRE_DIRECTORY = e->KeywordIx("REQUIRE_DIRECTORY");
+    static int VERBOSE = e->KeywordIx("VERBOSE");
+    bool recursive = e->KeywordSet(RECURSIVE);
+    bool noexpand_path = e->KeywordSet(NOEXPAND_PATH);
+    bool copy_symlink = e->KeywordSet(COPY_SYMLINK);
+    bool allow_same = e->KeywordSet(ALLOW_SAME);
+    bool overwrite = e->KeywordSet(OVERWRITE);
+    bool require_directory = e->KeywordSet(REQUIRE_DIRECTORY);
+    bool verbose = e->KeywordSet(VERBOSE);
     int nsrc = p0S->N_Elements();
     int ndest = p1S->N_Elements();
     string dsttmp = string("");
@@ -3175,10 +3182,14 @@ void file_link( EnvT* e)
     string srctmp, dsttmp, dstdir;
     struct stat64 statStruct;
 
-    bool noexpand_path = e->KeywordSet( "NOEXPAND_PATH");
-    bool allow_same = e->KeywordSet( "ALLOW_SAME");
-    bool hardlink = e->KeywordSet( "HARDLINK");
-    bool verbose = e->KeywordSet( "VERBOSE");
+    static int NOEXPAND_PATH = e->KeywordIx("NOEXPAND_PATH");
+    static int ALLOW_SAME = e->KeywordIx("ALLOW_SAME");
+    static int HARDLINK = e->KeywordIx("HARDLINK");
+    static int VERBOSE = e->KeywordIx("VERBOSE");
+    bool noexpand_path = e->KeywordSet(NOEXPAND_PATH);
+    bool allow_same = e->KeywordSet(ALLOW_SAME);
+    bool hardlink = e->KeywordSet(HARDLINK);
+    bool verbose = e->KeywordSet(VERBOSE);
     int nsrc = p0S->N_Elements();
     int ndest = p1S->N_Elements(); 
     bool dest_is_directory= false;
@@ -3293,11 +3304,16 @@ void file_move( EnvT* e)
     string srctmp, dsttmp, dstdir;
     struct stat64 statStruct;
         
-    bool noexpand_path = e->KeywordSet( "NOEXPAND_PATH");
-    bool allow_same = e->KeywordSet( "ALLOW_SAME");
-    bool overwrite = e->KeywordSet( "OVERWRITE");
-    bool require_directory = e->KeywordSet( "REQUIRE_DIRECTORY");
-    bool verbose = e->KeywordSet( "VERBOSE");
+    static int NOEXPAND_PATH = e->KeywordIx( "NOEXPAND_PATH");
+    static int ALLOW_SAME = e->KeywordIx( "ALLOW_SAME");
+    static int OVERWRITE = e->KeywordIx( "OVERWRITE");
+    static int REQUIRE_DIRECTORY = e->KeywordIx( "REQUIRE_DIRECTORY");
+    static int VERBOSE = e->KeywordIx( "VERBOSE");
+    bool noexpand_path = e->KeywordSet(NOEXPAND_PATH);
+    bool allow_same = e->KeywordSet(ALLOW_SAME);
+    bool overwrite = e->KeywordSet(OVERWRITE);
+    bool require_directory = e->KeywordSet(REQUIRE_DIRECTORY);
+    bool verbose = e->KeywordSet(VERBOSE);
     int nsrc = p0S->N_Elements();
     int ndest = p1S->N_Elements(); 
     if(ndest > 0) dstdir = (*p1S)[0];

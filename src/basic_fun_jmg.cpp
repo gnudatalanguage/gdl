@@ -763,9 +763,10 @@ namespace lib {
       if(value) {
         return static_cast<T*>(value)->New(dim, BaseGDL::INIT)->Convert2(T::Traits::t);
       }
-      if(e->KeywordSet("NOZERO")) return new T(dim, BaseGDL::NOZERO);
-
-      if(e->KeywordSet("INDEX"))  return new T(dim, BaseGDL::INDGEN, off, inc);
+      static int NOZERO=e->KeywordIx("NOZERO");
+      if(e->KeywordSet(NOZERO)) return new T(dim, BaseGDL::NOZERO);
+      static int INDEX=e->KeywordIx("INDEX");
+      if(e->KeywordSet(INDEX))  return new T(dim, BaseGDL::INDGEN, off, inc);
 
       return new T(dim);
     } catch(GDLException& ex) {
@@ -796,8 +797,8 @@ namespace lib {
     DDouble off = 0, inc = 1;
     DType type = GDL_UNDEF;
     
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
 
     DLongGDL* dimKey = NULL;
     Guard<DLongGDL> dimKey_guard;
@@ -853,32 +854,48 @@ namespace lib {
     if(value && !value->Scalar()) e->Throw("Expression must be a scalar in this context: " + e->GetString(valueIx));
 
     static int typeIx = e->KeywordIx("TYPE");
+    static int BYTE=e->KeywordIx("BYTE");
+    static int COMPLEX=e->KeywordIx("COMPLEX");
+    static int DCOMPLEX=e->KeywordIx("DCOMPLEX");
+    static int DOUBLE=e->KeywordIx("DOUBLE");
+    static int FLOAT=e->KeywordIx("FLOAT");
+    static int INTEGER=e->KeywordIx("INTEGER");
+    static int L64=e->KeywordIx("L64");
+    static int LONG=e->KeywordIx("LONG");
+    static int OBJ=e->KeywordIx("OBJ");
+    static int PTR=e->KeywordIx("PTR");
+    static int STRING=e->KeywordIx("STRING");
+    static int UINT=e->KeywordIx("UINT");
+    static int UL64=e->KeywordIx("UL64");
+    static int ULONG=e->KeywordIx("ULONG");
+    static int BOOLEAN=e->KeywordIx("BOOLEAN");
+
     if(e->KeywordPresent(typeIx)) {
       DLong temp;
       e->AssureLongScalarKW(typeIx, temp);
       type = static_cast<DType>(temp);
     }
-    else if(e->KeywordSet("BOOLEAN")) {
+    else if(e->KeywordSet(BOOLEAN)) {
       if(e->KeywordSet(indexIx))
         e->Throw("Keyword INDEX is not allowed with BOOLEAN."); 
 
       // TODO: Add support for BOOLEAN type introduced in IDL 8.4
       e->Throw("MAKE_ARRAY of BOOLEAN types not yet implemented.");
     } else if (type == GDL_UNDEF) { // not already given by SIZE
-           if(e->KeywordSet("BYTE"))      type = GDL_BYTE;
-      else if(e->KeywordSet("COMPLEX"))   type = GDL_COMPLEX;
-      else if(e->KeywordSet("DCOMPLEX"))  type = GDL_COMPLEXDBL;
-      else if(e->KeywordSet("DOUBLE"))    type = GDL_DOUBLE;
-      else if(e->KeywordSet("FLOAT"))     type = GDL_FLOAT;
-      else if(e->KeywordSet("INTEGER"))   type = GDL_INT;
-      else if(e->KeywordSet("L64"))       type = GDL_LONG64;
-      else if(e->KeywordSet("LONG"))      type = GDL_LONG;
-      else if(e->KeywordSet("OBJ"))       type = GDL_OBJ;
-      else if(e->KeywordSet("PTR"))       type = GDL_PTR;
-      else if(e->KeywordSet("STRING"))    type = GDL_STRING;
-      else if(e->KeywordSet("UINT"))      type = GDL_UINT;
-      else if(e->KeywordSet("UL64"))      type = GDL_ULONG64;
-      else if(e->KeywordSet("ULONG"))     type = GDL_ULONG;
+           if(e->KeywordSet(BYTE))      type = GDL_BYTE;
+      else if(e->KeywordSet(COMPLEX))   type = GDL_COMPLEX;
+      else if(e->KeywordSet(DCOMPLEX))  type = GDL_COMPLEXDBL;
+      else if(e->KeywordSet(DOUBLE))    type = GDL_DOUBLE;
+      else if(e->KeywordSet(FLOAT))     type = GDL_FLOAT;
+      else if(e->KeywordSet(INTEGER))   type = GDL_INT;
+      else if(e->KeywordSet(L64))       type = GDL_LONG64;
+      else if(e->KeywordSet(LONG))      type = GDL_LONG;
+      else if(e->KeywordSet(OBJ))       type = GDL_OBJ;
+      else if(e->KeywordSet(PTR))       type = GDL_PTR;
+      else if(e->KeywordSet(STRING))    type = GDL_STRING;
+      else if(e->KeywordSet(UINT))      type = GDL_UINT;
+      else if(e->KeywordSet(UL64))      type = GDL_ULONG64;
+      else if(e->KeywordSet(ULONG))     type = GDL_ULONG;
       else if(value) {
           wasAValue=true;
           type = value->Type();

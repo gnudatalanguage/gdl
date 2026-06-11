@@ -81,7 +81,7 @@ wxBitmap * GetBitmapFromPassedBytes(EnvT* e, DByteGDL* passedBytes, bool doMask=
 
 wxRealPoint GetRequestedUnitConversionFactor( EnvT* e){
   int the_units = 0;
-  int unitsIx = e->KeywordIx( "UNITS" ); //not static as the calling finction may change
+  int unitsIx = e->KeywordIx( "UNITS" ); //not static as the calling function may change
   e->AssureLongScalarKWIfPresent( unitsIx, the_units );
   //convert unit to the factor in pixels
   DDouble sx=wxGetDisplaySizeMM().x;
@@ -98,7 +98,7 @@ wxRealPoint GetRequestedUnitConversionFactor( EnvT* e){
 void GDLWidget::ChangeUnitConversionFactor( EnvT* e)
 {
   int the_units = 0;
-  int unitsIx = e->KeywordIx( "UNITS" ); //not static as the calling finction may change
+  int unitsIx = e->KeywordIx( "UNITS" ); //not static as the calling function may change
   e->AssureLongScalarKWIfPresent( unitsIx, the_units );
   //convert unit to the factor in pixels
   DDouble sx=wxGetDisplaySizeMM().x;
@@ -847,7 +847,8 @@ BaseGDL* widget_draw( EnvT* e ) {
   if ( nParam == 1 ) // no TLB
     e->AssureLongScalarPar( 0, parentID );
 
-  if (e->KeywordPresent("FONT")) e->Throw("FONT keyword not accepted by WIDGET_BASE.");  //forbidden for widget_base 
+  static int FONT = e->KeywordIx( "FONT" );
+  if (e->KeywordPresent(FONT)) e->Throw("FONT keyword not accepted by WIDGET_BASE.");  //forbidden for widget_base 
   // handle some more keywords over widget
   
   static int mbarIx = e->KeywordIx( "MBAR" );

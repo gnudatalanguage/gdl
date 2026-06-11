@@ -428,7 +428,8 @@ namespace lib {
     if (e->KeywordSet(nozeroIx)) Message("Obsolete Keyword NOZERO");
     //  return new DPtrGDL(dim);
 
-    if (e->KeywordSet("ALLOCATE_HEAP")) {
+    static int ALLOCATE_HEAP = e->KeywordIx("ALLOCATE_HEAP");    
+    if (e->KeywordSet(ALLOCATE_HEAP)) {
       ret = new DPtrGDL(dim, BaseGDL::NOZERO);
       SizeT nEl = ret->N_Elements();
       SizeT sIx = e->NewHeap(nEl, NullGDL::GetSingleInstance());
@@ -479,7 +480,8 @@ namespace lib {
         return new DPtrGDL(heapID);
       }
     } else {
-      if (e->KeywordSet("ALLOCATE_HEAP"))
+          static int ALLOCATE_HEAP = e->KeywordIx("ALLOCATE_HEAP");    
+    if (e->KeywordSet(ALLOCATE_HEAP)) 
       {
         DPtr heapID = e->NewHeap(1, NullGDL::GetSingleInstance()); //allocate a !NULL, not a null ptr!!
         return new DPtrGDL(heapID);
@@ -1042,8 +1044,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
     return do_bindgen(dim, off, inc);
   }
 
@@ -1119,8 +1121,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
 
     switch (type) {
     case GDL_INT: return do_indgen(dim, off, inc);
@@ -1150,8 +1152,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
     return do_uindgen(dim,off,inc);
   }
 
@@ -1162,8 +1164,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
     return do_sindgen(dim, off, inc);
   }
 
@@ -1174,8 +1176,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
     return do_lindgen(dim, off, inc);
   }
 
@@ -1186,8 +1188,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
     return new DULongGDL(dim, BaseGDL::INDGEN, off, inc);
   }
 
@@ -1198,8 +1200,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
     return new DLong64GDL(dim, BaseGDL::INDGEN, off, inc);
   }
 
@@ -1210,8 +1212,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
     return new DULong64GDL(dim, BaseGDL::INDGEN, off, inc);
   }
 
@@ -1222,8 +1224,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
     return new DFloatGDL(dim, BaseGDL::INDGEN, off, inc);
   }
 
@@ -1234,8 +1236,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
     return new DDoubleGDL(dim, BaseGDL::INDGEN, off, inc);
   }
 
@@ -1246,8 +1248,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
     return new DComplexGDL(dim, BaseGDL::INDGEN, off, inc);
   }
 
@@ -1258,8 +1260,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
     return new DComplexDblGDL(dim, BaseGDL::INDGEN, off, inc);
   }
 
@@ -1620,6 +1622,7 @@ namespace lib {
     SizeT np = e->NParam(1);
     BaseGDL* arg0 = e->GetPar(0);
 
+    static int PRINTIX = e->KeywordIx("PRINT");
     if (arg0 == NULL) e->Throw("Variable is undefined: "+ e->GetParString(0)); 
     
     // managing few basic cases we don't have to process later
@@ -1656,8 +1659,7 @@ namespace lib {
       if (typ == GDL_COMPLEXDBL) return dcomplex_fun(e);
       // 2 cases where PRINT has to be taken into account
       if (typ == GDL_BYTE) {
-        static int printIx = e->KeywordIx("PRINT");
-        if (e->KeywordSet(printIx) && e->GetPar(0)->Type() == GDL_STRING) {
+        if (e->KeywordSet(PRINTIX) && e->GetPar(0)->Type() == GDL_STRING) {
           DLong64GDL* temp = static_cast<DLong64GDL*> (e->GetPar(0)->Convert2(GDL_LONG64, BaseGDL::COPY));
           SizeT nEl = temp->N_Elements();
           DByteGDL* ret = new DByteGDL(dimension(nEl),BaseGDL::NOZERO);
@@ -1690,9 +1692,7 @@ namespace lib {
  
 	//        newEnv->SetNextPar(e->GetPar(0)); // pass as global
 
-        int printIx = e->KeywordIx("PRINT");
-
-        if (e->KeywordSet(printIx) && e->GetPar(0)->Type() == GDL_BYTE) {
+        if (e->KeywordSet(PRINTIX) && e->GetPar(0)->Type() == GDL_BYTE) {
           newEnv->SetKeyword("PRINT", new DIntGDL(1));
         }
 
@@ -2270,7 +2270,7 @@ unsigned int JSHash(const std::string& str)
 
     DStringGDL* p0S = e->GetParAs<DStringGDL>(0);
 
-    bool removeAll = e->KeywordSet("REMOVE_ALL");
+    bool removeAll = e->KeywordSet(0); //REMOVE_ALL
 
     DStringGDL* res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
 
@@ -2540,7 +2540,8 @@ unsigned int JSHash(const std::string& str)
     if (nParam > 1)
       e->AssureStringScalarPar(1, delim);
 
-    bool single = e->KeywordSet("SINGLE");
+    static int SINGLE = e->KeywordIx("SINGLE");
+    bool single = e->KeywordSet(SINGLE);
 
     if (single) {
       DStringGDL* res = new DStringGDL((*p0S)[0]);
