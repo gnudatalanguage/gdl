@@ -328,8 +328,6 @@ void DCompiler::EndFun() // inserts in funList
 	break;
   }
     (*searchList).push_back(static_cast<DFun*>(pro));
-    // sort list again, however item should be inserted at good position in fact (more tricky but would save sort time). TODO.
-   sort( libFunList.begin(), libFunList.end(), CompLibFunName());
    WarnAboutObsoleteRoutine(pro->ObjectName());
   }
 
