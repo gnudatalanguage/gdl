@@ -312,21 +312,21 @@ DLibPro::DLibPro( LibPro p, const string& n, const string& o, const int nPar_,
   : DLib(n,o,nPar_,keyNames, warnKeyNames, nParMin_), pro(p)
 {
   libProList.push_back(this);
-//  sort(libProList.begin(), libProList.end(),CompLibFunName());
+ // sort(libProList.begin(), libProList.end(),DSub_compare());
 }
 DLibPro::DLibPro( LibPro p, const string& n, const int nPar_, 
 		  const string keyNames[], const string warnKeyNames[], const int nParMin_, const bool use_threadpool)
   : DLib(n,"",nPar_,keyNames, warnKeyNames, nParMin_, use_threadpool), pro(p)
 {
   libProList.push_back(this);
-//  sort(libProList.begin(), libProList.end(),CompLibFunName());
+ // sort(libProList.begin(), libProList.end(),DSub_compare());
 }
 
 DLibPro::DLibPro( LibPro p, void* mediator, const string& n, const int nPar_, const int nParMin_, const bool hasKeys)
   : DLib(n,"",nPar_,NULL, NULL, nParMin_, false, mediator, hasKeys), pro(p)
 {
   libProList.push_back(this);
-//  sort(libProList.begin(), libProList.end(),CompLibFunName());
+ //  sort(libProList.begin(), libProList.end(),DSub_compare());
 }
 
 DLibFun::DLibFun( LibFun f, const string& n, const string& o, const int nPar_, 
@@ -334,7 +334,7 @@ DLibFun::DLibFun( LibFun f, const string& n, const string& o, const int nPar_,
   : DLib(n,o,nPar_,keyNames, warnKeyNames, nParMin_), fun(f)
 {
   libFunList.push_back(this);
-//  sort(libFunList.begin(), libFunList.end(),CompLibFunName());
+ // sort(libFunList.begin(), libFunList.end(),DSub_compare());
 }
 
 DLibFun::DLibFun( LibFun f, const string& n, const int nPar_, 
@@ -342,14 +342,14 @@ DLibFun::DLibFun( LibFun f, const string& n, const int nPar_,
   : DLib(n,"",nPar_,keyNames, warnKeyNames, nParMin_, use_threadpool), fun(f)
 {
   libFunList.push_back(this);
-//  sort(libFunList.begin(), libFunList.end(),CompLibFunName());
+ // sort(libFunList.begin(), libFunList.end(),DSub_compare());
 }
 
 DLibFun::DLibFun( LibFun f, void* mediator, const string& n, const int nPar_, const int nParMin_, const bool hasKeys)
   : DLib(n,"",nPar_,NULL, NULL, nParMin_, false, mediator,hasKeys), fun(f)
 {
   libFunList.push_back(this);
-//  sort(libFunList.begin(), libFunList.end(),CompLibFunName());
+ // sort(libFunList.begin(), libFunList.end(),DSub_compare());
 }
 
 DLibFunRetNew::DLibFunRetNew( LibFun f, const string& n, 

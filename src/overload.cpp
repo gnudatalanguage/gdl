@@ -428,9 +428,9 @@ void SetupOverloadSubroutines() {
   WRAPPED_PRONode *treePro;
   //Need to define a LibFunRetNew() for "GDL_OBJECT_NAME" and "GDL_CONTAINER_NAME" as "gdl_object__define.pro" does not exist, so the
   //general mechanism to use equivalently x=class(params...) or x=obj_new("class", params...) does not work if a class__define.pro is not present in !PATH
-        const string keyNames[] = {"_EXTRA", ""};
-        new DLibFunRetNew(lib::class_name_to_obj_new, GDL_OBJECT_NAME, 100, keyNames);
-        new DLibFunRetNew(lib::class_name_to_obj_new, GDL_CONTAINER_NAME, 100, keyNames);
+  const string keyNames[] = {"_EXTRA", ""};
+  new DLibFunRetNew(lib::class_name_to_obj_new, GDL_OBJECT_NAME, 100, keyNames);
+  new DLibFunRetNew(lib::class_name_to_obj_new, GDL_CONTAINER_NAME, 100, keyNames);
   
   // automatically adds "SELF" parameter (object name is != "")
   DFun *_overloadIsTrue = new DFun("_OVERLOADISTRUE", GDL_OBJECT_NAME, INTERNAL_LIBRARY_STR);
@@ -492,6 +492,10 @@ void SetupOverloadSubroutines() {
   _overloadMinus->SetTree(treeFun);
   gdlObjectDesc->FunList().push_back(_overloadMinus);
   //   gdlObjectDesc->SetOperator(OOMINUS,_overloadMinus);
+  // MUST BE LAST line related to gdlObject
+  //no more functions defined ? sort list
+ // sort(gdlObjectDesc->ProList().begin(), gdlObjectDesc->ProList().end(), DSub_compare());
+ // sort(gdlObjectDesc->FunList().begin(), gdlObjectDesc->FunList().end(), DSub_compare());
 
   // LIST:: ]
   DFun *DFunLIST__overloadBracketsRightSide = new DFun("_OVERLOADBRACKETSRIGHTSIDE", "LIST", INTERNAL_LIBRARY_STR);
@@ -646,6 +650,10 @@ void SetupOverloadSubroutines() {
   // DFunLIST__INIT->SetTree( treeFun);
   // listDesc->FunList().push_back(DFunLIST__INIT);
 
+  // MUST BE LAST line related to List
+  //no more functions defined ? sort list
+  //sort(listDesc->ProList().begin(), listDesc->ProList().end(), DSub_compare());
+  //sort(listDesc->FunList().begin(), listDesc->FunList().end(), DSub_compare());
 
   // HASH
   DFun *DFunHASH__overloadBracketsRightSide = new DFun("_OVERLOADBRACKETSRIGHTSIDE", "HASH", INTERNAL_LIBRARY_STR);
@@ -762,6 +770,10 @@ void SetupOverloadSubroutines() {
   treeFun = new WRAPPED_FUNNode(lib::hash__where);
   DFunHASH__WHERE->SetTree(treeFun);
   hashDesc->FunList().push_back(DFunHASH__WHERE);
+  // MUST BE LAST line related to Hash
+  //no more functions defined ? sort list
+  //sort(hashDesc->ProList().begin(), hashDesc->ProList().end(), DSub_compare());
+  //sort(hashDesc->FunList().begin(), hashDesc->FunList().end(), DSub_compare());
 
   // GDL_CONTAINER - references list procedures because, we can.
   // res=GDL_CONTAINER.get([/all] [, isa=(names)] [. position=index] [, count=variable] [/null][)
@@ -834,6 +846,12 @@ void SetupOverloadSubroutines() {
   treeFun = new WRAPPED_FUNNode(lib::container__iscontained);
   DFunlist->SetTree(treeFun);
   gdlContainerDesc->FunList().push_back(DFunlist);
+  // MUST BE LAST line related to gdlContainer
+ //no more functions defined ? sort list
+  //sort(gdlContainerDesc->ProList().begin(), gdlContainerDesc->ProList().end(), DSub_compare());
+  //sort(gdlContainerDesc->FunList().begin(), gdlContainerDesc->FunList().end(), DSub_compare());
+
+
 #ifdef USE_SHAPELIB
   //=============GDLffShape========================
   //IDLFFSHAPE::GETATTRIBUTES
@@ -922,6 +940,10 @@ void SetupOverloadSubroutines() {
   treePro = new WRAPPED_PRONode(lib::GDLffShape___SetAttributes);
   DProlist->SetTree(treePro);
   GDLffShapeDesc->ProList().push_back(DProlist);
+  // MUST BE LAST line related to GDLffShape
+ //no more functions defined ? sort list
+  //sort(GDLffShapeDesc->ProList().begin(), GDLffShapeDesc->ProList().end(), DSub_compare());
+  //sort(GDLffShapeDesc->FunList().begin(), GDLffShapeDesc->FunList().end(), DSub_compare());
 #endif
 
 #ifdef USE_EXPAT
@@ -1162,6 +1184,12 @@ void SetupOverloadSubroutines() {
   DProlist->SetTree(treePro);
   GDLffXmlSaxDesc->ProList().push_back(DProlist);
 
+  // MUST BE LAST line related to GDLffXmlSax
+ //no more functions defined ? sort list
+  //sort(GDLffXmlSaxDesc->ProList().begin(), GDLffXmlSaxDesc->ProList().end(), DSub_compare());
+  //sort(GDLffXmlSaxDesc->FunList().begin(), GDLffXmlSaxDesc->FunList().end(), DSub_compare());
+
+
 #endif
 
 //IDL_IDLBridge is for the moment handled both in gdl2gdl.cpp and in the idl_idlbridge__init.pro 
@@ -1171,5 +1199,5 @@ void SetupOverloadSubroutines() {
 //  DProlist->SetTree(treePro);
 //  gdl2gdlBridgeDesc->ProList().push_back(DProlist);
 #endif
-  
+
 }

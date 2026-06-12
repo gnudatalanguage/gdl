@@ -451,6 +451,8 @@ void CleanupProc( DLibPro* proc ) {
               WRAPPED_MEDIATIZED_PRONode* wrapped_pronode = new WRAPPED_MEDIATIZED_PRONode(CallDllUDPro, it->second);
               MyDPro->SetTree(wrapped_pronode);
               objectDesc->ProList().push_back(MyDPro);
+              //sort(objectDesc->ProList().begin(), objectDesc->ProList().end(), DSub_compare());
+
             } else RegisterMediatizedProc(dlm_name, it->second, proc_name, max_args, min_args, has_keys);
             found = true; 
             break;
@@ -475,6 +477,8 @@ void CleanupProc( DLibPro* proc ) {
               WRAPPED_MEDIATIZED_FUNNode* wrapped_funnode = new WRAPPED_MEDIATIZED_FUNNode(CallDllUDFunc, it->second);
               MyDFun->SetTree(wrapped_funnode);
               objectDesc->FunList().push_back(MyDFun);
+              //sort(objectDesc->FunList().begin(), objectDesc->FunList().end(), DSub_compare());
+
             } else RegisterMediatizedFunc(dlm_name, it->second, proc_name, max_args, min_args, has_keys);
             found = true;
             break;

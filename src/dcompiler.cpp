@@ -255,6 +255,7 @@ void DCompiler::EndPro() // inserts in proList
 		}
 		
 	  (*searchList).push_back(static_cast<DPro*>(pro));
+    // sort(searchList->begin(), searchList->end(), DSub_compare());
 	WarnAboutObsoleteRoutine(pro->ObjectName());
       }
     }
@@ -328,6 +329,7 @@ void DCompiler::EndFun() // inserts in funList
 	break;
   }
     (*searchList).push_back(static_cast<DFun*>(pro));
+    // sort(searchList->begin(), searchList->end(), DSub_compare());
    WarnAboutObsoleteRoutine(pro->ObjectName());
   }
 
