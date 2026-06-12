@@ -40,9 +40,9 @@ DStructDesc::~DStructDesc()
   // (usually they are never deleted only with .RESET_SESSION and .FULL_RESET_SESSION dot commands)
   {
     delete operatorList;
-    for(FunListT::iterator i = this->fun.begin(); i != this->fun.end(); ++i) 
+    for(FunListT::iterator i = this->objectFunList.begin(); i != this->objectFunList.end(); ++i) 
       { delete *i;}
-    for(ProListT::iterator i = this->pro.begin(); i != this->pro.end(); ++i) 
+    for(ProListT::iterator i = this->objectProList.begin(); i != this->objectProList.end(); ++i) 
       { delete *i;}
   }
 }
@@ -116,13 +116,13 @@ void DStructDesc::AddParentListOnly( DStructDesc* p)
 void DStructDesc::SetupOperators()
 {
   assert( this->operatorList != NULL);
-  for( FunListT::iterator f = this->fun.begin(); f != this->fun.end(); ++f)
+  for( FunListT::iterator f = this->objectFunList.begin(); f != this->objectFunList.end(); ++f)
   {
     int ix = OverloadOperatorIndexFun( (*f)->Name());
     if( ix != -1)
       operatorList->SetOperator(ix,*f);      
   }
-  for( ProListT::iterator p = this->pro.begin(); p != this->pro.end(); ++p)
+  for( ProListT::iterator p = this->objectProList.begin(); p != this->objectProList.end(); ++p)
   {
     int ix = OverloadOperatorIndexPro( (*p)->Name());
     if( ix != -1)
