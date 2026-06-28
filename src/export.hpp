@@ -1513,7 +1513,10 @@ DLL_PUBLIC void  GDL_CDECL IDL_VarCopy(GDL_REGISTER EXPORT_VPTR src, GDL_REGISTE
 //	checkStorable(dst); //NO
 	// if the destination variable already has a dynamic part, this dynamic part is released.
 	if (dst->flags & GDL_V_DYNAMIC) {
-		if (dst->value.arr != NULL) MyFree(dst->value.arr->data); // ?? No as long as we are not sure this has not been allocated by us (and released by GDL)
+		if (dst->value.arr != NULL) {
+				// free dst data only if it is NOT a protected variable (otherwise double free depending on GDL C++ play with its own variables)
+				if (dst->flags & GDL_V_TEMP) MyFree(dst->value.arr->data);
+			}
 		// WHAT OF STRUCT ??
 		dst->value.arr = NULL;
 	}
