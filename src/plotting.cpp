@@ -2050,6 +2050,9 @@ PLFLT gdlGetBoxNYSize() {
     DLong thecolor;
     DFloat *x, *y;
     SizeT nParam=e->NParam(1);
+    static int FILLIx = e->KeywordIx("FILL");
+    static int COLORIx = e->KeywordIx("COLOR");
+    static int THICKIx = e->KeywordIx("THICK");
     if ( nParam==1 )
     {
       BaseGDL* p0=e->GetNumericArrayParDefined(0)->Transpose(NULL); //hence [49,2]
@@ -2094,7 +2097,6 @@ PLFLT gdlGetBoxNYSize() {
       y=&(*yVal)[0];
     }
     do_fill=0;
-    int FILLIx = e->KeywordIx("FILL");
     if ( e->KeywordSet(FILLIx) )
     {
       do_fill=1;
@@ -2102,7 +2104,6 @@ PLFLT gdlGetBoxNYSize() {
     //IDL does not complain if color is undefined.
     do_color=false;
     thecolor=0;
-    int COLORIx = e->KeywordIx("COLOR");
     if ( e->KeywordPresent(COLORIx))
     {
       if (e->IfDefGetKWAs<DLongGDL>( COLORIx )) {
@@ -2114,7 +2115,6 @@ PLFLT gdlGetBoxNYSize() {
     do_thick=true; //to avoid changing too much code, I keep this old switch.
     // would certainly speedup a bit the plots if removal of do_thick was was propagated to draw_polyline
     thethick=1;
-    int THICKIx = e->KeywordIx("THICK");
     if ( e->KeywordPresent(THICKIx))
     {
       if (e->IfDefGetKWAs<DFloatGDL>( THICKIx )) {
@@ -2310,7 +2310,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       (*static_cast<DLongGDL*>
       (pStruct->GetTag(bckgTag, 0)))[0];
     if (kw) {
-      int BACKGROUNDIx = e->KeywordIx("BACKGROUND");
+      int BACKGROUNDIx = e->KeywordIx("BACKGROUND");  //not static
       e->AssureLongScalarKWIfPresent(BACKGROUNDIx, background);
     }
     DLong decomposed = GraphicsDevice::GetDevice()->GetDecomposed();
@@ -2324,7 +2324,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       (*static_cast<DLongGDL*>
       (pStruct->GetTag(bckgTag, 0)))[0];
     if (kw) {
-      int BACKGROUNDIx = e->KeywordIx("BACKGROUND");
+      int BACKGROUNDIx = e->KeywordIx("BACKGROUND"); //not static
       e->AssureLongScalarKWIfPresent(BACKGROUNDIx, background);
     }
     DLong decomposed = GraphicsDevice::GetDevice()->GetDecomposed();
@@ -2340,7 +2340,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       (pStruct->GetTag(colorTag, 0)))[0];
 
     DLongGDL *colorVect;
-    int colorIx = e->KeywordIx("COLOR");
+    int colorIx = e->KeywordIx("COLOR"); //not static
     int realcolorIx = colorIx;
     //eventually do not get color from standard "COLOR" keyword but from another...
     if (OtherColorKw != "") realcolorIx = e->KeywordIx(OtherColorKw);
@@ -2358,7 +2358,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     static unsigned psymTag = SysVar::P()->Desc()->TagIndex("PSYM");
     psym = (*static_cast<DLongGDL*>
       (pStruct->GetTag(psymTag, 0)))[0];
-    int PSYMIx = e->KeywordIx("PSYM");
+    int PSYMIx = e->KeywordIx("PSYM"); //not static
     e->AssureLongScalarKWIfPresent(PSYMIx, psym);
     if (psym > 10 || psym < -8 || psym == 9)
       e->Throw(
@@ -2372,7 +2372,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       (pStruct->GetTag(symsizeTag, 0)))[0];
     //NOTE THAT AS OF IDL 8.2 !P.SYMSIZE, HOWEVER EXISTING, IS NOT TAKEN INTO ACCOUNT. We however do not want
     //to reproduce this feature.
-    int SYMSIZEIx = e->KeywordIx("SYMSIZE");
+    int SYMSIZEIx = e->KeywordIx("SYMSIZE"); //not static
     e->AssureFloatScalarKWIfPresent(SYMSIZEIx, symsize);
     if (symsize <= 0.0) symsize = 1.0;
     a->setSymbolSize(symsize);
@@ -2417,13 +2417,13 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     //overload with command preference. Charsize may be a vector now in some gdl commands, take care of it:
     if (accept_sizeKw) //XYOUTS specials!
     {
-      int SIZEIx = e->KeywordIx("SIZE"); //define here only (else trig an assert() )
+      int SIZEIx = e->KeywordIx("SIZE"); //not static; define here only (else trig an assert() )
       DFloat fcharsize;
       fcharsize = charsize;
       e->AssureFloatScalarKWIfPresent(SIZEIx, fcharsize);
       charsize = fcharsize;
     }
-    int charsizeIx = e->KeywordIx("CHARSIZE");
+    int charsizeIx = e->KeywordIx("CHARSIZE"); // not static
     if (e->GetDefinedKW(charsizeIx) != NULL) {
       DFloatGDL* charsizeVect = e->GetKWAs<DFloatGDL>(charsizeIx);
       charsize = (*charsizeVect)[0];
@@ -2440,7 +2440,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
     static unsigned charthickTag = SysVar::P()->Desc()->TagIndex("CHARTHICK");
     DFloat charthick = (*static_cast<DFloatGDL*>(pStruct->GetTag(charthickTag, 0)))[0];
-    int charthickIx = e->KeywordIx("CHARTHICK"); //Charthick values may be vector in GDL, not in IDL!
+    int charthickIx = e->KeywordIx("CHARTHICK"); //not static ; Charthick values may be vector in GDL, not in IDL!
     if (e->GetDefinedKW(charthickIx) != NULL) {
       DFloatGDL* charthickVect = e->GetKWAs<DFloatGDL>(charthickIx);
       charthick = (*charthickVect)[0];
@@ -2487,14 +2487,14 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
     charsize = (*static_cast<DFloatGDL*>(pStruct->GetTag(pcharsizeTag, 0)))[0];
-    int CharsizeIx = e->KeywordIx("CHARSIZE");
+    int CharsizeIx = e->KeywordIx("CHARSIZE"); //not static
     //cerr<<" CHARSIZE: "<< CharsizeIx<<" ("<< &CharsizeIx<<")"<<endl;
     e->AssureFloatScalarKWIfPresent(CharsizeIx, charsize); // option charsize overloads P.CHARSIZE
     if (charsize == 0) charsize = 1.0;
     // Axis Preference. Is a Multiplier!
-    int XCharsizeIx = e->KeywordIx("XCHARSIZE");
-    int YCharsizeIx = e->KeywordIx("YCHARSIZE");
-    int ZCharsizeIx = e->KeywordIx("ZCHARSIZE");
+    int XCharsizeIx = e->KeywordIx("XCHARSIZE");// not static
+    int YCharsizeIx = e->KeywordIx("YCHARSIZE");// not static
+    int ZCharsizeIx = e->KeywordIx("ZCHARSIZE");// not static
     int choosenIx = XCharsizeIx;
     DStructGDL* Struct = NULL;
     if (axisId == XAXIS) {
@@ -2533,9 +2533,9 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
   void gdlGetDesiredAxisGridStyle(EnvT* e, int axisId, DLong &axisGridstyle) {
     axisGridstyle = 0;
     DStructGDL* Struct = NULL;
-    int XGRIDSTYLEIx = e->KeywordIx("XGRIDSTYLE");
-    int YGRIDSTYLEIx = e->KeywordIx("YGRIDSTYLE");
-    int ZGRIDSTYLEIx = e->KeywordIx("ZGRIDSTYLE");
+    int XGRIDSTYLEIx = e->KeywordIx("XGRIDSTYLE");//not static
+    int YGRIDSTYLEIx = e->KeywordIx("YGRIDSTYLE");//not static
+    int ZGRIDSTYLEIx = e->KeywordIx("ZGRIDSTYLE");//not static
     int choosenIx = XGRIDSTYLEIx;
     if (axisId == XAXIS) {
       Struct = SysVar::X();
@@ -2558,9 +2558,9 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
   }
 
   void gdlGetDesiredAxisMargin(EnvT *e, int axisId, DFloat &start, DFloat &end) {
-    int XMARGINIx = e->KeywordIx("XMARGIN");
-    int YMARGINIx = e->KeywordIx("YMARGIN");
-    int ZMARGINIx = e->KeywordIx("ZMARGIN");
+    int XMARGINIx = e->KeywordIx("XMARGIN");//not static
+    int YMARGINIx = e->KeywordIx("YMARGIN");//not static
+    int ZMARGINIx = e->KeywordIx("ZMARGIN");//not static
     int choosenIx = XMARGINIx;
     DStructGDL* Struct = NULL;
     if (axisId == XAXIS) {
@@ -2598,9 +2598,9 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 
   void gdlGetDesiredAxisMinor(EnvT* e, int axisId, DLong &axisMinor) {
     axisMinor = 0;
-    int XMINORIx = e->KeywordIx("XMINOR");
-    int YMINORIx = e->KeywordIx("YMINOR");
-    int ZMINORIx = e->KeywordIx("ZMINOR");
+    int XMINORIx = e->KeywordIx("XMINOR");//not static
+    int YMINORIx = e->KeywordIx("YMINOR");//not static
+    int ZMINORIx = e->KeywordIx("ZMINOR");//not static
     int choosenIx = XMINORIx;
     DStructGDL* Struct = NULL;
     if (axisId == XAXIS) {
@@ -2624,9 +2624,9 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 
   bool gdlGetDesiredAxisRange(EnvT *e, int axisId, DDouble &start, DDouble &end) {
     bool set = false;
-    int XRANGEIx = e->KeywordIx("XRANGE");
-    int YRANGEIx = e->KeywordIx("YRANGE");
-    int ZRANGEIx = e->KeywordIx("ZRANGE");
+    int XRANGEIx = e->KeywordIx("XRANGE");//not static
+    int YRANGEIx = e->KeywordIx("YRANGE");//not static
+    int ZRANGEIx = e->KeywordIx("ZRANGE");//not static
     int choosenIx = XRANGEIx;
     DStructGDL* Struct = NULL;
     if (axisId == XAXIS) {
@@ -2669,9 +2669,9 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
   }
 
   void gdlGetDesiredAxisStyle(EnvT *e, int axisId, DLong &style) {
-    int XSTYLEIx = e->KeywordIx("XSTYLE");
-    int YSTYLEIx = e->KeywordIx("YSTYLE");
-    int ZSTYLEIx = e->KeywordIx("ZSTYLE");
+    int XSTYLEIx = e->KeywordIx("XSTYLE");//not static
+    int YSTYLEIx = e->KeywordIx("YSTYLE");//not static
+    int ZSTYLEIx = e->KeywordIx("ZSTYLE");//not static
     int choosenIx = XSTYLEIx;
     DStructGDL* Struct = NULL;
     if (axisId == XAXIS) {

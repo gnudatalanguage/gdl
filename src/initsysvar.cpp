@@ -47,6 +47,8 @@
 #define BUILD_DATE __DATE__
 #endif
 
+#define EXPAND_A_ROUTINE_WILDCARD "*.[ps][ra][ov]" //.pro and .sav, char by char. not perfect ( .pav would pass) but ExpandPath uses wildcards.
+
 namespace SysVar
 {
 
@@ -101,7 +103,7 @@ namespace SysVar
     if (newPath.find("<IDL_DEFAULT_PATH", 0) != std::string::npos) newPath = replaceAllOccurencesOfDefaultTokens(newPath, "<IDL_DEFAULT_PATH>", gdl_default_path);	
     if (newPath.find("<IDL_DEFAULT", 0) != std::string::npos) newPath = replaceAllOccurencesOfDefaultTokens(newPath, "<IDL_DEFAULT>", gdl_default_path);	
 	
-	lib::ExpandPath( sArr, act, "*.pro"); //indeed, !PATH contains only directories where a .pro is found
+	lib::ExpandPath( sArr, act, EXPAND_A_ROUTINE_WILDCARD); //indeed, !PATH contains only directories where a .pro or a .sav is found
 	
 	sPos=d+1;
       }

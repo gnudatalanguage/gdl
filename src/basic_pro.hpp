@@ -108,6 +108,7 @@ namespace lib {
 
   void delvar_pro( EnvT* e);
   void findvar_pro( EnvT* e);
+  void compile_code_pro( EnvT* e);
 } // namespace
 
 #endif

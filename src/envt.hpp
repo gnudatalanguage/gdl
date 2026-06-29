@@ -758,13 +758,13 @@ public:
   // bool kwSet = env->KeywordSet( "KEYWORD");
   //
   // this one adds some overhead, but is easy to use
-  bool KeywordSet( const std::string& kw);
+  //bool KeywordSet( const std::string& kw);
   // this one together with a static int holding the index is faster
   // (after the first call)
   bool KeywordSet( SizeT ix);
   // GD added -- possibly very wrong?
-  bool KeywordPresent( const std::string& kw);
-  bool WriteableKeywordPresent( const std::string& kw);
+//  bool KeywordPresent( const std::string& kw);
+//  bool WriteableKeywordPresent( const std::string& kw);
   inline bool KeywordPresent( SizeT ix) { return EnvBaseT::KeywordPresent( ix);}
   inline bool WriteableKeywordPresent( SizeT ix){ return EnvBaseT::WriteableKeywordPresent( ix);}
 
@@ -878,11 +878,11 @@ public:
   //   void AssureGlobalKW( SizeT ix);
 
   // if keyword 'kw' is not set, 'scalar' is left unchanged
-  void AssureLongScalarKWIfPresent( const std::string& kw, DLong& scalar);
+//  void AssureLongScalarKWIfPresent( const std::string& kw, DLong& scalar);
   void AssureLongScalarKWIfPresent( SizeT ix, DLong& scalar);
   // converts keyword 'kw' if necessary and sets 'scalar' 
-  void AssureLongScalarKW( const std::string& kw, DLong& scalar);
-  void AssureLongScalarKW( const std::string& kw, DLong64& scalar);
+//  void AssureLongScalarKW( const std::string& kw, DLong& scalar);
+//  void AssureLongScalarKW( const std::string& kw, DLong64& scalar);
   // converts ix'th keyword if necessary and sets 'scalar' 
   void AssureLongScalarKW( SizeT ix, DLong& scalar);
   void AssureLongScalarKW( SizeT ix, DLong64& scalar);
@@ -891,23 +891,23 @@ public:
   void AssureLongScalarPar( SizeT ix, DLong64& scalar, bool throwIfConversionErrorOccured=false);
 
   // same as for Long
-  void AssureDoubleScalarKWIfPresent( const std::string& kw, DDouble& scalar);
+  //void AssureDoubleScalarKWIfPresent( const std::string& kw, DDouble& scalar);
   void AssureDoubleScalarKWIfPresent( SizeT ix, DDouble& scalar);
-  void AssureDoubleScalarKW( const std::string& kw, DDouble& scalar);
+//  void AssureDoubleScalarKW( const std::string& kw, DDouble& scalar);
   void AssureDoubleScalarKW( SizeT ix, DDouble& scalar);
   void AssureDoubleScalarPar( SizeT ix, DDouble& scalar);
 
   // same as for Long
-  void AssureFloatScalarKWIfPresent( const std::string& kw, DFloat& scalar);
+  //void AssureFloatScalarKWIfPresent( const std::string& kw, DFloat& scalar);
   void AssureFloatScalarKWIfPresent( SizeT ix, DFloat& scalar);
-  void AssureFloatScalarKW( const std::string& kw, DFloat& scalar);
+//  void AssureFloatScalarKW( const std::string& kw, DFloat& scalar);
   void AssureFloatScalarKW( SizeT ix, DFloat& scalar);
   void AssureFloatScalarPar( SizeT ix, DFloat& scalar);
 
   // same as for Long
-  void AssureStringScalarKWIfPresent( const std::string& kw, DString& scalar);
+//  void AssureStringScalarKWIfPresent( const std::string& kw, DString& scalar);
   void AssureStringScalarKWIfPresent( SizeT ix, DString& scalar);
-  void AssureStringScalarKW( const std::string& kw, DString& scalar);
+//  void AssureStringScalarKW( const std::string& kw, DString& scalar);
   void AssureStringScalarKW( SizeT ix, DString& scalar);
   void AssureStringScalarPar( SizeT ix, DString& scalar);
 

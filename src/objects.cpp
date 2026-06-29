@@ -84,6 +84,7 @@ static bool enabled_GC=true;
 
 namespace structDesc {
   // set in InitStructs()
+  // should always be reported as EXTERN in objects.hpp? please check.
   DStructDesc* LIST = NULL;
   DStructDesc* HASH = NULL;
   DStructDesc* ORDEREDHASH = NULL;
@@ -1078,8 +1079,7 @@ for( SizeT i=0; i<nF; i++) if( Is_eq<DPro>(n)(proList[i]))
 int FunIx(const string& n)
 {
 SizeT nF=funList.size();
-for( SizeT i=0; i<nF; i++) if( Is_eq<DFun>(n)(funList[i]))
-  return (int)i;
+for( SizeT i=0; i<nF; i++) if( Is_eq<DFun>(n)(funList[i])) return (int)i;
 //may be a lambda list ? so it's a UD Fun
     EnvT* requestedScope = (EnvT*) DInterpreter::CallStackBack();
     DSubUD* pro = static_cast<DSubUD*> (requestedScope->GetPro());

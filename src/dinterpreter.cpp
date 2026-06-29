@@ -381,10 +381,32 @@ bool GDLInterpreter::SearchCompilePro(const string& pro, bool searchForPro)
   }
   static StrArr openFiles;
 
-  string proFile=StrLowCase(pro)+".pro";
-  //AppendIfNeeded( proFile, ".pro");
-
-  bool found=CompleteFileName(proFile);
+  string proFile=StrLowCase(pro);
+  bool added=AppendIfNeeded( proFile, ".pro"); //look for .pro first
+  bool found = CompleteFileName(proFile);
+  if (!found && added) {
+    proFile = StrLowCase(pro);
+    AppendIfNeeded(proFile, ".sav"); //Resolve_routine needs to find .sav also. 
+    found = CompleteFileName(proFile);
+    if (found) { //restore and return. Forget about "openFiles" as the restored routine has no associated file.
+      try {
+        std::string Command("RESTORE, \"" + proFile +"\"");
+        DInterpreter::CallStackBack()->Interpreter()->ExecuteStringLine(Command);
+      } catch (...) {
+        return false;
+      }
+      // routine has been added, is it a pro or not?
+      if (searchForPro) {
+        for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+              if ((*i)->ObjectName() == name_in_list) return true;
+        }
+      } else {
+        for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
+          if ((*i)->ObjectName() == name_in_list) return true;
+        }
+      }
+    }
+  }
   if( !found) return false;
   
   // file already opened?
@@ -399,6 +421,31 @@ bool GDLInterpreter::SearchCompilePro(const string& pro, bool searchForPro)
   openFiles.push_back(proFile);
 
   return CompileFile( proFile, pro, searchForPro); // this might trigger recursion
+}
+
+// searches routine  'pro'
+// if already present because it has been restored/compiled return 1 for a PRO and 2 for a FUNC
+// if routine is present (by name, in PATH) but not already compiled, return 0
+// if routine name is not found return -1
+int GDLInterpreter::SearchRoutineNoCompile(const string& routine) {
+  std::string name_in_list = StrUpCase(routine);
+  for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+    if ((*i)->ObjectName() == name_in_list) return 1;
+  }
+  for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
+    if ((*i)->ObjectName() == name_in_list) return 2;
+  }
+  string proFile = StrLowCase(routine);
+  bool added = AppendIfNeeded(proFile, ".pro"); //look for .pro first
+  bool found = CompleteFileName(proFile);
+  if (found) return 0;
+  else if (added) {
+    proFile = StrLowCase(routine);
+    AppendIfNeeded(proFile, ".sav"); //Resolve_routine needs to find .sav also. 
+    found = CompleteFileName(proFile);
+    if (found) return 0;
+  }
+  return -1;
 }
 
 // returns the struct descriptor with name 'name'
@@ -467,10 +514,10 @@ DStructDesc* GDLInterpreter::GetStruct(const string& name, ProgNodeP cN)
 void GDLInterpreter::SetFunIx( ProgNodeP f)
 {
   if( f->funIx == -1)
-    f->funIx=GetFunIx(f);
+    f->funIx=GetFunIx(f, false);
 }
 
-int GDLInterpreter::GetFunIx( ProgNodeP f)
+int GDLInterpreter::GetFunIx( ProgNodeP f, bool dothrow)
 {
   string subName = f->getText();
   int funIx=FunIx(subName);
@@ -480,7 +527,7 @@ int GDLInterpreter::GetFunIx( ProgNodeP f)
       /*bool found=*/ SearchCompilePro(subName, false);
             
       funIx=FunIx(subName);
-      if( funIx == -1)
+      if( funIx == -1 && dothrow)
 	{
 	  throw GDLException(f, "Function not found: "+subName, true, false);
 	}
@@ -850,52 +897,13 @@ std::vector<string> ReturnListOfFiles(const string& command) {
 }
 
 
-DInterpreter::CommandCode DInterpreter::CmdCompile( const string& command) {
-  if (command.find(" ", 0) == string::npos) {
-	cout << "Interactive COMPILE not implemented yet." << endl;
-	return CC_OK;
-  }
-
-  bool retAll = false; // Remember if Retall is needed
-
-  std::vector<string> files=ReturnListOfFiles(command);
-  for (auto i=0; i< files.size(); ++i) {
-	std::string file=files[i];
-	  // try first with extension
-	  AppendExtension(file);
-	  bool found = CompleteFileName(file);
-
-	  // 2nd try without extension
-	  if (!found) {
-		file=files[i];
-		found = CompleteFileName(file);
-	  }
-
-	  if (found) {
-		try {
-		  // default is more verbose
-		  CompileFile(file); //, origstr); 
-		} catch (RetAllException&) {
-		  // delay the RetAllException until finished
-		  retAll = true;
-		}
-	  }
-	  else {
-		Message("Error opening file. File: " + files[i] + ".");
-		return CC_OK;
-	  }
-	}
-  
-  if (retAll) RetAll();
-
-  return CC_OK;
-}
 #include <iostream>
-DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
+DInterpreter::CommandCode DInterpreter::CmdCompileOrRun( const string& command, bool doRun)
 {
 #if defined(HAVE_LIBREADLINE)
   int edit_input = SysVar::Edit_Input() && isatty(0);
 #endif
+  int nerr=0;
   static const string CmdRunPrompt="- ";
   bool statement_seen=false;
   bool exitAsDone=false;
@@ -907,15 +915,17 @@ DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
     std::string outs;
     // check each line individually, store in combined string if parser OK
     while (ok) {
-      std::string f;
+      char* ret; //must check and trap ^D instead of END
 #if defined(HAVE_LIBREADLINE)
       if (edit_input != 0)
-        f = readline(const_cast<char*> (CmdRunPrompt.c_str()));
+      ret   = readline(CmdRunPrompt.c_str());
       else
-        f = NoReadline(CmdRunPrompt);
+      ret = NoReadline(CmdRunPrompt);
 #else
-      f = NoReadline(CmdRunPrompt);
+       ret = NoReadline(CmdRunPrompt);
 #endif
+       if (ret) {
+       std::string f(ret);
       istringstream in(f + "\n");
 //      std::cerr << "statement seen=" << statement_seen << std::endl;
       try {
@@ -936,24 +946,35 @@ DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
 //          else std::cerr << "normal statement." << std::endl;
         }
         if (parser.EndMarkerSeen()) exitAsDone=true;
-      }
-        catch (GDLException& e) {
-          std::string message=e.getMessage();
-//          std::cerr<<message<<std::endl;
-          if ( message.rfind("unexpected end of file")==std::string::npos)  
-          { ReportCompileError(e, f);
+        }        catch (GDLException& e) {
+          nerr++;
+          std::string message = e.getMessage();
+          //          std::cerr<<message<<std::endl;
+          if (message.rfind("unexpected token: PRO") == std::string::npos) {
+            std::cerr << "% Procedure header must appear first and only once."<< std::endl;
+            continue;
+          } else if (message.rfind("unexpected token: FUNCTION") == std::string::npos) {
+            std::cerr << "% Function header must appear first and only once." << std::endl;
+            continue;
+          } else if (message.rfind("unexpected end of file") == std::string::npos) {
+            ReportCompileError(e, f);
             continue;
           }
         } catch (...) {
-        cout << "invalid code (ignored): " << f << endl;
-        continue;
+          nerr++;
+          cout << "invalid code (ignored): " << f << endl;
+          continue;
         }
+        if (doRun || in_procedure) { //non-procedure statements must be ignored by .compile 
 //      cerr << "You entered: " << f << endl;
-      add_history(const_cast<char*> (f.c_str()));
-      outs.append(f);
-      outs.append("\n");
+          add_history(const_cast<char*> (f.c_str()));
+          outs.append(f);
+          outs.append("\n");
+        }
+       } else break;
       if (exitAsDone) break;
     }
+    if (nerr) std::cerr<<"% "+i2s(nerr)+" Compilation error(s) in module $MAIN$."<<std::endl; 
 //    std::cerr << "Produced: \n" << outs;
     if (in_procedure) {
       // internally compile 
@@ -1010,12 +1031,15 @@ DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
 		return CC_OK;
 	  }
 	}
-
+  if (doRun) {
 	// GD see issue #1969: this is the only difference with CmdCompile: process the
 	// eventual $MAIN$ commands that are at the end of 'argstr'.pro when CmdCompile
 	// would just ignore these non-procedure commands.
   // actual run is perfomed in InterpreterLoop()
   RetAll( RetAllException::RUN); // difference is here.
+  } else {
+    if (retAll) RetAll();
+  }
   return CC_OK; //avoid warnings
 }
 
@@ -1042,7 +1066,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command) {
     }
     return CC_CONTINUE;
   } else if (cmd("COMPILE")) {
-    return CmdCompile(command);
+    return CmdCompileOrRun(command, false); //just compile
   } else if (cmd("EDIT")) {
     cout << "Can't edit file without running GDLDE." << endl;
     return CC_OK;
@@ -1056,7 +1080,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command) {
     MyProName=callStack.back()->GetProName();
     return CC_CONTINUE;
   } else if (cmd("RUN")) {
-    return CmdRun(command);
+    return CmdCompileOrRun(command, true);
   } else if (cmd("RETURN")) {
     debugMode = DEBUG_RETURN;
     MyProName=callStack.back()->GetProName();
@@ -1072,7 +1096,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command) {
     if (!mainEnv->Removeall())
       cout << " Danger ! Danger! Unexpected result. Please exit asap & report" << endl;
 
-    return CmdRun(command);
+    return CmdCompileOrRun(command, true);
   } else if (cmd("STEP")) { //before skip to have .s give .step not .skip and not .stepover
     DLong sCount;
     if (args == "") {

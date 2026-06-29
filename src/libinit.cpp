@@ -116,7 +116,8 @@ void LibInit()
   //LAMBDA function
   new DLibFun(lib::lambda_fun,string("LAMBDA"),1);
   new DLibFun(lib::lambda_pro,string("LAMBDAP"),1);
-
+  // COMPILE_CODE
+  new DLibPro(lib::compile_code_pro,string("COMPILE_CODE"),1);
   //SCOPE_VARFETCH WARNING: changes in lib::scope_varfetch_value must be reported also in lib::scope_varfetch_reference
   const string scope_varfetchKey[]={"LEVEL","ENTER", "REF_EXTRA", "COMMON", KLISTEND};
   new DLibFun(lib::scope_varfetch_value,string("SCOPE_VARFETCH"),-1,scope_varfetchKey);
@@ -309,7 +310,7 @@ void LibInit()
 
   new DLibPro(lib::retall,string("RETALL"));
 
-  const string catchKey[]={"CANCEL",KLISTEND};
+  const string catchKey[]={"CANCEL",KLISTEND};//CANCEL KW=0
   new DLibPro(lib::catch_pro,string("CATCH"),1,catchKey);
   new DLibPro(lib::on_error,string("ON_ERROR"),1);
 
@@ -422,10 +423,11 @@ void LibInit()
   new DLibFun(lib::call_method_function, string("CALL_METHOD"),-1,obj_newKey);
   new DLibPro(lib::call_method_procedure,string("CALL_METHOD"),-1,obj_newKey);
   
-  const string indKey[]={"TYPE","BYTE","COMPLEX","DCOMPLEX",
+  //START=0, INCREMENT=1 for ALL -> just use 0 and 1 not static const int
+  const string indKey[]={"START", "INCREMENT", "TYPE","BYTE","COMPLEX","DCOMPLEX",
 			 "DOUBLE","FLOAT","L64","LONG",
 			 "STRING","UINT","UL64","ULONG",
-			 "START", "INCREMENT", KLISTEND};
+			 KLISTEND};
   const string xindKey[]={"START", "INCREMENT", KLISTEND};
   new DLibFunRetNewTP(lib::bindgen,string("BINDGEN"),MAXRANK,xindKey,NULL,true);  //UsesThreadPOOL 
   new DLibFunRetNewTP(lib::indgen,string("INDGEN"),MAXRANK,indKey,NULL,true);  //UsesThreadPOOL 

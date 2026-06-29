@@ -93,12 +93,6 @@ public:
   int NCompileErrors() const { return nCompileErrors;}
   EnvBaseT* GetEnv() const { return env;}
   void SetEnv( EnvBaseT* e) { env = e;}
-  // for sorting lists by name
-  struct CompLibFunName: public std::function<bool(DLibFun*, DLibFun*)>
-  {
-    bool operator() ( DLibFun* f1, DLibFun* f2) const
-    { return f1->ObjectName() < f2->ObjectName();}
-  };  
 };
 
 #endif

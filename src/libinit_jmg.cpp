@@ -222,8 +222,8 @@ void LibInit_jmg()
   const string poly_2dKey[]={"CUBIC","MISSING","PIXEL_CENTER", KLISTEND};
   new DLibFunRetNewTP(lib::poly_2d_fun,string("POLY_2D"),6,poly_2dKey);  //UsesThreadPOOL 
 
-  const string make_arrayKey[]={"DIMENSION", "INCREMENT", "INDEX", "NOZERO",
-                                 "SIZE", "START", "TYPE", "VALUE", "BOOLEAN",
+  const string make_arrayKey[]={"START", "INCREMENT", "DIMENSION", "INDEX", "NOZERO", //START must be 0 and INCREMENT 1
+                                 "SIZE",  "TYPE", "VALUE", "BOOLEAN",
                                  "BYTE", "COMPLEX", "DCOMPLEX", "DOUBLE",
                                  "FLOAT", "INTEGER", "L64", "LONG", "OBJ",
                                  "PTR", "STRING", "UINT", "UL64", "ULONG", KLISTEND};

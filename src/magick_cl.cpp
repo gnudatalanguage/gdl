@@ -846,12 +846,14 @@ namespace lib {
       //NoInterlace.......Don't interlace image (RGBRGBRGBRGBRGBRGB...)
       //LineInterlace.....Use scanline interlacing (RRR...GGG...BBB...RRR...GGG...BBB...)
       //PlaneInterlace....Use plane interlacing (RRRRRR...GGGGGG...BBBBBB...)
-
-      if (e->KeywordSet("NOINTERLACE"))
+      static int NOINTERLACE=e->KeywordIx("NOINTERLACE");
+      static int LINEINTERLACE=e->KeywordIx("LINEINTERLACE");
+      static int PLANEINTERLACE=e->KeywordIx("PLANEINTERLACE");
+      if (e->KeywordSet(NOINTERLACE))
         image->interlaceType(NoInterlace);
-      else if (e->KeywordSet("LineInterlace"))
+      else if (e->KeywordSet(LINEINTERLACE))
         image->interlaceType(LineInterlace);
-      else if (e->KeywordSet("PlaneInterlace"))
+      else if (e->KeywordSet(PLANEINTERLACE))
         image->interlaceType(PlaneInterlace);
 
       //magick_replace(e, mid, image);
@@ -868,19 +870,26 @@ namespace lib {
       e->AssureScalarPar<DUIntGDL>(0, mid);
       Image* image = magick_image(e, mid);
 
-      if (e->KeywordSet("UNIFORMNOISE"))
+      static int UNIFORMNOISE=e->KeywordIx("UNIFORMNOISE");
+      static int GAUSSIANNOISE=e->KeywordIx("GAUSSIANNOISE");
+      static int MULTIPLICATIVEGAUSSIANNOISE=e->KeywordIx("MULTIPLICATIVEGAUSSIANNOISE");
+      static int IMPULSENOISE=e->KeywordIx("IMPULSENOISE");
+      static int LAPLACIANNOISE=e->KeywordIx("LAPLACIANNOISE");
+      static int POISSONNOISE=e->KeywordIx("POISSONNOISE");
+      static int NOISE=e->KeywordIx("NOISE");
+      if (e->KeywordSet(UNIFORMNOISE))
         image->addNoise(UniformNoise);
-      else if (e->KeywordSet("GAUSSIANNOISE"))
+      else if (e->KeywordSet(GAUSSIANNOISE))
         image->addNoise(GaussianNoise);
-      else if (e->KeywordSet("MULTIPLICATIVEGAUSSIANNOISE"))
+      else if (e->KeywordSet(MULTIPLICATIVEGAUSSIANNOISE))
         image->addNoise(MultiplicativeGaussianNoise);
-      else if (e->KeywordSet("IMPULSENOISE"))
+      else if (e->KeywordSet(IMPULSENOISE))
         image->addNoise(ImpulseNoise);
-      else if (e->KeywordSet("LAPLACIANNOISE"))
+      else if (e->KeywordSet(LAPLACIANNOISE))
         image->addNoise(LaplacianNoise);
-      else if (e->KeywordSet("POISSONNOISE"))
+      else if (e->KeywordSet(POISSONNOISE))
         image->addNoise(PoissonNoise);
-      else if (e->GetKW(6) != NULL) {
+      else if (e->KeywordSet(NOISE)) {
         DInt noise;
         e->ProvideScalarKW<DIntGDL>(6, noise);
 

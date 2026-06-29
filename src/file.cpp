@@ -40,6 +40,9 @@
 #define PATH_MAX 4096
 #endif 
 
+#define EXPAND_A_ROUTINE_WILDCARD "*.[ps][ra][ov]" //.pro and .sav, char by char. not perfect ( .pav would pass) but ExpandPath uses wildcards.
+#define EXPAND_A_HELP_WILDCARD "*.[phc][dth][fm]*" // same for help extensions, many errors possible but who cares.
+
 #ifndef _WIN32
 #   include <fnmatch.h>
 #   include <glob.h> // glob in MinGW ok for mingw >=3.21 11/2014
@@ -727,7 +730,7 @@ static void ExpandPathN( FileListT& result,
     e->NParam( 1);
 
     int specialization=0;
-    DString pattern = "*.pro";
+    DString pattern = EXPAND_A_ROUTINE_WILDCARD ; //magic wildcard 
 
     static int all_dirsIx = e->KeywordIx("ALL_DIRS");
     bool all_dirs = e->KeywordSet(all_dirsIx);
@@ -749,24 +752,24 @@ static void ExpandPathN( FileListT& result,
     if (pathString.find("<", 0) != std::string::npos) {
       if (pathString.find("<IDL_DEFAULT_PATH", 0) != std::string::npos) {
         pathString = replaceAllOccurencesOfDefaultTokens(pathString, "<IDL_DEFAULT_PATH>", gdl_default_path);
-        pattern = "*.pro"; //in fact, should be "([^\\s]+(\\.(?i)(pro|sav))$)"
+        pattern = EXPAND_A_ROUTINE_WILDCARD ; //a wildcard. if it was a regexp it should really be "([^\\s]+(\\.(?i)(pro|sav))$)"
       } else if (pathString.find("<IDL_DEFAULT_DLM", 0) != std::string::npos) {
         pathString = replaceAllOccurencesOfDefaultTokens(pathString, "<IDL_DEFAULT_DLM>", gdl_default_dlm);
         pattern = "*.dlm";
         all_dirs=true; //DLM search use implicitely ALL_DIRS
       } else if (pathString.find("<IDL_DEFAULT_HELP", 0) != std::string::npos) {
         pathString = replaceAllOccurencesOfDefaultTokens(pathString, "<IDL_DEFAULT_HELP>", gdl_default_help);
-        pattern = "*.*"; //should be "([^\\s]+(\\.(?i)(pdf|html|chm))$)"
+        pattern = EXPAND_A_HELP_WILDCARD ; //see above. if it was a regexp it should really be  "([^\\s]+(\\.(?i)(pdf|html|chm))$)"
       } else if (pathString.find("<IDL_DEFAULT>", 0) != std::string::npos) {
         switch (specialization) {
           case 0: pathString = replaceAllOccurencesOfDefaultTokens(pathString, "<IDL_DEFAULT>", gdl_default_path);
-            pattern = "*.pro"; //in fact, should be "([^\\s]+(\\.(?i)(pro|sav))$)"
+            pattern = EXPAND_A_ROUTINE_WILDCARD ; 
             break;
           case 1: pathString = replaceAllOccurencesOfDefaultTokens(pathString, "<IDL_DEFAULT>", gdl_default_dlm);
             pattern = "*.dlm";
             break;
           case 2: pathString = replaceAllOccurencesOfDefaultTokens(pathString, "<IDL_DEFAULT>", gdl_default_help);
-            pattern = "*.*"; //should be "([^\\s]+(\\.(?i)(pdf|html|chm))$)"
+            pattern = EXPAND_A_HELP_WILDCARD ; 
             break;
         }
       }
@@ -2342,8 +2345,8 @@ BaseGDL* file_info( EnvT* e)
       if( p0S == NULL)
     e->Throw( "String expression required in this context: "+
           e->GetParString(0));
-
-    bool noexpand_path = e->KeywordSet( "NOEXPAND_PATH");
+      static int NOEXPAND_PATH = e->KeywordIx( "NOEXPAND_PATH");
+    bool noexpand_path = e->KeywordSet(NOEXPAND_PATH);
 
       DStructGDL* res = new DStructGDL(
                        FindInStructList(structList, "FILE_INFO"), 
@@ -2964,13 +2967,20 @@ void file_copy( EnvT* e)
     struct stat64 statStruct, srcStruct;
 
 //    trace_me = trace_arg();     
-    bool recursive = e->KeywordSet( "RECURSIVE");
-    bool noexpand_path = e->KeywordSet( "NOEXPAND_PATH");
-    bool copy_symlink = e->KeywordSet( "COPY_SYMLINK");
-    bool allow_same = e->KeywordSet( "ALLOW_SAME");
-    bool overwrite = e->KeywordSet( "OVERWRITE");
-    bool require_directory = e->KeywordSet( "REQUIRE_DIRECTORY");
-    bool verbose = e->KeywordSet( "VERBOSE");
+    static int RECURSIVE = e->KeywordIx("RECURSIVE");
+    static int NOEXPAND_PATH = e->KeywordIx("NOEXPAND_PATH");
+    static int COPY_SYMLINK = e->KeywordIx("COPY_SYMLINK");
+    static int ALLOW_SAME = e->KeywordIx("ALLOW_SAME");
+    static int OVERWRITE = e->KeywordIx("OVERWRITE");
+    static int REQUIRE_DIRECTORY = e->KeywordIx("REQUIRE_DIRECTORY");
+    static int VERBOSE = e->KeywordIx("VERBOSE");
+    bool recursive = e->KeywordSet(RECURSIVE);
+    bool noexpand_path = e->KeywordSet(NOEXPAND_PATH);
+    bool copy_symlink = e->KeywordSet(COPY_SYMLINK);
+    bool allow_same = e->KeywordSet(ALLOW_SAME);
+    bool overwrite = e->KeywordSet(OVERWRITE);
+    bool require_directory = e->KeywordSet(REQUIRE_DIRECTORY);
+    bool verbose = e->KeywordSet(VERBOSE);
     int nsrc = p0S->N_Elements();
     int ndest = p1S->N_Elements();
     string dsttmp = string("");
@@ -3172,10 +3182,14 @@ void file_link( EnvT* e)
     string srctmp, dsttmp, dstdir;
     struct stat64 statStruct;
 
-    bool noexpand_path = e->KeywordSet( "NOEXPAND_PATH");
-    bool allow_same = e->KeywordSet( "ALLOW_SAME");
-    bool hardlink = e->KeywordSet( "HARDLINK");
-    bool verbose = e->KeywordSet( "VERBOSE");
+    static int NOEXPAND_PATH = e->KeywordIx("NOEXPAND_PATH");
+    static int ALLOW_SAME = e->KeywordIx("ALLOW_SAME");
+    static int HARDLINK = e->KeywordIx("HARDLINK");
+    static int VERBOSE = e->KeywordIx("VERBOSE");
+    bool noexpand_path = e->KeywordSet(NOEXPAND_PATH);
+    bool allow_same = e->KeywordSet(ALLOW_SAME);
+    bool hardlink = e->KeywordSet(HARDLINK);
+    bool verbose = e->KeywordSet(VERBOSE);
     int nsrc = p0S->N_Elements();
     int ndest = p1S->N_Elements(); 
     bool dest_is_directory= false;
@@ -3290,11 +3304,16 @@ void file_move( EnvT* e)
     string srctmp, dsttmp, dstdir;
     struct stat64 statStruct;
         
-    bool noexpand_path = e->KeywordSet( "NOEXPAND_PATH");
-    bool allow_same = e->KeywordSet( "ALLOW_SAME");
-    bool overwrite = e->KeywordSet( "OVERWRITE");
-    bool require_directory = e->KeywordSet( "REQUIRE_DIRECTORY");
-    bool verbose = e->KeywordSet( "VERBOSE");
+    static int NOEXPAND_PATH = e->KeywordIx( "NOEXPAND_PATH");
+    static int ALLOW_SAME = e->KeywordIx( "ALLOW_SAME");
+    static int OVERWRITE = e->KeywordIx( "OVERWRITE");
+    static int REQUIRE_DIRECTORY = e->KeywordIx( "REQUIRE_DIRECTORY");
+    static int VERBOSE = e->KeywordIx( "VERBOSE");
+    bool noexpand_path = e->KeywordSet(NOEXPAND_PATH);
+    bool allow_same = e->KeywordSet(ALLOW_SAME);
+    bool overwrite = e->KeywordSet(OVERWRITE);
+    bool require_directory = e->KeywordSet(REQUIRE_DIRECTORY);
+    bool verbose = e->KeywordSet(VERBOSE);
     int nsrc = p0S->N_Elements();
     int ndest = p1S->N_Elements(); 
     if(ndest > 0) dstdir = (*p1S)[0];

@@ -2300,11 +2300,17 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     for (int i = 0; i < nEl; ++i) {
       DString pro = (*p0S)[i];
 
-      string proFile = StrLowCase(pro);
-      AppendIfNeeded(proFile, ".pro");
-
+      string proFile =StrLowCase(pro);
+      bool isAsave=false; 
+      bool added=AppendIfNeeded(proFile, ".pro"); //look for .pro //Resolve_routine needs to find .sav also
       bool found = CompleteFileName(proFile);
-      if (!found ) {
+      if (!found  && added) {
+        proFile = StrLowCase(pro);
+        AppendIfNeeded(proFile, ".sav"); //Resolve_routine needs to find .sav also. 
+        found = CompleteFileName(proFile);
+        if (found) isAsave=true;
+      }
+      if (!found) {
         if (!quiet)
           e->Throw("Not found: " + proFile);
         else return;
@@ -2327,7 +2333,16 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
 		}		
 	  }
       if (exists && norecompileKeyword) continue;
-
+      if (isAsave) { //unless no_recompile is set, we restore again a .sav just as we will recompile a .pro
+        try {
+          std::string Command("RESTORE, \"" + proFile +"\", /VERB");
+          DInterpreter::CallStackBack()->Interpreter()->ExecuteStringLine(Command);
+        } catch (...) {
+          if (!quiet) e->Throw("Failed to restore file: " + proFile); //please check this is the good behaviour
+          return;
+        }
+        return;
+      }
       bool success = GDLInterpreter::CompileFile(proFile,cff?StrUpCase(pro):""); // this might trigger recursion
 	  //here the compilation may have produced BOTH a PRO and a FUNC (e.g;: TIC and TOC. Check:
       bool isPro = false; //is pro (GD).
@@ -2356,7 +2371,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
       if (success) {
         // Message("RESOLVE_ROUTINE: Compiled file: " + proFile);
       } else
-        if (!quiet) e->Throw("Failed to compiled file: " + proFile); //please check this is the good behaviour
+        if (!quiet) e->Throw("Failed to compile file: " + proFile); //please check this is the good behaviour
     }
   }
 
@@ -2713,4 +2728,79 @@ void findvar_pro( EnvT* e)
     }
 #endif
 
+void compile_code_pro(EnvT* e) {
+    DStringGDL* commands = e->GetParAs<DStringGDL>(0);
+      bool statement_seen = false;
+      bool exitAsDone = false;
+      bool in_procedure = false;
+      SizeT ncommands = commands->N_Elements();
+      bool ok = true;
+      std::string outs;
+      // check each line individually, store in combined string if parser OK
+      for (auto i = 0; i < ncommands; ++i) {
+        istringstream in((*commands)[i] + "\n");
+        //      std::cerr << "statement seen=" << statement_seen << std::endl;
+        try {
+          GDLLexer lexer(in, " ", GDLParser::NONE);
+          GDLParser& parser = lexer.Parser();
+          // setup parsing state to accepting routine def or not using memorized state
+          parser.SetProcedureNotAllowed(statement_seen);
+          parser.SetInProcedureAtStart(in_procedure);
+          // parsing
+          parser.interactive_run(); // will error and throw if not authorized to parse a routine because in pure statement state
+          if (parser.IsInProcedure()) {
+            in_procedure = true;
+          }
+          // no error: check if started parsing routine, and memorize
+          if (parser.StatementSeen()) {
+            statement_seen = true;
+            //          if (parser.IsInProcedure()) std::cerr << "procedure statement." << std::endl; 
+            //          else std::cerr << "normal statement." << std::endl;
+          }
+          if (parser.EndMarkerSeen()) exitAsDone = true;
+        } catch (GDLException& err) {
+          std::string message = err.getMessage();
+          //          std::cerr<<message<<std::endl;
+          if (message.rfind("unexpected token: PRO") == std::string::npos) {
+            e->Throw("Procedure header must appear first and only once.");
+          } else if (message.rfind("unexpected token: FUNCTION") == std::string::npos) {
+            e->Throw("Function header must appear first and only once.");
+          } else if (message.rfind("unexpected end of file") == std::string::npos) {
+            e->Throw("Unexpected end of CODE passed to COMPILE_CODE.");
+          }
+        } catch (...) {
+           e->Throw("invalid code : "+(*commands)[i]);
+        }
+        if (in_procedure) { //non-procedure statements must be ignored as we compile
+          //      cerr << "You entered: " << f << endl;
+          outs.append((*commands)[i]);
+          outs.append("\n");
+        }
+        if (exitAsDone) break;
+      }
+      //    std::cerr << "Produced: \n" << outs;
+      if (in_procedure) {
+        // internally compile 
+        //      std::cerr <<" will compile:\n"<<outs;
+        // istringstream internal(outs + "END\n");
+        istringstream internal(outs);
+        RefDNode theAST;
+        try {
+          GDLLexer lexer(internal, "", GDLParser::NONE, "", false);
+          GDLParser& parser = lexer.Parser();
+
+          // parsing
+          parser.translation_unit();
+
+          theAST = parser.getAST();
+
+          if (!theAST) {
+            e->Throw("Error in code: no output generated.");
+          }
+        } catch (...) {
+            e->Throw("Parsing error in code.");
+        }
+        e->Interpreter()->CompileSaveFile(theAST);
+      }
+  }
 } // namespace

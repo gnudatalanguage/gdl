@@ -206,6 +206,12 @@ public:
   friend void SetupOverloadSubroutines(); // overload base class methods
 };
 
+  // for sorting lists by name
+class DSub_compare: public std::function<bool(DSub*, DSub*)>
+{
+public:
+  bool operator() (const DSub* f1, const DSub* f2) const { return f1->ObjectName() < f2->ObjectName();} //objectName as it adds the ":" so will work everywhere?
+};
 // Lib pro/fun ********************************************************
 // moved to prognode.hpp
 // class EnvT;
@@ -230,14 +236,6 @@ public:
   
   bool GetHideHelp() const { return hideHelp;}
   void SetHideHelp( bool v) { hideHelp = v;}
-
-  // for sorting lists by name. Not used (lists too short to make a time gain. Long lists would, if existing,
-  // benefit from sorting by hash number in a std::map instead of a std::list.
-  struct CompLibFunName: public std::function<bool(DLib*, DLib*)>
-  {
-    bool operator() ( DLib* f1, DLib* f2) const
-    { return f1->ObjectName() < f2->ObjectName();}
-  };
 };
 
 // library procedure

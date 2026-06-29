@@ -184,8 +184,8 @@ private:
   StructListT              parent;  // parent classes 
   IDList                   noDirectMembers;
   
-  FunListT                 fun; // member functions
-  ProListT                 pro; // member procedures
+  FunListT                 objectFunList; // member functions
+  ProListT                 objectProList; // member procedures
 
   DStructDesc( const DStructDesc&) {} // disabeld
 
@@ -214,25 +214,25 @@ public:
 
   FunListT& FunList()
   {
-    return fun;
+    return objectFunList;
   }
 
   DFun* FindInFunList( const std::string& n)
   {
-    FunListT::iterator p=std::find_if(fun.begin(),fun.end(),Is_eq<DFun>(n));
-    if( p != fun.end()) return *p;
+    FunListT::iterator p=std::find_if(objectFunList.begin(),objectFunList.end(),Is_eq<DFun>(n));
+    if( p != objectFunList.end()) return *p;
     return NULL;
   }
   
   ProListT& ProList()
   {
-    return pro;
+    return objectProList;
   }
 
   DPro* FindInProList( const std::string& n)
   {
-    ProListT::iterator p=std::find_if(pro.begin(),pro.end(),Is_eq<DPro>(n));
-    if( p != pro.end()) return *p;
+    ProListT::iterator p=std::find_if(objectProList.begin(),objectProList.end(),Is_eq<DPro>(n));
+    if( p != objectProList.end()) return *p;
     return NULL;
   }
 

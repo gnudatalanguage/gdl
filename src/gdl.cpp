@@ -223,7 +223,6 @@ int main(int argc, char *argv[])
   // indicates if the user wants to see the welcome message
   bool quiet = false;
   bool gdlde = false;
-  bool setQuietSysvar=false;
   bool willSuppressEditInput=false;
   std::string myMessageBoxName="";
   
@@ -252,8 +251,7 @@ int main(int argc, char *argv[])
 //    pathUserNotDefined=true;
 //  }
 
-  char* wantCalm = getenv("IDL_QUIET");
-  if (wantCalm != NULL) setQuietSysvar=true;
+  bool setQuietSysvar=(getenv("IDL_QUIET") != NULL);
   
   // keeps a list of files to be executed after the startup file
   // and before entering the interactive mode
@@ -609,15 +607,42 @@ int main(int argc, char *argv[])
   }
 #endif // USE_MPI
   
+// Should compile here (silently) all the PRO and FUN that GDL has written in language when IDL codes them in C, in order to have them available even
+// when the GDL_PATH at start (or after) does not encompass them.
+// save current (user-modified) path
+// At 06/2026, there are 57 IDL C-code commands that GDL emulates in a .pro file.
+// it is probably not worth it to compile all of them here.
+// In any case, it would be better to restore a .sav with all these procedures.
+// only the following two seem necessary at the moment:
+ SysVar::SetGDLPath( gdl_default_path);
+ static const std::string procedures_at_start[2]={"GDL_IMPLIED_PRINT","DLM_REGISTER"};
+  //be silent
+ SysVar::Make_Quiet();
+ for (auto i=0; i< 2; ++i) {
+   interpreter.SearchCompilePro(procedures_at_start[i], true);  //procedures. It would be better to restore a .sav with all the compiled procedures.
+    // must be known!
+   assert(FunIx(procedures_at_start[i]) == -1);
+ }
+ if (!setQuietSysvar) SysVar::Make_Loud();
+  
+  //call DLM_REGISTER here to benefit from definition of GDL_DLM_PATH AND be found whatever the !PATH was changed to
   //always between try{} catch{} when calling ExecuteStringLine!
   try {
-     SysVar::Make_Quiet();
-    unknownProList.insert("DLM_REGISTER"); //necessary as "DLM_REGISTER" is not yet known by parser at this time.
-  std::string dlmCommand=("dlm_register,/silent");
-  interpreter.ExecuteStringLine(dlmCommand);
-  } catch (...) {std::cerr<<"Problem starting DLMs\n";}
+    SysVar::Make_Quiet();
+    std::string dlmCommand = ("dlm_register,/silent");
+    interpreter.ExecuteStringLine(dlmCommand);
+  } catch (...) {} // be silent //std::cerr<<"Problem starting DLMs\n";}
   if (!setQuietSysvar) SysVar::Make_Loud();
-  interpreter.InterpreterLoop( startup, batch_files, statement);
+
+  // recreate the current PATH
+  string gdlPath=GetEnvPathString("GDL_PATH");
+  if( gdlPath == "") gdlPath=GetEnvPathString("IDL_PATH");
+  if( gdlPath == "") gdlPath = gdl_default_path;
+  SysVar::SetGDLPath( gdlPath);
+
+ // go to main loop
+ 
+ interpreter.InterpreterLoop( startup, batch_files, statement);
 
   return 0;
 }
