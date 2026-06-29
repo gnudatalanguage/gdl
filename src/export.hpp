@@ -1390,7 +1390,7 @@ DLL_PUBLIC EXPORT_STRING *GDL_CDECL IDL_VarGet1EltStringDesc(EXPORT_VPTR v, EXPO
 		if (s->slen > 0) {
 			s->s = (char*) MyMallocDestroyedOnExit(s->slen + 1);
 			strncpy(s->s, v->value.str.s, s->slen+1);
-		}
+		} else s->stype=0; //probably overkill
 	}
 	return s;
 }
