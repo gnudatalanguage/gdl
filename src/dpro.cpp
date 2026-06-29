@@ -365,7 +365,7 @@ DLibFunRetNew::DLibFunRetNew( LibFun f, const string& n, const int nPar_,
 {}
 
 DLibFunRetNew::DLibFunRetNew(  LibFun f, void* mediator, const string& n, const int nPar_, const int nParMin_, const bool hasKeys)
-  : DLibFun(f,mediator,n,nPar_,nParMin_, hasKeys)
+  : DLibFun(f,mediator,n,nPar_,nParMin_, hasKeys), retConstant(false)
 {}
 
 DLibFunRetNewTP::DLibFunRetNewTP( LibFun f, const string& n, const int nPar_, 
