@@ -1367,7 +1367,7 @@ DLL_PUBLIC EXPORT_STRING *GDL_CDECL IDL_VarGet1EltStringDesc(EXPORT_VPTR v, EXPO
 	} // else need just tc_v to be not null, go figure.
 	if (ISARRAY(v)) ExitDlmFunctionAndWarn("Expression must be a scalar or 1 element array in this context:"+std::string(IDL_VarName(v)));
 	EXPORT_STRING* s=(EXPORT_STRING*)MyMallocDestroyedOnExit(sizeof(EXPORT_STRING));
-	s->stype=0;
+	s->stype=1;
 	if (tc_v) {
 		switch (v->type) {
 				DOCASE_STRING(GDL_TYP_UNDEF, c);
