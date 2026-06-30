@@ -205,6 +205,7 @@ test_trired.pro
 test_trisol.pro
 test_tv.pro
 test_typename.pro
+test_value_locate.pro
 test_voigt.pro
 test_wavelet.pro
 test_where.pro
