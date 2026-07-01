@@ -133,7 +133,7 @@ namespace lib {
         }
       } else {
 
-        DLong64GDL* ret = new DLong64GDL(dimension(nEl1), BaseGDL::NOZERO);
+        DLong64GDL* ret = new DLong64GDL(p1->Dim(), BaseGDL::NOZERO);
 
         switch (p0->Type()) {
         case GDL_BYTE:
@@ -191,7 +191,7 @@ namespace lib {
         }
       } else {
 
-        DLongGDL* ret = new DLongGDL(dimension(nEl1), BaseGDL::NOZERO);
+        DLongGDL* ret = new DLongGDL(p1->Dim(), BaseGDL::NOZERO);
 
         switch (p0->Type()) {
         case GDL_BYTE:
