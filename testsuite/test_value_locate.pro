@@ -1,5 +1,6 @@
 ;
 ; Yanis Saglio, 30 june 2026
+; under GNU GPL V3
 ; 
 ; Fix issue #2179
 ;
