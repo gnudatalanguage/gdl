@@ -486,7 +486,8 @@ EXPORT_VPTR GDL_ToVPTR(BaseGDL* var, bool global = false, bool is_kw = false, EX
 		SizeT nelts = objstruct->N_Elements();
 		SizeT arr = 0;
 		SizeT ret = GdlStructDump(objstruct, arr, s);
-		h->hash = NULL;
+		h->hash = (export_heap_variable*) var; //save here the actual DObj. For the moment, even if here we return an IDL Obj,
+													//only the DObj will be used in the return function VPTR_ToGDL
 		h->flags = 0;
 		h->refcount = refcount;
 		h->hash_id = MimickedHeap.size();
@@ -936,8 +937,9 @@ BaseGDL* VPTR_ToGDL(EXPORT_VPTR v, bool protectVPTRData=false, EXPORT_ARRAY* new
 		dimension dim(arraydim, rank);
 		return GDL_MakeGDLStruct(v, dim);
 	} else if (v->type == GDL_TYP_OBJREF) {
-		ExitDlmFunctionAndThrow(__func__ , "Exchange of Objects with a DLM is not yet written, please report!");
-		return NULL;
+		EXPORT_HEAP_VPTR h=IDL_HeapVarHashFind(v->value.hvid);
+		if (h->hash == NULL) ExitDlmFunctionAndThrow(__func__ , "Exchange of Objects with a DLM is not yet written, please report!");
+		return (BaseGDL*)h->hash; //storing a GDL-created DObjGDL.
 	} else if (v->type == GDL_TYP_PTR) {
 		ExitDlmFunctionAndThrow(__func__ , "Exchange of Pointers with a DLM is not yet written, please report!");
 //		EXPORT_HEAP_VPTR h = IDL_HeapVarHashFind(v->value.hvid);
@@ -2514,7 +2516,7 @@ if (requested.specified != NULL) { // need write 0 or 1 in a special int in KW s
 }
 if (requested.value != NULL) { // need to pass either an address of a EXPORT_VPTR or fill in static elements of the structure exchanged with routine
 	size_t global_address = (size_t) (kw_result)+(size_t) (requested.value);
-	if (isoutput && !global) ExitDlmFunctionAndWarn("Keyword " + std::string(requested.keyword) + " must be a named variable.");
+	//if (isoutput && !global) ExitDlmFunctionAndWarn("Keyword " + std::string(requested.keyword) + " must be a named variable.");
 	BaseGDL* var = passed.gdlVarPtr;
 	//if requested var is NULL here, it is an undefined var, which MAY be returned as good value.
 	if (var == NULL && !isoutput) ExitDlmFunctionAndWarn("GDLExportKeyword: variable " + std::string(requested.keyword) + " is not defined.");
@@ -2800,9 +2802,9 @@ DLL_PUBLIC int  GDL_CDECL IDL_KWProcessByOffset(int argc, EXPORT_VPTR *argv, cha
 		//rewind: 
 		for (it = requested.begin(); it != requested.end(); ++it) {
 			int ipassed = it->second;
-			argk[ipassed].out = false;
 			if (ipassed == KEYWORD_ACCEPT) GdlExportAbsentKeyword(kw_requested[it->first], kw_result);
 			else if (ipassed >= 0) {
+			    argk[ipassed].out = false;
 				EXPORT_VPTR ret=GdlExportPresentKeyword(kw_requested[it->first], argk[it->second], kw_result);
 			    if (ret != NULL) {
 					argk[ipassed].out=true;
@@ -3249,10 +3251,10 @@ if (ntags == 0) ExitDlmFunctionAndWarn("IDL_MakeStruct(): structure creation nee
 DLL_PUBLIC EXPORT_MEMINT  GDL_CDECL IDL_StructTagInfoByName(EXPORT_StructDefPtr sdef, char *name, int msg_action, EXPORT_VPTR *var) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 		int l = strlen(name);
 		for (auto i = 0; i < sdef->ntags; ++i) {
-			if (sdef->tags[i].id->len == l && strncmp(name, sdef->tags[i].id->name, l)) {
+			if (sdef->tags[i].id->len == l && (strncmp(name, sdef->tags[i].id->name, l)==0)) {
 			if (var) *var=&(sdef->tags[i].var);
-			}
 			return sdef->tags[i].offset;
+			}
 		}
 		char* mess=(char*)calloc(256,1);
 		strncat(mess,"Tag name ",10);strncat(mess,name,200);strncat(mess," is undefined for structure ",29);
@@ -3504,6 +3506,7 @@ DLL_PUBLIC EXPORT_VPTR GDL_CDECL IDL_conj(EXPORT_VPTR v){		TRACE_ROUTINE(__FUNCT
 		strcat (pathbuf, file);
 		if (flags == 0) strcat (pathbuf, dot); //???
 		strcat (pathbuf, ext);
+		std::cerr<<pathbuf<<std::endl;
 		return pathbuf;
   }
 
@@ -3549,19 +3552,47 @@ DLL_PUBLIC  EXPORT_HEAP_VPTR GDL_CDECL IDL_HeapVarHashFind(EXPORT_HVID hash_id){
 try {pointed=MimickedHeap.at(hash_id);} catch (const std::out_of_range& oor) {ExitDlmFunctionAndThrow(__func__,"Invalid Heap.");}
 	return pointed;
 }
-DLL_PUBLIC UCHAR* IDL_ObjGetInstanceData(EXPORT_VPTR v){TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-		return v->value.s.arr->data;}
+DLL_PUBLIC UCHAR* IDL_ObjGetInstanceData(EXPORT_VPTR v, char * what){TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+		return IDL_ObjReference(v)->value.s.arr->data;
+}
 DLL_PUBLIC EXPORT_VPTR GDL_CDECL  IDL_ObjNew(int argc, EXPORT_VPTR* argv, char* keywords_list){TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	// in all cases argv[0] is the OBJECT name. Thus argc=1 min. argc=0 makes a void object and this is an error.
 	// this defines the new object.
 	// then all following argvs[1..n] are passed to OBJECT::init. if keywords are accepted by the ::INIT, then keywords_list CAN point
 	// to a chain of strings ("\0KEYWORD1\0KEYWORD2\0...") BUT starting with as many \0 as there are parameters
 	// passed to ::INIT, including "self". So if there are 3 parameters, that make 4 with "self", the keywords_list string starts with 4 \0 .
-return NULL;
+    static int funIx = LibFunIx("OBJ_NEW");
+    EnvT* newEnv = new EnvT(DInterpreter::CallStackBack()->CallingNode(), libFunList[funIx]);
+	int nargs=0;
+	int pos=1; //for keywords "compact strings" position
+	newEnv->SetNextPar(new DStringGDL(argv[nargs++]->value.str.s)); //the object name
+	// OBJ_NEW has only _REF_EXTRA as Keyword
+	while (nargs < argc ) { //the init args for obj_new
+		if (keywords_list) {
+			char* keyword=&keywords_list[pos];
+			int l=strlen(keyword);
+			if (l) {
+				pos+=(l+1);
+				BaseGDL* par=VPTR_ToGDL(argv[nargs++]);
+				newEnv->SetKeyword(std::string(keyword),par);
+			} else {
+				pos++; // the \0 in string
+				BaseGDL* par=VPTR_ToGDL(argv[nargs++]);
+				newEnv->SetNextPar(par);
+			}
+		} else {
+			BaseGDL* par=VPTR_ToGDL(argv[nargs++]);
+			newEnv->SetNextPar(par);
+		}
+	}
+	// the following ResolveExtra is always needed, as long as we pass keywords. Should check it is always the case in the GDL code source.
+	newEnv->ResolveExtra();
+	DObjGDL* ret = static_cast<DObjGDL*> (static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv));
+    return  GDL_ToVPTR(ret);
 }
 //IDL_ObjCallMethodByString
 //char* Method, IDL_HVID hvid, void* return_vptr, int argc, IDL_VPTR* argv, char* keywords)
-DLL_PUBLIC EXPORT_VPTR GDL_CDECL IDL_ObjCallMethodByString(char* Method, EXPORT_HVID hvid, void* return_vptr, int argc, EXPORT_VPTR* argv, char* keywords){TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+DLL_PUBLIC void GDL_CDECL IDL_ObjCallMethodByString(char* method, EXPORT_HVID hvid, EXPORT_VPTR* return_vptr, int argc, EXPORT_VPTR* argv, char* keywords_list){TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 // if Method has Keywords, then see IDL_ObjNew(). For example with 
 		// toto=obj_new('IDLgrWindow')
 		// toto->setproperty,dimensions=[100,100] 
@@ -3569,8 +3600,63 @@ DLL_PUBLIC EXPORT_VPTR GDL_CDECL IDL_ObjCallMethodByString(char* Method, EXPORT_
 		// we could have also IDL_ObjCallMethodByString("GetProperty", object's_hvid, NULL, 1, vptr out, "\0DIMENSIONS\0" )
 // if method has no kw, idem.
 		//if method returns a value (it is a function) it is in return_vptr (and is GDL_V_TEMP)
-return NULL;
-}
+
+// make some checks beforehand
+    EXPORT_HEAP_VPTR h=IDL_HeapVarHashFind(hvid);
+	DStructGDL* oStruct;
+	DObjGDL* obj=(DObjGDL*)h->hash;
+	if (obj==NULL) ExitDlmFunctionAndThrow(__func__,"No GDL object at hvid, please report.");
+	DObj objIx;
+      if (!obj->Scalar(objIx)) ExitDlmFunctionAndThrow(__func__,"Parameter must be a scalar or 1 element array in this context: ");
+      if (objIx == 0) ExitDlmFunctionAndThrow(__func__,"Unable to invoke method on NULL object reference");
+      try {
+	    oStruct = GDLInterpreter::GetObjHeap(objIx);
+      }
+      catch ( GDLInterpreter::HeapException)
+	{
+	  ExitDlmFunctionAndThrow(__func__,"Object not valid.");
+	}
+    EnvT* newEnv;
+    if (return_vptr) { //a function
+      static int funIx = LibFunIx("CALL_METHOD");
+      newEnv = new EnvT(DInterpreter::CallStackBack()->CallingNode(), libFunList[funIx]);
+    } else { //a procedure
+      static int proIx = LibProIx("CALL_METHOD");
+      newEnv = new EnvT(DInterpreter::CallStackBack()->CallingNode(), libProList[proIx]);
+	}
+	newEnv->SetNextPar(new DStringGDL(method)); //CALL_METHOD,Method,...
+	newEnv->SetNextPar(obj); //ITEM,...
+	int nargs=0;
+	int pos=1; //for keywords "compact strings" position
+	// complete with all arguments
+	while (nargs < argc ) { //the init args for obj_new
+		if (keywords_list) {
+			char* keyword=&keywords_list[pos];
+			int l=strlen(keyword);
+			if (l) {
+				pos+=(l+1);
+				BaseGDL* par=VPTR_ToGDL(argv[nargs++]);
+				newEnv->SetKeyword(std::string(keyword),par);
+			} else {
+				pos++; // the \0 in string
+				BaseGDL* par=VPTR_ToGDL(argv[nargs++]);
+				newEnv->SetNextPar(par);
+			}
+		} else {
+			BaseGDL* par=VPTR_ToGDL(argv[nargs++]);
+			newEnv->SetNextPar(par);
+		}
+	}
+	newEnv->ResolveExtra();
+	try{
+    if (return_vptr) {
+		BaseGDL* ret = static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+		*return_vptr = GDL_ToVPTR(ret);
+    } else {
+		static_cast<DLibPro*>(newEnv->GetPro())->Pro()(newEnv);
+	}
+	} catch ( GDLException e) {ExitDlmFunctionAndThrow(__func__,e.getMessage());}
+} 
 #include "export_notsupported.hpp"
 }
 #endif
