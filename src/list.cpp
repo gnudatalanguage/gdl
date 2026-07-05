@@ -1744,23 +1744,7 @@ namespace lib {
       return result->Transpose(perm);
     }
   }
-#if 0
-  // currently a void, Standard GDLobject help provided in gdlhelp.
 
-  void list__help(EnvUDT* e) {
-
-
-    static int kwMAXITEMIx = e->GetKeywordIx("MAXITEM");
-    static int kwSELFIx = kwMAXITEMIx + 1;
-
-    //        trace_me = false; // lib::trace_arg();
-    SizeT nParam = e->NParam(1); // SELF
-
-    DStructGDL* self = GetOBJ(e->GetKW(kwSELFIx), e);
-
-    if (trace_me) std::cout << " list.help():";
-  }
-#endif
 
 BaseGDL* list__toarray(EnvUDT* e) {
 
@@ -2006,8 +1990,6 @@ BaseGDL* list__toarray(EnvUDT* e) {
     static int kwSELFIx = 0; // no keywords
     static int kwVALUEIx = 1;
 
-    //    std::cout << "ici ici" << std::endl;
-    //    DStructGDL* self = GetOBJ( e->GetKW( kwSELFIx), e);
     SizeT nParam = e->NParam(1);
     if (nParam == 1)
       return new DLongGDL(LIST_count(GetOBJ(e->GetTheKW(kwSELFIx), e)));
@@ -2685,16 +2667,9 @@ BaseGDL* list__toarray(EnvUDT* e) {
     DPtrHEAD(self) = pTail;
   }
 
-  BaseGDL* list__init(EnvUDT* e) {
+  // we program here the GDL_CONTAINER::GET that is inherited by LIST:: . Keywords etc are the same
 
-    //  if( trace_me) std::cout << " List Init!" << std::endl;
-    return new DByteGDL(1); // if we reach here, defaul is to return 'TRUE'
-  }
-  // list__get and list__add are shared by the LIST oand the GDL_CONTAINER objects. 
-  // "bool listmode" adapts LIST::GET to GDL (NOT an IDL feature, useful for debug)
-  //
-
-  BaseGDL* list__get(EnvUDT* e) {
+  BaseGDL* container__get(EnvUDT* e) {
     // see overload.cpp
     //     DFunLIST__ADD->AddKey("ALL","ALL")->AddKey("ISA","ISA")->AddKey("NULL","NULL");
     //     DFunLIST__ADD->AddPar("VALUE")->AddPar("INDEX");
@@ -2905,6 +2880,8 @@ BaseGDL* list__toarray(EnvUDT* e) {
       return ret;
     }
   }
+
+  //This will do also for GDL_CONTAINER::ADD that is inherited by LIST:: although the parameters and keywords differ.
 
   void list__add(EnvUDT* e) {
     // see overload.cpp

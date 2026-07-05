@@ -291,7 +291,7 @@ namespace lib {
     else
       {
 	//  Search in user proc and function
-	funIx = GDLInterpreter::GetFunIx(RK_Diff );
+	funIx = GDLInterpreter::GetFunIx(RK_Diff ); //throws if absent
 	
 	//-----------------FIRST STEP-------------------//
 	for (SizeT i=0;i<Yvals->N_Elements();++i)

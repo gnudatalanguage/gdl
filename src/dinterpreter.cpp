@@ -371,13 +371,9 @@ bool GDLInterpreter::SearchCompilePro(const string& pro, bool searchForPro)
 {
   std::string name_in_list = StrUpCase(pro);
   if (searchForPro) {
-    for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
-		  if ((*i)->ObjectName() == name_in_list) return true;
-	}
+    if (findDProIx(name_in_list) != -1) return true;
   } else {
-	for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
-	  if ((*i)->ObjectName() == name_in_list) return true;
-	}
+    if (findDFunIx(name_in_list) != -1) return true;
   }
   static StrArr openFiles;
 
@@ -397,13 +393,9 @@ bool GDLInterpreter::SearchCompilePro(const string& pro, bool searchForPro)
       }
       // routine has been added, is it a pro or not?
       if (searchForPro) {
-        for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
-              if ((*i)->ObjectName() == name_in_list) return true;
-        }
+        if (findDProIx(name_in_list) != -1) return true;
       } else {
-        for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
-          if ((*i)->ObjectName() == name_in_list) return true;
-        }
+        if (findDFunIx(name_in_list) != -1) return true;
       }
     }
   }
@@ -429,12 +421,8 @@ bool GDLInterpreter::SearchCompilePro(const string& pro, bool searchForPro)
 // if routine name is not found return -1
 int GDLInterpreter::SearchRoutineNoCompile(const string& routine) {
   std::string name_in_list = StrUpCase(routine);
-  for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
-    if ((*i)->ObjectName() == name_in_list) return 1;
-  }
-  for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
-    if ((*i)->ObjectName() == name_in_list) return 2;
-  }
+  if (findDProIx(name_in_list) != -1) return 1;
+  if (findDFunIx(name_in_list) != -1) return 2;
   string proFile = StrLowCase(routine);
   bool added = AppendIfNeeded(proFile, ".pro"); //look for .pro first
   bool found = CompleteFileName(proFile);
@@ -554,7 +542,7 @@ int GDLInterpreter::GetFunIx( const string& subName)
 void GDLInterpreter::SetProIx( ProgNodeP f)
 {
   if( f->proIx == -1)
-    f->proIx=GetProIx(f);//->getText());
+    f->proIx=GetProIx(f);//throws if absent//->getText());
 }
 
 int GDLInterpreter::GetProIx(ProgNodeP f)
@@ -1342,49 +1330,31 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 	line=line.substr(1);
 	StrTrim(line);
 	line=StrUpCase(line);
-	//cout << "yes ! >>"<<StrUpCase(line)<<"<<" << endl;
 	SizeT nProFun;
 	int nbFound=0;
+    int i;
 	// looking in internal procedures
-	nProFun=libProList.size();
-	for( SizeT i = 0; i<nProFun; ++i)
-	  {
-	    if (line.compare(libProList[ i]->Name()) == 0) {
-	      cout << "Internal PROCEDURE : " << libProList[ i]->ToString() << endl;
-	      nbFound++;
-	      break;
-	    }
-	  }
+      if ((i = LibProIx(line)) != -1) {
+        cout << "Internal PROCEDURE : " << libProList[ i]->ToString() << endl;
+        nbFound++;
+      }
 	// looking in internal functions
-	nProFun = libFunList.size();
-	for( SizeT i = 0; i<nProFun; ++i)
-	  {
-	    if (line.compare(libFunList[ i]->Name()) == 0) {
-	      cout << "Internal FUNCTION : " << libFunList[ i]->ToString() << endl;
-	      nbFound++;
-	      break;
-	    }
-	  }
-	// looking in compiled functions
-	nProFun = funList.size();
-	for( SizeT i = 0; i<nProFun; ++i)
-	  {
-	    if (line.compare(funList[ i]->Name()) == 0) {
-	      cout << "Compiled FUNCTION : " << funList[ i]->ToString() << endl;
-	      nbFound++;
-	      break;
-	    }
-	  }
+      if ((i = LibFunIx(line)) != -1) {
+        cout << "Internal FUNCTION : " << libFunList[ i]->ToString() << endl;
+        nbFound++;
+      }
+	// looking in compiled functions: take care of object functions, do not trust index
+      DFun *f;
+      if (f = GetDFun(line)) {
+        cout << "Compiled FUNCTION : " << f->ToString() << endl;
+        nbFound++;
+      }
 	// looking in compiled procedures
-	nProFun = proList.size();
-	for( SizeT i = 0; i<nProFun; ++i)
-	  {
-	    if (line.compare(proList[ i]->Name()) == 0) {
-	      cout << "Compiled PROCEDURE : " << proList[ i]->ToString() << endl;
-	      nbFound++;
-	      break;
-	    }
-	  }
+      DPro* p;
+      if (p = GetDPro(line)) {
+        cout << "Compiled PROCEDURE : " << p->ToString() << endl;
+        nbFound++;
+      }	
 	if (nbFound == 0) {
 	  cout << "No Procedure/Function, internal or compiled, with name : "<< line << endl;
 	}

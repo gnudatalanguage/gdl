@@ -1268,12 +1268,12 @@ namespace lib {
       pfList.push_back("$MAIN$");
 
       // Procedures
-      for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+      for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {//proList complete explore: ok
         pfList.push_back((*i)->ObjectName());
       }
 
       // Functions
-      for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
+      for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {//funList complete explore: ok
         pfList.push_back((*i)->ObjectName());
       }
 

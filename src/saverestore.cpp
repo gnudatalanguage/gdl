@@ -519,13 +519,10 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
 	bool already_present=false;
 	DSubUD * present=NULL;
 	if (isPro == 1) {
-	  for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
-		if ((*i)->ObjectName() == name) {
-		  already_present = true;
-		  present = (*i);
-		  break;
-		}
-	  }
+      DPro *p=GetDPro(name); if (p) { 
+        already_present = true;
+		present = p;
+      }
 	  //if existing and skipIfExist set, just ignore:
 	  if (skipIfExist && already_present) return 1;
 	  //check if active
@@ -543,13 +540,10 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
 	  if (verbose) Message("RESTORE: Restored procedure: " + name +".");
 	  return 1;
 	} else if (isPro == 0) {
-	  for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
-		if ((*i)->ObjectName() == name) {
-		  already_present = true;
-		  present = (*i);
-		  break;
-		}
-	  }
+      DFun *f=GetDFun(name); if (f) { 
+        already_present = true;
+		present = f;
+      }
 	  //if existing and skipIfExist set, just ignore:
 	  if (skipIfExist && already_present)  return 1;
 	  //check if active
@@ -2849,27 +2843,17 @@ if (!doRoutines){
 		  bool notFound=true;
 		  e->AssureStringScalarPar(i,name);
 		  name = StrUpCase(name);
-		  for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
-			if ((*i)->ObjectName() == name) {
-			  DPro * p = (*i);
-			  if (p->GetSCC() != NULL) {
-				nextptr = writeDSubUD(xdrs, p, true);
-				notFound = false;
-			  }
-			  break;
-			}
-		  }
+          DPro *p = GetDPro(name);
+          if (p && p->GetSCC() != NULL) {
+              nextptr = writeDSubUD(xdrs, p, true);
+              notFound = false;
+          }
 		  //May also exist as a FUN, see e.g. TIC & TOC
-		  for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
-			if ((*i)->ObjectName() == name) {
-			  DFun * f = (*i);
-			  if (f->GetSCC() != NULL) {
+          DFun * f = GetDFun(name);
+          if (f && f->GetSCC() != NULL) {
 				nextptr = writeDSubUD(xdrs, f, false);
 				notFound = false;
-			  }
-			  break;
-			}
-		  }
+          }
 		  if (notFound) Message("Undefined item not saved: "+name);
 		}
 	  } else { //wil not save NoSave pro/funs unless IGNORE_NOSAVE is set

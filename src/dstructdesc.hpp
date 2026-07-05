@@ -29,7 +29,10 @@
 #include "dpro.hpp"
 #include "typedefs.hpp"
 #include "overload.hpp"
-
+#include <unordered_map>
+typedef std::unordered_map<std::string,int> LibMapT;
+extern LibMapT funMap;
+extern LibMapT proMap;
 class DStructBase
 {
 private:
@@ -219,8 +222,12 @@ public:
 
   DFun* FindInFunList( const std::string& n)
   {
-    FunListT::iterator p=std::find_if(objectFunList.begin(),objectFunList.end(),Is_eq<DFun>(n));
-    if( p != objectFunList.end()) return *p;
+	try {
+		int i=funMap.at(this->name+"::"+n); // aka //findDFunIx(this->name+"::"+n);
+	    if (i != -1) return objectFunList[i];
+	} catch (const std::out_of_range& oor) { return NULL;}
+//    FunListT::iterator p=std::find_if(objectFunList.begin(),objectFunList.end(),Is_eq<DFun>(n));
+//    if( p != objectFunList.end()) return *p;
     return NULL;
   }
   
@@ -231,8 +238,12 @@ public:
 
   DPro* FindInProList( const std::string& n)
   {
-    ProListT::iterator p=std::find_if(objectProList.begin(),objectProList.end(),Is_eq<DPro>(n));
-    if( p != objectProList.end()) return *p;
+	try {
+		int i=proMap.at(this->name+"::"+n); // aka //findDFunIx(this->name+"::"+n);
+	    if (i != -1) return objectProList[i];
+	} catch (const std::out_of_range& oor) { return NULL;}
+//    ProListT::iterator p=std::find_if(objectProList.begin(),objectProList.end(),Is_eq<DPro>(n));
+//    if( p != objectProList.end()) return *p;
     return NULL;
   }
 

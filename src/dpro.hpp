@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <vector>
 #include <map>
+#include <unordered_map>
 
 #include "basegdl.hpp"
 #include "dcommon.hpp"
@@ -35,7 +36,8 @@
       extern bool posixpaths;
     }
 #endif
-  typedef struct _SCC_STRUCT_ { //semicompiled code, small memory imprint (instead of a copy of the DNodes)
+
+typedef struct _SCC_STRUCT_ { //semicompiled code, small memory imprint (instead of a copy of the DNodes)
 	u_int nodeType = 0;
 	u_int ligne = 0;
 	u_int flags = 0;
@@ -47,6 +49,8 @@
   } sccstruct;
 
 class DSubUD;
+class DPro;
+class DFun;
 typedef std::vector<sccstruct> SCCStructV;
 typedef std::map<DSubUD*, SCCStructV> SCCodeListT;
 typedef std::map<DSubUD*, SCCStructV>::iterator SCCodeListIterator;
@@ -58,7 +62,11 @@ typedef std::map<DNode*,int>::iterator SCCodeAddressesIterator;
 typedef std::map<DSubUD*, RefDNode> CodeListT;
 typedef std::map<DSubUD*, RefDNode>::iterator CodeListIterator;
 extern CodeListT     codeList;
-    
+
+typedef std::unordered_map<std::string,int> LibMapT;
+extern LibMapT funMap;
+extern LibMapT proMap;    
+
 template<typename T>  class Is_eq: public std::function<bool(T)>
 {
   std::string name;
@@ -635,4 +643,5 @@ typedef std::map<std::string, DPro*> LambdaProListT;
 typedef std::vector<DLibFun*> LibFunListT;
 typedef std::vector<DLibPro*> LibProListT;
 
+typedef std::unordered_map<std::string,int> LibMapT;
 #endif

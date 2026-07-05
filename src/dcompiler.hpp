@@ -80,7 +80,7 @@ public:
   BaseGDL* ConstantIndex( RefDNode n);
   RefDNode ByReference(RefDNode n_);  // for parameter passing 
   //  bool ByReferenceMaybe(RefDNode n_); // for parameter passing 
-  bool IsVar(const std::string&); // variable already defined in actual context?
+  // bool IsVar(const std::string&); // variable already defined in actual context?
   void Var(RefDNode);    // sets var in node
   void SysVar(RefDNode); // sets var in node
   void SetTree(RefDNode);

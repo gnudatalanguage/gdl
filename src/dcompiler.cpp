@@ -253,7 +253,9 @@ void DCompiler::EndPro() // inserts in proList
 		  unknownProList.erase(q);
 		  break;
 		}
-		
+    if( o == "") proMap[name]=(*searchList).size(); else {
+      proMap[o+"::"+name]=(*searchList).size(); 
+    }		
 	  (*searchList).push_back(static_cast<DPro*>(pro));
     // sort(searchList->begin(), searchList->end(), DSub_compare());
 	WarnAboutObsoleteRoutine(pro->ObjectName());
@@ -303,6 +305,7 @@ void DCompiler::EndFun() // inserts in funList
     }
 
   // search/replace in funList
+  // should use map's FullName!
   FunListT::iterator p=find_if((*searchList).begin(),(*searchList).end(),
 			       Is_eq<DFun>(name));
   if( p != (*searchList).end()) 
@@ -328,6 +331,9 @@ void DCompiler::EndFun() // inserts in funList
 	unknownFunList.erase(q);
 	break;
   }
+    if( o == "") funMap[name]=(*searchList).size(); else {
+      funMap[o+"::"+name]=(*searchList).size(); 
+    }
     (*searchList).push_back(static_cast<DFun*>(pro));
     // sort(searchList->begin(), searchList->end(), DSub_compare());
    WarnAboutObsoleteRoutine(pro->ObjectName());
@@ -515,40 +521,39 @@ RefDNode DCompiler::ByReference(RefDNode nIn)
   return n;
 }  
 
-bool DCompiler::IsVar(const string& n)
-{
-   // check if lib fun
-  SizeT nLibF = libFunList.size();
-  for( SizeT f=0; f<nLibF; ++f)
-    if( libFunList[ f]->Name() == n) return false;
-
-  // check already compiled fun
-  if( FunIx( n) != -1) return false;
-
-  // No functions are compiled during var/fun lookup
-
-//   // Note: problem here when actual compiled
-//   // sub has still its own private common block list, which newly compiled
-//   // sub would not find but possibly create the same common block again
-//   // sollution:
-//   // purge common blocks
-//   // disadvantage:
-//   // if compilation fails later, common blocks are not removed but stay defined
-//   EndInteractiveStatement();
-
-//   // originally this was done later in the interpreter
-//   // but something like x = x(0) would not work if x is
-//   // a function (defined in x.pro) and a variable
-//   bool success = GDLInterpreter::SearchCompilePro( n);
-//   if( success) // even if file exists and compiles it might contain other stuff
-//     if( FunIx( n) != -1) return false;
-
-//   // Note: It is still possible that 'n' denotes a function:
-//   // !PATH might be changed till run time
-
-  // variables 
-  return pro->Find(n);
-}
+// NOT USED and apparently for good reasons see gdl.tree.g
+//bool DCompiler::IsVar(const string& n)
+//{
+//   // check if lib fun
+//  if( LibFunIx( n) != -1) return false;
+//
+//  // check already compiled fun
+//  if( FunIx( n) != -1) return false;
+//
+//  // No functions are compiled during var/fun lookup
+//
+////   // Note: problem here when actual compiled
+////   // sub has still its own private common block list, which newly compiled
+////   // sub would not find but possibly create the same common block again
+////   // sollution:
+////   // purge common blocks
+////   // disadvantage:
+////   // if compilation fails later, common blocks are not removed but stay defined
+////   EndInteractiveStatement();
+//
+////   // originally this was done later in the interpreter
+////   // but something like x = x(0) would not work if x is
+////   // a function (defined in x.pro) and a variable
+////   bool success = GDLInterpreter::SearchCompilePro( n);
+////   if( success) // even if file exists and compiles it might contain other stuff
+////     if( FunIx( n) != -1) return false;
+//
+////   // Note: It is still possible that 'n' denotes a function:
+////   // !PATH might be changed till run time
+//
+//  // variables 
+//  return pro->Find(n);
+//}
 
 // variable (parameter, keyword-value) reference
 void DCompiler::Var(RefDNode n)

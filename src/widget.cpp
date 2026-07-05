@@ -249,7 +249,7 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
 
 BaseGDL* CallEventFunc( const std::string& f, BaseGDL* ev) {
   DInterpreter* myInterpreter = ev->interpreter;
-  int funIx = myInterpreter->GetFunIx(f);
+  int funIx = myInterpreter->GetFunIx(f); //throws if absent
   StackGuard<EnvStackT> guard(myInterpreter->CallStack());
   // GD: The function is called as LRFUNCTION to permit functions returning NULL (undefined) values,
   // which are the equivalent of a procedure and terminate the upward-transmission of events in the widget_event loop.
@@ -270,7 +270,7 @@ void CallEventPro( const std::string& p, BaseGDL* p0, BaseGDL* p1 ) {
     if ( GDLInterpreter::CheckProExist( p )) {
 #endif      
     StackGuard<EnvStackT> guard( BaseGDL::interpreter->CallStack( ) );
-    int proIx = GDLInterpreter::GetProIx( p );
+    int proIx = GDLInterpreter::GetProIx( p ); //throws if absent
 
     ProgNodeP callingNode = NULL; //BaseGDL::interpreter->GetRetTree();
 
@@ -2888,7 +2888,7 @@ void widget_control( EnvT* e ) {
 
       DString callF = StrUpCase( getFuncName );
 
-      SizeT funIx = GDLInterpreter::GetFunIx( callF );
+      SizeT funIx = GDLInterpreter::GetFunIx( callF ); //throws if absent
       EnvUDT* newEnv = new EnvUDT( e->CallingNode( ), funList[ funIx], (DObjGDL**) NULL );
 
       // add parameter

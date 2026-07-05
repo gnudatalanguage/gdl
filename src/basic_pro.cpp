@@ -388,14 +388,11 @@ namespace lib {
     // first search library procedures
     int proIx = LibProIx(callP);
     if (proIx != -1) {
-      // 	e->PushNewEnv( libProList[ proIx], 1);
-//       make the call
-//       	EnvT* newEnv = static_cast<EnvT*>(e->Interpreter()->CallStack().back());
       EnvT* newEnv = e->NewEnv(libProList[proIx], 1);
       Guard<EnvT> guard(newEnv);
       static_cast<DLibPro*> (newEnv->GetPro())->Pro()(newEnv);
     } else {
-      proIx = DInterpreter::GetProIx(callP);
+      proIx = DInterpreter::GetProIx(callP); //throws if absent
 
       StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
 
@@ -2318,19 +2315,9 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
 
       //routine already compiled? NATCHKEBIA Ilia 24.06.2015
       bool exists = false;
-      for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
-        if (StrUpCase(proFile).find((*i)->ObjectName()) != std::string::npos) {
-          exists = true;
-          break;
-        }
-      }
+      if (findDProIx(StrUpCase(proFile)) != -1) exists = true; //OK just for testing existence
 	  if (!exists && (isfunctionKeyword || eitherKeyword)) { //give a chance that the FUNC is already compiled. GD.
-		for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
-		  if (StrUpCase(proFile).find((*i)->ObjectName()) != std::string::npos) {
-			exists = true;
-			break;
-		  }
-		}		
+        if (findDFunIx(StrUpCase(proFile)) != -1) exists = true; //OK just for testing existence
 	  }
       if (exists && norecompileKeyword) continue;
       if (isAsave) { //unless no_recompile is set, we restore again a .sav just as we will recompile a .pro
@@ -2346,22 +2333,10 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
       bool success = GDLInterpreter::CompileFile(proFile,cff?StrUpCase(pro):""); // this might trigger recursion
 	  //here the compilation may have produced BOTH a PRO and a FUNC (e.g;: TIC and TOC. Check:
       bool isPro = false; //is pro (GD).
-      for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
-        if (StrUpCase(proFile).find((*i)->ObjectName()) != std::string::npos) {
-          //cout << "exists function " << (*i)->ObjectName() <<endl;
-          isPro = true;
-          break;
-        }
-      }
+      if (findDProIx(StrUpCase(proFile)) != -1) isPro = true; //OK just for testing existence
       //is func NATCHKEBIA Ilia 25.06.2015
       bool isFunc = false;
-      for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
-        if (StrUpCase(proFile).find((*i)->ObjectName()) != std::string::npos) {
-          //cout << "exists function " << (*i)->ObjectName() <<endl;
-          isFunc = true;
-          break;
-        }
-      }
+      if (findDFunIx(StrUpCase(proFile)) != -1) isFunc = true; //OK just for testing existence
 	  bool both=(isFunc && isPro);
 	  if (!quiet && !both) {
 		if (!isFunc && isfunctionKeyword && !eitherKeyword) e->Throw("Attempt to call undefined : " + proFile);

@@ -110,7 +110,9 @@ void AtExit()
   //this function cleans objets and should be called only for debugging purposes.(for debugging memory leaks)
   // enabled with flag --clean-at-exit
   ResetObjects(true);
+  libFunMap.clear();
   PurgeContainer(libFunList);
+  libProMap.clear();
   PurgeContainer(libProList);
 }
 

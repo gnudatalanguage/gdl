@@ -1837,7 +1837,7 @@ PLFLT gdlGetBoxNYSize() {
 		  // this is a function name -> convert to UPPERCASE
 		  currentFormat = StrUpCase(currentFormat);
 		  //  Search in user proc and function
-		  SizeT funIx = GDLInterpreter::GetFunIx(currentFormat);
+		  SizeT funIx = GDLInterpreter::GetFunIx(currentFormat); //throws if absent
 
 		  EnvUDT* newEnv = new EnvUDT(e->CallingNode(), funList[ funIx], (DObjGDL**) NULL);
 		  Guard< EnvUDT> guard(newEnv);
@@ -1923,7 +1923,7 @@ PLFLT gdlGetBoxNYSize() {
           // this is a function name -> convert to UPPERCASE
           currentFormat = StrUpCase(currentFormat);
           //  Search in user proc and function
-          SizeT funIx = GDLInterpreter::GetFunIx(currentFormat);
+          SizeT funIx = GDLInterpreter::GetFunIx(currentFormat); //throws if absent
 
           EnvUDT* newEnv = new EnvUDT(e->CallingNode(), funList[ funIx], (DObjGDL**) NULL);
           Guard< EnvUDT> guard(newEnv);

@@ -1474,7 +1474,7 @@ void GDLWidget::ResetWidgets() {
   std::string callP = "GDL_RESET_WIDGETS";
   StackGuard<EnvStackT> guard(BaseGDL::interpreter->CallStack());
   int proIx = LibProIx(callP);
-  if (proIx == -1) proIx = DInterpreter::GetProIx(callP);
+  if (proIx == -1) proIx = DInterpreter::GetProIx(callP); //throws if absent
   if (proIx == -1) return;
   ProgNodeP callingNode = NULL;
   EnvUDT* newEnv = new EnvUDT(callingNode, proList[ proIx], NULL);
@@ -5906,7 +5906,7 @@ DLong GDLWidgetTree::Sibling() { //uses NextSibling, which may be 0.
 //The Following does not work due to a wxWidgets inner loop problem I cannot fathom.
   int GDLWidgetTree::GetDragNotifyReturn(DString &getFuncName, WidgetIDT sourceID, int modifiers, int defaultval) {
     try{
-      SizeT funIx = GDLInterpreter::GetFunIx( StrUpCase( getFuncName)  );
+      SizeT funIx = GDLInterpreter::GetFunIx( StrUpCase( getFuncName)  );//throws if absent
       if (funIx < 0) {
         Warning("Drag Notify Function "+getFuncName+" not found.");
         return 0;
