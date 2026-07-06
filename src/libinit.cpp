@@ -485,7 +485,7 @@ void LibInit()
 
   const string writeuKey[]={"TRANSFER_COUNT","REWRITE"/*obsolete*/,KLISTEND};
   const string readuKey[]={"TRANSFER_COUNT"
-    ,"KEY_ID", "KAY_MATCH", "KEY_VALUE" // obsoleted in 5.3
+    ,"KEY_ID", "KEY_MATCH", "KEY_VALUE" // obsoleted in 5.3
     ,KLISTEND};
   new DLibPro(lib::writeu,string("WRITEU"),-1,writeuKey);
   new DLibPro(lib::readu,string("READU"),-1,readuKey);
