@@ -2315,9 +2315,9 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
 
       //routine already compiled? NATCHKEBIA Ilia 24.06.2015
       bool exists = false;
-      if (findDProIx(StrUpCase(proFile)) != -1) exists = true; //OK just for testing existence
+      if (findDProIx(StrUpCase(pro)) != -1) exists = true; //OK just for testing existence
 	  if (!exists && (isfunctionKeyword || eitherKeyword)) { //give a chance that the FUNC is already compiled. GD.
-        if (findDFunIx(StrUpCase(proFile)) != -1) exists = true; //OK just for testing existence
+        if (findDFunIx(StrUpCase(pro)) != -1) exists = true; //OK just for testing existence
 	  }
       if (exists && norecompileKeyword) continue;
       if (isAsave) { //unless no_recompile is set, we restore again a .sav just as we will recompile a .pro
