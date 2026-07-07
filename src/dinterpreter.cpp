@@ -512,9 +512,9 @@ int GDLInterpreter::GetFunIx( ProgNodeP f, bool dothrow)
   if( funIx == -1)
     {
       // trigger reading/compiling of source file
-      /*bool found=*/ SearchCompilePro(subName, false);
-            
-      funIx=FunIx(subName);
+      bool found= SearchCompilePro(subName, false);
+      if (!found) return -1;
+      funIx=FunIx(subName); //may be a PRO not a FUN
       if( funIx == -1 && dothrow)
 	{
 	  throw GDLException(f, "Function not found: "+subName, true, false);
@@ -528,9 +528,9 @@ int GDLInterpreter::GetFunIx( const string& subName)
   if( funIx == -1)
     {
       // trigger reading/compiling of source file
-      /*bool found=*/ SearchCompilePro(subName, false);
-            
-      funIx=FunIx(subName);
+      bool found= SearchCompilePro(subName, false);
+      if (!found) return -1;
+      funIx=FunIx(subName); //may be a PRO not a FUN
       if( funIx == -1)
 	{
 	  throw GDLException("Function not found: "+subName);
@@ -551,9 +551,9 @@ int GDLInterpreter::GetProIx(ProgNodeP f)
   int proIx = ProIx(subName);
   if (proIx == -1) {
     // trigger reading/compiling of source file
-    /*bool found=*/ SearchCompilePro(subName, true);
-
-    proIx = ProIx(subName);
+    bool found=SearchCompilePro(subName, true);
+    if (!found) return -1;
+    proIx = ProIx(subName); //may be a FUN not a PRO
 
     //eliminate the simple case
     if (proIx != -1) return proIx;
@@ -607,9 +607,9 @@ int GDLInterpreter::GetProIx( const string& subName)
   if( proIx == -1)
     {
       // trigger reading/compiling of source file
-      /*bool found=*/ SearchCompilePro(subName, true);
-	  
-      proIx=ProIx(subName);
+      bool found= SearchCompilePro(subName, true);
+      if (!found) return -1;
+      proIx=ProIx(subName); //may be a FUN not a PRO
       if( proIx == -1)
 	{
 	  throw GDLException("Procedure not found: "+subName);
