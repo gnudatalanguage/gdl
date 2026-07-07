@@ -551,9 +551,9 @@ int GDLInterpreter::GetProIx(ProgNodeP f)
   int proIx = ProIx(subName);
   if (proIx == -1) {
     // trigger reading/compiling of source file
-    bool found=SearchCompilePro(subName, true);
-    if (!found) return -1;
-    proIx = ProIx(subName); //may be a FUN not a PRO
+    /*bool found=*/ SearchCompilePro(subName, true);
+
+    proIx = ProIx(subName);
 
     //eliminate the simple case
     if (proIx != -1) return proIx;
