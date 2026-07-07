@@ -168,7 +168,7 @@ public:
 
     // code in: dinterpreter.cpp
     // procedure (searchForPro == true) or function (searchForPro == false)
-    static bool SearchCompilePro(const std::string& pro, bool searchForPro);
+    static int SearchCompilePro(const std::string& pro, bool searchForPro);
 	static int SearchRoutineNoCompile(const std::string& pro); 
     static int GetFunIx( ProgNodeP, bool dothrow=true);
     static int GetFunIx( const std::string& subName);

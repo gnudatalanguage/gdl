@@ -621,9 +621,9 @@ int main(int argc, char *argv[])
   //be silent
  SysVar::Make_Quiet();
  for (auto i=0; i< 2; ++i) {
-   interpreter.SearchCompilePro(procedures_at_start[i], true);  //procedures. It would be better to restore a .sav with all the compiled procedures.
+  int ret = interpreter.SearchCompilePro(procedures_at_start[i], true);  //procedures. It would be better to restore a .sav with all the compiled procedures.
     // must be known!
-   assert(FunIx(procedures_at_start[i]) == -1);
+   assert(ret == 1); //PROCEDURES
  }
  if (!setQuietSysvar) SysVar::Make_Loud();
   

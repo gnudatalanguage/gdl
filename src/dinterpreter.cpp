@@ -367,13 +367,13 @@ else
 
 // searches and compiles procedure (searchForPro == true) or function (searchForPro == false)  'pro'
 // if pro/fun is already present because it has been restored, (thus there may be no files, and no filename), return immediately 
-bool GDLInterpreter::SearchCompilePro(const string& pro, bool searchForPro) 
+int GDLInterpreter::SearchCompilePro(const string& pro, bool searchForPro) 
 {
   std::string name_in_list = StrUpCase(pro);
   if (searchForPro) {
-    if (findDProIx(name_in_list) != -1) return true;
+    if (findDProIx(name_in_list) != -1) return 1;
   } else {
-    if (findDFunIx(name_in_list) != -1) return true;
+    if (findDFunIx(name_in_list) != -1) return 2;
   }
   static StrArr openFiles;
 
@@ -393,18 +393,18 @@ bool GDLInterpreter::SearchCompilePro(const string& pro, bool searchForPro)
       }
       // routine has been added, is it a pro or not?
       if (searchForPro) {
-        if (findDProIx(name_in_list) != -1) return true;
+        if (findDProIx(name_in_list) != -1) return 1;
       } else {
-        if (findDFunIx(name_in_list) != -1) return true;
+        if (findDFunIx(name_in_list) != -1) return 2;
       }
     }
   }
-  if( !found) return false;
+  if( !found) return -1;
   
   // file already opened?
   for( StrArr::iterator i=openFiles.begin(); i != openFiles.end(); ++i)
     {
-      if( proFile == *i) return false;
+      if( proFile == *i) return -1;
     }
 
   StackSizeGuard<StrArr> guard( openFiles);
@@ -412,7 +412,11 @@ bool GDLInterpreter::SearchCompilePro(const string& pro, bool searchForPro)
   // append file to list
   openFiles.push_back(proFile);
 
-  return CompileFile( proFile, pro, searchForPro); // this might trigger recursion
+  bool b = CompileFile( proFile, pro, searchForPro); // this might trigger recursion
+  if (b) {
+    if ( searchForPro) return 1; else return 2;
+  }
+  return -1;
 }
 
 // searches routine  'pro'
@@ -463,20 +467,12 @@ DStructDesc* GDLInterpreter::GetStruct(const string& name, ProgNodeP cN)
   // append file to list
   getStructList.push_back(proName);
 
-//   if( Called( proName))
-//     {
-//       throw GDLException(cN, "Structure type not defined (recursive call): "+name);
-//     }
-  
-  /*bool found=*/ SearchCompilePro(proName, true);
+  int ret = SearchCompilePro(proName, true);
+  if (ret != 1) throw GDLException(cN, "Procedure not found: "+proName, true, false); //we look for a PRO
 
   // if an exception occurs in SearchCompilePro, the struct is not compiled
             
   int proIx=ProIx(proName);
-  if( proIx == -1)
-    {
-	throw GDLException(cN, "Procedure not found: "+proName, true, false);
-    }
   
   // 'guard' call stack
   StackGuard<EnvStackT> guard(callStack);
@@ -505,37 +501,27 @@ void GDLInterpreter::SetFunIx( ProgNodeP f)
     f->funIx=GetFunIx(f, false);
 }
 
-int GDLInterpreter::GetFunIx( ProgNodeP f, bool dothrow)
-{
+int GDLInterpreter::GetFunIx( ProgNodeP f, bool dothrow) {
   string subName = f->getText();
-  int funIx=FunIx(subName);
-  if( funIx == -1)
-    {
-      // trigger reading/compiling of source file
-      bool found= SearchCompilePro(subName, false);
-      if (!found) return -1;
-      funIx=FunIx(subName); //may be a PRO not a FUN
-      if( funIx == -1 && dothrow)
-	{
-	  throw GDLException(f, "Function not found: "+subName, true, false);
-	}
-    }
+  int funIx = FunIx(subName);
+  if (funIx == -1) {
+    // trigger reading/compiling of source file
+    int ret = SearchCompilePro(subName, false);
+    if (dothrow && ret != 2) throw GDLException(f, "Function not found: " + subName, true, false); //looking for a FUN
+    if (ret != 2) return -1;
+    funIx = FunIx(subName); //may be a PRO not a FUN
+  }
   return funIx;
 }
-int GDLInterpreter::GetFunIx( const string& subName)
-{
-  int funIx=FunIx(subName);
-  if( funIx == -1)
-    {
-      // trigger reading/compiling of source file
-      bool found= SearchCompilePro(subName, false);
-      if (!found) return -1;
-      funIx=FunIx(subName); //may be a PRO not a FUN
-      if( funIx == -1)
-	{
-	  throw GDLException("Function not found: "+subName);
-	}
-    }
+
+int GDLInterpreter::GetFunIx( const string& subName) {
+  int funIx = FunIx(subName);
+  if (funIx == -1) {
+    // trigger reading/compiling of source file
+    int ret = SearchCompilePro(subName, false);
+    if (ret != 2) throw GDLException("Function not found: " + subName); //looking for a FUN
+    funIx = FunIx(subName);
+  }
   return funIx;
 }
 
@@ -551,12 +537,8 @@ int GDLInterpreter::GetProIx(ProgNodeP f)
   int proIx = ProIx(subName);
   if (proIx == -1) {
     // trigger reading/compiling of source file
-    /*bool found=*/ SearchCompilePro(subName, true);
-
-    proIx = ProIx(subName);
-
-    //eliminate the simple case
-    if (proIx != -1) return proIx;
+    int ret = SearchCompilePro(subName, true);
+    if (ret == 1) return ProIx(subName); //OK PRO found
 #ifdef 	AUTO_PRINT_EXPR
     //noInteractive: throw
     std::string errormess="Attempt to call undefined procedure: " + subName;
@@ -607,13 +589,9 @@ int GDLInterpreter::GetProIx( const string& subName)
   if( proIx == -1)
     {
       // trigger reading/compiling of source file
-      bool found= SearchCompilePro(subName, true);
-      if (!found) return -1;
+      int ret = SearchCompilePro(subName, true);
+      if (ret != 1) throw GDLException("Procedure not found: "+subName);
       proIx=ProIx(subName); //may be a FUN not a PRO
-      if( proIx == -1)
-	{
-	  throw GDLException("Procedure not found: "+subName);
-	}
     }
   return proIx;
 }
@@ -624,13 +602,8 @@ bool GDLInterpreter::CheckProExist( const string& subName)
   if( proIx == -1)
     {
       // trigger reading/compiling of source file
-      /*bool found=*/ SearchCompilePro(subName, true);
-	  
-      proIx=ProIx(subName);
-      if( proIx == -1)
-	{
-        return false;
-	}
+      int ret = SearchCompilePro(subName, true);
+      if( ret != 1) return false;
     }
   return true;
 }
