@@ -9908,7 +9908,7 @@ void GDLParser::primary_expr() {
 						}
 						if ( synPredMatched296 ) {
 							{
-							if (((LA(1) == IDENTIFIER) && (LA(2) == LBRACE))&&( IsFun(LT(1)))) {
+							if (((LA(1) == IDENTIFIER) && (LA(2) == LBRACE))&&( ((fussy==0) && IsFun(LT(1))) )) {
 								formal_function_call();
 								if (inputState->guessing==0) {
 									astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
