@@ -3568,7 +3568,7 @@ BaseGDL** FCALLNode::EvalRefCheck( BaseGDL*& rEval)
         return res; // NULL ok, rEval set properly
       }
     }
-  	if( this->funIx < 0) throw GDLException(this," FCALLNode::EvalRefcheck - AutoObj",true,false);
+  	if( this->funIx < 0) throw GDLException(this,"Attempt to call undefined function: "+this->getText(),true,false);
     EnvUDT* newEnv=new EnvUDT( this, funList[this->funIx], EnvUDT::LRFUNCTION);
 
     ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
@@ -3636,7 +3636,7 @@ BaseGDL** FCALLNode::LEval()
     ProgNodeP	_t = this->getFirstChild();
 
     ProgNode::interpreter->SetFunIx( this);
-	if( this->funIx < 0) throw GDLException(this," FCALLNode::LEval- AutoObj",true,false);
+	if( this->funIx < 0) throw GDLException(this,"Attempt to call undefined function: "+this->getText(),true,false);
     EnvUDT* newEnv=new EnvUDT( this, funList[this->funIx], EnvUDT::LFUNCTION);
 
     ProgNode::interpreter->parameter_def(_t, newEnv);
