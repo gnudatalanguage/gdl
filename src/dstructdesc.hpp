@@ -31,8 +31,10 @@
 #include "overload.hpp"
 #include <unordered_map>
 typedef std::unordered_map<std::string,int> LibMapT;
-extern LibMapT funMap;
-extern LibMapT proMap;
+extern LibMapT funMap; //note: funMap references ALL functions names, including OBJECT::Functions. 
+//But associated INDEX returned is in the case of a OBJECT the index in its objectFunList.
+//There may be advantages of having all FUNctions, object's as well, in funList but this needs a creful and large rewrite.
+extern LibMapT proMap; //note: same as above.
 class DStructBase
 {
 private:
