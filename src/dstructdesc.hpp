@@ -21,7 +21,6 @@
 #include "includefirst.hpp" // USE_EIGEN3
 
 #include <vector>
-#include <deque>
 #include <string>
 #include <functional>
 

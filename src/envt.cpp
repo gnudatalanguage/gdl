@@ -62,7 +62,6 @@ void EnvT::operator delete( void *ptr)
 }
 
 // EnvUDT::new & delete 
-// deque< void*> EnvUDT::freeList;
 FreeListT EnvUDT::freeList;
 const int multiAllocEnvUDT = 16;
 void* EnvUDT::operator new( size_t bytes)

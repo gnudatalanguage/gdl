@@ -20,7 +20,6 @@
 
 #include <fstream>
 #include <string>
-#include <deque>
 #include <map>
 
 #include "GDLLexer.hpp"
@@ -38,13 +37,12 @@ class DCompiler: public GDLTokenTypes
   std::string actualFile;         // actual compiled file (dbg info)
   std::string subRoutine;         // pro/fun to compile (used for messages only)
 
-  EnvBaseT   *env;                // intial processed environment (interactive)
+  EnvBaseT   *env;                // initial processed environment (interactive)
   DSubUD *pro;                    // actual processed pro/function
 
   bool            activeProCompiled;
   int             nCompileErrors; // number of compilation errors
 
-  //  std::map<std::string,std::deque<RefDNode> > labelList; // resolving goto/label
   CommonListT   ownCommonList; // common blocks not yet added to commonList
 
   DCommon* Common(const std::string& n); // returns common block with name n

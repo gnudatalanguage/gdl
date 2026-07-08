@@ -149,7 +149,7 @@ protected:
   // par_1,..,par_nPar, var1,..,varK
   // N=size(key)
   // K=size(var)-nPar-N
-  KeyVarListT 	      key;    // keyword names (IDList: typedefs.hpp)
+  KeyVarListT 	      key;   //a std::vector  // keyword names (IDList: typedefs.hpp)
 			      // (KEYWORD_NAME=keyword_value)
   int                 nPar;   // number of parameters (-1 = infinite)
   int                 nParMin;  // minimum number of parameters (-1 = infinite)

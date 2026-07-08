@@ -46,10 +46,7 @@ namespace lib {
 class EnvBaseT
 {
 private:
-  //   typedef std::deque<BaseGDL*> ContainerT;
   typedef ExprListT ContainerT;
-
-  //   SizeT toDestroyInitialIndex;
 
   EnvBaseT(){}
   
@@ -468,7 +465,6 @@ public:
 // for UD subroutines (written in GDL) ********************************
 class EnvUDT: public EnvBaseT
 {
-  // static std::deque< void*> freeList;
   static FreeListT freeList;
 
 public:
@@ -967,9 +963,6 @@ public:
   //   EnvUDT** begin() const { return &envStack[0];}
   //   EnvUDT** end() const { return &envStack[sz];}
 };
-
-// typedef std::deque<EnvBaseT*> EnvStackT;
-// typedef std::deque<EnvUDT*> EnvStackT;
 
 #endif
 

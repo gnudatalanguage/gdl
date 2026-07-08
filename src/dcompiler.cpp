@@ -99,41 +99,6 @@ void DCompiler::AddKey(const string& K,const string& V)   // add keyword,valName
 void DCompiler::EndFunPro()   // resolve gotos, add common blocks
 {
   pro->ResolveAllLabels();
-
-//   // fill the subroutines label list
-//   // we already have all labels in labellist
-
-//   LabelListT& ll = pro->LabelList();
-
-//   if( labelList.size() > 0)
-//     {
-//       // label - target DNode* (other type than this->labelList)
-//       LabelListT& ll = pro->LabelList();
-      
-//       for(map<string,deque<RefDNode> >::iterator i=labelList.begin(); 
-// 	  i != labelList.end(); i++)
-// 	{
-// 	  const string& gotoLabel = (*i).first;
-
-// 	  int proLabelIx = ll.Find( gotoLabel);
-// 	  if( proLabelIx == -1)
-// 	    throw( GDLException(pro->ObjectName()+
-// 				": Undefined label "+gotoLabel+
-// 				" referenced in GOTO statement."));
-	  
-// 	  // set the nodes of the actual tree to the appropiate index
-// 	  deque<RefDNode>& gotoNodes = (*i).second;
-// 	  for( deque<RefDNode>::iterator gN = gotoNodes.begin();
-// 	       gN != gotoNodes.end(); ++gN)
-// 	    {
-// 	      (*gN)->SetGotoIx( proLabelIx);
-// 	    }
-// 	}
-
-//       // clear for next subroutine
-//       labelList.clear();
-//     }
-
   EndInteractiveStatement();
 }
 
@@ -619,25 +584,6 @@ void DCompiler::Label(RefDNode n)
       ll.Add( lab, NULL); // insert first without node
     }
 }
-
-// void DCompiler::Goto(RefDNode n)
-// {
-//   LabelListT& ll = pro->LabelList();
-
-//   string lab=n->getText();
-
-//   int ix = ll.Find( lab);
-
-//   if( ix != -1)
-//     {
-//       n->SetGotoIx( ix);
-//     }
-//   else
-//     {
-//       deque<RefDNode>& nList=labelList[lab]; // inserts if not exist
-//       nList.push_back(n); // put node in reminder list
-//     }
-// }
 
 // used by treeparser for return statements
 bool DCompiler::IsFun() const

@@ -18,7 +18,6 @@
 #ifndef OBJECTS_HPP_
 #define OBJECTS_HPP_
 
-//#include<deque>
 #include<string>
 
 #include "datatypes.hpp"

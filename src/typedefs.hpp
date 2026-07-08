@@ -65,9 +65,7 @@
 
 #include <set>
 #include <string>
-// #include <string.h> // memcopy
 #include <cstring> // memcopy
-// #include <deque>
 #include <complex>
 #include <vector>
 #include <valarray>
@@ -635,13 +633,9 @@ public:
   
 };
 
-//typedef std::vector< void*> FreeListT;	
-// thread safe deque
-
-
 #include <deque>
 class DStructGDL;
-class GDLEventQueue {
+class GDLEventQueue { //see gdlwidget.hpp for a (commented out) thread-safe (??) version of GDLEventQueue
 private:
   std::deque<DStructGDL*> dq;
 public:

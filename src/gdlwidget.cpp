@@ -1822,8 +1822,7 @@ bool GDLWidget::IsRealized() {
   this->setFont();
   this->SetSensitive(sensitive);
 
-  for (std::deque<WidgetIDT>::reverse_iterator c = children.rbegin(); c != children.rend(); ++c) {
-//  for (std::deque<WidgetIDT>::iterator c = children.begin(); c != children.end(); ++c) {
+  for (WidgetReverseIterator c = children.rbegin(); c != children.rend(); ++c) {
    GDLWidget* w = GetWidget(*c);
    if (w != NULL)
     w->OnRealize();
@@ -1892,8 +1891,7 @@ void GDLWidgetMenu::OnRealize() {
   this->SetSensitive(sensitive);
 
   //Menu children are menus or entries, *NOT* any widget.
-  for (std::deque<WidgetIDT>::reverse_iterator c = children.rbegin(); c != children.rend(); ++c) {
-//  for (std::deque<WidgetIDT>::iterator c = children.begin(); c != children.end(); ++c) {
+  for (WidgetReverseIterator c = children.rbegin(); c != children.rend(); ++c) {
    GDLWidgetMenu* w = dynamic_cast<GDLWidgetMenu*>(GetWidget(*c));
    if (w != NULL)
     w->OnRealize();

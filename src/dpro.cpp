@@ -478,10 +478,7 @@ DSubUD* DSubUD::AddKey(const string& k, const string& v)
     {
       if(extraIx != -1) extraIx++; // update extra ix index
     }
-  // as we only push_front during compilation, we better use a vector here
-  //   key.push_front(k);
-  //   var.push_back(v);
-  // we want push_front
+  // we want push_front and key is a std::vector. Here is the way, simpler than using a deque "push_front" that would be slower in all other occasions.
   key.resize( key.size() + 1);
   for( int i= key.size()-1; i>0; --i)
     key[ i] = key[ i-1];
