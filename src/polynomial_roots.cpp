@@ -172,40 +172,40 @@ namespace lib {
   
   BaseGDL* fz_roots2_fun( EnvT* e)
   {
+    
     BaseGDL *p0 = e->GetNumericArrayParDefined(0);
     SizeT n = p0->N_Elements();
     DComplexDblGDL* coeffs = static_cast<DComplexDblGDL*>(p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
     
     std::vector<cplx> a(n);
-    for(SizeT i = 0; i < n; i++) {
-        a[i] = cplx((*coeffs)[i].real(), (*coeffs)[i].imag());
+    std::vector<cplx> roots(n-1);
+    for(SizeT i=0;i<n;i++) {
+      a[i] = cplx((*coeffs)[i].real(), (*coeffs)[i].imag());
+      if (debug) cout << a[i] << endl;
     }
+    
+    roots = find_roots(a);
 
-    std::vector<cplx> roots = find_roots(a);
-    SizeT resultSize = n - 1;
-
-    vector<SizeT> dims = p0->Dim();
-    if (!dims.empty()) {
-        dims.back() = resultSize;
-    } else {
-        dims = {resultSize};
+    if (debug) {
+      for (size_t i = 0; i < roots.size(); ++i)
+	std::cout << "root " << i << " = " << roots[i] << "\n";
     }
-
+    
     static int DoubleIx = e->KeywordIx("DOUBLE");
-    bool doDouble = e->KeywordSet(DoubleIx) || p0->Type() == GDL_COMPLEXDBL;
-    if (doDouble) {
-        DComplexDblGDL *result = new DComplexDblGDL(dims, BaseGDL::NOZERO);
-        for(SizeT i = 0; i < resultSize; i++) {
-            (*result)[i] = DComplex(roots[i].real(), roots[i].imag());
-        }
-        return result;
+    bool doDouble = e->KeywordSet(DoubleIx);
+    if (doDouble || p0->Type() == GDL_COMPLEXDBL) {
+      DComplexDblGDL *result = new DComplexDblGDL(dimension(n-1), BaseGDL::NOZERO);
+      for(SizeT i=0;i<n-1;i++) {
+	(*result)[ i] = DComplex(roots[i].real(), roots[i].imag());
+      }
+      return result;
     } else {
-        DComplexGDL *result = new DComplexGDL(dims, BaseGDL::NOZERO);
-        for(SizeT i = 0; i < resultSize; i++) {
-            (*result)[i] = roots[i];
-        }
-        return result;
-    }
+      DComplexGDL *result = new DComplexGDL(dimension(n-1), BaseGDL::NOZERO);
+      for(SizeT i=0;i<n-1;i++) {
+	(*result)[ i] = roots[i];
+      }
+      return result;
+    } 
   }
 
 
@@ -215,6 +215,9 @@ namespace lib {
   BaseGDL *fz_roots_fun(EnvT *e) {
 
     BaseGDL *p0 = e->GetNumericArrayParDefined(0);
+    
+    dimension dim = p0->Dim();
+    if (dim.Rank()==2) e->Throw("Argument must be a 1D array : " + e->GetParString(0));
 
     if (ComplexType(p0->Type())) {
       return lib::fz_roots2_fun(e);
@@ -249,10 +252,7 @@ namespace lib {
 	printf("z%d = %+.18f %+.18f\n", i, tmp[2 * i], tmp[2 * i + 1]);
       }
     }
-    vector<SizeT> dims = p0->Dim();
-    if (!dims.empty()) dims.back() = resultSize;
-    else dims = {resultSize};
-    DComplexDblGDL *result = new DComplexDblGDL(dims, BaseGDL::NOZERO);
+    DComplexDblGDL *result = new DComplexDblGDL(dimension(resultSize), BaseGDL::NOZERO);
     for (SizeT i = 0; i < resultSize; ++i) {
       (*result)[i] = complex<double>(tmp[2 * i], tmp[2 * i + 1]);
     }
@@ -311,10 +311,7 @@ namespace lib {
 	)
       e->Throw("Failed to compute the roots of the polynomial");
 
-    vector<SizeT> dims = p0->Dim();
-    if (!dims.empty()) dims.back() = resultSize;
-    else dims = {resultSize};
-    DComplexDblGDL *result = new DComplexDblGDL(dims, BaseGDL::NOZERO);
+    DComplexDblGDL *result = new DComplexDblGDL(dimension(resultSize), BaseGDL::NOZERO);
     for (SizeT i = 0; i < resultSize; ++i)
       (*result)[i] = complex<double>(tmp[2 * i], tmp[2 * i + 1]);
 
