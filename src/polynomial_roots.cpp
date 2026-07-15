@@ -175,7 +175,9 @@ namespace lib {
     
     BaseGDL *p0 = e->GetNumericArrayParDefined(0);
     SizeT n = p0->N_Elements();
-    DComplexDblGDL* coeffs = static_cast<DComplexDblGDL*>(p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
+    DComplexDblGDL* coeffs = static_cast<DComplexDblGDL*> (p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
+    
+    bool debug=false;
     
     std::vector<cplx> a(n);
     std::vector<cplx> roots(n-1);
