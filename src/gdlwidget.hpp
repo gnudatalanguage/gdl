@@ -576,8 +576,7 @@ public:
   int labelTextAlignment();
   virtual int widgetAlignment();
   void EnableWidgetUpdate(bool update);
-  void ChangeUnitConversionFactor( EnvT* e);
-  wxRealPoint GetRequestedUnitConversionFactor( EnvT* e);
+  void ChangeUnitConversionFactor(const wxRealPoint pt);
   wxRealPoint GetCurrentUnitConversionFactor(){return unitConversionFactor;}
   void SetCurrentUnitConversionFactor(wxRealPoint value){unitConversionFactor = value;}
   virtual DStructGDL* GetGeometry(wxRealPoint fact=wxRealPoint(1.0,1.0));
