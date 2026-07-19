@@ -517,7 +517,7 @@ typedef PreAllocPListT<BaseGDL*, ExprListDefaultLength> ExprListT;
 typedef ExprListT::iterator ExprListIterT;
 
 // exception save usage of GSL types
-// you need to pass the gsl-object to guard and the gsl-clenaup (free) function
+// you need to pass the gsl-object to guard and the gsl-cleanup (free) function
 // example usage (for gsl_matrix):
 //
 // gsl_matrix *matrix = gsl_matrix_alloc(p0->Dim(0), p0->Dim(0));
