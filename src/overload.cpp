@@ -601,6 +601,8 @@ void SetupOverloadSubroutines() {
   // HASH::WHERE()
   const string hashwherek[]={"COMPLEMENT", "COUNT","NCOMPLEMENT", KLISTEND};
   RegisterFun(hashDesc,"WHERE",lib::hash__where,1,hashwherek);
+// HASH::SET PRO
+  RegisterPro(hashDesc,"SET",lib::HASH__Set,2);
 
 #ifdef USE_SHAPELIB
   //=============GDLffShape========================
