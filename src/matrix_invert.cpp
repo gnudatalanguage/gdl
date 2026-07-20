@@ -111,6 +111,75 @@ namespace lib {
     bool hasDouble=e->KeywordSet(DOUBLEIx);
     
     matrix_input_check_dims(e);
+    
+    BaseGDL* p0 = e->GetParDefined( 0);
+    SizeT nEl = p0->N_Elements();
+
+    // only one element matrix: no need of eigen or gsl.
+    if (nEl == 1) {
+      SizeT nParam = e->NParam();
+      if (nParam == 2) e->AssureGlobalPar(1);
+      DLong singular=0;
+      if (p0->Type() == GDL_COMPLEXDBL) {
+        DComplexDblGDL* res = static_cast<DComplexDblGDL*>
+            (p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
+        double a, b, deno;
+        a = real((*res)[0]);
+        b = imag((*res)[0]);
+        deno = a * a + b*b;
+        if (deno == 0.0) {
+          singular = 1;
+          (*res)[0] = DComplexDbl(0., 0.);
+        } else {
+          (*res)[0] = DComplexDbl(a / deno, -b / deno);
+        }
+        if (nParam == 2) e->SetPar(1, new DLongGDL(singular));
+        return res;
+      }
+
+      if (p0->Type() == GDL_COMPLEX) {
+        DComplexGDL* res = static_cast<DComplexGDL*>
+            (p0->Convert2(GDL_COMPLEX, BaseGDL::COPY));
+        float a, b, deno;
+        a = real((*res)[0]);
+        b = imag((*res)[0]);
+        deno = a * a + b*b;
+        if (deno == 0.0) {
+          singular = 1;
+          (*res)[0] = DComplex(0., 0.);
+        } else {
+          (*res)[0] = DComplex(a / deno, -b / deno);
+        }
+        if (nParam == 2) e->SetPar(1, new DLongGDL(singular));
+        return res;
+      }
+
+
+      if ((p0->Type() == GDL_DOUBLE) || hasDouble) {
+        DDoubleGDL* res = static_cast<DDoubleGDL*>
+            (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+        if ((*res)[0] == 0.0) {
+          singular = 1;
+        } else {
+          double unity = 1.0;
+          (*res)[0] = unity / ((*res)[0]);
+        }
+        if (nParam == 2) e->SetPar(1, new DLongGDL(singular));
+        return res;
+      }
+      // all other cases (including GDL_STRING, Float, Int, ... )
+      //      if( p0->Type() == GDL_STRING) {
+      DFloatGDL* res = static_cast<DFloatGDL*>
+          (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
+      if ((*res)[0] == 0.0) {
+        singular = 1;
+      } else {
+        (*res)[0] = 1.0 / ((*res)[0]);
+      }
+      if (nParam == 2) e->SetPar(1, new DLongGDL(singular));
+      return res;
+    }
+
 
 #if defined(USE_EIGEN)
     bool Eigen_flag=TRUE;
@@ -172,66 +241,7 @@ namespace lib {
     double f64;
     double det;
 
-    // only one element matrix
-
-    if( nEl == 1) {
-      if( p0->Type() == GDL_COMPLEXDBL) {
-	DComplexDblGDL* res = static_cast<DComplexDblGDL*>
-	  (p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
-	double a, b, deno;
-	a=real((*res)[0]);
-	b=imag((*res)[0]);
-	deno=a*a+b*b;
-	if (deno == 0.0) {
-	  singular=1;
-	  (*res)[0]= DComplexDbl(0., 0.);
-	} else {
-	  (*res)[0]= DComplexDbl(a/deno, -b/deno);
-	}
-	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
-	return res;
-      }
-      if( p0->Type() == GDL_COMPLEX) {
-	DComplexGDL* res = static_cast<DComplexGDL*>
-	  (p0->Convert2(GDL_COMPLEX, BaseGDL::COPY));
-	float a, b, deno;
-	a=real((*res)[0]);
-	b=imag((*res)[0]);
-	deno=a*a+b*b;
-	if (deno == 0.0) {
-	  singular=1;
-	  (*res)[0]= DComplex(0., 0.);
-	} else {
-	  (*res)[0]= DComplex(a/deno, -b/deno);
-	}
-	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
-	return res;
-      }
-      if(( p0->Type() == GDL_DOUBLE) || hasDouble) {
-	DDoubleGDL* res = static_cast<DDoubleGDL*>
-	  (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
-	if ((*res)[0] == 0.0) {
-	  singular=1;
-	} else {
-	  double unity=1.0 ;
-	  (*res)[0]= unity / ((*res)[0]);
-	}
-	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
-	return res;
-      }
-
-      // all other cases (including GDL_STRING, Float, Int, ... )
-      //      if( p0->Type() == GDL_STRING) {
-      DFloatGDL* res = static_cast<DFloatGDL*>
-	(p0->Convert2( GDL_FLOAT, BaseGDL::COPY));
-      if ((*res)[0] == 0.0) {
-	singular=1;
-      } else {
-	(*res)[0]= 1.0 / ((*res)[0]);
-      }
-      if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
-      return res;
-    }
+    // matrix with ONE element already treated in AC_invert_fun
     
     // more than one element matrix
 
@@ -325,18 +335,13 @@ namespace lib {
 	resGuard.release();
 	return res;
       }
-    else if (( p0->Type() == GDL_DOUBLE) ||  hasDouble)
+    else if ( p0->Type() == GDL_DOUBLE)
       {
-
-	DDoubleGDL* p0D = static_cast<DDoubleGDL*>
-	  (p0->Convert2(GDL_DOUBLE,BaseGDL::COPY));
-
-
-	//	DDoubleGDL* p0D = static_cast<DDoubleGDL*>( p0);
+      DDoubleGDL* p0D = static_cast<DDoubleGDL*> (p0); //already double: no expensive copy.
 	DDoubleGDL* res = new DDoubleGDL( p0->Dim(), BaseGDL::NOZERO);
 	Guard<DDoubleGDL> resGuard( res);
 
-	gsl_matrix *mat = gsl_matrix_alloc(p0->Dim(0), p0->Dim(1));
+	gsl_matrix *mat = gsl_matrix_alloc(p0->Dim(0), p0->Dim(1)); //we could use p0D data instead of this costly allocation. Just fill correct values in mat struct.
 	GDLGuard<gsl_matrix> g1( mat, gsl_matrix_free);
 	gsl_matrix *inverse = gsl_matrix_calloc(p0->Dim(0), p0->Dim(1));
 	GDLGuard<gsl_matrix> g2( inverse, gsl_matrix_free);
@@ -363,27 +368,30 @@ namespace lib {
 	resGuard.release();
 	return res;
       }
+    
     else if( p0->Type() == GDL_FLOAT ||
 	     p0->Type() == GDL_LONG ||
 	     p0->Type() == GDL_ULONG ||
 	     p0->Type() == GDL_INT ||
+	     p0->Type() == GDL_LONG64 ||
 	     p0->Type() == GDL_STRING ||
 	     p0->Type() == GDL_UINT ||
+	     p0->Type() == GDL_ULONG64 ||
 	     p0->Type() == GDL_BYTE)
       {
 	DFloatGDL* p0F = static_cast<DFloatGDL*>( p0);
 	DLongGDL* p0L = static_cast<DLongGDL*>( p0);
+	DLong64GDL* p0L64 = static_cast<DLong64GDL*>( p0);
 	DULongGDL* p0UL = static_cast<DULongGDL*>( p0);
+	DULong64GDL* p0UL64 = static_cast<DULong64GDL*>( p0);
 	DIntGDL* p0I = static_cast<DIntGDL*>( p0);
-	//	DStringGDL* p0S = static_cast<DStringGDL*>( p0);
 	DUIntGDL* p0UI = static_cast<DUIntGDL*>( p0);
 	DByteGDL* p0B = static_cast<DByteGDL*>( p0);
-
-	//	if (p0->Type() == STRING) {
-	DFloatGDL* p0SS = static_cast<DFloatGDL*>
-	  (p0->Convert2( GDL_FLOAT, BaseGDL::COPY));
-	Guard<DFloatGDL> p0SSGuard( p0SS);
-	//}
+    DFloatGDL* p0SS;
+	if (p0->Type() == GDL_STRING) {
+	  p0SS = static_cast<DFloatGDL*>(p0->Convert2( GDL_FLOAT, BaseGDL::COPY));
+	  Guard<DFloatGDL> p0SSGuard( p0SS);
+	}
 
 	DFloatGDL* res = new DFloatGDL( p0->Dim(), BaseGDL::NOZERO);
 	Guard<DFloatGDL> resGuard( res);
@@ -395,19 +403,18 @@ namespace lib {
 	gsl_permutation *perm = gsl_permutation_alloc(p0->Dim(0));
 	GDLGuard<gsl_permutation> g3( perm, gsl_permutation_free);
 
-	for( SizeT i=0; i<nEl; ++i) {
 	  switch ( p0->Type()) {
-	  case GDL_FLOAT: f64 = (double) (*p0F)[i]; break;
-	  case GDL_LONG:  f64 = (double) (*p0L)[i]; break;
-	  case GDL_ULONG: f64 = (double) (*p0UL)[i]; break;
-	  case GDL_INT:   f64 = (double) (*p0I)[i]; break;
-	  case GDL_STRING:f64 = (double) (*p0SS)[i]; break;
-	  case GDL_UINT:  f64 = (double) (*p0UI)[i]; break;
-	  case GDL_BYTE:  f64 = (double) (*p0B)[i]; break;
+	  case GDL_FLOAT: for( SizeT i=0; i<nEl; ++i) { f64 = (double) (*p0F)[i]; memcpy(&mat->data[i], &f64, szdbl); } break;
+	  case GDL_LONG:  for( SizeT i=0; i<nEl; ++i) { f64 = (double) (*p0L)[i]; memcpy(&mat->data[i], &f64, szdbl); } break;
+	  case GDL_LONG64:  for( SizeT i=0; i<nEl; ++i) { f64 = (double) (*p0L64)[i]; memcpy(&mat->data[i], &f64, szdbl); } break;
+	  case GDL_ULONG: for( SizeT i=0; i<nEl; ++i) { f64 = (double) (*p0UL)[i]; memcpy(&mat->data[i], &f64, szdbl); } break;
+	  case GDL_ULONG64: for( SizeT i=0; i<nEl; ++i) { f64 = (double) (*p0UL64)[i]; memcpy(&mat->data[i], &f64, szdbl); } break;
+	  case GDL_INT:   for( SizeT i=0; i<nEl; ++i) { f64 = (double) (*p0I)[i]; memcpy(&mat->data[i], &f64, szdbl); } break;
+	  case GDL_STRING:for( SizeT i=0; i<nEl; ++i) { f64 = (double) (*p0SS)[i]; memcpy(&mat->data[i], &f64, szdbl); } break;
+	  case GDL_UINT:  for( SizeT i=0; i<nEl; ++i) { f64 = (double) (*p0UI)[i]; memcpy(&mat->data[i], &f64, szdbl); } break;
+	  case GDL_BYTE:  for( SizeT i=0; i<nEl; ++i) { f64 = (double) (*p0B)[i]; memcpy(&mat->data[i], &f64, szdbl); } break;
         default: break; //not reached. pacifies compilers.
 	  }
-	  memcpy(&mat->data[i], &f64, szdbl);
-	}
 
 	gsl_linalg_LU_decomp (mat, perm, &s);
 	det = gsl_linalg_LU_lndet(mat);
@@ -452,148 +459,85 @@ namespace lib {
     // related to "status" param : see comment in "invert_gsl_fun"
     SizeT nParam=e->NParam(1);
     if (nParam == 2) e->AssureGlobalPar( 1);
+    long singular = 0;
 
-    long singular=0;
-
-    // only one element matrix
-    if( nEl == 1) {
-      if( p0->Type() == GDL_COMPLEXDBL) {
-	DComplexDblGDL* res = static_cast<DComplexDblGDL*>
-	  (p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
-	double a, b, deno;
-	a=real((*res)[0]);
-	b=imag((*res)[0]);
-	deno=a*a+b*b;
-	if (deno == 0.0) {
-	  singular=1;
-	  (*res)[0]= DComplexDbl(0., 0.);
-	} else {
-	  (*res)[0]= DComplexDbl(a/deno, -b/deno);
-	}
-	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
-	return res;
-      }
-
-      if( p0->Type() == GDL_COMPLEX) {
-	DComplexGDL* res = static_cast<DComplexGDL*>
-	  (p0->Convert2(GDL_COMPLEX, BaseGDL::COPY));
-	float a, b, deno;
-	a=real((*res)[0]);
-	b=imag((*res)[0]);
-	deno=a*a+b*b;
-	if (deno == 0.0) {
-	  singular=1;
-	  (*res)[0]= DComplex(0., 0.);
-	} else {
-	  (*res)[0]= DComplex(a/deno, -b/deno);
-	}
-	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
-	return res;
-      }
-
-
-      if(( p0->Type() == GDL_DOUBLE) || hasDouble) {
-	DDoubleGDL* res = static_cast<DDoubleGDL*>
-	  (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
-	if ((*res)[0] == 0.0) {
-	  singular=1;
-	} else {
-	  double unity=1.0 ;
-	  (*res)[0]= unity / ((*res)[0]);
-	}
-	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
-	return res;
-      }
-      // all other cases (including GDL_STRING, Float, Int, ... )
-      //      if( p0->Type() == GDL_STRING) {
-      DFloatGDL* res = static_cast<DFloatGDL*>
-	(p0->Convert2( GDL_FLOAT, BaseGDL::COPY));
-      if ((*res)[0] == 0.0) {
-	singular=1;
-      } else {
-	(*res)[0]= 1.0 / ((*res)[0]);
-      }
-      if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
-      return res;
-   }
-
-
+    // only one element matrix already treated in AC_invert_fun
     // more than one element matrix
 
     long NbCol, NbRow;
 
     if( p0->Type() == GDL_COMPLEX) {
-      DComplexGDL* p0C = static_cast<DComplexGDL*>
-	(p0->Convert2(GDL_COMPLEX , BaseGDL::COPY));  
-      NbCol=p0->Dim(0);
-      NbRow=p0->Dim(1);
-      MatrixXcf tmp_res (NbCol,NbRow);
-      Map<Matrix<complex<float>,Dynamic,Dynamic> > m0(&(*p0C)[0], NbCol,NbRow);
-
-      FullPivLU<MatrixXcf> lu(m0);
-
-      if(lu.isInvertible()) {
-	tmp_res=lu.inverse();
-	if (abs(lu.determinant().real())* LOG10E < 1e-5) singular = 2;
-	}
-	else singular=1;
-
-      DComplexGDL* res = new DComplexGDL(p0->Dim(), BaseGDL::NOZERO);
-      Map<MatrixXcf>(&(*res)[0], NbCol, NbRow) = tmp_res.cast<complex<float> >();
-
-      if (nParam == 2) e->SetPar(1,new DLongGDL( singular));
-      return res;
-    }
-
-    else if( p0->Type() == GDL_COMPLEXDBL) {
-
-      DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>
-	(p0->Convert2(GDL_COMPLEXDBL , BaseGDL::COPY));
-      NbCol=p0->Dim(0);
-      NbRow=p0->Dim(1);
-      MatrixXcd tmp_res (NbCol,NbRow);
-      Map<Matrix<complex<double>,Dynamic,Dynamic> > m0(&(*p0C)[0], NbCol,NbRow);
-
-      FullPivLU<MatrixXcd> lu(m0);
-
-      if(lu.isInvertible()) {
-	tmp_res=lu.inverse();
-	if (abs(lu.determinant().real())* LOG10E < 1e-5) singular = 2;
-     }
-      else singular=1;
-
-      DComplexDblGDL* res = new DComplexDblGDL(p0->Dim(), BaseGDL::NOZERO);
-      Map<MatrixXcd>(&(*res)[0], NbCol, NbRow) = tmp_res.cast<complex<double> >();
-
-      if (nParam == 2) e->SetPar(1,new DLongGDL( singular));
-      return res;
-    }
-
-    else if(( p0->Type() == GDL_DOUBLE) || hasDouble) {
-      DDoubleGDL* p0D = static_cast<DDoubleGDL*>
-	(p0->Convert2( GDL_DOUBLE, BaseGDL::COPY));
-      NbCol=p0->Dim(0);
-      NbRow=p0->Dim(1);
-      MatrixXd tmp_res (NbCol,NbRow);
-      Map<Matrix<double,Dynamic,Dynamic> > m0(&(*p0D)[0], NbCol,NbRow);
-
-      Eigen::FullPivLU<MatrixXd> lu(m0);
-      //      cout << lu.determinant() << endl;
-      //cout << lu.isInvertible() << endl;
-    
-      if(lu.isInvertible()) {
-	tmp_res=lu.inverse();
-	if (abs(lu.determinant()) * LOG10E < 1e-5) singular = 2;
+      if (hasDouble) {
+        DComplexDblGDL* p0DC = static_cast<DComplexDblGDL*> (p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY)); //expensive copy, guard.
+        Guard<BaseGDL> g(p0DC);
+        NbCol = p0->Dim(0);
+        NbRow = p0->Dim(1);
+        Map<Matrix<complex<double>, Dynamic, Dynamic> > m0(&(*p0DC)[0], NbCol, NbRow);
+        Eigen::FullPivLU<MatrixXcd> lu(m0);
+        if (!lu.isInvertible()) {
+          if (nParam == 2) e->SetPar(1, new DLongGDL(1));
+          g.Release(); //need a double complex in return.
+          return p0DC; //must return a copy of input
+        }
+        if (abs(lu.determinant()) * LOG10E < 1e-5) singular = 2;
+        else singular = 0;
+        DComplexDblGDL* res = new DComplexDblGDL(p0->Dim(), BaseGDL::NOZERO);
+        Map<MatrixXcd>(&(*res)[0], NbCol, NbRow) = lu.inverse();
+        if (nParam == 2) e->SetPar(1, new DLongGDL(singular));
+        return res;
+      } else {
+        DComplexGDL* p0C = static_cast<DComplexGDL*> (p0); //no expensive copy.
+        NbCol = p0->Dim(0);
+        NbRow = p0->Dim(1);
+        Map<Matrix<complex<float>, Dynamic, Dynamic> > m0(&(*p0C)[0], NbCol, NbRow);
+        Eigen::FullPivLU<MatrixXcf> lu(m0);
+        if (!lu.isInvertible()) {
+          if (nParam == 2) e->SetPar(1, new DLongGDL(1));
+          return p0C->Dup(); //must return a copy of input
+        }
+        if (abs(lu.determinant()) * LOG10E < 1e-5) singular = 2;
+        else singular = 0;
+        DComplexGDL* res = new DComplexGDL(p0->Dim(), BaseGDL::NOZERO);
+        Map<MatrixXcf>(&(*res)[0], NbCol, NbRow) = lu.inverse();
+        if (nParam == 2) e->SetPar(1, new DLongGDL(singular));
+        return res;
       }
-      else singular=1;
-
-      DDoubleGDL* res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);
-      Map<MatrixXd>(&(*res)[0], NbCol, NbRow) = tmp_res.cast<double>();
-
-      if (nParam == 2) e->SetPar(1,new DLongGDL( singular));
+    }
+    else if( p0->Type() == GDL_COMPLEXDBL) {
+      DComplexDblGDL* p0DC = static_cast<DComplexDblGDL*> (p0); //no expensive copy.
+      NbCol = p0->Dim(0);
+      NbRow = p0->Dim(1);
+      Map<Matrix<complex<double>, Dynamic, Dynamic> > m0(&(*p0DC)[0], NbCol, NbRow);
+      Eigen::FullPivLU<MatrixXcd> lu(m0);
+      if (!lu.isInvertible()) {
+        if (nParam == 2) e->SetPar(1, new DLongGDL(1));
+        return p0DC->Dup(); //must return a copy of input
+      }
+      if (abs(lu.determinant()) * LOG10E < 1e-5) singular = 2;
+      else singular = 0;
+      DComplexDblGDL* res = new DComplexDblGDL(p0->Dim(), BaseGDL::NOZERO);
+      Map<MatrixXcd>(&(*res)[0], NbCol, NbRow) = lu.inverse();
+      if (nParam == 2) e->SetPar(1, new DLongGDL(singular));
       return res;
     }
-
+    
+    else if (p0->Type() == GDL_DOUBLE) {
+      DDoubleGDL* p0D = static_cast<DDoubleGDL*> (p0); //already double: no expensive copy.
+      NbCol = p0->Dim(0);
+      NbRow = p0->Dim(1);
+      Map<Matrix<double, Dynamic, Dynamic> > m0(&(*p0D)[0], NbCol, NbRow);
+      Eigen::FullPivLU<MatrixXd> lu(m0);
+      if (!lu.isInvertible()) {
+        if (nParam == 2) e->SetPar(1, new DLongGDL(1));
+        return p0D->Dup();
+      }
+      if (abs(lu.determinant()) * LOG10E < 1e-5) singular = 2;
+      else singular = 0;
+      DDoubleGDL* res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);
+      Map<MatrixXd>(&(*res)[0], NbCol, NbRow) = lu.inverse();
+      if (nParam == 2) e->SetPar(1, new DLongGDL(singular));
+      return res;
+    }
 
     // all other cases (including GDL_STRING, Float, Int, ... )
     //      if( p0->Type() == GDL_STRING) {
@@ -606,39 +550,52 @@ namespace lib {
 	     p0->Type() == GDL_INT     ||
 	     p0->Type() == GDL_STRING  ||
 	     p0->Type() == GDL_UINT    ||
-	     p0->Type() == GDL_BYTE)
-      {
-	DFloatGDL* p0SS = static_cast<DFloatGDL*>
-	  (p0->Convert2( GDL_FLOAT, BaseGDL::COPY));
-        NbCol=p0->Dim(0);
-	NbRow=p0->Dim(1);
-	MatrixXf tmp_res(NbCol,NbRow);
-	Map<Matrix<float,Dynamic,Dynamic> > m0(&(*p0SS)[0], NbCol,NbRow);
-	
-	FullPivLU<MatrixXf> lu(m0);
-	
-	if(lu.isInvertible()) {
-	  tmp_res=lu.inverse();
-	  if (abs(lu.determinant()) * LOG10E < 1e-5) singular = 2;
-	}
-	else singular=1;
-
-	DFloatGDL* res =new DFloatGDL(p0->Dim(), BaseGDL::NOZERO);
-	Map<MatrixXf>(&(*res)[0], NbCol, NbRow) = tmp_res.cast<float>();
-
-	if (nParam == 2) e->SetPar(1,new DLongGDL( singular));
-	return res;
+	     p0->Type() == GDL_BYTE) {
+      if (hasDouble) {
+        DDoubleGDL* p0D = static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY)); //expensive copy.
+        Guard<BaseGDL> g(p0D);
+        NbCol = p0->Dim(0);
+        NbRow = p0->Dim(1);
+        Map<Matrix<double, Dynamic, Dynamic> > m0(&(*p0D)[0], NbCol, NbRow);
+        Eigen::FullPivLU<MatrixXd> lu(m0);
+        if (!lu.isInvertible()) {
+          if (nParam == 2) e->SetPar(1, new DLongGDL(1));
+          g.Release(); //need a double in return whatever p0 was.
+          return p0D; //return a "double" copy of input
+        }
+        if (abs(lu.determinant()) * LOG10E < 1e-5) singular = 2;
+        else singular = 0;
+        DDoubleGDL* res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);
+        Map<MatrixXd>(&(*res)[0], NbCol, NbRow) = lu.inverse();
+        if (nParam == 2) e->SetPar(1, new DLongGDL(singular));
+        return res;
+      } else {
+        DFloatGDL* p0F; 
+        Guard<BaseGDL> g;
+        if (p0->Type() == GDL_FLOAT) {
+          p0F = static_cast<DFloatGDL*> (p0); //no conversion saves one copy
+        } else {
+          p0F = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY)); //expensive copy.
+          g.Reset(p0F); //... that will be removed at end
+        }
+        NbCol = p0->Dim(0);
+        NbRow = p0->Dim(1);
+        Map<Matrix<float, Dynamic, Dynamic> > m0(&(*p0F)[0], NbCol, NbRow);
+        Eigen::FullPivLU<MatrixXf> lu(m0);
+        if (!lu.isInvertible()) {
+          if (nParam == 2) e->SetPar(1, new DLongGDL(1));
+          if (p0->Type() == GDL_FLOAT) return p0->Dup(); else {g.Release(); return p0F; } //return a "float" copy of input
+        }
+        if (abs(lu.determinant()) * LOG10E < 1e-5) singular = 2;
+        else singular = 0;
+        DFloatGDL* res = new DFloatGDL(p0->Dim(), BaseGDL::NOZERO);
+        Map<MatrixXf>(&(*res)[0], NbCol, NbRow) = lu.inverse();
+        if (nParam == 2) e->SetPar(1, new DLongGDL(singular));
+        return res;
       }
-    else 
-      {
-	cout << "Should never reach this point ! Please report it !" << endl; 
-	DFloatGDL* res = static_cast<DFloatGDL*>
-	  (p0->Convert2( GDL_FLOAT, BaseGDL::COPY));
-
-	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
-	return res;
-      }
-  }
+    }
+    throw;
+    }
 #else
   BaseGDL* invert_eigen_fun( EnvT* e, bool hasDouble){
     e->Throw( "sorry, INVERT with Eigen not available. GDL must be compiled with Eigen lib.");
