@@ -715,6 +715,12 @@ void SetupOverloadSubroutines() {
   treePro = new WRAPPED_PRONode(lib::hash__remove_pro);
   DProHASH__REMOVE->SetTree(treePro);
   hashDesc->ProList().push_back(DProHASH__REMOVE);
+  // HASH::SET PRO
+  DPro *DProHASH__SET = new DPro("SET", "HASH", INTERNAL_LIBRARY_STR);
+  DProHASH__SET->AddPar("KEY")->AddPar("VALUE");
+  treePro = new WRAPPED_PRONode(lib::HASH__Set);
+  DProHASH__SET->SetTree(treePro);
+  hashDesc->ProList().push_back(DProHASH__SET);
   // HASH::HASKEY()
   DFun *DFunHASH__HASKEY = new DFun("HASKEY", "HASH", INTERNAL_LIBRARY_STR);
   DFunHASH__HASKEY->AddPar("KEYLIST");

@@ -56,6 +56,7 @@ namespace lib {
 
   BaseGDL* hash_fun( EnvT* e);
   BaseGDL* orderedhash_fun( EnvT* e);
+  void HASH__Set( EnvUDT* e);
 }
 
 #endif
