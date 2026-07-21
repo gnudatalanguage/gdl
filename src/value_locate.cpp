@@ -103,7 +103,8 @@ namespace lib {
     SizeT nEl1 = p1->N_Elements();
 
     static int l64ix = e->KeywordIx("L64");
-    bool do64 = e->KeywordPresentAndDefined(l64ix);
+    bool do64 = e->KeywordSet(l64ix);
+    //AC 26/07/21 std::cout << do64 << std::endl;
     if (do64) {
       if (nEl1 == 1) {
         switch (p0->Type()) {
