@@ -223,25 +223,27 @@ inline std::string i2s( T i)
 // searches IDList idL for std::string s, returns its position, -1 if not found
 inline int FindInIDList(IDList& idL,const std::string& s)
 {
-//   int ix=0;
-  for(IDList::iterator i=idL.begin(); i != idL.end(); ++i)//, ++ix) 
+	std::cerr<<idL.size();
+	int c=0;
+  for(IDList::iterator i=idL.begin(); i != idL.end(); ++i) { c++;
     if( *i==s) 
-      {
+      { std::cerr<<"->"<<c<<",";
 	return i - idL.begin();
       }
-
+  }
   return -1;
 }
 // TODO: make a template
 inline int FindInKeyVarListT(KeyVarListT& idL,const std::string& s)
 {
-//   int ix=0;
-  for(KeyVarListT::iterator i=idL.begin(); i != idL.end(); ++i)//, ++ix) 
+	std::cerr<<idL.size();
+	int c=0;
+	for(KeyVarListT::iterator i=idL.begin(); i != idL.end(); ++i){ c++;
     if( *i==s) 
-      {
+      { std::cerr<<"->"<<c<<",";
 	return i - idL.begin();
       }
-
+  }
   return -1;
 }
 

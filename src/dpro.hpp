@@ -36,7 +36,9 @@
       extern bool posixpaths;
     }
 #endif
-
+	
+	static KeyVarListT  currentKeys; //just a stable pointer to the different key vectors in each DSub objects, to use with std::sort
+	
 typedef struct _SCC_STRUCT_ { //semicompiled code, small memory imprint (instead of a copy of the DNodes)
 	u_int nodeType = 0;
 	u_int ligne = 0;
@@ -151,6 +153,7 @@ protected:
   // K=size(var)-nPar-N
   KeyVarListT 	      key;   //a std::vector  // keyword names (IDList: typedefs.hpp)
 			      // (KEYWORD_NAME=keyword_value)
+  std::vector<int> sortIndex; 
   int                 nPar;   // number of parameters (-1 = infinite)
   int                 nParMin;  // minimum number of parameters (-1 = infinite)
 
@@ -191,17 +194,9 @@ public:
   }
 
   // returns the (abbreviated) keyword value index 
-  int FindKey(const std::string& s)
-  {
-    String_abbref_eq searchKey(s);
-    int ix=0;
-    for(KeyVarListT::iterator i=key.begin();
-	i != key.end(); ++i, ++ix) if( searchKey(*i)) {
-	  return ix;
-	}
-    return -1;
-  }
-
+  int FindKey(const std::string& s);
+  void FinalizeKeywordList();
+  
   int   NKey() const { return key.size();}
   int   NPar() const { return nPar;}
   int   NParMin() const { return nParMin;}
@@ -439,7 +434,7 @@ public:
   }
 
   // add variables
-  DSubUD*  AddPar(const std::string&); // add paramter
+  DSubUD*  AddPar(const std::string&); // add parameter
   unsigned AddVar(const std::string&); // add local variable
   DSubUD*  AddKey(const std::string&, const std::string&); // add keyword=value
 
