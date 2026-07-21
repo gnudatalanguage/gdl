@@ -12,6 +12,10 @@
 ; - 2025-Dec-14 : AC. large rewritting.
 ;   Adding cases with Complex coeffs
 ;
+; - 2026-Jul-19 : AC & YS : due to a bug report on VALUE_LOCATE,
+;   we realize that when input is a column vectore (TRANSPOSE)
+;   it should not work. (See TEST_FZ_ROOTS_ERROR)
+;
 ; -------------------------------------------------
 ;
 ; approche gloutonne robuste ...
@@ -50,6 +54,31 @@ tri=MATCH_ROOTS(res,res_expected)
 liste_errors=ABS(res-res_expected[tri])
 pbs=WHERE(liste_errors GT eps, nb_pbs)
 if (nb_pbs GT 0) then ERRORS_ADD, errors, message
+if KEYWORD_set(test) then STOP
+;
+end
+
+; -------------------------------------------------
+; When input coeffs are column vectors, an error shoulmd happen
+;
+pro TEST_FZ_ROOTS_ERROR, cumul_errors, test=test, verbose=verbose
+;
+errors=0
+;
+c=[-1,0,0,0,0,1]
+status=EXECUTE("res=FZ_ROOTS(TRANSPOSE(c))")
+if status EQ 1 then ERRORS_ADD, errors, 'Worked on transpose() :('
+if ISA(res) then ERRORS_ADD, errors, '<<res>> should not be defined !'
+;
+if errors GT 0 then begin
+   print, "note by AC : was working fine on Debian 10 & U22.04"
+   print, "note by AC : but not OK U20.04 :(("
+endif
+;
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, 'TEST_FZ_ROOTS_ERROR', errors, /short
+ERRORS_CUMUL, cumul_errors, errors
 if KEYWORD_set(test) then STOP
 ;
 end
@@ -135,6 +164,7 @@ endif
 ;
 cumul_errors=0
 ;
+TEST_FZ_ROOTS_ERROR, cumul_errors, test=test, verbose=verbose
 TEST_FZ_ROOTS_REAL, cumul_errors, test=test, verbose=verbose
 TEST_FZ_ROOTS_COMPLEX, cumul_errors, test=test, verbose=verbose
 ;
