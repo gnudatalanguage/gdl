@@ -84,7 +84,7 @@ if ~ARRAY_EQUAL(SIZE(res),SIZE(transexp)) then ERRORS_ADD, errors, txt_wd+" 4"
 ;
 ; ----- final ----
 ;
-BANNER_FOR_TESTSUITE, 'TEST_VALUE_LOCATE_1D', errors, /short
+BANNER_FOR_TESTSUITE, 'TEST_VALUE_LOCATE_2D', errors, /short
 ERRORS_CUMUL, cumul_errors, errors
 if KEYWORD_set(test) then STOP
 ;
