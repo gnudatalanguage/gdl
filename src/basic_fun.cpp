@@ -4770,8 +4770,8 @@ unsigned int JSHash(const std::string& str)
       DLong MaxAllowedWidthX = 0;
       DLong MaxAllowedWidthY = 0;
 
-      if ((*p1d)[0] <= 0) e->Throw("Width must be a positive scalar or 1 (positive) element array in this context: " + e->GetParString(0));
-      if (!std::isfinite((*p1d)[0])) e->Throw("Width must be > 1, and < dimension of array (NaN or Inf)");
+      if ((*p1d)[0] <= 0) e->Throw("Width must be positive in this context: " + e->GetParString(1));
+      if (!std::isfinite((*p1d)[0])) e->Throw("NaN or Inf width used in this context: " + e->GetParString(1));
 
       if (p1d->N_Elements() == 1) {
        if (twoD) {
@@ -4779,18 +4779,21 @@ unsigned int JSHash(const std::string& str)
           if (p0->Dim(1) < MaxAllowedWidth) MaxAllowedWidth = p0->Dim(1);
         } else MaxAllowedWidth = p0->N_Elements();
         if ((*p1d)[0] < 2 || (*p1d)[0] > MaxAllowedWidth) e->Throw("Width must be > 1, and < dimensions: <INT (" + i2s(MaxAllowedWidth) + ")>.");
-      } else { // [withdh, widthy]
-        if ((*p1d)[1] <= 0) e->Throw("Width must be a positive scalar or 1 (positive) element array in this context: " + e->GetParString(0));
-        if (!std::isfinite((*p1d)[1])) e->Throw("Width must be > 1, and < dimension of array (NaN or Inf)");
+      } else { // [withdx, widthy]
+        if ((*p1d)[1] <= 0) e->Throw("Height must be positive in this context: " + e->GetParString(1));
+        if (!std::isfinite((*p1d)[1])) e->Throw("NaN or Inf height used in this context: " + e->GetParString(1));
         if (twoD) {
           MaxAllowedWidthX = p0->Dim(0);
           MaxAllowedWidthY = p0->Dim(1);
           if ((*p1d)[0] < 2 || (*p1d)[0] > MaxAllowedWidthX) e->Throw("Width must be > 1, and < dimensions: <INT (" + i2s(MaxAllowedWidthX) + ")>.");
-          if ((*p1d)[1] < 2 || (*p1d)[1] > MaxAllowedWidthY) e->Throw("Width must be > 1, and < dimensions: <INT (" + i2s(MaxAllowedWidthY) + ")>.");
+          if ((*p1d)[1] < 2 || (*p1d)[1] > MaxAllowedWidthY) e->Throw("Height must be > 1, and < dimensions: <INT (" + i2s(MaxAllowedWidthY) + ")>.");
           rectangular = true;
         } else {
-          MaxAllowedWidth = p0->N_Elements();
-          if ((*p1d)[0] < 2 || (*p1d)[0] > MaxAllowedWidth) e->Throw("Width must be > 1, and < dimensions: <INT (" + i2s(MaxAllowedWidth) + ")>.");
+          // #2205 acceptable solution: throw because a 2 element  [withdx, widthy] is passed although the array is just a vector.
+          // here we can behave as IDL, that throws always, although GDL ACCEPTS two-elements median "kernel" IN MOST CASES (not with slowreliablemedian)
+          e->Throw("Width must be a positive scalar or 1 (positive) element array in this context: " + e->GetParString(1));
+          //MaxAllowedWidth = p0->N_Elements();
+          //if ((*p1d)[0] < 2 || (*p1d)[0] > MaxAllowedWidth) e->Throw("Width must be > 1, and < dimensions: <INT (" + i2s(MaxAllowedWidth) + ")>.");
         }
       }
 

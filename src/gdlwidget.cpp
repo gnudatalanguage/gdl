@@ -3368,12 +3368,13 @@ std::vector<int> GDLWidgetTable::GetSortedSelectedRowsOrColsList(DLongGDL* selec
 
 DStringGDL* CallStringFunction(BaseGDL* val, BaseGDL* format) {
   int stringIx = LibFunIx("GDL_TOSTRING");
-  EnvT *newEnv = new EnvT(NULL, libFunList[stringIx]);
+  EnvT *newEnv = new EnvT(DInterpreter::CallStackBack()->CallingNode(), libFunList[stringIx]);
   Guard<EnvT> guard(newEnv);
   newEnv->SetNextPar(val); // pass as local
   if (format != NULL) newEnv->SetKeyword("FORMAT", format);
-  DStringGDL* s = static_cast<DStringGDL*> (lib::gdl_tostring_fun(newEnv));
-  guard.release();
+  DStringGDL* s = static_cast<DStringGDL*> (static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv));
+  // equivalent: static_cast<DStringGDL*> (lib::gdl_tostring_fun(newEnv));
+//  guard.release();
   for (auto i = 0; i < s->N_Elements(); ++i) StrTrim((*s)[i]);
   s->SetDim(val->Dim()); //necessary
   return s;

@@ -174,7 +174,7 @@ namespace lib {
   {
     
     BaseGDL *p0 = e->GetNumericArrayParDefined(0);
-    SizeT n= p0->N_Elements();
+    SizeT n = p0->N_Elements();
     DComplexDblGDL* coeffs = static_cast<DComplexDblGDL*> (p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
     
     bool debug=false;
@@ -217,6 +217,9 @@ namespace lib {
   BaseGDL *fz_roots_fun(EnvT *e) {
 
     BaseGDL *p0 = e->GetNumericArrayParDefined(0);
+    
+    dimension dim = p0->Dim();
+    if (dim.Rank()==2) e->Throw("Argument must be a 1D array : " + e->GetParString(0));
 
     if (ComplexType(p0->Type())) {
       return lib::fz_roots2_fun(e);
