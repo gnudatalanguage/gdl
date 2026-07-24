@@ -180,61 +180,31 @@ namespace lib {
       return res;
     }
 
-
+//GD July 2026 following #2206 and given that Eigen:: flavour has shown memory leaks, use GSL by default.
 #if defined(USE_EIGEN)
-    bool Eigen_flag=TRUE;
+    bool Eigen_possible_but_discouraged=TRUE;
 #else
-    bool Eigen_flag=FALSE;
+    bool Eigen_possible_but_discouraged=FALSE;
 #endif
-
-    if (e->KeywordSet(EIGENIx) && (!Eigen_flag))
-      Warning("Eigen Invert not available, GSL used");
     
-    if (e->KeywordSet(GSLIx) || (!Eigen_flag))
-      {
-	return invert_gsl_fun(e, hasDouble);
-      }
-    else
-      {
-	// if /Eigen, we want to use Eigen,
-	// then we don't check the status and return ...
-
-	if (e->KeywordSet(EIGENIx)) return invert_eigen_fun(e, hasDouble);
-
-	// AC 2014-08-10 : during tests of Chianti Code,
-	// we discovered that the GSL code was less sensitive
-	// to very high range in matrix ... 
-	// If status used, if Eigen fails, we try GSL
-
-	BaseGDL* tmp;
-	tmp=invert_eigen_fun(e, hasDouble);	
-	SizeT nParam=e->NParam(1);
-	if (nParam == 2) 
-	  {
-	    BaseGDL* p1 = e->GetParDefined(1);
-	    DLongGDL* res = static_cast<DLongGDL*>
-	      (p1->Convert2(GDL_LONG, BaseGDL::COPY));
-	    DLong status;
-	    status=(*res)[0];
-	    if (status > 0) tmp=invert_gsl_fun(e, hasDouble);
-	  }
-	return tmp;
-      }
+    if (e->KeywordSet(EIGENIx) && Eigen_possible_but_discouraged) return invert_eigen_fun(e, hasDouble);
+    if (e->KeywordSet(EIGENIx) && !Eigen_possible_but_discouraged) Warning("Eigen Invert not available, GSL used");
+    
+    return invert_gsl_fun(e, hasDouble);
   }
 
-  BaseGDL* invert_gsl_fun( EnvT* e, bool hasDouble)
-  {
+  BaseGDL* invert_gsl_fun( EnvT* e, bool hasDouble) {
 
-    BaseGDL* p0 = e->GetParDefined( 0);
+    BaseGDL* p0 = e->GetParDefined(0);
     SizeT nEl = p0->N_Elements();
 
     // related to "status" param
     // check here, if not done, res would be pending in case of SetPar() throws
     // SetPar() only throws in AssureGlobalPar()
-    SizeT nParam=e->NParam(1);
-    if (nParam == 2) e->AssureGlobalPar( 1);
+    SizeT nParam = e->NParam(1);
+    if (nParam == 2) e->AssureGlobalPar(1);
 
-    long singular=0;
+    long singular = 0;
 
     int s;
     float f32;
@@ -242,210 +212,94 @@ namespace lib {
     double det;
 
     // matrix with ONE element already treated in AC_invert_fun
-    
+
     // more than one element matrix
 
     // GSL error handling
     //    SetTemporaryGSLErrorHandlerT lib::setTemporaryGSLErrorHandler( GDLGenericGSLErrorHandler);
 
-    if( p0->Type() == GDL_COMPLEX)
-      {
-	DComplexGDL* p0C = static_cast<DComplexGDL*>( p0);
-	DComplexGDL* res = new DComplexGDL( p0C->Dim(), BaseGDL::NOZERO);
-	Guard<DComplexGDL> resGuard( res);
+    if (ComplexType(p0->Type())) {
+      DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>(p0->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY)); //Dup or converted, to be guarded.
+	  Guard<DComplexDblGDL> Guard( p0C);
+      
+      gsl_matrix_complex_view mv = gsl_matrix_complex_view_array((double*)p0C->DataAddr(),p0->Dim(0), p0->Dim(1) );
+      gsl_matrix_complex *mat = &mv.matrix;
+      gsl_permutation *perm = gsl_permutation_alloc(p0->Dim(0));
+      GDLGuard<gsl_permutation> g3(perm, gsl_permutation_free);
 
-	float f32_2[2];
-	double f64_2[2];
-
-	gsl_matrix_complex *mat = 
-	  gsl_matrix_complex_alloc(p0->Dim(0), p0->Dim(1));
-	GDLGuard<gsl_matrix_complex> g1( mat, gsl_matrix_complex_free);
-	gsl_matrix_complex *inverse = 
-	  gsl_matrix_complex_calloc(p0->Dim(0), p0->Dim(1));
-	GDLGuard<gsl_matrix_complex> g2( inverse, gsl_matrix_complex_free);
-	gsl_permutation *perm = gsl_permutation_alloc(p0->Dim(0));
-	GDLGuard<gsl_permutation> g3( perm, gsl_permutation_free);
-
-	for( SizeT i=0; i<nEl; ++i) {
-	  memcpy(f32_2, &(*p0C)[i], szdbl);
-	  f64 = (double) f32_2[0];
-	  memcpy(&mat->data[2*i], &f64, szdbl);
-
-	  f64 = (double) f32_2[1];
-	  memcpy(&mat->data[2*i+1], &f64, szdbl);
-	}
- 
-	gsl_linalg_complex_LU_decomp (mat, perm, &s);
-       	det = gsl_linalg_complex_LU_lndet(mat);
-	if (gsl_isinf(det) == 0) {
-	  gsl_linalg_complex_LU_invert (mat, perm, inverse);
-	  if (abs(det) * LOG10E < 1e-5) singular = 2;
-	}
-	else singular = 1;
-
-	for( SizeT i=0; i<nEl; ++i) {
-	  memcpy(&f64_2[0], &inverse->data[2*i], szdbl*2);
-	  f32_2[0] = (float) f64_2[0];
-	  f32_2[1] = (float) f64_2[1];
-
-// attention: « void* memcpy(void*, const void*, size_t) » copie un objet du type non trivial « Data_<SpDComplex>::Ty » {aka « struct std::complex<float> »} depuis un tableau de « float » [-Wclass-memaccess]
-	  memcpy(&(*res)[i], &f32_2[0], szflt*2);
-	}
-
-	// 	gsl_permutation_free(perm);
-	// 	gsl_matrix_complex_free(mat);
-	// 	gsl_matrix_complex_free(inverse);
-
-	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
-	resGuard.release();
-	return res;
+      if (hasDouble || p0->Type() == GDL_COMPLEXDBL) { //save allocation of output data
+        DComplexDblGDL* res = new DComplexDblGDL(p0->Dim(), BaseGDL::ZERO);
+        gsl_matrix_complex_view mvi = gsl_matrix_complex_view_array((double*)res->DataAddr(),p0->Dim(0), p0->Dim(1) );
+        gsl_matrix_complex *inverse = &mvi.matrix;
+        gsl_linalg_complex_LU_decomp(mat, perm, &s);
+        det = gsl_linalg_complex_LU_lndet(mat);
+        if (gsl_isinf(det) == 0) {
+          gsl_linalg_complex_LU_invert(mat, perm, inverse);
+          if (abs(det) * LOG10E < 1e-5) singular = 2;
+        } else singular = 1;
+        if (nParam == 2) e->SetPar(1, new DLongGDL(singular));
+        return res;
+      } else {
+        float f32_2[2];
+        double f64_2[2];
+        gsl_matrix_complex *inverse = gsl_matrix_complex_calloc(p0->Dim(0), p0->Dim(1));
+        GDLGuard<gsl_matrix_complex> g2(inverse, gsl_matrix_complex_free);
+      
+        gsl_linalg_complex_LU_decomp(mat, perm, &s);
+        det = gsl_linalg_complex_LU_lndet(mat);
+        if (gsl_isinf(det) == 0) {
+          gsl_linalg_complex_LU_invert(mat, perm, inverse);
+          if (abs(det) * LOG10E < 1e-5) singular = 2;
+        } else singular = 1;
+        if (nParam == 2) e->SetPar(1, new DLongGDL(singular));
+        DComplexGDL* res = new DComplexGDL(p0C->Dim(), BaseGDL::NOZERO);
+        for (SizeT i = 0; i < nEl; ++i) {
+          memcpy(&f64_2[0], &inverse->data[2 * i], szdbl * 2);
+          f32_2[0] = (float) f64_2[0];
+          f32_2[1] = (float) f64_2[1];
+          memcpy(&(*res)[i], &f32_2[0], szflt * 2);
+        }
+        return res;
       }
-    else if( p0->Type() == GDL_COMPLEXDBL)
-      {
-	DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>( p0);
-	DComplexDblGDL* res = new DComplexDblGDL( p0C->Dim(), BaseGDL::NOZERO);
-	Guard<DComplexDblGDL> resGuard( res);
+    } else {
+	  DDoubleGDL* p0D = static_cast<DDoubleGDL*>(p0->Convert2( GDL_DOUBLE, BaseGDL::COPY)); //Dup or converted, to be guarded.
+	  Guard<DDoubleGDL> Guard( p0D);
 
-	gsl_matrix_complex *mat = 
-	  gsl_matrix_complex_alloc(p0->Dim(0), p0->Dim(1));
-	GDLGuard<gsl_matrix_complex> g1( mat, gsl_matrix_complex_free);
-	gsl_matrix_complex *inverse = 
-	  gsl_matrix_complex_calloc(p0->Dim(0), p0->Dim(1));
-	GDLGuard<gsl_matrix_complex> g2( inverse, gsl_matrix_complex_free);
-	gsl_permutation *perm = gsl_permutation_alloc(p0->Dim(0));
-	GDLGuard<gsl_permutation> g3( perm, gsl_permutation_free);
+      gsl_matrix_view mv = gsl_matrix_view_array((double*)p0D->DataAddr(),p0->Dim(0), p0->Dim(1) );
+      gsl_matrix *mat = &mv.matrix;
+      gsl_permutation *perm = gsl_permutation_alloc(p0->Dim(0));
+      GDLGuard<gsl_permutation> g3(perm, gsl_permutation_free);
 
-	memcpy(mat->data, &(*p0C)[0], nEl*szdbl*2);
-
-	gsl_linalg_complex_LU_decomp (mat, perm, &s);
-	det = gsl_linalg_complex_LU_lndet(mat);
-	if (gsl_isinf(det) == 0) {
-	  gsl_linalg_complex_LU_invert (mat, perm, inverse);
-	  if (abs(det) * LOG10E < 1e-5) singular = 2;
-	}
-	else singular = 1;
-//attention: « void* memcpy(void*, const void*, size_t) » copie un objet du type non trivial « Data_<SpDComplexDbl>::Ty » {aka « struct std::complex<double> »} depuis un tableau de « double » [-Wclass-memaccess]
-	memcpy(&(*res)[0], inverse->data, nEl*szdbl*2);
-
-	// 	gsl_permutation_free(perm);
-	// 	gsl_matrix_complex_free(mat);
-	// 	gsl_matrix_complex_free(inverse);
-
-	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
-	resGuard.release();
-	return res;
+      if (hasDouble || p0->Type() == GDL_DOUBLE) { //save allocation of output data
+        DDoubleGDL* res = new DDoubleGDL(p0->Dim(), BaseGDL::ZERO);
+        gsl_matrix_view mvi = gsl_matrix_view_array((double*)res->DataAddr(),p0->Dim(0), p0->Dim(1) );
+        gsl_matrix *inverse = &mvi.matrix;
+        gsl_linalg_LU_decomp(mat, perm, &s);
+        det = gsl_linalg_LU_lndet(mat);
+        if (gsl_isinf(det) == 0) {
+          gsl_linalg_LU_invert(mat, perm, inverse);
+          if (abs(det) * LOG10E < 1e-5) singular = 2;
+        } else singular = 1;
+        if (nParam == 2) e->SetPar(1, new DLongGDL(singular));
+        return res;
+      } else {
+        gsl_matrix *inverse = gsl_matrix_calloc(p0->Dim(0), p0->Dim(1));
+        GDLGuard<gsl_matrix> g2(inverse, gsl_matrix_free);
+        gsl_linalg_LU_decomp(mat, perm, &s);
+        det = gsl_linalg_LU_lndet(mat);
+        if (gsl_isinf(det) == 0) {
+          gsl_linalg_LU_invert(mat, perm, inverse);
+          if (abs(det) * LOG10E < 1e-5) singular = 2;
+        } else singular = 1;
+        if (nParam == 2) e->SetPar(1, new DLongGDL(singular));
+        DFloatGDL* res = new DFloatGDL(p0->Dim(), BaseGDL::NOZERO);
+        for (SizeT i = 0; i < nEl; ++i) {
+          float f32 = (float) inverse->data[i];
+          memcpy(&(*res)[i], &f32, 4);
+        }
+        return res;       
       }
-    else if ( p0->Type() == GDL_DOUBLE)
-      {
-      DDoubleGDL* p0D = static_cast<DDoubleGDL*> (p0); //already double: no expensive copy.
-	DDoubleGDL* res = new DDoubleGDL( p0->Dim(), BaseGDL::NOZERO);
-	Guard<DDoubleGDL> resGuard( res);
-
-	gsl_matrix *mat = gsl_matrix_alloc(p0->Dim(0), p0->Dim(1)); //we could use p0D data instead of this costly allocation. Just fill correct values in mat struct.
-	GDLGuard<gsl_matrix> g1( mat, gsl_matrix_free);
-	gsl_matrix *inverse = gsl_matrix_calloc(p0->Dim(0), p0->Dim(1));
-	GDLGuard<gsl_matrix> g2( inverse, gsl_matrix_free);
-	gsl_permutation *perm = gsl_permutation_alloc(p0->Dim(0));
-	GDLGuard<gsl_permutation> g3( perm, gsl_permutation_free);
-
-	memcpy(mat->data, &(*p0D)[0], nEl*szdbl);
-
-	gsl_linalg_LU_decomp (mat, perm, &s);
-	det = gsl_linalg_LU_lndet(mat);
-	if (gsl_isinf(det) == 0) {
-	  gsl_linalg_LU_invert (mat, perm, inverse);
-	  if (abs(det) * LOG10E < 1e-5) singular = 2;
-	}
-	else singular = 1;
-
-	memcpy(&(*res)[0], inverse->data, nEl*szdbl);
-
-	// 	gsl_permutation_free(perm);
-	// 	gsl_matrix_free(mat);
-	// 	gsl_matrix_free(inverse);
-
-	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
-	resGuard.release();
-	return res;
-      }
-    
-    else if( p0->Type() == GDL_FLOAT ||
-	     p0->Type() == GDL_LONG ||
-	     p0->Type() == GDL_ULONG ||
-	     p0->Type() == GDL_INT ||
-	     p0->Type() == GDL_LONG64 ||
-	     p0->Type() == GDL_STRING ||
-	     p0->Type() == GDL_UINT ||
-	     p0->Type() == GDL_ULONG64 ||
-	     p0->Type() == GDL_BYTE)
-      {
-	DFloatGDL* p0F = static_cast<DFloatGDL*>( p0);
-	DLongGDL* p0L = static_cast<DLongGDL*>( p0);
-	DLong64GDL* p0L64 = static_cast<DLong64GDL*>( p0);
-	DULongGDL* p0UL = static_cast<DULongGDL*>( p0);
-	DULong64GDL* p0UL64 = static_cast<DULong64GDL*>( p0);
-	DIntGDL* p0I = static_cast<DIntGDL*>( p0);
-	DUIntGDL* p0UI = static_cast<DUIntGDL*>( p0);
-	DByteGDL* p0B = static_cast<DByteGDL*>( p0);
-    DFloatGDL* p0SS;
-	if (p0->Type() == GDL_STRING) {
-	  p0SS = static_cast<DFloatGDL*>(p0->Convert2( GDL_FLOAT, BaseGDL::COPY));
-	  Guard<DFloatGDL> p0SSGuard( p0SS);
-	}
-
-	DFloatGDL* res = new DFloatGDL( p0->Dim(), BaseGDL::NOZERO);
-	Guard<DFloatGDL> resGuard( res);
-
-	gsl_matrix *mat = gsl_matrix_alloc(p0->Dim(0), p0->Dim(1));
-	GDLGuard<gsl_matrix> g1( mat, gsl_matrix_free);
-	gsl_matrix *inverse = gsl_matrix_calloc(p0->Dim(0), p0->Dim(1));
-	GDLGuard<gsl_matrix> g2( inverse, gsl_matrix_free);
-	gsl_permutation *perm = gsl_permutation_alloc(p0->Dim(0));
-	GDLGuard<gsl_permutation> g3( perm, gsl_permutation_free);
-
-	  switch ( p0->Type()) {
-	  case GDL_FLOAT: for( SizeT i=0; i<nEl; ++i) { f64 = (double) (*p0F)[i]; memcpy(&mat->data[i], &f64, szdbl); } break;
-	  case GDL_LONG:  for( SizeT i=0; i<nEl; ++i) { f64 = (double) (*p0L)[i]; memcpy(&mat->data[i], &f64, szdbl); } break;
-	  case GDL_LONG64:  for( SizeT i=0; i<nEl; ++i) { f64 = (double) (*p0L64)[i]; memcpy(&mat->data[i], &f64, szdbl); } break;
-	  case GDL_ULONG: for( SizeT i=0; i<nEl; ++i) { f64 = (double) (*p0UL)[i]; memcpy(&mat->data[i], &f64, szdbl); } break;
-	  case GDL_ULONG64: for( SizeT i=0; i<nEl; ++i) { f64 = (double) (*p0UL64)[i]; memcpy(&mat->data[i], &f64, szdbl); } break;
-	  case GDL_INT:   for( SizeT i=0; i<nEl; ++i) { f64 = (double) (*p0I)[i]; memcpy(&mat->data[i], &f64, szdbl); } break;
-	  case GDL_STRING:for( SizeT i=0; i<nEl; ++i) { f64 = (double) (*p0SS)[i]; memcpy(&mat->data[i], &f64, szdbl); } break;
-	  case GDL_UINT:  for( SizeT i=0; i<nEl; ++i) { f64 = (double) (*p0UI)[i]; memcpy(&mat->data[i], &f64, szdbl); } break;
-	  case GDL_BYTE:  for( SizeT i=0; i<nEl; ++i) { f64 = (double) (*p0B)[i]; memcpy(&mat->data[i], &f64, szdbl); } break;
-        default: break; //not reached. pacifies compilers.
-	  }
-
-	gsl_linalg_LU_decomp (mat, perm, &s);
-	det = gsl_linalg_LU_lndet(mat);
-	if (gsl_isinf(det) == 0) {
-	  gsl_linalg_LU_invert (mat, perm, inverse);
-	  if (abs(det) * LOG10E < 1e-5) singular = 2;
-	}
-	else singular = 1;
-
-	for( SizeT i=0; i<nEl; ++i) {
-	  f32 = (float) inverse->data[i];
-	  memcpy(&(*res)[i], &f32, 4);
-	}
-
-	// 	gsl_permutation_free(perm);
-	// 	gsl_matrix_free(mat);
-	// 	gsl_matrix_free(inverse);
-
-	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
-	resGuard.release();
-	return res;
-      }
-    else 
-      {
-	cout << "Should never reach this point ! Please report it !" << endl; 
-	DFloatGDL* res = static_cast<DFloatGDL*>
-	  (p0->Convert2( GDL_FLOAT, BaseGDL::COPY));
-
-	if (nParam == 2) e->SetPar(1,new DLongGDL( singular)); 
-	return res;
-      }
+    }
   }
 
 
