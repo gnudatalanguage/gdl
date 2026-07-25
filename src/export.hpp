@@ -164,7 +164,7 @@ void GdlExportPrintVar(EXPORT_VPTR v);
 	}
 
 void GdlExportPrintHash(EXPORT_IDENT *h){ while (h) {
-		printf ("-> {hash: 0x%zx , name=%s len:%d} ", h->hash, h->name, h->len); h=h->hash;
+		printf ("-> {hash: 0x%zx , name=%s len:%d} ", (size_t) h->hash, h->name, h->len); h=h->hash;
 	}
 }
 void GdlExportPrintStruct(EXPORT_SREF s){
@@ -172,7 +172,7 @@ void GdlExportPrintStruct(EXPORT_SREF s){
   if (s.sdef->id != NULL) printf("ident: %s ,", s.sdef->id->name);
   printf("ntags %d\n", s.sdef->ntags);
   for (int i=0; i< s.sdef->ntags; ++i) { 
-	  printf ("TAG [%d] name: %s at offset: %d, len:%d, start hash chain = 0x%zx ",i,s.sdef->tags[i].id->name,s.sdef->tags[i].offset,s.sdef->tags[i].id->len,s.sdef->tags[i].id->hash); GdlExportPrintHash(s.sdef->tags[i].id->hash);
+	  printf ("TAG [%d] name: %s at offset: %d, len:%d, start hash chain = 0x%zx ",i,s.sdef->tags[i].id->name,s.sdef->tags[i].offset,s.sdef->tags[i].id->len,(size_t) s.sdef->tags[i].id->hash); GdlExportPrintHash(s.sdef->tags[i].id->hash);
 	  printf("\n var: \n");
 	  GdlExportPrintVar( &(s.sdef->tags[i].var) ); printf("\n");}
 }
@@ -331,6 +331,7 @@ void GDL_FreeResources() {BACKTRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	GlobalVPTRList.clear();
     FreeIntermediateMemory(); //removes all memory allocated by all routines called since beginning of current mediatizer function (callDllXXX)
 }
+#if !defined(_WIN32) || defined(__CYGWIN__)
 #include <execinfo.h>  // for backtrace
 #include <dlfcn.h>     // for dladdr
 #include <cxxabi.h>    // for __cxa_demangle
@@ -373,16 +374,17 @@ std::string Backtrace(int skip = 1)
 		trace_buf << "[truncated]\n";
 	return trace_buf.str();
 }
+#endif
 void ExitDlmFunctionAndThrow(const char *f, const std::string &s) {
 	BACKTRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
 	std::cerr << " Unexpected error happened at \"" << f << "\", message is: \"" << s << "\"." << std::endl;
-//#if !defined(_WIN32) || defined(__CYGWIN__)
+#if !defined(_WIN32) || defined(__CYGWIN__)
 	//backtrace is not present under windows. If you need a backtrace, please provide patch for windows.
     std::cerr<<"backtrace:\n"<<Backtrace()<<std::endl;
 //int nptrs = backtrace(backtrace_buf, BT_BUF_SIZE);
 //	fprintf(stderr, "backtrace:\n");
 //	backtrace_symbols_fd(backtrace_buf, nptrs, STDERR_FILENO);
-//#endif
+#endif
 	longjmp(callerEnv, JUMP_THROW);
 }
 
