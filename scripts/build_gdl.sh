@@ -187,9 +187,14 @@ function build_msys2_package {
 }
 
 function find_architecture {
+
     if [ ${Platform:-`uname -m`} == "x86_64" ]; then
+		declare -x MSYSTEM="UCRT64"
+		declare -x MSYSTEM_CARCH="x86_64"
+		declare -x MSYSTEM_CHOST="x86_64-w64-mingw32"
+		declare -x MSYSTEM_PREFIX="/ucrt64"
         export mname="mingw64"
-        export MSYSTEM="MINGW64"
+#        export MSYSTEM="MINGW64"
         export arch="x86_64"
     else
         export mname="mingw32"
