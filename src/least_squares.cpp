@@ -124,10 +124,14 @@ namespace lib {
       tmp_res = (m0.transpose() * m0).ldlt().solve(m0.transpose() * m2) ;
     else if (method == 1 && !p1->Dim(1))
       tmp_res = (m0.transpose() * m0).ldlt().solve(m0.transpose() * m3) ;
-    else if (method >= 2 && p1->Dim(1)) //method 2 and method 3 is the same
-      tmp_res = m0.jacobiSvd(ComputeThinU | ComputeThinV).solve(m2) ;
-    else if (method >= 2 && !p1->Dim(1)) 
-      tmp_res = m0.jacobiSvd(ComputeThinU | ComputeThinV).solve(m3) ;
+    else if (method >= 2 && p1->Dim(1)) {//method 2 and method 3 is the same
+      BDCSVD<Matrix<double,Dynamic,Dynamic,RowMajor>> bdc_svd(m0, ComputeThinU | ComputeThinV); 
+      tmp_res=bdc_svd.solve(m2);
+    } //tmp_res = m0.jacobiSvd(ComputeThinU | ComputeThinV).solve(m2) ;
+    else if (method >= 2 && !p1->Dim(1)) {
+      BDCSVD<Matrix<double,Dynamic,Dynamic,RowMajor>> bdc_svd(m0, ComputeThinU | ComputeThinV); 
+      tmp_res=bdc_svd.solve(m3);    }
+      //tmp_res = m0.jacobiSvd(ComputeThinU | ComputeThinV).solve(m3) ;
 
     // AND if SOLVER is not USED, The following crash on an assertion in debug mode!!!
 //    if(solver.info()==NumericalIssue) 
