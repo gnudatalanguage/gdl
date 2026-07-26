@@ -3556,7 +3556,7 @@ BaseGDL** FCALLNode::EvalRefCheck( BaseGDL*& rEval)
         const string keyNames[] = {"_EXTRA", ""};
         new DLibFunRetNew(lib::class_name_to_obj_new, this->getText(), 100, keyNames);
         int funIx = LibFunIx(this->getText());
-        if (funIx < 0) throw GDLException(this, " FCALLNode::Eval - " + this->getText() + " not found!", true, false);
+        if (funIx < 0) throw GDLException(this, " FCALLNode::EvalRefCheck - " + this->getText() + " not found!", true, false);
         EnvT* newEnv = new EnvT(this, libFunList[funIx]);
 
         ProgNode::interpreter->parameter_def_nocheck(this->getFirstChild(), newEnv);
@@ -3568,7 +3568,7 @@ BaseGDL** FCALLNode::EvalRefCheck( BaseGDL*& rEval)
         return res; // NULL ok, rEval set properly
       }
     }
-  	if( this->funIx < 0) throw GDLException(this," FCALLNode::EvalRefcheck - AutoObj",true,false);
+  	if( this->funIx < 0) throw GDLException(this," FCALLNode::EvalRefcheck - " + this->getText() + " not found!",true,false);
     EnvUDT* newEnv=new EnvUDT( this, funList[this->funIx], EnvUDT::LRFUNCTION);
 
     ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);
@@ -3636,7 +3636,7 @@ BaseGDL** FCALLNode::LEval()
     ProgNodeP	_t = this->getFirstChild();
 
     ProgNode::interpreter->SetFunIx( this);
-	if( this->funIx < 0) throw GDLException(this," FCALLNode::LEval- AutoObj",true,false);
+	if( this->funIx < 0) throw GDLException(this," FCALLNode::LEval - " + this->getText() + " not found!",true,false);
     EnvUDT* newEnv=new EnvUDT( this, funList[this->funIx], EnvUDT::LFUNCTION);
 
     ProgNode::interpreter->parameter_def(_t, newEnv);
@@ -3726,7 +3726,7 @@ BaseGDL* FCALLNode::Eval()
         return res;
       }
     }
-	if( this->funIx < 0) throw GDLException(this," FCALLNode::Eval - AutoObj",true,false);
+	if( this->funIx < 0) throw GDLException(this," FCALLNode::Eval - " + this->getText() + " not found!",true,false);
     EnvUDT* newEnv=new EnvUDT( this, funList[this->funIx]);
 
     ProgNode::interpreter->parameter_def(this->getFirstChild(), newEnv);

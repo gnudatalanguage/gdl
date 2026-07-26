@@ -599,7 +599,7 @@ int GDLInterpreter::GetProIx(ProgNodeP f)
         ProgNode::interpreter->executeLine.clear(); // clear EOF (for executeLine)
         ProgNode::interpreter->executeLine.str("print,/implied_print," + s);
         std::istream execute_me(ProgNode::interpreter->executeLine.rdbuf());
-        ProgNode::interpreter->ExecuteLine(&execute_me, 0);
+        ProgNode::interpreter->ExecuteLine(&execute_me, 0, true); //no need to have ExecuteLine try implied print ^))
         ProgNode::interpreter->SetRetTree(f->GetLastSibling()->GetNextSibling());
         return proIx;
       } catch (GDLException& e) {
@@ -1304,7 +1304,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteStringLine( std::string &line)
 }
 
 // execute one line of code (commands and statements)
-DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffset)
+DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffset, bool no_implied_print)
 {
   string line = (in != NULL) ? ::GetLine(in) : GetLine();
   
@@ -1432,7 +1432,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   bool try_Autoprint=false;
 #ifdef  AUTO_PRINT_EXPR
 // Here we try to support implied_print: replay with "print,/implied_print," added
-  try_Autoprint=true;
+  try_Autoprint=!no_implied_print; //no_implied_print is set when this is already called by "implied_print".
 #endif
   
   

@@ -43,7 +43,7 @@ namespace lib {
 #include <Eigen/LU>
 #include <Eigen/Eigenvalues>
 #include <Eigen/Core>
-
+#include <Eigen/SVD>
 namespace lib {
   using namespace Eigen;
 
@@ -111,35 +111,44 @@ namespace lib {
     NbCol2=p1->Dim(1);
     NbRow2=p1->Dim(0);
     Map<Matrix<double,Dynamic,Dynamic,RowMajor> > m0(&(*p0D)[0], NbCol1,NbRow1);
-    Map<Matrix<double,Dynamic,Dynamic,RowMajor> > m2(&(*p2D)[0], NbCol2,NbRow2);
-//    LLT<MatrixXf>solver; //solver is not USED! and...
-    Map<VectorXd> m3(&(*p2D)[0], NbRow2); //for one B when it's vector
     MatrixXd tmp_res;
-    /**************Methods******************/	
-    if (method == 0 && p1->Dim(1))
-      tmp_res = m0.colPivHouseholderQr().solve(m2) ;
-    else if (method == 0 && !p1->Dim(1))
-      tmp_res = m0.colPivHouseholderQr().solve(m3) ;
-    else if (method == 1 && p1->Dim(1))
-      tmp_res = (m0.transpose() * m0).ldlt().solve(m0.transpose() * m2) ;
-    else if (method == 1 && !p1->Dim(1))
-      tmp_res = (m0.transpose() * m0).ldlt().solve(m0.transpose() * m3) ;
-    else if (method >= 2 && p1->Dim(1)) //method 2 and method 3 is the same
-      tmp_res = m0.jacobiSvd(ComputeThinU | ComputeThinV).solve(m2) ;
-    else if (method >= 2 && !p1->Dim(1)) 
-      tmp_res = m0.jacobiSvd(ComputeThinU | ComputeThinV).solve(m3) ;
+    /**************Methods******************/
+    if (p1->Dim(1)) {
+      Map<Matrix<double, Dynamic, Dynamic, RowMajor> > m2(&(*p2D)[0], NbCol2, NbRow2);
+      switch(method) {
+        case 0:tmp_res = m0.colPivHouseholderQr().solve(m2) ;break;
+        case 1:tmp_res = (m0.transpose() * m0).ldlt().solve(m0.transpose() * m2) ; break;
+        default: {
+          if (p0->Dim(0) < 16) tmp_res = m0.jacobiSvd(ComputeThinU | ComputeThinV).solve(m2); // 16 according to doc
+          else {
+#if EIGEN_VERSION_AT_LEAST(3,0,0)
+            BDCSVD<Matrix<double,Dynamic,Dynamic,RowMajor>> bdc_svd(m0, ComputeThinU | ComputeThinV); 
+            tmp_res=bdc_svd.solve(m2);
+#else
+          tmp_res = m0.jacobiSvd(ComputeThinU | ComputeThinV).solve(m2) ;break;
+#endif
+          }
+        }
+      }
+    } else {
+      Map<VectorXd> m3(&(*p2D)[0], NbRow2); //for one B when it's vector
+      switch(method) {
+        case 0:tmp_res = m0.colPivHouseholderQr().solve(m3) ;break;
+        case 1:tmp_res = (m0.transpose() * m0).ldlt().solve(m0.transpose() * m3);
+        default:{
+          if (p0->Dim(0) < 16) tmp_res = m0.jacobiSvd(ComputeThinU | ComputeThinV).solve(m3) ;
+          else {
+#if EIGEN_VERSION_AT_LEAST(3,0,0)
+            BDCSVD<Matrix<double,Dynamic,Dynamic,RowMajor>> bdc_svd(m0, ComputeThinU | ComputeThinV); 
+            tmp_res=bdc_svd.solve(m3);
+#else
+            tmp_res = m0.jacobiSvd(ComputeThinU | ComputeThinV).solve(m3) ;
+#endif
+          }
+        }
+      }
+    }
 
-    // AND if SOLVER is not USED, The following crash on an assertion in debug mode!!!
-//    if(solver.info()==NumericalIssue) 
-//      {
-//	e->Throw( "Array is not positive definite: " + e->GetParString(0));
-//	return 0;
-//      }
-//    if(solver.info()!=Success) 
-//      {
-//	e->Throw( "Decomposition has failed: " + e->GetParString(0));
-//	return 0;
-//      }
     /***********************Return Values******************/
     if(p1->Dim(1)) {
       SizeT dims[3];
