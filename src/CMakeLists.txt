@@ -293,12 +293,6 @@ endif(PYTHON_MODULE)
 # Just adding "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${CMAKE_INSTALL_PREFIX}/bin"
 # makes it possible to get genuine IDL DLM (.so) files to work with GDL, without recompilation, as sometimes they
 # specifically look for a  "libidl.dylib". (not to be counfounded with libIDL.dylib) 
-if (APPLE OR OSX )
-    add_custom_command(TARGET gdl
-    COMMAND ${CMAKE_COMMAND} -E create_symlink "${CMAKE_INSTALL_PREFIX}/bin/gdl" "${CMAKE_INSTALL_PREFIX}/bin/libidl${CMAKE_SHARED_LIBRARY_SUFFIX}"
-)
-endif()
-
 if (NOT APPLE AND NOT OSX AND NOT MINGW)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--export-dynamic") # -fvisibility=hidden 
 endif()
@@ -322,6 +316,9 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource DESTINATION ${CMAKE_INSTALL_PREFI
 	PATTERN UrgentNeed.txt EXCLUDE)
 
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/${GDL_DATA_DIR}/dlm )
+
+INSTALL(CODE "execute_process( COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_INSTALL_PREFIX}/bin/gdl ${CMAKE_INSTALL_PREFIX}/bin/libidl${CMAKE_SHARED_LIBRARY_SUFFIX})" )
+install(CODE "message(\"-- Created symlink: ${CMAKE_INSTALL_PREFIX}/bin/gdl  -> ${CMAKE_INSTALL_PREFIX}/bin/libidl${CMAKE_SHARED_LIBRARY_SUFFIX}\")")
 
 configure_file(
  	${CMAKE_SOURCE_DIR}/scripts/quick_start_GDL.sh.in
