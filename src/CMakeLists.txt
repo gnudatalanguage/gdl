@@ -289,7 +289,13 @@ else(PYTHON_MODULE)
 	install(TARGETS gdl DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 	set_target_properties(gdl PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif(PYTHON_MODULE)
-
+# For OSX (only?), when target gdl is built, a symlink will be created passing gdl as libidl.dylib
+# Just adding "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${CMAKE_INSTALL_PREFIX}/bin"
+# makes it possible to get genuine IDL DLM (.so) files to work with GDL, without recompilation, as sometimes they
+# specifically look for a  "libidl.dylib". (not to be counfounded with libIDL.dylib) 
+add_custom_command(TARGET gdl
+    COMMAND ${CMAKE_COMMAND} -E create_symlink "${CMAKE_INSTALL_PREFIX}/bin/gdl" "${CMAKE_INSTALL_PREFIX}/bin/libidl${CMAKE_SHARED_LIBRARY_SUFFIX}"
+)
 
 if (NOT APPLE AND NOT OSX AND NOT MINGW)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--export-dynamic") # -fvisibility=hidden 
