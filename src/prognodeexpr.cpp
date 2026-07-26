@@ -3556,7 +3556,7 @@ BaseGDL** FCALLNode::EvalRefCheck( BaseGDL*& rEval)
         const string keyNames[] = {"_EXTRA", ""};
         new DLibFunRetNew(lib::class_name_to_obj_new, this->getText(), 100, keyNames);
         int funIx = LibFunIx(this->getText());
-        if (funIx < 0) throw GDLException(this, " FCALLNode::Eval - " + this->getText() + " not found!", true, false);
+        if (funIx < 0) throw GDLException(this, " FCALLNode::EvalRefCheck - " + this->getText() + " not found!", true, false);
         EnvT* newEnv = new EnvT(this, libFunList[funIx]);
 
         ProgNode::interpreter->parameter_def_nocheck(this->getFirstChild(), newEnv);

@@ -103,7 +103,8 @@ namespace lib {
     SizeT nEl1 = p1->N_Elements();
 
     static int l64ix = e->KeywordIx("L64");
-    bool do64 = e->KeywordPresentAndDefined(l64ix);
+    bool do64 = e->KeywordSet(l64ix);
+    //AC 26/07/21 std::cout << do64 << std::endl;
     if (do64) {
       if (nEl1 == 1) {
         switch (p0->Type()) {
@@ -133,7 +134,7 @@ namespace lib {
         }
       } else {
 
-        DLong64GDL* ret = new DLong64GDL(dimension(nEl1), BaseGDL::NOZERO);
+        DLong64GDL* ret = new DLong64GDL(p1->Dim(), BaseGDL::NOZERO);
 
         switch (p0->Type()) {
         case GDL_BYTE:
@@ -191,7 +192,7 @@ namespace lib {
         }
       } else {
 
-        DLongGDL* ret = new DLongGDL(dimension(nEl1), BaseGDL::NOZERO);
+        DLongGDL* ret = new DLongGDL(p1->Dim(), BaseGDL::NOZERO);
 
         switch (p0->Type()) {
         case GDL_BYTE:

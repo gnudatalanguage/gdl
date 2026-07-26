@@ -757,10 +757,12 @@ addr.s_addr = ((struct sockaddr_in *)(result->ai_addr))->sin_addr.s_addr;
 
 // printf("ip address : %s\n", inet_ntoa(addr));
 
-  int status ; if (status = inet_pton(AF_INET, inet_ntoa(addr), &m_addr.sin_addr) != 1) perror(__func__);
-
-  if (status = connect(sockNum, (sockaddr *) & m_addr, sizeof (m_addr)) != 0) perror(__func__);
-  int flags = fcntl(sockNum, F_GETFL, 0); fcntl(sockNum,F_SETFD, flags|FD_CLOEXEC);
+  int status = inet_pton(AF_INET, inet_ntoa(addr), &m_addr.sin_addr);
+  if (status != 1) perror(__func__);
+  status = connect(sockNum, (sockaddr *) & m_addr, sizeof (m_addr));
+  if (status != 0) perror(__func__);
+  int flags = fcntl(sockNum, F_GETFL, 0); 
+  fcntl(sockNum,F_SETFD, flags|FD_CLOEXEC);
   swapEndian = swapEndian_;
 
 // GD ?????  // BIG limit on socket send width to avoid leading \n in CheckNL

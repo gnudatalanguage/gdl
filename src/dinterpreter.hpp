@@ -104,7 +104,7 @@ public:
   DInterpreter();
   
   // execute one line of code
-  CommandCode ExecuteLine( std::istream* in = NULL, SizeT lineOffset = 0);
+  CommandCode ExecuteLine( std::istream* in = NULL, SizeT lineOffset = 0, bool no_implied_print=false);
 
 // execute one line of code
   CommandCode ExecuteStringLine( std::string &line);
