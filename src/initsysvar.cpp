@@ -271,6 +271,12 @@ namespace SysVar
     DVar& eSSysVar = *sysVarList[ err_stringIx];
     static_cast<DStringGDL&>(*eSSysVar.Data())[0] = eS;
   }
+  // ERR location is frequently used in WHERE for example. Better to get the value directly
+  void SetSysErr( DLong v){
+     DVar& errSysVar=*sysVarList[ errIx];
+     static_cast<DLongGDL&>(*errSysVar.Data())[0] = v;
+  }
+  
   void SetErrError( DLong eC)
   {
     DVar& errSysVar = *sysVarList[ errIx];

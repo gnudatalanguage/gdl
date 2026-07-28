@@ -309,6 +309,7 @@ int main(int argc, char *argv[])
       cerr << "  --smart-tpool      switch to a mode where the number of threads is adaptive (DEFAULT). Should enable better perfs on many core machines." <<endl;
       cerr << "  --no-smart-tpool   switch to a mode where the number of threads is NOT adaptive." <<endl;
       cerr << "  --silent           Supresses some messages (mainly \"Compiled Module XXX\" ." <<endl;
+      cerr << "  --warn-loop        GDL will emit a warning if a loop variable is modified inside the loop. (affects perfomance)" <<endl;
 #ifdef _WIN32
       cerr << "  --posix (Windows only): paths will be posix paths (experimental)." << endl;
 #endif
@@ -433,6 +434,10 @@ int main(int argc, char *argv[])
       else if (string(argv[a]) == "--silent")
       {
          setQuietSysvar=true;
+      }
+      else if (string(argv[a]) == "--warn-loop")
+      {
+         warnLoopIndexModified=true;
       }
       else if (string(argv[a]) == "--subprocess") {
 		if (a == argc - 1) {

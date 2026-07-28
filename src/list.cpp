@@ -2191,8 +2191,7 @@ BaseGDL* list__toarray(EnvUDT* e) {
       e->SetKW(kwCOUNTIx, new DLongGDL(count));
     }
     //    The system variable !ERR is set to the number of nonzero elements for compatibility with old versions of IDL
-    DVar *err = FindInVarList(sysVarList, "ERR");
-    (static_cast<DLongGDL*> (err->Data()))[0] = count;
+    SysVar::SetSysErr(count);
 
     if (count == 0) {
       return NullGDL::GetSingleInstance();

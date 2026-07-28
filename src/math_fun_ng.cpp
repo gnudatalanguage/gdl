@@ -281,7 +281,7 @@ namespace lib {
     RK_Diff = StrUpCase( RK_Diff);
 
     // first search library funcedures  
-    int funIx=LibFunIx( RK_Diff);
+    static int funIx=LibFunIx( RK_Diff);
     StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
 		
     if( funIx != -1)

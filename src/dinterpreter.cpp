@@ -2063,7 +2063,9 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
         ResetHeap();
         if (fullResetCmd) {
           lib::ResetDLLs();
+          libFunMap.clear();
           PurgeContainer(libFunList);
+          libProMap.clear();
           PurgeContainer(libProList);
         }
         // initially done in InitGDL()

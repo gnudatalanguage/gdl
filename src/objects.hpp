@@ -106,6 +106,8 @@ extern volatile bool usePlatformDeviceName;
 extern volatile bool useEigenForTransposeOps;
 extern volatile bool useSmartTpool;
 extern          int  debugMode;
+extern volatile bool resetInProgress; //changes some behaviours as some destructors are NOT called when RESET
+extern volatile bool warnLoopIndexModified;//warn if Assignment to loop variable is detected
 
 enum DebugCode {
   DEBUG_CLEAR=0,

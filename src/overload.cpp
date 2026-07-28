@@ -402,7 +402,7 @@ BaseGDL* class_name_to_obj_new(EnvT* e);
 const char KLISTEND[] = "";
 
 void RegisterFun(DStructDesc* o, const std::string &n,  BaseGDL* (*fun_)( EnvUDT*) , int npar=0, const string *keylist=NULL) {
-  assert (o->FindInFunList(n) ==NULL);
+  assert (o->FindInFunList(n) ==NULL);//no because .RESET
   DFun *f = new DFun(n, o->Name(), INTERNAL_LIBRARY_STR);
   if (keylist) {
     int ikey=0;
@@ -421,7 +421,7 @@ void RegisterFun(DStructDesc* o, const std::string &n,  BaseGDL* (*fun_)( EnvUDT
 }
 
 void RegisterPro(DStructDesc* o, const std::string n, void (*pro_)(EnvUDT*), int npar=0, const string *keylist = NULL) {
-  assert (o->FindInProList(n) ==NULL);
+//  assert (o->FindInProList(n) ==NULL);//no because .RESET
   DPro *p = new DPro(n, o->Name(), INTERNAL_LIBRARY_STR);
   if (keylist) {
     int ikey = 0;

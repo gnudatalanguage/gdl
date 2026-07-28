@@ -1680,16 +1680,16 @@ namespace lib {
 	if (np >  1) e->Throw("The Offset and Dimension arguments are not allowed when converting to string type.");
 	
         // SA: calling GDL_STRING() with correct parameters
-        int stringIx = LibFunIx("STRING");
+        static int stringIx = LibFunIx("STRING");
         //assert(stringIx >= 0);
 
         EnvT* newEnv = new EnvT(e, libFunList[stringIx], NULL);
 
         Guard<EnvT> guard(newEnv);
 
-	BaseGDL* par0 = e->GetPar(0)->Dup();
-	newEnv->SetNextPar(&par0);
- 
+        BaseGDL* par0 = e->GetPar(0)->Dup();
+        newEnv->SetNextPar(&par0);
+
 	//        newEnv->SetNextPar(e->GetPar(0)); // pass as global
 
         if (e->KeywordSet(PRINTIX) && e->GetPar(0)->Type() == GDL_BYTE) {

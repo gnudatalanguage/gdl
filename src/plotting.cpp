@@ -1818,7 +1818,7 @@ PLFLT gdlGetBoxNYSize() {
 		if (currentFormat.substr(0, 1) == "(") {
 		  //internal format, call internal func "STRING"
 		  EnvT *e = ptr->e;
-		  int stringIx = LibFunIx("STRING");
+		  static int stringIx = LibFunIx("STRING");
 		  assert(stringIx >= 0);
 		  EnvT* newEnv = new EnvT(e, libFunList[stringIx], NULL);
 		  Guard<EnvT> guard(newEnv);
@@ -1904,7 +1904,7 @@ PLFLT gdlGetBoxNYSize() {
         if (currentFormat.substr(0, 1) == "(") { 
           //internal format, call internal func "STRING"
           EnvT *e = ptr->e;
-          int stringIx = LibFunIx("STRING");
+          static int stringIx = LibFunIx("STRING");
           assert(stringIx >= 0);
           EnvT* newEnv = new EnvT(e, libFunList[stringIx], NULL);
           Guard<EnvT> guard(newEnv);

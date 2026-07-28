@@ -394,7 +394,7 @@ T* GetKeywordAs( EnvT* e, int ix)
 
 #ifdef HAVE_LIBWXWIDGETS
 
-DStringGDL*  GetTableValueAsString(EnvT* e, BaseGDL* &value, DStringGDL* format,  int &majority, bool acceptSingle=false) {
+DStringGDL*  GetTableValueAsString(EnvT* e, BaseGDL* value, DStringGDL* format,  int &majority, bool acceptSingle=false) {
   DStringGDL* valueAsStrings;
 
   if (value == NULL) { //set valueAsString. 
@@ -414,7 +414,6 @@ DStringGDL*  GetTableValueAsString(EnvT* e, BaseGDL* &value, DStringGDL* format,
 	majority=GDLWidgetTable::NONE_MAJOR;
   } else {
 	//test of non-conformity for value
-	value = value->Dup();
 	if (value->Rank() > 2) e->Throw("Value has greater than 2 dimensions.");
 	if (value->Rank() == 0) {
 	  if (acceptSingle) value->SetDim(dimension(1)) ; //convert to 1D array

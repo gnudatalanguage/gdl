@@ -1979,13 +1979,15 @@ GDLWidget::~GDLWidget()
 #ifdef GDL_DEBUG_WIDGETS
       std::cout << "~GDLWidget("<< widgetID <<"): destroy follower "<< followers.back()<< endl;
 #endif
-      GDLWidget* follower=GetWidget(followers.back()); followers.pop_back();
-    // To Be Investigated: creates double deletion : if (follower) delete follower;
+      GDLWidget* follower=GetWidget(followers.back()); 
+    // To Be Investigated: creates double deletion : 
+      if (follower) delete follower;
+      followers.pop_back();
   }
 
   GDLWidget* gdlParent = GetMyParent();
   if (gdlParent) { //not the TLB
-    gdlParent->RemoveIfFollower(widgetID);
+//    gdlParent->RemoveIfFollower(widgetID);
 
 //    UpdateGui();  //way too long! use a more subtle command!
 
@@ -1994,8 +1996,8 @@ GDLWidget::~GDLWidget()
     static_cast<GDLWidgetTopBase*>(this)->GetTopFrame()->Destroy(); //delete topBase
   }
   
-  GDLDelete(uValue);
-  GDLDelete(vValue);
+//  GDLDelete(uValue);  //strange problems while using gdl_reset_widgets or .reset with (only?) widget_table
+//  GDLDelete(vValue);  //strange problems while using gdl_reset_widgets or .reset with (only?) widget_table
   uName.clear();
   proValue.clear();
   funcValue.clear();
@@ -3365,14 +3367,14 @@ std::vector<int> GDLWidgetTable::GetSortedSelectedRowsOrColsList(DLongGDL* selec
 }
 
 DStringGDL* CallStringFunction(BaseGDL* val, BaseGDL* format) {
-  int stringIx = LibFunIx("GDL_TOSTRING");
-  EnvT *newEnv = new EnvT(DInterpreter::CallStackBack()->CallingNode(), libFunList[stringIx]);
+  static DSub* gdltostringPro =  libFunList[LibFunIx("GDL_TOSTRING")];
+  EnvT *newEnv = new EnvT(DInterpreter::CallStackBack()->CallingNode(), gdltostringPro);
   Guard<EnvT> guard(newEnv);
   newEnv->SetNextPar(val); // pass as local
   if (format != NULL) newEnv->SetKeyword("FORMAT", format);
   DStringGDL* s = static_cast<DStringGDL*> (static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv));
   // equivalent: static_cast<DStringGDL*> (lib::gdl_tostring_fun(newEnv));
-//  guard.release();
+  guard.release();
   for (auto i = 0; i < s->N_Elements(); ++i) StrTrim((*s)[i]);
   s->SetDim(val->Dim()); //necessary
   return s;

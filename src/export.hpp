@@ -1272,7 +1272,7 @@ DLL_PUBLIC void GDL_CDECL GDL_Print(int argc, EXPORT_VPTR *argv, char *argk, boo
 			if (lun < -2 || lun > maxLun) ExitDlmFunctionAndWarn("File unit is not within allowed range: " + i2s(lun) + ".");
 			if (lun == 0) ExitDlmFunctionAndWarn("Cannot print to standard input.");
 			if (lun > 0) { //need a special treatment, as our luns are not at all file descriptors...
-				int proIx = LibProIx("PRINTF");
+				static int proIx = LibProIx("PRINTF");
 				EnvT* newEnv = new EnvT(DInterpreter::CallStackBack()->CallingNode(), libProList[proIx]);
 				Guard<EnvT> guard(newEnv);
 				// add parameters

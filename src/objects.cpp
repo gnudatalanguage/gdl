@@ -164,9 +164,12 @@ volatile bool useDSFMTAcceleration;
 volatile bool useEigenForTransposeOps=false;
 //experimental TPOOL use adaptive number of threads.
 volatile bool useSmartTpool=true;
+volatile bool resetInProgress=false;
+volatile bool warnLoopIndexModified=false;
 
 void ResetObjects(bool atexit)
 {
+  resetInProgress=true;
   if (!atexit) GraphicsDevice::DestroyDevices(); else   GraphicsDevice::PurgeDeviceList();
 
   fileUnits.clear();
@@ -176,7 +179,9 @@ void ResetObjects(bool atexit)
   PurgeContainer(obsoleteSysVarList); //deletion possible since all these 'clones' of some sysVarList variables are specially tagged 'isAClone'
   sysVarRdOnlyList.clear(); // those are just pointers to already deleted vars in sysVarList. Just delete container.
   sysVarNoSaveList.clear(); // those are just pointers to already deleted vars in sysVarList. Just delete container.
+  funMap.clear();
   PurgeContainer(funList);
+  proMap.clear();
   PurgeContainer(proList);
   unknownFunList.clear();
   unknownProList.clear();
@@ -199,6 +204,7 @@ void ResetObjects(bool atexit)
 #ifdef USE_PYTHON
   PythonEnd();
 #endif
+    resetInProgress=false;
 }
 
 // initialize struct descriptors which are not system variables
@@ -1075,6 +1081,7 @@ bool IsPro(antlr::RefToken rT1)
 int ProIx(const string& n)
 {
  int ret=findDProIx(n); if (ret != -1) return ret; 
+  if (DInterpreter::CallStack().empty()) return -1;  //protection: happens during .RESET
   //may be a lambda list ? so it's a UD Pro
   EnvT* requestedScope = (EnvT*) DInterpreter::CallStackBack();
   DSubUD* pro = static_cast<DSubUD*> (requestedScope->GetPro());
@@ -1096,6 +1103,7 @@ int ProIx(const string& n)
 int FunIx(const string& n)
 {
  int ret=findDFunIx(n); if (ret != -1) return ret; 
+  if (DInterpreter::CallStack().empty()) return -1;  //protection: happens during .RESET
 //may be a lambda list ? so it's a UD Fun
     EnvT* requestedScope = (EnvT*) DInterpreter::CallStackBack();
     DSubUD* pro = static_cast<DSubUD*> (requestedScope->GetPro());

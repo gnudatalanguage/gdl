@@ -616,6 +616,7 @@ public:
   }
   void OnKill()
   {
+	  if (resetInProgress) return; //do not call exit handler if .RESET
     std::string RIP=killNotify;
     killNotify.clear(); //remove kill notify for this widget BEFORE calling it (avoid infinite recursal)
     if( RIP != ""){ 
