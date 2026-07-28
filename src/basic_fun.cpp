@@ -423,11 +423,6 @@ namespace lib {
 
     DPtrGDL* ret;
 
-    // Why this code exists ? AC240526 #1837
-    static int nozeroIx = e->KeywordIx("NOZERO");    
-    if (e->KeywordSet(nozeroIx)) Message("Obsolete Keyword NOZERO");
-    //  return new DPtrGDL(dim);
-
     static int ALLOCATE_HEAP = e->KeywordIx("ALLOCATE_HEAP");    
     if (e->KeywordSet(ALLOCATE_HEAP)) {
       ret = new DPtrGDL(dim, BaseGDL::NOZERO);
@@ -447,8 +442,6 @@ namespace lib {
     arr(e, dim);
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
-
-    // reference counting      if( e->KeywordSet(0)) return new DObjGDL(dim, BaseGDL::NOZERO);
     return new DObjGDL(dim);
   }
 
