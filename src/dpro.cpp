@@ -164,7 +164,7 @@ void index_tree(RefDNode top, SCCodeAddresses &addrList, int &i) {
 // vtable
 DSub::~DSub() {}
 
-static int mybsearch( const std::string& s, const std::vector<std::string>keylist, const std::vector<int>lookup )
+static int mybsearch( const std::string& s, const std::vector<std::string>keylist, const std::vector<int>lookup, bool check_for_ambigs=false )
 {
     int jlo = -1, jmid, jhi = lookup.size();
     int l=s.size();
@@ -177,15 +177,16 @@ static int mybsearch( const std::string& s, const std::vector<std::string>keylis
             jhi = jmid;
         else
         {
+          if (check_for_ambigs && jmid < lookup.size()-1 && keylist[lookup[jmid+1]].substr(0,l)==s) return -2;
           return ( lookup[jmid] );
         }
     }
     return -1;
 }
- 
-int DSub::FindKey(const std::string& s)
+
+int DSub::FindKey(const std::string& s, bool do_ambigs)
   {
-    return mybsearch( s, key,  sortIndex);
+    return mybsearch( s, key,  sortIndex, do_ambigs);
 //    String_abbref_eq searchKey(s);
 //    int ix=0;
 //    int c=0;
