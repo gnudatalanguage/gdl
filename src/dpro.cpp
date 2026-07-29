@@ -43,7 +43,7 @@ using namespace std;
 struct myclass {
 
   bool operator()(int i, int j) {
-    return (currentKeys[i] < currentKeys[j]);
+    return (transientKeyVarListT[i] < transientKeyVarListT[j]);
   }
 } indirectCompare;
 
@@ -164,7 +164,8 @@ void index_tree(RefDNode top, SCCodeAddresses &addrList, int &i) {
 // vtable
 DSub::~DSub() {}
 
-static int mybsearch( const std::string& s, const std::vector<std::string>keylist, const std::vector<int>lookup, bool check_for_ambigs=false )
+// "indirect" binary search in keyword list, allowing abbreviations, but no ambiguous abbreviations. 
+static int indirectBSearchWithAbbrev( const std::string& s, const std::vector<std::string>keylist, const std::vector<int>lookup, bool check_for_ambigs=false )
 {
     int jlo = -1, jmid, jhi = lookup.size();
     int l=s.size();
@@ -183,10 +184,29 @@ static int mybsearch( const std::string& s, const std::vector<std::string>keylis
     }
     return -1;
 }
+// "indirect" binary search in varname list. strings must match exactly, of course.
+
+static int indirectBSearch( const std::string& s, const std::vector<std::string>keylist, const std::vector<int>lookup)
+{
+    int jlo = -1, jmid, jhi = lookup.size();
+    while ( jhi - jlo > 1 )
+    {
+        jmid = ( jlo + jhi ) / 2;
+        if ( s > keylist[lookup[jmid]] )
+            jlo = jmid;
+        else if ( s < keylist[lookup[jmid]])
+            jhi = jmid;
+        else
+        {
+          return ( lookup[jmid] );
+        }
+    }
+    return -1;
+}
 
 int DSub::FindKey(const std::string& s, bool do_ambigs)
   {
-    return mybsearch( s, key,  sortIndex, do_ambigs);
+    return indirectBSearchWithAbbrev( s, key,  keySortIndex, do_ambigs);
 //    String_abbref_eq searchKey(s);
 //    int ix=0;
 //    int c=0;
@@ -198,11 +218,11 @@ int DSub::FindKey(const std::string& s, bool do_ambigs)
 
 void DSub::FinalizeKeywordList(){
   int nKey_=this->NKey();
-  sortIndex.resize(nKey_);
-  for(int k=0 ; k<nKey_; ++k) {sortIndex[k]=k;} 
+  keySortIndex.resize(nKey_);
+  for(int k=0 ; k<nKey_; ++k) {keySortIndex[k]=k;} 
 //GD: create sortIndex and sort it using std::sort and a specialized function indirectCompare
-  currentKeys=key;
-  std::sort(sortIndex.begin(),sortIndex.end(), indirectCompare);
+  transientKeyVarListT=key;
+  std::sort(keySortIndex.begin(),keySortIndex.end(), indirectCompare);
 }
 
 // DLib ******************************************************
@@ -263,7 +283,7 @@ DLib::DLib( const string& n, const string& o, const int nPar_,
       warnKey[wk++] = "TPOOL_NOTHREAD";
     }
   } else if (usesKeywords) { //DLM: allow anything, just define _EXTRA at this stage
-    key.resize(1); sortIndex.resize(1); sortIndex[0]=0; 
+    key.resize(1); keySortIndex.resize(1); keySortIndex[0]=0; 
     key[0]="_REF_EXTRA";
     extra_type = REFEXTRA;
     extraIx = 0; // initialize the possibility of KEYWORDS.
@@ -452,7 +472,7 @@ DSubUD::~DSubUD()
       delete cRef; // also ok if cRef is NULL
     }
   file.clear();
-  var.clear();
+  var.clear(); varSortIndex.clear();
   labelList.Clear();
   delete tree;
   sccList.erase(this);
@@ -474,7 +494,7 @@ DSubUD::DSubUD(const string& n,const string& o,const string& f) :
 // name, keywords etc. are kept
 void DSubUD::Reset()
 {
-  var.clear();
+  var.clear(); varSortIndex.clear();
 
   // delete only common references (common blocks only if owner)
   CommonBaseListT::iterator it;
@@ -496,16 +516,46 @@ void DSubUD::DelTree()
   nForLoops = 0;
 }
 
-DSubUD* DSubUD::AddPar(const string& p)
+void DSubUD::FinalizeVariableList()
 {
-  var.push_back(p);
+  int nVar_ = var.size();
+  varSortIndex.resize(nVar_);
+  for (int k = 0; k < nVar_; ++k) {
+    varSortIndex[k] = k;
+  }
+  //GD: create sortIndex and sort it using std::sort and a specialized function indirectCompare
+  transientKeyVarListT = var;
+  std::sort(varSortIndex.begin(), varSortIndex.end(), indirectCompare);
+}
+
+// search for variable returns true if its found in var or common blocks
+bool DSubUD::Find(const std::string& n)
+{
+    if (indirectBSearch( n, var,  varSortIndex) >=0 ) return true;
+//    KeyVarListT::iterator f=std::find(var.begin(),var.end(),n);
+//    if( f != var.end()) return true;
+
+  CommonBaseListT::iterator c=
+    std::find_if(common.begin(),common.end(),DCommon_contains_var(n));
+
+  return (c != common.end());
+}
+// returns the variable index (-1 if not found)
+
+int DSubUD::FindVar(const std::string& s) {
+  return indirectBSearch(s, var, varSortIndex);
+  //    return FindInKeyVarListT(var,s);
+}  
+  DSubUD* DSubUD::AddPar(const string& p)
+{
+  var.push_back(p);FinalizeVariableList(); //insure sortIndex is up-to-date
   if (nPar >= 0) nPar++;
   return this;
 }
 
 unsigned DSubUD::AddVar(const string& v)
 {
-  var.push_back(v);
+  var.push_back(v);FinalizeVariableList(); //insure sortIndex is up-to-date
   return var.size()-1;
 }
 
@@ -536,11 +586,12 @@ DSubUD* DSubUD::AddKey(const string& k, const string& v)
   for( int i= key.size()-1; i>0; --i)
     key[ i] = key[ i-1];
   key[ 0] = k;
-  FinalizeKeywordList(); 
+  FinalizeKeywordList();  //insure sortIndex is up-to-date
   var.resize( var.size() + 1);
   for( int i= var.size()-1; i>0; --i)
     var[ i] = var[ i-1];
   var[ 0] = v;
+  FinalizeVariableList(); //insure sortIndex is up-to-date
   return this;
 }
 
