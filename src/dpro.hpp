@@ -37,7 +37,7 @@
     }
 #endif
 	
-static KeyVarListT  transientKeyVarListT; //just a stable pointer to the different key vectors in each DSub objects, to use with std::sort
+	static KeyVarListT  currentKeys; //just a stable pointer to the different key vectors in each DSub objects, to use with std::sort
 	
 typedef struct _SCC_STRUCT_ { //semicompiled code, small memory imprint (instead of a copy of the DNodes)
 	u_int nodeType = 0;
@@ -153,7 +153,7 @@ protected:
   // K=size(var)-nPar-N
   KeyVarListT 	      key;   //a std::vector  // keyword names (IDList: typedefs.hpp)
 			      // (KEYWORD_NAME=keyword_value)
-  std::vector<int> keySortIndex; 
+  std::vector<int> sortIndex; 
   int                 nPar;   // number of parameters (-1 = infinite)
   int                 nParMin;  // minimum number of parameters (-1 = infinite)
 
@@ -361,7 +361,6 @@ class DSubUD: public DSub
   std::string         file;        // filename were procedure is defined in
 
   KeyVarListT         var;         // keyword values, parameters, local variables
-  std::vector<int>    varSortIndex; //see above for key 
 
   CommonBaseListT     common;      // common blocks or references 
   ProgNodeP           tree;        // the 'code'
@@ -384,8 +383,7 @@ public:
   
   //converts a SemiCompiledCode (chained list of DNodes) to a 'flat' vector of sccstruct and insert the vector in the map pointed by "sccList"
   void SetSCC( RefDNode n);
-  void FinalizeVariableList();
-  
+
   void AddCommon(DCommonBase* c) { common.push_back(c);}
   void DeleteLastAddedCommon(bool kill=true)
   {
@@ -440,7 +438,7 @@ public:
   unsigned AddVar(const std::string&); // add local variable
   DSubUD*  AddKey(const std::string&, const std::string&); // add keyword=value
 
-  void     DelVar(const int ix) {var.erase(var.begin() + ix);FinalizeVariableList();}
+  void     DelVar(const int ix) {var.erase(var.begin() + ix);}
 
    void Resize( SizeT s) { var.resize( s);}
   SizeT Size() {return var.size();}
@@ -454,7 +452,16 @@ public:
   int NForLoops() const { return nForLoops;}
   
   // search for variable returns true if its found in var or common blocks
-  bool Find(const std::string& n);
+  bool Find(const std::string& n)
+  {
+    KeyVarListT::iterator f=std::find(var.begin(),var.end(),n);
+    if( f != var.end()) return true;
+
+    CommonBaseListT::iterator c=
+      std::find_if(common.begin(),common.end(),DCommon_contains_var(n));
+
+    return (c != common.end());
+  }
 
   // returns common block with name n
 
@@ -480,7 +487,6 @@ public:
 void ReName( SizeT ix, const std::string& s)
   {
     var[ix] = s;
-	FinalizeVariableList();
     return;
   }
   const std::string& GetVarName( SizeT ix)
@@ -538,8 +544,10 @@ void ReName( SizeT ix, const std::string& s)
     return false;
   }  
   // returns the variable index (-1 if not found)
-  int FindVar(const std::string& s);
-
+  int FindVar(const std::string& s)
+  {
+    return FindInKeyVarListT(var,s);
+  }
 
   // returns ptr to common variable (NULL if not found)
   DVar* FindCommonVar(const std::string& s) 
