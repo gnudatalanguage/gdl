@@ -1474,7 +1474,7 @@ void GDLWidget::ResetWidgets() {
   std::string callP = "GDL_RESET_WIDGETS";
   StackGuard<EnvStackT> guard(BaseGDL::interpreter->CallStack());
   int proIx = LibProIx(callP);
-  if (proIx == -1) proIx = DInterpreter::GetProIx(callP);
+  if (proIx == -1) proIx = DInterpreter::GetProIx(callP); //throws if absent
   if (proIx == -1) return;
   ProgNodeP callingNode = NULL;
   EnvUDT* newEnv = new EnvUDT(callingNode, proList[ proIx], NULL);
@@ -1822,8 +1822,7 @@ bool GDLWidget::IsRealized() {
   this->setFont();
   this->SetSensitive(sensitive);
 
-  for (std::deque<WidgetIDT>::reverse_iterator c = children.rbegin(); c != children.rend(); ++c) {
-//  for (std::deque<WidgetIDT>::iterator c = children.begin(); c != children.end(); ++c) {
+  for (WidgetReverseIterator c = children.rbegin(); c != children.rend(); ++c) {
    GDLWidget* w = GetWidget(*c);
    if (w != NULL)
     w->OnRealize();
@@ -1892,8 +1891,7 @@ void GDLWidgetMenu::OnRealize() {
   this->SetSensitive(sensitive);
 
   //Menu children are menus or entries, *NOT* any widget.
-  for (std::deque<WidgetIDT>::reverse_iterator c = children.rbegin(); c != children.rend(); ++c) {
-//  for (std::deque<WidgetIDT>::iterator c = children.begin(); c != children.end(); ++c) {
+  for (WidgetReverseIterator c = children.rbegin(); c != children.rend(); ++c) {
    GDLWidgetMenu* w = dynamic_cast<GDLWidgetMenu*>(GetWidget(*c));
    if (w != NULL)
     w->OnRealize();
@@ -1981,13 +1979,15 @@ GDLWidget::~GDLWidget()
 #ifdef GDL_DEBUG_WIDGETS
       std::cout << "~GDLWidget("<< widgetID <<"): destroy follower "<< followers.back()<< endl;
 #endif
-      GDLWidget* follower=GetWidget(followers.back()); followers.pop_back();
-    // To Be Investigated: creates double deletion : if (follower) delete follower;
+      GDLWidget* follower=GetWidget(followers.back()); 
+    // To Be Investigated: creates double deletion : 
+      if (follower) delete follower;
+      followers.pop_back();
   }
 
   GDLWidget* gdlParent = GetMyParent();
   if (gdlParent) { //not the TLB
-    gdlParent->RemoveIfFollower(widgetID);
+//    gdlParent->RemoveIfFollower(widgetID);
 
 //    UpdateGui();  //way too long! use a more subtle command!
 
@@ -1996,8 +1996,8 @@ GDLWidget::~GDLWidget()
     static_cast<GDLWidgetTopBase*>(this)->GetTopFrame()->Destroy(); //delete topBase
   }
   
-  GDLDelete(uValue);
-  GDLDelete(vValue);
+//  GDLDelete(uValue);  //strange problems while using gdl_reset_widgets or .reset with (only?) widget_table
+//  GDLDelete(vValue);  //strange problems while using gdl_reset_widgets or .reset with (only?) widget_table
   uName.clear();
   proValue.clear();
   funcValue.clear();
@@ -3367,14 +3367,14 @@ std::vector<int> GDLWidgetTable::GetSortedSelectedRowsOrColsList(DLongGDL* selec
 }
 
 DStringGDL* CallStringFunction(BaseGDL* val, BaseGDL* format) {
-  int stringIx = LibFunIx("GDL_TOSTRING");
-  EnvT *newEnv = new EnvT(DInterpreter::CallStackBack()->CallingNode(), libFunList[stringIx]);
+  static DSub* gdltostringPro =  libFunList[LibFunIx("GDL_TOSTRING")];
+  EnvT *newEnv = new EnvT(DInterpreter::CallStackBack()->CallingNode(), gdltostringPro);
   Guard<EnvT> guard(newEnv);
   newEnv->SetNextPar(val); // pass as local
   if (format != NULL) newEnv->SetKeyword("FORMAT", format);
   DStringGDL* s = static_cast<DStringGDL*> (static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv));
   // equivalent: static_cast<DStringGDL*> (lib::gdl_tostring_fun(newEnv));
-//  guard.release();
+  guard.release();
   for (auto i = 0; i < s->N_Elements(); ++i) StrTrim((*s)[i]);
   s->SetDim(val->Dim()); //necessary
   return s;
@@ -5907,7 +5907,7 @@ DLong GDLWidgetTree::Sibling() { //uses NextSibling, which may be 0.
 //The Following does not work due to a wxWidgets inner loop problem I cannot fathom.
   int GDLWidgetTree::GetDragNotifyReturn(DString &getFuncName, WidgetIDT sourceID, int modifiers, int defaultval) {
     try{
-      SizeT funIx = GDLInterpreter::GetFunIx( StrUpCase( getFuncName)  );
+      SizeT funIx = GDLInterpreter::GetFunIx( StrUpCase( getFuncName)  );//throws if absent
       if (funIx < 0) {
         Warning("Drag Notify Function "+getFuncName+" not found.");
         return 0;

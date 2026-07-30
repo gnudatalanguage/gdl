@@ -18,7 +18,6 @@
 #ifndef OBJECTS_HPP_
 #define OBJECTS_HPP_
 
-//#include<deque>
 #include<string>
 
 #include "datatypes.hpp"
@@ -50,6 +49,12 @@ extern FunListT      funList;
 extern ProListT      proList;
 extern UnknownFunListT      unknownFunList;
 extern UnknownProListT      unknownProList;
+
+extern LibMapT libFunMap;
+extern LibMapT libProMap;
+extern LibMapT funMap;
+extern LibMapT proMap;
+
 extern LibFunListT   libFunList;
 extern LibProListT   libProList;
 
@@ -101,6 +106,8 @@ extern volatile bool usePlatformDeviceName;
 extern volatile bool useEigenForTransposeOps;
 extern volatile bool useSmartTpool;
 extern          int  debugMode;
+extern volatile bool resetInProgress; //changes some behaviours as some destructors are NOT called when RESET
+extern volatile bool warnLoopIndexModified;//warn if Assignment to loop variable is detected
 
 enum DebugCode {
   DEBUG_CLEAR=0,
@@ -132,6 +139,10 @@ DLong GetLUN();
 
 int ProIx(const std::string& n);
 int FunIx(const std::string& n);
+int findDFunIx(const std::string& n);
+int findDProIx(const std::string& n);
+DFun* GetDFun(const std::string& n);
+DPro* GetDPro(const std::string& n);
 
 int LibProIx(const std::string& n);
 int LibFunIx(const std::string& n);

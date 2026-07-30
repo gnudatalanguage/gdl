@@ -1818,7 +1818,7 @@ PLFLT gdlGetBoxNYSize() {
 		if (currentFormat.substr(0, 1) == "(") {
 		  //internal format, call internal func "STRING"
 		  EnvT *e = ptr->e;
-		  int stringIx = LibFunIx("STRING");
+		  static int stringIx = LibFunIx("STRING");
 		  assert(stringIx >= 0);
 		  EnvT* newEnv = new EnvT(e, libFunList[stringIx], NULL);
 		  Guard<EnvT> guard(newEnv);
@@ -1837,7 +1837,7 @@ PLFLT gdlGetBoxNYSize() {
 		  // this is a function name -> convert to UPPERCASE
 		  currentFormat = StrUpCase(currentFormat);
 		  //  Search in user proc and function
-		  SizeT funIx = GDLInterpreter::GetFunIx(currentFormat);
+		  SizeT funIx = GDLInterpreter::GetFunIx(currentFormat); //throws if absent
 
 		  EnvUDT* newEnv = new EnvUDT(e->CallingNode(), funList[ funIx], (DObjGDL**) NULL);
 		  Guard< EnvUDT> guard(newEnv);
@@ -1904,7 +1904,7 @@ PLFLT gdlGetBoxNYSize() {
         if (currentFormat.substr(0, 1) == "(") { 
           //internal format, call internal func "STRING"
           EnvT *e = ptr->e;
-          int stringIx = LibFunIx("STRING");
+          static int stringIx = LibFunIx("STRING");
           assert(stringIx >= 0);
           EnvT* newEnv = new EnvT(e, libFunList[stringIx], NULL);
           Guard<EnvT> guard(newEnv);
@@ -1923,7 +1923,7 @@ PLFLT gdlGetBoxNYSize() {
           // this is a function name -> convert to UPPERCASE
           currentFormat = StrUpCase(currentFormat);
           //  Search in user proc and function
-          SizeT funIx = GDLInterpreter::GetFunIx(currentFormat);
+          SizeT funIx = GDLInterpreter::GetFunIx(currentFormat); //throws if absent
 
           EnvUDT* newEnv = new EnvUDT(e->CallingNode(), funList[ funIx], (DObjGDL**) NULL);
           Guard< EnvUDT> guard(newEnv);

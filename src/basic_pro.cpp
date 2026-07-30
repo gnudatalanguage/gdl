@@ -388,14 +388,11 @@ namespace lib {
     // first search library procedures
     int proIx = LibProIx(callP);
     if (proIx != -1) {
-      // 	e->PushNewEnv( libProList[ proIx], 1);
-//       make the call
-//       	EnvT* newEnv = static_cast<EnvT*>(e->Interpreter()->CallStack().back());
       EnvT* newEnv = e->NewEnv(libProList[proIx], 1);
       Guard<EnvT> guard(newEnv);
       static_cast<DLibPro*> (newEnv->GetPro())->Pro()(newEnv);
     } else {
-      proIx = DInterpreter::GetProIx(callP);
+      proIx = DInterpreter::GetProIx(callP); //throws if absent
 
       StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
 
@@ -2298,80 +2295,58 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
 
     SizeT nEl = p0S->N_Elements();
     for (int i = 0; i < nEl; ++i) {
-      DString pro = (*p0S)[i];
+      DString routine_name = (*p0S)[i];
 
-      string proFile =StrLowCase(pro);
+      string filename =StrLowCase(routine_name);
       bool isAsave=false; 
-      bool added=AppendIfNeeded(proFile, ".pro"); //look for .pro //Resolve_routine needs to find .sav also
-      bool found = CompleteFileName(proFile);
+      bool added=AppendIfNeeded(filename, ".pro"); //look for .pro //Resolve_routine needs to find .sav also
+      bool found = CompleteFileName(filename);
       if (!found  && added) {
-        proFile = StrLowCase(pro);
-        AppendIfNeeded(proFile, ".sav"); //Resolve_routine needs to find .sav also. 
-        found = CompleteFileName(proFile);
+        filename = StrLowCase(routine_name);
+        AppendIfNeeded(filename, ".sav"); //Resolve_routine needs to find .sav also. 
+        found = CompleteFileName(filename);
         if (found) isAsave=true;
       }
       if (!found) {
         if (!quiet)
-          e->Throw("Not found: " + proFile);
+          e->Throw("Not found: " + filename);
         else return;
       }
 
       //routine already compiled? NATCHKEBIA Ilia 24.06.2015
       bool exists = false;
-      for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
-        if (StrUpCase(proFile).find((*i)->ObjectName()) != std::string::npos) {
-          exists = true;
-          break;
-        }
-      }
+      if (findDProIx(StrUpCase(routine_name)) != -1) exists = true; //OK just for testing existence
 	  if (!exists && (isfunctionKeyword || eitherKeyword)) { //give a chance that the FUNC is already compiled. GD.
-		for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
-		  if (StrUpCase(proFile).find((*i)->ObjectName()) != std::string::npos) {
-			exists = true;
-			break;
-		  }
-		}		
+        if (findDFunIx(StrUpCase(routine_name)) != -1) exists = true; //OK just for testing existence
 	  }
       if (exists && norecompileKeyword) continue;
       if (isAsave) { //unless no_recompile is set, we restore again a .sav just as we will recompile a .pro
         try {
-          std::string Command("RESTORE, \"" + proFile +"\", /VERB");
+          std::string Command("RESTORE, \"" + filename +"\", /VERB");
           DInterpreter::CallStackBack()->Interpreter()->ExecuteStringLine(Command);
         } catch (...) {
-          if (!quiet) e->Throw("Failed to restore file: " + proFile); //please check this is the good behaviour
+          if (!quiet) e->Throw("Failed to restore file: " + filename); //please check this is the good behaviour
           return;
         }
         return;
       }
-      bool success = GDLInterpreter::CompileFile(proFile,cff?StrUpCase(pro):""); // this might trigger recursion
+      bool success = GDLInterpreter::CompileFile(filename,cff?StrUpCase(routine_name):""); // this might trigger recursion
 	  //here the compilation may have produced BOTH a PRO and a FUNC (e.g;: TIC and TOC. Check:
       bool isPro = false; //is pro (GD).
-      for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
-        if (StrUpCase(proFile).find((*i)->ObjectName()) != std::string::npos) {
-          //cout << "exists function " << (*i)->ObjectName() <<endl;
-          isPro = true;
-          break;
-        }
-      }
+      if (findDProIx(StrUpCase(routine_name)) != -1) isPro = true; //OK just for testing existence
       //is func NATCHKEBIA Ilia 25.06.2015
       bool isFunc = false;
-      for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
-        if (StrUpCase(proFile).find((*i)->ObjectName()) != std::string::npos) {
-          //cout << "exists function " << (*i)->ObjectName() <<endl;
-          isFunc = true;
-          break;
-        }
-      }
+      if (findDFunIx(StrUpCase(routine_name)) != -1) isFunc = true; //OK just for testing existence
 	  bool both=(isFunc && isPro);
 	  if (!quiet && !both) {
-		if (!isFunc && isfunctionKeyword && !eitherKeyword) e->Throw("Attempt to call undefined : " + proFile);
-		if (isFunc && !isfunctionKeyword && !eitherKeyword && !exists) e->Throw("Attempt to call undefined : " + proFile);
+		if (!isFunc && isfunctionKeyword && !eitherKeyword) e->Throw("Attempt to call undefined : " + filename);
+		if (isFunc && !isfunctionKeyword && !eitherKeyword && !exists) e->Throw("Attempt to call undefined : " + filename);
 	  }
 
       if (success) {
         // Message("RESOLVE_ROUTINE: Compiled file: " + proFile);
       } else
-        if (!quiet) e->Throw("Failed to compile file: " + proFile); //please check this is the good behaviour
+        if (!quiet) e->Throw("Failed to compile file: " + filename); //please check this is the good behaviour
     }
   }
 

@@ -55,6 +55,7 @@ namespace SysVar
   DStructGDL* Error_State();
   DString MsgPrefix();
 
+  void SetSysErr( DLong newerr);
   void SetErr_String( const DString& eS);
   void SetErrError( DLong eC);
 

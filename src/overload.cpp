@@ -398,6 +398,46 @@ BaseGDL* _GDL_OBJECT_OverloadReportIllegalOperation(EnvUDT* e) {
 namespace lib {
 BaseGDL* class_name_to_obj_new(EnvT* e);
 }
+
+const char KLISTEND[] = "";
+
+void RegisterFun(DStructDesc* o, const std::string &n,  BaseGDL* (*fun_)( EnvUDT*) , int npar=0, const string *keylist=NULL) {
+  assert (o->FindInFunList(n) ==NULL);//no because .RESET
+  DFun *f = new DFun(n, o->Name(), INTERNAL_LIBRARY_STR);
+  if (keylist) {
+    int ikey=0;
+    while (keylist[ikey] != "") {
+      f->AddKey(keylist[ikey],keylist[ikey]);
+      ikey++;
+    }
+  }
+  if (npar > 0) {
+    for (int ipar = 0; ipar < npar; ipar++) f->AddPar("PAR" + i2s(ipar));
+  }
+  WRAPPED_FUNNode* treeFun = new WRAPPED_FUNNode(fun_);
+  f->SetTree(treeFun);
+  funMap[o->Name()+"::"+n]=o->FunList().size();
+  o->FunList().push_back(f);
+}
+
+void RegisterPro(DStructDesc* o, const std::string n, void (*pro_)(EnvUDT*), int npar=0, const string *keylist = NULL) {
+//  assert (o->FindInProList(n) ==NULL);//no because .RESET
+  DPro *p = new DPro(n, o->Name(), INTERNAL_LIBRARY_STR);
+  if (keylist) {
+    int ikey = 0;
+    while (keylist[ikey] != "") {
+      p->AddKey(keylist[ikey], keylist[ikey]);
+      ikey++;
+    }
+  }
+  if (npar > 0) {
+    for (int ipar = 0; ipar < npar; ipar++) p->AddPar("PAR" + i2s(ipar));
+  }
+  WRAPPED_PRONode* treePro = new WRAPPED_PRONode(pro_);
+  p->SetTree(treePro);
+  proMap[o->Name() + "::" + n] = o->ProList().size();
+  o->ProList().push_back(p);
+}    
 void SetupOverloadSubroutines() {
   //   // The call
   //   BaseGDL* res=interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
@@ -431,779 +471,210 @@ void SetupOverloadSubroutines() {
   const string keyNames[] = {"_EXTRA", ""};
   new DLibFunRetNew(lib::class_name_to_obj_new, GDL_OBJECT_NAME, 100, keyNames);
   new DLibFunRetNew(lib::class_name_to_obj_new, GDL_CONTAINER_NAME, 100, keyNames);
-  
-  // automatically adds "SELF" parameter (object name is != "")
-  DFun *_overloadIsTrue = new DFun("_OVERLOADISTRUE", GDL_OBJECT_NAME, INTERNAL_LIBRARY_STR);
-  treeFun = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadIsTrue);
-  _overloadIsTrue->SetTree(treeFun);
+
   // we are NOT setting the operator to have (faster) default behavior
-  // the functions must be there nevertheless for expicit callingNode
+  // the functions must be there nevertheless for explicit callingNode
   // that's why we add them to the functions list
-  gdlObjectDesc->FunList().push_back(_overloadIsTrue);
+  RegisterFun(gdlObjectDesc, "_OVERLOADISTRUE", _GDL_OBJECT_OverloadIsTrue);
   //   gdlObjectDesc->SetOperator(OOIsTrue,_overloadIsTrue);
   // GDL_OBJECT:: [
-  DPro *_overloadBracketsLeftSide = new DPro("_OVERLOADBRACKETSLEFTSIDE", GDL_OBJECT_NAME, INTERNAL_LIBRARY_STR);
-  _overloadBracketsLeftSide->AddPar("OBJREF")->AddPar("RVALUE")->AddPar("ISRANGE");
-  _overloadBracketsLeftSide->AddPar("SUB1")->AddPar("SUB2")->AddPar("SUB3")->AddPar("SUB4");
-  _overloadBracketsLeftSide->AddPar("SUB5")->AddPar("SUB6")->AddPar("SUB7")->AddPar("SUB8");
-  treePro = new WRAPPED_PRONode(_GDL_OBJECT_OverloadBracketsLeftSide);
-  _overloadBracketsLeftSide->SetTree(treePro);
-  gdlObjectDesc->ProList().push_back(_overloadBracketsLeftSide);
+  RegisterPro(gdlObjectDesc, "_OVERLOADBRACKETSLEFTSIDE", _GDL_OBJECT_OverloadBracketsLeftSide,11);
   //   gdlObjectDesc->SetOperator(OOBracketsLeftSide,_overloadBracketsLeftSide);
   // GDL_OBJECT::INIT()
-  DFun *_init = new DFun("INIT", GDL_OBJECT_NAME, INTERNAL_LIBRARY_STR);
-  treeFun = new WRAPPED_FUNNode(_GDL_OBJECT_Init);
-  _init->SetTree(treeFun);
-  gdlObjectDesc->FunList().push_back(_init);
+  RegisterFun(gdlObjectDesc, "INIT", _GDL_OBJECT_Init);
   // GDL_OBJECT:: ]
-  DFun *_overloadBracketsRightSide = new DFun("_OVERLOADBRACKETSRIGHTSIDE", GDL_OBJECT_NAME, INTERNAL_LIBRARY_STR);
-  _overloadBracketsRightSide->AddPar("ISRANGE");
-  _overloadBracketsRightSide->AddPar("SUB1")->AddPar("SUB2")->AddPar("SUB3")->AddPar("SUB4");
-  _overloadBracketsRightSide->AddPar("SUB5")->AddPar("SUB6")->AddPar("SUB7")->AddPar("SUB8");
-  treeFun = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadBracketsRightSide);
-  _overloadBracketsRightSide->SetTree(treeFun);
-  gdlObjectDesc->FunList().push_back(_overloadBracketsRightSide);
+  RegisterFun(gdlObjectDesc, "_OVERLOADBRACKETSRIGHTSIDE", _GDL_OBJECT_OverloadBracketsRightSide,9);
   //   gdlObjectDesc->SetOperator(OOBracketsRightSide,_overloadBracketsRightSide);
   // GDL_OBJECT:: =
-  DFun *_overloadEQ = new DFun("_OVERLOADEQ", GDL_OBJECT_NAME, INTERNAL_LIBRARY_STR);
-  _overloadEQ->AddPar("LEFT")->AddPar("RIGHT");
-  treeFun = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadEQOp);
-  _overloadEQ->SetTree(treeFun);
-  gdlObjectDesc->FunList().push_back(_overloadEQ);
+  RegisterFun(gdlObjectDesc, "_OVERLOADEQ", _GDL_OBJECT_OverloadEQOp,2);
   //   gdlObjectDesc->SetOperator(OOEQ,_overloadEQ);
   // GDL_OBJECT:: !=
-  DFun *_overloadNE = new DFun("_OVERLOADNE", GDL_OBJECT_NAME, INTERNAL_LIBRARY_STR);
-  _overloadNE->AddPar("LEFT")->AddPar("RIGHT");
-  treeFun = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadNEOp);
-  _overloadNE->SetTree(treeFun);
-  gdlObjectDesc->FunList().push_back(_overloadNE);
+  RegisterFun(gdlObjectDesc, "_OVERLOADNE", _GDL_OBJECT_OverloadNEOp,2);
   //   gdlObjectDesc->SetOperator(OONE,_overloadNE);
   // GDL_OBJECT:: +
-  DFun *_overloadPlus = new DFun("_OVERLOADPLUS", GDL_OBJECT_NAME, INTERNAL_LIBRARY_STR);
-  _overloadPlus->AddPar("LEFT")->AddPar("RIGHT");
-  treeFun = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadReportIllegalOperation);
-  _overloadPlus->SetTree(treeFun);
-  gdlObjectDesc->FunList().push_back(_overloadPlus);
+  RegisterFun(gdlObjectDesc, "_OVERLOADPLUS", _GDL_OBJECT_OverloadReportIllegalOperation,2);
   //   gdlObjectDesc->SetOperator(OOPlus,_overloadPlus);
   // GDL_OBJECT:: -
-  DFun *_overloadMinus = new DFun("_OVERLOADMINUS", GDL_OBJECT_NAME, INTERNAL_LIBRARY_STR);
-  _overloadMinus->AddPar("LEFT")->AddPar("RIGHT");
-  treeFun = new WRAPPED_FUNNode(_GDL_OBJECT_OverloadReportIllegalOperation);
-  _overloadMinus->SetTree(treeFun);
-  gdlObjectDesc->FunList().push_back(_overloadMinus);
+  RegisterFun(gdlObjectDesc, "_OVERLOADMINUS", _GDL_OBJECT_OverloadReportIllegalOperation,2);
   //   gdlObjectDesc->SetOperator(OOMINUS,_overloadMinus);
-  // MUST BE LAST line related to gdlObject
-  //no more functions defined ? sort list
- // sort(gdlObjectDesc->ProList().begin(), gdlObjectDesc->ProList().end(), DSub_compare());
- // sort(gdlObjectDesc->FunList().begin(), gdlObjectDesc->FunList().end(), DSub_compare());
+  
+  
+  // GDL_CONTAINER 
+  // - uses corresponding list:: procedures because we are lazy and because LIST was written before GDL_CONTAINER (!).
+  // Some keywords/parameters thus do not exist in the GDL_CONTAINER:: object but this should not be muech of a problem, eh?
+  // GDL_CONTAINER::ADD
+  const string listaddk[] = {"EXTRACT", "POSITION", "NO_COPY", KLISTEND}; //this because we use list_add. GDL_CONTAINER::ADD has less parameters and keywords.
+  RegisterPro(gdlContainerDesc, "ADD", lib::list__add, 1, listaddk);
+  // GDL_CONTAINER::CLEANUP
+  RegisterPro(gdlContainerDesc, "CLEANUP", lib::container__cleanup);
+  // GDL_CONTAINER::COUNT()
+  RegisterFun(gdlContainerDesc, "COUNT", lib::list__count); //no "VALUE" contrary to LIST::
+  // GDL_CONTAINER::EQUALS()
+  RegisterFun(gdlContainerDesc, "EQUALS", lib::container__equals, 1);
+  // GDL_CONTAINER::GET
+  const string contgetk[] = {"ALL", "ISA", "NULL", "COUNT", "POSITION", KLISTEND};
+  RegisterFun(gdlContainerDesc, "GET", lib::container__get, 0, contgetk);  //inherited by LIST
+  // GDL_CONTAINER::INIT
+  RegisterFun(gdlContainerDesc, "INIT", lib::container__init);
+  // GDL_CONTAINER::ISCONTAINED()
+  const string contiscontainedk[] = {"POSITION", KLISTEND};
+  RegisterFun(gdlContainerDesc, "ISCONTAINED", lib::container__iscontained, 1, contiscontainedk);
+  // GDL_CONTAINER::MOVE
+  RegisterPro(gdlContainerDesc, "MOVE", lib::list__move, 2);
+  // GDL_CONTAINER::REMOVE()
+  const string contremovek[] = {"ALL", "POSITION", KLISTEND};
+  RegisterPro(gdlContainerDesc, "REMOVE", lib::container__remove, 1, contremovek);
 
   // LIST:: ]
-  DFun *DFunLIST__overloadBracketsRightSide = new DFun("_OVERLOADBRACKETSRIGHTSIDE", "LIST", INTERNAL_LIBRARY_STR);
-  DFunLIST__overloadBracketsRightSide->AddPar("ISRANGE");
-  DFunLIST__overloadBracketsRightSide->AddPar("SUB1")->AddPar("SUB2")->AddPar("SUB3")->AddPar("SUB4");
-  DFunLIST__overloadBracketsRightSide->AddPar("SUB5")->AddPar("SUB6")->AddPar("SUB7")->AddPar("SUB8");
-  treeFun = new WRAPPED_FUNNode(lib::LIST___OverloadBracketsRightSide);
-  DFunLIST__overloadBracketsRightSide->SetTree(treeFun);
-  listDesc->FunList().push_back(DFunLIST__overloadBracketsRightSide);
-  listDesc->SetOperator(OOBracketsRightSide, DFunLIST__overloadBracketsRightSide);
+  RegisterFun(listDesc, "_OVERLOADBRACKETSRIGHTSIDE", lib::LIST___OverloadBracketsRightSide,9);
   // LIST:: [
-  DPro *DFunPro_overloadBracketsLeftSide = new DPro("_OVERLOADBRACKETSLEFTSIDE", "LIST", INTERNAL_LIBRARY_STR);
-  DFunPro_overloadBracketsLeftSide->AddPar("OBJREF")->AddPar("RVALUE")->AddPar("ISRANGE");
-  DFunPro_overloadBracketsLeftSide->AddPar("SUB1")->AddPar("SUB2")->AddPar("SUB3")->AddPar("SUB4");
-  DFunPro_overloadBracketsLeftSide->AddPar("SUB5")->AddPar("SUB6")->AddPar("SUB7")->AddPar("SUB8");
-  treePro = new WRAPPED_PRONode(lib::LIST___OverloadBracketsLeftSide);
-  DFunPro_overloadBracketsLeftSide->SetTree(treePro);
-  listDesc->ProList().push_back(DFunPro_overloadBracketsLeftSide);
-  listDesc->SetOperator(OOBracketsLeftSide, DFunPro_overloadBracketsLeftSide);
+  RegisterPro(listDesc, "_OVERLOADBRACKETSLEFTSIDE", lib::LIST___OverloadBracketsLeftSide,11);
   // LIST:: +
-  DFun *LIST_overloadPlus = new DFun("_OVERLOADPLUS", "LIST", INTERNAL_LIBRARY_STR);
-  LIST_overloadPlus->AddPar("LEFT")->AddPar("RIGHT");
-  treeFun = new WRAPPED_FUNNode(lib::LIST___OverloadPlus);
-  LIST_overloadPlus->SetTree(treeFun);
-  listDesc->FunList().push_back(LIST_overloadPlus);
-  listDesc->SetOperator(OOPlus, LIST_overloadPlus);
+  RegisterFun(listDesc, "_OVERLOADPLUS", lib::LIST___OverloadPlus,2);
   // LIST:: =
-  DFun *LIST_overloadEQ = new DFun("_OVERLOADEQ", "LIST", INTERNAL_LIBRARY_STR);
-  LIST_overloadEQ->AddPar("LEFT")->AddPar("RIGHT");
-  treeFun = new WRAPPED_FUNNode(lib::LIST___OverloadEQOp);
-  LIST_overloadEQ->SetTree(treeFun);
-  listDesc->FunList().push_back(LIST_overloadEQ);
-  listDesc->SetOperator(OOEQ, LIST_overloadEQ);
+  RegisterFun(listDesc, "_OVERLOADEQ", lib::LIST___OverloadEQOp,2);
   // LIST:: !=
-  DFun *LIST_overloadNE = new DFun("_OVERLOADNE", "LIST", INTERNAL_LIBRARY_STR);
-  LIST_overloadNE->AddPar("LEFT")->AddPar("RIGHT");
-  treeFun = new WRAPPED_FUNNode(lib::LIST___OverloadNEOp);
-  LIST_overloadNE->SetTree(treeFun);
-  listDesc->FunList().push_back(LIST_overloadNE);
-  listDesc->SetOperator(OONE, LIST_overloadNE);
+  RegisterFun(listDesc, "_OVERLOADNE", lib::LIST___OverloadNEOp,2);
   // LIST::
-  DFun *LIST_overloadIsTrue = new DFun("_OVERLOADISTRUE", "LIST", INTERNAL_LIBRARY_STR);
-  treeFun = new WRAPPED_FUNNode(lib::LIST___OverloadIsTrue);
-  LIST_overloadIsTrue->SetTree(treeFun);
-  listDesc->FunList().push_back(LIST_overloadIsTrue);
-  listDesc->SetOperator(OOIsTrue, LIST_overloadIsTrue);
-
+  RegisterFun(listDesc, "_OVERLOADISTRUE", lib::LIST___OverloadIsTrue);
   // LIST::ADD
-  DPro *DProLIST__ADD = new DPro("ADD", "LIST", INTERNAL_LIBRARY_STR);
-  DProLIST__ADD->AddKey("EXTRACT", "EXTRACT")->AddKey("NO_COPY", "NO_COPY");
-  DProLIST__ADD->AddKey("POSITION", "POSITION");
-  DProLIST__ADD->AddPar("VALUE")->AddPar("INDEX");
-  treePro = new WRAPPED_PRONode(lib::list__add);
-  DProLIST__ADD->SetTree(treePro);
-  listDesc->ProList().push_back(DProLIST__ADD);
+  RegisterPro(listDesc, "ADD", lib::list__add, 2, listaddk);
   // LIST::REMOVE()
-  DFun *DFunLIST__REMOVE = new DFun("REMOVE", "LIST", INTERNAL_LIBRARY_STR);
-  DFunLIST__REMOVE->AddKey("ALL", "ALL");
-  DFunLIST__REMOVE->AddPar("INDEX");
-  treeFun = new WRAPPED_FUNNode(lib::list__remove_fun);
-  DFunLIST__REMOVE->SetTree(treeFun);
-  listDesc->FunList().push_back(DFunLIST__REMOVE);
+  const string listremovek[]={ "ALL", KLISTEND};
+  RegisterFun(listDesc,"REMOVE",lib::list__remove_fun,1,listremovek);
   // LIST::REMOVE PRO
-  DPro *DProLIST__REMOVE = new DPro("REMOVE", "LIST", INTERNAL_LIBRARY_STR);
-  DProLIST__REMOVE->AddKey("ALL", "ALL");
-  DProLIST__REMOVE->AddPar("INDEX");
-  treePro = new WRAPPED_PRONode(lib::list__remove_pro);
-  DProLIST__REMOVE->SetTree(treePro);
-  listDesc->ProList().push_back(DProLIST__REMOVE);
+  RegisterPro(listDesc,"REMOVE",lib::list__remove_pro,1,listremovek);
   // LIST::REVERSE PRO
-  DPro *DProLIST__REVERSE = new DPro("REVERSE", "LIST", INTERNAL_LIBRARY_STR);
-  treePro = new WRAPPED_PRONode(lib::list__reverse);
-  DProLIST__REVERSE->SetTree(treePro);
-  listDesc->ProList().push_back(DProLIST__REVERSE);
+  RegisterPro(listDesc,"REVERSE",lib::list__reverse);
   // LIST::ToArray()
-  DFun *DFunLIST__TOARRAY = new DFun("TOARRAY", "LIST", INTERNAL_LIBRARY_STR);
-  DFunLIST__TOARRAY->AddKey("TYPE", "TYPE")->AddKey("MISSING", "MISSING");
-  DFunLIST__TOARRAY->AddKey("DIMENSION", "DIMENSION")->AddKey("NO_COPY", "NO_COPY");
-  DFunLIST__TOARRAY->AddKey("PROMOTE_TYPE", "PROMOTE_TYPE")->AddKey("TRANSPOSE", "TRANSPOSE");
-
-  treeFun = new WRAPPED_FUNNode(lib::list__toarray);
-  DFunLIST__TOARRAY->SetTree(treeFun);
-  listDesc->FunList().push_back(DFunLIST__TOARRAY);
-#if 0
-  // LIST::HELP()
-  DFun *DFunLIST__HELP = new DFun("HELP", "LIST", INTERNAL_LIBRARY_STR);
-  DFunLIST__TOHELP->AddKey("MAXITEM", "MAXITEM");
-  treeFun = new WRAPPED_FUNNode(lib::list__help);
-  DFunLIST__TOHELP->SetTree(treeFun);
-  listDesc->FunList().push_back(DFunLIST__TOHELP);
-#endif
-#if 0
-  // LIST::HELP
-  DPro *DProLIST__HELP = new DPro("HELP", "LIST", INTERNAL_LIBRARY_STR);
-  DProLIST__HELP->AddKey("MAXITEM", "MAXITEM");
-  treePro = new WRAPPED_PRONode(lib::list__help);
-  DProLIST__HELP->SetTree(treePro);
-  listDesc->ProList().push_back(DProLIST__HELP);
-#endif
+  const string listtoarrayk[]={ "TYPE","MISSING","DIMENSION", "NO_COPY", "PROMOTE_TYPE", "TRANSPOSE", KLISTEND};
+  RegisterFun(listDesc,"TOARRAY",lib::list__toarray,0,listtoarrayk);
   // LIST::CLEANUP
-  DPro *DProLIST__CLEANUP = new DPro("CLEANUP", "LIST", INTERNAL_LIBRARY_STR);
-  treePro = new WRAPPED_PRONode(lib::list__cleanup);
-  DProLIST__CLEANUP->SetTree(treePro);
-  listDesc->ProList().push_back(DProLIST__CLEANUP);
+  RegisterPro(listDesc,"CLEANUP",lib::list__cleanup);
   // LIST::MOVE
-  DPro *DProLIST__MOVE = new DPro("MOVE", "LIST", INTERNAL_LIBRARY_STR);
-  DProLIST__MOVE->AddPar("SOURCE")->AddPar("DESTINATION");
-  treePro = new WRAPPED_PRONode(lib::list__move);
-  DProLIST__MOVE->SetTree(treePro);
-  listDesc->ProList().push_back(DProLIST__MOVE);
+  RegisterPro(listDesc,"MOVE",lib::list__move,2);
   // LIST::SWAP
-  DPro *DProLIST__SWAP = new DPro("SWAP", "LIST", INTERNAL_LIBRARY_STR);
-  DProLIST__SWAP->AddPar("INDEX1")->AddPar("INDEX2");
-  treePro = new WRAPPED_PRONode(lib::list__swap);
-  DProLIST__SWAP->SetTree(treePro);
-  listDesc->ProList().push_back(DProLIST__SWAP);
+  RegisterPro(listDesc,"SWAP",lib::list__swap,2);
   // LIST::COUNT()
-  DFun *DFunLIST__COUNT = new DFun("COUNT", "LIST", INTERNAL_LIBRARY_STR);
-  DFunLIST__COUNT->AddPar("VALUE");
-  treeFun = new WRAPPED_FUNNode(lib::list__count);
-  DFunLIST__COUNT->SetTree(treeFun);
-  listDesc->FunList().push_back(DFunLIST__COUNT);
+  RegisterFun(listDesc,"COUNT",lib::list__count,1);
   // LIST::ISEMPTY()
-  DFun *DFunLIST__ISEMPTY = new DFun("ISEMPTY", "LIST", INTERNAL_LIBRARY_STR);
-  treeFun = new WRAPPED_FUNNode(lib::list__isempty);
-  DFunLIST__ISEMPTY->SetTree(treeFun);
-  listDesc->FunList().push_back(DFunLIST__ISEMPTY);
+  RegisterFun(listDesc,"ISEMPTY",lib::list__isempty);
   // LIST::WHERE()
-  DFun *DFunLIST__WHERE = new DFun("WHERE", "LIST", INTERNAL_LIBRARY_STR);
-  DFunLIST__WHERE->AddKey("COMPLEMENT", "COMPLEMENT");
-  DFunLIST__WHERE->AddKey("COUNT", "COUNT");
-  DFunLIST__WHERE->AddKey("NCOMPLEMENT", "NCOMPLEMENT");
-  DFunLIST__WHERE->AddPar("VALUE");
-  treeFun = new WRAPPED_FUNNode(lib::list__where);
-  DFunLIST__WHERE->SetTree(treeFun);
-  listDesc->FunList().push_back(DFunLIST__WHERE);
-  // LIST::GET()  // here to make up for IDL_CONTAINER lack.
-  // res=List.get([/all] [, isa=(names)] [. position=index] [, count=variable] [/null][)
-  DFun *DFunLIST__GET = new DFun("GET", "LIST", INTERNAL_LIBRARY_STR);
-  DFunLIST__GET->AddKey("ALL", "ALL")->AddKey("ISA", "ISA")->AddKey("NULL", "NULL");
-  DFunLIST__GET->AddKey("COUNT", "COUNT");
-  DFunLIST__GET->AddKey("POSITION", "POSITION");
-
-  treeFun = new WRAPPED_FUNNode(lib::list__get);
-  DFunLIST__GET->SetTree(treeFun);
-  listDesc->FunList().push_back(DFunLIST__GET);
-
-  // LIST::INIT()  // here to make up for IDL_CONTAINER lack.
-  // list is parented by GDL_OBJECT which can handled INIT:
-  // DFun *DFunLIST__INIT = new DFun("INIT","LIST",INTERNAL_LIBRARY_STR);
-  // treeFun = new WRAPPED_FUNNode( lib::list__init);
-  // DFunLIST__INIT->SetTree( treeFun);
-  // listDesc->FunList().push_back(DFunLIST__INIT);
-
-  // MUST BE LAST line related to List
-  //no more functions defined ? sort list
-  //sort(listDesc->ProList().begin(), listDesc->ProList().end(), DSub_compare());
-  //sort(listDesc->FunList().begin(), listDesc->FunList().end(), DSub_compare());
+  const string listwherek[]={ "COMPLEMENT", "COUNT","NCOMPLEMENT", KLISTEND};
+  RegisterFun(listDesc,"WHERE",lib::list__where,1,listwherek);
 
   // HASH
-  DFun *DFunHASH__overloadBracketsRightSide = new DFun("_OVERLOADBRACKETSRIGHTSIDE", "HASH", INTERNAL_LIBRARY_STR);
-  DFunHASH__overloadBracketsRightSide->AddPar("ISRANGE");
-  DFunHASH__overloadBracketsRightSide->AddPar("SUB1")->AddPar("SUB2")->AddPar("SUB3")->AddPar("SUB4");
-  DFunHASH__overloadBracketsRightSide->AddPar("SUB5")->AddPar("SUB6")->AddPar("SUB7")->AddPar("SUB8");
-  treeFun = new WRAPPED_FUNNode(lib::HASH___OverloadBracketsRightSide);
-  DFunHASH__overloadBracketsRightSide->SetTree(treeFun);
-  hashDesc->FunList().push_back(DFunHASH__overloadBracketsRightSide);
-  hashDesc->SetOperator(OOBracketsRightSide, DFunHASH__overloadBracketsRightSide);
+  // HASH:: ]
+  RegisterFun(hashDesc, "_OVERLOADBRACKETSRIGHTSIDE", lib::HASH___OverloadBracketsRightSide,9);
+  // HASH:: [
+  RegisterPro(hashDesc, "_OVERLOADBRACKETSLEFTSIDE", lib::HASH___OverloadBracketsLeftSide,11);
+  // HASH:: +
+  RegisterFun(hashDesc, "_OVERLOADPLUS", lib::HASH___OverloadPlus,2);
+  // HASH:: =
+  RegisterFun(hashDesc, "_OVERLOADEQ", lib::HASH___OverloadEQOp,2);
+  // HASH:: !=
+  RegisterFun(hashDesc, "_OVERLOADNE", lib::HASH___OverloadNEOp,2);
+  // HASH::
+  RegisterFun(hashDesc, "_OVERLOADISTRUE", lib::HASH___OverloadIsTrue);
 
-  DPro *DProHASH_overloadBracketsLeftSide = new DPro("_OVERLOADBRACKETSLEFTSIDE", "HASH", INTERNAL_LIBRARY_STR);
-  DProHASH_overloadBracketsLeftSide->AddPar("OBJREF")->AddPar("RVALUE")->AddPar("ISRANGE");
-  DProHASH_overloadBracketsLeftSide->AddPar("SUB1")->AddPar("SUB2")->AddPar("SUB3")->AddPar("SUB4");
-  DProHASH_overloadBracketsLeftSide->AddPar("SUB5")->AddPar("SUB6")->AddPar("SUB7")->AddPar("SUB8");
-  treePro = new WRAPPED_PRONode(lib::HASH___OverloadBracketsLeftSide);
-  DProHASH_overloadBracketsLeftSide->SetTree(treePro);
-  hashDesc->ProList().push_back(DProHASH_overloadBracketsLeftSide);
-  hashDesc->SetOperator(OOBracketsLeftSide, DProHASH_overloadBracketsLeftSide);
-
-  DFun *HASH_overloadPlus = new DFun("_OVERLOADPLUS", "HASH", INTERNAL_LIBRARY_STR);
-  HASH_overloadPlus->AddPar("LEFT")->AddPar("RIGHT");
-  treeFun = new WRAPPED_FUNNode(lib::HASH___OverloadPlus);
-  HASH_overloadPlus->SetTree(treeFun);
-  hashDesc->FunList().push_back(HASH_overloadPlus);
-  hashDesc->SetOperator(OOPlus, HASH_overloadPlus);
-
-  DFun *HASH_overloadEQ = new DFun("_OVERLOADEQ", "HASH", INTERNAL_LIBRARY_STR);
-  HASH_overloadEQ->AddPar("LEFT")->AddPar("RIGHT");
-  treeFun = new WRAPPED_FUNNode(lib::HASH___OverloadEQOp);
-  HASH_overloadEQ->SetTree(treeFun);
-  hashDesc->FunList().push_back(HASH_overloadEQ);
-  hashDesc->SetOperator(OOEQ, HASH_overloadEQ);
-
-  DFun *HASH_overloadNE = new DFun("_OVERLOADNE", "HASH", INTERNAL_LIBRARY_STR);
-  HASH_overloadNE->AddPar("LEFT")->AddPar("RIGHT");
-  treeFun = new WRAPPED_FUNNode(lib::HASH___OverloadNEOp);
-  HASH_overloadNE->SetTree(treeFun);
-  hashDesc->FunList().push_back(HASH_overloadNE);
-  hashDesc->SetOperator(OONE, HASH_overloadNE);
-
-  DFun *HASH_overloadIsTrue = new DFun("_OVERLOADISTRUE", "HASH", INTERNAL_LIBRARY_STR);
-  treeFun = new WRAPPED_FUNNode(lib::HASH___OverloadIsTrue);
-  HASH_overloadIsTrue->SetTree(treeFun);
-  hashDesc->FunList().push_back(HASH_overloadIsTrue);
-  hashDesc->SetOperator(OOIsTrue, HASH_overloadIsTrue);
-
-  // HASH::REMOVE()
-  DFun *DFunHASH__REMOVE = new DFun("REMOVE", "HASH", INTERNAL_LIBRARY_STR);
-  DFunHASH__REMOVE->AddKey("ALL", "ALL");
-  DFunHASH__REMOVE->AddPar("INDEX");
-  treeFun = new WRAPPED_FUNNode(lib::hash__remove_fun);
-  DFunHASH__REMOVE->SetTree(treeFun);
-  hashDesc->FunList().push_back(DFunHASH__REMOVE);
-  // HASH::REMOVE PRO
-  DPro *DProHASH__REMOVE = new DPro("REMOVE", "HASH", INTERNAL_LIBRARY_STR);
-  DProHASH__REMOVE->AddKey("ALL", "ALL");
-  DProHASH__REMOVE->AddPar("INDEX");
-  treePro = new WRAPPED_PRONode(lib::hash__remove_pro);
-  DProHASH__REMOVE->SetTree(treePro);
-  hashDesc->ProList().push_back(DProHASH__REMOVE);
-  // HASH::SET PRO
-  DPro *DProHASH__SET = new DPro("SET", "HASH", INTERNAL_LIBRARY_STR);
-  DProHASH__SET->AddPar("KEY")->AddPar("VALUE");
-  treePro = new WRAPPED_PRONode(lib::HASH__Set);
-  DProHASH__SET->SetTree(treePro);
-  hashDesc->ProList().push_back(DProHASH__SET);
+ // HASH::REMOVE()
+  RegisterFun(hashDesc,"REMOVE",lib::hash__remove_fun,1,listremovek);
+  // LIST::REMOVE PRO
+  RegisterPro(hashDesc,"REMOVE",lib::hash__remove_pro,1,listremovek);
   // HASH::HASKEY()
-  DFun *DFunHASH__HASKEY = new DFun("HASKEY", "HASH", INTERNAL_LIBRARY_STR);
-  DFunHASH__HASKEY->AddPar("KEYLIST");
-  treeFun = new WRAPPED_FUNNode(lib::hash__haskey);
-  DFunHASH__HASKEY->SetTree(treeFun);
-  hashDesc->FunList().push_back(DFunHASH__HASKEY);
+  RegisterFun(hashDesc,"HASKEY",lib::hash__haskey,1);
   // HASH::KEYS()
-  DFun *DFunHASH__KEYS = new DFun("KEYS", "HASH", INTERNAL_LIBRARY_STR);
-  treeFun = new WRAPPED_FUNNode(lib::hash__keys);
-  DFunHASH__KEYS->SetTree(treeFun);
-  hashDesc->FunList().push_back(DFunHASH__KEYS);
+  RegisterFun(hashDesc,"KEYS",lib::hash__keys);
   // HASH::VALUES()
-  DFun *DFunHASH__VALUES = new DFun("VALUES", "HASH", INTERNAL_LIBRARY_STR);
-  treeFun = new WRAPPED_FUNNode(lib::hash__values);
-  DFunHASH__VALUES->SetTree(treeFun);
-  hashDesc->FunList().push_back(DFunHASH__VALUES);
+  RegisterFun(hashDesc,"VALUES",lib::hash__values);
   // HASH::TOSTRUCT()
-  DFun *DFunHASH__TOSTRUCT = new DFun("TOSTRUCT", "HASH", INTERNAL_LIBRARY_STR);
-
-  DFunHASH__TOSTRUCT->AddKey("SKIPPED", "SKIPPED")->AddKey("MISSING", "MISSING");
-  DFunHASH__TOSTRUCT->AddKey("NO_COPY", "NO_COPY")->AddKey("RECURSIVE", "RECURSIVE");
-
-  treeFun = new WRAPPED_FUNNode(lib::hash__tostruct);
-  DFunHASH__TOSTRUCT->SetTree(treeFun);
-  hashDesc->FunList().push_back(DFunHASH__TOSTRUCT);
+  const string hastostructk[]={ "SKIPPED", "MISSING", "NO_COPY", "RECURSIVE", KLISTEND};
+  RegisterFun(hashDesc,"TOSTRUCT",lib::hash__tostruct,0,hastostructk);
   // HASH::COUNT()
-  DFun *DFunHASH__COUNT = new DFun("COUNT", "HASH", INTERNAL_LIBRARY_STR);
-  DFunHASH__COUNT->AddPar("VALUE");
-  treeFun = new WRAPPED_FUNNode(lib::hash__count);
-  DFunHASH__COUNT->SetTree(treeFun);
-  hashDesc->FunList().push_back(DFunHASH__COUNT);
+  RegisterFun(hashDesc,"COUNT",lib::hash__count,1);
   // HASH::ISEMPTY()
-  DFun *DFunHASH__ISEMPTY = new DFun("ISEMPTY", "HASH", INTERNAL_LIBRARY_STR);
-  treeFun = new WRAPPED_FUNNode(lib::hash__isempty);
-  DFunHASH__ISEMPTY->SetTree(treeFun);
-  hashDesc->FunList().push_back(DFunHASH__ISEMPTY);
+  RegisterFun(hashDesc,"ISEMPTY",lib::hash__isempty,1);
   // HASH::ISORDERED()
-  DFun *DFunHASH__ISORDERED = new DFun("ISORDERED", "HASH", INTERNAL_LIBRARY_STR);
-  treeFun = new WRAPPED_FUNNode(lib::hash__isordered);
-  DFunHASH__ISORDERED->SetTree(treeFun);
-  hashDesc->FunList().push_back(DFunHASH__ISORDERED);
+  RegisterFun(hashDesc,"ISORDERED",lib::hash__isordered,1);
   // HASH::ISFOLDCASE()
-  DFun *DFunHASH__ISFOLDCASE = new DFun("ISFOLDCASE", "HASH", INTERNAL_LIBRARY_STR);
-  treeFun = new WRAPPED_FUNNode(lib::hash__isfoldcase);
-  DFunHASH__ISFOLDCASE->SetTree(treeFun);
-  hashDesc->FunList().push_back(DFunHASH__ISFOLDCASE);
+  RegisterFun(hashDesc,"ISFOLDCASE",lib::hash__isfoldcase,1);
   // HASH::WHERE()
-  DFun *DFunHASH__WHERE = new DFun("WHERE", "HASH", INTERNAL_LIBRARY_STR);
-  DFunHASH__WHERE->AddKey("COMPLEMENT", "COMPLEMENT");
-  DFunHASH__WHERE->AddKey("COUNT", "COUNT");
-  DFunHASH__WHERE->AddKey("NCOMPLEMENT", "NCOMPLEMENT");
-  DFunHASH__WHERE->AddPar("VALUE");
-  treeFun = new WRAPPED_FUNNode(lib::hash__where);
-  DFunHASH__WHERE->SetTree(treeFun);
-  hashDesc->FunList().push_back(DFunHASH__WHERE);
-  // MUST BE LAST line related to Hash
-  //no more functions defined ? sort list
-  //sort(hashDesc->ProList().begin(), hashDesc->ProList().end(), DSub_compare());
-  //sort(hashDesc->FunList().begin(), hashDesc->FunList().end(), DSub_compare());
-
-  // GDL_CONTAINER - references list procedures because, we can.
-  // res=GDL_CONTAINER.get([/all] [, isa=(names)] [. position=index] [, count=variable] [/null][)
-  DFun* DFunlist = new DFun("GET", "GDL_CONTAINER", INTERNAL_LIBRARY_STR);
-  DFunlist->AddKey("ALL", "ALL")->AddKey("ISA", "ISA")->AddKey("NULL", "NULL");
-  DFunlist->AddKey("COUNT", "COUNT");
-  DFunlist->AddKey("POSITION", "POSITION");
-
-  treeFun = new WRAPPED_FUNNode(lib::list__get);
-  DFunlist->SetTree(treeFun);
-  gdlContainerDesc->FunList().push_back(DFunlist);
-
-  // GDL_CONTAINER::INIT()
-    DFunlist = new DFun("INIT","GDL_CONTAINER",INTERNAL_LIBRARY_STR);
-    treeFun = new WRAPPED_FUNNode( lib::list__init);
-    DFunlist->SetTree( treeFun);
-    gdlContainerDesc->FunList().push_back(DFunlist);
-
-  // GDL_CONTAINER::COUNT()
-  DFunlist = new DFun("COUNT", "GDL_CONTAINER", INTERNAL_LIBRARY_STR);
-  DFunlist->AddPar("VALUE");
-  treeFun = new WRAPPED_FUNNode(lib::list__count);
-  DFunlist->SetTree(treeFun);
-  gdlContainerDesc->FunList().push_back(DFunlist);
-  // GDL_CONTAINER::ADD
-  DPro* DProlist = new DPro("ADD", "GDL_CONTAINER", INTERNAL_LIBRARY_STR);
-  DProlist->AddKey("EXTRACT", "EXTRACT")->AddKey("NO_COPY", "NO_COPY");
-  DProlist->AddKey("POSITION", "POSITION");
-  DProlist->AddPar("VALUE")->AddPar("INDEX");
-  treePro = new WRAPPED_PRONode(lib::list__add);
-  DProlist->SetTree(treePro);
-  gdlContainerDesc->ProList().push_back(DProlist);
-#if 0
-  // GDL_CONTAINER::HELP
-  DProlist = new DPro("HELP", "GDL_CONTAINER", INTERNAL_LIBRARY_STR);
-  DProlist->AddKey("MAXITEM", "MAXITEM");
-  treePro = new WRAPPED_PRONode(lib::list__help);
-  DProlist->SetTree(treePro);
-  gdlContainerDesc->ProList().push_back(DProlist);
-#endif
-  // GDL_CONTAINER::CLEANUP
-  DProlist = new DPro("CLEANUP", "GDL_CONTAINER", INTERNAL_LIBRARY_STR);
-  treePro = new WRAPPED_PRONode(lib::container__cleanup);
-  DProlist->SetTree(treePro);
-  gdlContainerDesc->ProList().push_back(DProlist); //*/
-  // GDL_CONTAINER::MOVE
-  DProlist = new DPro("MOVE", "GDL_CONTAINER", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("SOURCE")->AddPar("DESTINATION");
-  treePro = new WRAPPED_PRONode(lib::list__move);
-  DProlist->SetTree(treePro);
-  gdlContainerDesc->ProList().push_back(DProlist);
-  // GDL_CONTAINER::REMOVE()
-  DProlist = new DPro("REMOVE", "GDL_CONTAINER", INTERNAL_LIBRARY_STR);
-  DProlist->AddKey("ALL", "ALL");
-  DProlist->AddKey("POSITION", "POSITION");
-  DProlist->AddPar("HEAPVAR");
-  treePro = new WRAPPED_PRONode(lib::container__remove);
-  DProlist->SetTree(treePro);
-  gdlContainerDesc->ProList().push_back(DProlist);
-  // GDL_CONTAINER::EQUALS()
-  DFunlist = new DFun("EQUALS", "GDL_CONTAINER", INTERNAL_LIBRARY_STR);
-  DFunlist->AddPar("VALUE");
-  treeFun = new WRAPPED_FUNNode(lib::container__equals);
-  DFunlist->SetTree(treeFun);
-  gdlContainerDesc->FunList().push_back(DFunlist);
-  // GDL_CONTAINER::ISCONTAINED()
-  DFunlist = new DFun("ISCONTAINED", "GDL_CONTAINER", INTERNAL_LIBRARY_STR);
-  DFunlist->AddKey("POSITION", "POSITION");
-  DFunlist->AddPar("VALUE");
-  treeFun = new WRAPPED_FUNNode(lib::container__iscontained);
-  DFunlist->SetTree(treeFun);
-  gdlContainerDesc->FunList().push_back(DFunlist);
-  // MUST BE LAST line related to gdlContainer
- //no more functions defined ? sort list
-  //sort(gdlContainerDesc->ProList().begin(), gdlContainerDesc->ProList().end(), DSub_compare());
-  //sort(gdlContainerDesc->FunList().begin(), gdlContainerDesc->FunList().end(), DSub_compare());
-
+  const string hashwherek[]={"COMPLEMENT", "COUNT","NCOMPLEMENT", KLISTEND};
+  RegisterFun(hashDesc,"WHERE",lib::hash__where,1,hashwherek);
+// HASH::SET PRO
+  RegisterPro(hashDesc,"SET",lib::HASH__Set,2);
 
 #ifdef USE_SHAPELIB
   //=============GDLffShape========================
   //IDLFFSHAPE::GETATTRIBUTES
-  DFunlist = new DFun("GETATTRIBUTES", "IDLFFSHAPE", INTERNAL_LIBRARY_STR);
-  DFunlist->AddPar("INDEX");
-  DFunlist->AddKey("ATTRIBUTE_STRUCTURE", "ATTRIBUTE_STRUCTURE");
-  DFunlist->AddKey("ALL", "ALL");
-  treeFun = new WRAPPED_FUNNode(lib::GDLffShape___GetAttributes);
-  DFunlist->SetTree(treeFun);
-  GDLffShapeDesc->FunList().push_back(DFunlist);
+  const string ffshpattributestructuresk[]={ "ATTRIBUTE_STRUCTURE", "ALL", KLISTEND};
+  RegisterFun(GDLffShapeDesc,"GETATTRIBUTES",lib::GDLffShape___GetAttributes,1,ffshpattributestructuresk);
   //IDLFFSHAPE::GETENTITY
-  DFunlist = new DFun("GETENTITY", "IDLFFSHAPE", INTERNAL_LIBRARY_STR);
-  DFunlist->AddPar("INDEX");
-  DFunlist->AddKey("ATTRIBUTES", "ATTRIBUTES");
-  DFunlist->AddKey("ALL", "ALL");
-  treeFun = new WRAPPED_FUNNode(lib::GDLffShape___GetEntity);
-  DFunlist->SetTree(treeFun);
-  GDLffShapeDesc->FunList().push_back(DFunlist);
+  const string ffshpattributesk[]={ "ATTRIBUTES", "ALL", KLISTEND};
+  RegisterFun(GDLffShapeDesc,"GETENTITY",lib::GDLffShape___GetEntity,1,ffshpattributesk);
   //IDLFFSHAPE::INIT
-  DFunlist = new DFun("INIT", "IDLFFSHAPE", INTERNAL_LIBRARY_STR);
-  DFunlist->AddPar("FILENAME");
-  DFunlist->AddKey("DBF_ONLY", "DBF_ONLY");
-  DFunlist->AddKey("ENTITY_TYPE", "ENTITY_TYPE");
-  DFunlist->AddKey("UPDATE", "UPDATE");
-  treeFun = new WRAPPED_FUNNode(lib::GDLffShape___Init);
-  DFunlist->SetTree(treeFun);
-  GDLffShapeDesc->FunList().push_back(DFunlist);
+  const string ffshpinitk[]={ "DBF_ONLY", "ENTITY_TYPE", "UPDATE", KLISTEND};
+  RegisterFun(GDLffShapeDesc,"INIT",lib::GDLffShape___Init,1,ffshpinitk);
   //IDLFFSHAPE::OPEN
-  DFunlist = new DFun("OPEN", "IDLFFSHAPE", INTERNAL_LIBRARY_STR);
-  DFunlist->AddPar("FILENAME");
-  DFunlist->AddKey("DBF_ONLY", "DBF_ONLY");
-  DFunlist->AddKey("ENTITY_TYPE", "ENTITY_TYPE");
-  DFunlist->AddKey("UPDATE", "UPDATE");
-  treeFun = new WRAPPED_FUNNode(lib::GDLffShape___Open);
-  DFunlist->SetTree(treeFun);
-  GDLffShapeDesc->FunList().push_back(DFunlist);
+  RegisterFun(GDLffShapeDesc,"OPEN",lib::GDLffShape___Open,1,ffshpinitk);
   //IDLFFSHAPE::ADDATTRIBUTE
-  DProlist = new DPro("ADDATTRIBUTE", "IDLFFSHAPE", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("NAME");
-  DProlist->AddPar("TYPE");
-  DProlist->AddPar("WIDTH");
-  DProlist->AddKey("PRECISION", "PRECISION");
-  treePro = new WRAPPED_PRONode(lib::GDLffShape___AddAttribute);
-  DProlist->SetTree(treePro);
-  GDLffShapeDesc->ProList().push_back(DProlist);
+  const string ffshpaddattrk[]={ "PRECISION", KLISTEND};
+  RegisterPro(GDLffShapeDesc,"ADDATTRIBUTE",lib::GDLffShape___AddAttribute,3,ffshpaddattrk);
   //IDLFFSHAPE::CLEANUP
-  DProlist = new DPro("CLEANUP", "IDLFFSHAPE", INTERNAL_LIBRARY_STR);
-  treePro = new WRAPPED_PRONode(lib::GDLffShape___Cleanup);
-  DProlist->SetTree(treePro);
-  GDLffShapeDesc->ProList().push_back(DProlist);
+  RegisterPro(GDLffShapeDesc,"CLEANUP",lib::GDLffShape___Cleanup);
   //IDLFFSHAPE::CLOSE
-  DProlist = new DPro("CLOSE", "IDLFFSHAPE", INTERNAL_LIBRARY_STR);
-  treePro = new WRAPPED_PRONode(lib::GDLffShape___Close);
-  DProlist->SetTree(treePro);
-  GDLffShapeDesc->ProList().push_back(DProlist);
+  RegisterPro(GDLffShapeDesc,"CLOSE",lib::GDLffShape___Close);
   //IDLFFSHAPE::DESTROYENTITY
-  DProlist = new DPro("DESTROYENTITY", "IDLFFSHAPE", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("Entity");
-  treePro = new WRAPPED_PRONode(lib::GDLffShape___DestroyEntity);
-  DProlist->SetTree(treePro);
-  GDLffShapeDesc->ProList().push_back(DProlist);
+  RegisterPro(GDLffShapeDesc,"DESTROYENTITY",lib::GDLffShape___DestroyEntity,1);
   //IDLFFSHAPE::GETPROPERTY
-  DProlist = new DPro("GETPROPERTY", "IDLFFSHAPE", INTERNAL_LIBRARY_STR);
-  DProlist->AddKey("ATTRIBUTE_INFO", "ATTRIBUTE_INFO");
-  DProlist->AddKey("ATTRIBUTE_NAMES", "ATTRIBUTE_NAMES");
-  DProlist->AddKey("ENTITY_TYPE", "ENTITY_TYPE");
-  DProlist->AddKey("FILENAME", "FILENAME");
-  DProlist->AddKey("IS_OPEN", "IS_OPEN");
-  DProlist->AddKey("N_ATTRIBUTES", "N_ATTRIBUTES");
-  DProlist->AddKey("N_ENTITIES", "N_ENTITIES");
-  DProlist->AddKey("N_RECORDS", "N_RECORDS");
-  treePro = new WRAPPED_PRONode(lib::GDLffShape___GetProperty);
-  DProlist->SetTree(treePro);
-  GDLffShapeDesc->ProList().push_back(DProlist);
+  const string ffshpgetpropk[]={"ATTRIBUTE_INFO","ATTRIBUTE_NAMES","ENTITY_TYPE","FILENAME","IS_OPEN","N_ATTRIBUTES","N_ENTITIES", "N_RECORDS", KLISTEND};
+  RegisterPro(GDLffShapeDesc,"GETPROPERTY",lib::GDLffShape___GetProperty,0,ffshpgetpropk);
   //IDLFFSHAPE::PUTENTITY
-  DProlist = new DPro("PUTENTITY", "IDLFFSHAPE", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("DATA");
-  treePro = new WRAPPED_PRONode(lib::GDLffShape___PutEntity);
-  DProlist->SetTree(treePro);
-  GDLffShapeDesc->ProList().push_back(DProlist);
+  RegisterPro(GDLffShapeDesc,"PUTENTITY",lib::GDLffShape___PutEntity,1);
   //IDLFFSHAPE::SETATTRIBUTES
-  DProlist = new DPro("SETATTRIBUTES", "IDLFFSHAPE", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("INDEX");
-  DProlist->AddPar("ATTRIBUTES_NUM");
-  DProlist->AddPar("Value");
-  treePro = new WRAPPED_PRONode(lib::GDLffShape___SetAttributes);
-  DProlist->SetTree(treePro);
-  GDLffShapeDesc->ProList().push_back(DProlist);
-  // MUST BE LAST line related to GDLffShape
- //no more functions defined ? sort list
-  //sort(GDLffShapeDesc->ProList().begin(), GDLffShapeDesc->ProList().end(), DSub_compare());
-  //sort(GDLffShapeDesc->FunList().begin(), GDLffShapeDesc->FunList().end(), DSub_compare());
+  RegisterPro(GDLffShapeDesc,"SETATTRIBUTES",lib::GDLffShape___SetAttributes,3);
 #endif
-
+DFun* DFunlist;
+DPro* DProlist;
 #ifdef USE_EXPAT
 
   //IDLFFXMLSAX::INIT
-  DFunlist = new DFun("INIT", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  treeFun = new WRAPPED_FUNNode(lib::GDLffXmlSax___Init);
-  DFunlist->SetTree(treeFun);
-  GDLffXmlSaxDesc->FunList().push_back(DFunlist);
-
+  RegisterFun(GDLffXmlSaxDesc,"INIT",lib::GDLffXmlSax___Init);
   //IDLFFXMLSAX::CLEANUP
-  DProlist = new DPro("CLEANUP", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax___Cleanup);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
+  RegisterPro(GDLffXmlSaxDesc,"CLEANUP",lib::GDLffXmlSax___Cleanup);
   //IDLFFXMLSAX::PARSEFILE
-  DProlist = new DPro("PARSEFILE", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("INPUT");
-  DProlist->AddKey("URL", "URL");
-  DProlist->AddKey("XML_STRING", "XML_STRING");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__ParseFile);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-
-  DProlist = new DPro("ATTRIBUTEDECL", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("eName");
-  DProlist->AddPar("aName");
-  DProlist->AddPar("Type");
-  DProlist->AddPar("Mode");
-  DProlist->AddPar("Value");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__AttributeDecl);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("CHARACTERS", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("Chars");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__Characters);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("COMMENT", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("Comment");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__Comment);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("ELEMENTDECL", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("Name");
-  DProlist->AddPar("Model");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__ElementDecl);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("ENDCDATA", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__EndCDATA);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("ENDDOCUMENT", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__EndDocument);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("ENDDTD", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__EndDTD);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("ENDELEMENT", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("URI");
-  DProlist->AddPar("Local");
-  DProlist->AddPar("qName");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__EndElement);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("ENDENTITY", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("Name");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__EndEntity);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("ENDPREFIXMAPPING", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("prefix");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__EndPrefixMapping);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("ERROR", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("SystemID");
-  DProlist->AddPar("LineNumber");
-  DProlist->AddPar("ColumnNumber");
-  DProlist->AddPar("Message");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__Error);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("EXTERNALENTITYDECL", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("Name");
-  DProlist->AddPar("PublicID");
-  DProlist->AddPar("SystemID");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__ExternalEntityDecl);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("FATALERROR", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("SystemID");
-  DProlist->AddPar("LineNumber");
-  DProlist->AddPar("ColumnNumber");
-  DProlist->AddPar("Message");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__FatalError);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("IGNORABLEWHITESPACE", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("CHARS");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__IgnorableWhitespace);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("INTERNALENTITYDECL", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("Name");
-  DProlist->AddPar("Value");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__InternalEntityDecl);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("NOTATIONDECL", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("Name");
-  DProlist->AddPar("PublicID");
-  DProlist->AddPar("SystemID");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__NotationDecl);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("PROCESSINGINSTRUCTION", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("Target");
-  DProlist->AddPar("Data");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__ProcessingInstruction);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("SETPROPERTY", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddKey("PROPERTY", "property");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__SetProperty);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("SKIPPEDENTITY", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("Name");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__SkippedEntity);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("STARTCDATA", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__StartCDATA);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("STARTDOCUMENT", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__StartDocument);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("STARTDTD", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("Name");
-  DProlist->AddPar("PublicID");
-  DProlist->AddPar("SystemID");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__StartDTD);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("STARTELEMENT", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("URI");
-  DProlist->AddPar("Local");
-  DProlist->AddPar("qName");
-  DProlist->AddPar("attName");
-  DProlist->AddPar("attValue");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__StartElement);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("STARTENTITY", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("Name");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__StartEntity);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("STARTPREFIXMAPPING", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("Prefix");
-  DProlist->AddPar("URI");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__StartPrefixmapping);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("STOPPARSING", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__StopParsing);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("UNPARSEDENTITYDECL", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("Name");
-  DProlist->AddPar("PublicID");
-  DProlist->AddPar("SystemID");
-  DProlist->AddPar("Notation");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__UnparsedEntityDecl);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("WARNING", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddPar("SystemID");
-  DProlist->AddPar("LineNumber");
-  DProlist->AddPar("ColumnNumber");
-  DProlist->AddPar("Message");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__Warning);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("GETPROPERTY", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddKey("VALIDATION_MODE", "VALIDATION_MODE"); //6
-  DProlist->AddKey("SCHEMA_CHECKING", "SCHEMA_CHECKING"); //5
-  DProlist->AddKey("PARSER_URI", "PARSER_URI"); //4
-  DProlist->AddKey("PARSER_PUBLICID", "PARSER_PUBLICID"); //3
-  DProlist->AddKey("PARSER_LOCATION", "PARSER_LOCATION"); //2
-  DProlist->AddKey("NAMESPACE_PREFIXES", "NAMESPACE_PREFIXES"); //1
-  DProlist->AddKey("FILENAME", "FILENAME"); //0
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__GetProperty);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  DProlist = new DPro("SETPROPERTY", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
-  DProlist->AddKey("NAMESPACE_PREFIXES", "NAMESPACE_PREFIXES");
-  DProlist->AddKey("SCHEMA_CHECKING", "SCHEMA_CHECKING");
-  DProlist->AddKey("VALIDATION_MODE", "VALIDATION_MODE");
-  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__SetProperty);
-  DProlist->SetTree(treePro);
-  GDLffXmlSaxDesc->ProList().push_back(DProlist);
-
-  // MUST BE LAST line related to GDLffXmlSax
- //no more functions defined ? sort list
-  //sort(GDLffXmlSaxDesc->ProList().begin(), GDLffXmlSaxDesc->ProList().end(), DSub_compare());
-  //sort(GDLffXmlSaxDesc->FunList().begin(), GDLffXmlSaxDesc->FunList().end(), DSub_compare());
-
-
+  const string saxparsefk[] = {"URL", "XML_STRING", KLISTEND};
+  RegisterPro(GDLffXmlSaxDesc,"PARSEFILE",lib::GDLffXmlSax__ParseFile,1,saxparsefk);
+  RegisterPro(GDLffXmlSaxDesc,"ATTRIBUTEDECL",lib::GDLffXmlSax__AttributeDecl,5);
+  RegisterPro(GDLffXmlSaxDesc,"CHARACTERS",lib::GDLffXmlSax__Characters,1);
+  RegisterPro(GDLffXmlSaxDesc,"COMMENT",lib::GDLffXmlSax__Comment,1);
+  RegisterPro(GDLffXmlSaxDesc,"ELEMENTDECL",lib::GDLffXmlSax__ElementDecl,2);
+  RegisterPro(GDLffXmlSaxDesc,"ENDCDATA",lib::GDLffXmlSax__EndCDATA);
+  RegisterPro(GDLffXmlSaxDesc,"ENDDOCUMENT",lib::GDLffXmlSax__EndDocument);
+  RegisterPro(GDLffXmlSaxDesc,"ENDDTD",lib::GDLffXmlSax__EndDTD);
+  RegisterPro(GDLffXmlSaxDesc,"ENDELEMENT",lib::GDLffXmlSax__EndElement,3);
+  RegisterPro(GDLffXmlSaxDesc,"ENDENTITY",lib::GDLffXmlSax__EndEntity,1);
+  RegisterPro(GDLffXmlSaxDesc,"ENDPREFIXMAPPING",lib::GDLffXmlSax__EndPrefixMapping,1);
+  RegisterPro(GDLffXmlSaxDesc,"ERROR",lib::GDLffXmlSax__Error,4);
+  RegisterPro(GDLffXmlSaxDesc,"EXTERNALENTITYDECL",lib::GDLffXmlSax__ExternalEntityDecl,3);
+  RegisterPro(GDLffXmlSaxDesc,"FATALERROR",lib::GDLffXmlSax__FatalError,4);
+  RegisterPro(GDLffXmlSaxDesc,"IGNORABLEWHITESPACE",lib::GDLffXmlSax__IgnorableWhitespace,1);
+  RegisterPro(GDLffXmlSaxDesc,"INTERNALENTITYDECL",lib::GDLffXmlSax__InternalEntityDecl,2);
+  RegisterPro(GDLffXmlSaxDesc,"NOTATIONDECL",lib::GDLffXmlSax__NotationDecl,3);
+  RegisterPro(GDLffXmlSaxDesc,"PROCESSINGINSTRUCTION",lib::GDLffXmlSax__ProcessingInstruction,2);
+  RegisterPro(GDLffXmlSaxDesc,"SKIPPEDENTITY",lib::GDLffXmlSax__SkippedEntity,1);
+  RegisterPro(GDLffXmlSaxDesc,"STARTCDATA",lib::GDLffXmlSax__StartCDATA);
+  RegisterPro(GDLffXmlSaxDesc,"STARTDOCUMENT",lib::GDLffXmlSax__StartDocument);
+  RegisterPro(GDLffXmlSaxDesc,"STARTDTD",lib::GDLffXmlSax__StartDTD,3);
+  RegisterPro(GDLffXmlSaxDesc,"STARTELEMENT",lib::GDLffXmlSax__StartElement,5);
+  RegisterPro(GDLffXmlSaxDesc,"STARTENTITY",lib::GDLffXmlSax__StartEntity,1);
+  RegisterPro(GDLffXmlSaxDesc,"STARTPREFIXMAPPING",lib::GDLffXmlSax__StartPrefixmapping,2);
+  RegisterPro(GDLffXmlSaxDesc,"STOPPARSING",lib::GDLffXmlSax__StopParsing);
+  RegisterPro(GDLffXmlSaxDesc,"UNPARSEDENTITYDECL",lib::GDLffXmlSax__UnparsedEntityDecl,2);
+  RegisterPro(GDLffXmlSaxDesc,"WARNING",lib::GDLffXmlSax__Warning,4);
+  const string saxgetpropk[] = {"VALIDATION_MODE", "SCHEMA_CHECKING","PARSER_URI","PARSER_PUBLICID","PARSER_LOCATION","NAMESPACE_PREFIXES","FILENAME", KLISTEND};
+  RegisterPro(GDLffXmlSaxDesc,"GETPROPERTY",lib::GDLffXmlSax__GetProperty,0,saxgetpropk);
+  const string saxsetpropk[] = {"NAMESPACE_PREFIXES","SCHEMA_CHECKING","VALIDATION_MODE", KLISTEND};
+  RegisterPro(GDLffXmlSaxDesc,"SETPROPERTY",lib::GDLffXmlSax__SetProperty,0,saxsetpropk);
 #endif
-
-//IDL_IDLBridge is for the moment handled both in gdl2gdl.cpp and in the idl_idlbridge__init.pro 
-#if !defined(_WIN32)
-//  DProlist = new DPro("ONCALLBACK", "IDL_IDLBRIDGE", INTERNAL_LIBRARY_STR);
-//  treePro = new WRAPPED_PRONode(lib::gdl2gdl_callback);
-//  DProlist->SetTree(treePro);
-//  gdl2gdlBridgeDesc->ProList().push_back(DProlist);
-#endif
-
 }

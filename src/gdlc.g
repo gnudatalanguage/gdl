@@ -1831,7 +1831,7 @@ primary_expr
         (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE)=>
         (
 			// an existing function makes it a formal_function_call (hence the need for forward_function)
-            { IsFun(LT(1))}? formal_function_call
+            { ((fussy==0) && IsFun(LT(1))) }? formal_function_call
             { 
                    #primary_expr = #([FCALL, "fcall"], #primary_expr);
             }

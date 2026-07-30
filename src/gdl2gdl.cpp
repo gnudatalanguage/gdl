@@ -75,7 +75,7 @@ static void g2gPerformCallbackProcedure(pid_t pid) {
   DStringGDL* callbackname=static_cast<DStringGDL*>(self->GetTag(3));
   StrUpCaseInplace((*callbackname)[0]);
   if(callbackname->NBytes() >0) {
-	int proIx = GDLInterpreter::GetProIx((*callbackname)[0]);
+	int proIx = GDLInterpreter::GetProIx((*callbackname)[0]); //throws if absent
 	if (proIx != -1) {
 	  // perform callback and reset status to IDLE at end of callback
 	  DIntGDL* status = new DIntGDL(g2gMap.at(pid).status);
@@ -167,7 +167,7 @@ void g2gEventDispatcher() {
   while ((ev = gdl2gdlCallbackQueue.Pop()) != NULL) { // get event
 	DStringGDL* callbackname = static_cast<DStringGDL*> (ev->GetTag(0));
 	//	std::cerr << "callback: " << (*callbackname)[0] << std::endl;
-	int proIx = GDLInterpreter::GetProIx((*callbackname)[0]);
+	int proIx = GDLInterpreter::GetProIx((*callbackname)[0]); //throws if absent
 	if (proIx != -1) {
 	  // perform callback and reset status to IDLE at end of callback
 	  DIntGDL* status = static_cast<DIntGDL*> (ev->GetTag(1));

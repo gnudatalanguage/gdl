@@ -1,0 +1,14 @@
+  int the_units = 0;
+  static int unitsIx = e->KeywordIx( "UNITS" ); //not static as the calling function may change
+  bool unitsGiven = e->KeywordPresent ( unitsIx );
+  wxRealPoint widgetUnitsConversionFactor;
+  e->AssureLongScalarKWIfPresent( unitsIx, the_units );
+  //convert unit to the factor in pixels
+  DDouble sx=wxGetDisplaySizeMM().x;
+  DDouble sy=wxGetDisplaySizeMM().y;
+  sx=wxGetDisplaySize().x/sx; //pix per mm
+  sy=wxGetDisplaySize().y/sy;
+
+  if (the_units==1) widgetUnitsConversionFactor = wxRealPoint(sx*25.4,sy*25.4);
+  else if (the_units==2) widgetUnitsConversionFactor = wxRealPoint(sx*10.0,sy*10.0);
+  else  widgetUnitsConversionFactor = wxRealPoint(1,1);

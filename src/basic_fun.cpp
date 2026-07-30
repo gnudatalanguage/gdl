@@ -423,11 +423,6 @@ namespace lib {
 
     DPtrGDL* ret;
 
-    // Why this code exists ? AC240526 #1837
-    static int nozeroIx = e->KeywordIx("NOZERO");    
-    if (e->KeywordSet(nozeroIx)) Message("Obsolete Keyword NOZERO");
-    //  return new DPtrGDL(dim);
-
     static int ALLOCATE_HEAP = e->KeywordIx("ALLOCATE_HEAP");    
     if (e->KeywordSet(ALLOCATE_HEAP)) {
       ret = new DPtrGDL(dim, BaseGDL::NOZERO);
@@ -447,8 +442,6 @@ namespace lib {
     arr(e, dim);
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
-
-    // reference counting      if( e->KeywordSet(0)) return new DObjGDL(dim, BaseGDL::NOZERO);
     return new DObjGDL(dim);
   }
 
@@ -1680,16 +1673,16 @@ namespace lib {
 	if (np >  1) e->Throw("The Offset and Dimension arguments are not allowed when converting to string type.");
 	
         // SA: calling GDL_STRING() with correct parameters
-        int stringIx = LibFunIx("STRING");
+        static int stringIx = LibFunIx("STRING");
         //assert(stringIx >= 0);
 
         EnvT* newEnv = new EnvT(e, libFunList[stringIx], NULL);
 
         Guard<EnvT> guard(newEnv);
 
-	BaseGDL* par0 = e->GetPar(0)->Dup();
-	newEnv->SetNextPar(&par0);
- 
+        BaseGDL* par0 = e->GetPar(0)->Dup();
+        newEnv->SetNextPar(&par0);
+
 	//        newEnv->SetNextPar(e->GetPar(0)); // pass as global
 
         if (e->KeywordSet(PRINTIX) && e->GetPar(0)->Type() == GDL_BYTE) {
@@ -1817,7 +1810,7 @@ unsigned int JSHash(const std::string& str)
     } else {
       // no direct call here
 
-      funIx = GDLInterpreter::GetFunIx(callF);
+      funIx = GDLInterpreter::GetFunIx(callF); //throws if absent
 
       StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
 
@@ -7946,58 +7939,22 @@ unsigned int JSHash(const std::string& str)
 
     DString name;
     string FullFileName;
-    for (int i = 0; i < nPath; i++) {
+    for (int iPath = 0; iPath < nPath; ++iPath) {
 
-      name = StrUpCase((*p0S)[i]);
+      name = StrUpCase((*p0S)[iPath]);
 
       bool found = false;
       FullFileName = "";
-
-      size_t pos(0);
-      if ((pos = name.find("::")) != DString::npos) {
-        DString struct_tag = name.substr(0, pos);
-        DString method_name = name.substr(pos + 2);
-        for (auto& s : structList) {
-          if (s && (s->Name() != struct_tag)) continue;
-          if (eitherKW || !is_functionKW) {
-            DPro* pp = s->FindInProList(method_name);
-            if (pp) {
-              found = true;
-              FullFileName = pp->GetFilename();
-              break;
-            }
-          }
-          if (!found && (is_functionKW || eitherKW)) {
-            DFun* fp = s->FindInFunList(method_name);
-            if (fp) {
-              found = true;
-              FullFileName = fp->GetFilename();
-              break;
-            }
-          }
-        }
-      } else {
-        if (eitherKW || !is_functionKW) {
-          for (ProListT::iterator i = proList.begin();
-            i != proList.end(); ++i)
-            if ((*i)->ObjectName() == name) {
-              found = true;
-              FullFileName = (*i)->GetFilename();
-              break;
-            }
-        }
-        if (!found && (is_functionKW || eitherKW)) {
-          for (FunListT::iterator i = funList.begin();
-            i != funList.end(); ++i)
-            if ((*i)->ObjectName() == name) {
-              found = true;
-              FullFileName = (*i)->GetFilename();
-              break;
-            }
-        }
+      int i;
+      if (eitherKW || !is_functionKW) {
+        DPro *p;
+            if (p=GetDPro(name)) {FullFileName = p->GetFilename(); found=true;}
       }
-
-      (*res)[i] = FullFileName;
+      if (!found && (is_functionKW || eitherKW)) {
+        DFun *f;
+            if (f=GetDFun(name)) FullFileName = f->GetFilename();
+      }
+      (*res)[iPath] = FullFileName;
     }
     //    if(nParam == 0) return new DStringGDL(FullFileName);
     return res_guard.release();
@@ -8069,28 +8026,18 @@ unsigned int JSHash(const std::string& str)
         // getting the routine name from the first parameter (must be a singleton)
         e->AssureScalarPar<DStringGDL>(0, raw_name);
         name = StrUpCase(raw_name);
+        int i;
         if (functionsKW) {
-          for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
-            if ((*i)->ObjectName() == name) {
-              found = true;
-              FullFileName = (*i)->GetFilename();
-              break;
-            }
-          }
-          if (!found) e->Throw("% Attempt to call undefined/not compiled function: '" + raw_name + "'");
+            DFun *f;
+            if (f=GetDFun(name)) FullFileName = f->GetFilename(); else e->Throw("% Attempt to call undefined/not compiled function: '" + raw_name + "'");
         } else {
-          for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
-            if ((*i)->ObjectName() == name) {
+            if (name == "$MAIN$") {
               found = true;
-              FullFileName = (*i)->GetFilename();
-              break;
+              FullFileName = "";
+            } else {
+              DPro *p;
+              if (p=GetDPro(name)) FullFileName = p->GetFilename(); else e->Throw("% Attempt to call undefined/not compiled procedure: '" + raw_name + "'");
             }
-          }
-	  if (name == "$MAIN$") {
-	    found = true;
-	    FullFileName = "";
-	  }
-          if (!found) e->Throw("% Attempt to call undefined/not compiled procedure: '" + raw_name + "'");
         }
 
         // creating the output anonymous structure
@@ -8119,14 +8066,14 @@ unsigned int JSHash(const std::string& str)
 
         if (functionsKW) {
           SizeT ii = 1;
-          for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
+          for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) { //funList complete explore: ok
             (*static_cast<DStringGDL*> (stru->GetTag((SizeT) 0, ii)))[0] = (*i)->ObjectName();
             (*static_cast<DStringGDL*> (stru->GetTag((SizeT) 1, ii)))[0] = (*i)->GetFilename();
             ii++;
           }
         } else {
           SizeT ii = 1;
-          for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+          for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) { //proList complete explore: ok
             (*static_cast<DStringGDL*> (stru->GetTag((SizeT) 0, ii)))[0] = (*i)->ObjectName();
             (*static_cast<DStringGDL*> (stru->GetTag((SizeT) 1, ii)))[0] = (*i)->GetFilename();
             ii++;
@@ -8146,8 +8093,8 @@ unsigned int JSHash(const std::string& str)
       name = StrUpCase(name);
 
       DSubUD* routine = functionsKW
-        ? static_cast<DSubUD*> (funList[GDLInterpreter::GetFunIx(name)])
-        : static_cast<DSubUD*> (proList[GDLInterpreter::GetProIx(name)]);
+        ? static_cast<DSubUD*> (funList[GDLInterpreter::GetFunIx(name)]) //throws if not found
+        : static_cast<DSubUD*> (proList[GDLInterpreter::GetProIx(name)]);//throws if absent
       SizeT np = routine->NPar(), nk = routine->NKey();
 
       // creating the output anonymous structure
@@ -8194,40 +8141,22 @@ unsigned int JSHash(const std::string& str)
       if (systemKW) {
         SizeT n = libFunList.size();
         if (n == 0) return new DStringGDL("");
-
-        DStringGDL* res = new DStringGDL(dimension(n), BaseGDL::NOZERO);
-        for (SizeT i = 0; i < n; ++i)
-          (*res)[i] = libFunList[ i]->ObjectName();
-
-        return res;
+        for (SizeT i = 0; i < n; ++i) subList.push_back(libFunList[ i]->ObjectName());
       } else {
         SizeT n = funList.size();
-        if (n == 0) {
-          return new DStringGDL("");
-        }
-        for (SizeT i = 0; i < n; ++i)
-          subList.push_back(funList[ i]->ObjectName());
+        if (n == 0) return new DStringGDL("");
+        for (SizeT i = 0; i < n; ++i) subList.push_back(funList[ i]->ObjectName());
       }
     } else {
       if (systemKW) {
         SizeT n = libProList.size();
         if (n == 0) return new DStringGDL("");
-
-        DStringGDL* res = new DStringGDL(dimension(n), BaseGDL::NOZERO);
-        for (SizeT i = 0; i < n; ++i)
-          (*res)[i] = libProList[ i]->ObjectName();
-
-        return res;
+        for (SizeT i = 0; i < n; ++i) subList.push_back(libProList[ i]->ObjectName());
       } else {
         SizeT n = proList.size();
-        if (n == 0) {
-          DStringGDL* res = new DStringGDL(1, BaseGDL::NOZERO);
-          (*res)[0] = "$MAIN$";
-          return res;
-        }
+        if (n == 0) return new DStringGDL("$MAIN$");
         subList.push_back("$MAIN$");
-        for (SizeT i = 0; i < n; ++i)
-          subList.push_back(proList[ i]->ObjectName());
+        for (SizeT i = 0; i < n; ++i) subList.push_back(proList[ i]->ObjectName());
       }
     }
 
@@ -9024,12 +8953,7 @@ unsigned int JSHash(const std::string& str)
         // we do have a long way in "dinterpreter.cpp" with
         // if( firstChar == "#")
         bool isFunc = false;
-        for (FunListT::iterator ifunc = funList.begin(); ifunc != funList.end(); ++ifunc) {
-          if (StrUpCase(tmp).find((*ifunc)->ObjectName()) != std::string::npos) {
-            isFunc = true;
-            break;
-          }
-        }
+        if ( findDFunIx(tmp) != -1 ) isFunc = true; //just to test if func: OK
         *(res->GetTag(tFunction, i)) = (isFunc) ? DByteGDL(1) : DByteGDL(0);
         //all others 0 for the time being
         *(res->GetTag(tMethod, i)) = DByteGDL(0);

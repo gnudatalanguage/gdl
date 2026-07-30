@@ -195,11 +195,9 @@ enum {
 
 class GDLWidget;
 
-// global widget list type
-// typedef DLong                       WidgetIDT;
-// typedef std::map<WidgetIDT, GDLWidget*> WidgetListT;
-// typedef std::deque<DStructGDL*> EventQueueT;
-
+typedef std::deque<WidgetIDT> WidgetIDTT;
+typedef std::deque<WidgetIDT>::iterator WidgetIterator;
+typedef std::deque<WidgetIDT>::reverse_iterator WidgetReverseIterator;
 class WidgetListT
 {
 public:
@@ -578,8 +576,7 @@ public:
   int labelTextAlignment();
   virtual int widgetAlignment();
   void EnableWidgetUpdate(bool update);
-  void ChangeUnitConversionFactor( EnvT* e);
-  wxRealPoint GetRequestedUnitConversionFactor( EnvT* e);
+  void ChangeUnitConversionFactor(const wxRealPoint pt);
   wxRealPoint GetCurrentUnitConversionFactor(){return unitConversionFactor;}
   void SetCurrentUnitConversionFactor(wxRealPoint value){unitConversionFactor = value;}
   virtual DStructGDL* GetGeometry(wxRealPoint fact=wxRealPoint(1.0,1.0));
@@ -619,6 +616,7 @@ public:
   }
   void OnKill()
   {
+	  if (resetInProgress) return; //do not call exit handler if .RESET
     std::string RIP=killNotify;
     killNotify.clear(); //remove kill notify for this widget BEFORE calling it (avoid infinite recursal)
     if( RIP != ""){ 
@@ -811,7 +809,7 @@ return eventFun;}
 class GDLWidgetContainer: public GDLWidget
 {
 protected:
-  std::deque<WidgetIDT> children;
+  WidgetIDTT children;
   bool xfree;
   bool yfree;
 public:
@@ -829,7 +827,7 @@ public:
   // hence the AddChild() function should be as simple as that
   void AddChildID( WidgetIDT c) { children.push_back( c);}
   void RemoveChild( WidgetIDT  c) {
-      std::deque<WidgetIDT>::iterator it = find(children.begin(), children.end(), c); // Find first,
+      WidgetIterator it = find(children.begin(), children.end(), c); // Find first,
       if (it != children.end()) children.erase(it);                                   // ... and remove.
   }
   DLong NChildren() const
@@ -928,7 +926,7 @@ public:
   
  void DoMapAsRequested() {
   //descend all children, find all bases that need to be unmapped.
-  for (std::deque<WidgetIDT>::iterator c = children.begin(); c != children.end(); ++c) {
+  for (WidgetIterator c = children.begin(); c != children.end(); ++c) {
    GDLWidget* w = GetWidget(*c);
    if (w != NULL && w->IsBase()) static_cast<GDLWidgetBase*>(w)->DoMapAsRequested();
   }
@@ -982,8 +980,8 @@ public:
   this->setFont();
   this->SetSensitive(sensitive);
 
-  for (std::deque<WidgetIDT>::reverse_iterator c = children.rbegin(); c != children.rend(); ++c) {
-//  for (std::deque<WidgetIDT>::iterator c = children.begin(); c != children.end(); ++c) {
+  for (WidgetReverseIterator c = children.rbegin(); c != children.rend(); ++c) {
+//  for (WidgetIterator c = children.begin(); c != children.end(); ++c) {
    GDLWidget* w = GetWidget(*c);
    if (w != NULL)
     w->OnRealize();
@@ -1183,7 +1181,7 @@ public:
 //A /MENU button in a Base, or a Button in a MBAR is a Container
 class GDLWidgetMenu: public GDLWidgetButton
 {
-  std::deque<WidgetIDT>   children;  //as for Containers
+  WidgetIDTT   children;  //as for Containers
 public:
  GDLWidgetMenu( WidgetIDT parentID, EnvT* e, DStringGDL* value, DULong eventflags, wxBitmap* bitmap=NULL);
   ~GDLWidgetMenu();
@@ -1196,7 +1194,7 @@ public:
   // hence the AddChild() function should be as simple as that
   void AddChildID( WidgetIDT c) { children.push_back( c);}
   void RemoveChild( WidgetIDT  c) {
-      std::deque<WidgetIDT>::iterator it = find(children.begin(), children.end(), c); // Find first,
+      WidgetIterator it = find(children.begin(), children.end(), c); // Find first,
       if (it != children.end()) children.erase(it);                                   // ... and remove.
   }
   DLong NChildren() const
@@ -1492,7 +1490,7 @@ public:
 class GDLWidgetMenuBar: public GDLWidget
 {
 protected:
-  std::deque<WidgetIDT> children;
+  WidgetIDTT children;
   ~GDLWidgetMenuBar();
 public:
   GDLWidgetMenuBar( WidgetIDT p, EnvT* e): 
@@ -1504,7 +1502,7 @@ public:
   //same as containers
   void AddChildID( WidgetIDT c) { children.push_back( c);}
   void RemoveChild( WidgetIDT  c) {
-      std::deque<WidgetIDT>::iterator it = find(children.begin(), children.end(), c); // Find first,
+      WidgetIterator it = find(children.begin(), children.end(), c); // Find first,
       if (it != children.end()) children.erase(it);                                   // ... and remove.
       }
   DLong NChildren() const
@@ -1541,7 +1539,7 @@ public:
 class GDLWidgetMenuBar: public GDLWidget
 {
 protected:
-  std::deque<WidgetIDT> children;
+  WidgetIDTT children;
   ~GDLWidgetMenuBar();
 public:
 #ifdef __WXMAC__
@@ -1566,7 +1564,7 @@ public:
   //same as containers
   void AddChildID( WidgetIDT c) { children.push_back( c);}
   void RemoveChild( WidgetIDT  c) {
-      std::deque<WidgetIDT>::iterator it = find(children.begin(), children.end(), c); // Find first,
+      WidgetIterator it = find(children.begin(), children.end(), c); // Find first,
       if (it != children.end()) children.erase(it);                                   // ... and remove.
       }
   DLong NChildren() const

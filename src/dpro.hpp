@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <vector>
 #include <map>
+#include <unordered_map>
 
 #include "basegdl.hpp"
 #include "dcommon.hpp"
@@ -35,7 +36,8 @@
       extern bool posixpaths;
     }
 #endif
-  typedef struct _SCC_STRUCT_ { //semicompiled code, small memory imprint (instead of a copy of the DNodes)
+	
+typedef struct _SCC_STRUCT_ { //semicompiled code, small memory imprint (instead of a copy of the DNodes)
 	u_int nodeType = 0;
 	u_int ligne = 0;
 	u_int flags = 0;
@@ -47,6 +49,8 @@
   } sccstruct;
 
 class DSubUD;
+class DPro;
+class DFun;
 typedef std::vector<sccstruct> SCCStructV;
 typedef std::map<DSubUD*, SCCStructV> SCCodeListT;
 typedef std::map<DSubUD*, SCCStructV>::iterator SCCodeListIterator;
@@ -58,7 +62,11 @@ typedef std::map<DNode*,int>::iterator SCCodeAddressesIterator;
 typedef std::map<DSubUD*, RefDNode> CodeListT;
 typedef std::map<DSubUD*, RefDNode>::iterator CodeListIterator;
 extern CodeListT     codeList;
-    
+
+typedef std::unordered_map<std::string,int> LibMapT;
+extern LibMapT funMap;
+extern LibMapT proMap;    
+
 template<typename T>  class Is_eq: public std::function<bool(T)>
 {
   std::string name;
@@ -141,7 +149,7 @@ protected:
   // par_1,..,par_nPar, var1,..,varK
   // N=size(key)
   // K=size(var)-nPar-N
-  KeyVarListT 	      key;    // keyword names (IDList: typedefs.hpp)
+  KeyVarListT 	      key;   //a std::vector  // keyword names (IDList: typedefs.hpp)
 			      // (KEYWORD_NAME=keyword_value)
   int                 nPar;   // number of parameters (-1 = infinite)
   int                 nParMin;  // minimum number of parameters (-1 = infinite)
@@ -183,17 +191,8 @@ public:
   }
 
   // returns the (abbreviated) keyword value index 
-  int FindKey(const std::string& s)
-  {
-    String_abbref_eq searchKey(s);
-    int ix=0;
-    for(KeyVarListT::iterator i=key.begin();
-	i != key.end(); ++i, ++ix) if( searchKey(*i)) {
-	  return ix;
-	}
-    return -1;
-  }
-
+  int FindKey(const std::string& s);
+  
   int   NKey() const { return key.size();}
   int   NPar() const { return nPar;}
   int   NParMin() const { return nParMin;}
@@ -431,7 +430,7 @@ public:
   }
 
   // add variables
-  DSubUD*  AddPar(const std::string&); // add paramter
+  DSubUD*  AddPar(const std::string&); // add parameter
   unsigned AddVar(const std::string&); // add local variable
   DSubUD*  AddKey(const std::string&, const std::string&); // add keyword=value
 
@@ -635,4 +634,5 @@ typedef std::map<std::string, DPro*> LambdaProListT;
 typedef std::vector<DLibFun*> LibFunListT;
 typedef std::vector<DLibPro*> LibProListT;
 
+typedef std::unordered_map<std::string,int> LibMapT;
 #endif

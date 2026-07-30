@@ -102,7 +102,7 @@ private:
     // Replaces ASSIGN with ASSIGN_REPLACE if appropiate
     void AssignReplace( RefDNode& lN, RefDNode& aN)
     {
-        if( LoopVar( lN))
+        if( warnLoopIndexModified && LoopVar( lN))
             {
                 Warning( "Warning: Assignment to loop variable detected.");
             }

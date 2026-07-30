@@ -281,7 +281,7 @@ namespace lib {
     RK_Diff = StrUpCase( RK_Diff);
 
     // first search library funcedures  
-    int funIx=LibFunIx( RK_Diff);
+    static int funIx=LibFunIx( RK_Diff);
     StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
 		
     if( funIx != -1)
@@ -291,7 +291,7 @@ namespace lib {
     else
       {
 	//  Search in user proc and function
-	funIx = GDLInterpreter::GetFunIx(RK_Diff );
+	funIx = GDLInterpreter::GetFunIx(RK_Diff ); //throws if absent
 	
 	//-----------------FIRST STEP-------------------//
 	for (SizeT i=0;i<Yvals->N_Elements();++i)

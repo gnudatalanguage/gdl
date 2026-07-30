@@ -110,7 +110,9 @@ void AtExit()
   //this function cleans objets and should be called only for debugging purposes.(for debugging memory leaks)
   // enabled with flag --clean-at-exit
   ResetObjects(true);
+  libFunMap.clear();
   PurgeContainer(libFunList);
+  libProMap.clear();
   PurgeContainer(libProList);
 }
 
@@ -307,6 +309,7 @@ int main(int argc, char *argv[])
       cerr << "  --smart-tpool      switch to a mode where the number of threads is adaptive (DEFAULT). Should enable better perfs on many core machines." <<endl;
       cerr << "  --no-smart-tpool   switch to a mode where the number of threads is NOT adaptive." <<endl;
       cerr << "  --silent           Supresses some messages (mainly \"Compiled Module XXX\" ." <<endl;
+      cerr << "  --warn-loop        GDL will emit a warning if a loop variable is modified inside the loop. (affects perfomance)" <<endl;
 #ifdef _WIN32
       cerr << "  --posix (Windows only): paths will be posix paths (experimental)." << endl;
 #endif
@@ -431,6 +434,10 @@ int main(int argc, char *argv[])
       else if (string(argv[a]) == "--silent")
       {
          setQuietSysvar=true;
+      }
+      else if (string(argv[a]) == "--warn-loop")
+      {
+         warnLoopIndexModified=true;
       }
       else if (string(argv[a]) == "--subprocess") {
 		if (a == argc - 1) {
@@ -619,9 +626,9 @@ int main(int argc, char *argv[])
   //be silent
  SysVar::Make_Quiet();
  for (auto i=0; i< 2; ++i) {
-   interpreter.SearchCompilePro(procedures_at_start[i], true);  //procedures. It would be better to restore a .sav with all the compiled procedures.
+  int ret = interpreter.SearchCompilePro(procedures_at_start[i], true);  //procedures. It would be better to restore a .sav with all the compiled procedures.
     // must be known!
-   assert(FunIx(procedures_at_start[i]) == -1);
+   assert(ret == 1); //1: a PROCEDURE exist
  }
  if (!setQuietSysvar) SysVar::Make_Loud();
   

@@ -60,8 +60,8 @@ namespace lib {
    BaseGDL* list__count( EnvUDT* e);
    BaseGDL* list__where( EnvUDT* e);
 // these added in order to accomodate being an IDL_CONTAINER:  
-	BaseGDL* list__get( EnvUDT* e);
-	BaseGDL* list__init( EnvUDT* e);
+	BaseGDL* container__get( EnvUDT* e);
+	BaseGDL* container__init( EnvUDT* e);
 }
 
 #endif
