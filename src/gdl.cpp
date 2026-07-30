@@ -628,7 +628,7 @@ int main(int argc, char *argv[])
  for (auto i=0; i< 2; ++i) {
   int ret = interpreter.SearchCompilePro(procedures_at_start[i], true);  //procedures. It would be better to restore a .sav with all the compiled procedures.
     // must be known!
-   assert(ret == 1); //PROCEDURES
+   assert(ret == 1); //1: a PROCEDURE exist
  }
  if (!setQuietSysvar) SysVar::Make_Loud();
   

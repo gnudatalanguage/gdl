@@ -192,7 +192,6 @@ public:
 
   // returns the (abbreviated) keyword value index 
   int FindKey(const std::string& s);
-  void FinalizeKeywordList();
   
   int   NKey() const { return key.size();}
   int   NPar() const { return nPar;}
