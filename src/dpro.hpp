@@ -37,8 +37,6 @@
     }
 #endif
 	
-	static KeyVarListT  currentKeys; //just a stable pointer to the different key vectors in each DSub objects, to use with std::sort
-	
 typedef struct _SCC_STRUCT_ { //semicompiled code, small memory imprint (instead of a copy of the DNodes)
 	u_int nodeType = 0;
 	u_int ligne = 0;
@@ -153,7 +151,6 @@ protected:
   // K=size(var)-nPar-N
   KeyVarListT 	      key;   //a std::vector  // keyword names (IDList: typedefs.hpp)
 			      // (KEYWORD_NAME=keyword_value)
-  std::vector<int> sortIndex; 
   int                 nPar;   // number of parameters (-1 = infinite)
   int                 nParMin;  // minimum number of parameters (-1 = infinite)
 
