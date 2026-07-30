@@ -924,7 +924,7 @@ void EnvT::Help(const std::string s_help[], int size_of_s)
     throw GDLException( CallingNode(), pro->ObjectName()+": call to inline help");
   }
 }
-
+//TODO: variant enabling static ints in lieu of const string& (speedup!)
 void EnvBaseT::SetKeyword( const string& k, BaseGDL* const val) // value
 {
   int varIx=GetKeywordIx( k);
@@ -952,6 +952,7 @@ void EnvBaseT::SetKeyword( const string& k, BaseGDL* const val) // value
 
   env.Set( varIx,val);
 }
+//TODO: variant enabling static ints in lieu of const string& (speedup!)
 
 void EnvBaseT::SetKeyword( const string& k, BaseGDL** const val) // reference
 {
@@ -1199,18 +1200,14 @@ int EnvT::KeywordIx( const std::string& k)
   //  cout << pro->ObjectName() << "  Key: " << k << endl;
   assert( pro != NULL);
   int val=pro->FindKey( k);
-//  if( val == -2) { //ambiguous ? possible ?
-//    cout << "Ambiguous Keyword lookup (EnvT::KeywordIx) ! "
-//      " from "+pro->ObjectName() + "  Key: " + k << endl;
-//  }
-  if( val < 0 ) {
+  if( val == -1) {		//  assert( val != -1);
 
     cout << "Invalid Keyword lookup (EnvT::KeywordIx) ! "
       " from "+pro->ObjectName() + "  Key: " + k << endl;
     //    cout << pro->ObjectName() << "  Key: " << k << endl;
     //		<< " Returning the wrong (but a valid) key index of zero" << endl;
     //		val = 0; // too lax - may allow most tests to pass
-    assert( true );
+    assert( val != -1);
   }
   return val;
 }
@@ -1521,6 +1518,7 @@ void EnvBaseT::SetNextPar( BaseGDL** const nextP) // by reference (reset env)
 
 // returns the keyword index, used for UD functions
 int EnvBaseT::GetKeywordIx( const std::string& k) {
+  String_abbref_eq strAbbrefEq_k(k);
 //GD: no, _EXTRA is possible even when no keywords (will pass if _EXTRA=!NULL or undefined) 
 //  // if there are no keywords, even _EXTRA isn't allowed
 //  if (pro->key.size() == 0) {
@@ -1545,11 +1543,10 @@ int EnvBaseT::GetKeywordIx( const std::string& k) {
 //  }
   
   // search keyword
-  int ret=pro->FindKey(k, true); //optimized
-  if (ret == -2) Throw("Ambiguous keyword abbreviation: " + k);
-
-  String_abbref_eq strAbbrefEq_k(k);
-  if (ret==-1) {
+  KeyVarListT::iterator f = std::find_if(pro->key.begin(),
+    pro->key.end(),
+    strAbbrefEq_k);
+  if (f == pro->key.end()) {
     // every routine (which accepts keywords), also accepts (_STRICT)_EXTRA
     if (strAbbrefEq_k("_EXTRA")) return -2;
     if (strAbbrefEq_k("_STRICT_EXTRA")) return -3;
@@ -1566,30 +1563,30 @@ int EnvBaseT::GetKeywordIx( const std::string& k) {
     // extra keyword
     return -1;
   }
-//  // continue search (for ambiguity)
-//  KeyVarListT::iterator ff = std::find_if(f + 1,
-//    pro->key.end(),
-//    strAbbrefEq_k);
-//  if (ff != pro->key.end()) {
-//    Throw("Ambiguous keyword abbreviation: " + k);
-//  }
+  // continue search (for ambiguity)
+  KeyVarListT::iterator ff = std::find_if(f + 1,
+    pro->key.end(),
+    strAbbrefEq_k);
+  if (ff != pro->key.end()) {
+    Throw("Ambiguous keyword abbreviation: " + k);
+  }
 
   // every routine (which accepts keywords), also accepts (_STRICT)_EXTRA
   if (strAbbrefEq_k("_EXTRA")) return -2;
   if (strAbbrefEq_k("_STRICT_EXTRA")) return -3;
-  return ret;
-//  SizeT varIx = std::distance(pro->key.begin(), f);
-//
-//  // already set? -> Warning 
-//  // (move to Throw by AC on June 25, 2014, bug found by Levan.)
-//  // Removed G. Jung 2016:
-//  // mungs things up.  Could not determine 2014 bug.
-//  //  if( KeywordPresent(varIx)) // just a message in the original
-//  //    {
-//  //      Throw( "Duplicate keyword "+k+" in call to: "+pro->Name());
-//  //    }
-//
-//  return varIx;
+
+  SizeT varIx = std::distance(pro->key.begin(), f);
+
+  // already set? -> Warning 
+  // (move to Throw by AC on June 25, 2014, bug found by Levan.)
+  // Removed G. Jung 2016:
+  // mungs things up.  Could not determine 2014 bug.
+  //  if( KeywordPresent(varIx)) // just a message in the original
+  //    {
+  //      Throw( "Duplicate keyword "+k+" in call to: "+pro->Name());
+  //    }
+
+  return varIx;
 }
   
 // for use within library functions
@@ -1602,7 +1599,7 @@ int EnvBaseT::GetKeywordIx( const std::string& k) {
 //  assert( pro != NULL);
 //
 //  int ix=pro->FindKey( kw);
-//  if( ix <= 0) return false;
+//  if( ix == -1) return false;
 //  return KeywordSet( static_cast<SizeT>(ix));
 //}
 

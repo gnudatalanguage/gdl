@@ -38,15 +38,6 @@
 SCCodeListT     sccList;
 
 using namespace std;
-// specialized sorter for keywords using a trick with an external pointing to the key list
-
-struct myclass {
-
-  bool operator()(int i, int j) {
-    return (currentKeys[i] < currentKeys[j]);
-  }
-} indirectCompare;
-
 
   bool is_nonleaf(RefDNode node) {
 	bool rslt = (node->getFirstChild() != NULL);
@@ -164,47 +155,16 @@ void index_tree(RefDNode top, SCCodeAddresses &addrList, int &i) {
 // vtable
 DSub::~DSub() {}
 
-static int mybsearch( const std::string& s, const std::vector<std::string>keylist, const std::vector<int>lookup, bool check_for_ambigs=false )
-{
-    int jlo = -1, jmid, jhi = lookup.size();
-    int l=s.size();
-    while ( jhi - jlo > 1 )
-    {
-        jmid = ( jlo + jhi ) / 2;
-        if ( s > keylist[lookup[jmid]].substr(0,l) )
-            jlo = jmid;
-        else if ( s < keylist[lookup[jmid]].substr(0,l) )
-            jhi = jmid;
-        else
-        {
-          if (check_for_ambigs && jmid < lookup.size()-1 && keylist[lookup[jmid+1]].substr(0,l)==s) return -2;
-          return ( lookup[jmid] );
-        }
-    }
-    return -1;
-}
-
-int DSub::FindKey(const std::string& s, bool do_ambigs)
+ 
+int DSub::FindKey(const std::string& s)
   {
-    return mybsearch( s, key,  sortIndex, do_ambigs);
-//    String_abbref_eq searchKey(s);
-//    int ix=0;
-//    int c=0;
-//    for(KeyVarListT::iterator i=key.begin(); i != key.end(); ++i, ++ix)  if( searchKey(*i)) 
-//      return ix;
-//    }
-//    return -1;
+    String_abbref_eq searchKey(s);
+    int ix=0;
+    int c=0;
+    for(KeyVarListT::iterator i=key.begin(); i != key.end(); ++i, ++ix)  if( searchKey(*i)) 
+      return ix;
+    return -1;
   }
-
-void DSub::FinalizeKeywordList(){
-  int nKey_=this->NKey();
-  sortIndex.resize(nKey_);
-  for(int k=0 ; k<nKey_; ++k) {sortIndex[k]=k;} 
-//GD: create sortIndex and sort it using std::sort and a specialized function indirectCompare
-  currentKeys=key;
-  std::sort(sortIndex.begin(),sortIndex.end(), indirectCompare);
-}
-
 // DLib ******************************************************
 DLib::DLib( const string& n, const string& o, const int nPar_, 
 	    const string keyNames[],
@@ -228,10 +188,6 @@ DLib::DLib( const string& n, const string& o, const int nPar_,
   SizeT k=0;
   for( ; k<nKey_; ++k) key[k]=keyNames[k];
 
-  // GD: create sortIndex and sort it using std::sort and a specialized function indirectCompare.
-  // "Pseudo sorted" keys permits a binary search which is faster.
-  // so to mimic a sorted key[], access its elements not by their index but by sortIndex[index].
-  FinalizeKeywordList();
   if( nKey_ >= 1) {
     if( keyNames[0] == "_EXTRA")
       {
@@ -263,7 +219,7 @@ DLib::DLib( const string& n, const string& o, const int nPar_,
       warnKey[wk++] = "TPOOL_NOTHREAD";
     }
   } else if (usesKeywords) { //DLM: allow anything, just define _EXTRA at this stage
-    key.resize(1); sortIndex.resize(1); sortIndex[0]=0; 
+    key.resize(1);
     key[0]="_REF_EXTRA";
     extra_type = REFEXTRA;
     extraIx = 0; // initialize the possibility of KEYWORDS.
@@ -536,7 +492,6 @@ DSubUD* DSubUD::AddKey(const string& k, const string& v)
   for( int i= key.size()-1; i>0; --i)
     key[ i] = key[ i-1];
   key[ 0] = k;
-  FinalizeKeywordList(); 
   var.resize( var.size() + 1);
   for( int i= var.size()-1; i>0; --i)
     var[ i] = var[ i-1];
