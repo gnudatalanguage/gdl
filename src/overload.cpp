@@ -419,7 +419,25 @@ void RegisterFun(DStructDesc* o, const std::string &n,  BaseGDL* (*fun_)( EnvUDT
   funMap[o->Name()+"::"+n]=o->FunList().size();
   o->FunList().push_back(f);
 }
-
+void RegisterOperatorFun(int op, DStructDesc* o, const std::string &n,  BaseGDL* (*fun_)( EnvUDT*) , int npar=0, const string *keylist=NULL) {
+  assert (o->FindInFunList(n) ==NULL);//no because .RESET
+  DFun *f = new DFun(n, o->Name(), INTERNAL_LIBRARY_STR);
+  if (keylist) {
+    int ikey=0;
+    while (keylist[ikey] != "") {
+      f->AddKey(keylist[ikey],keylist[ikey]);
+      ikey++;
+    }
+  }
+  if (npar > 0) {
+    for (int ipar = 0; ipar < npar; ipar++) f->AddPar("PAR" + i2s(ipar));
+  }
+  WRAPPED_FUNNode* treeFun = new WRAPPED_FUNNode(fun_);
+  f->SetTree(treeFun);
+  funMap[o->Name()+"::"+n]=o->FunList().size();
+  o->FunList().push_back(f);
+  o->SetOperator(op,f);
+}
 void RegisterPro(DStructDesc* o, const std::string n, void (*pro_)(EnvUDT*), int npar=0, const string *keylist = NULL) {
 //  assert (o->FindInProList(n) ==NULL);//no because .RESET
   DPro *p = new DPro(n, o->Name(), INTERNAL_LIBRARY_STR);
@@ -437,7 +455,27 @@ void RegisterPro(DStructDesc* o, const std::string n, void (*pro_)(EnvUDT*), int
   p->SetTree(treePro);
   proMap[o->Name() + "::" + n] = o->ProList().size();
   o->ProList().push_back(p);
-}    
+}
+
+void RegisterOperatorPro(int op, DStructDesc* o, const std::string n, void (*pro_)(EnvUDT*), int npar=0, const string *keylist = NULL) {
+//  assert (o->FindInProList(n) ==NULL);//no because .RESET
+  DPro *p = new DPro(n, o->Name(), INTERNAL_LIBRARY_STR);
+  if (keylist) {
+    int ikey = 0;
+    while (keylist[ikey] != "") {
+      p->AddKey(keylist[ikey], keylist[ikey]);
+      ikey++;
+    }
+  }
+  if (npar > 0) {
+    for (int ipar = 0; ipar < npar; ipar++) p->AddPar("PAR" + i2s(ipar));
+  }
+  WRAPPED_PRONode* treePro = new WRAPPED_PRONode(pro_);
+  p->SetTree(treePro);
+  proMap[o->Name() + "::" + n] = o->ProList().size();
+  o->ProList().push_back(p);
+  o->SetOperator(op,p);
+}
 void SetupOverloadSubroutines() {
   //   // The call
   //   BaseGDL* res=interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
@@ -445,7 +483,7 @@ void SetupOverloadSubroutines() {
   DStructDesc* gdlObjectDesc = FindInStructList(structList, GDL_OBJECT_NAME);
   assert(gdlObjectDesc != NULL);
   DStructDesc* gdlContainerDesc = FindInStructList(structList, "GDL_CONTAINER");
-  assert(gdlObjectDesc != NULL);
+  assert(gdlContainerDesc != NULL);
   DStructDesc* listDesc = FindInStructList(structList, "LIST");
   assert(listDesc != NULL);
   DStructDesc* hashDesc = FindInStructList(structList, "HASH");
@@ -475,28 +513,21 @@ void SetupOverloadSubroutines() {
   // we are NOT setting the operator to have (faster) default behavior
   // the functions must be there nevertheless for explicit callingNode
   // that's why we add them to the functions list
-  RegisterFun(gdlObjectDesc, "_OVERLOADISTRUE", _GDL_OBJECT_OverloadIsTrue);
-  //   gdlObjectDesc->SetOperator(OOIsTrue,_overloadIsTrue);
+  RegisterOperatorFun(OOIsTrue, gdlObjectDesc, "_OVERLOADISTRUE", _GDL_OBJECT_OverloadIsTrue);
   // GDL_OBJECT:: [
-  RegisterPro(gdlObjectDesc, "_OVERLOADBRACKETSLEFTSIDE", _GDL_OBJECT_OverloadBracketsLeftSide,11);
-  //   gdlObjectDesc->SetOperator(OOBracketsLeftSide,_overloadBracketsLeftSide);
+  RegisterOperatorPro(OOBracketsLeftSide, gdlObjectDesc, "_OVERLOADBRACKETSLEFTSIDE", _GDL_OBJECT_OverloadBracketsLeftSide,11);
   // GDL_OBJECT::INIT()
   RegisterFun(gdlObjectDesc, "INIT", _GDL_OBJECT_Init);
   // GDL_OBJECT:: ]
-  RegisterFun(gdlObjectDesc, "_OVERLOADBRACKETSRIGHTSIDE", _GDL_OBJECT_OverloadBracketsRightSide,9);
-  //   gdlObjectDesc->SetOperator(OOBracketsRightSide,_overloadBracketsRightSide);
+  RegisterOperatorFun(OOBracketsRightSide, gdlObjectDesc, "_OVERLOADBRACKETSRIGHTSIDE", _GDL_OBJECT_OverloadBracketsRightSide,9);
   // GDL_OBJECT:: =
-  RegisterFun(gdlObjectDesc, "_OVERLOADEQ", _GDL_OBJECT_OverloadEQOp,2);
-  //   gdlObjectDesc->SetOperator(OOEQ,_overloadEQ);
+  RegisterOperatorFun(OOEQ, gdlObjectDesc, "_OVERLOADEQ", _GDL_OBJECT_OverloadEQOp,2);
   // GDL_OBJECT:: !=
-  RegisterFun(gdlObjectDesc, "_OVERLOADNE", _GDL_OBJECT_OverloadNEOp,2);
-  //   gdlObjectDesc->SetOperator(OONE,_overloadNE);
+  RegisterOperatorFun(OONE, gdlObjectDesc, "_OVERLOADNE", _GDL_OBJECT_OverloadNEOp,2);
   // GDL_OBJECT:: +
-  RegisterFun(gdlObjectDesc, "_OVERLOADPLUS", _GDL_OBJECT_OverloadReportIllegalOperation,2);
-  //   gdlObjectDesc->SetOperator(OOPlus,_overloadPlus);
+  RegisterOperatorFun(OOPlus, gdlObjectDesc, "_OVERLOADPLUS", _GDL_OBJECT_OverloadReportIllegalOperation,2);
   // GDL_OBJECT:: -
-  RegisterFun(gdlObjectDesc, "_OVERLOADMINUS", _GDL_OBJECT_OverloadReportIllegalOperation,2);
-  //   gdlObjectDesc->SetOperator(OOMINUS,_overloadMinus);
+  RegisterOperatorFun(OOMinus,gdlObjectDesc, "_OVERLOADMINUS", _GDL_OBJECT_OverloadReportIllegalOperation,2);
   
   
   // GDL_CONTAINER 
@@ -526,17 +557,17 @@ void SetupOverloadSubroutines() {
   RegisterPro(gdlContainerDesc, "REMOVE", lib::container__remove, 1, contremovek);
 
   // LIST:: ]
-  RegisterFun(listDesc, "_OVERLOADBRACKETSRIGHTSIDE", lib::LIST___OverloadBracketsRightSide,9);
+  RegisterOperatorFun(OOBracketsRightSide, listDesc, "_OVERLOADBRACKETSRIGHTSIDE", lib::LIST___OverloadBracketsRightSide,9);
   // LIST:: [
-  RegisterPro(listDesc, "_OVERLOADBRACKETSLEFTSIDE", lib::LIST___OverloadBracketsLeftSide,11);
+  RegisterOperatorPro(OOBracketsLeftSide,listDesc, "_OVERLOADBRACKETSLEFTSIDE", lib::LIST___OverloadBracketsLeftSide,11);
   // LIST:: +
-  RegisterFun(listDesc, "_OVERLOADPLUS", lib::LIST___OverloadPlus,2);
+  RegisterOperatorFun(OOPlus,listDesc, "_OVERLOADPLUS", lib::LIST___OverloadPlus,2);
   // LIST:: =
-  RegisterFun(listDesc, "_OVERLOADEQ", lib::LIST___OverloadEQOp,2);
+  RegisterOperatorFun(OOEQ,listDesc, "_OVERLOADEQ", lib::LIST___OverloadEQOp,2);
   // LIST:: !=
-  RegisterFun(listDesc, "_OVERLOADNE", lib::LIST___OverloadNEOp,2);
+  RegisterOperatorFun(OONE,listDesc, "_OVERLOADNE", lib::LIST___OverloadNEOp,2);
   // LIST::
-  RegisterFun(listDesc, "_OVERLOADISTRUE", lib::LIST___OverloadIsTrue);
+  RegisterOperatorFun(OOIsTrue,listDesc, "_OVERLOADISTRUE", lib::LIST___OverloadIsTrue);
   // LIST::ADD
   RegisterPro(listDesc, "ADD", lib::list__add, 2, listaddk);
   // LIST::REMOVE()
@@ -565,17 +596,17 @@ void SetupOverloadSubroutines() {
 
   // HASH
   // HASH:: ]
-  RegisterFun(hashDesc, "_OVERLOADBRACKETSRIGHTSIDE", lib::HASH___OverloadBracketsRightSide,9);
+  RegisterOperatorFun(OOBracketsRightSide, hashDesc, "_OVERLOADBRACKETSRIGHTSIDE", lib::HASH___OverloadBracketsRightSide,9);
   // HASH:: [
-  RegisterPro(hashDesc, "_OVERLOADBRACKETSLEFTSIDE", lib::HASH___OverloadBracketsLeftSide,11);
+  RegisterOperatorPro(OOBracketsLeftSide, hashDesc, "_OVERLOADBRACKETSLEFTSIDE", lib::HASH___OverloadBracketsLeftSide,11);
   // HASH:: +
-  RegisterFun(hashDesc, "_OVERLOADPLUS", lib::HASH___OverloadPlus,2);
+  RegisterOperatorFun(OOPlus, hashDesc, "_OVERLOADPLUS", lib::HASH___OverloadPlus,2);
   // HASH:: =
-  RegisterFun(hashDesc, "_OVERLOADEQ", lib::HASH___OverloadEQOp,2);
+  RegisterOperatorFun(OOEQ, hashDesc, "_OVERLOADEQ", lib::HASH___OverloadEQOp,2);
   // HASH:: !=
-  RegisterFun(hashDesc, "_OVERLOADNE", lib::HASH___OverloadNEOp,2);
+  RegisterOperatorFun(OONE, hashDesc, "_OVERLOADNE", lib::HASH___OverloadNEOp,2);
   // HASH::
-  RegisterFun(hashDesc, "_OVERLOADISTRUE", lib::HASH___OverloadIsTrue);
+  RegisterOperatorFun(OOIsTrue, hashDesc, "_OVERLOADISTRUE", lib::HASH___OverloadIsTrue);
 
  // HASH::REMOVE()
   RegisterFun(hashDesc,"REMOVE",lib::hash__remove_fun,1,listremovek);
