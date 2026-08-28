@@ -25,13 +25,6 @@
 #if defined(USE_PYTHON) || defined(PYTHON_MODULE)
 #include <numpy/arrayobject.h>
 
-//#include <deque>
-//#include <iterator>
-
-//#include "datatypes.hpp"
-//#include "envt.hpp"
-//#include "objects.hpp"
-
 using namespace std;
 
 #if PY_MAJOR_VERSION >= 3

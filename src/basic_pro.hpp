@@ -60,7 +60,7 @@ namespace lib {
   void read_pro(EnvT* e);
   void readf_pro(EnvT* e);
   void reads(EnvT* e);
-  void read_is(std::istream* is, EnvT* e, int parOffset);
+  std::streampos read_is(std::istream* is, EnvT* e, int parOffset);
 
   void on_error(EnvT* e);
   void catch_pro(EnvT* e);
@@ -108,6 +108,7 @@ namespace lib {
 
   void delvar_pro( EnvT* e);
   void findvar_pro( EnvT* e);
+  void compile_code_pro( EnvT* e);
 } // namespace
 
 #endif

@@ -508,7 +508,8 @@ namespace lib
         else return new DLongGDL(0);
 
         DLong imageIndex = 0;
-        e->AssureLongScalarKWIfPresent("IMAGE_INDEX", imageIndex);
+        static int IMAGE_INDEX=e->KeywordIx("IMAGE_INDEX");
+        e->AssureLongScalarKWIfPresent(IMAGE_INDEX, imageIndex);
 
         TIFF::Handler tiff;
         TIFF::Directory dir;
@@ -581,8 +582,10 @@ namespace lib
         else e->Throw("Zero-length filename");
 
         DLong imageIndex = 0;
-        e->AssureLongScalarKWIfPresent("IMAGE_INDEX", imageIndex);
-        bool verbose = e->KeywordPresent("VERBOSE");
+        static int IMAGE_INDEX=e->KeywordIx("IMAGE_INDEX");
+        e->AssureLongScalarKWIfPresent(IMAGE_INDEX, imageIndex);
+        static int VERBOSE=e->KeywordIx("VERBOSE");
+        bool verbose = e->KeywordPresent(VERBOSE);
 
         TIFF::Handler tiff;
         TIFF::Directory dir;

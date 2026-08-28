@@ -21,7 +21,6 @@
 #include "includefirst.hpp" // USE_EIGEN3
 
 #include <vector>
-#include <deque>
 #include <string>
 #include <functional>
 
@@ -29,7 +28,12 @@
 #include "dpro.hpp"
 #include "typedefs.hpp"
 #include "overload.hpp"
-
+#include <unordered_map>
+typedef std::unordered_map<std::string,int> LibMapT;
+extern LibMapT funMap; //note: funMap references ALL functions names, including OBJECT::Functions. 
+//But associated INDEX returned is in the case of a OBJECT the index in its objectFunList.
+//There may be advantages of having all FUNctions, object's as well, in funList but this needs a creful and large rewrite.
+extern LibMapT proMap; //note: same as above.
 class DStructBase
 {
 private:
@@ -184,8 +188,8 @@ private:
   StructListT              parent;  // parent classes 
   IDList                   noDirectMembers;
   
-  FunListT                 fun; // member functions
-  ProListT                 pro; // member procedures
+  FunListT                 objectFunList; // member functions
+  ProListT                 objectProList; // member procedures
 
   DStructDesc( const DStructDesc&) {} // disabeld
 
@@ -214,25 +218,33 @@ public:
 
   FunListT& FunList()
   {
-    return fun;
+    return objectFunList;
   }
 
   DFun* FindInFunList( const std::string& n)
   {
-    FunListT::iterator p=std::find_if(fun.begin(),fun.end(),Is_eq<DFun>(n));
-    if( p != fun.end()) return *p;
+	try {
+		int i=funMap.at(this->name+"::"+n); // aka //findDFunIx(this->name+"::"+n);
+	    if (i != -1) return objectFunList[i];
+	} catch (const std::out_of_range& oor) { return NULL;}
+//    FunListT::iterator p=std::find_if(objectFunList.begin(),objectFunList.end(),Is_eq<DFun>(n));
+//    if( p != objectFunList.end()) return *p;
     return NULL;
   }
   
   ProListT& ProList()
   {
-    return pro;
+    return objectProList;
   }
 
   DPro* FindInProList( const std::string& n)
   {
-    ProListT::iterator p=std::find_if(pro.begin(),pro.end(),Is_eq<DPro>(n));
-    if( p != pro.end()) return *p;
+	try {
+		int i=proMap.at(this->name+"::"+n); // aka //findDFunIx(this->name+"::"+n);
+	    if (i != -1) return objectProList[i];
+	} catch (const std::out_of_range& oor) { return NULL;}
+//    ProListT::iterator p=std::find_if(objectProList.begin(),objectProList.end(),Is_eq<DPro>(n));
+//    if( p != objectProList.end()) return *p;
     return NULL;
   }
 

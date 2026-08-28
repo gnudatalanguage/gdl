@@ -42,12 +42,20 @@ inline bool PathGiven(const std::string& f)
   return false;		
 }
 
-// append a if not already present
-inline void AppendIfNeeded(std::string &s, const std::string& a)
+//// append a if not already present
+//inline void AppendIfNeeded(std::string &s, const std::string& a)
+//{
+//  if( a.size() == 0) return;
+//  if( s.size() < a.size()) { s += a; return;}
+//  if( s.substr(s.size()-a.size(),a.size()) != a) s += a;
+//}
+// append a if not already present, and tell that it has amended the string s
+inline bool AppendIfNeeded(std::string &s, const std::string& a)
 {
-  if( a.size() == 0) return;
-  if( s.size() < a.size()) { s += a; return;}
-  if( s.substr(s.size()-a.size(),a.size()) != a) s += a;
+  if( a.size() == 0) return false;
+  if( s.size() < a.size()) { s += a; return true;}
+  if( s.substr(s.size()-a.size(),a.size()) != a) {s += a; return true;}
+  return false;
 }
 
 void ExpandShellVariables(std::string& s);

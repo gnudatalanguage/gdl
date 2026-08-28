@@ -20,7 +20,6 @@
 
 #include <fstream>
 #include <string>
-#include <deque>
 #include <map>
 
 #include "GDLLexer.hpp"
@@ -38,13 +37,12 @@ class DCompiler: public GDLTokenTypes
   std::string actualFile;         // actual compiled file (dbg info)
   std::string subRoutine;         // pro/fun to compile (used for messages only)
 
-  EnvBaseT   *env;                // intial processed environment (interactive)
+  EnvBaseT   *env;                // initial processed environment (interactive)
   DSubUD *pro;                    // actual processed pro/function
 
   bool            activeProCompiled;
   int             nCompileErrors; // number of compilation errors
 
-  //  std::map<std::string,std::deque<RefDNode> > labelList; // resolving goto/label
   CommonListT   ownCommonList; // common blocks not yet added to commonList
 
   DCommon* Common(const std::string& n); // returns common block with name n
@@ -80,7 +78,7 @@ public:
   BaseGDL* ConstantIndex( RefDNode n);
   RefDNode ByReference(RefDNode n_);  // for parameter passing 
   //  bool ByReferenceMaybe(RefDNode n_); // for parameter passing 
-  bool IsVar(const std::string&); // variable already defined in actual context?
+  // bool IsVar(const std::string&); // variable already defined in actual context?
   void Var(RefDNode);    // sets var in node
   void SysVar(RefDNode); // sets var in node
   void SetTree(RefDNode);
@@ -93,12 +91,6 @@ public:
   int NCompileErrors() const { return nCompileErrors;}
   EnvBaseT* GetEnv() const { return env;}
   void SetEnv( EnvBaseT* e) { env = e;}
-  // for sorting lists by name
-  struct CompLibFunName: public std::function<bool(DLibFun*, DLibFun*)>
-  {
-    bool operator() ( DLibFun* f1, DLibFun* f2) const
-    { return f1->ObjectName() < f2->ObjectName();}
-  };  
 };
 
 #endif

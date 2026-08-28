@@ -65,9 +65,7 @@
 
 #include <set>
 #include <string>
-// #include <string.h> // memcopy
 #include <cstring> // memcopy
-// #include <deque>
 #include <complex>
 #include <vector>
 #include <valarray>
@@ -225,25 +223,27 @@ inline std::string i2s( T i)
 // searches IDList idL for std::string s, returns its position, -1 if not found
 inline int FindInIDList(IDList& idL,const std::string& s)
 {
-//   int ix=0;
-  for(IDList::iterator i=idL.begin(); i != idL.end(); ++i)//, ++ix) 
+	if (idL.size() == 1) {if (idL[0]==s) return 0; else return -1;} //1 element optimization
+  int c=0;
+  for(IDList::iterator i=idL.begin(); i != idL.end(); ++i) { c++;
     if( *i==s) 
       {
 	return i - idL.begin();
       }
-
+  }
   return -1;
 }
 // TODO: make a template
 inline int FindInKeyVarListT(KeyVarListT& idL,const std::string& s)
 {
-//   int ix=0;
-  for(KeyVarListT::iterator i=idL.begin(); i != idL.end(); ++i)//, ++ix) 
+	if (idL.size() == 1) {if (idL[0]==s) return 0; else return -1;} //1 element optimization
+	int c=0;
+	for(KeyVarListT::iterator i=idL.begin(); i != idL.end(); ++i){ c++;
     if( *i==s) 
       {
 	return i - idL.begin();
       }
-
+  }
   return -1;
 }
 
@@ -517,7 +517,7 @@ typedef PreAllocPListT<BaseGDL*, ExprListDefaultLength> ExprListT;
 typedef ExprListT::iterator ExprListIterT;
 
 // exception save usage of GSL types
-// you need to pass the gsl-object to guard and the gsl-clenaup (free) function
+// you need to pass the gsl-object to guard and the gsl-cleanup (free) function
 // example usage (for gsl_matrix):
 //
 // gsl_matrix *matrix = gsl_matrix_alloc(p0->Dim(0), p0->Dim(0));
@@ -635,13 +635,9 @@ public:
   
 };
 
-//typedef std::vector< void*> FreeListT;	
-// thread safe deque
-
-
 #include <deque>
 class DStructGDL;
-class GDLEventQueue {
+class GDLEventQueue { //see gdlwidget.hpp for a (commented out) thread-safe (??) version of GDLEventQueue
 private:
   std::deque<DStructGDL*> dq;
 public:

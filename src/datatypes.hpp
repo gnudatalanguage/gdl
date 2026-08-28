@@ -156,7 +156,7 @@ static	void operator delete( void *ptr);
   BaseGDL* CShift( DLong d) const; 
   BaseGDL* CShift( DLong d[MAXRANK]) const; 
 
-  BaseGDL* Transpose( DUInt* perm);
+  BaseGDL* Transpose( DUInt* perm, int ndim=0);
   BaseGDL* Rotate( DLong dir);
   void Reverse( DLong dim);
   BaseGDL* DupReverse( DLong dim);

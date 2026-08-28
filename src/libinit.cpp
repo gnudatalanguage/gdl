@@ -116,7 +116,8 @@ void LibInit()
   //LAMBDA function
   new DLibFun(lib::lambda_fun,string("LAMBDA"),1);
   new DLibFun(lib::lambda_pro,string("LAMBDAP"),1);
-
+  // COMPILE_CODE
+  new DLibPro(lib::compile_code_pro,string("COMPILE_CODE"),1);
   //SCOPE_VARFETCH WARNING: changes in lib::scope_varfetch_value must be reported also in lib::scope_varfetch_reference
   const string scope_varfetchKey[]={"LEVEL","ENTER", "REF_EXTRA", "COMMON", KLISTEND};
   new DLibFun(lib::scope_varfetch_value,string("SCOPE_VARFETCH"),-1,scope_varfetchKey);
@@ -309,7 +310,7 @@ void LibInit()
 
   new DLibPro(lib::retall,string("RETALL"));
 
-  const string catchKey[]={"CANCEL",KLISTEND};
+  const string catchKey[]={"CANCEL",KLISTEND};//CANCEL KW=0
   new DLibPro(lib::catch_pro,string("CATCH"),1,catchKey);
   new DLibPro(lib::on_error,string("ON_ERROR"),1);
 
@@ -422,10 +423,11 @@ void LibInit()
   new DLibFun(lib::call_method_function, string("CALL_METHOD"),-1,obj_newKey);
   new DLibPro(lib::call_method_procedure,string("CALL_METHOD"),-1,obj_newKey);
   
-  const string indKey[]={"TYPE","BYTE","COMPLEX","DCOMPLEX",
+  //START=0, INCREMENT=1 for ALL -> just use 0 and 1 not static const int
+  const string indKey[]={"START", "INCREMENT", "TYPE","BYTE","COMPLEX","DCOMPLEX",
 			 "DOUBLE","FLOAT","L64","LONG",
 			 "STRING","UINT","UL64","ULONG",
-			 "START", "INCREMENT", KLISTEND};
+			 KLISTEND};
   const string xindKey[]={"START", "INCREMENT", KLISTEND};
   new DLibFunRetNewTP(lib::bindgen,string("BINDGEN"),MAXRANK,xindKey,NULL,true);  //UsesThreadPOOL 
   new DLibFunRetNewTP(lib::indgen,string("INDGEN"),MAXRANK,indKey,NULL,true);  //UsesThreadPOOL 
@@ -461,13 +463,15 @@ void LibInit()
   new DLibPro(lib::openu,string("OPENU"),3,openKey);
   new DLibPro(lib::get_lun,string("GET_LUN"),1);
 
-  const string socketKey[]={"ERROR","GET_LUN","STDIO",
+  const string socketWarnKey[]={"ACCEPT","LISTEN","RAWIO","PORT",KLISTEND};
+  const string socketKey[]={"ERROR","GET_LUN",
+                "STDIO", //not used but not signaled also.
 			    "SWAP_ENDIAN","SWAP_IF_BIG_ENDIAN",
 			    "SWAP_IF_LITTLE_ENDIAN","WIDTH",
 			    "CONNECT_TIMEOUT","READ_TIMEOUT",
 			    "WRITE_TIMEOUT",
 			    KLISTEND};
-  new DLibPro(lib::socket,string("SOCKET"),3,socketKey);
+  new DLibPro(lib::socket,string("SOCKET"),3,socketKey,socketWarnKey);
 
   new DLibPro(lib::flush_lun,string("FLUSH"),-1);
 
@@ -481,7 +485,7 @@ void LibInit()
 
   const string writeuKey[]={"TRANSFER_COUNT","REWRITE"/*obsolete*/,KLISTEND};
   const string readuKey[]={"TRANSFER_COUNT"
-    ,"KEY_ID", "KAY_MATCH", "KEY_VALUE" // obsoleted in 5.3
+    ,"KEY_ID", "KEY_MATCH", "KEY_VALUE" // obsoleted in 5.3
     ,KLISTEND};
   new DLibPro(lib::writeu,string("WRITEU"),-1,writeuKey);
   new DLibPro(lib::readu,string("READU"),-1,readuKey);

@@ -76,25 +76,25 @@ namespace lib {
 
       long dim = timestamps->Dim(0);
 
-      long valueYEAR = e->KeywordIx("YEAR");
+      static int valueYEAR = e->KeywordIx("YEAR");
       bool hasYear = e->KeywordPresent(valueYEAR);
 
-      long valueMONTH = e->KeywordIx("MONTH");
+      static int valueMONTH = e->KeywordIx("MONTH");
       bool hasMonth = e->KeywordPresent(valueMONTH);
 
-      long valueDAY = e->KeywordIx("DAY");
+      static int valueDAY = e->KeywordIx("DAY");
       bool hasDay = e->KeywordPresent(valueDAY);
 
-      long valueHOUR = e->KeywordIx("HOUR");
+      static int valueHOUR = e->KeywordIx("HOUR");
       bool hasHour = e->KeywordPresent(valueHOUR);
 
-      long valueMINUTE = e->KeywordIx("MINUTE");
+      static int valueMINUTE = e->KeywordIx("MINUTE");
       bool hasMinute = e->KeywordPresent(valueMINUTE);
 
-      long valueSECOND = e->KeywordIx("SECOND");
+      static int valueSECOND = e->KeywordIx("SECOND");
       bool hasSecond = e->KeywordPresent(valueSECOND);
 
-      long valueOFFSET = e->KeywordIx("OFFSET");
+      static int valueOFFSET = e->KeywordIx("OFFSET");
       bool hasOffset = e->KeywordPresent(valueOFFSET);
 
       if (dim >= 1) {
@@ -314,6 +314,16 @@ namespace lib {
     static int utcIx=e->KeywordIx("UTC");
     bool isUTC=e->BooleanKeywordAbsentOrSet(utcIx);
 
+    static int YEAR=e->KeywordIx("YEAR");
+    static int MONTH=e->KeywordIx("MONTH");
+    static int DAY=e->KeywordIx("DAY");
+    static int HOUR=e->KeywordIx("HOUR");
+    static int MINUTE=e->KeywordIx("MINUTE");
+    static int SECOND=e->KeywordIx("SECOND");
+    static int OFFSET=e->KeywordIx("OFFSET");
+
+    int* values_indexes[]={&YEAR,&MONTH,&DAY,&HOUR,&MINUTE,&SECOND,&OFFSET};
+    
     struct timeval tv;
 
     /* Get the current time at high precision; could also use clock_gettime() for
@@ -347,8 +357,7 @@ namespace lib {
     int minListNelem = -1;
 
     for(int i=0; i < 7; ++i){
-      int valueIx = e->KeywordIx(values_str[i]);
-      isValue[i]=e->KeywordSet(valueIx);
+      isValue[i]=e->KeywordSet(*values_indexes[i]);
 
       if(isValue[i]){
         if(i==6){
@@ -357,7 +366,7 @@ namespace lib {
           isAnyValue=true;
         }
 
-        DFloatGDL * par = e->GetKWAs<DFloatGDL>(valueIx);
+        DFloatGDL * par = e->GetKWAs<DFloatGDL>(*values_indexes[i]);
         isParScalar[i] = par->Rank() == 0;
 
         if(!isParScalar[i])
@@ -479,8 +488,7 @@ namespace lib {
 
     }
 
-    static double elapsedIx=e->KeywordIx("ELAPSED");
-    //bool iselapsed=e->KeywordSet("ELAPSED");
+    static int elapsedIx=e->KeywordIx("ELAPSED");
     bool iselapsed=e->KeywordPresentAndDefined(elapsedIx);
     static int julianIx=e->KeywordIx("JULIAN");
     bool isjulian=e->KeywordSet(julianIx);

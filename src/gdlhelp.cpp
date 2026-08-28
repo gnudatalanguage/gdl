@@ -379,8 +379,9 @@ static void help_Output(BaseGDL** outputKW, ostringstream& ostr, SizeT &nlines, 
   void help_path_cached(ostream& ostr, SizeT &lines_count) {
 
     struct dirent *dp;
-    const char *ProSuffix = ".pro";
-    int ProSuffixLen = strlen(ProSuffix);
+    const char *ProSuffix1 = ".pro";
+    const char *ProSuffix2 = ".sav";
+    int ProSuffixLen = strlen(ProSuffix1);
 
     string tmp_fname;
     size_t found;
@@ -399,7 +400,8 @@ static void help_Output(BaseGDL** outputKW, ostringstream& ostr, SizeT &nlines, 
 		int NbProFilesInCurrentDir = 0;
         while ((dp = readdir(dirp)) != NULL) {
           tmp_fname = dp->d_name;
-          found = tmp_fname.rfind(ProSuffix);
+          found = tmp_fname.rfind(ProSuffix1);
+          if (found == std::string::npos) found = tmp_fname.rfind(ProSuffix2);
           if (found != std::string::npos) {
             if ((found + ProSuffixLen) == tmp_fname.length())
               ++NbProFilesInCurrentDir;

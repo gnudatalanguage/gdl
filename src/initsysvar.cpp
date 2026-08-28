@@ -47,6 +47,8 @@
 #define BUILD_DATE __DATE__
 #endif
 
+#define EXPAND_A_ROUTINE_WILDCARD "*.[ps][ra][ov]" //.pro and .sav, char by char. not perfect ( .pav would pass) but ExpandPath uses wildcards.
+
 namespace SysVar
 {
 
@@ -101,7 +103,7 @@ namespace SysVar
     if (newPath.find("<IDL_DEFAULT_PATH", 0) != std::string::npos) newPath = replaceAllOccurencesOfDefaultTokens(newPath, "<IDL_DEFAULT_PATH>", gdl_default_path);	
     if (newPath.find("<IDL_DEFAULT", 0) != std::string::npos) newPath = replaceAllOccurencesOfDefaultTokens(newPath, "<IDL_DEFAULT>", gdl_default_path);	
 	
-	lib::ExpandPath( sArr, act, "*.pro"); //indeed, !PATH contains only directories where a .pro is found
+	lib::ExpandPath( sArr, act, EXPAND_A_ROUTINE_WILDCARD); //indeed, !PATH contains only directories where a .pro or a .sav is found
 	
 	sPos=d+1;
       }
@@ -247,6 +249,11 @@ namespace SysVar
     static_cast<DLongGDL&>(*qSysVar.Data())[0]=1;
   }
   
+  void Make_Loud()
+  {
+    DVar& qSysVar=*sysVarList[quietIx];
+    static_cast<DLongGDL&>(*qSysVar.Data())[0]=0;
+  }
   void SetC( DLong cVal)
   {
     DVar& cSysVar=*sysVarList[cIx];
@@ -264,6 +271,12 @@ namespace SysVar
     DVar& eSSysVar = *sysVarList[ err_stringIx];
     static_cast<DStringGDL&>(*eSSysVar.Data())[0] = eS;
   }
+  // ERR location is frequently used in WHERE for example. Better to get the value directly
+  void SetSysErr( DLong v){
+     DVar& errSysVar=*sysVarList[ errIx];
+     static_cast<DLongGDL&>(*errSysVar.Data())[0] = v;
+  }
+  
   void SetErrError( DLong eC)
   {
     DVar& errSysVar = *sysVarList[ errIx];

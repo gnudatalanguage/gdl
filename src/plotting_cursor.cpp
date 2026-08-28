@@ -299,8 +299,7 @@ void cursor(EnvT* e){
     if (gin.button == 3) gin.button = 4; // in powers of 2 (0,1,2,4..)
     (*static_cast<DLongGDL*>(Struct->GetTag(ButtonMouseTag)))[0] = gin.button;
   }
-  DVar *err=FindInVarList(sysVarList, "ERR");
-  (static_cast<DLongGDL*>(err->Data()))[0]=  gin.button;
+    SysVar::SetSysErr(gin.button);
 }
 
 } // namespace

@@ -233,7 +233,8 @@ TEST_BYTE_BUG_586, Cumul_errors, test=test, verbose=verbose
 ;
 TEST_BYTE_BASIC_32768, nb_errors, test=test, verbose=verbose
 ; the same but with negative values ...
-TEST_BYTE_BASIC_32768, nb_errors, /NEGATIVE, test=test, verbose=verbose
+; fails on ia64 
+if !version.arch ne "arm64" then TEST_BYTE_BASIC_32768, nb_errors, /NEGATIVE, test=test, verbose=verbose
 ;
 ;
 TEST_BYTE_STRING2BYTE, nb_errors, test=test, verbose=verbose

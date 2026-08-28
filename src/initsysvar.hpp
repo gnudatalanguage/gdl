@@ -55,6 +55,7 @@ namespace SysVar
   DStructGDL* Error_State();
   DString MsgPrefix();
 
+  void SetSysErr( DLong newerr);
   void SetErr_String( const DString& eS);
   void SetErrError( DLong eC);
 
@@ -92,6 +93,7 @@ namespace SysVar
   void Suppress_Edit_Input();
   DLong Quiet();
   void Make_Quiet();
+  void Make_Loud();
   DInt More();
   
   // get and set !JOURNAL (journal file LUN)

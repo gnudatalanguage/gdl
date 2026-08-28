@@ -19,7 +19,6 @@
 #define DVAR_HPP_
 
 #include <string>
-#include <deque>
 #include <functional>
 
 #include "basegdl.hpp"

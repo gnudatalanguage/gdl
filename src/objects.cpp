@@ -19,7 +19,6 @@
 
 #include <limits>
 #include <ios>
-
 #include "str.hpp"
 #include "gdlexception.hpp"
 #include "initsysvar.hpp"
@@ -45,7 +44,34 @@
 #endif
 
 using namespace std;
-
+#define RETURN_LISTINDEX(liblist,T)   for(auto i=0; i<liblist.size(); i++) if( Is_eq<T>(n)(liblist[i])) return (int)i; return -1;
+#define RETURN_MAPINDEX(map,what)  try {\
+    return map.at(what);\
+  } catch (const std::out_of_range& oor) {\
+    return -1;\
+  }
+#define RETURN_MAPPRO(what)  try {\
+    int index=proMap.at(what);\
+    size_t pos=what.find("::",0);\
+    if (pos==std::string::npos) return proList[index];\
+    std::string objectName = what.substr(0, pos);\
+    DStructDesc* objectDesc = FindInStructList(structList, objectName);\
+    assert(objectDesc != NULL);\
+    return (objectDesc->ProList())[index];\
+  } catch (const std::out_of_range& oor) {\
+    return NULL;\
+  }
+#define RETURN_MAPFUN(what)  try {\
+    int index=funMap.at(what);\
+    size_t pos=what.find("::",0);\
+    if (pos==std::string::npos) return funList[index];\
+    std::string objectName = what.substr(0, pos);\
+    DStructDesc* objectDesc = FindInStructList(structList, objectName);\
+    assert(objectDesc != NULL);\
+    return (objectDesc->FunList())[index];\
+  } catch (const std::out_of_range& oor) {\
+    return NULL;\
+  }
 // DInterpreter* interpreter = NULL;
 
 // instantiate the global lists
@@ -62,6 +88,10 @@ StrArr        CurrentPathList;
 UnknownFunListT      unknownFunList;
 UnknownProListT      unknownProList;
 
+LibMapT libFunMap;
+LibMapT libProMap;
+LibMapT funMap;
+LibMapT proMap;
 LibFunListT   libFunList;
 LibProListT   libProList;
 
@@ -84,8 +114,10 @@ static bool enabled_GC=true;
 
 namespace structDesc {
   // set in InitStructs()
+  // should always be reported as EXTERN in objects.hpp? please check.
   DStructDesc* LIST = NULL;
   DStructDesc* HASH = NULL;
+  DStructDesc* ORDEREDHASH = NULL;
   DStructDesc* GDL_CONTAINER = NULL;
   DStructDesc* GDL_CONTAINER_NODE = NULL;
   DStructDesc* GDL_HASHTABLEENTRY = NULL;
@@ -132,9 +164,12 @@ volatile bool useDSFMTAcceleration;
 volatile bool useEigenForTransposeOps=false;
 //experimental TPOOL use adaptive number of threads.
 volatile bool useSmartTpool=true;
+volatile bool resetInProgress=false;
+volatile bool warnLoopIndexModified=false;
 
 void ResetObjects(bool atexit)
 {
+  resetInProgress=true;
   if (!atexit) GraphicsDevice::DestroyDevices(); else   GraphicsDevice::PurgeDeviceList();
 
   fileUnits.clear();
@@ -144,7 +179,9 @@ void ResetObjects(bool atexit)
   PurgeContainer(obsoleteSysVarList); //deletion possible since all these 'clones' of some sysVarList variables are specially tagged 'isAClone'
   sysVarRdOnlyList.clear(); // those are just pointers to already deleted vars in sysVarList. Just delete container.
   sysVarNoSaveList.clear(); // those are just pointers to already deleted vars in sysVarList. Just delete container.
+  funMap.clear();
   PurgeContainer(funList);
+  proMap.clear();
   PurgeContainer(proList);
   unknownFunList.clear();
   unknownProList.clear();
@@ -167,6 +204,7 @@ void ResetObjects(bool atexit)
 #ifdef USE_PYTHON
   PythonEnd();
 #endif
+    resetInProgress=false;
 }
 
 // initialize struct descriptors which are not system variables
@@ -218,7 +256,6 @@ void InitStructs()
   // insert into structList
   structList.push_back(gdltypecodes);
 
-
   DStructDesc* gdl_object = new DStructDesc( GDL_OBJECT_NAME);
   gdl_object->AddTag("IDL_OBJECT_TOP", &aLong64);
   gdl_object->AddTag("__OBJ__", &aObjRef);
@@ -227,21 +264,8 @@ void InitStructs()
   gdl_object->InitOperatorList();
   // insert into structList
   structList.push_back(gdl_object);
-  
-  DStructDesc* gdlList = new DStructDesc( "LIST");
-  // use operator overloading (note: gdl_object's operators are not set yet)
-  gdlList->AddParent(gdl_object);
-  gdlList->AddTag("IDL_CONTAINER_TOP", &aLong64);
-  gdlList->AddTag("IDLCONTAINERVERSION", &aInt);
-  gdlList->AddTag("PHEAD", &aPtrRef);
-  gdlList->AddTag("PTAIL", &aPtrRef);
-  gdlList->AddTag("NLIST", &aLong);
-  gdlList->AddTag("IDL_CONTAINER_BOTTOM", &aLong64);
-  gdlList->AddTag("WITHINPRINT", &aByte);
-  // insert into structList
-  structList.push_back(gdlList);
-  structDesc::LIST = gdlList;
-  
+
+  //GDL_CONTAINER_NODE
   DStructDesc* gdlContainerNode = new DStructDesc( "GDL_CONTAINER_NODE");
   gdlContainerNode->AddTag("PNEXT", &aPtrRef);
 //  gdlContainerNode->AddTag("OOBJ", &aObjRef); //IDL compat, not used
@@ -251,7 +275,9 @@ void InitStructs()
   structList.push_back(gdlContainerNode);
   structDesc::GDL_CONTAINER_NODE = gdlContainerNode;
 
+  //GDL_CONTAINER_NAME
   DStructDesc* gdlContainer = new DStructDesc( GDL_CONTAINER_NAME);
+  gdlContainer->AddParent(gdl_object);
   gdlContainer->AddTag("IDL_CONTAINER_TOP", &aLong64);
   gdlContainer->AddTag("IDLCONTAINERVERSION", &aInt);
   gdlContainer->AddTag("PHEAD", &aPtrRef);
@@ -261,6 +287,16 @@ void InitStructs()
   structList.push_back(gdlContainer);
   structDesc::GDL_CONTAINER = gdlContainer;
 
+  //LIST
+  DStructDesc* gdlList = new DStructDesc("LIST");
+  // use operator overloading (note: gdl_object's operators are not set yet)
+  gdlList->AddParent(gdlContainer);
+  gdlList->AddTag("WITHINPRINT", &aByte);
+  // insert into structList
+  structList.push_back(gdlList);
+  structDesc::LIST = gdlList;
+
+  //HASHes in GDL are actually ORDEREDHASHES, as the order of insertion etc is kept (at the moment). 
   DStructDesc* gdlHash = new DStructDesc( "HASH");
   // use operator overloading (note: gdl_object's operators are not set yet)
   gdlHash->AddParent(gdl_object);
@@ -274,6 +310,16 @@ void InitStructs()
   // insert into structList
   structList.push_back(gdlHash);
   structDesc::HASH = gdlHash;
+
+  // ORDEREDHASH struct, for compatibility, as it is equivalent to HASH in any other aspects.
+  DStructDesc* gdlOrderedHash = new DStructDesc( "ORDEREDHASH");
+  // use operator overloading (note: gdl_object's operators are not set yet)
+  gdlOrderedHash->AddParent(gdlHash);
+  gdlOrderedHash->AddTag("DATA_LIST", &aObjRef  );
+  gdlOrderedHash->AddTag("DATA_FOREACH", &aObjRef  );
+  // insert into structList
+  structList.push_back(gdlOrderedHash);
+  structDesc::ORDEREDHASH = gdlOrderedHash;
 
   DStructDesc* gdlHashTE = new DStructDesc( "GDL_HASHTABLEENTRY");
   gdlHashTE->AddTag("PKEY", &aPtrRef);
@@ -941,7 +987,7 @@ void InitObjects()
 
   // initialize struct descriptors which are not system variables
   InitStructs();
-  // add internal memeber subroutines
+  // add internal member subroutines
   SetupOverloadSubroutines();
   
   // graphic devices must be initialized after system variables.
@@ -964,7 +1010,7 @@ void InitObjects()
   // One is supposed to be able to use linkimage without needing to resolve all symbols in the (potentially larger) DLL.
   // However, a DLM contains an IDL_Load, that GDL must call to get the exact address of symbols corresponding to defined FUN/PRO
   // since the symbol/entry "name" in  the dll may vary between distros. 
-  // Unfortunately IDL_Load() function may call (indirectly) unresolved symbols, and this is the case for ALL DLMs in the IDL distribution.
+  // Unfortunately IDL_Load() function may call (indirectly) unresolved symbols, and this is the case for MOST DLMs in the IDL distribution.
   // So enabling by default the loading of these DLMs only on the behalf of the setting of an environment variable set for IDL users, is dangerous.
   //if( dlmgdlPath == "") dlmgdlPath=GetEnvPathString("IDL_DLM_PATH");
   if( dlmgdlPath == "") dlmgdlPath = gdl_default_dlm;
@@ -1000,18 +1046,14 @@ bool IsFun(antlr::RefToken rT1)
 
 // Speeds up the process of finding (in gdlc.g) if a syntax like foo(bar) is a call to the function 'foo'
 // or the 'bar' element of array 'foo'.
-  LibFunListT::iterator p=find_if(libFunList.begin(),libFunList.end(),
-			       Is_eq<DLibFun>(searchName));
-  if( p != libFunList.end()) if( *p != NULL) return true;
-
-  FunListT::iterator q=find_if(funList.begin(),funList.end(),
-			       Is_eq<DFun>(searchName));
-  if( q != funList.end()) if( *q != NULL) return true;
+  
+   int ret=LibFunIx(searchName);
+   if (ret != -1) return true;
+   ret=findDFunIx(searchName);
+   if (ret != -1) return true;
 
 	// newly compiled DFun. ?
-  for ( UnknownFunListT::iterator r=unknownFunList.begin(); r!=unknownFunList.end(); ++r) {
-    if( (*r) == searchName )  return true;
-  }
+  for ( UnknownFunListT::iterator r=unknownFunList.begin(); r!=unknownFunList.end(); ++r)if( (*r) == searchName )  return true;
 
   //  cout << "Not found: " << searchName << endl;
 
@@ -1025,26 +1067,21 @@ bool IsPro(antlr::RefToken rT1)
 
   string searchName=StrUpCase(T1.getText());
 
-  LibProListT::iterator p=find_if(libProList.begin(),libProList.end(),
-			       Is_eq<DLibPro>(searchName));
-  if( p != libProList.end()) if( *p != NULL) return true;
-
-  ProListT::iterator q=find_if(proList.begin(),proList.end(),
-			       Is_eq<DPro>(searchName));
-  if( q != proList.end()) if( *q != NULL) return true;
+  int ret=LibProIx(searchName);
+  if (ret != -1) return true;
+  ret=findDProIx(searchName);
+  if (ret != -1) return true;
 
   // newly compiled DPro. ?
-  for ( UnknownProListT::iterator r=unknownProList.begin(); r!=unknownProList.end(); ++r) {
-    if( (*r) == searchName )  return true;
-  }
+  for ( UnknownProListT::iterator r=unknownProList.begin(); r!=unknownProList.end(); ++r) if( (*r) == searchName )  return true;
+
   return false;
 }
 
 int ProIx(const string& n)
 {
-SizeT nF=proList.size();
-for( SizeT i=0; i<nF; i++) if( Is_eq<DPro>(n)(proList[i])) 
-  return (int)i;
+ int ret=findDProIx(n); if (ret != -1) return ret; 
+  if (DInterpreter::CallStack().empty()) return -1;  //protection: happens during .RESET
   //may be a lambda list ? so it's a UD Pro
   EnvT* requestedScope = (EnvT*) DInterpreter::CallStackBack();
   DSubUD* pro = static_cast<DSubUD*> (requestedScope->GetPro());
@@ -1056,7 +1093,7 @@ for( SizeT i=0; i<nF; i++) if( Is_eq<DPro>(n)(proList[i]))
     if (var->Type() == GDL_STRING) { //examine string
       DString *s = static_cast<DString*> (var->DataAddr());
       if (s->find("IDL$LAMBDAP", 0) == 0) { //is a lambda
-        for (SizeT i = 0; i < nF; i++) if (Is_eq<DPro>(*s)(proList[i])) return (int) i;
+        ret=findDProIx(*s);if (ret != -1) return ret; 
       }
     }
   }
@@ -1065,9 +1102,8 @@ for( SizeT i=0; i<nF; i++) if( Is_eq<DPro>(n)(proList[i]))
 
 int FunIx(const string& n)
 {
-SizeT nF=funList.size();
-for( SizeT i=0; i<nF; i++) if( Is_eq<DFun>(n)(funList[i]))
-  return (int)i;
+ int ret=findDFunIx(n); if (ret != -1) return ret; 
+  if (DInterpreter::CallStack().empty()) return -1;  //protection: happens during .RESET
 //may be a lambda list ? so it's a UD Fun
     EnvT* requestedScope = (EnvT*) DInterpreter::CallStackBack();
     DSubUD* pro = static_cast<DSubUD*> (requestedScope->GetPro());
@@ -1079,34 +1115,39 @@ for( SizeT i=0; i<nF; i++) if( Is_eq<DFun>(n)(funList[i]))
       if (var->Type() == GDL_STRING) { //examine string
         DString *s=static_cast<DString*>(var->DataAddr());
         if (s->find("IDL$LAMBDAF",0)==0) { //is a lambda
-          for( SizeT i=0; i<nF; i++) if( Is_eq<DFun>(*s)(funList[i])) return (int)i;
+          ret=findDFunIx(*s);if (ret != -1) return ret; 
         }
       }
     }
 return -1;
 }
-
-int LibProIx(const string& n)
-{
-  SizeT nF=libProList.size();
-  for( SizeT i=0; i<nF; i++) 
-    {
-      if( Is_eq<DLibPro>(n)(libProList[i])) return (int)i;
-  }
-  return -1;
+//return index in libProList
+int LibProIx(const string& n) {
+RETURN_MAPINDEX(libProMap,n)
 }
-
+//return index in libFunList
 int LibFunIx(const string& n)
 {
-  SizeT nF=libFunList.size();
-  
-  for( SizeT i=0; i<nF; i++) 
-    {
-      if( Is_eq<DLibFun>(n)(libFunList[i])) return (int)i;
-    }
-  return -1;
+RETURN_MAPINDEX(libFunMap,n)
 }
 
+int findDFunIx(const string& n)
+{
+RETURN_MAPINDEX(funMap,n)
+}
+
+DFun* GetDFun(const string& n)
+{
+RETURN_MAPFUN(n)
+}
+int findDProIx(const string& n)
+{
+RETURN_MAPINDEX(proMap,n)
+}
+DPro* GetDPro(const string& n)
+{
+RETURN_MAPPRO(n)
+}
 // returns the endian of the current machine
 bool BigEndian()
 {

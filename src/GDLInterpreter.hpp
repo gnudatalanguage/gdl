@@ -83,7 +83,9 @@ private:
     friend class REF_EXPRVNNode;
     friend class ParameterVNNode;
     friend class WRAPPED_FUNNode;
+    friend class WRAPPED_MEDIATIZED_FUNNode;
     friend class WRAPPED_PRONode;
+    friend class WRAPPED_MEDIATIZED_PRONode;
 
 public: 
 //     RetCode returnCode;    
@@ -113,8 +115,9 @@ public:
 
     // code in: dinterpreter.cpp
     // procedure (searchForPro == true) or function (searchForPro == false)
-    static bool SearchCompilePro(const std::string& pro, bool searchForPro); 
-    static int GetFunIx( ProgNodeP);
+    static int SearchCompilePro(const std::string& pro, bool searchForPro); //-1 not found, 0 both, 1 pro 2 fun
+    static int SearchRoutineNoCompile(const std::string& pro); 
+    static int GetFunIx( ProgNodeP, bool dothrow=true);
     static int GetFunIx( const std::string& subName);
     static int GetProIx( ProgNodeP);//const std::string& subName);
     static bool CheckProExist( const std::string& subName);

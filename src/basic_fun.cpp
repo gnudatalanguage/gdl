@@ -423,12 +423,8 @@ namespace lib {
 
     DPtrGDL* ret;
 
-    // Why this code exists ? AC240526 #1837
-    static int nozeroIx = e->KeywordIx("NOZERO");    
-    if (e->KeywordSet(nozeroIx)) Message("Obsolete Keyword NOZERO");
-    //  return new DPtrGDL(dim);
-
-    if (e->KeywordSet("ALLOCATE_HEAP")) {
+    static int ALLOCATE_HEAP = e->KeywordIx("ALLOCATE_HEAP");    
+    if (e->KeywordSet(ALLOCATE_HEAP)) {
       ret = new DPtrGDL(dim, BaseGDL::NOZERO);
       SizeT nEl = ret->N_Elements();
       SizeT sIx = e->NewHeap(nEl, NullGDL::GetSingleInstance());
@@ -446,8 +442,6 @@ namespace lib {
     arr(e, dim);
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
-
-    // reference counting      if( e->KeywordSet(0)) return new DObjGDL(dim, BaseGDL::NOZERO);
     return new DObjGDL(dim);
   }
 
@@ -479,7 +473,8 @@ namespace lib {
         return new DPtrGDL(heapID);
       }
     } else {
-      if (e->KeywordSet("ALLOCATE_HEAP"))
+          static int ALLOCATE_HEAP = e->KeywordIx("ALLOCATE_HEAP");    
+    if (e->KeywordSet(ALLOCATE_HEAP)) 
       {
         DPtr heapID = e->NewHeap(1, NullGDL::GetSingleInstance()); //allocate a !NULL, not a null ptr!!
         return new DPtrGDL(heapID);
@@ -727,8 +722,48 @@ namespace lib {
   //    if(isscalar) return new DByteGDL( (*ret)[0] );
   //       else return ret;
   //  }
+ BaseGDL* class_name_to_obj_new(EnvT* e) {
+   DString objName=StrUpCase(e->GetProName());
+    int nParam = e->NParam();
+//    for (auto i=0; i< nParam; ++i) std::cerr<<e->GetParString(i)<<std::endl;
+    if (objName == "IDL_OBJECT")
+      objName = GDL_OBJECT_NAME; // replacement also done in GDLParser
+    else if (objName == "IDL_CONTAINER")
+      objName = GDL_CONTAINER_NAME;
+    DStructDesc* objDesc = e->Interpreter()->GetStruct(objName, e->CallingNode());
 
-  BaseGDL* obj_new(EnvT* e) {
+    DStructGDL* objStruct = new DStructGDL(objDesc, dimension(1));
+
+    DObj objID = e->NewObjHeap(1, objStruct); // owns objStruct
+
+    DObjGDL* newObj = new DObjGDL(objID); // the object
+
+    try {
+      // call INIT function
+      DFun* objINIT = objDesc->GetFun("INIT");
+      if (objINIT != NULL) {
+        StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
+
+        // morph to obj environment and push it onto the stack again
+        e->PushNewEnvUD(objINIT, 0, &newObj);
+
+        BaseGDL* res = e->Interpreter()->call_fun(objINIT->GetTree());
+
+        if (res == NULL || (!res->Scalar()) || res->False()) {
+          GDLDelete(res);
+          return new DObjGDL(0);
+        }
+        GDLDelete(res);
+      }
+    } catch (...) {
+      e->FreeObjHeap(objID); // newObj might be changed
+      GDLDelete(newObj);
+      throw;
+    }
+
+    return newObj;
+}
+ BaseGDL* obj_new(EnvT* e) {
     //     StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
 
     int nParam = e->NParam();
@@ -739,10 +774,49 @@ namespace lib {
 
     DString objName;
     e->AssureScalarPar<DStringGDL>(0, objName);
-
+    
     // this is a struct name -> convert to UPPERCASE
     objName = StrUpCase(objName);
-    if (objName == "IDL_OBJECT")
+    if (objName == "HASH" | objName=="ORDEREDHASH") {
+    int funIx = LibFunIx(objName);
+      EnvT* newEnv = e->NewEnv(libFunList[funIx], 1);
+      Guard<EnvT> guard(newEnv);
+    int nkw=e->GetExtraCount();
+    if (nkw > 0) {
+      DStringGDL* refextra = e->GetKWAs<DStringGDL>(0);
+      for (auto i=0; i< refextra->N_Elements(); ++i) {
+         BaseGDL* val = e->GetRefExtraList((*refextra)[i]);
+        DString s=(*refextra)[i];
+        int l=s.length();
+        if (s.compare(0,l,"EXTRACT",l)==0) {newEnv->SetKeyword("EXTRACT",val); continue;}
+        if (s.compare(0,l,"FOLD_CASE",l)==0) {newEnv->SetKeyword("FOLD_CASE",val); continue;}
+        if (s.compare(0,l,"NO_COPY",l)==0) {newEnv->SetKeyword("NO_COPY",val); continue;}
+        if (s.compare(0,l,"LOWERCASE",l)==0) {newEnv->SetKeyword("LOWERCASE",val); continue;}
+        e->Throw("Keyword "+s+" not allowed in call to: "+objName+"::INIT");
+        }
+      }
+      return static_cast<DLibFun*> (newEnv->GetPro())->Fun()(newEnv);
+    }
+    else  if (objName == "LIST") {
+    int funIx = LibFunIx(objName);
+      EnvT* newEnv = e->NewEnv(libFunList[funIx], 1);
+      Guard<EnvT> guard(newEnv);
+    int nkw=e->GetExtraCount();
+    if (nkw > 0) {
+      DStringGDL* refextra = e->GetKWAs<DStringGDL>(0);
+      for (auto i=0; i< refextra->N_Elements(); ++i) {
+         BaseGDL* val = e->GetRefExtraList((*refextra)[i]);
+        DString s=(*refextra)[i];
+        int l=s.length();
+        if (s.compare(0,l,"EXTRACT",l)==0) {newEnv->SetKeyword("EXTRACT",val); continue;}
+        if (s.compare(0,l,"LENGTH",l)==0) {newEnv->SetKeyword("LENGTH",val); continue;}
+        if (s.compare(0,l,"NO_COPY",l)==0) {newEnv->SetKeyword("NO_COPY",val); continue;}
+        e->Throw("Keyword "+s+" not allowed in call to: "+objName+"::INIT");
+        }
+      }
+      return static_cast<DLibFun*> (newEnv->GetPro())->Fun()(newEnv);
+    }
+    else if (objName == "IDL_OBJECT")
       objName = GDL_OBJECT_NAME; // replacement also done in GDLParser
     else if (objName == "IDL_CONTAINER")
       objName = GDL_CONTAINER_NAME;
@@ -963,8 +1037,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
     return do_bindgen(dim, off, inc);
   }
 
@@ -1040,8 +1114,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
 
     switch (type) {
     case GDL_INT: return do_indgen(dim, off, inc);
@@ -1071,8 +1145,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
     return do_uindgen(dim,off,inc);
   }
 
@@ -1083,8 +1157,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
     return do_sindgen(dim, off, inc);
   }
 
@@ -1095,8 +1169,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
     return do_lindgen(dim, off, inc);
   }
 
@@ -1107,8 +1181,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
     return new DULongGDL(dim, BaseGDL::INDGEN, off, inc);
   }
 
@@ -1119,8 +1193,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
     return new DLong64GDL(dim, BaseGDL::INDGEN, off, inc);
   }
 
@@ -1131,8 +1205,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
     return new DULong64GDL(dim, BaseGDL::INDGEN, off, inc);
   }
 
@@ -1143,8 +1217,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
     return new DFloatGDL(dim, BaseGDL::INDGEN, off, inc);
   }
 
@@ -1155,8 +1229,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
     return new DDoubleGDL(dim, BaseGDL::INDGEN, off, inc);
   }
 
@@ -1167,8 +1241,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
     return new DComplexGDL(dim, BaseGDL::INDGEN, off, inc);
   }
 
@@ -1179,8 +1253,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    e->AssureDoubleScalarKWIfPresent("START", off);
-    e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
+    e->AssureDoubleScalarKWIfPresent(0, off);
+    e->AssureDoubleScalarKWIfPresent(1, inc);
     return new DComplexDblGDL(dim, BaseGDL::INDGEN, off, inc);
   }
 
@@ -1541,6 +1615,7 @@ namespace lib {
     SizeT np = e->NParam(1);
     BaseGDL* arg0 = e->GetPar(0);
 
+    static int PRINTIX = e->KeywordIx("PRINT");
     if (arg0 == NULL) e->Throw("Variable is undefined: "+ e->GetParString(0)); 
     
     // managing few basic cases we don't have to process later
@@ -1577,8 +1652,7 @@ namespace lib {
       if (typ == GDL_COMPLEXDBL) return dcomplex_fun(e);
       // 2 cases where PRINT has to be taken into account
       if (typ == GDL_BYTE) {
-        static int printIx = e->KeywordIx("PRINT");
-        if (e->KeywordSet(printIx) && e->GetPar(0)->Type() == GDL_STRING) {
+        if (e->KeywordSet(PRINTIX) && e->GetPar(0)->Type() == GDL_STRING) {
           DLong64GDL* temp = static_cast<DLong64GDL*> (e->GetPar(0)->Convert2(GDL_LONG64, BaseGDL::COPY));
           SizeT nEl = temp->N_Elements();
           DByteGDL* ret = new DByteGDL(dimension(nEl),BaseGDL::NOZERO);
@@ -1599,21 +1673,19 @@ namespace lib {
 	if (np >  1) e->Throw("The Offset and Dimension arguments are not allowed when converting to string type.");
 	
         // SA: calling GDL_STRING() with correct parameters
-        int stringIx = LibFunIx("STRING");
+        static int stringIx = LibFunIx("STRING");
         //assert(stringIx >= 0);
 
         EnvT* newEnv = new EnvT(e, libFunList[stringIx], NULL);
 
         Guard<EnvT> guard(newEnv);
 
-	BaseGDL* par0 = e->GetPar(0)->Dup();
-	newEnv->SetNextPar(&par0);
- 
+        BaseGDL* par0 = e->GetPar(0)->Dup();
+        newEnv->SetNextPar(&par0);
+
 	//        newEnv->SetNextPar(e->GetPar(0)); // pass as global
 
-        int printIx = e->KeywordIx("PRINT");
-
-        if (e->KeywordSet(printIx) && e->GetPar(0)->Type() == GDL_BYTE) {
+        if (e->KeywordSet(PRINTIX) && e->GetPar(0)->Type() == GDL_BYTE) {
           newEnv->SetKeyword("PRINT", new DIntGDL(1));
         }
 
@@ -1715,7 +1787,7 @@ unsigned int JSHash(const std::string& str)
     // this is a function name -> convert to UPPERCASE
     callF = StrUpCase(callF);
 
-    // first search library funcedures
+    // first search library functions
     int funIx = LibFunIx(callF);
     if (funIx != -1) {
       //  e->PushNewEnv( libFunList[ funIx], 1);
@@ -1738,7 +1810,7 @@ unsigned int JSHash(const std::string& str)
     } else {
       // no direct call here
 
-      funIx = GDLInterpreter::GetFunIx(callF);
+      funIx = GDLInterpreter::GetFunIx(callF); //throws if absent
 
       StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
 
@@ -2191,7 +2263,7 @@ unsigned int JSHash(const std::string& str)
 
     DStringGDL* p0S = e->GetParAs<DStringGDL>(0);
 
-    bool removeAll = e->KeywordSet("REMOVE_ALL");
+    bool removeAll = e->KeywordSet(0); //REMOVE_ALL
 
     DStringGDL* res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
 
@@ -2461,7 +2533,8 @@ unsigned int JSHash(const std::string& str)
     if (nParam > 1)
       e->AssureStringScalarPar(1, delim);
 
-    bool single = e->KeywordSet("SINGLE");
+    static int SINGLE = e->KeywordIx("SINGLE");
+    bool single = e->KeywordSet(SINGLE);
 
     if (single) {
       DStringGDL* res = new DStringGDL((*p0S)[0]);
@@ -4219,17 +4292,18 @@ unsigned int JSHash(const std::string& str)
       e->Throw("Struct expression not allowed in this context: " +
       e->GetParString(0));
 
-    SizeT rank = p0->Rank();
-    if (rank == 0)
+    SizeT inputRank = p0->Rank();
+    if (inputRank == 0)
       e->Throw("Expression must be an array "
       "in this context: " + e->GetParString(0));
 
     if (nParam == 2) {
-
+      bool differ=false;
       BaseGDL* p1 = e->GetParDefined(1);
-      if (p1->N_Elements() != rank)
+      SizeT rank=p1->N_Elements(); // may be smaller than input array, see #2182
+      if (rank > inputRank)
         e->Throw("Incorrect number of elements in permutation.");
-
+      if (rank < inputRank) differ=true;
       DUInt* perm = new DUInt[rank];
       ArrayGuard<DUInt> perm_guard(perm);
 
@@ -4238,19 +4312,18 @@ unsigned int JSHash(const std::string& str)
       for (SizeT i = 0; i < rank; ++i) perm[i] = (*p1L)[ i];
       GDLDelete(p1L);
 
-      // check permutation vector
+      // check permutation vector. Dimensions cannot be found twice and cannot be <0 or >inputRank-1
+      int found[MAXRANK]={0};
       for (SizeT i = 0; i < rank; ++i) {
-        DUInt j;
-        for (j = 0; j < rank; ++j) if (perm[j] == i) break;
-        if (j == rank)
-          e->Throw("Incorrect permutation vector.");
+        if (perm[i] < 0 ||perm[i] > inputRank-1||found[perm[i]]) e->Throw("Value of "+e->GetParString(1)+" is out of allowed range");
+        else found[perm[i]]=1;
       }
       //check we transpose something
-      bool identical=true;
+      bool identical=!differ;
       for (SizeT i = 0; i < rank; ++i) if (perm[i] != i) identical=false;
       if (identical) return p0->Dup();
       
-      return p0->Transpose(perm);
+      return p0->Transpose(perm,differ?rank:0);
     }
 
     return p0->Transpose(NULL);
@@ -4690,8 +4763,8 @@ unsigned int JSHash(const std::string& str)
       DLong MaxAllowedWidthX = 0;
       DLong MaxAllowedWidthY = 0;
 
-      if ((*p1d)[0] <= 0) e->Throw("Width must be a positive scalar or 1 (positive) element array in this context: " + e->GetParString(0));
-      if (!std::isfinite((*p1d)[0])) e->Throw("Width must be > 1, and < dimension of array (NaN or Inf)");
+      if ((*p1d)[0] <= 0) e->Throw("Width must be positive in this context: " + e->GetParString(1));
+      if (!std::isfinite((*p1d)[0])) e->Throw("NaN or Inf width used in this context: " + e->GetParString(1));
 
       if (p1d->N_Elements() == 1) {
        if (twoD) {
@@ -4699,18 +4772,21 @@ unsigned int JSHash(const std::string& str)
           if (p0->Dim(1) < MaxAllowedWidth) MaxAllowedWidth = p0->Dim(1);
         } else MaxAllowedWidth = p0->N_Elements();
         if ((*p1d)[0] < 2 || (*p1d)[0] > MaxAllowedWidth) e->Throw("Width must be > 1, and < dimensions: <INT (" + i2s(MaxAllowedWidth) + ")>.");
-      } else { // [withdh, widthy]
-        if ((*p1d)[1] <= 0) e->Throw("Width must be a positive scalar or 1 (positive) element array in this context: " + e->GetParString(0));
-        if (!std::isfinite((*p1d)[1])) e->Throw("Width must be > 1, and < dimension of array (NaN or Inf)");
+      } else { // [withdx, widthy]
+        if ((*p1d)[1] <= 0) e->Throw("Height must be positive in this context: " + e->GetParString(1));
+        if (!std::isfinite((*p1d)[1])) e->Throw("NaN or Inf height used in this context: " + e->GetParString(1));
         if (twoD) {
           MaxAllowedWidthX = p0->Dim(0);
           MaxAllowedWidthY = p0->Dim(1);
           if ((*p1d)[0] < 2 || (*p1d)[0] > MaxAllowedWidthX) e->Throw("Width must be > 1, and < dimensions: <INT (" + i2s(MaxAllowedWidthX) + ")>.");
-          if ((*p1d)[1] < 2 || (*p1d)[1] > MaxAllowedWidthY) e->Throw("Width must be > 1, and < dimensions: <INT (" + i2s(MaxAllowedWidthY) + ")>.");
+          if ((*p1d)[1] < 2 || (*p1d)[1] > MaxAllowedWidthY) e->Throw("Height must be > 1, and < dimensions: <INT (" + i2s(MaxAllowedWidthY) + ")>.");
           rectangular = true;
         } else {
-          MaxAllowedWidth = p0->N_Elements();
-          if ((*p1d)[0] < 2 || (*p1d)[0] > MaxAllowedWidth) e->Throw("Width must be > 1, and < dimensions: <INT (" + i2s(MaxAllowedWidth) + ")>.");
+          // #2205 acceptable solution: throw because a 2 element  [withdx, widthy] is passed although the array is just a vector.
+          // here we can behave as IDL, that throws always, although GDL ACCEPTS two-elements median "kernel" IN MOST CASES (not with slowreliablemedian)
+          e->Throw("Width must be a positive scalar or 1 (positive) element array in this context: " + e->GetParString(1));
+          //MaxAllowedWidth = p0->N_Elements();
+          //if ((*p1d)[0] < 2 || (*p1d)[0] > MaxAllowedWidth) e->Throw("Width must be > 1, and < dimensions: <INT (" + i2s(MaxAllowedWidth) + ")>.");
         }
       }
 
@@ -7863,58 +7939,22 @@ unsigned int JSHash(const std::string& str)
 
     DString name;
     string FullFileName;
-    for (int i = 0; i < nPath; i++) {
+    for (int iPath = 0; iPath < nPath; ++iPath) {
 
-      name = StrUpCase((*p0S)[i]);
+      name = StrUpCase((*p0S)[iPath]);
 
       bool found = false;
       FullFileName = "";
-
-      size_t pos(0);
-      if ((pos = name.find("::")) != DString::npos) {
-        DString struct_tag = name.substr(0, pos);
-        DString method_name = name.substr(pos + 2);
-        for (auto& s : structList) {
-          if (s && (s->Name() != struct_tag)) continue;
-          if (eitherKW || !is_functionKW) {
-            DPro* pp = s->FindInProList(method_name);
-            if (pp) {
-              found = true;
-              FullFileName = pp->GetFilename();
-              break;
-            }
-          }
-          if (!found && (is_functionKW || eitherKW)) {
-            DFun* fp = s->FindInFunList(method_name);
-            if (fp) {
-              found = true;
-              FullFileName = fp->GetFilename();
-              break;
-            }
-          }
-        }
-      } else {
-        if (eitherKW || !is_functionKW) {
-          for (ProListT::iterator i = proList.begin();
-            i != proList.end(); ++i)
-            if ((*i)->ObjectName() == name) {
-              found = true;
-              FullFileName = (*i)->GetFilename();
-              break;
-            }
-        }
-        if (!found && (is_functionKW || eitherKW)) {
-          for (FunListT::iterator i = funList.begin();
-            i != funList.end(); ++i)
-            if ((*i)->ObjectName() == name) {
-              found = true;
-              FullFileName = (*i)->GetFilename();
-              break;
-            }
-        }
+      int i;
+      if (eitherKW || !is_functionKW) {
+        DPro *p;
+            if (p=GetDPro(name)) {FullFileName = p->GetFilename(); found=true;}
       }
-
-      (*res)[i] = FullFileName;
+      if (!found && (is_functionKW || eitherKW)) {
+        DFun *f;
+            if (f=GetDFun(name)) FullFileName = f->GetFilename();
+      }
+      (*res)[iPath] = FullFileName;
     }
     //    if(nParam == 0) return new DStringGDL(FullFileName);
     return res_guard.release();
@@ -7986,28 +8026,18 @@ unsigned int JSHash(const std::string& str)
         // getting the routine name from the first parameter (must be a singleton)
         e->AssureScalarPar<DStringGDL>(0, raw_name);
         name = StrUpCase(raw_name);
+        int i;
         if (functionsKW) {
-          for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
-            if ((*i)->ObjectName() == name) {
-              found = true;
-              FullFileName = (*i)->GetFilename();
-              break;
-            }
-          }
-          if (!found) e->Throw("% Attempt to call undefined/not compiled function: '" + raw_name + "'");
+            DFun *f;
+            if (f=GetDFun(name)) FullFileName = f->GetFilename(); else e->Throw("% Attempt to call undefined/not compiled function: '" + raw_name + "'");
         } else {
-          for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
-            if ((*i)->ObjectName() == name) {
+            if (name == "$MAIN$") {
               found = true;
-              FullFileName = (*i)->GetFilename();
-              break;
+              FullFileName = "";
+            } else {
+              DPro *p;
+              if (p=GetDPro(name)) FullFileName = p->GetFilename(); else e->Throw("% Attempt to call undefined/not compiled procedure: '" + raw_name + "'");
             }
-          }
-	  if (name == "$MAIN$") {
-	    found = true;
-	    FullFileName = "";
-	  }
-          if (!found) e->Throw("% Attempt to call undefined/not compiled procedure: '" + raw_name + "'");
         }
 
         // creating the output anonymous structure
@@ -8036,14 +8066,14 @@ unsigned int JSHash(const std::string& str)
 
         if (functionsKW) {
           SizeT ii = 1;
-          for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
+          for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) { //funList complete explore: ok
             (*static_cast<DStringGDL*> (stru->GetTag((SizeT) 0, ii)))[0] = (*i)->ObjectName();
             (*static_cast<DStringGDL*> (stru->GetTag((SizeT) 1, ii)))[0] = (*i)->GetFilename();
             ii++;
           }
         } else {
           SizeT ii = 1;
-          for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+          for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) { //proList complete explore: ok
             (*static_cast<DStringGDL*> (stru->GetTag((SizeT) 0, ii)))[0] = (*i)->ObjectName();
             (*static_cast<DStringGDL*> (stru->GetTag((SizeT) 1, ii)))[0] = (*i)->GetFilename();
             ii++;
@@ -8063,8 +8093,8 @@ unsigned int JSHash(const std::string& str)
       name = StrUpCase(name);
 
       DSubUD* routine = functionsKW
-        ? static_cast<DSubUD*> (funList[GDLInterpreter::GetFunIx(name)])
-        : static_cast<DSubUD*> (proList[GDLInterpreter::GetProIx(name)]);
+        ? static_cast<DSubUD*> (funList[GDLInterpreter::GetFunIx(name)]) //throws if not found
+        : static_cast<DSubUD*> (proList[GDLInterpreter::GetProIx(name)]);//throws if absent
       SizeT np = routine->NPar(), nk = routine->NKey();
 
       // creating the output anonymous structure
@@ -8111,40 +8141,22 @@ unsigned int JSHash(const std::string& str)
       if (systemKW) {
         SizeT n = libFunList.size();
         if (n == 0) return new DStringGDL("");
-
-        DStringGDL* res = new DStringGDL(dimension(n), BaseGDL::NOZERO);
-        for (SizeT i = 0; i < n; ++i)
-          (*res)[i] = libFunList[ i]->ObjectName();
-
-        return res;
+        for (SizeT i = 0; i < n; ++i) subList.push_back(libFunList[ i]->ObjectName());
       } else {
         SizeT n = funList.size();
-        if (n == 0) {
-          return new DStringGDL("");
-        }
-        for (SizeT i = 0; i < n; ++i)
-          subList.push_back(funList[ i]->ObjectName());
+        if (n == 0) return new DStringGDL("");
+        for (SizeT i = 0; i < n; ++i) subList.push_back(funList[ i]->ObjectName());
       }
     } else {
       if (systemKW) {
         SizeT n = libProList.size();
         if (n == 0) return new DStringGDL("");
-
-        DStringGDL* res = new DStringGDL(dimension(n), BaseGDL::NOZERO);
-        for (SizeT i = 0; i < n; ++i)
-          (*res)[i] = libProList[ i]->ObjectName();
-
-        return res;
+        for (SizeT i = 0; i < n; ++i) subList.push_back(libProList[ i]->ObjectName());
       } else {
         SizeT n = proList.size();
-        if (n == 0) {
-          DStringGDL* res = new DStringGDL(1, BaseGDL::NOZERO);
-          (*res)[0] = "$MAIN$";
-          return res;
-        }
+        if (n == 0) return new DStringGDL("$MAIN$");
         subList.push_back("$MAIN$");
-        for (SizeT i = 0; i < n; ++i)
-          subList.push_back(proList[ i]->ObjectName());
+        for (SizeT i = 0; i < n; ++i) subList.push_back(proList[ i]->ObjectName());
       }
     }
 
@@ -8941,12 +8953,7 @@ unsigned int JSHash(const std::string& str)
         // we do have a long way in "dinterpreter.cpp" with
         // if( firstChar == "#")
         bool isFunc = false;
-        for (FunListT::iterator ifunc = funList.begin(); ifunc != funList.end(); ++ifunc) {
-          if (StrUpCase(tmp).find((*ifunc)->ObjectName()) != std::string::npos) {
-            isFunc = true;
-            break;
-          }
-        }
+        if ( findDFunIx(tmp) != -1 ) isFunc = true; //just to test if func: OK
         *(res->GetTag(tFunction, i)) = (isFunc) ? DByteGDL(1) : DByteGDL(0);
         //all others 0 for the time being
         *(res->GetTag(tMethod, i)) = DByteGDL(0);
@@ -9046,6 +9053,7 @@ unsigned int JSHash(const std::string& str)
     DString varName;
     e->AssureScalarPar<DStringGDL>(0, varName);
     varName = StrUpCase(varName);
+    if (varName.find("!",0,1)==0) e->Throw("System Variables not allowed in this context: "+ varName);
     DSubUD* pro = static_cast<DSubUD*> (callStack[desiredlevnum - 1]->GetPro());
     SizeT nVar = pro->Size(); // # var in GDL for desired level
     int nKey = pro->NKey();
@@ -9154,6 +9162,7 @@ unsigned int JSHash(const std::string& str)
     DString varName;
     e->AssureScalarPar<DStringGDL>(0, varName);
     varName = StrUpCase(varName);
+    if (varName.find("!", 0, 1) == 0) e->Throw("System Variables not allowed in this context: " + varName);
     DSubUD* pro = static_cast<DSubUD*> (callStack[desiredlevnum - 1]->GetPro());
     SizeT nVar = pro->Size(); // # var in GDL for desired level
     int nKey = pro->NKey();

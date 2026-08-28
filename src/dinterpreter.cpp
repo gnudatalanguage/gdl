@@ -367,30 +367,44 @@ else
 
 // searches and compiles procedure (searchForPro == true) or function (searchForPro == false)  'pro'
 // if pro/fun is already present because it has been restored, (thus there may be no files, and no filename), return immediately 
-bool GDLInterpreter::SearchCompilePro(const string& pro, bool searchForPro) 
+int GDLInterpreter::SearchCompilePro(const string& pro, bool searchForPro) 
 {
   std::string name_in_list = StrUpCase(pro);
   if (searchForPro) {
-    for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
-		  if ((*i)->ObjectName() == name_in_list) return true;
-	}
+    if (findDProIx(name_in_list) != -1) return 1;
   } else {
-	for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
-	  if ((*i)->ObjectName() == name_in_list) return true;
-	}
+    if (findDFunIx(name_in_list) != -1) return 2;
   }
   static StrArr openFiles;
 
-  string proFile=StrLowCase(pro)+".pro";
-  //AppendIfNeeded( proFile, ".pro");
-
-  bool found=CompleteFileName(proFile);
-  if( !found) return false;
+  string proFile=StrLowCase(pro);
+  bool added=AppendIfNeeded( proFile, ".pro"); //look for .pro first
+  bool found = CompleteFileName(proFile);
+  if (!found && added) {
+    proFile = StrLowCase(pro);
+    AppendIfNeeded(proFile, ".sav"); //Resolve_routine needs to find .sav also. 
+    found = CompleteFileName(proFile);
+    if (found) { //restore and return. Forget about "openFiles" as the restored routine has no associated file.
+      try {
+        std::string Command("RESTORE, \"" + proFile +"\"");
+        DInterpreter::CallStackBack()->Interpreter()->ExecuteStringLine(Command);
+      } catch (...) {
+        return false;
+      }
+      // routine has been added, is it a pro or not?
+      if (searchForPro) {
+        if (findDProIx(name_in_list) != -1) return 1;
+      } else {
+        if (findDFunIx(name_in_list) != -1) return 2;
+      }
+    }
+  }
+  if( !found) return -1;
   
   // file already opened?
   for( StrArr::iterator i=openFiles.begin(); i != openFiles.end(); ++i)
     {
-      if( proFile == *i) return false;
+      if( proFile == *i) return -1;
     }
 
   StackSizeGuard<StrArr> guard( openFiles);
@@ -398,7 +412,32 @@ bool GDLInterpreter::SearchCompilePro(const string& pro, bool searchForPro)
   // append file to list
   openFiles.push_back(proFile);
 
-  return CompileFile( proFile, pro, searchForPro); // this might trigger recursion
+  bool b = CompileFile( proFile, pro, searchForPro); // this might trigger recursion
+  if (b) {
+    if ( searchForPro) return 1; else return 2;
+  }
+  return -1;
+}
+
+// searches routine  'pro'
+// if already present because it has been restored/compiled return 1 for a PRO and 2 for a FUNC
+// if routine is present (by name, in PATH) but not already compiled, return 0
+// if routine name is not found return -1
+int GDLInterpreter::SearchRoutineNoCompile(const string& routine) {
+  std::string name_in_list = StrUpCase(routine);
+  if (findDProIx(name_in_list) != -1) return 1;
+  if (findDFunIx(name_in_list) != -1) return 2;
+  string proFile = StrLowCase(routine);
+  bool added = AppendIfNeeded(proFile, ".pro"); //look for .pro first
+  bool found = CompleteFileName(proFile);
+  if (found) return 0;
+  else if (added) {
+    proFile = StrLowCase(routine);
+    AppendIfNeeded(proFile, ".sav"); //Resolve_routine needs to find .sav also. 
+    found = CompleteFileName(proFile);
+    if (found) return 0;
+  }
+  return -1;
 }
 
 // returns the struct descriptor with name 'name'
@@ -428,20 +467,12 @@ DStructDesc* GDLInterpreter::GetStruct(const string& name, ProgNodeP cN)
   // append file to list
   getStructList.push_back(proName);
 
-//   if( Called( proName))
-//     {
-//       throw GDLException(cN, "Structure type not defined (recursive call): "+name);
-//     }
-  
-  /*bool found=*/ SearchCompilePro(proName, true);
+  int ret = SearchCompilePro(proName, true);
+  if (ret != 1) throw GDLException(cN, "Procedure not found: "+proName, true, false); //we look for a PRO
 
   // if an exception occurs in SearchCompilePro, the struct is not compiled
             
   int proIx=ProIx(proName);
-  if( proIx == -1)
-    {
-	throw GDLException(cN, "Procedure not found: "+proName, true, false);
-    }
   
   // 'guard' call stack
   StackGuard<EnvStackT> guard(callStack);
@@ -467,47 +498,37 @@ DStructDesc* GDLInterpreter::GetStruct(const string& name, ProgNodeP cN)
 void GDLInterpreter::SetFunIx( ProgNodeP f)
 {
   if( f->funIx == -1)
-    f->funIx=GetFunIx(f);
+    f->funIx=GetFunIx(f, false);
 }
 
-int GDLInterpreter::GetFunIx( ProgNodeP f)
-{
+int GDLInterpreter::GetFunIx( ProgNodeP f, bool dothrow) {
   string subName = f->getText();
-  int funIx=FunIx(subName);
-  if( funIx == -1)
-    {
-      // trigger reading/compiling of source file
-      /*bool found=*/ SearchCompilePro(subName, false);
-            
-      funIx=FunIx(subName);
-      if( funIx == -1)
-	{
-	  throw GDLException(f, "Function not found: "+subName, true, false);
-	}
-    }
+  int funIx = FunIx(subName);
+  if (funIx == -1) {
+    // trigger reading/compiling of source file
+    int ret = SearchCompilePro(subName, false);
+    if (dothrow && ret != 2) throw GDLException(f, "Function not found: " + subName, true, false); //looking for a FUN
+    if (ret != 2) return -1;
+    funIx = FunIx(subName); //may be a PRO not a FUN
+  }
   return funIx;
 }
-int GDLInterpreter::GetFunIx( const string& subName)
-{
-  int funIx=FunIx(subName);
-  if( funIx == -1)
-    {
-      // trigger reading/compiling of source file
-      /*bool found=*/ SearchCompilePro(subName, false);
-            
-      funIx=FunIx(subName);
-      if( funIx == -1)
-	{
-	  throw GDLException("Function not found: "+subName);
-	}
-    }
+
+int GDLInterpreter::GetFunIx( const string& subName) {
+  int funIx = FunIx(subName);
+  if (funIx == -1) {
+    // trigger reading/compiling of source file
+    int ret = SearchCompilePro(subName, false);
+    if (ret != 2) throw GDLException("Function not found: " + subName); //looking for a FUN
+    funIx = FunIx(subName);
+  }
   return funIx;
 }
 
 void GDLInterpreter::SetProIx( ProgNodeP f)
 {
   if( f->proIx == -1)
-    f->proIx=GetProIx(f);//->getText());
+    f->proIx=GetProIx(f);//throws if absent//->getText());
 }
 
 int GDLInterpreter::GetProIx(ProgNodeP f)
@@ -516,12 +537,8 @@ int GDLInterpreter::GetProIx(ProgNodeP f)
   int proIx = ProIx(subName);
   if (proIx == -1) {
     // trigger reading/compiling of source file
-    /*bool found=*/ SearchCompilePro(subName, true);
-
-    proIx = ProIx(subName);
-
-    //eliminate the simple case
-    if (proIx != -1) return proIx;
+    int ret = SearchCompilePro(subName, true);
+    if (ret == 1) return ProIx(subName); //OK PRO found
 #ifdef 	AUTO_PRINT_EXPR
     //noInteractive: throw
     std::string errormess="Attempt to call undefined procedure: " + subName;
@@ -552,7 +569,7 @@ int GDLInterpreter::GetProIx(ProgNodeP f)
         ProgNode::interpreter->executeLine.clear(); // clear EOF (for executeLine)
         ProgNode::interpreter->executeLine.str("print,/implied_print," + s);
         std::istream execute_me(ProgNode::interpreter->executeLine.rdbuf());
-        ProgNode::interpreter->ExecuteLine(&execute_me, 0);
+        ProgNode::interpreter->ExecuteLine(&execute_me, 0, true); //no need to have ExecuteLine try implied print ^))
         ProgNode::interpreter->SetRetTree(f->GetLastSibling()->GetNextSibling());
         return proIx;
       } catch (GDLException& e) {
@@ -572,13 +589,9 @@ int GDLInterpreter::GetProIx( const string& subName)
   if( proIx == -1)
     {
       // trigger reading/compiling of source file
-      /*bool found=*/ SearchCompilePro(subName, true);
-	  
-      proIx=ProIx(subName);
-      if( proIx == -1)
-	{
-	  throw GDLException("Procedure not found: "+subName);
-	}
+      int ret = SearchCompilePro(subName, true);
+      if (ret != 1) throw GDLException("Procedure not found: "+subName);
+      proIx=ProIx(subName); //may be a FUN not a PRO
     }
   return proIx;
 }
@@ -589,13 +602,8 @@ bool GDLInterpreter::CheckProExist( const string& subName)
   if( proIx == -1)
     {
       // trigger reading/compiling of source file
-      /*bool found=*/ SearchCompilePro(subName, true);
-	  
-      proIx=ProIx(subName);
-      if( proIx == -1)
-	{
-        return false;
-	}
+      int ret = SearchCompilePro(subName, true);
+      if( ret != 1) return false;
     }
   return true;
 }
@@ -850,52 +858,13 @@ std::vector<string> ReturnListOfFiles(const string& command) {
 }
 
 
-DInterpreter::CommandCode DInterpreter::CmdCompile( const string& command) {
-  if (command.find(" ", 0) == string::npos) {
-	cout << "Interactive COMPILE not implemented yet." << endl;
-	return CC_OK;
-  }
-
-  bool retAll = false; // Remember if Retall is needed
-
-  std::vector<string> files=ReturnListOfFiles(command);
-  for (auto i=0; i< files.size(); ++i) {
-	std::string file=files[i];
-	  // try first with extension
-	  AppendExtension(file);
-	  bool found = CompleteFileName(file);
-
-	  // 2nd try without extension
-	  if (!found) {
-		file=files[i];
-		found = CompleteFileName(file);
-	  }
-
-	  if (found) {
-		try {
-		  // default is more verbose
-		  CompileFile(file); //, origstr); 
-		} catch (RetAllException&) {
-		  // delay the RetAllException until finished
-		  retAll = true;
-		}
-	  }
-	  else {
-		Message("Error opening file. File: " + files[i] + ".");
-		return CC_OK;
-	  }
-	}
-  
-  if (retAll) RetAll();
-
-  return CC_OK;
-}
 #include <iostream>
-DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
+DInterpreter::CommandCode DInterpreter::CmdCompileOrRun( const string& command, bool doRun)
 {
 #if defined(HAVE_LIBREADLINE)
   int edit_input = SysVar::Edit_Input() && isatty(0);
 #endif
+  int nerr=0;
   static const string CmdRunPrompt="- ";
   bool statement_seen=false;
   bool exitAsDone=false;
@@ -907,15 +876,17 @@ DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
     std::string outs;
     // check each line individually, store in combined string if parser OK
     while (ok) {
-      std::string f;
+      char* ret; //must check and trap ^D instead of END
 #if defined(HAVE_LIBREADLINE)
       if (edit_input != 0)
-        f = readline(const_cast<char*> (CmdRunPrompt.c_str()));
+      ret   = readline(CmdRunPrompt.c_str());
       else
-        f = NoReadline(CmdRunPrompt);
+      ret = NoReadline(CmdRunPrompt);
 #else
-      f = NoReadline(CmdRunPrompt);
+       ret = NoReadline(CmdRunPrompt);
 #endif
+       if (ret) {
+       std::string f(ret);
       istringstream in(f + "\n");
 //      std::cerr << "statement seen=" << statement_seen << std::endl;
       try {
@@ -936,24 +907,35 @@ DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
 //          else std::cerr << "normal statement." << std::endl;
         }
         if (parser.EndMarkerSeen()) exitAsDone=true;
-      }
-        catch (GDLException& e) {
-          std::string message=e.getMessage();
-//          std::cerr<<message<<std::endl;
-          if ( message.rfind("unexpected end of file")==std::string::npos)  
-          { ReportCompileError(e, f);
+        }        catch (GDLException& e) {
+          nerr++;
+          std::string message = e.getMessage();
+          //          std::cerr<<message<<std::endl;
+          if (message.rfind("unexpected token: PRO") == std::string::npos) {
+            std::cerr << "% Procedure header must appear first and only once."<< std::endl;
+            continue;
+          } else if (message.rfind("unexpected token: FUNCTION") == std::string::npos) {
+            std::cerr << "% Function header must appear first and only once." << std::endl;
+            continue;
+          } else if (message.rfind("unexpected end of file") == std::string::npos) {
+            ReportCompileError(e, f);
             continue;
           }
         } catch (...) {
-        cout << "invalid code (ignored): " << f << endl;
-        continue;
+          nerr++;
+          cout << "invalid code (ignored): " << f << endl;
+          continue;
         }
+        if (doRun || in_procedure) { //non-procedure statements must be ignored by .compile 
 //      cerr << "You entered: " << f << endl;
-      add_history(const_cast<char*> (f.c_str()));
-      outs.append(f);
-      outs.append("\n");
+          add_history(const_cast<char*> (f.c_str()));
+          outs.append(f);
+          outs.append("\n");
+        }
+       } else break;
       if (exitAsDone) break;
     }
+    if (nerr) std::cerr<<"% "+i2s(nerr)+" Compilation error(s) in module $MAIN$."<<std::endl; 
 //    std::cerr << "Produced: \n" << outs;
     if (in_procedure) {
       // internally compile 
@@ -1010,12 +992,15 @@ DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
 		return CC_OK;
 	  }
 	}
-
+  if (doRun) {
 	// GD see issue #1969: this is the only difference with CmdCompile: process the
 	// eventual $MAIN$ commands that are at the end of 'argstr'.pro when CmdCompile
 	// would just ignore these non-procedure commands.
   // actual run is perfomed in InterpreterLoop()
   RetAll( RetAllException::RUN); // difference is here.
+  } else {
+    if (retAll) RetAll();
+  }
   return CC_OK; //avoid warnings
 }
 
@@ -1042,7 +1027,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command) {
     }
     return CC_CONTINUE;
   } else if (cmd("COMPILE")) {
-    return CmdCompile(command);
+    return CmdCompileOrRun(command, false); //just compile
   } else if (cmd("EDIT")) {
     cout << "Can't edit file without running GDLDE." << endl;
     return CC_OK;
@@ -1056,7 +1041,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command) {
     MyProName=callStack.back()->GetProName();
     return CC_CONTINUE;
   } else if (cmd("RUN")) {
-    return CmdRun(command);
+    return CmdCompileOrRun(command, true);
   } else if (cmd("RETURN")) {
     debugMode = DEBUG_RETURN;
     MyProName=callStack.back()->GetProName();
@@ -1072,7 +1057,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command) {
     if (!mainEnv->Removeall())
       cout << " Danger ! Danger! Unexpected result. Please exit asap & report" << endl;
 
-    return CmdRun(command);
+    return CmdCompileOrRun(command, true);
   } else if (cmd("STEP")) { //before skip to have .s give .step not .skip and not .stepover
     DLong sCount;
     if (args == "") {
@@ -1280,7 +1265,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteStringLine( std::string &line)
 }
 
 // execute one line of code (commands and statements)
-DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffset)
+DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffset, bool no_implied_print)
 {
   string line = (in != NULL) ? ::GetLine(in) : GetLine();
   
@@ -1318,49 +1303,31 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 	line=line.substr(1);
 	StrTrim(line);
 	line=StrUpCase(line);
-	//cout << "yes ! >>"<<StrUpCase(line)<<"<<" << endl;
 	SizeT nProFun;
 	int nbFound=0;
+    int i;
 	// looking in internal procedures
-	nProFun=libProList.size();
-	for( SizeT i = 0; i<nProFun; ++i)
-	  {
-	    if (line.compare(libProList[ i]->Name()) == 0) {
-	      cout << "Internal PROCEDURE : " << libProList[ i]->ToString() << endl;
-	      nbFound++;
-	      break;
-	    }
-	  }
+      if ((i = LibProIx(line)) != -1) {
+        cout << "Internal PROCEDURE : " << libProList[ i]->ToString() << endl;
+        nbFound++;
+      }
 	// looking in internal functions
-	nProFun = libFunList.size();
-	for( SizeT i = 0; i<nProFun; ++i)
-	  {
-	    if (line.compare(libFunList[ i]->Name()) == 0) {
-	      cout << "Internal FUNCTION : " << libFunList[ i]->ToString() << endl;
-	      nbFound++;
-	      break;
-	    }
-	  }
-	// looking in compiled functions
-	nProFun = funList.size();
-	for( SizeT i = 0; i<nProFun; ++i)
-	  {
-	    if (line.compare(funList[ i]->Name()) == 0) {
-	      cout << "Compiled FUNCTION : " << funList[ i]->ToString() << endl;
-	      nbFound++;
-	      break;
-	    }
-	  }
+      if ((i = LibFunIx(line)) != -1) {
+        cout << "Internal FUNCTION : " << libFunList[ i]->ToString() << endl;
+        nbFound++;
+      }
+	// looking in compiled functions: take care of object functions, do not trust index
+      DFun *f;
+      if (f = GetDFun(line)) {
+        cout << "Compiled FUNCTION : " << f->ToString() << endl;
+        nbFound++;
+      }
 	// looking in compiled procedures
-	nProFun = proList.size();
-	for( SizeT i = 0; i<nProFun; ++i)
-	  {
-	    if (line.compare(proList[ i]->Name()) == 0) {
-	      cout << "Compiled PROCEDURE : " << proList[ i]->ToString() << endl;
-	      nbFound++;
-	      break;
-	    }
-	  }
+      DPro* p;
+      if (p = GetDPro(line)) {
+        cout << "Compiled PROCEDURE : " << p->ToString() << endl;
+        nbFound++;
+      }	
 	if (nbFound == 0) {
 	  cout << "No Procedure/Function, internal or compiled, with name : "<< line << endl;
 	}
@@ -1408,7 +1375,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   bool try_Autoprint=false;
 #ifdef  AUTO_PRINT_EXPR
 // Here we try to support implied_print: replay with "print,/implied_print," added
-  try_Autoprint=true;
+  try_Autoprint=!no_implied_print; //no_implied_print is set when this is already called by "implied_print".
 #endif
   
   
@@ -2096,7 +2063,9 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
         ResetHeap();
         if (fullResetCmd) {
           lib::ResetDLLs();
+          libFunMap.clear();
           PurgeContainer(libFunList);
+          libProMap.clear();
           PurgeContainer(libProList);
         }
         // initially done in InitGDL()

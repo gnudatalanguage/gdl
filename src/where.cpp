@@ -1077,8 +1077,7 @@ namespace lib {
         e->SetPar(1, new DLongGDL(count));
       }
       //The system variable !ERR is set to the number of nonzero elements for compatibility with old versions of IDL
-      DVar *err = FindInVarList(sysVarList, "ERR");
-      (static_cast<DLongGDL*> (err->Data()))[0] = count;
+      SysVar::SetSysErr(count);
 
       if (count == 0) {
         if (nullKW) {
@@ -1124,8 +1123,7 @@ namespace lib {
         e->SetPar(1, new DLong64GDL(count));
       }
       //The system variable !ERR is set to the number of nonzero elements for compatibility with old versions of IDL
-      DVar *err = FindInVarList(sysVarList, "ERR");
-      (static_cast<DLongGDL*> (err->Data()))[0] = count; //thus, not a DLong64!
+      SysVar::SetSysErr(count);
 
       if (count == 0) {
         if (nullKW) {

@@ -342,15 +342,15 @@ private: // variables
     wxGraphicsContext* m_context;
 
     // text colors
-    unsigned char textRed, textGreen, textBlue;
+    unsigned char textRed=0, textGreen=0, textBlue=0;
 
-    unsigned char mStrokeOpacity;
-    unsigned char mColorRedStroke;
-    unsigned char mColorGreenStroke;
-    unsigned char mColorBlueStroke;
-    unsigned char mColorRedFill;
-    unsigned char mColorGreenFill;
-    unsigned char mColorBlueFill;
+    unsigned char mStrokeOpacity=0;
+    unsigned char mColorRedStroke=0;
+    unsigned char mColorGreenStroke=0;
+    unsigned char mColorBlueStroke=0;
+    unsigned char mColorRedFill=0;
+    unsigned char mColorGreenFill=0;
+    unsigned char mColorBlueFill=0;
 };
 #endif
 

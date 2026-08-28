@@ -1,0 +1,29 @@
+    //this permits a program (see example MULT2) to change (with precautions) the values in a passed parameter, and get back them in GDL
+    //if the program uses IDL_XXX functions to change the EXPORT_VARIABLE pointed initially by PassedVariables[i].v, then the pointed value
+    // is not the same and this 'clone' will not be copied back. Unfortunately GDL has no mechanism to check if the input PassedVariables[i].v
+    // has been modified internally at the exit of the called function, so we must use e->SetPar even if the GDL variable was untouched.
+    // It would be better if the data part was directly passed to the called function, in which case the following code should be removed.
+
+// due to IDL_FindNamedVariable() PassedVariable.size may be greater than nparams. debug: test here
+if (PassedVariables.size() != nparams) std::cerr<<"Parameter stack size has changed!"<<std::endl;
+    for (auto i = 0; i < PassedVariables.size(); ++i) {
+      if (PassedVariables[i].global) {
+#ifdef DEBUG
+        std::cerr << "updating parameter #" << i << ": " << IDL_VarName(PassedVariables[i].v) << std::endl;
+#endif
+        e->SetPar(i, VPTR_ToGDL(PassedVariables[i].v, PROTECT_SHARED_DATA)); //global var //not argv[i] ? should be the same.
+      }
+    }
+    //If some argk keywords have been returned, this is because they were marked as "OUT".
+    //SetKW will NOT work, since the only KW of each of the four CallDllXXX routines is _REF_EXTRA. 
+    for (auto i = 0; i < nkw; ++i) {
+      if (kws[i].out) {
+		  assert(kws[i].global); // only global kw here
+#ifdef DEBUG
+      std::cerr << "passing back Keyword #" << i << " name \"" << kws[i].varname << "\": " << IDL_VarName(kws[i].convertedVPTR) << std::endl;
+#endif
+	  BaseGDL* gdlvar = VPTR_ToGDL(kws[i].convertedVPTR, PROTECT_SHARED_DATA); //protect data as this is passed to *MAIN* GDL
+	  restoreNormalVariable(kws[i].varname, gdlvar);
+	  }
+	}
+

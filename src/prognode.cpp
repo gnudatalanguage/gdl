@@ -934,6 +934,16 @@ RetCode  WRAPPED_FUNNode::Run()
   ProgNode::interpreter->returnValue = res;
   return RC_RETURN;
 }
+RetCode  WRAPPED_MEDIATIZED_FUNNode::Run()
+{
+  EnvUDT* env = static_cast<EnvUDT*>( ProgNode::interpreter->CallStackBack());
+  BaseGDL* res = (*this->fun)( env, target);
+  interpreter->SetRetTree( this->getNextSibling()); // ???
+  assert( ProgNode::interpreter->returnValue == NULL);
+//   GDLDelete(ProgNode::interpreter->returnValue);
+  ProgNode::interpreter->returnValue = res;
+  return RC_RETURN;
+}
 RetCode  WRAPPED_PRONode::Run()
 {
   EnvUDT* env = static_cast<EnvUDT*>( ProgNode::interpreter->CallStackBack());
@@ -941,7 +951,13 @@ RetCode  WRAPPED_PRONode::Run()
   interpreter->SetRetTree( this->getNextSibling()); // ???
   return RC_RETURN;
 }
-
+RetCode  WRAPPED_MEDIATIZED_PRONode::Run()
+{
+  EnvUDT* env = static_cast<EnvUDT*>( ProgNode::interpreter->CallStackBack());
+  (*this->pro)( env, target);
+  interpreter->SetRetTree( this->getNextSibling()); // ???
+  return RC_RETURN;
+}
 RetCode  ASSIGNNode::Run()
 {
   BaseGDL*  r;

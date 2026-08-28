@@ -134,7 +134,7 @@ static BaseGDL* GetNodeData(DPtr &Node)
 
 static  BaseGDL* hash_create( EnvT* e, bool isordered );
 static BaseGDL* structP_tohash( EnvT* e,BaseGDL* par,
-                        bool foldcasekw, bool extractkw, bool isordered );
+                        bool foldcasekw, bool extractkw, bool lowercasekw, bool isordered );
 
 static DStructGDL* GetOBJ( BaseGDL* Objptr, EnvUDT* e)
   {
@@ -672,12 +672,8 @@ DObj new_hashStruct(  DLong initialTableSize, DStructGDL*& hashTable,
 
 
 static BaseGDL* struct_tohash( EnvT* e,DStructGDL* parStruct,
-                        bool foldcasekw, bool extractkw, bool isordered=false)
+                        bool foldcasekw, bool extractkw, bool keytolower, bool isordered=false)
 {
-
-    static int kwLOWERCASEIx = e->KeywordIx("LOWERCASE");
-
-    bool keytolower = e->KeywordSet(kwLOWERCASEIx);
     DStructDesc* desc = parStruct->Desc();
     DStructGDL* hashTable;
     DLong initialTableSize = GetInitialTableSize( desc->NTags());
@@ -698,7 +694,7 @@ static BaseGDL* struct_tohash( EnvT* e,DStructGDL* parStruct,
           BaseGDL* par = parStruct->GetTag(t,0);
           assert(par != NULL);
           if( extractkw and par->Type() == GDL_STRUCT and (par->N_Elements()==1))
-                    structData = structP_tohash( e, par, foldcasekw, extractkw, isordered);
+                    structData = structP_tohash( e, par, foldcasekw, extractkw, keytolower, isordered);
           else structData = par->Dup();
           
           InsertIntoHashTable( hashStruct, hashTable, structKey, structData);
@@ -708,12 +704,12 @@ static BaseGDL* struct_tohash( EnvT* e,DStructGDL* parStruct,
     return newObj;
 }
 
-static BaseGDL* structP_tohash( EnvT* e,BaseGDL* par, bool foldcasekw, bool extractkw, bool isordered=false)
+static BaseGDL* structP_tohash( EnvT* e,BaseGDL* par, bool foldcasekw, bool extractkw, bool lowercasekw, bool isordered=false)
 {
     if(par->N_Elements() != 1)
             e->Throw(" only a single struct may be hashed");
     DStructGDL* parStruct = static_cast<DStructGDL*>(par);
-    return struct_tohash( e, parStruct, foldcasekw, extractkw, isordered);
+    return struct_tohash( e, parStruct, foldcasekw, extractkw, lowercasekw, isordered);
 }
 
   BaseGDL* hash_tostruct( DStructGDL* self ,
@@ -1710,7 +1706,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     if ( Hashisfoldcase( GetOBJ( e->GetTheKW( 0), e)) ) return new DByteGDL(1);
      else return new DByteGDL(0);
   }
-
+  
   BaseGDL* hash__count( EnvUDT* e)
   {
     static int kwSELFIx = 0;
@@ -1878,7 +1874,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     
   BaseGDL* hash__haskey( EnvUDT* e)
   {
-    
+
     
 
     // see overload.cpp
@@ -2086,29 +2082,6 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     }
   }
 BaseGDL* hash_subset(DStructGDL* thisTable, BaseGDL* index, bool isfoldcase);
-BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
-    // new hash
-    
-    
-    static unsigned fold_case_mask = 0x00000001;
-
-    DLong initialTableSize = GetInitialTableSize(nEntries); 
-    DStructGDL* hashStruct= new DStructGDL( structDesc::HASH, dimension());
-    DObj objID= BaseGDL::interpreter->NewObjHeap( 1, hashStruct);
-
-    if( isfoldcase) TABLE_BITS( hashStruct) = fold_case_mask;
-    BaseGDL* newObj = new DObjGDL( objID);
-    Guard<BaseGDL> newObjGuard( newObj);
-
-    DStructGDL* hashTable= new DStructGDL( structDesc::GDL_HASHTABLEENTRY, dimension(initialTableSize));
-    DPtr hashTableID= BaseGDL::interpreter->NewHeap( 1, hashTable);
-    DPtrTABLE_DATA( hashStruct) = hashTableID;
-    TABLE_SIZE( hashStruct) = initialTableSize;
-
-    newObjGuard.Release();
-    return newObj;
-
-}
 
     void hash_leftinsertion( EnvUDT* e, DStructGDL* theStruct, int iprm  )
 {
@@ -2252,13 +2225,54 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
                     parX->NewIx(kIx), rValue->NewIx(kIx));
             }
         }
+  }
+
+  void HASH__Set(EnvUDT* e) {
+    //    static unsigned par1Ix = 4;
+    static unsigned prmbeg = 2;
+    //    trace_me = lib::trace_arg();
+    std::string trcn = trace_me ? "\n;" : ";";
+
+    SizeT nParam = e->NParam(1);
+    if (nParam < 3) ThrowFromInternalUDSub(e,
+        "Three parameters are needed: OBJREF, KEY, VAL");
+
+    BaseGDL* key = e->GetTheKW(1);
+    if (key == NULL) key = NullGDL::GetSingleInstance();
+
+    // Generalize from  self to theStruct
+    DStructGDL* self = GetOBJ(e->GetTheKW(0), e);
+    DStructGDL* theStruct = self;
+
+    DPtr Ptr = DPtrTABLE_DATA(theStruct);
+    DStructGDL* hashTable = static_cast<DStructGDL*> (BaseGDL::interpreter->GetHeap(Ptr));
+    bool isfoldcase = Hashisfoldcase(theStruct);
+
+    // This section copied and slightly adapted from LIST_OVERLOADLEFT
+    BaseGDL* theref = NULL;
+    int iprm = 0;
+
+    SizeT listSize = 0;
+    BaseGDL* val = e->GetKW(2);
+    if (val == NULL )
+      ThrowFromInternalUDSub(e, "Parameter is undefined ");
+
+    isfoldcase = Hashisfoldcase(theStruct);
+    DLong hashIndex = HashIndex(hashTable, key, isfoldcase);
+    if (hashIndex >= 0) {
+      DPtr pValue = DPtrVALUE(hashTable, hashIndex);
+      BaseGDL::interpreter->GetHeap(pValue) = val->Dup();
+      return;
+    } else { // hashIndex >= 0
+      InsertIntoHashTable( theStruct, hashTable, key, val->Dup());
+      return;
     }
- 
+
+  }
+  
   void HASH___OverloadBracketsLeftSide( EnvUDT* e)
   {
     
-    
-
 //    static unsigned par1Ix = 4;
     static unsigned isRangeIx = 3;
     static unsigned prmbeg = isRangeIx+1;
@@ -2401,7 +2415,6 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
                     if(trace_me) std::cout<<" newhash(0)";
                     theref = 
                         hash_subset( hashTable, 0, isfoldcase);
-//                  theref = hash_newhash( 0, isfoldcase);
 // Now we must insert this new hash before proceeding down the nest.                    
                     bool stolen = e->StealLocalKW(iprm + prmbeg);
                     if( !stolen) XX = XX->Dup();
@@ -2835,23 +2848,11 @@ BaseGDL* hash_duplicate(DStructGDL* self) {
 
   BaseGDL* orderedhash_fun( EnvT* e)
   {
-    BaseGDL* par = hash_create( e , true);
-    static unsigned ordmask = 0x00000010;
-    static unsigned TableBitsTag = structDesc::HASH->TagIndex( "TABLE_BITS");
-    
-    DObj s = (*static_cast<DObjGDL*>(par))[0]; // is StrictScalar()
-    if( s == 0) e->Throw(" fail ( s == 0) in ordered hash! ");
-    DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
-    if( oStructGDL == NULL) e->Throw(" fail ( struct == NULL) in ordered hash! ");
-    DStructDesc* desc = oStructGDL->Desc();
-    
-    static unsigned TableBitsIx = desc->TagIndex("TABLE_BITS");
-    (*static_cast<DLongGDL*>(oStructGDL->GetTag( TableBitsIx, 0)))[0] = ordmask;
-    return par;
+    return hash_create( e , true);
   }
 } // namespace lib
   
-static  BaseGDL* hash_create( EnvT* e, bool isordered=false)
+ static  BaseGDL* hash_create( EnvT* e, bool isordered=false)
   {
     static int kwNO_COPYIx = e->KeywordIx("NO_COPY");
     bool kwNO_COPY = false;
@@ -2859,12 +2860,10 @@ static  BaseGDL* hash_create( EnvT* e, bool isordered=false)
     static int kwFOLD_CASEIx = e->KeywordIx("FOLD_CASE");
     static unsigned fold_case_mask = 0x00000001;
     static int kwEXTRACTIx = e->KeywordIx("EXTRACT");   // still new
+    static int kwLOWERCASEIx = e->KeywordIx("LOWERCASE");
     trace_me = false; // lib::trace_arg();
 
     SizeT nParam = e->NParam();   
-
-    ProgNodeP cN = e->CallingNode();
-    DInterpreter* ip = e->Interpreter();
 
     // because of .RESET_SESSION, we cannot use static here
     DStructDesc* hashDesc=structDesc::HASH;
@@ -2874,6 +2873,7 @@ static  BaseGDL* hash_create( EnvT* e, bool isordered=false)
     
      bool foldcasekw = e->KeywordSet( kwFOLD_CASEIx);
      bool extractkw = e->KeywordSet( kwEXTRACTIx);
+     bool lowercasekw = e->KeywordSet( kwLOWERCASEIx);
 
     BaseGDL* key;
     SizeT nEntries = 0;
@@ -2882,12 +2882,12 @@ static  BaseGDL* hash_create( EnvT* e, bool isordered=false)
       if(trace_me) std::cout << " hash(nParam=1) ";
       if(  key->Type() == GDL_STRUCT ) {
                 if(trace_me) std::cout << " . " ;
-            return structP_tohash( e, key, foldcasekw, extractkw, isordered);
+            return structP_tohash( e, key, foldcasekw, extractkw, lowercasekw, isordered);
           }// direct return for the case of struct --> hash
       else if ( key->Type() == GDL_OBJ and key->StrictScalar())
       {    // GDL extension: put object structure directly into a hash.
             DStructGDL* oStructGDL= GetOBJ( key, NULL);
-            return struct_tohash( e, oStructGDL, foldcasekw, extractkw, isordered);
+            return struct_tohash( e, oStructGDL, foldcasekw, extractkw, lowercasekw, isordered);
         }   else {  // key->Type() == GDL_STRUCT || key->Type() == GDL_OBJ
          // 1-element hash table, value=null);
          nEntries = key->N_Elements();

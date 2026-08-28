@@ -155,7 +155,16 @@ void index_tree(RefDNode top, SCCodeAddresses &addrList, int &i) {
 // vtable
 DSub::~DSub() {}
 
-
+ 
+int DSub::FindKey(const std::string& s)
+  {
+    String_abbref_eq searchKey(s);
+    int ix=0;
+    int c=0;
+    for(KeyVarListT::iterator i=key.begin(); i != key.end(); ++i, ++ix)  if( searchKey(*i)) 
+      return ix;
+    return -1;
+  }
 // DLib ******************************************************
 DLib::DLib( const string& n, const string& o, const int nPar_, 
 	    const string keyNames[],
@@ -213,7 +222,7 @@ DLib::DLib( const string& n, const string& o, const int nPar_,
     key.resize(1);
     key[0]="_REF_EXTRA";
     extra_type = REFEXTRA;
-    extraIx = 0; // initialise the possibility of KEYWORDS.
+    extraIx = 0; // initialize the possibility of KEYWORDS.
   }
 }
 
@@ -311,45 +320,45 @@ DLibPro::DLibPro( LibPro p, const string& n, const string& o, const int nPar_,
 		  const string keyNames[], const string warnKeyNames[], const int nParMin_)
   : DLib(n,o,nPar_,keyNames, warnKeyNames, nParMin_), pro(p)
 {
+  libProMap[n]=libProList.size();
   libProList.push_back(this);
-//  sort(libProList.begin(), libProList.end(),CompLibFunName());
 }
 DLibPro::DLibPro( LibPro p, const string& n, const int nPar_, 
 		  const string keyNames[], const string warnKeyNames[], const int nParMin_, const bool use_threadpool)
   : DLib(n,"",nPar_,keyNames, warnKeyNames, nParMin_, use_threadpool), pro(p)
 {
+  libProMap[n]=libProList.size();
   libProList.push_back(this);
-//  sort(libProList.begin(), libProList.end(),CompLibFunName());
 }
 
 DLibPro::DLibPro( LibPro p, void* mediator, const string& n, const int nPar_, const int nParMin_, const bool hasKeys)
   : DLib(n,"",nPar_,NULL, NULL, nParMin_, false, mediator, hasKeys), pro(p)
 {
+  libProMap[n]=libProList.size();
   libProList.push_back(this);
-//  sort(libProList.begin(), libProList.end(),CompLibFunName());
 }
 
 DLibFun::DLibFun( LibFun f, const string& n, const string& o, const int nPar_, 
 		  const string keyNames[], const string warnKeyNames[], const int nParMin_)
   : DLib(n,o,nPar_,keyNames, warnKeyNames, nParMin_), fun(f)
 {
+  libFunMap[n]=libFunList.size();
   libFunList.push_back(this);
-//  sort(libFunList.begin(), libFunList.end(),CompLibFunName());
 }
 
 DLibFun::DLibFun( LibFun f, const string& n, const int nPar_, 
 		  const string keyNames[], const string warnKeyNames[], const int nParMin_, const bool use_threadpool)
   : DLib(n,"",nPar_,keyNames, warnKeyNames, nParMin_, use_threadpool), fun(f)
 {
+  libFunMap[n]=libFunList.size();
   libFunList.push_back(this);
-//  sort(libFunList.begin(), libFunList.end(),CompLibFunName());
 }
 
 DLibFun::DLibFun( LibFun f, void* mediator, const string& n, const int nPar_, const int nParMin_, const bool hasKeys)
   : DLib(n,"",nPar_,NULL, NULL, nParMin_, false, mediator,hasKeys), fun(f)
 {
+  libFunMap[n]=libFunList.size();
   libFunList.push_back(this);
-//  sort(libFunList.begin(), libFunList.end(),CompLibFunName());
 }
 
 DLibFunRetNew::DLibFunRetNew( LibFun f, const string& n, 
@@ -362,6 +371,10 @@ DLibFunRetNew::DLibFunRetNew( LibFun f, const string& n, const int nPar_,
 			      const string keyNames[], const string warnKeyNames[], bool rConstant,
 			      const int nParMin_)
   : DLibFun(f,n,nPar_,keyNames, warnKeyNames, nParMin_), retConstant( rConstant)
+{}
+
+DLibFunRetNew::DLibFunRetNew(  LibFun f, void* mediator, const string& n, const int nPar_, const int nParMin_, const bool hasKeys)
+  : DLibFun(f,mediator,n,nPar_,nParMin_, hasKeys), retConstant(false)
 {}
 
 DLibFunRetNewTP::DLibFunRetNewTP( LibFun f, const string& n, const int nPar_, 
@@ -442,7 +455,7 @@ void DSubUD::DelTree()
 DSubUD* DSubUD::AddPar(const string& p)
 {
   var.push_back(p);
-  nPar++;
+  if (nPar >= 0) nPar++;
   return this;
 }
 
@@ -474,10 +487,7 @@ DSubUD* DSubUD::AddKey(const string& k, const string& v)
     {
       if(extraIx != -1) extraIx++; // update extra ix index
     }
-  // as we only push_front during compilation, we better use a vector here
-  //   key.push_front(k);
-  //   var.push_back(v);
-  // we want push_front
+  // we want push_front and key is a std::vector. Here is the way, simpler than using a deque "push_front" that would be slower in all other occasions.
   key.resize( key.size() + 1);
   for( int i= key.size()-1; i>0; --i)
     key[ i] = key[ i-1];

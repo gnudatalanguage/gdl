@@ -388,14 +388,11 @@ namespace lib {
     // first search library procedures
     int proIx = LibProIx(callP);
     if (proIx != -1) {
-      // 	e->PushNewEnv( libProList[ proIx], 1);
-//       make the call
-//       	EnvT* newEnv = static_cast<EnvT*>(e->Interpreter()->CallStack().back());
       EnvT* newEnv = e->NewEnv(libProList[proIx], 1);
       Guard<EnvT> guard(newEnv);
       static_cast<DLibPro*> (newEnv->GetPro())->Pro()(newEnv);
     } else {
-      proIx = DInterpreter::GetProIx(callP);
+      proIx = DInterpreter::GetProIx(callP); //throws if absent
 
       StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
 
@@ -652,7 +649,9 @@ namespace lib {
   void openu(EnvT* e) {
     open_lun(e, fstream::in | fstream::out);
   }
-
+#ifndef _WIN32
+#include <netdb.h>
+#endif
   void socket(EnvT* e) {
     int nParam = e->NParam(3);
 
@@ -675,7 +674,17 @@ namespace lib {
     DUInt port;
     BaseGDL* p2 = e->GetParDefined(2);
     if (p2->Type() == GDL_STRING) {
+      DString s;
+      e->AssureScalarPar<DStringGDL>(2,s);
+#ifndef _WIN32
       // look up /etc/services
+      struct servent *servent=getservbyname(s.c_str(),NULL);
+      if (servent==NULL)        e->Throw("Unable to connect to host. Unit: "+i2s(lun)+", File: "+host+"."+s);
+      else port=servent->s_port;
+      endservent();
+#else 
+      e->Throw("Unable to connect to host. Unit: "+i2s(lun)+", File: "+host+"."+s);
+#endif      
     } else if (p2->Type() == GDL_UINT) {
       e->AssureScalarPar<DUIntGDL>(2, port);
     } else if (p2->Type() == GDL_INT) {
@@ -726,7 +735,7 @@ namespace lib {
 
     try {
       fileUnits[lun - 1].Socket(host, port, swapEndian,
-        c_timeout, r_timeout, c_timeout);
+        c_timeout, r_timeout, c_timeout, width);
     } catch (GDLException& ex) {
       DString errorMsg = ex.toString() + " Unit: " + i2s(lun) +
         ", File: " + fileUnits[lun - 1].Name();
@@ -986,29 +995,40 @@ namespace lib {
         " Unit: " + i2s(lun));
       is = &cin;
     } else if (sockNum != -1) {
-      // Socket Read
+      // GD: Socket Read: we use an intermediate buffer seen as a istringstream. (yes all this is too complicated!)
+      // So we NEED to get the EXACT amount of bytes to be "read". In order to get the rest to be read next time.
+      // the code was wrong in this respect.
+      // Get total amount of bytes to transfer. Should be factorized between the various cases.
+      SizeT nBytes=0;
+      for (SizeT i = 1; i < nParam; i++) {
+        BaseGDL* p = e->GetPar(i);
+        if (p == NULL) nBytes+=sizeof(DFloat); // will be a DFloatGDL
+        else nBytes = p->NBytes();
+        if (p->Type() == GDL_STRUCT) nBytes = static_cast<DStructGDL*> (p)->NBytesToTransfer(); //p->NBytes does not give sum of length of struct elements, due to alignment.We decompose.
+      }        
       swapEndian = fileUnits[lun - 1].SwapEndian();
 
       compress = fileUnits[lun - 1].Compress();
 
       string *recvBuf = &fileUnits[lun - 1].RecvBuf();
-
-      // Setup recv buffer & string
-      const int MAXRECV = 2048 * 8;
-      char buf[MAXRECV + 1];
-
-      // Read socket until finished & store in recv string
-      while (1) {
-        memset(buf, 0, MAXRECV + 1);
-        int status = recv(sockNum, buf, MAXRECV, 0);
-        //	  cout << "Bytes received: " << status << endl;
-        if (status == 0) break;
-        for (SizeT i = 0; i < status; i++)
-          recvBuf->push_back(buf[i]);
-      }
+      recvBuf->clear();
+      recvBuf->reserve(nBytes+1); //make recvBuf great again
 
       // Get istringstream, write recv string, & assign to istream
       istringstream *iss = &fileUnits[lun - 1].ISocketStream();
+      // Read socket until finished & store in recv string
+      char c;
+      int nread;
+      for (auto i=0; i< nBytes;) {
+        nread = read(sockNum, &c, 1);//, 0);
+        if (nread < 0) {
+          e->Throw("read associated Socket error.");
+        }
+        if (nread) {
+          recvBuf->push_back(c);
+          i++;
+        }
+      }
       iss->str(*recvBuf);
       is = iss;
     } else {
@@ -1083,11 +1103,9 @@ namespace lib {
 
           DLong nRec2;
           memcpy(&nRec2, hdr, 4);
-// 2018 April 14
-// G.Jung I don't think this works right for stuctures.
-//   I have a method (RealBytes) that computes the actual byte count,
-//  it needs entries across several different files.
+
           SizeT nBytes = p->NBytes();
+          if (p->Type() == GDL_STRUCT) nBytes = static_cast<DStructGDL*> (p)->NBytesToTransfer(); //p->NBytes does not give sum of length of struct elements, due to alignment.We decompose.
 
           // In variable length VMS files, each record is prefixed
           // with a count byte that contains the number of bytes
@@ -2277,65 +2295,58 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
 
     SizeT nEl = p0S->N_Elements();
     for (int i = 0; i < nEl; ++i) {
-      DString pro = (*p0S)[i];
+      DString routine_name = (*p0S)[i];
 
-      string proFile = StrLowCase(pro);
-      AppendIfNeeded(proFile, ".pro");
-
-      bool found = CompleteFileName(proFile);
-      if (!found ) {
+      string filename =StrLowCase(routine_name);
+      bool isAsave=false; 
+      bool added=AppendIfNeeded(filename, ".pro"); //look for .pro //Resolve_routine needs to find .sav also
+      bool found = CompleteFileName(filename);
+      if (!found  && added) {
+        filename = StrLowCase(routine_name);
+        AppendIfNeeded(filename, ".sav"); //Resolve_routine needs to find .sav also. 
+        found = CompleteFileName(filename);
+        if (found) isAsave=true;
+      }
+      if (!found) {
         if (!quiet)
-          e->Throw("Not found: " + proFile);
+          e->Throw("Not found: " + filename);
         else return;
       }
 
       //routine already compiled? NATCHKEBIA Ilia 24.06.2015
       bool exists = false;
-      for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
-        if (StrUpCase(proFile).find((*i)->ObjectName()) != std::string::npos) {
-          exists = true;
-          break;
-        }
-      }
+      if (findDProIx(StrUpCase(routine_name)) != -1) exists = true; //OK just for testing existence
 	  if (!exists && (isfunctionKeyword || eitherKeyword)) { //give a chance that the FUNC is already compiled. GD.
-		for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
-		  if (StrUpCase(proFile).find((*i)->ObjectName()) != std::string::npos) {
-			exists = true;
-			break;
-		  }
-		}		
+        if (findDFunIx(StrUpCase(routine_name)) != -1) exists = true; //OK just for testing existence
 	  }
       if (exists && norecompileKeyword) continue;
-
-      bool success = GDLInterpreter::CompileFile(proFile,cff?StrUpCase(pro):""); // this might trigger recursion
+      if (isAsave) { //unless no_recompile is set, we restore again a .sav just as we will recompile a .pro
+        try {
+          std::string Command("RESTORE, \"" + filename +"\", /VERB");
+          DInterpreter::CallStackBack()->Interpreter()->ExecuteStringLine(Command);
+        } catch (...) {
+          if (!quiet) e->Throw("Failed to restore file: " + filename); //please check this is the good behaviour
+          return;
+        }
+        return;
+      }
+      bool success = GDLInterpreter::CompileFile(filename,cff?StrUpCase(routine_name):""); // this might trigger recursion
 	  //here the compilation may have produced BOTH a PRO and a FUNC (e.g;: TIC and TOC. Check:
       bool isPro = false; //is pro (GD).
-      for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
-        if (StrUpCase(proFile).find((*i)->ObjectName()) != std::string::npos) {
-          //cout << "exists function " << (*i)->ObjectName() <<endl;
-          isPro = true;
-          break;
-        }
-      }
+      if (findDProIx(StrUpCase(routine_name)) != -1) isPro = true; //OK just for testing existence
       //is func NATCHKEBIA Ilia 25.06.2015
       bool isFunc = false;
-      for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
-        if (StrUpCase(proFile).find((*i)->ObjectName()) != std::string::npos) {
-          //cout << "exists function " << (*i)->ObjectName() <<endl;
-          isFunc = true;
-          break;
-        }
-      }
+      if (findDFunIx(StrUpCase(routine_name)) != -1) isFunc = true; //OK just for testing existence
 	  bool both=(isFunc && isPro);
 	  if (!quiet && !both) {
-		if (!isFunc && isfunctionKeyword && !eitherKeyword) e->Throw("Attempt to call undefined : " + proFile);
-		if (isFunc && !isfunctionKeyword && !eitherKeyword && !exists) e->Throw("Attempt to call undefined : " + proFile);
+		if (!isFunc && isfunctionKeyword && !eitherKeyword) e->Throw("Attempt to call undefined : " + filename);
+		if (isFunc && !isfunctionKeyword && !eitherKeyword && !exists) e->Throw("Attempt to call undefined : " + filename);
 	  }
 
       if (success) {
         // Message("RESOLVE_ROUTINE: Compiled file: " + proFile);
       } else
-        if (!quiet) e->Throw("Failed to compiled file: " + proFile); //please check this is the good behaviour
+        if (!quiet) e->Throw("Failed to compile file: " + filename); //please check this is the good behaviour
     }
   }
 
@@ -2692,4 +2703,79 @@ void findvar_pro( EnvT* e)
     }
 #endif
 
+void compile_code_pro(EnvT* e) {
+    DStringGDL* commands = e->GetParAs<DStringGDL>(0);
+      bool statement_seen = false;
+      bool exitAsDone = false;
+      bool in_procedure = false;
+      SizeT ncommands = commands->N_Elements();
+      bool ok = true;
+      std::string outs;
+      // check each line individually, store in combined string if parser OK
+      for (auto i = 0; i < ncommands; ++i) {
+        istringstream in((*commands)[i] + "\n");
+        //      std::cerr << "statement seen=" << statement_seen << std::endl;
+        try {
+          GDLLexer lexer(in, " ", GDLParser::NONE);
+          GDLParser& parser = lexer.Parser();
+          // setup parsing state to accepting routine def or not using memorized state
+          parser.SetProcedureNotAllowed(statement_seen);
+          parser.SetInProcedureAtStart(in_procedure);
+          // parsing
+          parser.interactive_run(); // will error and throw if not authorized to parse a routine because in pure statement state
+          if (parser.IsInProcedure()) {
+            in_procedure = true;
+          }
+          // no error: check if started parsing routine, and memorize
+          if (parser.StatementSeen()) {
+            statement_seen = true;
+            //          if (parser.IsInProcedure()) std::cerr << "procedure statement." << std::endl; 
+            //          else std::cerr << "normal statement." << std::endl;
+          }
+          if (parser.EndMarkerSeen()) exitAsDone = true;
+        } catch (GDLException& err) {
+          std::string message = err.getMessage();
+          //          std::cerr<<message<<std::endl;
+          if (message.rfind("unexpected token: PRO") == std::string::npos) {
+            e->Throw("Procedure header must appear first and only once.");
+          } else if (message.rfind("unexpected token: FUNCTION") == std::string::npos) {
+            e->Throw("Function header must appear first and only once.");
+          } else if (message.rfind("unexpected end of file") == std::string::npos) {
+            e->Throw("Unexpected end of CODE passed to COMPILE_CODE.");
+          }
+        } catch (...) {
+           e->Throw("invalid code : "+(*commands)[i]);
+        }
+        if (in_procedure) { //non-procedure statements must be ignored as we compile
+          //      cerr << "You entered: " << f << endl;
+          outs.append((*commands)[i]);
+          outs.append("\n");
+        }
+        if (exitAsDone) break;
+      }
+      //    std::cerr << "Produced: \n" << outs;
+      if (in_procedure) {
+        // internally compile 
+        //      std::cerr <<" will compile:\n"<<outs;
+        // istringstream internal(outs + "END\n");
+        istringstream internal(outs);
+        RefDNode theAST;
+        try {
+          GDLLexer lexer(internal, "", GDLParser::NONE, "", false);
+          GDLParser& parser = lexer.Parser();
+
+          // parsing
+          parser.translation_unit();
+
+          theAST = parser.getAST();
+
+          if (!theAST) {
+            e->Throw("Error in code: no output generated.");
+          }
+        } catch (...) {
+            e->Throw("Parsing error in code.");
+        }
+        e->Interpreter()->CompileSaveFile(theAST);
+      }
+  }
 } // namespace

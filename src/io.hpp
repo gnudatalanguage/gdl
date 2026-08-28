@@ -150,7 +150,6 @@ class GDLStream
   DDouble w_timeout;
 
   SizeT width;
-
   std::streampos lastSeekPos;
 
   // for F77
@@ -205,7 +204,7 @@ public:
   
   void Socket( const std::string& host,
 	       DUInt port, bool swapEndian_,
-	       DDouble c_timeout, DDouble r_timeout, DDouble w_timeout);
+	       DDouble c_timeout, DDouble r_timeout, DDouble w_timeout, SizeT width);
 
   void Flush(); 
 

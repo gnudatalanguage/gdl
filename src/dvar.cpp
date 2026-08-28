@@ -33,7 +33,7 @@ DVar::DVar() : name(), d(0) ,callback(defaultDVarCallback)
 DVar::~DVar() 
 {
   // Note: !NULL would be naturally destroyed from here at program end
-  // we explicitely preventing the deletion to be able to flag possible
+  // we explicitly preventing the deletion to be able to flag possible
   // other destructions of !NULL (which are bugs)
   //if( d != NullGDL::GetSingleInstance()) 
   if (!isAClone) GDLDelete(d);
