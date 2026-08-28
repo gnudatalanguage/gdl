@@ -83,6 +83,7 @@ test_file_basename.pro
 test_file_copy.pro
 test_file_delete.pro
 test_file_dirname.pro
+test_file_info.pro
 test_file_lines.pro
 test_file_mkdir.pro
 test_file_move.pro
@@ -93,6 +94,7 @@ test_fixprint.pro
 test_foreach.pro
 test_format.pro
 test_formats.pro
+test_fstat.pro
 test_fx_root.pro
 test_fz_roots.pro
 test_gaussfit.pro
@@ -118,7 +120,6 @@ test_interpolate.pro
 test_ioerror.pro
 test_isa.pro
 test_ishft.pro
-test_issues1474.pro
 test_keyword_set_but_null.pro
 test_l64.pro
 test_la_least_squares.pro
