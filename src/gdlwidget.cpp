@@ -179,6 +179,19 @@ static const char * pixmap_checked[] = {
 #include "../resource/gdlicon.xpm"
 wxIcon wxgdlicon;
 
+class wxAppGDL:public wxApp
+{
+public:
+    bool OnInit() override;
+};
+ bool wxAppGDL::OnInit() 
+{
+//    MyFrame *frame = new MyFrame();
+//    frame->Show();
+    return true;
+}
+ // This defines the equivalent of main() for the current platform.
+ wxIMPLEMENT_APP_NO_MAIN(wxAppGDL);
 
 class GDLWidgetTable;
 
@@ -642,25 +655,6 @@ wxFont GDLWidget::systemFont=wxNullFont;  //the initial system font. This to beh
 #ifdef __WXMAC__
         #include <Carbon/Carbon.h>
 extern "C" { void CPSEnableForegroundOperation( ProcessSerialNumber* psn ); }
-#endif
-
-  //initialize wxWidgets system:  create an instance of wxAppGDL here, not at Main (
-#ifndef __WXMAC__ 
-    wxAppGDL& wxGetApp() { return *static_cast<wxAppGDL*>(wxApp::GetInstance()); }   
-    wxAppConsole *wxCreateApp() 
-    { 
-        wxAppConsole::CheckBuildOptions(WX_BUILD_OPTIONS_SIGNATURE,"GDL");
-        return new wxAppGDL;
-    }
-    wxAppInitializer  wxTheAppInitializer((wxAppInitializerFunction) wxCreateApp);
-#else
-    wxApp& wxGetApp() { return *static_cast<wxApp*>(wxApp::GetInstance()); }   
-    wxAppConsole *wxCreateApp() 
-    { 
-        wxAppConsole::CheckBuildOptions(WX_BUILD_OPTIONS_SIGNATURE,"GDL");
-        return new wxApp;
-    }
-    wxAppInitializer  wxTheAppInitializer((wxAppInitializerFunction) wxCreateApp);
 #endif
 
 void GDLEventQueue::Purge()
@@ -1276,16 +1270,16 @@ void GDLWidget::HandleUnblockedWidgetEvents()
 
     }
     if (wxIsBusy()) wxEndBusyCursor();
-    // avoid looping like crazy
-#ifdef _WIN32 
-    Sleep(1); // this just to quiet down the character input from readline. 2 was not enough. 20 was ok.
-#else
-      const long SLEEP = 1000000; // 1ms
-      struct timespec delay;
-      delay.tv_sec = 0;
-      delay.tv_nsec = SLEEP;
-      nanosleep(&delay, NULL);
-#endif
+//    // avoid looping like crazy
+//#ifdef _WIN32 
+//    Sleep(1); // this just to quiet down the character input from readline. 2 was not enough. 20 was ok.
+//#else
+//      const long SLEEP = 1000000; // 1ms
+//      struct timespec delay;
+//      delay.tv_sec = 0;
+//      delay.tv_nsec = SLEEP;
+//      nanosleep(&delay, NULL);
+//#endif
 
     }
   }
@@ -7900,24 +7894,6 @@ void GDLWidgetDraw::SetWidgetScreenSize(DLong sizex, DLong sizey) {
     dp->Scroll(x, y); //in scroll units
     dp->Refresh();
   }
-  
-// for MacOS /COCOA port, the following code does not work and the application is hung (!) Help!
-// So we rely only on doing nothing and call Yield() , that works, fingers crossed.
-// Really strange but wxWidgets is not well documented (who is?)
-#ifndef __WXMAC__ 
-int wxAppGDL::MyLoop() {
-    if (loop.IsOk()) {
-//      std::cerr<<&loop<<std::endl;
-      loop.SetActive(&loop);
-      if (loop.IsRunning()) {
-        while (loop.Pending()) // Unprocessed events in queue
-        {
-          loop.Dispatch(); // Dispatch next event in queue
-        }
-      }
-    }
-  return 0;
-}
-#endif
+
 
 #endif

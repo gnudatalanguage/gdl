@@ -21,6 +21,8 @@
 #include <string>
 #include <fstream>
 #include <limits>
+#include <thread>         // std::this_thread::sleep_for
+#include <chrono>         // std::chrono::seconds
 #include "gdleventhandler.hpp" //for gdlwait_responsive
 #include "dinterpreter.hpp"
 #include "basic_pro_jmg.hpp"
@@ -1128,114 +1130,22 @@ early_return:
 #endif
    GDLEventHandler(); //this is probably not OK, but is at the moment needed to permit delivery of callback functions in idlneturl__define.pro where a waiting loop uses teh WAIT command.  
   }
-  
-  void wait_pro( EnvT* e) 
-  { 
-    e->NParam( 1);//, "WAIT");
+
+  void wait_pro(EnvT* e) {
+    e->NParam(1); //, "WAIT");
 
     DDouble waittime;
-    e->AssureDoubleScalarPar( 0, waittime);
+    e->AssureDoubleScalarPar(0, waittime);
 
-    if( waittime < 0)
-      throw GDLException( e->CallingNode(), 
-  			  "WAIT: Argument must be non-negative"
-			  +e->GetParString( 0));
-
-#ifdef _WIN32
-    LARGE_INTEGER Frequency;
-    LARGE_INTEGER BeginTime;
-    LARGE_INTEGER Endtime;
-    LARGE_INTEGER elapsed;
-    LARGE_INTEGER waittime_us;
-    waittime_us.QuadPart = waittime * 1e6;
-
-    QueryPerformanceFrequency(&Frequency);
-    QueryPerformanceCounter(&BeginTime);
-
-    while (1) {
-      QueryPerformanceCounter(&Endtime);
-      elapsed.QuadPart = (Endtime.QuadPart - BeginTime.QuadPart)/(Frequency.QuadPart/1000000);
-      if (elapsed.QuadPart >= waittime_us.QuadPart) break;
-      else if (elapsed.QuadPart > 100) Sleep(80);
-    }
-#else
-    int old_version=0;
-
-    if (waittime <= 0.005) old_version=1;
-
-    // AC 2010-09-16
-    // this version is OK and very accurate for small durations
-    // but used 100% of one CPU :((
-    if (old_version == 1) {
-      struct timeval tval;
-      struct timezone tzone;
-      
-      // derivated from the current version of SYSTIME()
-      gettimeofday(&tval,&tzone);
-      double t_start = tval.tv_sec+tval.tv_usec/1e+6; // time in UTC seconds
-      double t_current=0.0;
-      
-      double diff = 0.0;
-      while (diff < waittime ) {      
-
-	gettimeofday(&tval,&tzone);
-	t_current= tval.tv_sec+tval.tv_usec/1e+6;
-	diff=t_current - t_start;
-      }
-    }
-
-    // AC 2010-09-16 this version should used much less CPU !
-    if (old_version == 0) {
-      //cout << floor(waittime) << " " <<  waittime-floor(waittime) << endl;
-      struct timespec tv;
-      tv.tv_sec = floor(waittime);
-      tv.tv_nsec = (waittime-floor(waittime))*1e9;
-      int retval;
-      retval=nanosleep(&tv,NULL);
-    }
-#endif
+    if (waittime < 0)
+      throw GDLException(e->CallingNode(),
+        "WAIT: Argument must be non-negative"
+        + e->GetParString(0));
+    GDLEventHandler(); //finish event business
+    std::chrono::duration<double> dur(waittime);
+    std::this_thread::sleep_for(dur);
   }
 
-
-  //   void kwtest( EnvT* e)
-  //   {
-  //     StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
-  // 
-  //     // here first parameter is the function name
-  //     // set callF to the function you want to call
-  //     int nParam=e->NParam();
-  //     if( nParam == 0)
-  //      e->Throw( "No function specified.");
-  //     DString callF;
-  //     e->AssureScalarPar<DStringGDL>( 0, callF);
-  //  
-  //     // this is a function name -> convert to UPPERCASE
-  //     callF = StrUpCase( callF);
-  // 
-  // 	SizeT funIx = GDLInterpreter::GetFunIx( callF);
-  // 	
-  // 	EnvUDT* newEnv= new EnvUDT( e->CallingNode(), funList[ funIx], (BaseGDL**)NULL);
-  // 
-  // 	// add parameter
-  // 	SizeT widgetID = 999;
-  //       
-  //     newEnv->SetNextPar( new DLongGDL(widgetID)); // pass as local
-  // 
-  // 	e->Interpreter()->CallStack().push_back( newEnv);
-  // 	
-  // 	// make the call
-  // 	BaseGDL* res = e->Interpreter()->
-  // 	  call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
-  // 
-  // 	// set the keyword to the function's return value
-  //     static int testIx = e->KeywordIx( "TEST");
-  //     e->SetKW( testIx, res);
-  //   }
-
-  // CALL_EXTERNAL by Christoph Fuchs
-  //AC #ifdef USE_EIGEN
-  //AC SizeT defaultAlign = 16;
-  //AC #else  
   typedef struct {
     char      c;
     long long l;

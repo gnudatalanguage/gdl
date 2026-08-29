@@ -104,7 +104,7 @@ public:
     }
     return 1;
   }
-  void Update();
+  void Refresh();
   void GetGeometry( long& xSize, long& ySize);
   unsigned long GetWindowDepth();
   DLong GetVisualDepth();

@@ -251,19 +251,6 @@ public:
  WidgetEventInfo(wxEventType t_, wxObjectEventFunction f_, wxWindow* w_) : t(t_), f(f_), w(w_) {
  }
 };
-#ifndef __WXMAC__
-// main App class
- #include "wx/evtloop.h"
-
-class wxAppGDL: public wxApp
-{
- wxGUIEventLoop loop;
- public:
- int MyLoop();
-};
-
-wxDECLARE_APP(wxAppGDL); //wxAppGDL is equivalent to wxGetApp()
-#endif
 
 // GDL versions of wxWidgets controls =======================================
 DECLARE_LOCAL_EVENT_TYPE(wxEVT_SHOW_REQUEST, -1)
@@ -440,11 +427,7 @@ public:
   }
   static BaseGDL * getSystemColours();
   static void CallWXEventLoop(){
-#ifdef __WXMAC__
     wxTheApp->Yield();
-#else
-    wxGetApp().MyLoop(); //central loop for wxEvents!
-#endif
   }
 protected:
   
