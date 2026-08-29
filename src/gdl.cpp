@@ -141,18 +141,19 @@ void InitGDL()
     if (useWxWidgets) GDLWidget::Init();
 #endif
 
-#if defined(HAVE_LIBREADLINE)
-  // initialize readline (own version - not pythons one)
-  // in includefirst.hpp readline is disabled for python_module
-  rl_initialize();
-  char rlName[] = "GDL";
-  rl_readline_name = rlName;
-  //Our handler takes too long
-  //when editing the command line with ARROW keys. (bug 562). (used also in dinterpreted.cpp )
-  //but... without it we have no graphics event handler! FIXME!!! 
-  rl_set_keyboard_input_timeout (GDL_INPUT_TIMEOUT);
-  rl_event_hook = GDLEventHandler;
-#endif
+    // not HERE!
+//#if defined(HAVE_LIBREADLINE)
+//  // initialize readline (own version - not pythons one)
+//  // in includefirst.hpp readline is disabled for python_module
+//  rl_initialize();
+//  char rlName[] = "GDL";
+//  rl_readline_name = rlName;
+//  //Our handler takes too long
+//  //when editing the command line with ARROW keys. (bug 562). (used also in dinterpreted.cpp )
+//  //but... without it we have no graphics event handler! FIXME!!! 
+//  rl_set_keyboard_input_timeout (GDL_INPUT_TIMEOUT);
+//  rl_event_hook = GDLEventHandler;
+//#endif
 
   // ncurses blurs the output, initialize TermWidth here
   TermWidth();
