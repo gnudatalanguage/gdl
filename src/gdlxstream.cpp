@@ -320,7 +320,7 @@ void GDLXStream::Flush() {
 //  XwDisplay *xwd = (XwDisplay *) dev->xwd;
 //  XFlush(xwd->display);
 }
-void GDLXStream::Update() {
+void GDLXStream::Refresh() {
   XFlush(static_cast<XwDisplay *>(static_cast<XwDev *>(pls->dev)->xwd)->display);
 }
 void GDLXStream::WarpPointer(DLong x, DLong y) {
