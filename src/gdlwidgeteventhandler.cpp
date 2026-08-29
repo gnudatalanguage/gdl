@@ -20,6 +20,7 @@
 #ifdef HAVE_LIBWXWIDGETS
 
 #include <wx/clipbrd.h>
+#include <wx/dcbuffer.h>
 
 #include "basegdl.hpp"
 #include "dstructgdl.hpp"
@@ -1409,10 +1410,13 @@ void gdlwxGraphicsPanel::OnPaint(wxPaintEvent& event)
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_PAINT_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlwxGraphicsPanel::OnPaint: %d (%d,%d)\n"),event.GetId(),drawSize.x, drawSize.y);
 #endif
-  wxPaintDC dc(this);
-  DoPrepareDC(dc); //you probably do not want to call wxScrolled::PrepareDC() on wxAutoBufferedPaintDC as it already does this internally for the real underlying wxPaintDC.
-  dc.SetDeviceClippingRegion(GetUpdateRegion());
-  dc.Blit(0, 0, drawSize.x, drawSize.y, wx_dc, 0, 0);
+//  wxPaintDC dc(this);
+  wxAutoBufferedPaintDC  dc(this);
+//  DoPrepareDC(dc); //you probably do not want to call wxScrolled::PrepareDC() on wxAutoBufferedPaintDC as it already does this internally for the real underlying wxPaintDC.
+//  dc.SetDeviceClippingRegion(GetUpdateRegion());
+  wxRect r=this->GetUpdateClientRect();
+  dc.Blit(r.x, r.y, r.width, r.height, wx_dc, r.x, r.y);
+  Refresh(); //absolutely necessary to get a REAL screen update showing the last graphic modifications.
 }
 
 void gdlwxPlotPanel::OnPlotWindowSize(wxSizeEvent &event) {
