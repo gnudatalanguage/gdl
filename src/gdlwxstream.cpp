@@ -112,17 +112,17 @@ void GDLWXStream::EventHandler() {
 //  plstream::cmd(PLESC_EH, NULL);
 }
 
-void GDLWXStream::SetGdlxwGraphicsPanel(gdlwxGraphicsPanel* w, bool isPlot)
+void GDLWXStream::SetGdlwxGraphicsPanel(gdlwxGraphicsPanel* w, bool isPlot)
 {
   container = w;
   isplot=isPlot;
 }
 
-void GDLWXStream::Update()
+void GDLWXStream::Refresh()
 {
   if (this->valid && container != NULL) {
     container->Refresh();
-    container->Update(); //solve 1643
+//    container->Update(); //solve 1643
     GDLWidget::CallWXEventLoop();
   }
 }
@@ -150,7 +150,7 @@ void GDLWXStream::SetSize( wxSize s )
   this->cmd(PLESC_RESIZE, (void*)&s );
   m_width = s.x;
   m_height = s.y;
-  Update();
+  Refresh();
   //this because we use the old widget driver, which is fast but insane. We should not have such problems with the new driver, except that it is so slow..
     SetPageDPMM();
     DefaultCharSize();
@@ -199,7 +199,7 @@ void GDLWXStream::Clear() {
   DByte b = (GraphicsDevice::GetDevice()->BackgroundB());
   streamDC->SetBackground(wxBrush(wxColour(r,g,b)));
   streamDC->Clear();
-  Update(); //see #1509
+  Refresh(); //see #1509
 }
 
 void GDLWXStream::Clear(DLong chan) {
@@ -224,7 +224,7 @@ void GDLWXStream::Clear(DLong chan) {
     }
   for (auto i=0; i<size; ++i) pixels[3*i+chan]=*colorComponent; 
   streamDC->DrawBitmap(wxBitmap(image,3),0,0);
-  Update(); //see #1509
+  Refresh(); //see #1509
 }
 
 #include <wx/rawbmp.h>
@@ -356,7 +356,7 @@ wxNativePixelData::Iterator p(data);
   temp_dc.SelectObject(bmp);
   streamDC->Blit(xoff, m_height-yoff-ny, nx, ny, &temp_dc, 0, 0);
   temp_dc.SelectObject(wxNullBitmap);
-  Update(); //see #1509
+  Refresh(); //see #1509 //after a Blit Refresh is MANDATORY.
   return true;
 }
 
@@ -580,7 +580,7 @@ bool GDLWXStream::GetGin(PLGraphicsIn *gin, int mode) {
     DOWN, //3
     UP //4
   };
-  Update();
+  Refresh();
   wxMouseState mouse=wxGetMouseState();
   wxPoint mousePoint = wxGetMousePosition ();
   unsigned int state=0, ostate=0; //start with null state
