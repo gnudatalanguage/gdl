@@ -1960,22 +1960,17 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
   }
   if (iAmMaster) {
 #if defined(HAVE_LIBREADLINE)
-
   // initialize readline (own version - not pythons one)
   // in includefirst.hpp readline is disabled for python_module
-  // http://www.delorie.com/gnu/docs/readline/rlman.html
+  rl_initialize();
   char rlName[] = "GDL";
   rl_readline_name = rlName;
-  rl_outstream = stderr;
   //Our handler takes too long
-  //when editing the command line with ARROW keys. (bug 562). (used also in gdl.cpp)
-  //but... without it we have no graphics event handler! FIXME!!!
+  //when editing the command line with ARROW keys. (bug 562). (used also in dinterpreted.cpp )
+  //but... without it we have no graphics event handler! FIXME!!! 
+  rl_set_keyboard_input_timeout (GDL_INPUT_TIMEOUT);
   rl_event_hook = GDLEventHandler;
-//  {
-//    int edit_input = SysVar::Edit_Input();
-//    stifle_history(edit_input == 1 || edit_input < 0 ? 200 : edit_input);
-//  }
-
+  rl_outstream = stderr;
   // Eventually read back the ".gdl" path in user $HOME
   // we do not make one commun function with the save side
   // because on the save side we may need to create the .gdl/ PATH ...
