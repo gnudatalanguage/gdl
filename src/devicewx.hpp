@@ -160,7 +160,7 @@ if(hide) {
   // sets actWin and updates !D
   SetActWin(wIx);
   //associate stream with plot panel both ways:
-  me->SetGdlxwGraphicsPanel(plot, true);
+  me->SetGdlwxGraphicsPanel(plot, true);
   plot->SetStream(me);
   plot->SetPStreamIx(wIx);
 
@@ -366,7 +366,7 @@ if(hide) {
     if( winList[ wIx] != NULL) winList[ wIx]->SetValid(false); TidyWindowsList();
     GDLWXStream* me=new GDLWXStream( xSize, ySize);
     me->SetCurrentFont(fontname);
-    me->SetGdlxwGraphicsPanel( static_cast<gdlwxGraphicsPanel*>(draw), false );
+    me->SetGdlwxGraphicsPanel( static_cast<gdlwxGraphicsPanel*>(draw), false );
     winList[ wIx] = me;
     oList[ wIx]   = oIx++;
     // sets actWin and updates !D
