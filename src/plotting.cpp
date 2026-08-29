@@ -547,7 +547,7 @@ namespace lib
 
       abort = prepareDrawArea(e, actStream);
       if (abort) { 
-        actStream->Update();
+//        actStream->Refresh(); //not needed anymore?
         return;
       }
 
@@ -566,7 +566,7 @@ namespace lib
       //this is absolutely necessary for widgets as for windows. However the virtual Update function
       //i.e., calling  plstream::cmd(PLESC_EXPOSE, NULL) is very slow.
       // See how to overload it by a faster function such as in GDLXStream::Update() . 
-      actStream->Update();
+      //      actStream->Refresh(); //not needed anymore?
     }
     
   void GetSFromPlotStructs(DDouble **sx, DDouble **sy, DDouble **sz)
