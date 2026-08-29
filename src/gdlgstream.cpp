@@ -177,7 +177,7 @@ void GDLGStream::DefaultBackground()
 
 void GDLGStream::SetPageDPMM(float setPsCharFudge, float setPsSymFudge) {
   //This is supposed to be called each time DPI is changed, which happens only at creation of a new device.
-  // contrary to the page size, that may change for intercative devices that can be resized.
+  // contrary to the page size, that may change for interactive devices that can be resized.
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "SetPageDPMM()\n");
   psCharFudge=setPsCharFudge;
   psSymFudge=setPsSymFudge;
