@@ -49,7 +49,7 @@ public:
 #endif
 
   //logically close the svg each time an update is made, then rollback to the last graphic section for further graphics.
-  void Update(){plstream::cmd(PLESC_EXPOSE, NULL);fprintf(pls->OutFile,"</g>\n</svg>\n");fseek(pls->OutFile,-12, SEEK_END);}
+  void Refresh(){plstream::cmd(PLESC_EXPOSE, NULL);fprintf(pls->OutFile,"</g>\n</svg>\n");fseek(pls->OutFile,-12, SEEK_END);}
 // Clear is not used on SVG --- but this could be it.
 //  virtual void Clear(DLong chan) final;
 //  virtual void Clear() final;
