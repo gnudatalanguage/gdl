@@ -41,7 +41,7 @@ using namespace std;
         if( nEl == 1) { (*dest)[0]=static_cast<unsigned>(static_cast<signed>((*this)[0])); if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest;}\
         if((GDL_NTHREADS=parallelize(nEl,  TP_ARRAY_INITIALISATION))==1) {for( SizeT i=0; i < nEl; ++i) (*dest)[i]=static_cast<unsigned>(static_cast<signed>((*this)[i])); if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest; }
 
-#ifdef __aarch64__
+#if defined(__aarch64__) || defined(__riscv)
 #define DO_CONVERT_START_FLOAT_TO_UNSIGNED(tnew, unsigned, signed) DO_CONVERT_START_FLOAT_TO_UNSIGNED_ARM64(tnew, unsigned, signed)
 #else
 #define DO_CONVERT_START_FLOAT_TO_UNSIGNED(tnew, unsigned, signed) DO_CONVERT_START_FLOAT_TO_UNSIGNED_IA64(tnew, unsigned, signed)
@@ -63,7 +63,7 @@ using namespace std;
         Data_<tnew>* dest=new Data_<tnew>( dim, BaseGDL::NOZERO);\
         if( nEl == 1) { (*dest)[0]=static_cast<unsigned>(static_cast<signed>((*this)[0].real())); if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest;}\
         if((GDL_NTHREADS=parallelize(nEl,  TP_ARRAY_INITIALISATION))==1) {for( SizeT i=0; i < nEl; ++i) (*dest)[i]=static_cast<unsigned>(static_cast<signed>((*this)[i].real())); if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest; }
-#ifdef __aarch64__
+#if defined(__aarch64__) || defined(__riscv)
 #define DO_CONVERT_START_FLOAT_TO_UNSIGNED_CPX(tnew, unsigned, signed) DO_CONVERT_START_FLOAT_TO_UNSIGNED_CPX_ARM64(tnew, unsigned, signed)
 #else
 #define DO_CONVERT_START_FLOAT_TO_UNSIGNED_CPX(tnew, unsigned, signed) DO_CONVERT_START_FLOAT_TO_UNSIGNED_CPX_IA64(tnew, unsigned, signed)
