@@ -41,7 +41,6 @@ set_tests_properties(${TESTS} PROPERTIES ENVIRONMENT "LC_COLLATE=C;GDL_PATH=${BA
 set(ARM_XFAIL_TESTS
     test_byte_conversion.pro
     test_formats.pro
-    test_rounding.pro
 )
 foreach(test ${ARM_XFAIL_TESTS})
   set_tests_properties(${test} PROPERTIES WILL_FAIL $<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},aarch64>)
