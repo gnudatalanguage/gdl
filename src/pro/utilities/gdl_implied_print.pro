@@ -216,6 +216,11 @@ if (type eq 0) then begin
  print,"!NULL"
  return
 endif
+if (type eq 7) then begin
+   if SIZE(value,/n_dim) then print, TRANSPOSE(value) else print, value
+   return
+endif
+
 w=where(type eq types, count)
 if (count gt 0) then begin
    start='('

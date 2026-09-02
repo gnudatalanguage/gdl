@@ -323,6 +323,9 @@ void AnyStream::OpenAsPipes(const std::string& name_, const std::ios_base::openm
 
   if (fStream == NULL)
     fStream = new fstream();
+  // AC bug #1474
+  //  if ((mode_ & std::ios::in) && !(mode_ & std::ios::out))
+  fStream->rdbuf()->pubsetbuf(nullptr, 0);
   fStream->open(name_.c_str(), mode_);
 
   if (fStream->fail()) {
@@ -417,15 +420,18 @@ void AnyStream::SeekEof() {
 bool AnyStream::Eof() {
   if (!InUse()) throw GDLException("Inner file unit is not open.");
 
+  
   if (fStream != NULL) {
     fStream->clear(); // clear old EOF	
 
     if (ispipe) return true;
     else {
-      fStream->peek(); // trigger EOF if at EOF
+      // AC comment to solve bug #2220 
+      //fStream->peek(); // trigger EOF if at EOF
       return fStream->eof();
     }
   }
+
   if (igzStream != NULL) {
     igzStream->clear(); // clear old EOF	
 
@@ -442,7 +448,7 @@ void AnyStream::Seek(std::streampos pos) {
   if (fStream != NULL) {
     if (fStream->eof())
       fStream->clear();
-
+    // AC related to bug #1474
     fStream->rdbuf()->pubseekpos(pos, std::ios_base::in | std::ios_base::out);
   }
   if (ofStream != NULL) {

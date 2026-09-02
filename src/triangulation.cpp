@@ -1219,7 +1219,7 @@ namespace lib {
       xinc = (*GS)[0];
       if (xinc > 0 && NxDefined) xinc= xrange/(nx-1); else nx = (DLong) ceil(xrange / xinc) +1;
     }
-    if (GS != NULL && NyDefined)
+    if (GS != NULL)// && NyDefined)
     {
       yinc = (*GS)[1];
       if (yinc == 0 && NyDefined) yinc= yrange/(ny-1); else ny = (DLong) ceil(yrange / yinc) +1;

@@ -669,6 +669,7 @@ namespace lib {
       {
         size = fileUnits[ lun - 1].Size();
         big = (DLong(size) != size);
+	//big=false;
       }
     }
 
@@ -733,19 +734,26 @@ namespace lib {
 	fileStatus->InitTag("CTIME", DLong64GDL( buffer.st_ctime)); 
 	fileStatus->InitTag("MTIME", DLong64GDL( buffer.st_mtime));  
 //	fileStatus->InitTag("TRANSFER_COUNT", DLongGDL( 0 ));
-  //hopefully this solves #1394
+
+	//hopefully this solves #1394
+	//CUR_PTR needs to be the EOF offset position, not the EOF symbol (-1)!
+	// AC for #2220
 	if (big) {
           DLong64 pos;
-          if (actUnit.Eof()) pos=buffer.st_size; else pos=actUnit.Tell(); //CUR_PTR needs to be the EOF offset position, not the EOF symbol (-1)! 
+          if (actUnit.IsReadable() && actUnit.Eof())
+	    pos=buffer.st_size;
+	  else pos=actUnit.Tell();
           fileStatus->InitTag("CUR_PTR", DLong64GDL( pos) );
           fileStatus->InitTag("SIZE", DLong64GDL( buffer.st_size ));
         } else {
           DLong pos;
-          if (actUnit.Eof()) pos=buffer.st_size; else pos=actUnit.Tell();
+          if (actUnit.IsReadable() && actUnit.Eof())
+	    pos=buffer.st_size;
+	  else pos=actUnit.Tell();
           fileStatus->InitTag("CUR_PTR", DLongGDL( pos ));
           fileStatus->InitTag("SIZE", DLongGDL( buffer.st_size ));
         }
-//	fileStatus->InitTag("REC_LEN", DLongGDL( 0 ));
+	//  fileStatus->InitTag("REC_LEN", DLongGDL( 0 ));
       }
 
     return fileStatus;
