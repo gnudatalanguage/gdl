@@ -192,7 +192,11 @@ public:
 }
  // This defines the equivalent of main() for the current platform.
  wxIMPLEMENT_APP_NO_MAIN(wxAppGDL);
-
+ wxDECLARE_APP(wxAppGDL); //wxAppGDL is equivalent to wxGetApp()
+ 
+  void GDLWidget::CallWXEventLoop(){
+    wxGetApp().Yield();
+  }
 class GDLWidgetTable;
 
 //class wxGridGDLCellStringRenderer : public wxGridCellStringRenderer {

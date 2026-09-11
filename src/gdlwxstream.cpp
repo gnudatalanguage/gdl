@@ -122,7 +122,9 @@ void GDLWXStream::Refresh()
 {
   if (this->valid && container != NULL) {
     container->Refresh();
-//    container->Update(); //solve 1643
+#ifdef _WIN32
+   container->Update(); //solve 1643
+#endif
     GDLWidget::CallWXEventLoop();
   }
 }
