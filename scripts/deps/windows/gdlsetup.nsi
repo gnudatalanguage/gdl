@@ -140,7 +140,9 @@ Section "GNU Data Language (GDL)" SEC01
   SectionIn 1 2 RO
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
-  File /r "${GDL_INSTALL_DIR}\*"
+;libidl.dll is a link and cannot be opened: error.
+  Delete "${GDL_INSTALL_DIR}\libidl.dll"
+   File /r "${GDL_INSTALL_DIR}\*"
   CreateDirectory "$SMPROGRAMS\GNU Data Language"
   CreateShortCut "$SMPROGRAMS\GNU Data Language\GDL (command line).lnk" "$INSTDIR\bin\gdl.exe"
   CreateShortCut "$DESKTOP\GDL (command line).lnk" "$INSTDIR\bin\gdl.exe"
