@@ -547,10 +547,7 @@ namespace lib
 
       abort = prepareDrawArea(e, actStream);
       if (abort) { 
-#ifdef __WXMAC__
-      // This is needed on OSX otherwise the plot is update only on click. Why??
         actStream->Refresh();
-#endif
         return;
       }
 
@@ -569,10 +566,7 @@ namespace lib
       //this is absolutely necessary for widgets as for windows. However the virtual Update function
       //i.e., calling  plstream::cmd(PLESC_EXPOSE, NULL) is very slow.
       // See how to overload it by a faster function such as in GDLXStream::Update() . 
-#ifdef __WXMAC__
-      // This is needed on OSX otherwise the plot is update only on click. Why??
-       actStream->Refresh(); //not needed anymore?
-#endif
+       actStream->Refresh(); //marks the drawing 'dirty' on wx, (so next loop of wxapp will update the screen), does a flush on X11 and flush buffers on file outputs.
     }
     
   void GetSFromPlotStructs(DDouble **sx, DDouble **sy, DDouble **sz)

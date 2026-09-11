@@ -101,7 +101,7 @@ void LibInit()
   const string saveKey[]={ "FILENAME","DESCRIPTION","VERBOSE","VARIABLES", "ALL", "COMM", "COMPRESS", "SYSTEM_VARIABLES", "ROUTINES", "IGNORE_NOSAVE"
     ,"XDR" //obsolete
     ,KLISTEND};
-  const string saveWarnKey[]={"BUFFER", "EMBEDDED", KLISTEND};
+  const string saveWarnKey[]={"BUFFER", "EMBED", "EMBEDDED", KLISTEND};
   new DLibPro(lib::gdl_save,string("SAVE"),-1,saveKey,saveWarnKey);
 
 

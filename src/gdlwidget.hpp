@@ -426,9 +426,7 @@ public:
    defaultFont=thefont;
   }
   static BaseGDL * getSystemColours();
-  static void CallWXEventLoop(){
-    wxTheApp->Yield();
-  }
+  static void CallWXEventLoop();
 protected:
   
 

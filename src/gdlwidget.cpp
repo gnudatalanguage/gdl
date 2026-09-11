@@ -178,11 +178,25 @@ static const char * pixmap_checked[] = {
 
 #include "../resource/gdlicon.xpm"
 wxIcon wxgdlicon;
-
+ #include "wx/evtloop.h"
 class wxAppGDL:public wxApp
 {
+wxGUIEventLoop loop;
 public:
-    bool OnInit() override;
+    ~wxAppGDL(){}
+    bool OnInit();
+ int MyLoop() {
+    if (loop.IsOk()) {
+      loop.SetActive(&loop);
+      if (loop.IsRunning()) {
+        while (loop.Pending()) // Unprocessed events in queue
+        {
+         loop.Dispatch(); // Dispatch next event in queue
+        }
+      }
+    }
+  return 0;
+}
 };
  bool wxAppGDL::OnInit() 
 {
@@ -192,7 +206,11 @@ public:
 }
  // This defines the equivalent of main() for the current platform.
  wxIMPLEMENT_APP_NO_MAIN(wxAppGDL);
-
+ wxDECLARE_APP(wxAppGDL); //wxAppGDL is equivalent to wxGetApp()
+ 
+  void GDLWidget::CallWXEventLoop(){
+    wxGetApp().Yield();
+  }
 class GDLWidgetTable;
 
 //class wxGridGDLCellStringRenderer : public wxGridCellStringRenderer {

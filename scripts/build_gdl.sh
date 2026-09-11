@@ -27,6 +27,10 @@ BUILD_OS=$(uname)
 DRY_RUN=false
 if [[ ${BUILD_OS} == *"MSYS"* ]] || [[ ${BUILD_OS} == *"MINGW"* ]]; then
     BUILD_OS="Windows"
+	declare -x MSYSTEM="UCRT64"
+	declare -x MSYSTEM_CARCH="x86_64"
+	declare -x MSYSTEM_CHOST="x86_64-w64-mingw32"
+	declare -x MSYSTEM_PREFIX="/ucrt64"
 elif [[ ${BUILD_OS} == "Darwin" ]]; then
     BUILD_OS="macOS"
     Platform=${Platform:-$(arch)}

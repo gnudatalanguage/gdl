@@ -140,7 +140,8 @@ Section "GNU Data Language (GDL)" SEC01
   SectionIn 1 2 RO
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
-  File /r "${GDL_INSTALL_DIR}\*"
+;libidl.dll is a link and cannot be opened: error.
+   File /r "${GDL_INSTALL_DIR}\*"
   CreateDirectory "$SMPROGRAMS\GNU Data Language"
   CreateShortCut "$SMPROGRAMS\GNU Data Language\GDL (command line).lnk" "$INSTDIR\bin\gdl.exe"
   CreateShortCut "$DESKTOP\GDL (command line).lnk" "$INSTDIR\bin\gdl.exe"
@@ -183,6 +184,7 @@ Section -Post
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
   ; set env. variables in the system registry
   WriteRegExpandStr ${env_hklm} GDL_HOME "$INSTDIR"
+  WriteRegExpandStr ${env_hklm} GDL_PATH "+$INSTDIR\share\gnudatalanguage\lib"
   ; set env. variables manually for GDL launched from installer
   System::Call 'Kernel32::SetEnvironmentVariable(t "GDL_HOME",t "$INSTDIR")i'
   ; make sure windows knows about the change

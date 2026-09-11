@@ -316,10 +316,10 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource DESTINATION ${CMAKE_INSTALL_PREFI
 	PATTERN UrgentNeed.txt EXCLUDE)
 
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/${GDL_DATA_DIR}/dlm )
-
+if (APPLE OR OSX )
 INSTALL(CODE "execute_process( COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_INSTALL_PREFIX}/bin/gdl ${CMAKE_INSTALL_PREFIX}/bin/libidl${CMAKE_SHARED_LIBRARY_SUFFIX})" )
 install(CODE "message(\"-- Created symlink: ${CMAKE_INSTALL_PREFIX}/bin/gdl  -> ${CMAKE_INSTALL_PREFIX}/bin/libidl${CMAKE_SHARED_LIBRARY_SUFFIX}\")")
-
+endif()
 configure_file(
  	${CMAKE_SOURCE_DIR}/scripts/quick_start_GDL.sh.in
 	${CMAKE_BINARY_DIR}/quick_start_GDL.sh
