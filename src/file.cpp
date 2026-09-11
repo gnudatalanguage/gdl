@@ -39,10 +39,13 @@
 #ifndef PATH_MAX
 #define PATH_MAX 4096
 #endif 
-
+#ifndef _WIN32
 #define EXPAND_A_ROUTINE_WILDCARD "*.[ps][ra][ov]" //.pro and .sav, char by char. not perfect ( .pav would pass) but ExpandPath uses wildcards.
 #define EXPAND_A_HELP_WILDCARD "*.[phc][dth][fm]*" // same for help extensions, many errors possible but who cares.
-
+#else
+#define EXPAND_A_ROUTINE_WILDCARD "*.pro" //.pro and .sav, char by char. not perfect ( .pav would pass) but ExpandPath uses wildcards.
+#define EXPAND_A_HELP_WILDCARD "*.*" // same for help extensions, many errors possible but who cares.
+#endif
 #ifndef _WIN32
 #   include <fnmatch.h>
 #   include <glob.h> // glob in MinGW ok for mingw >=3.21 11/2014

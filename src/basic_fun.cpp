@@ -7947,12 +7947,12 @@ unsigned int JSHash(const std::string& str)
       FullFileName = "";
       int i;
       if (eitherKW || !is_functionKW) {
-        DPro *p;
-            if (p=GetDPro(name)) {FullFileName = p->GetFilename(); found=true;}
+        DPro *p=GetDPro(name);
+        if (p!=NULL) {FullFileName = p->GetFilename(); found=true;}
       }
       if (!found && (is_functionKW || eitherKW)) {
-        DFun *f;
-            if (f=GetDFun(name)) FullFileName = f->GetFilename();
+        DFun *f=GetDFun(name);
+        if (f!=NULL) FullFileName = f->GetFilename();
       }
       (*res)[iPath] = FullFileName;
     }
@@ -8028,15 +8028,15 @@ unsigned int JSHash(const std::string& str)
         name = StrUpCase(raw_name);
         int i;
         if (functionsKW) {
-            DFun *f;
-            if (f=GetDFun(name)) FullFileName = f->GetFilename(); else e->Throw("% Attempt to call undefined/not compiled function: '" + raw_name + "'");
+            DFun *f=GetDFun(name);
+            if (f!=NULL) FullFileName = f->GetFilename(); else e->Throw("% Attempt to call undefined/not compiled function: '" + raw_name + "'");
         } else {
             if (name == "$MAIN$") {
               found = true;
               FullFileName = "";
             } else {
-              DPro *p;
-              if (p=GetDPro(name)) FullFileName = p->GetFilename(); else e->Throw("% Attempt to call undefined/not compiled procedure: '" + raw_name + "'");
+              DPro *p=GetDPro(name);
+              if (p!=NULL) FullFileName = p->GetFilename(); else e->Throw("% Attempt to call undefined/not compiled procedure: '" + raw_name + "'");
             }
         }
 

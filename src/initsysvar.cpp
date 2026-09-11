@@ -47,7 +47,12 @@
 #define BUILD_DATE __DATE__
 #endif
 
+//GD [] pattern glob does not work well on Windows.
+#ifndef _WIN32
 #define EXPAND_A_ROUTINE_WILDCARD "*.[ps][ra][ov]" //.pro and .sav, char by char. not perfect ( .pav would pass) but ExpandPath uses wildcards.
+#else
+#define EXPAND_A_ROUTINE_WILDCARD "*.pro" //.pro and .sav, char by char. not perfect ( .pav would pass) but ExpandPath uses wildcards.
+#endif 
 
 namespace SysVar
 {

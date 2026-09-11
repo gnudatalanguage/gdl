@@ -1317,14 +1317,14 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
         nbFound++;
       }
 	// looking in compiled functions: take care of object functions, do not trust index
-      DFun *f;
-      if (f = GetDFun(line)) {
+      DFun *f = GetDFun(line);
+      if (f!=NULL ) {
         cout << "Compiled FUNCTION : " << f->ToString() << endl;
         nbFound++;
       }
 	// looking in compiled procedures
-      DPro* p;
-      if (p = GetDPro(line)) {
+      DPro* p = GetDPro(line);
+      if (p != NULL ) {
         cout << "Compiled PROCEDURE : " << p->ToString() << endl;
         nbFound++;
       }	

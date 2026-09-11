@@ -172,7 +172,7 @@ void GdlExportPrintStruct(EXPORT_SREF s){
   if (s.sdef->id != NULL) printf("ident: %s ,", s.sdef->id->name);
   printf("ntags %d\n", s.sdef->ntags);
   for (int i=0; i< s.sdef->ntags; ++i) { 
-	  printf ("TAG [%d] name: %s at offset: %d, len:%d, start hash chain = 0x%zx ",i,s.sdef->tags[i].id->name,s.sdef->tags[i].offset,s.sdef->tags[i].id->len,(size_t) s.sdef->tags[i].id->hash); GdlExportPrintHash(s.sdef->tags[i].id->hash);
+	  printf ("TAG [%d] name: %s at offset: %lld, len:%d, start hash chain = 0x%zx ",i,s.sdef->tags[i].id->name,s.sdef->tags[i].offset,s.sdef->tags[i].id->len,(size_t) s.sdef->tags[i].id->hash); GdlExportPrintHash(s.sdef->tags[i].id->hash);
 	  printf("\n var: \n");
 	  GdlExportPrintVar( &(s.sdef->tags[i].var) ); printf("\n");}
 }
@@ -355,13 +355,13 @@ std::string Backtrace(int skip = 1)
 			char *demangled = NULL;
 			int status;
 			demangled = abi::__cxa_demangle(info.dli_sname, NULL, 0, &status);
-			snprintf(buf, sizeof(buf), "%-3d %0*x %s + %zd\n",
+			snprintf(buf, sizeof(buf), "%-3d %0*llx %s + %zd\n",
 					 i, 2 + sizeof(void*) * 2, callstack[i],
 					 status == 0 ? demangled : info.dli_sname,
 					 (char *)callstack[i] - (char *)info.dli_saddr);
 			free(demangled);
 		} else {
-			snprintf(buf, sizeof(buf), "%-3d %0*x\n",
+			snprintf(buf, sizeof(buf), "%-3d %0*llx\n",
 					 i, 2 + sizeof(void*) * 2, callstack[i]);
 		}
 		trace_buf << buf;

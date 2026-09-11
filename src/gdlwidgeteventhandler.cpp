@@ -1417,6 +1417,10 @@ void gdlwxGraphicsPanel::OnPaint(wxPaintEvent& event)
   wxRect r=this->GetUpdateClientRect();
   dc.Blit(r.x, r.y, r.width, r.height, wx_dc, r.x, r.y);
   Refresh(); //absolutely necessary to get a REAL screen update showing the last graphic modifications.
+//#ifdef _WIN32
+//  Update();
+//#endif
+  event.Skip();
 }
 
 void gdlwxPlotPanel::OnPlotWindowSize(wxSizeEvent &event) {

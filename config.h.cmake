@@ -28,7 +28,10 @@
 #cmakedefine HAVE_NEXTTOWARD 1
 #cmakedefine HAVE__WIDTH 1
 #cmakedefine HAVE_QHULL 1
+
+#ifndef _WCHAR_H_CPLUSPLUS_98_CONFORMANCE_
 #define _WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ 1
+#endif
 
 #ifndef HAVE_STDINT_H
 #cmakedefine HAVE_STDINT_H 1

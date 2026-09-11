@@ -183,6 +183,7 @@ Section -Post
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
   ; set env. variables in the system registry
   WriteRegExpandStr ${env_hklm} GDL_HOME "$INSTDIR"
+  WriteRegExpandStr ${env_hklm} GDL_PATH "+$INSTDIR\share\gnudatalanguage\lib"
   ; set env. variables manually for GDL launched from installer
   System::Call 'Kernel32::SetEnvironmentVariable(t "GDL_HOME",t "$INSTDIR")i'
   ; make sure windows knows about the change

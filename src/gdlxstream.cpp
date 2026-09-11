@@ -321,7 +321,8 @@ void GDLXStream::Flush() {
 //  XFlush(xwd->display);
 }
 void GDLXStream::Refresh() {
-  XFlush(static_cast<XwDisplay *>(static_cast<XwDev *>(pls->dev)->xwd)->display);
+  // the x11 server loops ok, no need to force a flush
+  //XFlush(static_cast<XwDisplay *>(static_cast<XwDev *>(pls->dev)->xwd)->display);
 }
 void GDLXStream::WarpPointer(DLong x, DLong y) {
   XwDev *dev = (XwDev *) pls->dev;
