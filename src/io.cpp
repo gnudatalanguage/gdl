@@ -422,17 +422,20 @@ bool AnyStream::Eof() {
 
     if (ispipe) return true;
     else {
-      fStream->peek(); // trigger EOF if at EOF
-      return fStream->eof();
+      std::istream::int_type c = fStream->peek();  // peek character, test EOF
+
+  if ( c == std::char_traits<char>::eof() )  {fStream->clear(); return true;}
+  else return false;
     }
   }
 
   if (igzStream != NULL) {
     igzStream->clear(); // clear old EOF	
 
-    igzStream->peek(); // trigger EOF if at EOF
+    std::istream::int_type c = igzStream->peek(); // peek character, test EOF
 
-    return igzStream->eof();
+    if (c == std::char_traits<char>::eof())   {fStream->clear(); return true;}
+    else return false;
   }
   return true;
 }
