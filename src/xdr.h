@@ -265,6 +265,8 @@ extern bool_t	xdr_double(XDR *, double *);
 extern bool_t	xdr_reference(XDR *, caddr_t *, u_int, xdrproc_t);
 extern bool_t	xdr_pointer(XDR *, char **, u_int, xdrproc_t);
 extern bool_t	xdr_wrapstring(XDR *, char **);
+extern bool_t	xdr_uint64_t(XDR *, uint64_t *);
+extern bool_t	xdr_int64_t(XDR *, int64_t *);
 
 extern unsigned long xdr_sizeof(xdrproc_t, void *);
 
@@ -278,7 +280,7 @@ extern unsigned long xdr_sizeof(xdrproc_t, void *);
  * Common opaque bytes objects used by many rpc protocols;
  * declared here due to commonality.
  */
-#define MAX_NETOBJ_SZ 2048
+#define MAX_NETOBJ_SZ 1024
 struct netobj {
 	u_int	n_len;
 	char	*n_bytes;

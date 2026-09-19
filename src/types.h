@@ -39,21 +39,6 @@
 #ifndef GSSRPC_TYPES_H
 #define GSSRPC_TYPES_H
 
-#include <sys/types.h>
-
-@GSSRPC__SYS_SELECT_H@
-@GSSRPC__SYS_TIME_H@
-@GSSRPC__UNISTD_H@
-
-/*
- * Try to get MAXHOSTNAMELEN from somewhere.
- */
-@GSSRPC__SYS_PARAM_H@
-@GSSRPC__NETDB_H@
-
-/* Get htonl(), ntohl(), etc. */
-#include <netinet/in.h>
-
 #include <stdlib.h>
 #include <stdint.h>
 #include <limits.h>
@@ -74,16 +59,11 @@ GSSRPC__BEGIN_DECLS
 #error "Bytes must be exactly 8 bits."
 #endif
 
-/* Define if we need to fake up some BSD type aliases. */
-#ifndef GSSRPC__BSD_TYPEALIASES	/* Allow application to override. */
-@GSSRPC__BSD_TYPEALIASES@
-#endif
-#if GSSRPC__BSD_TYPEALIASES
 typedef unsigned char	u_char;
 typedef unsigned short	u_short;
 typedef unsigned int	u_int;
 typedef unsigned long	u_long;
-#endif
+typedef char *		caddr_t;
 
 typedef uint32_t	rpcprog_t;
 typedef uint32_t	rpcvers_t;
@@ -91,9 +71,6 @@ typedef uint32_t	rpcprot_t;
 typedef uint32_t	rpcproc_t;
 typedef uint32_t	rpcport_t;
 typedef int32_t		rpc_inline_t;
-
-/* This is for rpc/netdb.h */
-@rpcent_define@
 
 typedef int bool_t;
 typedef int enum_t;
@@ -124,7 +101,5 @@ typedef int enum_t;
 #endif
 
 GSSRPC__END_DECLS
-
-#include <gssrpc/rename.h>
 
 #endif /* !defined(GSSRPC_TYPES_H) */
