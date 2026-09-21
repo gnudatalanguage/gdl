@@ -958,7 +958,15 @@ namespace lib {
         p->Write(*os, swapEndian, compress, xdrs);
       }
     }
-
+    //GD: try to avoid concurrency bug where the same file is opened as "read" on another stream: this stream must be
+    // "informed" that the contents of the file have changed. See bug "Known problem with sync()" in test_fstat.pro
+    std::string myfile=fileUnits[lun - 1].Name();
+    for (int i=0; i< maxLun; ++i) {
+      if (i==lun-1) continue; //not us of course
+      if (fileUnits[i].IsOpen() && fileUnits[i].Name()==myfile) {
+        fileUnits[i].Seek(fileUnits[i].Tell()); //this should suffice to inform things have changed
+      }
+    }
     BaseGDL* p = e->GetParDefined(nParam - 1);
     SizeT cc = p->Dim(0);
     BaseGDL** tcKW = NULL;
@@ -1121,9 +1129,9 @@ namespace lib {
             fileUnits[lun - 1].PutVarLenVMS(false);
           }
           p->Read(*is, swapEndian, compress, xdrs);
-        } else
+        } else{
           p->Read(*is, swapEndian, compress, xdrs);
-
+        }
         // Socket Read
         if (sockNum != -1) {
           int pos = is->tellg();

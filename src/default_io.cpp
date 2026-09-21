@@ -1584,7 +1584,11 @@ istream& Data_<SpDByte>::Read( istream& is, bool swapEndian, bool compress, XDR 
     (static_cast<igzstream&> (is)).rdbuf()->incrementPosition(count); //ugly patch to maintain position
 //    (static_cast<igzstream&>(os)).read( reinterpret_cast<char*> (&(*this)[0]), count );
   } else {
-//    is.sync(); //in theory should permit to take into account an external change to the file, but this is not working.
+//    is.clear();
+//    is.seekg(is.tellg()); //a VERY SLOW solution to avoid the bug described as "Known problem with sync()" in test_fstat.
+//    we prefer to do this after each high-level PRINTF or WRITEU by looking at all streams thta "follow" the same filename.
+//    Note that at the moment ASSOC Writes do NOT do this synchro. Hopefully nobody wants to READU in parallel
+//    from an ASSOC file (as this would be silly programming!)   
     is.read( reinterpret_cast<char*> (&(*this)[0]), count );
   }
 

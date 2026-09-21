@@ -82,6 +82,7 @@ namespace lib {
     SizeT width;
 
     int sockNum = -1;
+    bool informOtherStreams=false; // see below
 
     if (stdLun) {
       if (lun == 0)
@@ -105,6 +106,7 @@ namespace lib {
       sockNum = fileUnits[ lun - 1].SockNum();
 
       if (sockNum == -1) {
+        informOtherStreams=true; // will force update contents of other streambufs that may "follow" this very file.
         if (fileUnits[ lun - 1].Compress())
           os = &fileUnits[ lun - 1].OgzStream();
         else
@@ -142,6 +144,17 @@ namespace lib {
     } else {
 no_implied:
         print_os(os, e, parOffset, width);
+    }
+    if (informOtherStreams) {
+      //GD: try to avoid concurrency bug where the same file is opened as "read" on another stream: this stream must be
+      // "informed" that the contents of the file have changed. See bug "Known problem with sync()" in test_fstat.pro
+      std::string myfile = fileUnits[lun - 1].Name();
+      for (int i = 0; i < maxLun; ++i) {
+        if (i == lun - 1) continue; //not us of course
+        if (fileUnits[i].IsOpen() && fileUnits[i].Name() == myfile) {
+          fileUnits[i].Seek(fileUnits[i].Tell()); //this should suffice to inform things have changed
+        }
+      }
     }
     // Socket send
     if (sockNum != -1) {
