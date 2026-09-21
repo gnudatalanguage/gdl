@@ -6154,15 +6154,10 @@ void GDLWidgetNormalButton::SetButtonWidgetLabelText(const DString& value) {
   delete(vValue);
   vValue = new DStringGDL(value);
   if (theWxWidget != NULL) {
-    wxAnyButton *b = dynamic_cast<wxAnyButton*> (theWxWidget);
+    wxAnyButton *b = static_cast<wxAnyButton*> (theWxWidget);
     b->SetLabelText(wxString(value.c_str(), wxConvUTF8));
-    // Should switch to version > 2.9 now!
-#if wxCHECK_VERSION(2,9,1)
-    b->SetBitmap(wxBitmap(1, 1));
-#endif 
     if (this->IsDynamicResize()) {
       this->SetWidgetSize(0,0);
-//     this->RefreshDynamicWidget();
     }
   }
 }

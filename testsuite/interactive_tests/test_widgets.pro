@@ -529,8 +529,9 @@ endif
     tmp=widget_button(yoff=offy,button_base01,value="Fancy Button+Event",font=fontname, event_func='test_func_button') & offy+=10 ;
     tmp=widget_label(yoff=offy,button_base01,value="Exclusive base, framed 30") & offy+=10  ;
     radio=widget_base(yoff=offy,button_base01,/EXCLUSIVE,COL=1,frame=30) & offy+=150         ;
-    rb1=widget_button(radio,VALUE="button in EXCLUSIVE base 1",uvalue={vEv,'rb1',[8,0]}, font=fontname)
+    rb1=widget_button(radio,VALUE="???????????",uvalue={vEv,'rb1',[8,0]}, font=fontname)
     rb2=widget_button(radio,VALUE="button in EXCLUSIVE base 2",uvalue={vEv,'rb2',[9,0]})
+    widget_control,rb1,set_value="button in EXCLUSIVE base 1" ;would crash see #2238
     rb2=widget_button(radio,VALUE="button with NO_RELASE option",/NO_RELEASE,uvalue={vEv,'rb2',[9,0]})
     
     tmp=widget_label(yoff=offy,button_base01,value="Non-Exclusive base,simple look") & offy+=10 ;
