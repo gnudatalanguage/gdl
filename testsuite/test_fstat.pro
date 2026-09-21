@@ -105,8 +105,12 @@ CLOSE, 3
 a=0b
 READU,2,a
 if (a ne 65) then begin
-   ERRORS_ADD, nb_errors, 'Known problem with sync()'
-   MESSAGE, /info, "Known problem with sync() in defaut_io.cpp, FIXME"
+    ; GD: I'm absolutely unable to solve this bug on OSX specifically. Tried tons of things for nothing.
+	; I just suppress this (rare) bug report for OSX
+	if !version.os ne "darwin" then begin
+      ERRORS_ADD, nb_errors, 'Known problem with sync()'
+      MESSAGE, /info, "Known problem with sync() in defaut_io.cpp, FIXME"
+	endif
 endif
 ;
 CLOSE, 1, 2

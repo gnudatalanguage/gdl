@@ -181,12 +181,10 @@ void Assoc_<Parent_>::AssignAt( BaseGDL* srcIn,
   
   if( !ixEmpty)
     {
-      // throw GDLException("File expression cannot be subindexed for output.");
       SizeT seekPos = fileOffset + recordNum * sliceSize;
 
       if( fileUnits[ lun].Size() > seekPos)
 	{
-//	  fstream& fs = fileUnits[ lun].IStream();
 	  fileUnits[ lun].Seek( seekPos);
 	  Parent_::Read( (fileUnits[lun].Compress()?static_cast<std::istream&>(fileUnits[lun].IgzStream()):static_cast<std::istream&>(fileUnits[lun].IStream())),  
 			 fileUnits[ lun].SwapEndian(),
@@ -202,7 +200,6 @@ void Assoc_<Parent_>::AssignAt( BaseGDL* srcIn,
 
       fstream& fs = fileUnits[ lun].OStream();
       fileUnits[ lun].SeekPad( seekPos);
-      //      Parent_::Write( fs, fileUnits[ lun].SwapEndian());
       Parent_::Write( fs,
 		    fileUnits[ lun].SwapEndian(),
 		    fileUnits[ lun].Compress(),
@@ -217,9 +214,6 @@ void Assoc_<Parent_>::AssignAt( BaseGDL* srcIn,
 		fileUnits[ lun].SwapEndian(),
 		fileUnits[ lun].Compress(),
 		fileUnits[ lun].Xdr());
-/*      Parent_::Write( ofs, 
-		      fileUnits[ lun].SwapEndian(),
-		      fileUnits[ lun].Xdr());*/
     }
 }
 template<class Parent_>
@@ -234,9 +228,6 @@ void Assoc_<Parent_>::AssignAt( BaseGDL* srcIn)
 		fileUnits[ lun].SwapEndian(),
 		fileUnits[ lun].Compress(),
 		fileUnits[ lun].Xdr());
-/*  Parent_::Write( ofs, 
-		  fileUnits[ lun].SwapEndian(),
-		  fileUnits[ lun].Xdr());*/
 }
 
 // (writing 2)
@@ -260,7 +251,6 @@ void Assoc_<Parent_>::InsertAt( SizeT offset,
 
       fstream& ofs = fileUnits[ lun].OStream();
       fileUnits[ lun].SeekPad( fileOffset + recordNum * sliceSize);
-      //      Parent_::Write( ofs, fileUnits[ lun].SwapEndian());
       Parent_::Write( ofs, 
 		      fileUnits[ lun].SwapEndian(),
 		      fileUnits[ lun].Compress(),
@@ -279,7 +269,6 @@ void Assoc_<Parent_>::InsertAt( SizeT offset,
       Parent_::InsertAt( offset, srcIn, ixList);
 
       fileUnits[ lun].SeekPad( fileOffset + recordNum * sliceSize);
-      //      Parent_::Write( fs, fileUnits[ lun].SwapEndian());
       Parent_::Write( fs, 
 		      fileUnits[ lun].SwapEndian(),
 		      fileUnits[ lun].Compress(),
