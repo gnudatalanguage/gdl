@@ -6155,7 +6155,13 @@ void GDLWidgetNormalButton::SetButtonWidgetLabelText(const DString& value) {
   vValue = new DStringGDL(value);
   if (theWxWidget != NULL) {
     wxAnyButton *b = static_cast<wxAnyButton*> (theWxWidget);
-    b->SetLabelText(wxString(value.c_str(), wxConvUTF8));
+    if (b) b->SetLabelText(wxString(value.c_str(), wxConvUTF8)); else {
+      wxRadioButton * rb= static_cast<wxRadioButton*> (theWxWidget);
+      if (rb) rb->SetLabelText(wxString(value.c_str(), wxConvUTF8)); else {
+        wxCheckBox * cb = static_cast<wxCheckBox*> (theWxWidget);
+        if (cb) cb->SetLabelText(wxString(value.c_str(), wxConvUTF8));
+              }
+    }
     if (this->IsDynamicResize()) {
       this->SetWidgetSize(0,0);
     }
