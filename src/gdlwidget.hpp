@@ -627,7 +627,7 @@ public:
   bool IsValid(){return valid;}
   void SetUnValid(){valid=false;}
   void SetValid(){valid=true;}
-  bool IsDynamicResize(){return ((dynamicResize>0)|| (dynamicResize==0 && !IsRealized())); }
+  bool IsDynamicResize(){return ((dynamicResize>0));} //|| (dynamicResize== && !IsRealized())); }
   void SetDynamicResize(){if (dynamicResize > -1) dynamicResize=1;}
   void UnsetDynamicResize(){if (dynamicResize > -1) dynamicResize=0;}
   void authorizeDynamicResize(){dynamicResize=1;}
