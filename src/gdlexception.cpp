@@ -62,7 +62,7 @@ else
    cerr << s << endl;
 #endif
 }
-GDLException::GDLException(const string& s, bool pre, bool decorate): 
+GDLException::GDLException(const string& s, bool pre, bool decorate, int index): 
   ANTLRException(s),
   errorNode(static_cast<RefDNode>(antlr::nullAST)),
   errorNodeP( NULL),
@@ -77,6 +77,9 @@ if(decorate && interpreter!=NULL && interpreter->CallStack().size()>0)
   errorNodeP = e->CallingNode();
   msg = e->GetProName();
   if( msg != "$MAIN$") msg +=  ": "+ s; else msg = s;
+  if (index >= 0) {
+    msg += " " + e->GetParString(index);
+  }
 }
 else
 {

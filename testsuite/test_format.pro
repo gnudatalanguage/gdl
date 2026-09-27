@@ -5,6 +5,29 @@
 ; These ones can be tested without writing files
 ;
 ; ------------------------------------
+; see issue #2237
+pro TEST_FORMAT_INSIDE_ARRAY, cumul_errors, test=test, verbose=verbose
+errors=0
+;
+expected1='Sep+0001'
+data1=string(['Sep', '1'], FORMAT='(A,I+05)')
+if (data1 NE expected1) then ERRORS_ADD, errors, 'inside_array 1'
+expected2='OCT,10/02!!!!1.5707963E+08 +00314159265:'
+data2=string(FORMAT='(C(CMOA,",",CMOI02,"/",CDI02),"!!!!",G13.8,X,I+012,":")', replicate(dcomplex(!DPI,!DPI/2)*1E8,2))
+if n_elements(data2) ne 2 then begin
+   ERRORS_ADD, errors, 'inside_array 2'
+   ERRORS_CUMUL, cumul_errors, errors
+   if KEYWORD_SET(test) then STOP
+   return
+endif
+
+if (data2[0] NE expected2) then ERRORS_ADD, errors, 'inside_array 3'
+expected3='APR,04/29'
+if (data2[1] NE expected3) then ERRORS_ADD, errors, 'inside_array 4'
+BANNER_FOR_TESTSUITE, 'TEST_FORMAT_NEWLINE', errors, /short, verb=verbose
+ERRORS_CUMUL, cumul_errors, errors
+if KEYWORD_SET(test) then STOP
+end
 ; see issue # & PR #1799
 pro TEST_FORMAT_NEWLINE, cumul_errors, test=test, verbose=verbose
 ;
