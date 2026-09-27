@@ -200,6 +200,7 @@ void DStructGDL::OFmtAll( SizeT offs, SizeT r,
   // transfer count
   tCount = nTrans - offs;
   if( r < tCount) tCount = r;
+  if (r > tCount) r = tCount;
   tCountOut = tCount;
 
   // find first Element
@@ -232,8 +233,13 @@ void DStructGDL::OFmtAll( SizeT offs, SizeT r,
 template<class Sp> SizeT 
 Data_<Sp>::OFmtA( ostream* os, SizeT offs, SizeT r, int w, const int code) 
 {
-  DStringGDL* stringVal = static_cast<DStringGDL*> ( this->Convert2( GDL_STRING, BaseGDL::COPY_BYTE_AS_INT));
-  SizeT retVal = stringVal->OFmtA( os, offs, r, w, code);
+  // this simply passes things one by one, and retval will be 1, etc.
+  // probably a bit slower than doing a loop inside, but OK.
+  Ty z = (*this)[offs];
+  BaseGDL* temp = new Data_<Sp>(z);
+  DStringGDL* stringVal = static_cast<DStringGDL*> ( temp->Convert2( GDL_STRING, BaseGDL::COPY_BYTE_AS_INT));
+  SizeT retVal = stringVal->OFmtA( os, 0, r, w, code);
+  delete temp;
   delete stringVal;
   return retVal;
 }
@@ -245,8 +251,9 @@ OFmtA( ostream* os, SizeT offs, SizeT r, int w, const int code)
 
   // transfer count
   SizeT tCount = nTrans - offs;
-  if( r < tCount) tCount = r;
-
+  if ( r < tCount) tCount = r;
+  if (r > tCount) r = tCount;
+  
   SizeT endEl = offs + tCount;
 
 
@@ -262,114 +269,6 @@ OFmtA( ostream* os, SizeT offs, SizeT r, int w, const int code)
     }
 
   return tCount;
-}
-// complex
-template<> SizeT Data_<SpDComplex>::
-OFmtA(ostream* os, SizeT offs, SizeT r, int w, const int code)
-{
-
-  SizeT nTrans = ToTransfer();
-
-  // transfer count
-  SizeT tCount = nTrans - offs;
-  if (r < tCount) tCount = r;
-  SizeT tCountOut = tCount;
-
-  SizeT firstEl = offs / 2;
-
-  (*os) << right;
-
-  if (offs & 0x01) {
-    if (w <= 0)
-      (*os) << float2string((*this)[ firstEl++].imag());
-    else {
-      if (code & fmtALIGN_LEFT) (*os) << left;
-      else (*os) << right;
-      (*os) << setw(w) << float2string((*this)[ firstEl++].imag()).substr(0,w);
-    }
-    tCount--;
-
-  }
-
-  SizeT endEl = firstEl + tCount / 2;
-
-  if (w <= 0)
-    for (SizeT i = firstEl; i < endEl; ++i) {
-      (*os) << float2string((*this)[ firstEl++].real());
-      (*os) << float2string((*this)[ firstEl++].imag());
-    } else {
-    if (code & fmtALIGN_LEFT) (*os) << left;
-    else (*os) << right;
-    for (SizeT i = firstEl; i < endEl; ++i) {
-      (*os) << setw(w) << float2string((*this)[ firstEl++].real()).substr(0,w);
-      (*os) << setw(w) << float2string((*this)[ firstEl++].imag()).substr(0,w);
-    }
-  }
-
-  if (tCount & 0x01) {
-    if (w <= 0)
-      (*os) << float2string((*this)[ firstEl++].real());
-    else {
-      if (code & fmtALIGN_LEFT) (*os) << left;
-      else (*os) << right;
-      (*os) << setw(w) << float2string((*this)[ firstEl++].real()).substr(0,w);
-    }
-  }
-
-  return tCountOut;
-}
-template<> SizeT Data_<SpDComplexDbl>::
-OFmtA( ostream* os, SizeT offs, SizeT r, int w, const int code) 
-{
-  SizeT nTrans = ToTransfer();
-
-  // transfer count
-  SizeT tCount = nTrans - offs;
-  if (r < tCount) tCount = r;
-  SizeT tCountOut = tCount;
-
-  SizeT firstEl = offs / 2;
-
-  (*os) << right;
-
-  if (offs & 0x01) {
-    if (w <= 0)
-      (*os) << double2string((*this)[ firstEl++].imag());
-    else {
-      if (code & fmtALIGN_LEFT) (*os) << left;
-      else (*os) << right;
-      (*os) << setw(w) << double2string((*this)[ firstEl++].imag()).substr(0,w);
-    }
-    tCount--;
-
-  }
-
-  SizeT endEl = firstEl + tCount / 2;
-
-  if (w <= 0)
-    for (SizeT i = firstEl; i < endEl; ++i) {
-      (*os) << double2string((*this)[ firstEl++].real());
-      (*os) << double2string((*this)[ firstEl++].imag());
-    } else {
-    if (code & fmtALIGN_LEFT) (*os) << left;
-    else (*os) << right;
-    for (SizeT i = firstEl; i < endEl; ++i) {
-      (*os) << setw(w) << double2string((*this)[ firstEl++].real()).substr(0,w);
-      (*os) << setw(w) << double2string((*this)[ firstEl++].imag()).substr(0,w);
-    }
-  }
-
-  if (tCount & 0x01) {
-    if (w <= 0)
-      (*os) << double2string((*this)[ firstEl++].real());
-    else {
-      if (code & fmtALIGN_LEFT) (*os) << left;
-      else (*os) << right;
-      (*os) << setw(w) << double2string((*this)[ firstEl++].real()).substr(0,w);
-    }
-  }
-  
-  return tCountOut;
 }
 // struct
 SizeT DStructGDL::
@@ -393,13 +292,16 @@ OFmtA( ostream* os, SizeT offs, SizeT r, int w, const int code)
   return tCountOut;
 } 
 // F code ****************************************************
-// other
+
 template<class Sp> SizeT Data_<Sp>::
-OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, const int code, const BaseGDL::IOMode oMode) 
-{
-  DDoubleGDL* cVal = static_cast<DDoubleGDL*>
-    ( this->Convert2( GDL_DOUBLE, BaseGDL::COPY));
-  SizeT retVal = cVal->OFmtF( os, offs, r, w, d, code, oMode);
+OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, const int code, const BaseGDL::IOMode oMode) {
+  // this simply passes things one by one, and retval will be 1, etc.
+  // probably a bit slower than doing a loop inside, but OK.
+  Ty z = (*this)[offs];
+  BaseGDL* temp = new Data_<Sp>(z);
+  DDoubleGDL* cVal = static_cast<DDoubleGDL*> ( temp->Convert2( GDL_DOUBLE, BaseGDL::COPY));
+  SizeT retVal = cVal->OFmtF( os, 0, r, w, d, code, oMode);
+  delete temp;
   delete cVal;
   return retVal;
 }
@@ -412,7 +314,7 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, const int code, const Bas
   // transfer count
   SizeT tCount = nTrans - offs;
   if( r < tCount) tCount = r;
-
+  if (r > tCount) r = tCount;
   SizeT endEl = offs + tCount;
  
   SetDefaultFieldLengths( w, d, 6,  16, 25);
@@ -435,7 +337,7 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, const int code, const Bas
   
   return tCount;
 }
-// float (same code as double)
+// float (same code as double), sole difference the default field lengths.
 template<> SizeT Data_<SpDFloat>::
 OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, const int code, const BaseGDL::IOMode oMode) 
 {
@@ -444,7 +346,7 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, const int code, const Bas
   // transfer count
   SizeT tCount = nTrans - offs;
   if( r < tCount) tCount = r;
-
+  if (r > tCount) r = tCount;
   SizeT endEl = offs + tCount;
 
   SetDefaultFieldLengths( w, d, 6, 7, 15);
@@ -466,162 +368,6 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, const int code, const Bas
     }
 
   return tCount;
-}
-// complex
-template<> SizeT Data_<SpDComplex>::
-OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, const int code, const BaseGDL::IOMode oMode) 
-{
-  SizeT nTrans = ToTransfer();
-
-  // transfer count
-  SizeT tCount = nTrans - offs;
-  if( r < tCount) tCount = r;
-  SizeT tCountOut = tCount;
-
-  SizeT firstEl = offs / 2;
-
-  SetDefaultFieldLengths( w, d, 6, 7, 15);
-
-  if( oMode == AUTO)
-    {
-      if( offs & 0x01)
-	{
-	  OutAuto( *os, (*this)[ firstEl++].imag(), w, d, code);
-	  tCount--;
-	}
-
-      SizeT endEl = firstEl + tCount / 2;
-      
-      for( SizeT i= firstEl; i<endEl; ++i)
-	{
-	  OutAuto( *os, (*this)[ i], w, d, code);
-	}
-  
-      if( tCount & 0x01)
-	{
-	  OutAuto( *os, (*this)[ endEl].real(), w, d, code);
-	}
-    }
-  else if( oMode == FIXED)
-    {
-      if( offs & 0x01)
-	{
-	  OutFixed(*os, (*this)[ firstEl++].imag(), w, d, code);
-	  tCount--;
-	}
-
-      SizeT endEl = firstEl + tCount / 2;
-
-      for( SizeT i= firstEl; i<endEl; ++i)
-	{
-	  OutFixed(*os, (*this)[ i], w, d, code);
-	}
-  
-      if( tCount & 0x01)
-	{
-	  OutFixed(*os, (*this)[ endEl].real(), w, d, code);
-	}
-    }
-  else if ( oMode == SCIENTIFIC)
-    {
-      if( offs & 0x01)
-	{
-	  OutScientific( *os, (*this)[ firstEl++].imag(), w, d, code);
-	  tCount--;
-	}
-
-      SizeT endEl = firstEl + tCount / 2;
-
-      for( SizeT i= firstEl; i<endEl; ++i)
-	{
-	  OutScientific( *os, (*this)[ i], w, d, code);
-	}
-  
-      if( tCount & 0x01)
-	{
-	  OutScientific( *os, (*this)[ endEl].real(), w, d, code);
-	}
-    }
-  
-  return tCountOut;
-}
-// same code a float
-template<> SizeT Data_<SpDComplexDbl>::
-OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, const int code, const BaseGDL::IOMode oMode) 
-{
-  SizeT nTrans = ToTransfer();
-
-  // transfer count
-  SizeT tCount = nTrans - offs;
-  if( r < tCount) tCount = r;
-  SizeT tCountOut = tCount;
-
-  SizeT firstEl = offs / 2;
-
-  SetDefaultFieldLengths( w, d, 6, 16, 25);
-
-  if( oMode == AUTO)
-    {
-      if( offs & 0x01)
-	{
-	  OutAuto( *os, (*this)[ firstEl++].imag(), w, d, code);
-	  tCount--;
-	}
-
-      SizeT endEl = firstEl + tCount / 2;
-      
-      for( SizeT i= firstEl; i<endEl; ++i)
-	{
-	  OutAuto( *os, (*this)[ i], w, d, code);
-	}
-  
-      if( tCount & 0x01)
-	{
-	  OutAuto( *os, (*this)[ endEl].real(), w, d, code);
-	}
-    }
-  else if( oMode == FIXED)
-    {
-      if( offs & 0x01)
-	{
-	  OutFixed(*os, (*this)[ firstEl++].imag(), w, d, code);
-	  tCount--;
-	}
-
-      SizeT endEl = firstEl + tCount / 2;
-
-      for( SizeT i= firstEl; i<endEl; ++i)
-	{
-	  OutFixed(*os, (*this)[ i], w, d, code);
-	}
-  
-      if( tCount & 0x01)
-	{
-	  OutFixed(*os, (*this)[ endEl].real(), w, d, code);
-	}
-    }
-  else if ( oMode == SCIENTIFIC)
-    {
-      if( offs & 0x01)
-	{
-	  OutScientific( *os, (*this)[ firstEl++].imag(), w, d, code);
-	  tCount--;
-	}
-
-      SizeT endEl = firstEl + tCount / 2;
-
-      for( SizeT i= firstEl; i<endEl; ++i)
-	{
-	  OutScientific( *os, (*this)[ i], w, d, code);
-	}
-  
-      if( tCount & 0x01)
-	{
-	  OutScientific( *os, (*this)[ endEl].real(), w, d, code);
-	}
-    }
-  
-  return tCountOut;
 }
 // struct
 SizeT DStructGDL::
@@ -646,7 +392,14 @@ OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, const int code, BaseGDL::
 }
 
 // I code ****************************************************
-// other
+#define CODE_I(variant)   if (w < 0) w = (oMode == BaseGDL::BIN ? iFmtWidthBIN[ this->t] : iFmtWidth[ this->t]);\
+SizeT nTrans = ToTransfer();\
+SizeT tCount = nTrans - offs;\
+if (r < tCount) tCount = r;\
+if (r > tCount) r = tCount;\
+SizeT endEl = offs + tCount;\
+for (SizeT i = offs; i < endEl; ++i) OutInteger(*os, variant((*this)[ i]), w, d, code, oMode);\
+return tCount;
 
 //                         undf byte int lint real dbl cplx str strct dcplx ptr obj uint ulon int64 uint64
 const int iFmtWidth[] =    { -1,  7,  7,  12,  12,  12,  12, 12,   -1,   12, -1, -1,   7,   12,  22,   22}; 
@@ -656,53 +409,31 @@ const int iFmtWidthBIN[] = { -1,  8, 16,  32,  32,  32,  32, 32,   -1,   64, -1,
 template<class Sp> SizeT Data_<Sp>::
 OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, int code, 
        BaseGDL::IOMode oMode) {
+  if (w < 0) w = (oMode == BaseGDL::BIN ? iFmtWidthBIN[ this->t] : iFmtWidth[ this->t]);
   //Must use max size (thus: long long) to provide correct case for this STRING-to-INT conversion.
-  Ty z=(*this)[offs];
-  BaseGDL* temp=new Data_<Sp>(z);  
-  DLong64GDL* cVal = static_cast<DLong64GDL*>(temp->Convert2( GDL_LONG64, BaseGDL::COPY ));
-      if ( w < 0 ) w = (oMode == BaseGDL::BIN ? iFmtWidthBIN[ this->t] : iFmtWidth[ this->t]);
-      SizeT retVal = cVal->OFmtI( os, 0, r, w, d, code, oMode);
-      delete cVal;
-      delete temp;
-      return retVal;
+  SizeT nTrans = ToTransfer();
+  // transfer count
+  SizeT tCount = nTrans - offs;
+  if (r < tCount) tCount = r;
+  if (r > tCount) r = tCount;
+  SizeT endEl = offs + tCount;
+  
+  Data_<Sp>* temp = new Data_<Sp>((*this)[offs]); 
+  for (SizeT i = offs; i < endEl; ++i) {
+    (*temp)[0]=(*this)[i];
+    DLong64GDL* cVal = static_cast<DLong64GDL*> (temp->Convert2( GDL_LONG64, BaseGDL::COPY ));
+    OutInteger(*os, (*cVal)[0], w, d, code, oMode);
+    delete cVal;
+  }
+  delete temp;
+  return tCount;
 }
 
+//GDL_INT
 template<> SizeT Data_<SpDByte>::
 OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, int code,
-       BaseGDL::IOMode oMode) 
-{
-  if( w < 0) w = (oMode == BIN ? 8 : 7);
-  SizeT nTrans = ToTransfer();
-  DIntGDL* cVal = static_cast<DIntGDL*> (this->Convert2( GDL_INT, BaseGDL::COPY )); //necessary for non-b formats.
-
-  // transfer count
-  SizeT tCount = nTrans - offs;
-  if( r < tCount) tCount = r;
-
-  SizeT endEl = offs + tCount;
-
-  for( SizeT i=offs; i<endEl; ++i)  OutInteger( *os, (*cVal)[ i], w, d, code, oMode);
-  return tCount;
-}
-
-//GDL_UINT
-template<> SizeT Data_<SpDUInt>::
-OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, int code,
-       BaseGDL::IOMode oMode) 
-{
-  if( w < 0) w = (oMode == BIN ? 16 : 7);
-  SizeT nTrans = ToTransfer();
-  DLongGDL* cVal = static_cast<DLongGDL*> (this->Convert2( GDL_LONG, BaseGDL::COPY )); //necessary as IDL affixes the '+' when format="+".
-                                                                                       //meaning it does not pass an unsigned int!
-
-  // transfer count
-  SizeT tCount = nTrans - offs;
-  if( r < tCount) tCount = r;
-
-  SizeT endEl = offs + tCount;
-
-  for( SizeT i=offs; i<endEl; ++i)  OutInteger( *os, (*cVal)[ i], w, d, code, oMode);
-  return tCount;
+       BaseGDL::IOMode oMode) {
+  CODE_I(static_cast<DInt>) //*casted to DInt, see test_formats. ( permits + sign )
 }
 //GDL_INT
 template<> SizeT Data_<SpDInt>::
@@ -721,139 +452,46 @@ OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, int code,
   for( SizeT i=offs; i<endEl; ++i)  OutInteger( *os, (*this)[ i], w, d, code, oMode);
   return tCount;
 }
+//GDL_UINT
+template<> SizeT Data_<SpDUInt>::
+OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, int code,
+       BaseGDL::IOMode oMode) {
+  CODE_I(static_cast<DLong>) //*casted to DLong, see test_formats. ( permits + sign )
+}
 
 // GDL_LONG
 template<> SizeT Data_<SpDLong>::
 OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, int code,
-       BaseGDL::IOMode oMode) 
-{
-  if( w < 0) w = (oMode == BIN ? 32 : 12);
-  SizeT nTrans = ToTransfer();
-
-  // transfer count
-  SizeT tCount = nTrans - offs;
-  if( r < tCount) tCount = r;
-
-  SizeT endEl = offs + tCount;
-  
-  for( SizeT i=offs; i<endEl; ++i)  OutInteger( *os, (*this)[ i], w, d, code, oMode);
-  return tCount;
+       BaseGDL::IOMode oMode) {
+  CODE_I()
 }
 // GDL_ULONG
 template<> SizeT Data_<SpDULong>::
 OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, int code,
-       BaseGDL::IOMode oMode) 
-{
-  if( w < 0) w = (oMode == BIN ? 32 : 12);
-  SizeT nTrans = ToTransfer();
-
-  // transfer count
-  SizeT tCount = nTrans - offs;
-  if( r < tCount) tCount = r;
-
-  SizeT endEl = offs + tCount;
-
-  for( SizeT i=offs; i<endEl; ++i)  OutInteger( *os, (*this)[ i], w, d, code, oMode);
-  return tCount;
+       BaseGDL::IOMode oMode) {
+  CODE_I() //*not casted to DLong64, see test_formats. ( no + or - sign )
 }
 // GDL_LONG64
 template<> SizeT Data_<SpDLong64>::
 OFmtI(ostream* os, SizeT offs, SizeT r, int w, int d, int code,
-    BaseGDL::IOMode oMode)
-{
-  if (w < 0) w = (oMode == BIN ? 64 : 22);
-  SizeT nTrans = ToTransfer();
-
-  // transfer count
-  SizeT tCount = nTrans - offs;
-  if (r < tCount) tCount = r;
-
-  SizeT endEl = offs + tCount;
-
-  for (SizeT i = offs; i < endEl; ++i) OutInteger(*os, (*this)[ i], w, d, code, oMode);
-  return tCount;
+    BaseGDL::IOMode oMode) {
+  CODE_I()
 }
 // GDL_ULONG64
 template<> SizeT Data_<SpDULong64>::
 OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, int code,
-       BaseGDL::IOMode oMode) 
-{
-  if( w < 0) w = (oMode == BIN ? 64 : 22);
-  SizeT nTrans = ToTransfer();
-
-  // transfer count
-  SizeT tCount = nTrans - offs;
-  if( r < tCount) tCount = r;
-
-  SizeT endEl = offs + tCount;
-
-  for( SizeT i=offs; i<endEl; ++i)  OutInteger( *os, (*this)[ i], w, d, code, oMode);
-  return tCount;
+       BaseGDL::IOMode oMode) {
+  CODE_I()
 }
-
-template<> SizeT Data_<SpDComplex>::
+template<> SizeT Data_<SpDFloat>::
 OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, int code,
-       BaseGDL::IOMode oMode) 
-{
-  if( w < 0) w = (oMode == BIN ? 32 : 12);
-  SizeT nTrans = ToTransfer();
-
-  // transfer count
-  SizeT tCount = nTrans - offs;
-  if( r < tCount) tCount = r;
-  SizeT tCountOut = tCount;
-
-  SizeT firstEl = offs / 2;
-  if( offs & 0x01)
-    {
-      OutInteger( *os, static_cast<DLong64>((*this)[ firstEl++].imag()), w, d, code, oMode);
-      tCount--;
-    }
-
-  SizeT endEl = firstEl + tCount / 2;
-
-    for ( SizeT i = firstEl; i < endEl; ++i ) {
-       OutInteger( *os, static_cast<DLong64>((*this)[ i].real()), w, d, code, oMode);
-       OutInteger( *os, static_cast<DLong64>((*this)[ i].imag()), w, d, code, oMode);
-    } 
-  
-  if( tCount & 0x01)
-  {
-      OutInteger( *os, static_cast<DLong64>((*this)[ endEl++].real()), w, d, code, oMode);
-  }
-  return tCountOut;
+       BaseGDL::IOMode oMode) {
+  CODE_I(static_cast<DLong64>)
 }
-template<> SizeT Data_<SpDComplexDbl>::
+template<> SizeT Data_<SpDDouble>::
 OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, int code,
-       BaseGDL::IOMode oMode) 
-{
-  if( w < 0) w = (oMode == BIN ? 32 : 12);
-  SizeT nTrans = ToTransfer();
-
-  // transfer count
-  SizeT tCount = nTrans - offs;
-  if( r < tCount) tCount = r;
-  SizeT tCountOut = tCount;
-
-  SizeT firstEl = offs / 2;
-  if( offs & 0x01)
-    {
-      OutInteger( *os, static_cast<DLong64>((*this)[ firstEl++].imag()), w, d, code, oMode);
-      tCount--;
-    }
-
-  SizeT endEl = firstEl + tCount / 2;
-
-    for ( SizeT i = firstEl; i < endEl; ++i ) {
-       OutInteger( *os, static_cast<DLong64>((*this)[ i].real()), w, d, code, oMode);
-       OutInteger( *os, static_cast<DLong64>((*this)[ i].imag()), w, d, code, oMode);
-    } 
-  
-  if( tCount & 0x01)
-  {
-      OutInteger( *os, static_cast<DLong64>((*this)[ endEl++].real()), w, d, code, oMode);
-  }
-  return tCountOut;
+       BaseGDL::IOMode oMode) {
+  CODE_I(static_cast<DLong64>)
 }
 
 SizeT DStructGDL::
@@ -916,7 +554,7 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, const std::string &s, i
 }
 
  template<class Sp> SizeT Data_<Sp>::
- OFmtCal( ostream* os, SizeT offs, SizeT repeat, int w, int d, const std::string &fill, int code, BaseGDL::Cal_IOMode cMode)
+ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, const std::string &fill, int code, BaseGDL::Cal_IOMode cMode)
  {
 
    static string theMonth[12]={"January","February","March","April","May","June",
@@ -935,30 +573,30 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, const std::string &s, i
   static DLong *iMonth=NULL, *iDay=NULL, *iYear=NULL, *iHour=NULL, *iMinute=NULL, *dow=NULL, *icap=NULL;
   static DDouble *Second=NULL;
   static ostringstream **local_os;
-  bool cmplx=FALSE;
   SizeT nTrans = ToTransfer();
   // transfer count
-  SizeT tCount = nTrans - offs;  
-  SizeT r=tCount;
-  if ( Data_<Sp>::IS_COMPLEX ) { cmplx=TRUE;} //tCount in this case is twice the size of the complex array 
+  SizeT tCount = nTrans - offs;
+  if (r < tCount) tCount = r;
+  if (r > tCount) r=tCount;
+  SizeT endEl = offs + tCount;
 
   switch ( cMode ) {
     case BaseGDL::WRITE:
         for (SizeT i=0, j=0; j<r; j++){
-          if (i >= repeat) {i=0; (*os)<<'\n';}
+          if (i >= r) {i=0; (*os)<<'\n';}
           (*os)<<(local_os[j]->str()).c_str();
           i++;
           delete local_os[j];
         }
         if (iMonth) { //use iMonth as a marker to test if COMPUTE was called.
           free(iMonth); iMonth=NULL;
-        free(iDay) ;
-        free(iYear);
-        free(iHour);
-        free(iMinute);
-        free(dow);
-        free(icap);
-        free(Second);
+          free(iDay) ;
+          free(iYear);
+          free(iHour);
+          free(iMinute);
+          free(dow);
+          free(icap);
+          free(Second);
         }
       break;
     case BaseGDL::COMPUTE:
@@ -971,26 +609,19 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, const std::string &s, i
       icap=(DLong*)calloc(r,sizeof(DLong));
       Second=(DDouble*)calloc(r,sizeof(DDouble));
       local_os=(ostringstream**)calloc(r,sizeof(ostringstream*));
-      if ( cmplx ) {
-        DComplexDblGDL* cVal = static_cast<DComplexDblGDL*> (this->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY ));
-        for( SizeT i=0, j=0; j<(r/2); ++j)
-        {
-          local_os[i]=new ostringstream();
-          if (!j2ymdhms( (*cVal)[offs +j].real(), iMonth[i], iDay[i], iYear[i], iHour[i], iMinute[i], Second[i], dow[i], icap[i] )) throw GDLException("Value of Julian date is out of allowed range.");
-          i++;
-          local_os[i]=new ostringstream();
-          if (!j2ymdhms( (*cVal)[offs+j].imag(), iMonth[i], iDay[i], iYear[i], iHour[i], iMinute[i], Second[i], dow[i], icap[i] )) throw GDLException("Value of Julian date is out of allowed range.");
-          i++;
+      {
+      Data_<Sp>* temp = new Data_<Sp>((*this)[offs]); 
+      for (SizeT j = offs, i=0; j < endEl; ++j, ++i) {
+        local_os[i]=new ostringstream();
+        (*temp)[0]=(*this)[j];
+        DDoubleGDL* cVal = static_cast<DDoubleGDL*> (temp->Convert2( GDL_DOUBLE, BaseGDL::COPY ));
+        if (!j2ymdhms( (*cVal)[0], iMonth[i], iDay[i], iYear[i], iHour[i], iMinute[i], Second[i], dow[i], icap[i] )) {
+          throw GDLException("Value of Julian date is out of allowed range.");
         }
-        delete cVal;
-      } else {
-        for ( SizeT i = 0; i < r; i++ ) {
-          local_os[i]=new ostringstream();
-          DDoubleGDL* cVal = static_cast<DDoubleGDL*> (this->Convert2( GDL_DOUBLE, BaseGDL::COPY ));
-          if (!j2ymdhms( (*cVal)[offs + i], iMonth[i], iDay[i], iYear[i], iHour[i], iMinute[i], Second[i], dow[i], icap[i] )) throw GDLException("Value of Julian date is out of allowed range.");
-          delete cVal;
 //          cerr<<"Dow="<<dow[i]<<" iDay="<<iDay[i]<<" iMonth="<<iMonth[i]<<" iYear="<<iYear[i]<<" iHour="<<iHour[i]<<" iMinute="<<iMinute[i]<<" Second="<<Second[i]<<" icap="<<icap[i]<<endl;
-        }
+        delete cVal;
+      }
+      delete temp;
       }
       break;
     case BaseGDL::DEFAULT:
@@ -1137,5 +768,95 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, const std::string &s, i
   }
   return tCount;
  }
+template<> SizeT Data_<SpDComplex>::
+ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, const std::string &fill, int code, BaseGDL::Cal_IOMode cMode)
+ {
+    DFloatGDL* intermediary= new Data_<SpDFloat>( this->N_Elements()*2, BaseGDL::NOALLOC);
+    intermediary->SetBuffer(this->DataAddr());
+    intermediary->SetBufferSize(this->N_Elements()*2);
+    SizeT ret = intermediary->OFmtCal( os, offs, r, w, d, fill, code, cMode);
+  intermediary->SetBuffer(NULL); //necessary to delete the object without deleting the borrowed contents.
+  delete intermediary;
+  return ret;
+}
+template<> SizeT Data_<SpDComplexDbl>::
+ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, const std::string &fill, int code, BaseGDL::Cal_IOMode cMode)
+ {
+    DDoubleGDL* intermediary= new Data_<SpDDouble>( this->N_Elements()*2, BaseGDL::NOALLOC);
+    intermediary->SetBuffer(this->DataAddr());
+    intermediary->SetBufferSize(this->N_Elements()*2);
+    SizeT ret = intermediary->OFmtCal( os, offs, r, w, d, fill, code, cMode);
+  intermediary->SetBuffer(NULL); //necessary to delete the object without deleting the borrowed contents.
+  delete intermediary;
+  return ret;
+}
+template<> SizeT Data_<SpDComplex>::
+OFmtI(  ostream* os, SizeT offs, SizeT r, int w, int d, int code,
+       BaseGDL::IOMode oMode) 
+{
+    DFloatGDL* intermediary= new Data_<SpDFloat>( this->N_Elements()*2, BaseGDL::NOALLOC);
+    intermediary->SetBuffer(this->DataAddr());
+    intermediary->SetBufferSize(this->N_Elements()*2);
+    SizeT ret = intermediary->OFmtI( os, offs, r, w, d, code, oMode);
+  intermediary->SetBuffer(NULL); //necessary to delete the object without deleting the borrowed contents.
+  delete intermediary;
+  return ret;
+}
+template<> SizeT Data_<SpDComplexDbl>::
+OFmtI( ostream* os, SizeT offs, SizeT r, int w, int d, int code,
+       BaseGDL::IOMode oMode) 
+{
+    DDoubleGDL* intermediary= new Data_<SpDDouble>( this->N_Elements()*2, BaseGDL::NOALLOC);
+    intermediary->SetBuffer(this->DataAddr());
+    intermediary->SetBufferSize(this->N_Elements()*2);
+    SizeT ret = intermediary->OFmtI( os, offs, r, w, d, code, oMode);
+  intermediary->SetBuffer(NULL); //necessary to delete the object without deleting the borrowed contents.
+  delete intermediary;
+  return ret;
+}
+
+template<> SizeT Data_<SpDComplex>::
+OFmtA(ostream* os, SizeT offs, SizeT r, int w, const int code) {
+  DFloatGDL* intermediary = new Data_<SpDFloat>(this->N_Elements()*2, BaseGDL::NOALLOC);
+  intermediary->SetBuffer(this->DataAddr());
+  intermediary->SetBufferSize(this->N_Elements()*2);
+  SizeT ret = intermediary->OFmtA(os, offs, r, w, code);
+  intermediary->SetBuffer(NULL); //necessary to delete the object without deleting the borrowed contents.
+  delete intermediary;
+  return ret;
+}
+
+template<> SizeT Data_<SpDComplexDbl>::
+OFmtA(ostream* os, SizeT offs, SizeT r, int w, const int code) {
+  DDoubleGDL* intermediary = new Data_<SpDDouble>(this->N_Elements()*2, BaseGDL::NOALLOC);
+  intermediary->SetBuffer(this->DataAddr());
+  intermediary->SetBufferSize(this->N_Elements()*2);
+  SizeT ret = intermediary->OFmtA(os, offs, r, w, code);
+  intermediary->SetBuffer(NULL); //necessary to delete the object without deleting the borrowed contents.
+  delete intermediary;
+  return ret;
+}
+template<> SizeT Data_<SpDComplex>::
+OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, const int code, const BaseGDL::IOMode oMode) {
+  DFloatGDL* intermediary = new Data_<SpDFloat>(this->N_Elements()*2, BaseGDL::NOALLOC);
+  intermediary->SetBuffer(this->DataAddr());
+  intermediary->SetBufferSize(this->N_Elements()*2);
+  SizeT ret = intermediary->OFmtF(os, offs, r, w, d, code, oMode);
+  intermediary->SetBuffer(NULL); //necessary to delete the object without deleting the borrowed contents.
+  delete intermediary;
+  return ret;
+}
+
+template<> SizeT Data_<SpDComplexDbl>::
+OFmtF( ostream* os, SizeT offs, SizeT r, int w, int d, const int code, const BaseGDL::IOMode oMode) {
+  DDoubleGDL* intermediary = new Data_<SpDDouble>(this->N_Elements()*2, BaseGDL::NOALLOC);
+  intermediary->SetBuffer(this->DataAddr());
+  intermediary->SetBufferSize(this->N_Elements()*2);
+  SizeT ret = intermediary->OFmtF(os, offs, r, w, d, code, oMode);
+  intermediary->SetBuffer(NULL); //necessary to delete the object without deleting the borrowed contents.
+  delete intermediary;
+  return ret;
+}
+
 
 #include "instantiate_templates.hpp"

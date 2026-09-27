@@ -229,7 +229,9 @@ no_implied:
           FMTOut Formatter(fmtAST, os, e, parOffset);
           os->flush();
           return;
-        } catch (antlr::ANTLRException& ex) {
+        } catch (GDLException const &ex) {
+          throw ex;
+        } catch (antlr::ANTLRException const &ex) {
           //Authorize the format to be "new" C format. Should better be handled in the parser, FIXME!
           try {
             DString fmtSTring2 = "(%\"" + fmtString + "\")";
@@ -237,7 +239,9 @@ no_implied:
             FMTOut Formatter(fmtAST, os, e, parOffset);
             os->flush();
             return;
-          } catch (antlr::ANTLRException& ex) {
+          } catch (GDLException const &ex) {
+            throw ex;
+          } catch (antlr::ANTLRException const &ex) {
             e->Throw(ex.getMessage());
           }
         }

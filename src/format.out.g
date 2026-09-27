@@ -107,7 +107,7 @@ std::unique_ptr<std::ostream> osLocalGuard;
             format_reversion( reversionAnker);            
  
            if( (nextParIx == nextParIxComp) && (valIx == valIxComp))   
-                throw GDLException("Expression containing "+e->GetPar(valIx)->TypeStr()+" not allowed in this context: "+e->GetParString(valIx)+".");
+                throw GDLException("Format syntax Error.");//"Infinite format loop detected.");
          }
         
         os->seekp( 0, std::ios_base::end);
@@ -133,10 +133,13 @@ private:
         if( nextParIx < nParam)
         {
             actPar = e->GetPar( nextParIx);
-            if( actPar != NULL)
-            nElements = actPar->ToTransfer();
-            else
-            nElements = 0;
+            if( actPar != NULL) {
+				if ( actPar->Type() == GDL_PTR || actPar->Type() ==  GDL_OBJ) throw GDLException("Expression containing "+actPar->TypeStr()+" not allowed in this context: ",true,true,nextParIx);
+              nElements = actPar->ToTransfer();
+			}
+            else {
+				throw GDLException("Variable is undefined",true,true,nextParIx);
+			}
         } 
         else 
         {
