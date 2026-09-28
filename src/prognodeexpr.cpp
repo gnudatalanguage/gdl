@@ -677,9 +677,16 @@ BaseGDL** DEREFNode::LEval()
 BaseGDL** QUESTIONNode::EvalRefCheck( BaseGDL*& rEval)
 {
   ProgNodeP branch = this->GetThisBranch();
+  try {
   BaseGDL* data=branch->EvalNCNull(); //see #2233 -- ternary expression a?b:c checks a to be defined, but can return an undefined. (not a NULL of course) 
   if (data) rEval=data->Dup();
   else rEval=NullGDL::GetSingleInstance();
+  } catch (...) {rEval=branch->Eval();} //Do not ask why this is so convoluted.
+   // we need to have the following expressions ok:
+   // for "a=0 & b=0 & c=0 & z=cos( a ? b:c)" ; #1576
+   // for "a=0 & b=0 & c=0 & z=cos( a ? b:!radeg)" ; #1576
+   // a=dist(3) & a[2]=Keyword_Set( DET_INDEX_MASK ) ? 33 : findgen(2)+10 ; found in starting HESSI
+   // plot, findgen(10), col= N_Elements(layout) EQ 0 ? undef : 1; #2233
   return NULL;
   //was:  //  return branch->EvalRefCheck( rEval); // but this crash as reported in  #1576 for "a=0 & b=0 & c=0 & z=cos( a ? b:c)" and other strange things.
 }  
