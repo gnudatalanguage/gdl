@@ -677,10 +677,11 @@ BaseGDL** DEREFNode::LEval()
 BaseGDL** QUESTIONNode::EvalRefCheck( BaseGDL*& rEval)
 {
   ProgNodeP branch = this->GetThisBranch();
-  rEval = branch->Eval();
+  BaseGDL* data=branch->EvalNCNull(); //see #2233 -- ternary expression a?b:c checks a to be defined, but can return an undefined. (not a NULL of course) 
+  if (data) rEval=data->Dup();
+  else rEval=NullGDL::GetSingleInstance();
   return NULL;
-  //was:  //  return branch->EvalRefCheck( rEval);
-  // but crash as reported in  #1576 for "a=0 & b=0 & c=0 & z=cos( a ? b:c)" and other strange things.
+  //was:  //  return branch->EvalRefCheck( rEval); // but this crash as reported in  #1576 for "a=0 & b=0 & c=0 & z=cos( a ? b:c)" and other strange things.
 }  
 
 BaseGDL** QUESTIONNode::LEval()
@@ -721,7 +722,7 @@ BaseGDL* QUESTIONNode::Eval()
 ProgNodeP QUESTIONNode::GetThisBranch()
 {
     Guard<BaseGDL> e1_guard;
-    BaseGDL* e1;
+    BaseGDL* e1; //e1 MUST be defined
     if( NonCopyNode( op1->getType()))
     {
         e1 = op1->EvalNC();
