@@ -64,8 +64,7 @@ end
 
 function pretty_serialize,value,tagname=tagname
 common json_serialize_gdl_level, width, level
-  ; warning as this is directly compiled within the $MAIN$ interpretor there must be no COMPILE_OPT here.
-;COMPILE_OPT HIDDEN
+COMPILE_OPT HIDDEN
 ON_ERROR,2
    ;; CATCH, Error_status
    ;; IF Error_status NE 0 THEN BEGIN
@@ -200,8 +199,7 @@ end
 
 pro gdl_implied_print,out,value
  common json_serialize_gdl_level, width, level
- ; warning as this is directly compiled within the $MAIN$ interpretor there must be no COMPILE_OPT here.
-;COMPILE_OPT HIDDEN
+COMPILE_OPT HIDDEN
 ON_ERROR, 2
 ; get info on out
 info=fstat(out)
