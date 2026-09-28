@@ -2468,6 +2468,19 @@ CONSTANT_OR_STRING_LITERAL
           | "\""!            { _ttype=STRING_LITERAL; }
           )?
        )
+  |('\"' ('a'..'f') (((H)+ '\"')|'\"') ( 'x' | "xs" | "xb" | "xl" | "xu" | "xus" | "xub" | "xul" )? ) => 
+      ('\"'! ('a'..'f') (H)? '\"'! 'x'!
+           (                  { _ttype=CONSTANT_HEX_I; } // DEFINT32
+            | 's'!        { _ttype=CONSTANT_HEX_INT; }
+            | 'b'!        { _ttype=CONSTANT_HEX_BYTE; }
+            | 'u'!        { _ttype=CONSTANT_HEX_UI; }   // DEFINT32
+            | "us"!        { _ttype=CONSTANT_HEX_UINT; } 
+            | "ub"!        { _ttype=CONSTANT_HEX_BYTE; }
+            | 'l'!            { _ttype=CONSTANT_HEX_LONG; }
+            | "ll"!        { _ttype=CONSTANT_HEX_LONG64; }
+            | "ul"!           { _ttype=CONSTANT_HEX_ULONG; }
+            | "ull"!    { _ttype=CONSTANT_HEX_ULONG64; }
+            ))
     | ('\''(H)+'\'' ( 'x' | "xs" | "xb" | "xl" | "xu" | "xus" | "xub" | "xul" )) =>
         ('\''! (H)+ '\''! 'x'!
           (                  { _ttype=CONSTANT_HEX_I; } // DEFINT32
