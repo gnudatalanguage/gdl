@@ -1779,13 +1779,13 @@ PLFLT gdlGetBoxNYSize() {
   return res;
   }
   
-  void gdlNoLabelTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer multiaxisdata) {
-	addToTickGet(axis, value);
+  void gdlNoLabelTickFunc(PLINT plaxis_index, PLFLT value, char *label, PLINT length, PLPointer multiaxisdata) {
+	addToTickGet(plaxis_index, value);
 	label[0]=0;
   }
 
-  void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer multiaxisdata) {
-	addToTickGet(axis, value);
+  void gdlMultiAxisTickFunc(PLINT plaxis_index, PLFLT value, char *label, PLINT length, PLPointer multiaxisdata) {
+	addToTickGet(plaxis_index, value);
 	static SizeT internalIndex = 0;
 	static DLong lastMultiAxisLevel = 0;
 	struct GDL_TICKDATA *ptr = (GDL_TICKDATA*) multiaxisdata;
@@ -1842,7 +1842,7 @@ PLFLT gdlGetBoxNYSize() {
 		  EnvUDT* newEnv = new EnvUDT(e->CallingNode(), funList[ funIx], (DObjGDL**) NULL);
 		  Guard< EnvUDT> guard(newEnv);
 		  // add parameters
-		  newEnv->SetNextPar(new DLongGDL(axis - 1)); //axis in PLPLOT starts at 1, it starts at 0 in IDL
+		  newEnv->SetNextPar(new DLongGDL(plaxis_index -1)); //this is called by plplot. axis in PLPLOT starts at 1, it starts at 0 in GDL
 		  newEnv->SetNextPar(new DLongGDL(internalIndex)); //index
 		  newEnv->SetNextPar(new DDoubleGDL(v)); //value
 		  newEnv->SetNextPar(new DLongGDL(ptr->counter)); //level
@@ -1870,8 +1870,8 @@ PLFLT gdlGetBoxNYSize() {
 	}
   }
 
-  void gdlSimpleAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data) {
-    addToTickGet(axis, value);
+  void gdlSimpleAxisTickFunc(PLINT plaxis_index, PLFLT value, char *label, PLINT length, PLPointer data) {
+    addToTickGet(plaxis_index, value);
     static SizeT internalIndex = 0;
     static DLong lastMultiAxisLevel = 0;
     struct GDL_TICKDATA *ptr = (GDL_TICKDATA*) data;
@@ -1928,10 +1928,10 @@ PLFLT gdlGetBoxNYSize() {
           EnvUDT* newEnv = new EnvUDT(e->CallingNode(), funList[ funIx], (DObjGDL**) NULL);
           Guard< EnvUDT> guard(newEnv);
           // add parameters
-          newEnv->SetNextPar(new DLongGDL(axis - 1)); //axis in PLPLOT starts at 1, it starts at 0 in IDL
+          newEnv->SetNextPar(new DLongGDL(plaxis_index-1)); //this is called by plplot. axis in PLPLOT starts at 1, it starts at 0 in GDL
           newEnv->SetNextPar(new DLongGDL(internalIndex)); //index
           newEnv->SetNextPar(new DDoubleGDL(v)); //value
-          //newEnv->SetNextPar(new DLongGDL(ptr->counter)); //level 4th argument is not present for SIMPLE AXIS!!
+          newEnv->SetNextPar(new DLongGDL(ptr->counter)); //level 4th argument is not present for SIMPLE AXIS but needs to be passed to procedure!
           // guard *before* pushing new env
           StackGuard<EnvStackT> guard1(e->Interpreter()->CallStack());
           e->Interpreter()->CallStack().push_back(newEnv);
