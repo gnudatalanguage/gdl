@@ -1,5 +1,5 @@
 function gdl_get_dlm_info, file
-; called from $MAIN$ makes all GDL IDL2 and HIDDEN! --- see #2074 COMPILE_OPT idl2, HIDDEN  
+COMPILE_OPT idl2, HIDDEN  
 ;  print,file
   nlines=FILE_LINES(file)
   if nlines lt 1 then return,""
@@ -12,7 +12,7 @@ function gdl_get_dlm_info, file
 end
 
 pro decipher_dlm_line,subline,rtname,entry,minargs,maxargs,option,gdl_kw
-;  COMPILE_OPT idl2, HIDDEN
+  COMPILE_OPT idl2, HIDDEN
   blank=string([32b,9b])
 ;  print,"subline: "+subline
   z=strsplit(subline,blank,/extract)

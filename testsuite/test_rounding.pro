@@ -215,8 +215,7 @@ end
 ; ----------------------------------------------
 ;
 pro TEST_ROUNDING, help=help, test=test, no_exit=no_exit, verbose=verbose
-; fails on ia64 
-if !version.arch eq "arm64" then EXIT, status=0 
+; fails on ia64 ?
 ;
 if KEYWORD_SET(help) then begin
    print, 'pro TEST_ROUNDING, help=help, test=test, $'
