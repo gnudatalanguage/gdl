@@ -232,7 +232,7 @@ function idlneturl::Get, BUFFER=buffer, FILENAME=filename,$
      StatusInfo="Downloading..."
      time=0d
      while (file_test(pb) eq 0 and time le 5 ) do begin
-        gdlwait_responsive,0.1   ;special wait command, never use elsewhere
+        wait,0.1
         time+=0.1
      end
      if (time ge 5) then goto,done ; curl did not even create the progressbar (? to fast or problem?) , skip callback
@@ -246,7 +246,7 @@ function idlneturl::Get, BUFFER=buffer, FILENAME=filename,$
            free_lun,lun
            goto, fin
         endif
-        GDLWAIT_RESPONSIVE, 0.1  ;special wait command, never use elsewhere
+        WAIT, 0.1
      endwhile
      FREE_LUN,lun
 done:
