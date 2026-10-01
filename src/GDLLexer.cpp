@@ -2073,6 +2073,7 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 				match('x' /* charlit */ );
 			}
 			else {
+				throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());
 			}
 			
 			}

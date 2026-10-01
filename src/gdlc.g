@@ -2468,8 +2468,8 @@ CONSTANT_OR_STRING_LITERAL
           | "\""!            { _ttype=STRING_LITERAL; }
           )?
        )
-  |('\"' ('a'..'f') (((H)+ '\"')|'\"') ( 'x' | "xs" | "xb" | "xl" | "xu" | "xus" | "xub" | "xul" )? ) => 
-      ('\"'! ('a'..'f') (H)? '\"'! 'x'!
+  |('\"' ('a'..'f') (((H)+ '\"')|'\"') ( 'x' | "xs" | "xb" | "xl" | "xu" | "xus" | "xub" | "xul" ) ) => 
+      ('\"'! ('a'..'f') (H)? '\"'! 'x'! 
            (                  { _ttype=CONSTANT_HEX_I; } // DEFINT32
             | 's'!        { _ttype=CONSTANT_HEX_INT; }
             | 'b'!        { _ttype=CONSTANT_HEX_BYTE; }
