@@ -1177,12 +1177,12 @@ statement returns[ RetCode retCode]
 			if (debugMode == DEBUG_RETURN) {
 				if (callStack.back()->GetProName() == MyProName) {
 					DebugMsg(last, "Return encountered: ");
-					debugMode = DEBUG_STOP_SILENT;
+					debugMode = DEBUG_STOP_SILENT;MyProName="$$$$$";
 					return retCode;	
 				}
 			} else { //DEBUG_OUT --> just do an additional .step if we are at MyProName
 				if (callStack.back()->GetProName() == MyProName) {
-					debugMode = DEBUG_STEP;
+					debugMode = DEBUG_STEP;MyProName="$$$$$";
 					stepCount=1;
 					return retCode; //continue 
 				}
@@ -1194,7 +1194,20 @@ statement returns[ RetCode retCode]
 		} else if (debugMode == DEBUG_STOP_SILENT) {
 			if (!interruptEnable) debugMode = DEBUG_PROCESS_STOP;
 		}
-		if (debugMode == DEBUG_STEP) {
+		
+		  if (debugMode == DEBUG_RETURN) {
+			if (callStack.back()->GetProName() == MyProName) {
+			  DebugMsg(last, "Return encountered: ");
+			  debugMode = DEBUG_STOP_SILENT;MyProName="$$$$$";
+			  return retCode;
+			}
+		  } else if (debugMode == DEBUG_OUT) { //DEBUG_OUT --> just do an additional .step if we are at MyProName
+			if (callStack.back()->GetProName() == MyProName) {
+			  debugMode = DEBUG_STEP;MyProName="$$$$$";
+			  stepCount = 1;
+			  return retCode; //continue 
+			}
+		  } else if (debugMode == DEBUG_STEP) {
 			if (stepCount == 1) {
 				stepCount = 0;
 				DebugMsg(last, "Stepped to: ");
