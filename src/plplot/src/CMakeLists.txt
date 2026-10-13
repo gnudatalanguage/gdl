@@ -177,3 +177,8 @@ message("pc_libplplot_COMPILE_FLAGS = ${pc_libplplot_COMPILE_FLAGS}")
 include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/plplot ${CMAKE_SOURCE_DIR}/src/plplot/include)
 
 add_library(plplot STATIC ${plplot_LIB_SRCS})
+target_include_directories(plplot BEFORE PUBLIC
+  "${CMAKE_CURRENT_BINARY_DIR}/.."
+  "${CMAKE_CURRENT_BINARY_DIR}/../include"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../include"
+)

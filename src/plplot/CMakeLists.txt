@@ -25,7 +25,7 @@ include(plplot_version)
 include(plplot)
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/plplot_config.h.in
-  ${CMAKE_CURRENT_SOURCE_DIR}/plplot_config.h
+  ${CMAKE_CURRENT_BINARY_DIR}/plplot_config.h
   )
 # Allow access to the generated plplot_config.h for this build.
 add_definitions("-DPLPLOT_HAVE_CONFIG_H")

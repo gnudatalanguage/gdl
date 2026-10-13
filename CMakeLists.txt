@@ -9,6 +9,10 @@
 
 cmake_minimum_required(VERSION 3.13.3 FATAL_ERROR)
 
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+  message(WARNING "In-source builds are supported for compatibility, but a separate build directory is recommended. Use cmake -S . -B build (or another build directory) for independent configurations.")
+endif()
+
 if (NOT EXISTS "${CMAKE_SOURCE_DIR}/src/whereami/.git" )
   message(FATAL_ERROR "The src/whereami git submodule is not initialised.\n Please run `git submodule update --init`")
 endif()
@@ -18,11 +22,12 @@ endif()
 if (NOT EXISTS "${CMAKE_SOURCE_DIR}/src/version.hpp")
   find_package(Git REQUIRED)
   add_custom_target(version
-    ${CMAKE_COMMAND} -D SRC=${CMAKE_SOURCE_DIR}/src/version.hpp.in
-                     -D DST=${CMAKE_BINARY_DIR}/version.hpp
-                     -D GIT_EXECUTABLE=${GIT_EXECUTABLE}
-                     -P ${CMAKE_SOURCE_DIR}/CMakeModules/GenerateVersionHeader.cmake
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    "${CMAKE_COMMAND}" "-DSRC=${CMAKE_SOURCE_DIR}/src/version.hpp.in"
+                       "-DDST=${CMAKE_BINARY_DIR}/version.hpp"
+                       "-DGIT_EXECUTABLE=${GIT_EXECUTABLE}"
+                       -P "${CMAKE_SOURCE_DIR}/CMakeModules/GenerateVersionHeader.cmake"
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    VERBATIM
   )
 endif()
 
@@ -200,7 +205,7 @@ check_include_file(mpi.h HAVE_MPI_H)
 
 # SA: whithout it compilation of antlr fails if there's a conflicting
 #     version of antlr in system-wide directories
-include_directories(src)
+include_directories(BEFORE "${CMAKE_BINARY_DIR}" "${CMAKE_BINARY_DIR}/src" src)
 
 #-------------------------------MANDATORY MODULES-------------------------------------
 if (NOT WIN32)
@@ -283,7 +288,7 @@ if(GSL_FOUND)
     set(LIBRARIES ${LIBRARIES} ${GSL_LIBRARIES})
     include_directories(${GSL_INCLUDE_DIR})
 else(GSL_FOUND)
-    message(FATAL_ERROR "Gnu Scientific library (1.7 or higher) and libgslcblas are mandatory.\n"
+    message(FATAL_ERROR "Gnu Scientific library (1.7 or higher) and a compatible CBLAS library are mandatory.\n"
     "Use -DGSLDIR=DIR to specify the gsl directory tree.\n"
         "(suitable Debian/Ubuntu package: libgsl-dev)\n"
         "(suitable Fedora/CentOS package: gsl-devel)")
@@ -364,16 +369,7 @@ if(OPENMP)
   find_package(OpenMP QUIET)
   set(USE_OPENMP ${OPENMP_FOUND})
   if(OPENMP_FOUND)
-    if(MSVC)
-      set(LIBRARIES ${LIBRARIES} vcomp)
-    elseif(WIN32)
-      set(LIBRARIES ${LIBRARIES} gomp pthread)
-    else()
-      set(LIBRARIES ${LIBRARIES} ${OpenMP_CXX_FLAGS})
-    endif()
-    if(APPLE)
-      link_directories(/usr/local/lib)
-    endif()
+    set(LIBRARIES ${LIBRARIES} OpenMP::OpenMP_CXX)
   else(OPENMP_FOUND)
     message(FATAL_ERROR "Your compiler does not support OpenMP or OpenMP was not found"
     "note that disabling OpenMP will incur significant performance penalty !\n"
@@ -950,6 +946,7 @@ if (TARGET version)
 endif()
 
 if(NOT PYTHON_MODULE)
+    include(GdlBuildTree)
     add_subdirectory(testsuite)
 endif(NOT PYTHON_MODULE)
 
@@ -999,18 +996,22 @@ endif(MSVC)
 # set_target_properties(gdl PROPERTIES LINK_FLAGS "-Wl,-z,muldefs")
 # set_target_properties(gdl PROPERTIES LINK_FLAGS "-z muldefs")
 #
-if(CMAKE_BUILD_TYPE STREQUAL None OR NOT CMAKE_BUILD_TYPE)
-    set(FLAGS ${CMAKE_CXX_FLAGS})
-elseif(CMAKE_BUILD_TYPE STREQUAL Debug)
-    # set(FLAGS ${CMAKE_CXX_FLAGS_DEBUG})
-    set(FLAGS "-O1 -g") # fix for 'file too big'
-elseif(CMAKE_BUILD_TYPE STREQUAL Release)
-    set(FLAGS ${CMAKE_CXX_FLAGS_RELEASE})
-elseif(CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
-    set(FLAGS ${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
-elseif(CMAKE_BUILD_TYPE STREQUAL MinSizeRel)
-    set(FLAGS ${CMAKE_CXX_FLAGS_MINSIZEREL})
-endif(CMAKE_BUILD_TYPE STREQUAL None OR NOT CMAKE_BUILD_TYPE)
+# Combine environment/toolchain flags with the selected configuration's flags.
+# Target-specific options (such as OpenMP) are reported separately below.
+function(gdl_summary_flags configuration)
+    string(TOUPPER "${configuration}" configuration_upper)
+    string(STRIP "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${configuration_upper}}" c_flags)
+    string(STRIP "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${configuration_upper}}" cxx_flags)
+    message("C flags                ${c_flags}")
+    message("CXX flags              ${cxx_flags}")
+    if(PYTHON_MODULE)
+        set(link_kind SHARED)
+    else()
+        set(link_kind EXE)
+    endif()
+    string(STRIP "${CMAKE_${link_kind}_LINKER_FLAGS} ${CMAKE_${link_kind}_LINKER_FLAGS_${configuration_upper}}" flags)
+    message("Link flags             ${flags}")
+endfunction()
 
 message(STATUS
 "Summary
@@ -1019,7 +1020,32 @@ GDL - GNU DATA LANGUAGE [${BUILDTYPE}]
 System                 ${CMAKE_HOST_SYSTEM}
 Files generated        ${CMAKE_GENERATOR}
 Installation prefix    ${CMAKE_INSTALL_PREFIX}
-C++ compiler           ${CMAKE_CXX_COMPILER} ${FLAGS}")
+C compiler             ${CMAKE_C_COMPILER} (${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION})
+C++ compiler           ${CMAKE_CXX_COMPILER} (${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION})
+C / C++ standards      ${CMAKE_C_STANDARD} / ${CMAKE_CXX_STANDARD}
+Archiver               ${CMAKE_AR}
+Ranlib                 ${CMAKE_RANLIB}")
+if(CMAKE_CONFIGURATION_TYPES)
+    message("Build configurations   ${CMAKE_CONFIGURATION_TYPES}")
+    foreach(configuration IN LISTS CMAKE_CONFIGURATION_TYPES)
+        message("Configuration          ${configuration}")
+        gdl_summary_flags("${configuration}")
+    endforeach()
+else()
+    message("Build type             ${CMAKE_BUILD_TYPE}")
+    gdl_summary_flags("${CMAKE_BUILD_TYPE}")
+endif()
+if(CMAKE_LINKER_TYPE)
+    message("Linker type            ${CMAKE_LINKER_TYPE}")
+else()
+    message("Linker type            DEFAULT (compiler/toolchain default)")
+endif()
+if(CMAKE_CXX_COMPILER_LINKER)
+    message("Detected C++ linker    ${CMAKE_CXX_COMPILER_LINKER}")
+endif()
+if(APPLE)
+    message("macOS SDK              ${CMAKE_OSX_SYSROOT}")
+endif()
 message("")
 message(STATUS "Options")
 message("")
@@ -1028,10 +1054,15 @@ message("Widgets support: ${WXWIDGETS_FOUND}")
 message("")
 
 if(OPENMP AND OPENMP_FOUND)
-    message("OpenMP support         ON (flag: ${OpenMP_CXX_FLAGS})")
+    message("OpenMP support         ON (flags: ${OpenMP_CXX_FLAGS}; libs: ${OpenMP_CXX_LIBRARIES})")
 else(OPENMP AND OPENMP_FOUND)
     message("OpenMP support         OFF")
 endif(OPENMP AND OPENMP_FOUND)
+message("BLAS selection         ${GSL_CBLAS_PROVIDER} -> ${GSL_CBLAS_SELECTED_PROVIDER} (GSL_CBLAS_PROVIDER)")
+message("BLAS library           ${GSLCBLAS_LIBRARY}")
+if(GSL_CBLAS_SELECTED_PROVIDER STREQUAL "FLEXIBLAS")
+    message("FlexiBLAS backend      Selected at runtime (FLEXIBLAS or FlexiBLAS configuration)")
+endif()
 module(WXWIDGETS wxWidgets "WxWidgets     ")
 if (GRAPHICSMAGICK_FOUND)
   module(GRAPHICSMAGICK GRAPHICSMAGICK "GRAPHICSMAGICK")

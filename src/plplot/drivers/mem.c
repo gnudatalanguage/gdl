@@ -10,7 +10,7 @@
 // Included in PLplot by Rafael Laboissiere on Sat Feb 22 18:34:06 CET 2003
 //
 
-#include "plDevs.h"
+#include <plDevs.h>
 
 #ifdef PLD_mem
 

@@ -1,6 +1,6 @@
 //      PLplot Null device driver.
 //
-#include "plDevs.h"
+#include <plDevs.h>
 
 #ifdef PLD_null
 

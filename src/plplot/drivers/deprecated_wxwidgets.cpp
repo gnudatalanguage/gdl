@@ -28,7 +28,7 @@
 #include <wx/wfstream.h>
 #include <wx/except.h>
 
-#include "plDevs.h"
+#include <plDevs.h>
 
 // plplot headers
 #include "plplotP.h"

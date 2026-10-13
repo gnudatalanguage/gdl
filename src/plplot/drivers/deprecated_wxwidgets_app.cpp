@@ -24,7 +24,7 @@
 // wxwidgets headers
 #include "wx/wx.h"
 
-#include "plDevs.h"
+#include <plDevs.h>
 
 #ifdef PLD_wxwidgets
 

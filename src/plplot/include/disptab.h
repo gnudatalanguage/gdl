@@ -4,7 +4,7 @@
 #ifndef __DISPATCH_H__
 #define __DISPATCH_H__
 
-#include "plConfig.h"
+#include <plConfig.h>
 
 struct PLStream_struct;
 

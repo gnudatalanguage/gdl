@@ -1,0 +1,10 @@
+#!/bin/sh
+# Multi-configuration generators also provide <config>/run-gdl launchers.
+gdl_build_dir=@GDL_RUN_BUILD_DIR@
+gdl_config=${GDL_BUILD_CONFIG:-@GDL_RUN_DEFAULT_CONFIG@}
+gdl_launcher="$gdl_build_dir/$gdl_config/run-gdl"
+if [ ! -x "$gdl_launcher" ]; then
+    echo "run-gdl: unknown build configuration: $gdl_config" >&2
+    exit 1
+fi
+exec "$gdl_launcher" "$@"
