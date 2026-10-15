@@ -1042,6 +1042,7 @@ void GDLParser::procedure_def() {
 	RefDNode n_AST = RefDNode(antlr::nullAST);
 	
 	allowInteractiveSyntax=false;
+	is_in_procedure=true;
 	std::string name;
 		fussy=recovery?0:1; //recoverable fussy mode
 		relaxed=(fussy < 1);
@@ -1154,6 +1155,7 @@ void GDLParser::procedure_def() {
 		p_AST->SetCompileOpt( compileOpt); 
 		p_AST->MemorizeUncompiledPro(name); //in case the Parser has to know that a procedure thus named exists. 
 				    allowInteractiveSyntax=true;
+		is_in_procedure=false;
 		
 	}
 	procedure_def_AST = RefDNode(currentAST.root);
@@ -1170,6 +1172,7 @@ void GDLParser::function_def() {
 	RefDNode n_AST = RefDNode(antlr::nullAST);
 	
 	allowInteractiveSyntax=false;
+	is_in_procedure=true;
 	std::string name;
 		fussy=recovery?0:1; //recoverable fussy mode
 		relaxed=(fussy < 1);
@@ -1284,6 +1287,7 @@ void GDLParser::function_def() {
 		//at this time (Parser) but the Parser has to know that it has ben defined for disambiguation
 					//of function calls in the 'sloppy' mode
 				    allowInteractiveSyntax=true;
+		is_in_procedure=false;
 		
 	}
 	function_def_AST = RefDNode(currentAST.root);

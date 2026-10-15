@@ -67,7 +67,7 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
 // for .RUN and .RNEW: know when the entered commands define a PRO/FUN or if they are just statements.
 	bool statement_seen=false;
 	bool end_marker_seen=false;
-	bool is_in_procedure=false;
+	bool is_in_procedure=false; // also true while translation_unit parses a PRO/FUNCTION
 	public: bool StatementSeen(){return statement_seen;}
 	public: void SetProcedureNotAllowed(bool b){statement_seen=b;}
 	public: void SetInProcedureAtStart(bool b){is_in_procedure=b;}
@@ -87,7 +87,10 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
         else if( opt == "STATIC")            compileOpt |= STATIC;
         else if( opt == "NOSAVE")            compileOpt |= NOSAVE;
         else throw GDLException("Unrecognised COMPILE_OPT option: "+opt);
-        MemorizeCompileOptForMAINIfNeeded( compileOpt);
+        // Routine options belong to that definition, even when compiled from
+        // $MAIN$. Only main-level commands may update the current environment.
+        if( !is_in_procedure)
+            MemorizeCompileOptForMAINIfNeeded( compileOpt);
     }
 
     bool ConstantExprNode( int t)
