@@ -28,6 +28,7 @@
 
 #include "mfhdf.h"
 #include "hdf_pro.hpp"
+#include "hfile.h"
 
 namespace lib {
 
@@ -481,21 +482,36 @@ namespace lib {
     e->AssureScalarPar<DLongGDL>( 0, vg_id);
 
     if( e->WriteableKeywordPresent( 0)) {
+#if LIBVER_MAJOR == 4 && LIBVER_MINOR >= 4
+      size_t sz = sizeof(groupclass);
+      Vgetclass(vg_id, groupclass, &sz);
+#else
       Vgetclass(vg_id, groupclass);
+#endif
       BaseGDL** classKW = &e->GetTheKW( 0);
       delete(*classKW);
       *classKW = new DStringGDL( groupclass);
     }
 
     if( e->WriteableKeywordPresent( 1)) {
+#if LIBVER_MAJOR == 4 && LIBVER_MINOR >= 4
+      size_t sz = sizeof(groupname);
+      Vgetname(vg_id, groupname, &sz);
+#else
       Vgetname(vg_id, groupname);
+#endif
       BaseGDL** nameKW = &e->GetTheKW( 1);
       delete(*nameKW);
       *nameKW = new DStringGDL( groupname);
     }
 
     if( e->WriteableKeywordPresent( 2)) {
+#if LIBVER_MAJOR == 4 && LIBVER_MINOR >= 4
+      size_t sz = sizeof(groupname);
+      Vinquire(vg_id, &nentries, groupname, &sz);
+#else
       Vinquire(vg_id, &nentries, groupname);
+#endif
       BaseGDL** nentriesKW = &e->GetTheKW( 2);
       GDLDelete((*nentriesKW)); 
       *nentriesKW = new DLongGDL( nentries);
@@ -545,7 +561,12 @@ namespace lib {
     DLong vg_id;
     e->AssureScalarPar<DLongGDL>( 0, vg_id);
 
+#if LIBVER_MAJOR == 4 && LIBVER_MINOR >= 4
+    size_t sz = sizeof(groupname);
+    Vinquire(vg_id, &nentries, groupname, &sz);
+#else
     Vinquire(vg_id, &nentries, groupname);
+#endif
 
     dimension dim((DLong *) &nentries, (SizeT) 1);
 
