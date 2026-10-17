@@ -127,7 +127,7 @@ namespace structDesc {
 }
 
 //// for OpenMP
-DLong CpuTPOOL_NTHREADS;
+DLong CpuTPOOL_NTHREADS=1;
 DLong64 CpuTPOOL_MIN_ELTS;
 DLong64 CpuTPOOL_MAX_ELTS;
 
