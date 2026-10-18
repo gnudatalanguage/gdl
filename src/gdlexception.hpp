@@ -139,6 +139,7 @@ public:
   }
 
   bool IsIOException() const { return ioException;}
+  void ClearIOException() { ioException = false; }
 };
 
 // for ON_IOERROR

@@ -367,13 +367,14 @@ public:
     cSize=container.size();
   }
   
-  ~StackGuard()
-  {
-    for( typename T::size_type s=container.size(); s > cSize; s--)
-      {
-	delete container.back();
-	container.pop_back();
-      }
+  ~StackGuard() {
+    for (typename T::size_type s = container.size(); s > cSize; s--) {
+      // Local object cleanup can run interpreter code during destruction.
+      // Remove the frame before its virtual methods become unavailable.
+      auto* frame = container.back();
+      container.pop_back();
+      delete frame;
+    }
   }
 };
 
