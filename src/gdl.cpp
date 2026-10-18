@@ -245,6 +245,11 @@ int main(int argc, char *argv[])
 //    std::cerr<<"installed at: "<<gdlDataDir<<std::endl;
   }
 
+  // GDL_DIR also selects the default procedures/resources used during startup.
+  // run-gdl supplies a build-local data tree, including the mandatory .pro files.
+  const std::string dataDirOverride = GetEnvPathString("GDL_DIR");
+  if (!dataDirOverride.empty()) gdlDataDir = dataDirOverride;
+
 //   GD: seems to confuse people --- too much information kills information
 //  bool pathUserNotDefined=false;
 //  string gdlPath=GetEnvPathString("GDL_PATH"); //warning: is a Path, use system separator.

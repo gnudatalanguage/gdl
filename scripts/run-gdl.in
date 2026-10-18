@@ -1,0 +1,20 @@
+#!/bin/sh
+# Run this build without installing it; keep the caller's directory and arguments.
+# A literal here-document protects the generated target path from shell expansion.
+IFS= read -r gdl_binary <<'GDL_BUILD_EXECUTABLE'
+@GDL_RUN_BINARY@
+GDL_BUILD_EXECUTABLE
+if [ ! -x "$gdl_binary" ]; then
+    echo "run-gdl: executable not found: $gdl_binary (build GDL first)" >&2
+    exit 127
+fi
+GDL_DIR=@GDL_RUN_DATA@
+GDL_MAPS_DIR="$GDL_DIR/resource/maps"
+PLPLOT_LIB=@GDL_RUN_PLPLOT@
+gdl_dlm=@GDL_RUN_DLM@
+# Prefer this checkout's routines, retaining user paths (including IDL fallback).
+gdl_user_path=${GDL_PATH:-${IDL_PATH:-}}
+GDL_PATH="+$GDL_DIR/lib${gdl_user_path:+@GDL_RUN_PATH_SEPARATOR@$gdl_user_path}"
+GDL_DLM_PATH="+$gdl_dlm@GDL_RUN_PATH_SEPARATOR@+$GDL_DIR/dlm${GDL_DLM_PATH:+@GDL_RUN_PATH_SEPARATOR@$GDL_DLM_PATH}"
+export GDL_DIR GDL_MAPS_DIR PLPLOT_LIB GDL_PATH GDL_DLM_PATH
+exec "$gdl_binary" "$@"

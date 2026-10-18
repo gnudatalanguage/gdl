@@ -245,10 +245,6 @@ else(PYTHON_MODULE) #GDL.so
 #   set_target_properties(gdl PROPERTIES C_VISIBILITY_PRESET hidden)
 endif(PYTHON_MODULE)
 
-if(USE_OPENMP)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-endif(USE_OPENMP)
-
 add_dependencies(gdl plplot antlr whereami) # be sure that antlr is built before gdl
 target_link_libraries(gdl plplot antlr whereami) # link antlr against gdl. added librt for mmap (unix only, not osx, apparently)
 if(TARGET Eigen3::Eigen)
@@ -320,8 +316,4 @@ if (APPLE OR OSX )
 INSTALL(CODE "execute_process( COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_INSTALL_PREFIX}/bin/gdl ${CMAKE_INSTALL_PREFIX}/bin/libidl${CMAKE_SHARED_LIBRARY_SUFFIX})" )
 install(CODE "message(\"-- Created symlink: ${CMAKE_INSTALL_PREFIX}/bin/gdl  -> ${CMAKE_INSTALL_PREFIX}/bin/libidl${CMAKE_SHARED_LIBRARY_SUFFIX}\")")
 endif()
-configure_file(
- 	${CMAKE_SOURCE_DIR}/scripts/quick_start_GDL.sh.in
-	${CMAKE_BINARY_DIR}/quick_start_GDL.sh
-)
 

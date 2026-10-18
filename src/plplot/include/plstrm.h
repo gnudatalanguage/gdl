@@ -27,7 +27,7 @@
 #define __PLSTRM_H__
 
 #include "disptab.h"
-#include "pldll.h"
+#include <pldll.h>
 
 //--------------------------------------------------------------------------
 // Define the PLDev data structure.
