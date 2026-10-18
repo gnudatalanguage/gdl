@@ -65,6 +65,7 @@ test_chisqr_cvf.pro
 test_clip.pro
 test_color_convert.pro
 test_common.pro
+test_compile_opt_scope.pro
 test_constants.pro
 test_convert2.pro
 test_convert_coord.pro
