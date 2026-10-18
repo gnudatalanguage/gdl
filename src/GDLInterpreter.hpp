@@ -178,6 +178,7 @@ protected:
     BaseGDL** returnValueL; // holding the return value for l_functions
 
     bool interruptEnable;
+  EnvUDT* execute_env_ = nullptr;  // Caller of the innermost active EXECUTE.
 public:
     bool InterruptEnable() const { return interruptEnable;}
     // procedure (searchForPro == true) or function (searchForPro == false)

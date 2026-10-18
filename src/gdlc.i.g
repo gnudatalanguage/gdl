@@ -231,6 +231,7 @@ protected:
     BaseGDL** returnValueL; // holding the return value for l_functions
 
     bool interruptEnable;
+  EnvUDT* execute_env_ = nullptr;  // Caller of the innermost active EXECUTE.
 public:
     bool InterruptEnable() const { return interruptEnable;}
     // procedure (searchForPro == true) or function (searchForPro == false)
@@ -999,6 +1000,8 @@ execute returns[ RetCode retCode]
     interruptEnable = false;
   ValueGuard<std::exception_ptr> cleanup_guard(deferred_cleanup_exception_);
   deferred_cleanup_exception_ = nullptr;
+  ValueGuard<EnvUDT*> execute_guard(execute_env_);
+  execute_env_ = callStack.back();
 
 //	return statement_list(_t);
 }
@@ -1312,7 +1315,8 @@ statement returns[ RetCode retCode]
   static unsigned codeTag = errorStateDesc->TagIndex("CODE");
   static unsigned msgTag = errorStateDesc->TagIndex("MSG");
 
-  if (e.IsIOException()) {
+  // EXECUTE returns a status instead of entering handlers in its caller.
+  if (e.IsIOException() && callStack.back() != execute_env_) {
     // Do not use dynamic_cast here: it can return null for GDLIOException.
     // set the jump target - also logs the jump
     ProgNodeP onIOErr = static_cast<EnvUDT*>(callStack.back())->GetIOError();
@@ -1334,7 +1338,7 @@ statement returns[ RetCode retCode]
 
   // handle CATCH
   ProgNodeP catchNode = callStack.back()->GetCatchNode();
-  if (catchNode != NULL) {
+  if (catchNode != nullptr && callStack.back() != execute_env_) {
     DStructGDL* errorState = SysVar::Error_State();
     (*static_cast<DStringGDL*>(errorState->GetTag(nameTag)))[0] = "IDL_M_FAILURE";
     (*static_cast<DLongGDL*>(errorState->GetTag(codeTag)))[0] = e.ErrorCode();
@@ -1360,8 +1364,17 @@ statement returns[ RetCode retCode]
 
   EnvUDT* targetEnv = e.GetTargetEnv();
   if (targetEnv == nullptr) {
+    // Keep errors from called routines from becoming normal returns.
+    // Unwind to EXECUTE, allowing handlers in intervening routines.
+    if (execute_env_ != nullptr && callStack.back() != execute_env_) {
+      throw;
+    }
+
     // A caller's CATCH takes precedence over ON_ERROR.
     for (long ix = callStack.size() - 1; ix >= 0; --ix) {
+      if (callStack[ix] == execute_env_) {
+        break;
+      }
       if (callStack[ix]->GetCatchNode() != nullptr) {
         throw;
       }
