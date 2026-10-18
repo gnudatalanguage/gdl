@@ -70,6 +70,36 @@ foreach command, [ $
       FORBIDDEN=['ERROR: continued']
 endforeach
 
+; Do not wrap these calls in EXECUTE: it would mask caller-CATCH bugs.
+for mode=-1,3 do begin
+   CLEANUP_INTERACTIVE_CHECK, context, 'caller CATCH, ON_ERROR='+STRTRIM(mode, 2), [ $
+      "RESOLVE_ROUTINE, 'test_cleanup_exceptions'", $
+      "caught=''", $
+      'CLEANUP_EXCEPTION_CALLER_CATCH, '+STRTRIM(mode, 2)+', caught', $
+      "if STRPOS(caught, 'primary failure') LT 0 then EXIT, status=1", $
+      'if SCOPE_LEVEL() NE 1 then EXIT, status=2', $
+      'caught=0', $
+      'CLEANUP_EXCEPTION_CATCH, caught', $
+      'if caught NE 1 then EXIT, status=3', $
+      "PRINT, 'CLEANUP_CALLER_CATCH_OK'", $
+      'EXIT'], errors, REQUIRED=['secondary cleanup failure', 'CLEANUP_CALLER_CATCH_OK'], $
+      FORBIDDEN=['Execution halted at:', 'Error occurred at:']
+endfor
+
+; Outside EXECUTE: only the originating routine can use ON_IOERROR.
+CLEANUP_INTERACTIVE_CHECK, context, 'ON_IOERROR scope outside EXECUTE', [ $
+   "RESOLVE_ROUTINE, 'test_ioerror'", $
+   "path=''", $
+   'IOERROR_SCOPE_CATCH, path', $
+   "if path NE ' caught' then EXIT, status=1", $
+   'if SCOPE_LEVEL() NE 1 then EXIT, status=2', $
+   "path=''", $
+   'IOERROR_SCOPE_LOCAL, path', $
+   "if path NE ' local_label' then EXIT, status=3", $
+   "PRINT, 'IOERROR_SCOPE_OK'", $
+   'EXIT'], errors, REQUIRED=['IOERROR_SCOPE_OK'], $
+   FORBIDDEN=['Execution halted at:', 'Error occurred at:']
+
 CLEANUP_INTERACTIVE_CHECK, context, 'cleanup during unwinding', [ $
    "RESOLVE_ROUTINE, 'test_cleanup_exceptions'", $
    'ON_ERROR, 1', $

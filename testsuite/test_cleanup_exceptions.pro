@@ -56,6 +56,19 @@ local=OBJ_NEW('cleanup_exception_object', 0, 'caught cleanup failure')
 local=0
 end
 
+; Run directly, outside EXECUTE, to check caller CATCH during unwinding.
+pro CLEANUP_EXCEPTION_CALLER_CATCH, mode, caught
+CATCH, error
+if error NE 0 then begin
+   CATCH, /cancel
+   caught=!ERROR_STATE.MSG
+   return
+endif
+if mode GE 0 then ON_ERROR, mode
+CLEANUP_EXCEPTION_UNWIND
+caught='ERROR: continued after primary failure'
+end
+
 ; Used by the interactive RETALL regression in test_cleanup_interactive.pro.
 pro CLEANUP_EXCEPTION_PROMPT
 local=OBJ_NEW('cleanup_exception_object', 0, 'interactive cleanup failure')

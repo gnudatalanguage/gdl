@@ -1329,6 +1329,9 @@ statement returns[ RetCode retCode]
     }
   }
 
+  // ON_IOERROR applies only in the routine where the I/O error occurred.
+  e.ClearIOException();
+
   // handle CATCH
   ProgNodeP catchNode = callStack.back()->GetCatchNode();
   if (catchNode != NULL) {
@@ -1357,6 +1360,13 @@ statement returns[ RetCode retCode]
 
   EnvUDT* targetEnv = e.GetTargetEnv();
   if (targetEnv == nullptr) {
+    // A caller's CATCH takes precedence over ON_ERROR.
+    for (long ix = callStack.size() - 1; ix >= 0; --ix) {
+      if (callStack[ix]->GetCatchNode() != nullptr) {
+        throw;
+      }
+    }
+
 	    // look if ON_ERROR is set somewhere
 	    // for( EnvStackT::reverse_iterator i = callStack.rbegin();
 	    //     i != callStack.rend(); ++i)
