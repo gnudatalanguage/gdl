@@ -202,7 +202,7 @@ function geotiff_getTagindexes,g
   ]
   Geomethod=[1,1,1,replicate(0,45)]
   ;           byte, ascii, short, long, rational, sbyte, undefined, sshort, slong, srational, float, double
-  TagTypeLen=[1,    5,     2,     4,    8,        1,     1,         2,      4,     8,         4,     8]
+  TagTypeLen=[1,    1,     2,     4,    8,        1,     1,         2,      4,     8,         4,     8,   4, 0, 0, 8, 8, 8]
 
   GeoMinNelements=[3,16,6,replicate(1,45)]
   GeoMaxNelements=[3,16,100000000LL,replicate(1,45)]
@@ -222,13 +222,17 @@ function geotiff_getTagindexes,g
   return, tagindexes
 end
 
-function geotiff_WriteAsimpletag,unit,geostruct,i,geoIndex
+; In a BigTIFF file the count and the value offset are 8 bytes each. The "simple" tags written here
+; (ModelPixelScale, ModelTransformation, ModelTiepoint) hold at least 3 doubles, so their values never
+; fit inside the entry and always go after the IFD.
+function geotiff_WriteAsimpletag,unit,geostruct,i,geoIndex,big
   common geotifftagcommon,GeoSize,GeoTagNames,GeoTagKeyId,GeoMethod,TiffType
    val=geostruct.(i)
    count=long(n_elements(val))
-   writeu,unit,GeoTagKeyId[geoIndex],TiffType[geoIndex],count
+   if big then writeu,unit,GeoTagKeyId[geoIndex],TiffType[geoIndex],ulong64(count) else $
+      writeu,unit,GeoTagKeyId[geoIndex],TiffType[geoIndex],count
    point_lun,-unit,pos
-   writeu,unit,0L
+   if big then writeu,unit,0ULL else writeu,unit,0L
    return, pos
 end
 
@@ -266,7 +270,7 @@ pro geotiff_writeOffsettedValueDouble,unit,offsettable,geostruct,i,geoindex,numb
    endcase
    point_lun,-unit,current
    ; write start address at offsetable location and go to end 
-   point_lun,unit,fix(offsettable[i]) ; offsets are 2 bytes here
+   point_lun,unit,offsettable[i] ; the value written here is 2 bytes; the position is a full file offset
    writeu,unit,fix(number)
    point_lun,unit,current
 end
@@ -282,13 +286,13 @@ pro geotiff_writeOffsettedValueAscii,unit,offsettable,geostruct,i,geoindex,numbe
    endcase
    point_lun,-unit,current
    ; write start address at offsetable location and go to end 
-   point_lun,unit,fix(offsettable[i]) ; offsets are 2 bytes here
+   point_lun,unit,offsettable[i] ; the value written here is 2 bytes; the position is a full file offset
    writeu,unit,fix(number)
    point_lun,unit,current
 end
 
-pro geotiff_writeOffsettedValue,unit,offsettable,geostruct,i,geoindex
-  common geotifftagcommon,GeoSize,GeoTagNames,GeoTagKeyId,GeoMethod,TiffType,TagTypeLen
+pro geotiff_writeOffsettedValue,unit,offsettable,geostruct,i,geoindex,big
+common geotifftagcommon,GeoSize,GeoTagNames,GeoTagKeyId,GeoMethod,TiffType,TagTypeLen
   if offsettable[i] le 0 then return
    point_lun,-unit,pos
    val=geostruct.(i) 
@@ -302,7 +306,7 @@ pro geotiff_writeOffsettedValue,unit,offsettable,geostruct,i,geoindex
    point_lun,-unit,current
    ; write start address at offsetable location and go to end 
    point_lun,unit,offsettable[i]
-   writeu,unit,long(pos)
+   if big then writeu,unit,ulong64(pos) else writeu,unit,long(pos)
    point_lun,unit,current
 end
 
@@ -319,7 +323,7 @@ pro updategeotagsinimage,filename,g
 ; get minimal tag informations
   tagidx=geotiff_getTagindexes(g) ; will throw if problems
   ntags=n_elements(tagidx)
-  offsetTable=lonarr(ntags)
+  offsetTable=lon64arr(ntags)
 
 ; find total number of new IFD0 entriss
   w=where(GeoMethod[tagidx] eq 1, count)
@@ -340,36 +344,46 @@ pro updategeotagsinimage,filename,g
   openu,unit,filename,/get_lun
   signature=0s
   magic=0s
-  offsetIFD=0L
-  readu,unit,signature,magic,offsetIFD
+  readu,unit,signature,magic
   if signature ne '4949'x then message,'Cannot update big-endian TIFF files; please FIXME'
+; Classic TIFF: 12-byte entries, 2-byte entry count, 4-byte offsets.
+; BigTIFF (version 43): 20-byte entries, 8-byte entry count, 8-byte offsets.
+  big = magic eq '002b'x
+  if big then begin
+     bytesize=0us & zero=0us & offsetIFD=0ULL
+     readu,unit,bytesize,zero,offsetIFD
+     nexistingIFDEntries=0ULL & PointerToNextIFD=0ULL & entrysize=20 & slot=8
+  endif else begin
+     offsetIFD=0UL & readu,unit,offsetIFD
+     nexistingIFDEntries=0s & PointerToNextIFD=0UL & entrysize=12 & slot=4
+  endelse
 
 ; go to first IFD0
   point_lun,unit,offsetIFD
-  nexistingIFDEntries=0s
   readu,unit,nexistingIFDEntries
 ; go to last IFD if any
-  skip_lun,unit,nexistingIFDEntries*12
+  skip_lun,unit,nexistingIFDEntries*entrysize
 ; read the pointer to the next IFD (may be Zero)
-  PointerToNextIFD=0LL & readu,unit,PointerToNextIFD
+  readu,unit,PointerToNextIFD
   while PointerToNextIFD ne 0 do begin
      offsetIFD=PointerToNextIFD
      point_lun,unit,offsetIFD
      readu,unit,nexistingIFDEntries
-     skip_lun,unit,nexistingIFDEntries*12
+     skip_lun,unit,nexistingIFDEntries*entrysize
      readu,unit,PointerToNextIFD
   endwhile
 ; go to offsetIFD, start of the last IFD
   point_lun,unit,offsetIFD
   readu,unit,nexistingIFDEntries
 ; for every tag whose value is a pointer in the file, we'll add the displacement due to the insertion of the new tags
-  existingTagLocation=Lonarr(nexistingIFDEntries)
+  existingTagLocation=Lon64arr(nexistingIFDEntries)
 ; record these 'pointers' if they are meaningful:
   for i=0,nexistingIFDEntries-1 do begin
-     tagid=0s & tagtype=0s & tagnum=0l & tagval=0L
+     tagid=0s & tagtype=0s
+     if big then begin & tagnum=0ULL & tagval=0ULL & endif else begin & tagnum=0l & tagval=0L & endelse
      readu,unit,tagid,tagtype,tagnum,tagval
-     ; Value Offset contains the Value instead of pointing to the Value if and only if the Value fits into 4 bytes.
-     if tagtypelen[tagtype-1]*tagnum le 4 then existingTagLocation[i]=-1 else existingTagLocation[i]=tagval
+     ; Value Offset contains the Value instead of pointing to the Value if and only if the Value fits into 4 bytes (8 in BigTIFF).
+     if tagtypelen[tagtype-1]*tagnum le slot then existingTagLocation[i]=-1 else existingTagLocation[i]=tagval
   endfor
 ; we are at end of last IFD and before the zero pointer, this is where we will add our tags.
 ; record our position in 'goback'
@@ -379,15 +393,18 @@ pro updategeotagsinimage,filename,g
   temp=bytarr(endpos-goback)
   readu,unit,temp
 ; we will add 'nentries*12' to each of existingTagLocation if they are pointers:
-  toBeAdded=nentries*12
+  toBeAdded=nentries*entrysize
 ; go back to last IFD, change number of entries:
   point_lun,unit,offsetIFD
-  writeu,unit,fix(nexistingIFDEntries+nentries)
+  if big then writeu,unit,ulong64(nexistingIFDEntries+nentries) else writeu,unit,fix(nexistingIFDEntries+nentries)
 ; update existing pointers if necessary  
   for i=0,nexistingIFDEntries-1 do begin
-     tagid=0s & tagtype=0s & tagnum=0l & tagval=0l
+     tagid=0s & tagtype=0s
+     if big then begin & tagnum=0ULL & tagval=0ULL & endif else begin & tagnum=0l & tagval=0l & endelse
      readu,unit,tagid,tagtype,tagnum
-     if existingTagLocation[i] eq -1 then readu,unit,tagval else writeu,unit, long(existingTagLocation[i]+toBeAdded)
+     if existingTagLocation[i] eq -1 then readu,unit,tagval else begin
+        if big then writeu,unit, ulong64(existingTagLocation[i]+toBeAdded) else writeu,unit, long(existingTagLocation[i]+toBeAdded)
+     endelse
   endfor
   
 ; ready to write our tags:
@@ -395,20 +412,22 @@ pro updategeotagsinimage,filename,g
   if nsimpletags gt 0 then begin
      for i=0,ntags-1 do begin
         if GeoMethod[tagidx[i]] ne 1 then continue
-        offsettable[i]=geotiff_WriteAsimpletag(unit,g,i,tagidx[i])
+        offsettable[i]=geotiff_WriteAsimpletag(unit,g,i,tagidx[i],big)
      endfor
   endif
 ; compute size of GeoTiffDirectory section
   nGeoEntries=1+ntext+ndouble+nshort
-  writeu,unit, GeoTiffDirectory,uShort,long(nGeoEntries*4)
+  if big then writeu,unit, GeoTiffDirectory,uShort,ulong64(nGeoEntries*4) else $
+     writeu,unit, GeoTiffDirectory,uShort,long(nGeoEntries*4)
 ;memorize and GeoKey offset:
-  point_lun,-unit,posGeoKey & writeu,unit,0L
+  point_lun,-unit,posGeoKey & if big then writeu,unit,0ULL else writeu,unit,0L
   
 ; create GeoTiffDoubleParams
   if nDouble gt 0 then begin
-     writeu,unit, GeoTiffDoubleParams,Double,long(ndouble)
+     if big then writeu,unit, GeoTiffDoubleParams,Double,ulong64(ndouble) else $
+        writeu,unit, GeoTiffDoubleParams,Double,long(ndouble)
 ;memorize and GeoDouble offset:
-     point_lun,-unit,posGeoDouble & writeu,unit,0L
+     point_lun,-unit,posGeoDouble & if big then writeu,unit,0ULL else writeu,unit,0L
   endif
   
 ; create GeoTiffAsciiParams
@@ -422,9 +441,10 @@ pro updategeotagsinimage,filename,g
         totaltextsize+=textnbytes
      endfor
      totaltextsize+=1           ; for ending NULL
-     writeu,unit, GeoTiffAsciiParams,Ascii,long(totaltextsize)
+     if big then writeu,unit, GeoTiffAsciiParams,Ascii,ulong64(totaltextsize) else $
+        writeu,unit, GeoTiffAsciiParams,Ascii,long(totaltextsize)
                                 ;memorize and GeoDouble offset:
-     point_lun,-unit,posGeoAscii & writeu,unit,0L
+     point_lun,-unit,posGeoAscii & if big then writeu,unit,0ULL else writeu,unit,0L
   endif
 ; write the temp array, now displaced. It contains the pointer to the next IFD 
   writeu,unit,temp
@@ -432,11 +452,18 @@ pro updategeotagsinimage,filename,g
   
 ;write GeoKey header
   point_lun,-unit,current
+  if big && nGeoEntries eq 1 then begin
+     ; header only (8 bytes): it goes inside the entry
+     point_lun,unit,posGeoKey
+     writeu,unit, 1s,1s,2s,0s
+     point_lun,unit,current
+  endif else begin
   point_lun,unit,posGeoKey
-  writeu,unit,long(current)
+  if big then writeu,unit,ulong64(current) else writeu,unit,long(current)
   point_lun,unit,current
 ; write all keys of GeoKeys
   writeu,unit, 1s,1s,2s,fix(nGeoEntries-1) ;Version 1 GeoTIFF GeoKey directory, the keys are Rev. 1.2
+  endelse
 ; write all GeoKey tags:
   for i=0,ntags-1 do begin
      if GeoMethod[tagidx[i]] ne 0 then continue
@@ -445,43 +472,66 @@ pro updategeotagsinimage,filename,g
   
 ; GeoDouble values
   if nDouble gt 0 then begin
-                                ;write GeoDouble pointer
      point_lun,-unit,current
+     inline = big && nDouble eq 1 ; a single double (8 bytes) goes inside the entry in BigTIFF
+     if inline then begin
+        endoffile=current
+        point_lun,unit,posGeoDouble
+     endif else begin
+                                ;write GeoDouble pointer
      point_lun,unit,posGeoDouble
-     writeu,unit,long(current)
+     if big then writeu,unit,ulong64(current) else writeu,unit,long(current)
      point_lun,unit,current
+     endelse
      number=0
      for i=0,ntags-1 do begin
         if GeoMethod[tagidx[i]] eq 1 or TiffType[tagidx[i]] ne 12s then continue
         geotiff_writeOffsettedValueDouble,unit,offsettable,g,i,tagidx[i],number
+        if inline then point_lun,unit,posGeoDouble+8 ; the routine returns to where it wrote the value
         number++
      endfor
+     if inline then point_lun,unit,endoffile else begin
      point_lun,-unit,current
      pad=current mod 4 & if pad gt 0 then writeu,unit,replicate(0b,pad)
+     endelse
   endif
 
  ; GeoAscii values 
   if nText gt 0 then begin
-                                ;write GeoAscii pointer
      point_lun,-unit,current
+     inline = big && totaltextsize le 8 ; short text goes inside the entry in BigTIFF
+     if inline then begin
+        endoffile=current
+        point_lun,unit,posGeoAscii
+     endif else begin
+                                ;write GeoAscii pointer
      point_lun,unit,posGeoAscii
-     writeu,unit,long(current)
+     if big then writeu,unit,ulong64(current) else writeu,unit,long(current)
      point_lun,unit,current
+     endelse
      number=0
+     written=0
      for i=0,ntags-1 do begin
         if GeoMethod[tagidx[i]] eq 1 or TiffType[tagidx[i]] ne 2s then continue
         geotiff_writeOffsettedValueAscii,unit,offsettable,g,i,tagidx[i],number
+        written+=strlen(g.(i))+1
+        if inline then point_lun,unit,posGeoAscii+written ; the routine returns to where it wrote the value
         number+=strlen(g.(i))
      endfor
+     if inline then begin
+        writeu,unit,replicate(0b,8-written) ; terminating NULL and padding of the 8-byte field
+        point_lun,unit,endoffile
+     endif else begin
      addToAsciiSection=number mod 4 & if addToAsciiSection gt 0 then writeu,unit,replicate(0b,addToAsciiSection) ; hope it's OK
      point_lun,-unit,current
      pad=current mod 4 & if pad gt 0 then writeu,unit,replicate(0b,pad)
+     endelse
   endif
 ; write 'offsetted' simple tags  data
   if nsimpletags gt 0 then begin
      for i=0,ntags-1 do begin
         if GeoMethod[tagidx[i]] eq 0 then continue
-        geotiff_writeOffsettedValue,unit,offsettable,g,i,tagidx[i]
+        geotiff_writeOffsettedValue,unit,offsettable,g,i,tagidx[i],big
      endfor
      point_lun,-unit,current
      pad=current mod 4 & if pad gt 0 then writeu,unit,replicate(0b,pad)
