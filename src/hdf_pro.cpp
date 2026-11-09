@@ -68,6 +68,12 @@ namespace lib {
     DLongGDL* strideKW = e->IfDefGetKWAs<DLongGDL>( 1);
     DLongGDL* countKW = e->IfDefGetKWAs<DLongGDL>( 2);
 
+    status = SDgetinfo(sds_id, NULL, &rank, NULL, NULL, NULL);
+    if (status != FAIL && rank > (int32)MAXRANK)
+	throw GDLException( e->CallingNode(),
+			    "HDF_SD_GETDATA: dataset rank " + i2s(rank) +
+			    " exceeds the supported maximum (" + MAXRANK_STR + ")");
+
     status = SDgetinfo(sds_id, fieldname, &rank, dims, &dtype, &nattrs);
 
     if (status == FAIL)
@@ -205,6 +211,12 @@ namespace lib {
     DLongGDL* strideKW = e->IfDefGetKWAs<DLongGDL>( 1);
     DLongGDL* countKW = e->IfDefGetKWAs<DLongGDL>( 2);
 
+    status = SDgetinfo(sds_id, NULL, &rank, NULL, NULL, NULL);
+    if (status != FAIL && rank > (int32)MAXRANK)
+	throw GDLException( e->CallingNode(),
+			    "HDF_SD_ADDDATA: dataset rank " + i2s(rank) +
+			    " exceeds the supported maximum (" + MAXRANK_STR + ")");
+
     status = SDgetinfo(sds_id, fieldname, &rank, dims, &dtype, &nattrs);
 
     if (status == FAIL)
@@ -288,6 +300,12 @@ namespace lib {
 
     DLong sds_id;
     e->AssureScalarPar<DLongGDL>( 0, sds_id);
+
+    status = SDgetinfo(sds_id, NULL, &rank, NULL, NULL, NULL);
+    if (status != FAIL && rank > (int32)MAXRANK)
+	throw GDLException( e->CallingNode(),
+			    "HDF_SD_GETINFO: dataset rank " + i2s(rank) +
+			    " exceeds the supported maximum (" + MAXRANK_STR + ")");
 
     status = SDgetinfo(sds_id, fieldname, &rank, dims, &dtype, &nattrs);
 
