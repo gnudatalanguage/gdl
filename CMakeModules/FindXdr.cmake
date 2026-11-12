@@ -9,7 +9,7 @@
 #  (at your option) any later version.
 #
 if(XDRDIR) 
-  set(CMAKE_PREFIX_PATH $XDRDIR)
+  set(CMAKE_PREFIX_PATH ${XDRDIR})
 endif(XDRDIR)
 find_library(XDR_LIBRARY NAMES bsdxdr xdr)
 set(XDR_LIBRARIES ${XDR_LIBRARY})

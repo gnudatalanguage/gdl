@@ -27,10 +27,40 @@ BUILD_OS=$(uname)
 DRY_RUN=false
 if [[ ${BUILD_OS} == *"MSYS"* ]] || [[ ${BUILD_OS} == *"MINGW"* ]]; then
     BUILD_OS="Windows"
-	declare -x MSYSTEM="UCRT64"
-	declare -x MSYSTEM_CARCH="x86_64"
-	declare -x MSYSTEM_CHOST="x86_64-w64-mingw32"
-	declare -x MSYSTEM_PREFIX="/ucrt64"
+
+    if [[ -z ${Platform} ]]; then
+        case ${MSYSTEM} in
+            UCRT64)     Platform="ucrt-x86_64" ;;
+            CLANGARM64) Platform="clang-aarch64" ;;
+            MINGW32)    Platform="i686" ;;
+            *)          Platform="x86_64" ;;
+        esac
+    fi
+    if [[ ${Platform} == "x86_64" ]]; then
+        declare -x MSYSTEM="MINGW64"
+        declare -x MSYSTEM_CARCH="x86_64"
+        declare -x MSYSTEM_CHOST="x86_64-w64-mingw32"
+        declare -x MSYSTEM_PREFIX="/mingw64"
+    elif [[ ${Platform} == "ucrt-x86_64" ]]; then
+        declare -x MSYSTEM="UCRT64"
+        declare -x MSYSTEM_CARCH="x86_64"
+        declare -x MSYSTEM_CHOST="x86_64-w64-mingw32"
+        declare -x MSYSTEM_PREFIX="/ucrt64"
+    elif [[ ${Platform} == "clang-aarch64" ]]; then
+        declare -x MSYSTEM="CLANGARM64"
+        declare -x MSYSTEM_CARCH="aarch64"
+        declare -x MSYSTEM_CHOST="aarch64-w64-mingw32"
+        declare -x MSYSTEM_PREFIX="/clangarm64"
+    elif [[ ${Platform} == "i686" ]]; then
+        declare -x MSYSTEM="MINGW32"
+        declare -x MSYSTEM_CARCH="i686"
+        declare -x MSYSTEM_CHOST="i686-w64-mingw32"
+        declare -x MSYSTEM_PREFIX="/mingw32"
+    else
+        echo "[${ME}] Fatal error! Unknown Platform: ${Platform} (expected x86_64, i686, ucrt-x86_64 or clang-aarch64)"
+        exit 1
+    fi
+    export Platform
 elif [[ ${BUILD_OS} == "Darwin" ]]; then
     BUILD_OS="macOS"
     Platform=${Platform:-$(arch)}
@@ -95,6 +125,10 @@ if [ ${BUILD_OS} == "Windows" ]; then
         readline zlib libpng gsl wxwidgets3.2 libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi udunits
         eigen3 eccodes glpk shapelib expat openssl qhull graphicsmagick
     )
+    if [[ ${Platform} == "clang-aarch64" ]]; then # Do not existe in clangarm64
+        MSYS2_PACKAGES=( ${MSYS2_PACKAGES[@]/msmpi/} )
+    fi
+
     #if you add something in MSYS2_PACKAGES_REBUILD you may have to add special lines in main.yml to push the product in /var/cache/pacman/pkg
     MSYS2_PACKAGES_REBUILD=(
        
@@ -183,6 +217,11 @@ function build_msys2_package {
     fi
     if [[ ${arch} == "x86_64" ]]; then
         export MINGW_ARCH=mingw64
+
+    elif [[ ${arch} == "ucrt-x86_64" ]]; then
+        export MINGW_ARCH=ucrt64
+    elif [[ ${arch} == "clang-aarch64" ]]; then
+        export MINGW_ARCH=clangarm64
     else
         export MINGW_ARCH=mingw32
     fi
@@ -191,15 +230,8 @@ function build_msys2_package {
 }
 
 function find_architecture {
-    if [ ${Platform:-`uname -m`} == "x86_64" ]; then
-        export mname="mingw64"
-        export MSYSTEM="MINGW64"
-        export arch="x86_64"
-    else
-        export mname="mingw32"
-        export MSYSTEM="MINGW32"
-        export arch="i686"
-    fi
+    export mname=${MSYSTEM_PREFIX#/}
+    export arch=${Platform}
     export PATH=/$mname/bin:$PATH
     log "Architecture: ${arch}"
 }
@@ -390,7 +422,8 @@ function prep_packages_dryrun {
 
 function find_dlls {
     for dll in $(strings $1 | grep -o '\S*\.dll' | grep -v $(basename $1)); do
-        dll="/mingw64/bin/$dll"
+        dll="/${mname}/bin/$dll"
+
         if [ -f "$dll" ] && [[ ! ${found_dlls[@]} =~ (^|[[:space:]])"$dll"($|[[:space:]]) ]]; then
             log "Found DLL dependency: $dll"
             found_dlls+=("$dll")
@@ -444,13 +477,14 @@ function configure_gdl {
     if [ ${BUILD_OS} == "Windows" ]; then
         export WX_CONFIG=${GDL_DIR}/scripts/deps/windows/wx-config-wrapper
     fi
+
     # The INTERACTIVE_GRAPHICS option is removed. 
     # Now plplot drivers is part of GDL
     cmake ${GDL_DIR} -G"${GENERATOR}" \
         -DCMAKE_BUILD_TYPE=${Configuration} \
         -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
         -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} -DOPENMP=${WITH_OPENMP} \
-        -DWXWIDGETS=${WITH_WXWIDGETS} -DX11={WITH_X11} -DGRAPHICSMAGICK=${WITH_GRAPHICSMAGICK} \
+        -DWXWIDGETS=${WITH_WXWIDGETS} -DX11=${WITH_X11} -DGRAPHICSMAGICK=${WITH_GRAPHICSMAGICK} \
         -DNETCDF=${WITH_NETCDF} -DHDF=${WITH_HDF4} -DHDF5=${WITH_HDF5} \
         -DMPI=${WITH_MPI} -DTIFF=${WITH_TIFF} -DGEOTIFF=${WITH_GEOTIFF} \
         -DLIBPROJ=${WITH_LIBPROJ} -DPYTHON=${WITH_PYTHON} -DPYTHONVERSION=${PYTHONVERSION} -DFFTW=${WITH_FFTW} \
