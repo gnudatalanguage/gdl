@@ -41,7 +41,12 @@
 
 //prevent register to take effect when including old code.
 #if __cplusplus > 199711L
-#define register      // Deprecated in C++11.
+  #if defined(__clang__) && defined(_WIN32) && (defined(__aarch64__) || defined(__arm64ec__))
+    // winnt.h (ARM64) needs real 'register' for x18; '#define register' causes duplicate symbols
+    #pragma clang diagnostic ignored "-Wregister"
+  #else
+    #define register // Deprecated in C++11.
+  #endif
 #endif  // #if __cplusplus > 199711L
 
 #ifdef __CYGWIN__
