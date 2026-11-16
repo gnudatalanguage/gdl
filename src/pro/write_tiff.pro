@@ -20,6 +20,8 @@
 ; OPTIONAL INPUTS:
 ;        bits_per_sample: bits per sample
 ;        compression: compression method (not done)
+;        bigtiff: write a BigTIFF file (64-bit offsets). Used automatically when the
+;                 image does not fit in a classic TIFF file (4 GB).
 ;        For pseudocolor only
 ;        red  : the Red colormap vector (for PseudoColor images)
 ;        green: the Green colormap vector (for PseudoColor images)
@@ -42,10 +44,15 @@
 ; the Free Software Foundation; either version 2 of the License, or     
 ; (at your option) any later version.                                   
 ;
-function WriteASimpleTag,unit,s
-  writeu,unit,s.id,s.type,s.size
+; Classic TIFF tag entries are 12 bytes (tag, type, 4-byte count, 4-byte value or offset).
+; BigTIFF entries are 20 bytes (tag, type, 8-byte count, 8-byte value or offset).
+function WriteASimpleTag,unit,s,big
+  if big then writeu,unit,s.id,s.type,ulong64(s.size) else writeu,unit,s.id,s.type,s.size
   point_lun,-unit,pos
-  if s.type eq 3us then writeu,unit,fix(s.value) else writeu,unit,long(s.value[0])
+  if s.type eq 16us then writeu,unit,ulong64(s.value[0]) else begin ; LONG8 (BigTIFF only)
+     if s.type eq 3us then writeu,unit,fix(s.value) else writeu,unit,long(s.value[0])
+     if big then writeu,unit,0UL ; value field is 8 bytes in BigTIFF
+  endelse
   return, pos
 end
 pro  WritePadding,unit
@@ -69,12 +76,31 @@ pro AddtoTags,tags,index,id,type,size,value
      endif else tags[index].value[0]=value ; 1 long 
 end
 
-pro UpdateTagValueWithPosition,unit,offsettable,i
+pro UpdateTagValueWithPosition,unit,offsettable,i,big
    point_lun,-unit,current
    ; write start address at offsetable location and go to current 
    point_lun,unit,offsettable[i]
-   writeu,unit,long(current)
+   if big then writeu,unit,ulong64(current) else writeu,unit,long(current)
    point_lun,unit,current
+end
+
+; Write the value of a tag whose entry was written with a placeholder at offsettable[i].
+; TIFF stores a value inside the entry when it fits (4 bytes, or 8 in BigTIFF),
+; otherwise at the end of the file with its offset in the entry.
+pro WriteTagValue,unit,offsettable,i,value,big
+   slot=big ? 8 : 4
+   nb=n_bytes(value)
+   if nb le slot then begin
+      point_lun,-unit,current
+      point_lun,unit,offsettable[i]
+      writeu,unit,value
+      if nb lt slot then writeu,unit,replicate(0b,slot-nb)
+      point_lun,unit,current
+   endif else begin
+      UpdateTagValueWithPosition,unit,offsettable,i,big
+      writeu,unit,value
+      WritePadding,unit
+   endelse
 end
 
 function check_dimension_is_2, array, name
@@ -83,38 +109,49 @@ function check_dimension_is_2, array, name
   if sz[0] ne 2 then Message,name+" is not a 2-dim array."
   return,sz[1:2]
 end
-function AddImageAndLinkIFDChain, unit, image
+; big (output): 1 if the existing file is a BigTIFF. The appended image must use the same format.
+function AddImageAndLinkIFDChain, unit, image, big
   on_error,2
   compile_opt HIDDEN
   signature=0s
   magic=0s
-  offsetIFD=0L
-  readu,unit,signature,magic,offsetIFD
+  readu,unit,signature,magic
   if signature ne '4949'x then message,'Cannot update big-endian TIFF files; please FIXME'
+  big = magic eq '002b'x
+  if big then begin
+     bytesize=0us & zero=0us & offsetIFD=0ULL
+     readu,unit,bytesize,zero,offsetIFD
+     nexistingIFDEntries=0ULL & PointerToNextIFD=0ULL & entrysize=20
+  endif else begin
+     offsetIFD=0UL & readu,unit,offsetIFD
+     nexistingIFDEntries=0us & PointerToNextIFD=0UL & entrysize=12
+  endelse
+  pointersize=big ? 8 : 4
+  if ~big && (fstat(unit)).size+n_bytes(image)+65536ULL ge 2ULL^32 then $
+     message,'Appending this image would make the file larger than 4 GB, which a classic TIFF file cannot hold. Write the first image with /BIGTIFF.'
 ;; go to first IFD0
   point_lun,unit,offsetIFD
-  nexistingIFDEntries=0s
   readu,unit,nexistingIFDEntries
 ;; go to last IFD if any
-  skip_lun,unit,nexistingIFDEntries*12
+  skip_lun,unit,nexistingIFDEntries*entrysize
 ;; read the pointer to the next IFD (may be Zero)
-  PointerToNextIFD=0L & readu,unit,PointerToNextIFD
+  readu,unit,PointerToNextIFD
   while PointerToNextIFD ne 0 do begin
      offsetIFD=PointerToNextIFD
      point_lun,unit,offsetIFD
      readu,unit,nexistingIFDEntries
-     skip_lun,unit,nexistingIFDEntries*12
+     skip_lun,unit,nexistingIFDEntries*entrysize
      readu,unit,PointerToNextIFD
   endwhile
 ;; save this last IFD last position
   point_lun,-unit,lastpos
-  lastpos-=4                    ; start of last 'long' value
+  lastpos-=pointersize           ; start of the last pointer value
   startofdata=(fstat(unit)).size ; data will start at end of file
   point_lun,unit,startofdata         ; go to end
   writeu,unit,image ; write image at "start of data"
   point_lun,-unit,currentpos
   point_lun,unit,lastpos
-  writeu,unit,long(currentpos)      ; 32 BITS!
+  if big then writeu,unit,ulong64(currentpos) else writeu,unit,long(currentpos)
   point_lun,unit,currentpos         ; end of file after image written
   return, startofdata
 end
@@ -128,15 +165,14 @@ pro WRITE_TIFF, filename, imageDonotTouch, append=append, bigtiff=bigtiff, bits_
   on_error,2
   compile_opt HIDDEN
 
-  if keyword_set(bigtiff) then Message,/informational,"BIGTIFF Keyword ignored. Fixme!"
-  ;; compression UNSUPPORTED
+;; compression UNSUPPORTED
   compression= keyword_set(compression)
   if (compression) then Mesage,/informational,"Compression not supported by GDL, writing uncompressed."
   
 
 
   tiffbyte=1us & tiffascii=2us & tiffshort=3us & tifflong=4us & tiffrational=5us & tiffsbyte=6us & tiffundef=7us &$
-     stiffshort=8us & stifflong=9us & stiffrational=10us & tifffloat=11us & tiffdouble=12us
+     stiffshort=8us & stifflong=9us & stiffrational=10us & tifffloat=11us & tiffdouble=12us & tifflong8=16us
   samples=[4,1,2,2,3,3,6,4,4,6, 4, 4, 1, 1, 1, 1]
 
   ;;default
@@ -275,17 +311,28 @@ if dodcomplex then begin & image=fix(temporary(image),type=9) & bps=128 & endif 
    endif
 
    ;;image OK, open file, write it
+   ;; A classic TIFF file uses 32-bit offsets, so it cannot exceed 4 GB. Use BigTIFF when asked,
+   ;; or automatically when the image and its tags would not fit (64 kB covers the tags written here).
+   tagbytes=65536ULL+n_elements(icc_profile)+n_elements(photoshop)+n_elements(document_name)
+   big=keyword_set(bigtiff) || (ulong64(n_bytes(image))+tagbytes ge 2ULL^32)
    doAppend=keyword_set(append)
    if (doAppend) then begin
       if query_tiff(filename) ne 1 then message,filename+" is not existing or is not a TIFF file!"
       openu,unit,filename,/get_lun
-      StartOfData=addImageAndLinkIFDChain(unit,image) ; we are at end, after writing image
+      StartOfData=addImageAndLinkIFDChain(unit,image,big) ; we are at end, after writing image; big follows the file
    endif else begin
       openw,unit,filename,/get_lun
-      writeu,unit,'4949'xus,'002a'xus,long(8+n_bytes(image))
-      StartOfData=8
+      if big then begin
+         ;; BigTIFF header: version 43, offsets are 8 bytes, then the 8-byte offset of the first IFD
+         writeu,unit,'4949'xus,'002b'xus,8us,0us,ulong64(16)+n_bytes(image)
+         StartOfData=16
+      endif else begin
+         writeu,unit,'4949'xus,'002a'xus,long(8+n_bytes(image))
+         StartOfData=8
+      endelse
       writeu,unit,image
    endelse
+   offsettype=big ? tifflong8 : tifflong
 
    ;; BitsPerSample: single or vector ?
    if SamplePerPixel eq 1 then BitsPerSample=bps else BitsPerSample=replicate(bps,SamplePerPixel)
@@ -340,7 +387,7 @@ if dodcomplex then begin & image=fix(temporary(image),type=9) & bps=128 & endif 
    sampleformat=replicate(samples[size(image,/type)],SamplePerPixel)
    ;; document_name
    if (n_elements(document_name) eq 0 ) then document_name=filename 
-   prop={id:0s, type:3s, size:1l, value:[0l,0l]} ; beware, passed value may be only 1 element and value must be short if 2 elements passed. 
+   prop={id:0s, type:3s, size:1l, value:[0ll,0ll]} ; beware, passed value may be only 1 element and value must be short if 2 elements passed.
    ntags=100
    tags=replicate(prop,ntags)
 
@@ -365,11 +412,11 @@ if dodcomplex then begin & image=fix(temporary(image),type=9) & bps=128 & endif 
    i++ & AddtoTags,tags,i,270,tiffascii,n_bytes(imagedescription)+1,0 ; ImageDescription
    ImageDescriptionIndex=i
    ;;data location
-   i++ & AddtoTags,tags,i,273,tifflong,1s,StartofData    ; StripOffsets (fixed)
+   i++ & AddtoTags,tags,i,273,offsettype,1s,StartofData  ; StripOffsets (fixed)
    i++ & AddtoTags,tags,i,274,tiffshort,1s,orientation   ; Orientation
    i++ & AddtoTags,tags,i,277,tiffshort,1,SamplePerPixel ; SamplePerPixel
    i++ & AddtoTags,tags,i,278,tifflong,1s,m              ; RowsPerStrip
-   i++ & AddtoTags,tags,i,279,tifflong,1s,n_bytes(image) ; StripByteCounts
+   i++ & AddtoTags,tags,i,279,offsettype,1s,n_bytes(image) ; StripByteCounts
    i++ & AddtoTags,tags,i,282,tiffrational,1s,0          ; XResolution
    Xresolution=i
    i++ & AddtoTags,tags,i,283,tiffrational,1s,0 ; YResolution
@@ -415,63 +462,27 @@ if (hasypos) then begin & i++ & AddtoTags,tags,i,287,tiffrational,1s,0 & endif ;
    if (hasicc) then iccIndex=i
    
    ntags=i+1
-   writeu,unit,fix(ntags)
+   if big then writeu,unit,ulong64(ntags) else writeu,unit,fix(ntags)
    pos=replicate(0ULL,ntags)
-   for i=0,ntags-1 do pos[i]=writeAsimpletag(unit,tags[i])
+   for i=0,ntags-1 do pos[i]=writeAsimpletag(unit,tags[i],big)
    WriteEndOfIFD,unit
    if SamplePerPixel gt 2 then begin
-      UpdateTagValueWithPosition,unit,pos,BitsPerSampleIndex; BitsPerSample
-      writeu,unit,fix(BitsPerSample)
-      WritePadding,unit
-      UpdateTagValueWithPosition,unit,pos,sampleformatindex; SampleFormat
-      writeu,unit,fix(sampleformat)
-      WritePadding,unit
+      WriteTagValue,unit,pos,BitsPerSampleIndex,fix(BitsPerSample),big ; BitsPerSample
+      WriteTagValue,unit,pos,sampleformatindex,fix(sampleformat),big   ; SampleFormat
    endif
-   UpdateTagValueWithPosition,unit,pos,XResolution
-   writeu,unit,long(xres),1L    ; Xresolution
-   UpdateTagValueWithPosition,unit,pos,YResolution
-   writeu,unit,long(yres),1L    ; Yresolution
-   if (hasxpos) then begin
-      UpdateTagValueWithPosition,unit,pos,xposIndex
-      writeu,unit,100L,long(xpos),1L ; Xposition
-   endif
-   if (hasypos) then begin
-      UpdateTagValueWithPosition,unit,pos,yposIndex
-      writeu,unit,100L,long(ypos),1L ; Xposition
-   endif
+   WriteTagValue,unit,pos,XResolution,[long(xres),1L],big ; Xresolution
+   WriteTagValue,unit,pos,YResolution,[long(yres),1L],big ; Yresolution
+   if (hasxpos) then WriteTagValue,unit,pos,xposIndex,[100L,long(xpos),1L],big ; Xposition
+   if (hasypos) then WriteTagValue,unit,pos,yposIndex,[100L,long(ypos),1L],big ; Yposition
 
-   UpdateTagValueWithPosition,unit,pos,documentnameIndex
-   writeu,unit,document_name,0b
-   WritePadding,unit
+   WriteTagValue,unit,pos,documentnameIndex,[byte(document_name),0b],big
+   WriteTagValue,unit,pos,ImageDescriptionIndex,[byte(imagedescription),0b],big
+   WriteTagValue,unit,pos,softwareIndex,[byte(software),0b],big
+   WriteTagValue,unit,pos,modifydateIndex,[byte(modifydate),0b],big
 
-   UpdateTagValueWithPosition,unit,pos,ImageDescriptionIndex
-   writeu,unit,imagedescription,0b
-   WritePadding,unit
-
-   UpdateTagValueWithPosition,unit,pos,softwareIndex
-   writeu,unit,software,0b
-   WritePadding,unit
-
-   UpdateTagValueWithPosition,unit,pos,modifydateIndex
-   writeu,unit,modifydate,0b
-   WritePadding,unit
-
-   if (doPalette) then begin
-      UpdateTagValueWithPosition,unit,pos,colormapindex
-      writeu,unit,fix(colormap)
-      WritePadding,unit
-   endif
-   
-   if (hasphotoshop) then begin
-      UpdateTagValueWithPosition,unit,pos,photoshopIndex
-      writeu,unit,photoshop
-      WritePadding,unit
-   endif
-   if (hasicc) then begin
-      UpdateTagValueWithPosition,unit,pos,iccIndex
-      writeu,unit,icc_profile
-      WritePadding,unit
-   endif
+   if (doPalette) then WriteTagValue,unit,pos,colormapindex,fix(colormap),big
+   if (hasphotoshop) then WriteTagValue,unit,pos,photoshopIndex,photoshop,big
+   if (hasicc) then WriteTagValue,unit,pos,iccIndex,icc_profile,big
 
    ;; end & special geotiff treatment
    flush,unit
