@@ -132,6 +132,8 @@ test_ludc_lusol.pro
 test_make_array.pro
 test_math_function_dim.pro
 test_matrix_multiply.pro
+test_median.pro
+test_median_filter.pro
 test_memory.pro
 test_message.pro
 test_modulo.pro
