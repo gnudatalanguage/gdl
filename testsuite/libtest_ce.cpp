@@ -176,9 +176,6 @@ double testce_double(int argc, void* argv[]) {
 
     printf("Starting C part of testce_double ... ");
 
-    double f;
-    memcpy(&f, argv+2, sizeof(double));
-
     if (   argc != 2
 	|| ABS( *(double*)argv[0] - 1.11 ) > EPSILON
 	|| ABS( *((double*)argv[1]+0) - 2.22 ) > EPSILON
