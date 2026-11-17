@@ -21,6 +21,10 @@ pro CLEANUP_EXCEPTION_OBJECT__DEFINE
 definition={cleanup_exception_object, mode:0, label:''}
 end
 
+pro CLEANUP_EXCEPTION_OBJECT::DEFUSE
+self.mode=2
+end
+
 pro CLEANUP_EXCEPTION_LOCAL
 local=OBJ_NEW('cleanup_exception_object', 0, 'local cleanup failed')
 end
@@ -97,7 +101,7 @@ for mode=1,3 do begin
 endfor
 ON_ERROR, 1
 
-; A later function in the same statement must not catch its caller's error.
+; Cleanup failure must stop evaluation before a later function is called.
 caught=0
 after=0
 status=EXECUTE('value=CLEANUP_EXCEPTION_DROP()+CLEANUP_EXCEPTION_CALLEE(caught) & after=1')
@@ -107,12 +111,13 @@ if after NE 0 then ERRORS_ADD, errors, 'continued after caller cleanup error'
 if STRPOS(!ERROR_STATE.MSG, 'caller cleanup failure') LT 0 then $
    ERRORS_ADD, errors, 'lost caller cleanup exception'
 
-; Nested EXECUTE must not consume the surrounding statement's pending error.
+; A cleanup failure stops evaluation before the nested EXECUTE is entered.
 after=0
+nested_value=-1
 status=EXECUTE("value=CLEANUP_EXCEPTION_DROP()+EXECUTE('nested_value=42') & after=1")
 if (status NE 0) OR (after NE 0) then $
    ERRORS_ADD, errors, 'nested EXECUTE consumed caller cleanup error'
-if nested_value NE 42 then ERRORS_ADD, errors, 'nested EXECUTE did not run normally'
+if nested_value NE -1 then ERRORS_ADD, errors, 'evaluated RHS after cleanup failure'
 
 ; IDL 8.4 frees the object even when explicit CLEANUP fails.
 o=OBJ_NEW('cleanup_exception_object', 0, 'explicit cleanup failed')
@@ -124,13 +129,21 @@ if OBJ_VALID(o) then ERRORS_ADD, errors, 'failed cleanup left object valid'
 status=EXECUTE('OBJ_DESTROY, o')
 if status NE 1 then ERRORS_ADD, errors, 'destroying invalid object reference'
 
-; A later destructor with a CATCH must not consume an earlier failure.
+; An array release stops at the first failing cleanup, even if a later
+; object's cleanup would handle its own error. Defuse that survivor afterwards.
 objects=[OBJ_NEW('cleanup_exception_object', 0, 'first cleanup failure'), $
          OBJ_NEW('cleanup_exception_object', 1, 'handled cleanup failure')]
 status=EXECUTE('objects=0')
 if status NE 0 then ERRORS_ADD, errors, 'multiple object cleanup status'
 if STRPOS(!ERROR_STATE.MSG, 'first cleanup failure') LT 0 then $
    ERRORS_ADD, errors, 'lost first cleanup exception'
+survivors=OBJ_VALID()
+foreach survivor, survivors do begin
+   if OBJ_ISA(survivor, 'cleanup_exception_object') then begin
+      survivor->DEFUSE
+      OBJ_DESTROY, survivor
+   endif
+endforeach
 
 ; Errors handled by CLEANUP itself still count as success.
 status=EXECUTE("o=OBJ_NEW('cleanup_exception_object', 1, 'handled') & o=0")
@@ -141,19 +154,21 @@ status=EXECUTE('CLEANUP_EXCEPTION_CATCH, caught')
 if (status NE 1) OR (caught NE 1) then $
    ERRORS_ADD, errors, 'CATCH around automatic cleanup'
 
-; Preserve the original exception when destructors run during unwinding.
+; IDL retains the last cleanup failure when destructors run during unwinding.
 status=EXECUTE('CLEANUP_EXCEPTION_UNWIND')
 if status NE 0 then ERRORS_ADD, errors, 'unwinding status'
-if STRPOS(!ERROR_STATE.MSG, 'primary failure') LT 0 then $
-   ERRORS_ADD, errors, 'lost primary exception'
+if STRPOS(!ERROR_STATE.MSG, 'secondary cleanup failure') LT 0 then $
+   ERRORS_ADD, errors, 'lost cleanup exception during unwinding'
 status=EXECUTE('value=43')
 if (status NE 1) OR (value NE 43) then $
    ERRORS_ADD, errors, 'cleanup error leaked from unwinding'
 
-; A later error in the same statement must not leave a deferred error behind.
+; The cleanup error stops the expression before the undefined variable is used.
 o=OBJ_NEW('cleanup_exception_object', 0, 'deferred cleanup failure')
 status=EXECUTE('value=(o=0)+undefined_cleanup_test_variable')
 if status NE 0 then ERRORS_ADD, errors, 'immediate failure status'
+if STRPOS(!ERROR_STATE.MSG, 'deferred cleanup failure') LT 0 then $
+   ERRORS_ADD, errors, 'evaluated undefined RHS after cleanup failure'
 status=EXECUTE('value=44')
 if (status NE 1) OR (value NE 44) then $
    ERRORS_ADD, errors, 'cleanup error leaked from failed statement'

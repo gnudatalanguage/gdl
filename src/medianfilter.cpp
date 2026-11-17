@@ -13,7 +13,7 @@
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // To contact the author, see http://users.ics.aalto.fi/suomela/
 
-// modified by GD to mimic the /EVEN switch of IDL. Note that modifying these optimized algorithms for non-odd sizes is tricky.
+// Adapted for IDL's borders, /EVEN keyword, NaNs, and even-sized windows.
 
 namespace fastmedian{  //make it apart from the rest...
 
@@ -30,11 +30,11 @@ const uint64_t ONE64 = 1;
 // Reasonable values based on benchmarks
 
 inline int choose_blocksize_1d(int h) {
-    return 8*(h + 2);
+    return static_cast<int>(std::min<int64_t>(8*(int64_t(h) + 2), std::numeric_limits<int>::max()));
 }
 
 inline int choose_blocksize_2d(int h) {
-    return 4*(h + 2);
+    return static_cast<int>(std::min<int64_t>(4*(int64_t(h) + 2), std::numeric_limits<int>::max()));
 }
 
 
@@ -43,7 +43,7 @@ inline int choose_blocksize_2d(int h) {
 // (no such bit: output undefined)
 
 inline int findnth64(uint64_t x, int n) {
-#ifdef __AVX2__
+#if defined(__BMI2__) && (defined(__x86_64__) || defined(_M_X64))
     x = _pdep_u64(ONE64 << n, x);
 #else
     for (int i = 0; i < n; ++i) {
@@ -62,20 +62,22 @@ inline int popcnt64(uint64_t x) {
 
 class Dim {
 public:
-    Dim(int b_, int size_, int h_)
+    Dim(int b_, int size_, int window)
         : size(size_),
-          h(h_),
-          step(calc_step(b_, h_)),
-          count(calc_count(b_, size_, h_))
+          h(window / 2),
+          right(window - h - 1),
+          step(calc_step(b_, h)),
+          count(calc_count(b_, size_, h))
     {
-        assert(2 * h + 1 < b_);
+        assert(2 * h + 1 <= b_);
         assert(count >= 1);
-        assert(2 * h + count * step >= size);
-        assert(2 * h + (count - 1) * step < size || count == 1);
+        assert(2 * int64_t(h) + int64_t(count) * step >= size);
+        assert(2 * int64_t(h) + int64_t(count - 1) * step < size || count == 1);
     }
 
     const int size;
     const int h;
+    const int right;
     const int step;
     const int count;
 
@@ -90,7 +92,7 @@ private:
         } else {
             int interior = size - 2 * h;
             int step = calc_step(b, h);
-            return (interior + step - 1) / step;
+            return 1 + (interior - 1) / step;
         }
     }
 };
@@ -129,7 +131,7 @@ struct BDim {
     inline int w1(int v) const {
         assert(b0 <= v);
         assert(v < b1);
-        return std::min(v + 1 + dim.h, size);
+        return v + 1 + std::min(dim.right, size - v - 1);
     }
 
     // Block i is located at coordinates [start, end) in the image.
@@ -152,10 +154,6 @@ public:
         : words(get_words(bb)),
           buf(new uint64_t[words])
     {}
-
-    ~Window() {
-        delete[] buf;
-    }
 
     inline void clear()
     {
@@ -204,7 +202,7 @@ public:
 private:
     static inline int get_words(int bb) {
         assert(bb >= 1);
-        return (bb + WORD_SIZE - 1) / WORD_SIZE;
+        return 1 + (bb - 1) / WORD_SIZE;
     }
 
     static const int WORD_SHIFT = 6;
@@ -214,7 +212,7 @@ private:
     // Size of buf.
     const int words;
     // Bit number s is on iff element s is inside the window.
-    uint64_t * const buf;
+    std::unique_ptr<uint64_t[]> buf;
     // half[0] = popcount of buf[0] ... buf[p-1]
     // half[1] = popcount of buf[p] ... buf[words-1]
     int half[2];
@@ -226,18 +224,12 @@ private:
 template <typename T>
 class WindowRank {
 public:
-    WindowRank(int bb_)
+    WindowRank(int bb_, bool even_)
         : sorted(new std::pair<T,int>[bb_]),
           rank(new int[bb_]),
           window(bb_),
-          bb(bb_)
+          even(even_)
     {}
-
-    ~WindowRank()
-    {
-        delete[] sorted;
-        delete[] rank;
-    }
 
     void init_start() {
         size = 0;
@@ -253,7 +245,7 @@ public:
     }
 
     void init_finish() {
-        std::sort(sorted, sorted + size);
+        std::sort(sorted.get(), sorted.get() + size);
         for (int i = 0; i < size; ++i) {
             rank[sorted[i].second] = i;
         }
@@ -275,8 +267,8 @@ public:
         if (total == 0) {
             return std::numeric_limits<T>::quiet_NaN();
         } else {
-            int goal1 = (total - 1) / 2;
-            int goal2 = (total - 0) / 2;
+            int goal1 = even ? (total - 1) / 2 : total / 2;
+            int goal2 = total / 2;
             int med1 = window.find(goal1);
             T value = sorted[med1].first;
             if (goal2 != goal1) {
@@ -290,10 +282,10 @@ public:
     }
 
 private:
-    std::pair<T,int>* const sorted;
-    int* const rank;
+    std::unique_ptr<std::pair<T,int>[]> sorted;
+    std::unique_ptr<int[]> rank;
     Window window;
-    const int bb;
+    const bool even;
     int size;
     static const int NAN_MARKER = -1;
 };
@@ -304,8 +296,9 @@ private:
 template <typename T>
 class MedCalc2D {
 public:
-    MedCalc2D(int b_, Dim dimx_, Dim dimy_, const T* in_, T* out_)
-        : wr(b_ * b_), bx(dimx_), by(dimy_), in(in_), out(out_)
+    MedCalc2D(int b_, Dim dimx_, Dim dimy_, const T* in_, T* out_, bool even)
+        : wr(std::min(b_, dimx_.size) * std::min(b_, dimy_.size), even),
+          bx(dimx_), by(dimy_), in(in_), out(out_)
     {}
 
     void run(int bx_, int by_)
@@ -388,7 +381,16 @@ private:
     }
 
     inline void set_med(int x, int y) {
-        out[coord(x, y)] = wr.get_med();
+        const int xx = x + bx.start;
+        const int yy = y + by.start;
+        const int pos = coord(x, y);
+        // IDL leaves a half-window border unchanged.
+        if (xx < bx.dim.h || xx >= bx.dim.size - bx.dim.h ||
+            yy < by.dim.h || yy >= by.dim.size - by.dim.h) {
+            out[pos] = in[pos];
+        } else {
+            out[pos] = wr.get_med();
+        }
     }
 
     inline int pack(int x, int y) const {
@@ -411,8 +413,8 @@ private:
 template <typename T>
 class MedCalc1D {
 public:
-    MedCalc1D(int b_, Dim dimx_, const T* in_, T* out_)
-        : wr(b_), bx(dimx_), in(in_), out(out_)
+    MedCalc1D(int b_, Dim dimx_, const T* in_, T* out_, bool even)
+        : wr(std::min(b_, dimx_.size), even), bx(dimx_), in(in_), out(out_)
     {}
 
     void run(int bx_)
@@ -448,8 +450,8 @@ private:
                 wr.update(-1, pack(x - bx.dim.h));
             }
             ++x;
-            if (x + bx.dim.h < bx.size) {
-                wr.update(+1, pack(x + bx.dim.h));
+            if (bx.dim.right < bx.size - x) {
+                wr.update(+1, pack(x + bx.dim.right));
             }
             set_med(x);
         }
@@ -463,7 +465,13 @@ private:
     }
 
     inline void set_med(int x) {
-        out[coord(x)] = wr.get_med();
+        const int pos = coord(x);
+        // Use global coordinates so internal block boundaries are filtered.
+        if (pos < bx.dim.h || pos >= bx.dim.size - bx.dim.h) {
+            out[pos] = in[pos];
+        } else {
+            out[pos] = wr.get_med();
+        }
     }
 
     inline int pack(int x) const {
@@ -482,13 +490,13 @@ private:
 
 
 template <typename T>
-void median_filter_impl_2d(int x, int y, int hx, int hy, int b, const T* in, T* out) {
-    if (2 * hx + 1 > b || 2 * hy + 1 > b) {
+void median_filter_impl_2d(int x, int y, int wx, int wy, int b, const T* in, T* out, bool even) {
+    if (2 * (wx / 2) + 1 > b || 2 * (wy / 2) + 1 > b) {
         throw std::invalid_argument("window too large for this block size");
     }
-    Dim dimx(b, x, hx);
-    Dim dimy(b, y, hy);
-    MedCalc2D<T> mc(b, dimx, dimy, in, out);
+    Dim dimx(b, x, wx);
+    Dim dimy(b, y, wy);
+    MedCalc2D<T> mc(b, dimx, dimy, in, out, even);
     for (int by = 0; by < dimy.count; ++by) {
         for (int bx = 0; bx < dimx.count; ++bx) {
             mc.run(bx, by);
@@ -498,12 +506,12 @@ void median_filter_impl_2d(int x, int y, int hx, int hy, int b, const T* in, T* 
 
 
 template <typename T>
-void median_filter_impl_1d(int x, int hx, int b, const T* in, T* out) {
-    if (2 * hx + 1 > b) {
+void median_filter_impl_1d(int x, int wx, int b, const T* in, T* out, bool even) {
+    if (2 * (wx / 2) + 1 > b) {
         throw std::invalid_argument("window too large for this block size");
     }
-    Dim dimx(b, x, hx);
-    MedCalc1D<T> mc(b, dimx, in, out);
+    Dim dimx(b, x, wx);
+    MedCalc1D<T> mc(b, dimx, in, out, even);
     for (int bx = 0; bx < dimx.count; ++bx) {
         mc.run(bx);
     }
@@ -511,23 +519,17 @@ void median_filter_impl_1d(int x, int hx, int b, const T* in, T* out) {
 
 
 template <typename T>
-void median_filter_2d(int x, int y, int hx, int hy, int blockhint, const T* in, T* out) {
-    int h = std::max(hx, hy);
+void median_filter_2d(int x, int y, int wx, int wy, int blockhint, const T* in, T* out, bool even) {
+    int h = std::max(wx / 2, wy / 2);
     int blocksize = blockhint ? blockhint : choose_blocksize_2d(h);
-    median_filter_impl_2d<T>(x, y, hx, hy, blocksize, in, out);
+    median_filter_impl_2d<T>(x, y, wx, wy, blocksize, in, out, even);
 }
 
 template <typename T>
-void median_filter_1d(int x, int hx, int blockhint, const T* in, T* out) {
-    int blocksize = blockhint ? blockhint : choose_blocksize_1d(hx);
-    median_filter_impl_1d<T>(x, hx, blocksize, in, out);
+void median_filter_1d(int x, int wx, int blockhint, const T* in, T* out, bool even) {
+    int blocksize = blockhint ? blockhint : choose_blocksize_1d(wx / 2);
+    median_filter_impl_1d<T>(x, wx, blocksize, in, out, even);
 }
-
-template void median_filter_2d<float>(int x, int y, int hx, int hy, int blockhint, const float* in, float* out);
-template void median_filter_2d<double>(int x, int y, int hx, int hy, int blockhint, const double* in, double* out);
-
-template void median_filter_1d<float>(int x, int hx, int blockhint, const float* in, float* out);
-template void median_filter_1d<double>(int x, int hx, int blockhint, const double* in, double* out);
 
 /*
  * ctmf.c - Constant-time median filtering
@@ -744,14 +746,29 @@ static void ctmf_helper(
     assert( dst_step != 0 );
 
     /* SSE2 and MMX need aligned memory, provided by _mm_malloc(). */
+    auto free_histogram = [](uint16_t* p) {
+#if defined(__SSE2__) || defined(__MMX__)
+        _mm_free(p);
+#else
+        free(p);
+#endif
+    };
 #if defined(__SSE2__) || defined(__MMX__)
     h_coarse = (uint16_t*) _mm_malloc(  1 * 16 * n * cn * sizeof(uint16_t), 16 );
-    h_fine   = (uint16_t*) _mm_malloc( 16 * 16 * n * cn * sizeof(uint16_t), 16 );
-    memset( h_coarse, 0,  1 * 16 * n * cn * sizeof(uint16_t) );
-    memset( h_fine,   0, 16 * 16 * n * cn * sizeof(uint16_t) );
 #else
     h_coarse = (uint16_t*) calloc(  1 * 16 * n * cn, sizeof(uint16_t) );
+#endif
+    std::unique_ptr<uint16_t[], decltype(free_histogram)> coarse_owner(h_coarse, free_histogram);
+#if defined(__SSE2__) || defined(__MMX__)
+    h_fine   = (uint16_t*) _mm_malloc( 16 * 16 * n * cn * sizeof(uint16_t), 16 );
+#else
     h_fine   = (uint16_t*) calloc( 16 * 16 * n * cn, sizeof(uint16_t) );
+#endif
+    std::unique_ptr<uint16_t[], decltype(free_histogram)> fine_owner(h_fine, free_histogram);
+    if (!h_coarse || !h_fine) throw std::bad_alloc();
+#if defined(__SSE2__) || defined(__MMX__)
+    memset( h_coarse, 0,  1 * 16 * n * cn * sizeof(uint16_t) );
+    memset( h_fine,   0, 16 * 16 * n * cn * sizeof(uint16_t) );
 #endif
 
     /* First row initialization */
@@ -860,11 +877,6 @@ static void ctmf_helper(
 
 #if defined(__SSE2__) || defined(__MMX__)
     _mm_empty();
-    _mm_free(h_coarse);
-    _mm_free(h_fine);
-#else
-    free(h_coarse);
-    free(h_fine);
 #endif
 }
 
@@ -941,8 +953,12 @@ void ctmf(
      * A flag is passed to ctmf_helper() so that it treats these cases as if the
      * image was zero-padded.
      */
-    int stripes = (int) ceil( (double) (width - 2*r) / (memsize / sizeof(Histogram) - 2*r) );
-    int stripe_size = (int) ceil( (double) ( width + stripes*2*r - 2*r ) / stripes );
+    // Allow enough columns for the halo even when it exceeds the cache hint.
+    // Keep at least half of a large stripe available for its interior.
+    const size_t columns = std::max<size_t>(memsize / sizeof(Histogram), 4*r + 1);
+    const size_t step = columns - 2*r;
+    const size_t stripes = 1 + (width - 2*r - 1) / step;
+    const int stripe_size = static_cast<int>(2*r + 1 + (width - 2*r - 1) / stripes);
 
     int i;
 
@@ -960,53 +976,49 @@ void ctmf(
             break;
         }
     }
+
+    // Preserve the image border, as in the floating-point filters.
+    for (int y = 0; y < height; ++y) {
+        const unsigned char* row = src + y * src_step;
+        unsigned char* out = dst + y * dst_step;
+        if (y < r || y >= height - r) {
+            std::copy(row, row + width * cn, out);
+        } else {
+            std::copy(row, row + r * cn, out);
+            std::copy(row + (width - r) * cn, row + width * cn,
+                      out + (width - r) * cn);
+        }
+    }
 }
-
-//unused for the time being:
-#if 1
-
-#ifndef SIMPLE_H
-#define SIMPLE_H
 
 // Sliding median filter
 // Created 2012 by Colin Raffel
 // Portions Copyright (c) 2011 ashelly.myopenid.com under <http://www.opensource.org/licenses/mit-license>
 // see https://github.com/craffel/median-filter
 
-#ifndef MEDIATOR_H
-#define MEDIATOR_H
-
 template <typename Item> class Mediator
 {
 public:
   
-  Mediator(int nItems, bool iseven):N(nItems),even(iseven)
+  Mediator(int nItems, bool iseven)
+    : N(nItems), even(iseven), data(new Item[nItems]), pos(new int[nItems]),
+      allocatedHeap(new int[nItems]), heap(allocatedHeap.get() + nItems / 2),
+      idx(0), minCt(0), maxCt(0), count(0)
   {
-    data = new Item[nItems];
-    pos = new int[nItems];
-    allocatedHeap = new int[nItems]; 
-    heap = allocatedHeap + (nItems/2);
-    minCt = maxCt = idx = 0;
     // Set up initial heap fill pattern: median, max, min, max, ...
-    while (nItems--)
-    {  
+    while (nItems--) {
       pos[nItems] = ((nItems + 1)/2)*((nItems & 1) ? -1 : 1);
       heap[pos[nItems]] = nItems;
     }
-  };
-  
-  ~Mediator()
-  {
-    delete[] data;
-    delete[] pos;
-    delete[] allocatedHeap;
-  };
-  
+  }
+
   // Inserts item, maintains median in O(lg nItems)
   void insert(const Item& v )
   {
     const int p = pos[idx];
-    const Item old = data[idx];
+    // Scratch storage is uninitialized until each slot has been inserted.
+    const Item old = count == N ? data[idx] : Item(0);
+    if (count < N) ++count;
     data[idx] = v;
     idx = (idx+1) % N;
     // New item is in minheap
@@ -1150,77 +1162,41 @@ private:
   const int N;
   // even /odd correction
   const bool even;
-  // Circular queue of values
-  Item* data;
-  // Index into `heap` for each value
-  int* pos;
-  // Max/median/min heap holding indexes into `data`.
+  // Owned arrays; heap is a borrowed pointer into allocatedHeap.
+  std::unique_ptr<Item[]> data;
+  std::unique_ptr<int[]> pos;
+  std::unique_ptr<int[]> allocatedHeap;
   int* heap;
-  // heap holds a pointer to the middle of its data; this is where the data is allocated.
-  int* allocatedHeap;
   // Position in circular queue
   int idx; 
   // Count of items in min heap
   int minCt;
   // Count of items in max heap
   int maxCt;
+  int count;
 };
 
-#endif
-void filter( double* array, int n, int filterSize, bool even=false );
-void filter( float* array, int n, int filterSize, bool even=false );
 
-#endif
-void filter( double* array, int n, int filterSize , bool even)
+// Fast in-place path for windows without NaNs.
+template <typename T>
+void filter(T* array, int n, int filterSize, bool even=false)
 {
-  Mediator<double> mediator( filterSize, even );
-  for (int i = 0; i < filterSize/2; ++i)
-  {
-    mediator.insert( array[0] );
-    array[i] = mediator.getMedian();
-  }
-  int offset = filterSize/2 + (filterSize % 2);
-  for (int i = 0; i < offset; ++i)
+  const int half = filterSize / 2;
+  if (n <= 2 * half) return;
+
+  // Load the first complete window before modifying any input values.
+  // Both borders retain their original values, including for even widths.
+  Mediator<T> mediator(filterSize, even);
+  for (int i = 0; i < filterSize; ++i)
   {
     mediator.insert( array[i] );
   }
-  for (int i = 0; i < n - offset; ++i)
+  const int offset = filterSize - half;
+  for (int i = half; i < n - half; ++i)
   {
     array[i] = mediator.getMedian();
-    mediator.insert( array[i + offset] );
-  }
-  for (int i = n - offset; i < n; ++i)
-  {
-    array[i] = mediator.getMedian();
-    mediator.insert( array[n - 1] );
+    if (i + 1 < n - half) mediator.insert( array[i + offset] );
   }
 }
-
-void filter( float* array, int n, int filterSize, bool even )
-{ 
-  Mediator<float> mediator( filterSize, even );
-  for (int i = 0; i < filterSize/2; ++i)
-  {
-    mediator.insert( array[0] );
-    array[i] = mediator.getMedian();
-  }
-  int offset = filterSize/2 + (filterSize % 2);
-  for (int i = 0; i < offset; ++i)
-  {
-    mediator.insert( array[i] );
-  }
-  for (int i = 0; i < n - offset; ++i)
-  {
-    array[i] = mediator.getMedian();
-    mediator.insert( array[i + offset] );
-  }
-  for (int i = n - offset; i < n; ++i)
-  {
-    array[i] = mediator.getMedian();
-    mediator.insert( array[n - 1] );
-  }
-}
-#endif
-
 
 } //namespace

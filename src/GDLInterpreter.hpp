@@ -13,9 +13,9 @@
 #include "GDLParser.hpp" 
 #include "GDLTreeParser.hpp" 
 
-#include <exception>
-#include <iomanip>
 #include <map>
+#include <iomanip>
+#include <exception>
 #include <utility>
 
 #include "datatypes.hpp"
@@ -46,7 +46,7 @@ private:
     // ASTNULL replacement
     static ProgNode  NULLProgNode;
     static ProgNodeP NULLProgNodeP;
-  static std::exception_ptr deferred_cleanup_exception_;
+    static std::exception_ptr deferredCleanupException;
 
     friend class BaseGDL;
     friend class ProgNode;
@@ -178,7 +178,7 @@ protected:
     BaseGDL** returnValueL; // holding the return value for l_functions
 
     bool interruptEnable;
-  EnvUDT* execute_env_ = nullptr;  // Caller of the innermost active EXECUTE.
+    EnvUDT* executeEnv = nullptr; // caller of the innermost active EXECUTE
 public:
     bool InterruptEnable() const { return interruptEnable;}
     // procedure (searchForPro == true) or function (searchForPro == false)
@@ -420,51 +420,74 @@ public:
 	    DecRef( id);
        }
     }
-  static void RethrowCleanupException() {
-    if (deferred_cleanup_exception_) {
-      auto error = std::exchange(deferred_cleanup_exception_, nullptr);
-      std::rethrow_exception(error);
-    }
-  }
-  static void DecRefObj(DObj id) {
-    if (id != 0 && IsEnabledGC()) {
-#ifdef GDL_DEBUG_HEAP
-      std::cout << "-- <ObjHeapVar" << id << ">" << std::endl;
-#endif
-      ObjHeapT::iterator it = objHeap.find(id);
-      if (it != objHeap.end()) {
-        if ((*it).second.Dec() && (*it).second.IsEnabledGC()) {
-#ifdef GDL_DEBUG_HEAP
-          std::cout << "Out of scope (garbage collected): <ObjHeapVar" << id << ">"
-                    << " at: " << callStack.back()->GetProName()
-                    << "  line: " << callStack.back()->GetLineNumber() << std::endl;
-#endif
-          // CLEANUP may run inside a noexcept destructor.
-          const bool unwinding = std::uncaught_exception();
-          try {
-            callStack.back()->ObjCleanup(id);
-          } catch (GDLException& error) {
-            // FIXME(IDL): Verify which CLEANUP error is retained and
-            // which secondary errors are printed during unwinding.
-            if (unwinding || deferred_cleanup_exception_) {
-              Warning(error.toString());
-            } else {
-              deferred_cleanup_exception_ = std::current_exception();
-            }
-          } catch (...) {
-            // Preserve an exception already unwinding the caller.
-            if (!unwinding && !deferred_cleanup_exception_) {
-              deferred_cleanup_exception_ = std::current_exception();
-            }
-          }
+   static void RethrowCleanupException()
+    {
+        if( deferredCleanupException)
+        {
+            auto error = std::exchange(deferredCleanupException, nullptr);
+            std::rethrow_exception( error);
         }
-#ifdef GDL_DEBUG_HEAP
-        else
-          std::cout << "<ObjHeapVar" << id << "> = " << (*it).second.Count() << std::endl;
-#endif
-      }
     }
-  }
+   static void ApplyCleanupException(GDLException& error)
+    {
+        if (!deferredCleanupException) return;
+        try {
+            RethrowCleanupException();
+        } catch (GDLException& cleanupError) {
+            error = cleanupError;
+        }
+    }
+
+    static void ReportExecuteError(GDLException& error)
+    {
+        if (error.IsReported()) return;
+        const std::string prefix = error.Prefix() ? SysVar::MsgPrefix() : "";
+        std::cerr << prefix << error.toString() << std::endl;
+        lib::write_journal_comment(prefix + error.toString());
+        error.SetReported();
+    }
+
+   static void DecRefObj( DObj id)
+    {
+	if( id != 0 and IsEnabledGC())
+	    {
+#ifdef GDL_DEBUG_HEAP
+std::cout << "-- <ObjHeapVar" << id << ">" << std::endl; 
+#endif
+		ObjHeapT::iterator it=objHeap.find( id);
+		if( it != objHeap.end()) 
+		    { 
+		       if( (*it).second.Dec() and (*it).second.IsEnabledGC() &&
+                           (!deferredCleanupException || std::uncaught_exception()))
+			   {
+#ifdef GDL_DEBUG_HEAP
+			       std::cout << "Out of scope (garbage collected): <ObjHeapVar" << id 
+					 << ">"
+					 << " at: " << callStack.back()->GetProName()
+					 << "  line: " << callStack.back()->GetLineNumber()
+					 << std::endl; 
+#endif
+                               // CLEANUP may run inside a noexcept destructor.
+                               const bool unwinding = std::uncaught_exception();
+                               try {
+                                   callStack.back()->ObjCleanup( id);
+                               }
+                               catch( ...) {
+                                   // During unwinding IDL runs all cleanups and retains
+                                   // the last error. Normal releases stop at the first.
+                                   if( unwinding || !deferredCleanupException)
+                                       deferredCleanupException = std::current_exception();
+                               }
+//			     FreeObjHeapDirect( id, it);
+			   }
+#ifdef GDL_DEBUG_HEAP
+			else
+std::cout << "<ObjHeapVar" << id << "> = " << (*it).second.Count() << std::endl; 
+#endif
+			
+		     }
+	    }
+    }
    static void DecRefObj( DObjGDL* p)
     {
 	SizeT nEl=p->Size();//N_Elements();

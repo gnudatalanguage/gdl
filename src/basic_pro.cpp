@@ -369,9 +369,7 @@ namespace lib {
 	if( par == NULL or par->Type() != GDL_OBJ) return;
 	DObjGDL* op= static_cast<DObjGDL*>(par);
 
-    // FIXME(IDL): Verify whether a failing CLEANUP stops array destruction
-    // or whether IDL destroys the remaining elements before reporting it.
-    // GDL currently stops at the first failure.
+    // IDL stops at the first failing CLEANUP, leaving later elements valid.
     SizeT nEl = op->N_Elements();
 	for( SizeT i=0; i<nEl; i++)	
 			e->ObjCleanup( (*op)[i]);

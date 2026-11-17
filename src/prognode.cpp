@@ -156,8 +156,8 @@ BaseGDL* ASSIGNNode::Eval()
 
     BaseGDL** l=_t->getNextSibling()->LExpr( res); //l_expr(_t, res);
 
-    r_guard.release();
-    return res;
+    interpreter->RethrowCleanupException();
+    return r_guard.release();
 }
 BaseGDL* ASSIGN_ARRAYEXPR_MFCALLNode::Eval()
 {
@@ -198,8 +198,8 @@ BaseGDL* ASSIGN_ARRAYEXPR_MFCALLNode::Eval()
             throw GDLException(ex.toString() + " or "+ex2.toString());
         }
     }
-    r_guard.release();
-    return res;
+    interpreter->RethrowCleanupException();
+    return r_guard.release();
 }
 
 BaseGDL* ASSIGN_REPLACENode::Eval()
@@ -242,6 +242,7 @@ BaseGDL* ASSIGN_REPLACENode::Eval()
   }
   r_guard.Release();
 
+  interpreter->RethrowCleanupException();
   return res->Dup();
 }
 
@@ -263,6 +264,7 @@ BaseGDL** ASSIGN_REPLACENode::LEval()
   }
   r_guard.Release();
 
+  interpreter->RethrowCleanupException();
   return l;
 }
 

@@ -600,84 +600,102 @@ public:
 
 // for CLEANUP calls due to reference counting
 // note: refcount is already zero for actID
-void EnvBaseT::ObjCleanup(DObj act_id) {
-  if (act_id == 0 || (inProgress.find(act_id) != inProgress.end())) return;
+void EnvBaseT::ObjCleanup( DObj actID)
+{
+  if( actID == 0 || (inProgress.find( actID) != inProgress.end()))
+    return;
 
-  DStructGDL* act_obj;
-  try {
-    act_obj = GetObjHeap(act_id);
-  } catch (GDLInterpreter::HeapException&) {
+  DStructGDL* actObj;
+  try{
+    actObj=GetObjHeap( actID);
+  }
+  catch( GDLInterpreter::HeapException&){
     // not found
     return;
   }
+	 
+  // found actID  
+  if( actObj != NULL)
+    {
+      InProgressGuard inProgressGuard( actID); // exception save
+    
+      std::unique_ptr<DObjGDL> actObjGDL_guard;
+      try{
+	// call CLEANUP function
+	DPro* objCLEANUP= actObj->Desc()->GetPro( "CLEANUP");
 
-  // found act_id
-  if (act_obj != nullptr) {
-    InProgressGuard in_progress_guard(act_id);  // exception save
-
-    std::unique_ptr<DObjGDL> act_obj_gdl_guard;
-    try {
-      // call CLEANUP function
-      DPro* cleanup = act_obj->Desc()->GetPro("CLEANUP");
-
-      if (cleanup != nullptr) {
-        act_obj_gdl_guard = std::make_unique<DObjGDL>(act_id);
-        auto* act_obj_gdl = act_obj_gdl_guard.get();
-        GDLInterpreter::IncRefObj(act_id);  // set refcount to 1
-
-        StackGuard<EnvStackT> stack_guard(interpreter->CallStack());
-        PushNewEmptyEnvUD(cleanup, &act_obj_gdl);
-
-        interpreter->call_pro(cleanup->GetTree());
+	if( objCLEANUP != NULL)
+	  {
+	    actObjGDL_guard = std::make_unique<DObjGDL>(actID);
+	    auto* actObjGDL = actObjGDL_guard.get();
+	    GDLInterpreter::IncRefObj( actID); // set refcount to 1
+  
+	    StackGuard<EnvStackT> stackGuard( interpreter->CallStack());
+	    PushNewEmptyEnvUD( objCLEANUP, &actObjGDL);
+  
+	    interpreter->call_pro( objCLEANUP->GetTree());
+	  }
       }
-    } catch (...) {
-      FreeObjHeap(act_id);  // make sure act_obj is freed
-      throw;                // rethrow
+      catch( ...)
+	{
+	  FreeObjHeap( actID); // make sure actObj is freed
+	  throw; // rethrow
+	}		
+      // actObjGDL_guard goes out of scope -> refcount is (would be) decreased
+      FreeObjHeap( actID); 
     }
-    // act_obj_gdl_guard goes out of scope -> refcount is (would be) decreased
-    FreeObjHeap(act_id);
-  } else {
-    Warning("Cleaning up invalid (NULL) OBJECT ID <" + i2s(act_id) + ">.");
-    FreeObjHeap(act_id);  // make sure act_obj is freed
-  }
+  else // actObj == NULL
+    {
+      Warning("Cleaning up invalid (NULL) OBJECT ID <"+i2s(actID)+">.");
+      FreeObjHeap( actID); // make sure actObj is freed
+    }
 }
 
-void EnvT::ObjCleanup(DObj act_id) {
-  if (act_id != 0 && (inProgress.find(act_id) == inProgress.end())) {
-    DStructGDL* act_obj;
-    try {
-      act_obj = GetObjHeap(act_id);
-    } catch (GDLInterpreter::HeapException) {
-      // FIXME(IDL): Confirm that repeating OBJ_DESTROY after a failed
-      // CLEANUP silently accepts the now-invalid object reference.
-      act_obj = nullptr;
-    }
 
-    if (act_obj != nullptr) {
-      InProgressGuard in_progress_guard(act_id);
-      std::unique_ptr<DObjGDL> act_obj_gdl_guard;
+
+void EnvT::ObjCleanup( DObj actID)
+{
+  if( actID != 0 && (inProgress.find( actID) == inProgress.end()))
+    {
+      DStructGDL* actObj;
       try {
-        DPro* cleanup = act_obj->Desc()->GetPro("CLEANUP");
-        if (cleanup != nullptr) {
-          act_obj_gdl_guard = std::make_unique<DObjGDL>(act_id);
-          auto* act_obj_gdl = act_obj_gdl_guard.get();
-          GDLInterpreter::IncRefObj(act_id);
-
-          StackGuard<EnvStackT> guard(interpreter->CallStack());
-          PushNewEnvUD(cleanup, 1, &act_obj_gdl);
-          interpreter->call_pro(cleanup->GetTree());
-        }
-      } catch (...) {
-        // IDL 8.4 frees a scalar object when its own CLEANUP fails.
-        // FIXME(IDL): Confirm that failure in a child's CLEANUP also
-        // frees the parent while propagating the child's error.
-        FreeObjHeap(act_id);
-        throw;
+	actObj=GetObjHeap( actID);
+	//  		GDLInterpreter::ObjHeapT::iterator it;
+	// 		actObj=GDLInterpreter::GetObjHeap( actID, it);
       }
-      FreeObjHeap(act_id);
+      catch( GDLInterpreter::HeapException) {
+        // Repeated OBJ_DESTROY silently accepts an invalid object reference.
+	actObj=NULL;
+      }
+
+      if( actObj != NULL)
+        {
+          InProgressGuard inProgressGuard( actID);
+          std::unique_ptr<DObjGDL> actObjGDL_guard;
+          try {
+            DPro* objCLEANUP = actObj->Desc()->GetPro( "CLEANUP");
+            if( objCLEANUP != nullptr)
+              {
+                actObjGDL_guard = std::make_unique<DObjGDL>(actID);
+                auto* actObjGDL = actObjGDL_guard.get();
+                GDLInterpreter::IncRefObj( actID);
+
+                StackGuard<EnvStackT> guard( interpreter->CallStack());
+                PushNewEnvUD( objCLEANUP, 1, &actObjGDL);
+                interpreter->call_pro( objCLEANUP->GetTree());
+              }
+          }
+          catch( ...) {
+            // IDL invalidates the object even when its own CLEANUP or a
+            // child's CLEANUP fails, and propagates the original error.
+            FreeObjHeap( actID);
+            throw;
+          }
+          FreeObjHeap( actID);
+        }
     }
-  }
 }
+
 
 
 // these two functions should be inlined
@@ -1314,7 +1332,7 @@ bool EnvBaseT::Removeall()
   int osz = env.size();
   for( ssize_t ix=osz-1; ix >= 0; ix--) {
     // A cleanup prompt must not see a variable whose value is being deleted.
-    GDLDelete(std::exchange(env[ix], nullptr));
+    GDLDelete( std::exchange(env[ix], nullptr));
     env.pop_back();
   }
   proD->Resize(0);

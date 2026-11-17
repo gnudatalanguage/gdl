@@ -125,6 +125,7 @@ public:
 
 class FCALL_LIB_N_ELEMENTSNode: public LeafNode
 {
+  BaseGDL* EvalNElements();
 public:
   FCALL_LIB_N_ELEMENTSNode( const RefDNode& refNode): LeafNode( refNode)
   {}

@@ -89,7 +89,7 @@ GDLInterpreter::HeapT     GDLInterpreter::heap;
 GDLInterpreter::ObjHeapT  GDLInterpreter::objHeap; 
 SizeT                     GDLInterpreter::heapIx;
 EnvStackT                 GDLInterpreter::callStack;
-std::exception_ptr GDLInterpreter::deferred_cleanup_exception_;
+std::exception_ptr        GDLInterpreter::deferredCleanupException;
 DLong                     GDLInterpreter::stepCount;
 std::string               GDLInterpreter::MyProName;
 bool                      GDLInterpreter::noInteractive; // To exit on error or stop in line execution mode (gdl -e do_something)
@@ -1736,7 +1736,7 @@ else
 
  RetCode DInterpreter::InnerInterpreterLoop(SizeT lineOffset) {
   ProgNodeP retTreeSave = _retTree;
-  ValueGuard<bool> inner_loop_guard(inInnerInterpreterLoop);
+  ValueGuard<bool> innerLoopGuard(inInnerInterpreterLoop);
   
   for (;;) {
 

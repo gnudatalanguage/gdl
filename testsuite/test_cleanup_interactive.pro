@@ -8,7 +8,7 @@ return, quote+STRJOIN(STRSPLIT(value, quote, /EXTRACT, /PRESERVE_NULL), $
 end
 
 pro CLEANUP_INTERACTIVE_CHECK, context, name, commands, errors, $
-                               required=required, forbidden=forbidden
+                               required=required, forbidden=forbidden, diagnostics=diagnostics
 OPENW, lun, context.input, /GET_LUN
 PRINTF, lun, commands, FORMAT='(A)'
 FREE_LUN, lun
@@ -25,6 +25,14 @@ for i=0,N_ELEMENTS(required)-1 do $
    if STRPOS(log, required[i]) LT 0 then bad=1
 for i=0,N_ELEMENTS(forbidden)-1 do $
    if STRPOS(log, forbidden[i]) GE 0 then bad=1
+if N_ELEMENTS(diagnostics) GT 0 then begin
+   actual=['']
+   foreach line, output do begin
+      if (STRPOS(line, '% ACP_OPERATION:') EQ 0) OR $
+         (STRPOS(line, '% ACP_OBJ::CLEANUP:') EQ 0) then actual=[actual, line]
+   endforeach
+   if ~ARRAY_EQUAL(actual, ['', diagnostics]) then bad=1
+endif
 if bad then begin
    ERRORS_ADD, errors, name+' (exit status '+STRTRIM(status, 2)+')'
    PRINT, log
@@ -71,19 +79,36 @@ foreach command, [ $
 endforeach
 
 ; Do not wrap these calls in EXECUTE: it would mask caller-CATCH bugs.
+CLEANUP_INTERACTIVE_CHECK, context, 'automatic cleanup IDL precedence', [ $
+   'TEST_CLEANUP_PRECEDENCE, /REFERENCE_ONLY', $
+   "PRINT, 'CLEANUP_PRECEDENCE_OK'", $
+   'EXIT'], errors, REQUIRED=['CLEANUP_PRECEDENCE_OK'], $
+   FORBIDDEN=['Execution halted at:', 'Error occurred at:'], $
+   DIAGNOSTICS=['% ACP_OPERATION: primary failure', '% ACP_OBJ::CLEANUP: cleanup failed: A', $
+      '% ACP_OPERATION: primary failure', '% ACP_OBJ::CLEANUP: cleanup failed: A', $
+      '% ACP_OBJ::CLEANUP: cleanup failed: B', $
+      REPLICATE('% ACP_OBJ::CLEANUP: cleanup failed: A', 6)]
+
+CLEANUP_INTERACTIVE_CHECK, context, 'OBJ_DESTROY IDL error cases', [ $
+   'TEST_OBJ_DESTROY_ERRORS', $
+   'if SCOPE_LEVEL() NE 1 then EXIT, status=2', $
+   "PRINT, 'OBJ_DESTROY_ERRORS_OK'", $
+   'EXIT'], errors, REQUIRED=['OBJ_DESTROY_ERRORS_OK'], $
+   FORBIDDEN=['Execution halted at:', 'Error occurred at:']
+
 for mode=-1,3 do begin
    CLEANUP_INTERACTIVE_CHECK, context, 'caller CATCH, ON_ERROR='+STRTRIM(mode, 2), [ $
       "RESOLVE_ROUTINE, 'test_cleanup_exceptions'", $
       "caught=''", $
       'CLEANUP_EXCEPTION_CALLER_CATCH, '+STRTRIM(mode, 2)+', caught', $
-      "if STRPOS(caught, 'primary failure') LT 0 then EXIT, status=1", $
+      "if STRPOS(caught, 'secondary cleanup failure') LT 0 then EXIT, status=1", $
       'if SCOPE_LEVEL() NE 1 then EXIT, status=2', $
       'caught=0', $
       'CLEANUP_EXCEPTION_CATCH, caught', $
       'if caught NE 1 then EXIT, status=3', $
       "PRINT, 'CLEANUP_CALLER_CATCH_OK'", $
-      'EXIT'], errors, REQUIRED=['secondary cleanup failure', 'CLEANUP_CALLER_CATCH_OK'], $
-      FORBIDDEN=['Execution halted at:', 'Error occurred at:']
+      'EXIT'], errors, REQUIRED=['CLEANUP_CALLER_CATCH_OK'], $
+      FORBIDDEN=['Execution halted at:', 'Error occurred at:', '% CLEANUP_EXCEPTION_OBJECT::CLEANUP:']
 endfor
 
 ; Outside EXECUTE: only the originating routine can use ON_IOERROR.
@@ -104,12 +129,12 @@ CLEANUP_INTERACTIVE_CHECK, context, 'cleanup during unwinding', [ $
    "RESOLVE_ROUTINE, 'test_cleanup_exceptions'", $
    'ON_ERROR, 1', $
    "if EXECUTE('CLEANUP_EXCEPTION_UNWIND') NE 0 then EXIT, status=1", $
-   "if STRPOS(!ERROR_STATE.MSG, 'primary failure') LT 0 then EXIT, status=2", $
+   "if STRPOS(!ERROR_STATE.MSG, 'secondary cleanup failure') LT 0 then EXIT, status=2", $
    "if EXECUTE('value=42') NE 1 then EXIT, status=3", $
    "PRINT, 'CLEANUP_UNWIND_OK'", $
    'EXIT'], errors, REQUIRED=['secondary cleanup failure', 'CLEANUP_UNWIND_OK']
 
-CLEANUP_INTERACTIVE_CHECK, context, 'multiple deferred cleanup failures', [ $
+CLEANUP_INTERACTIVE_CHECK, context, 'array cleanup stops at first failure', [ $
    "RESOLVE_ROUTINE, 'test_cleanup_exceptions'", $
    'ON_ERROR, 1', $
    "objects=[OBJ_NEW('cleanup_exception_object', 0, 'first deferred cleanup failure'), "+ $
@@ -118,7 +143,8 @@ CLEANUP_INTERACTIVE_CHECK, context, 'multiple deferred cleanup failures', [ $
    "if STRPOS(!ERROR_STATE.MSG, 'first deferred cleanup failure') LT 0 then EXIT, status=2", $
    "if EXECUTE('value=42') NE 1 then EXIT, status=3", $
    "PRINT, 'CLEANUP_MULTIPLE_OK'", $
-   'EXIT'], errors, REQUIRED=['second deferred cleanup failure', 'CLEANUP_MULTIPLE_OK']
+   'EXIT'], errors, REQUIRED=['first deferred cleanup failure', 'CLEANUP_MULTIPLE_OK'], $
+   FORBIDDEN=['second deferred cleanup failure']
 
 foreach reset, ['.RESET_SESSION', '.FULL_RESET_SESSION'] do begin
    foreach mode, [0, 2] do begin ; failing and successful CLEANUP
