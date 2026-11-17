@@ -435,6 +435,20 @@ function find_dlls {
 function configure_gdl {
     log "Configuring GDL (${Configuration})..."
 
+    # src/whereami is a git submodule: it is empty if GDL was cloned without --recursive
+    if [[ ! -f "${GDL_DIR}/src/whereami/src/whereami.c" ]]; then
+        if [[ -e "${GDL_DIR}/.git" ]]; then
+            log "Initialising git submodules (src/whereami)..."
+            git -C "${GDL_DIR}" submodule update --init --recursive || {
+                log "Fatal error! 'git submodule update --init' failed."
+                exit 1
+            }
+        else
+            log "Fatal error! src/whereami is missing and ${GDL_DIR} is not a git clone."
+            exit 1
+        fi
+    fi
+
     if [[ ${DEPS} != "standard" && ${DEPS} != "headless" && ${DEPS} != "debug" ]]; then
         log "Fatal error! Unknown DEPS: ${DEPS}"
         exit 1
