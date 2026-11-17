@@ -36,6 +36,20 @@ if (STRLOWCASE(!version.os) EQ 'darwin') then begin
    endif
 endif
 ;
+; On Windows, no /proc: PowerShell walks up the parent processes
+; of the spawned command until it finds the interpreter (gdl, idl, fl)
+;
+if (STRLOWCASE(!version.os_family) EQ 'windows') then begin
+   known_case=1
+   name=STRLOWCASE(GDL_IDL_FL())
+   ps="$p=Get-CimInstance Win32_Process -Filter ('ProcessId='+$PID);"+ $
+      "while($p -and $p.Name -notmatch '^"+name+"'){"+ $
+      "$p=Get-CimInstance Win32_Process -Filter ('ProcessId='+$p.ParentProcessId)};"+ $
+      "$p.ExecutablePath"
+   SPAWN, 'powershell -NoProfile -NonInteractive -Command "'+ps+'"', res, count=cnt
+   if cnt GT 0 then get_abspath_to_exe=STRTRIM(res[0],2)
+endif
+;
 if KEYWORD_SET(verbose) then begin
    print, 'Running EXE : ', get_abspath_to_exe
 endif
@@ -43,7 +57,7 @@ endif
 if ~FILE_TEST(get_abspath_to_exe) then print, 'full path to exe not detected :('
 ;
 if (known_case EQ 0) then begin
-   MESSAGE, 'Sorry, this is working only for GNU/Linux & OSX', /continue
+   MESSAGE, 'Sorry, this is working only for GNU/Linux, OSX & windows', /continue
    MESSAGE, 'Please contribute !', /continue
    if ~KEYWORD_SET(stop) then EXIT, status=1 else STOP
 endif
