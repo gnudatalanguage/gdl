@@ -8,162 +8,106 @@
 ; https://github.com/gnudatalanguage/gdl/issues/1709
 ;
 ; ---------------------------------
-; 
+;
 ; Modifications history :
 ;
 ; - 2024-01-05 : AC. creation. Ideas welcome since I don't have
 ;   MSwin and *BSD around ...
 ;
-; ---------------------------------
-;
-pro TEST_BSD_READLINK, cumul_errors, test=test
-;
-nb_errors=0
-;
-MESSAGE, /continue, "No idea for tests under *BSD. Please contribute"
-;
-; ----- final ----
-;
-BANNER_FOR_TESTSUITE, 'TEST_BSD_READLINK', nb_errors, /short
-ERRORS_CUMUL, cumul_errors, nb_errors
-if KEYWORD_set(test) then STOP
-;
-end
+; - 2026-11-17 : Use temporary symlinks instead of assuming system paths and
+;   timezone configuration. Keep the Linux /proc/self regression check.
 ;
 ; ---------------------------------
 ;
-pro TEST_MSWIN_READLINK, cumul_errors, test=test
+pro TEST_UNIX_READLINK, cumul_errors, verbose=verbose
 ;
 nb_errors=0
+tdir=''
+created=0
+lun=-1L
+CATCH, error
+if error NE 0 then begin
+   CATCH, /cancel
+   ERRORS_ADD, nb_errors, 'fixture setup/read: '+!ERROR_STATE.MSG
+   GOTO, cleanup
+endif
 ;
-MESSAGE, /continue, "No idea for tests under MSwin. Please contribute"
+stamp=STRTRIM(STRING(SYSTIME(1), FORMAT='(F24.6)'), 2)
+tdir=FILE_EXPAND_PATH(FILEPATH('gdl-readlink-'+stamp, /tmp))
+if FILE_TEST(tdir, /noexpand_path) then MESSAGE, 'Temporary directory already exists: '+tdir
+FILE_MKDIR, tdir
+created=1
+target=FILEPATH('target.txt', ROOT_DIR=tdir)
+OPENW, lun, target, /get_lun
+PRINTF, lun, 'FILE_READLINK fixture'
+FREE_LUN, lun
+lun=-1L
+FILE_MKDIR, FILEPATH('subdir', ROOT_DIR=tdir)
 ;
-; ----- final ----
+expected=[target, 'target.txt', 'subdir', 'missing target.txt']
+links=tdir+PATH_SEP()+['absolute', 'relative', 'directory', 'dangling']
+; ln preserves the supplied target text, including relative and missing paths.
+; /NOSHELL passes paths as arguments, without shell quoting or expansion.
+for i=0,N_ELEMENTS(links)-1 do begin
+   SPAWN, ['ln', '-s', expected[i], links[i]], output, errout, $
+      /noshell, EXIT_STATUS=status
+   if status NE 0 then MESSAGE, 'Cannot create symlink: '+STRJOIN(errout, ' ')
+   actual=FILE_READLINK(links[i])
+   if KEYWORD_SET(verbose) then PRINT, links[i]+' -> '+actual
+   if actual NE expected[i] then ERRORS_ADD, nb_errors, 'wrong target for '+links[i]
+endfor
 ;
-BANNER_FOR_TESTSUITE, 'TEST_MSWIN_READLINK', nb_errors, /short
+if ~ARRAY_EQUAL(FILE_READLINK(links), expected) then $
+   ERRORS_ADD, nb_errors, 'wrong targets for array input'
+if FILE_READLINK(target, /allow_nonsymlink) NE '' then $
+   ERRORS_ADD, nb_errors, '/ALLOW_NONSYMLINK on a regular file'
+missing=FILEPATH('missing target.txt', ROOT_DIR=tdir)
+if FILE_READLINK(missing, /allow_nonexistent) NE '' then $
+   ERRORS_ADD, nb_errors, '/ALLOW_NONEXISTENT on a missing path'
+;
+cleanup:
+CATCH, /cancel
+if lun GE 0 then FREE_LUN, lun
+if created then begin
+   FILE_DELETE, tdir, /recursive, /noexpand_path
+   if FILE_TEST(tdir, /noexpand_path) then ERRORS_ADD, nb_errors, 'fixture directory was not removed'
+endif
+BANNER_FOR_TESTSUITE, 'TEST_UNIX_READLINK', nb_errors, /short
 ERRORS_CUMUL, cumul_errors, nb_errors
-if KEYWORD_set(test) then STOP
-;
 end
 ;
-; ---------------------------------
-;
-pro TEST_OSX_READLINK, cumul_errors, test=test
-;
+; /proc/self has a dynamically generated target, unlike an ordinary symlink.
+pro TEST_LINUX_READLINK, cumul_errors
 nb_errors=0
-;
-expected='private/etc'
-res=FILE_READLINK('/etc')
-mess= "error for /etc vs private/etc"
-if (expected NE res) then ERRORS_ADD, nb_errors, mess
-;
-expected='/var/db/timezone/zoneinfo/'
-res=FILE_READLINK('/etc/localtime')
-res=STRMID(res,0,26)
-mess="error for localtime vs timezone"
-if (expected NE res) then ERRORS_ADD, nb_errors, mess
-;
-expected='/System/Volumes/Data/home'
-res=FILE_READLINK('/home')
-mess="error for /home vs Volume ..."
-if (expected NE res) then ERRORS_ADD, nb_errors, mess
-;
-; ----- final ----
-;
-BANNER_FOR_TESTSUITE, 'TEST_OSX_READLINK', nb_errors, /short
-ERRORS_CUMUL, cumul_errors, nb_errors
-if KEYWORD_set(test) then STOP
-;
-end
-;
-;  ---------------------------------
-;
-pro TEST_LINUX_READLINK, cumul_errors, test=test
-;
-nb_errors=0
-;
-; see discussion in issue #1706
-if FILE_TEST('/proc/sys/kernel/pid_max') then begin
-   GET_LUN, nlun
-   OPENR, nlun, '/proc/sys/kernel/pid_max'
-   pid_max=0L
-   ;; temporary using a format ... see #1712 :(
-   READF, nlun, pid_max, format='(i)'
-   CLOSE, nlun
-   FREE_LUN, nlun
-endif else begin
-   print, "assuming old Linux system ..."
-   pid_max=32767
-endelse
-pid_min=2                       ; (0 scheduler, 1 init)
-;
+if ~FILE_TEST('/proc/self', /symlink) then return
 pid=FILE_READLINK('/proc/self')
-; when the conversion cannot be done, result is "0"
-pid=LONG(pid)
-mess= "error for /proc/self"
-if (pid LT pid_min) or (pid GT pid_max) then ERRORS_ADD, nb_errors, mess
-;
-expected='/usr/share/zoneinfo/'
-res=FILE_READLINK('/etc/localtime')
-res=STRMID(res,0,20)
-mess="error for localtime vs timezone"
-if (expected NE res) then ERRORS_ADD, nb_errors, mess
-;
-expected='share/man'
-res=FILE_READLINK('/usr/local/man')
-mess="error for man pages ... not sure it is portable" 
-if (expected NE res) then ERRORS_ADD, nb_errors, mess
-;
-; ----- final ----
-;
+if ~STREGEX(pid, '^[0-9]+$', /boolean) then begin
+   ERRORS_ADD, nb_errors, 'non-numeric target for /proc/self'
+endif else begin
+   if ~FILE_TEST('/proc/'+pid, /directory) then $
+      ERRORS_ADD, nb_errors, '/proc/self does not name a process directory'
+endelse
 BANNER_FOR_TESTSUITE, 'TEST_LINUX_READLINK', nb_errors, /short
 ERRORS_CUMUL, cumul_errors, nb_errors
-if KEYWORD_set(test) then STOP
-;
 end
 ;
-; ---------------------------------
-;
 pro TEST_FILE_READLINK, help=help, test=test, no_exit=no_exit, verbose=verbose
-;
 if KEYWORD_SET(help) then begin
    print, 'pro TEST_FILE_READLINK, help=help, test=test, $'
    print, '                        no_exit=no_exit, verbose=verbose'
    return
 endif
 ;
+if STRLOWCASE(!version.os_family) NE 'unix' then begin
+   MESSAGE, /continue, 'Symbolic-link fixtures require a Unix system'
+   if ~KEYWORD_SET(no_exit) then EXIT, status=77
+   return
+endif
+;
 cumul_errors=0
-;
-; specific tests for OSX
-;
-if (!version.os EQ STRLOWCASE('darwin')) then begin
-   TEST_OSX_READLINK, cumul_errors, test=test
-endif
-;
-; specific tests for Linux
-;
-if (!version.os EQ STRLOWCASE('linux')) then begin
-   TEST_LINUX_READLINK, cumul_errors, test=test
-endif
-;
-; specific tests for MSwin
-;
-if (!version.os EQ STRLOWCASE('window')) then begin
-   TEST_MSWIN_READLINK, cumul_errors, test=test
-endif
-;
-; specific tests for *BSD systems
-;
-if (STRPOS(STRlowCASE(!version.os), 'bsd') GE 0) then begin
-   TEST_BSD_READLINK, cumul_errors, test=test
-endif
-;
-; ----------------- final message ----------
-;
+TEST_UNIX_READLINK, cumul_errors, verbose=verbose
+if STRLOWCASE(!version.os) EQ 'linux' then TEST_LINUX_READLINK, cumul_errors
 BANNER_FOR_TESTSUITE, 'TEST_FILE_READLINK', cumul_errors
-;
 if (cumul_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
-;
 if KEYWORD_SET(test) then STOP
-;
 end
