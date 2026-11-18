@@ -11,7 +11,21 @@
 ;   before 8.9 ... (syntax error messagess)
 ; - partially transform into a more formal test
 ;
+; 2026-11-18
+; - Check plain C-style output formats, quoting, and invalid formats.
+;
 ; ---------------------------------------
+;
+function ANTLR_FORMAT_REJECTED, fmt
+catch, error
+if error NE 0 then begin
+   catch, /cancel
+   return, 1
+endif
+PRINT, FORMAT=fmt
+catch, /cancel
+return, 0
+end
 ;
 pro TEST_ANTLR_ISSUES, help=help, test=test, verbose=verbose, no_exit=no_exit
 ;
@@ -86,6 +100,28 @@ if (formatres2 NE 'a-b-c') then ERRORS_ADD, errors, 'Case Bad Format 2'
 print,"a","b","c",format="%s-%s-%s"
 formatres3=STRING("a","b","c",format="%s-%s-%s")
 if (formatres3 NE 'a-b-c') then ERRORS_ADD, errors, 'Case Bad Format 3'
+PRINTF, -1, "a", "b", "c", FORMAT="%s-%s-%s"
+;
+; Plain C-style formats must preserve text, quotes, and backslash escapes.
+formats=['text: %s', '"%s"', "'%s'", '\"%s\"', '\\%s', $
+         '\\"%s"', '\(%s)', '%s %%', '%s\tend', '  %s', ' (A)']
+expected=['text: abc', '"abc"', "'abc'", '"abc"', '\abc', $
+          '\"abc"', '(abc)', 'abc %', 'abc'+STRING(9B)+'end', '  abc', 'abc']
+for i=0, N_ELEMENTS(formats)-1 do begin
+   result=STRING('abc', FORMAT=formats[i])
+   if ~ARRAY_EQUAL(result, expected[i]) then $
+      ERRORS_ADD, errors, 'C-style format: '+formats[i]
+endfor
+if STRING(12, FORMAT='%04d') NE '0012' then $
+   ERRORS_ADD, errors, 'C-style numeric format'
+PRINT, FORMAT='literal "text" %%'
+;
+; Invalid FORTRAN formats must not be retried as literal C-style text.
+bad_formats=['(I0', ' (I0', '%4.2.1f', '%s\']
+for i=0, N_ELEMENTS(bad_formats)-1 do begin
+   if ~ANTLR_FORMAT_REJECTED(bad_formats[i]) then $
+      ERRORS_ADD, errors, 'Invalid format accepted: '+bad_formats[i]
+endfor
 ;
 ; ---------------------
 ; issue #541
