@@ -649,15 +649,22 @@ void GDLInterpreter::ReportCompileError( GDLException& e, const string& file)
     }
 }
 
-// compiles file, returns success
-// if untilPro is set to "" the whole file is compiled
-// procedure (searchForPro == true (default)) or function (searchForPro == false)
-bool GDLInterpreter::CompileFile(const string& f, const string& untilPro, bool searchForPro, bool inlined) 
+namespace {
+struct FileCompilation {
+  bool success = false;
+  bool activeRoutineReplaced = false;
+  bool mainStarted = false;
+};
+
+// An empty untilPro compiles the whole file. Otherwise stop at the named routine.
+FileCompilation CompileSource(const string& f, const string& untilPro = "",
+                              bool searchForPro = true, bool inlined = false)
 {
-//Note that std::unique_ptr is better that raw pointers
-std::unique_ptr<std::istream> stream;
-//stream holds a string
-if (inlined) stream = std::make_unique<std::istringstream>(f); else stream = std::make_unique<std::ifstream>(std::ifstream{ f.c_str() });
+  std::unique_ptr<std::istream> stream;
+  if (inlined)
+    stream = std::make_unique<std::istringstream>(f);
+  else
+    stream = std::make_unique<std::ifstream>(f.c_str());
 
   RefDNode theAST;
   try {  
@@ -672,18 +679,18 @@ if (inlined) stream = std::make_unique<std::istringstream>(f); else stream = std
     if( !theAST)
       {
 	cout << "No parser output generated." << endl;
-	return false;
+	return {};
       }	
   }
   catch( GDLException& e)
     {
-      ReportCompileError( e, f);
-      return false;
+      GDLInterpreter::ReportCompileError(e, f);
+      return {};
     }
   catch( ANTLRException& e)
     {
       std::cerr << "Lexer/Parser exception: " <<  e.getMessage() << endl;
-      return false;
+      return {};
     }
 
 #ifdef GDL_DEBUG
@@ -693,47 +700,28 @@ if (inlined) stream = std::make_unique<std::istringstream>(f); else stream = std
   cout << "CompileFile: Parser end." << endl;
 #endif
   
-#ifdef GDL_DEBUG
-  RefDNode trAST;
-#endif
-  GDLTreeParser treeParser( f, untilPro);
-  try
-    {
-      treeParser.translation_unit(theAST);
+  GDLTreeParser treeParser(f, untilPro);
+  FileCompilation result;
+  try {
+    treeParser.translation_unit(theAST);
+    result.success = true;
+  } catch (GDLException& e) {
+    GDLInterpreter::ReportCompileError(e, f);
+  } catch (ANTLRException& e) {
+    std::cerr << "Compiler exception: " << e.getMessage() << endl;
+  }
+  result.activeRoutineReplaced = treeParser.ActiveProCompiled();
+  result.mainStarted = treeParser.MainStarted();
+  return result;
+}
+}
 
-// #ifdef GDL_DEBUG
-// nothing is returned (pro/funList are changed)
-//       trAST=treeParser.getAST();
-// #endif
-
-      if( treeParser.ActiveProCompiled()) RetAll();
-    }
-  catch( GDLException& e)
-    {
-      ReportCompileError( e, f);
-      if( treeParser.ActiveProCompiled()) RetAll();
-      return false;
-    }
-  catch( ANTLRException& e)
-    {
-      std::cerr << "Compiler exception: " <<  e.getMessage() << endl;
-      if( treeParser.ActiveProCompiled()) RetAll();
-      return false;
-    }
-// #ifdef GDL_DEBUG
-//   cout << "Tree parser output:" << endl;
-//   pt.pr_tree(static_cast<antlr::RefAST>(trAST));
-//   cout << "ExecuteLine: Tree parser end." << endl;
-// #endif
-/*#ifdef GDL_DEBUG
-      cout << "Tree parser output:" << endl;
-      antlr::print_tree ptTP;
-      ptTP.pr_tree(static_cast<antlr::RefAST>(trAST));
-      cout << "CompileFile: Tree parser end." << endl;
-#endif*/
-  
-  return true;
-}      
+bool GDLInterpreter::CompileFile(const string& f, const string& untilPro, bool searchForPro, bool inlined)
+{
+  const auto result = CompileSource(f, untilPro, searchForPro, inlined);
+  if (result.activeRoutineReplaced) RetAll();
+  return result.success;
+}
 
 bool GDLInterpreter::CompileSaveFile(RefDNode theSemiCompiledAST) 
 {  
@@ -963,45 +951,33 @@ DInterpreter::CommandCode DInterpreter::CmdCompileOrRun( const string& command, 
     } else DInterpreter::ExecuteStringLine(outs);
     return CC_OK;
   }
-  bool retAll = false; // Remember if Retall is needed
+  bool retAll = false;
+  bool runMain = false;
+  for (const auto& name : ReturnListOfFiles(command)) {
+    string file = name;
+    AppendExtension(file);
+    if (!CompleteFileName(file)) {
+      file = name;
+      if (!CompleteFileName(file)) {
+        Message("Error opening file. File: " + name + ".");
+        runMain = false;
+        break;
+      }
+    }
 
-  std::vector<string> files=ReturnListOfFiles(command);
-  for (auto i=0; i< files.size(); ++i) {
-	std::string file=files[i];
-	  // try first with extension
-	  AppendExtension(file);
-	  bool found = CompleteFileName(file);
-
-	  // 2nd try without extension
-	  if (!found) {
-		file=files[i];
-		found = CompleteFileName(file);
-	  }
-
-	  if (found) {
-		try {
-		  // default is more verbose
-		  CompileFile(file); //, origstr); 
-		} catch (RetAllException&) {
-		  // delay the RetAllException until finished
-		  retAll = true;
-		}
-	  }
-	  else {
-		Message("Error opening file. File: " + files[i] + ".");
-		return CC_OK;
-	  }
-	}
-  if (doRun) {
-	// GD see issue #1969: this is the only difference with CmdCompile: process the
-	// eventual $MAIN$ commands that are at the end of 'argstr'.pro when CmdCompile
-	// would just ignore these non-procedure commands.
-  // actual run is perfomed in InterpreterLoop()
-  RetAll( RetAllException::RUN); // difference is here.
-  } else {
-    if (retAll) RetAll();
+    const auto result = CompileSource(file);
+    if (result.activeRoutineReplaced) retAll = true;
+    if (result.mainStarted) {
+      // Only schedule a main program compiled by this command.
+      auto* mainPro = static_cast<DSubUD*>(callStack[0]->GetPro());
+      runMain = doRun && result.success && mainPro->GetTree() != nullptr;
+      if (runningMain) retAll = true;
+    }
   }
-  return CC_OK; //avoid warnings
+
+  if (runMain) RetAll(RetAllException::RUN);
+  if (retAll) RetAll();
+  return CC_OK;
 }
 
 // execute GDL command (.run, .step, ...)
@@ -1057,7 +1033,10 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command) {
     if (!mainEnv->Removeall())
       cout << " Danger ! Danger! Unexpected result. Please exit asap & report" << endl;
 
-    return CmdCompileOrRun(command, true);
+    CommandCode ret = CmdCompileOrRun(command, true);
+    // .RNEW discarded the main variables, including arguments of stopped routines.
+    if (runningMain || callStack.size() > 1) RetAll();
+    return ret;
   } else if (cmd("STEP")) { //before skip to have .s give .step not .skip and not .stepover
     DLong sCount;
     if (args == "") {
@@ -1857,24 +1836,13 @@ void DInterpreter::ExecuteFile( const string& file)
 // this must be run only from $MAIN$
 void DInterpreter::RunDelTree()
 {
-  if( static_cast<DSubUD*>
-      (callStack.back()->GetPro())->GetTree() != NULL)
-    {
-      try
-	{
-	  call_pro(static_cast<DSubUD*>
-		   (callStack.back()->GetPro())->GetTree());
+  auto* mainPro = static_cast<DSubUD*>(callStack[0]->GetPro());
+  auto program = mainPro->TakeMainProgram();
+  if (!program) return;
 
-	  static_cast<DSubUD*>
-	    (callStack.back()->GetPro())->DelTree();
-	}
-      catch( RetAllException&)
-	{
-	  static_cast<DSubUD*>
-	    (callStack.back()->GetPro())->DelTree();
-	  throw;
-	}
-    }
+  ValueGuard<bool> guard(runningMain);
+  runningMain = true;
+  call_pro(program.get());
 }
 
 
