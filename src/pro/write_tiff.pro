@@ -55,9 +55,11 @@ function WriteASimpleTag,unit,s,big
   endelse
   return, pos
 end
-pro  WritePadding,unit
-     point_lun,-unit,current
-     pad=current mod 4 & if pad gt 0 then writeu,unit,replicate(0b,pad)
+pro WriteTIFFPadding,unit,big
+  point_lun,-unit,current
+  alignment=big ? 8 : 2
+  pad=(alignment-current mod alignment) mod alignment
+  if pad gt 0 then writeu,unit,bytarr(pad)
 end
 pro WriteEndOfIFD,unit
    writeu,unit,0ULL
@@ -76,11 +78,10 @@ pro AddtoTags,tags,index,id,type,size,value
      endif else tags[index].value[0]=value ; 1 long 
 end
 
-pro UpdateTagValueWithPosition,unit,offsettable,i,big
+pro WriteTIFFOffset,unit,offset,big
    point_lun,-unit,current
-   ; write start address at offsetable location and go to current 
-   point_lun,unit,offsettable[i]
-   if big then writeu,unit,ulong64(current) else writeu,unit,long(current)
+   point_lun,unit,offset
+   if big then writeu,unit,ulong64(current) else writeu,unit,ulong(current)
    point_lun,unit,current
 end
 
@@ -97,9 +98,9 @@ pro WriteTagValue,unit,offsettable,i,value,big
       if nb lt slot then writeu,unit,replicate(0b,slot-nb)
       point_lun,unit,current
    endif else begin
-      UpdateTagValueWithPosition,unit,offsettable,i,big
+      WriteTIFFPadding,unit,big
+      WriteTIFFOffset,unit,offsettable[i],big
       writeu,unit,value
-      WritePadding,unit
    endelse
 end
 
@@ -110,7 +111,7 @@ function check_dimension_is_2, array, name
   return,sz[1:2]
 end
 ; big (output): 1 if the existing file is a BigTIFF. The appended image must use the same format.
-function AddImageAndLinkIFDChain, unit, image, big
+function FindLastTIFFLink, unit, image, big
   on_error,2
   compile_opt HIDDEN
   signature=0s
@@ -143,17 +144,9 @@ function AddImageAndLinkIFDChain, unit, image, big
      skip_lun,unit,nexistingIFDEntries*entrysize
      readu,unit,PointerToNextIFD
   endwhile
-;; save this last IFD last position
+;; Return the file position of the last IFD's next-directory pointer.
   point_lun,-unit,lastpos
-  lastpos-=pointersize           ; start of the last pointer value
-  startofdata=(fstat(unit)).size ; data will start at end of file
-  point_lun,unit,startofdata         ; go to end
-  writeu,unit,image ; write image at "start of data"
-  point_lun,-unit,currentpos
-  point_lun,unit,lastpos
-  if big then writeu,unit,ulong64(currentpos) else writeu,unit,long(currentpos)
-  point_lun,unit,currentpos         ; end of file after image written
-  return, startofdata
+  return, lastpos-pointersize
 end
 
 pro WRITE_TIFF, filename, imageDonotTouch, append=append, bigtiff=bigtiff, bits_per_sample=bits_per_sample,$
@@ -277,37 +270,24 @@ if dodcomplex then begin & image=fix(temporary(image),type=9) & bps=128 & endif 
       if keyword_set(bits_per_sample) then bps=bits_per_sample
       if ~ISA(image,"Byte") then Message,"internal error, please report."
       bps=fix(bps)
-      shift=8-bps
-      nnew=SamplePerPixel*n*m*bps/8
-      tmp=bytarr(nnew)
-      K=0UL & I=0UL
-      case bps of
-         8: break
-         4: begin
-            for j=0,nnew-1 do begin
-               tmp[k]=ISHFT(image[i++],4)
-               tmp[k] OR= image[i++]
-               k++
-            endfor
-            image=tmp
-         end
-         1: begin
-            image=image gt 0
-            for j=0,nnew-1 do begin
-               tmp[k] =   ISHFT(image[i++],7)
-               tmp[k] OR= ISHFT(image[i++],6)
-               tmp[k] OR= ISHFT(image[i++],5)
-               tmp[k] OR= ISHFT(image[i++],4)
-               tmp[k] OR= ISHFT(image[i++],3)
-               tmp[k] OR= ISHFT(image[i++],2)
-               tmp[k] OR= ISHFT(image[i++],1)
-               tmp[k] OR= image[i++]
-               k++
-            endfor
-            image=tmp
-         end
-         else: Message,"Illegal keyword value for BITS_PER_SAMPLE."
-      endcase
+      if bps ne 8 and bps ne 4 and bps ne 1 then Message,"Illegal keyword value for BITS_PER_SAMPLE."
+      if bps lt 8 then begin
+         ;; Pack 8/bps samples per byte, first sample in the high bits.
+         ;; Each row starts on a byte boundary, so pad every row with zeros.
+         per=8/bps
+         rowSamples=long64(SamplePerPixel)*n
+         rowBytes=(rowSamples+per-1)/per
+         if bps eq 1 then image=image gt 0 else image=image and 15b
+         if rowSamples mod per ne 0 then begin
+            padded=bytarr(per*rowBytes,m)
+            padded[0,0]=reform(temporary(image),rowSamples,m)
+            image=temporary(padded)
+         endif
+         image=reform(image,per,rowBytes*m,/overwrite)
+         packed=bytarr(rowBytes*m)
+         for k=0,per-1 do packed or= ishft(reform(image[k,*]),bps*(per-1-k))
+         image=temporary(packed)
+      endif
    endif
 
    ;;image OK, open file, write it
@@ -319,19 +299,24 @@ if dodcomplex then begin & image=fix(temporary(image),type=9) & bps=128 & endif 
    if (doAppend) then begin
       if query_tiff(filename) ne 1 then message,filename+" is not existing or is not a TIFF file!"
       openu,unit,filename,/get_lun
-      StartOfData=addImageAndLinkIFDChain(unit,image,big) ; we are at end, after writing image; big follows the file
+      ifdLink=FindLastTIFFLink(unit,image,big)
+      point_lun,unit,(fstat(unit)).size
+      WriteTIFFPadding,unit,big
    endif else begin
       openw,unit,filename,/get_lun
       if big then begin
-         ;; BigTIFF header: version 43, offsets are 8 bytes, then the 8-byte offset of the first IFD
-         writeu,unit,'4949'xus,'002b'xus,8us,0us,ulong64(16)+n_bytes(image)
-         StartOfData=16
+         writeu,unit,'4949'xus,'002b'xus,8us,0us,0ULL
+         ifdLink=8
       endif else begin
-         writeu,unit,'4949'xus,'002a'xus,long(8+n_bytes(image))
-         StartOfData=8
+         writeu,unit,'4949'xus,'002a'xus,0UL
+         ifdLink=4
       endelse
-      writeu,unit,image
    endelse
+   point_lun,-unit,StartOfData
+   writeu,unit,image
+   ;; Alignment after the strip is separate from its StripByteCounts.
+   WriteTIFFPadding,unit,big
+   point_lun,-unit,ifdStart
    offsettype=big ? tifflong8 : tifflong
 
    ;; BitsPerSample: single or vector ?
@@ -485,6 +470,9 @@ if (hasypos) then begin & i++ & AddtoTags,tags,i,287,tiffrational,1s,0 & endif ;
    if (hasicc) then WriteTagValue,unit,pos,iccIndex,icc_profile,big
 
    ;; end & special geotiff treatment
+   ;; Link the new directory after all of its entries and values have been written.
+   point_lun,unit,ifdStart
+   WriteTIFFOffset,unit,ifdLink,big
    flush,unit
    close,unit
    free_lun,unit
