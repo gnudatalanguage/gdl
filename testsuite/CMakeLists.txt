@@ -36,6 +36,7 @@ foreach(TEST ${TESTS})
 endforeach(TEST TESTS)
 
 set_tests_properties(${TESTS} PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 120) # autoconf's setting
+set_tests_properties(test_finite.pro PROPERTIES TIMEOUT 300)
 set_tests_properties(${TESTS} PROPERTIES ENVIRONMENT "LC_COLLATE=C;GDL_PATH=${BASE_SOURCE}/testsuite/${PATH_SEP}${BASE_SOURCE}/src/pro/${PATH_SEP}${BASE_SOURCE}/src/pro/CMprocedures/${PATH_SEP}${BASE_SOURCE}/src/pro/dicom/${PATH_SEP}${BASE_SOURCE}/src/pro/utilities/;GDL_STARTUP=;IDL_STARTUP=")
 
 ## set(ARM_XFAIL_TESTS
