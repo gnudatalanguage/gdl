@@ -7,6 +7,7 @@ test_array_equal.pro
 test_array_indices.pro
 test_array_indices_star.pro
 test_base64.pro
+test_bigtiff.pro
 test_binfmt.pro
 test_bug_1779553.pro
 test_bug_2555865.pro
@@ -65,6 +66,7 @@ test_chisqr_cvf.pro
 test_clip.pro
 test_color_convert.pro
 test_common.pro
+test_compile_opt_scope.pro
 test_constants.pro
 test_convert2.pro
 test_convert_coord.pro
@@ -132,6 +134,8 @@ test_ludc_lusol.pro
 test_make_array.pro
 test_math_function_dim.pro
 test_matrix_multiply.pro
+test_median.pro
+test_median_filter.pro
 test_memory.pro
 test_message.pro
 test_modulo.pro
@@ -202,6 +206,7 @@ test_tiff.pro
 test_timestamp.pro
 test_total.pro
 test_triangulate.pro
+test_tricky_syntax.pro
 test_trired.pro
 test_trisol.pro
 test_tv.pro

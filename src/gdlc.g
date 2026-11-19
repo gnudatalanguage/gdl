@@ -224,7 +224,7 @@ tokens {
 // for .RUN and .RNEW: know when the entered commands define a PRO/FUN or if they are just statements.
 	bool statement_seen=false;
 	bool end_marker_seen=false;
-	bool is_in_procedure=false;
+	bool is_in_procedure=false; // also true while translation_unit parses a PRO/FUNCTION
 	public: bool StatementSeen(){return statement_seen;}
 	public: void SetProcedureNotAllowed(bool b){statement_seen=b;}
 	public: void SetInProcedureAtStart(bool b){is_in_procedure=b;}
@@ -244,7 +244,10 @@ tokens {
         else if( opt == "STATIC")            compileOpt |= STATIC;
         else if( opt == "NOSAVE")            compileOpt |= NOSAVE;
         else throw GDLException("Unrecognised COMPILE_OPT option: "+opt);
-        MemorizeCompileOptForMAINIfNeeded( compileOpt);
+        // Routine options belong to that definition, even when compiled from
+        // $MAIN$. Only main-level commands may update the current environment.
+        if( !is_in_procedure)
+            MemorizeCompileOptForMAINIfNeeded( compileOpt);
     }
 
     bool ConstantExprNode( int t)
@@ -649,6 +652,7 @@ object_name! returns [std::string name] // !//
 procedure_def
 {
     allowInteractiveSyntax=false;
+    is_in_procedure=true;
     std::string name;
 	fussy=recovery?0:1; //recoverable fussy mode
 	relaxed=(fussy < 1);
@@ -670,12 +674,14 @@ procedure_def
             #p->SetCompileOpt( compileOpt); 
             #p->MemorizeUncompiledPro(name); //in case the Parser has to know that a procedure thus named exists. 
 		    allowInteractiveSyntax=true;
+            is_in_procedure=false;
          }
   ;
 
 function_def
 {
     allowInteractiveSyntax=false;
+    is_in_procedure=true;
     std::string name;
 	fussy=recovery?0:1; //recoverable fussy mode
 	relaxed=(fussy < 1);
@@ -699,6 +705,7 @@ function_def
             //at this time (Parser) but the Parser has to know that it has ben defined for disambiguation
 			//of function calls in the 'sloppy' mode
 		    allowInteractiveSyntax=true;
+            is_in_procedure=false;
         }
     ;
 

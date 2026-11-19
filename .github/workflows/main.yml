@@ -36,9 +36,9 @@ jobs:
       id: set-matrix-windows
       run: |
         if [[ '${{ github.event_name }}' == "schedule" || '${{ github.event.inputs.type }}' == "release" || '${{ github.ref }}' == "refs/tags/v"* ]]; then 
-            matrix="{deps: ['standard'], arch: ['x86_64'], configuration: ['Release']}"
+            matrix="{deps: ['standard'], arch: ['ucrt-x86_64'], configuration: ['Release']}"
         else
-            matrix="{deps: ['debug'], arch: ['x86_64'], configuration: ['Debug']}"
+            matrix="{deps: ['debug'], arch: ['ucrt-x86_64'], configuration: ['Debug']}"
         fi
         echo "matrix_windows=$matrix" >> $GITHUB_OUTPUT
     - name: Create Build Matrix (Linux/macOS)
@@ -221,7 +221,7 @@ jobs:
           submodules: recursive
           fetch-depth: 0
       - name: Cache Dependencies
-        if: matrix.arch == 'x86_64'
+        if: matrix.arch == 'ucrt-x86_64'
         id: cache
         uses: actions/cache@v4
         with:
@@ -247,10 +247,10 @@ jobs:
             fn=`ls /var/cache/pacman/pkg/${package}-*.tar.{gz,bz2,xz,zst} 2> /dev/null || true`
             tar xf $fn -C /cache
           done
-          ADDTIONAL_FILES=( /mingw*/bin/mgwxdr-0.dll
-                            /mingw*/lib/libbsdxdr.*
-                            /mingw*/include/rpc/types.h
-                            /mingw*/include/rpc/xdr.h )
+          ADDTIONAL_FILES=( /ucrt*/bin/mgwxdr-0.dll
+                            /ucrt*/lib/libbsdxdr.*
+                            /ucrt*/include/rpc/types.h
+                            /ucrt*/include/rpc/xdr.h )
           for fn in ${ADDTIONAL_FILES[@]}; do
             cp --parents ${fn} /cache
           done
@@ -262,7 +262,7 @@ jobs:
       - name: Setup Python (64 bit)
         id: setup-python-64
         uses: actions/setup-python@v5
-        if: matrix.arch == 'x86_64'
+        if: matrix.arch == 'ucrt-x86_64'
         with:
           python-version: '3.x'
           architecture: x64

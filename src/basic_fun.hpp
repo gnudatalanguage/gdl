@@ -116,7 +116,6 @@ namespace lib {
 
   BaseGDL* transpose( EnvT* e);
 
-  BaseGDL* SlowReliableMedian( EnvT* e);
   BaseGDL* median( EnvT* e);
 
   BaseGDL* shift_fun( EnvT* e);
