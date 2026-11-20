@@ -68,6 +68,7 @@ if status then begin
    if (TOTAL(res) EQ 0) then begin
       status=0
       if (!d.name EQ 'X') then begin
+         HELP, /device, out=out
          BANNER_FOR_TESTSUITE, rname, out[1], /line
          print, 'This computer can have X11 but we cannot plot'
          print, 'Did you really use << ssh -X >> to connect to it ?'

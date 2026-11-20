@@ -23,17 +23,17 @@ include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/plplot/include)
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/plConfig.h.in
-  ${CMAKE_CURRENT_SOURCE_DIR}/plConfig.h
+  ${CMAKE_CURRENT_BINARY_DIR}/plConfig.h
   )
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/plDevs.h.in
-  ${CMAKE_CURRENT_SOURCE_DIR}/plDevs.h
+  ${CMAKE_CURRENT_BINARY_DIR}/plDevs.h
   )
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/pldll.h.in
-  ${CMAKE_CURRENT_SOURCE_DIR}/pldll.h
+  ${CMAKE_CURRENT_BINARY_DIR}/pldll.h
   )
 
 # set(plhershey-unicode-gen_SRCS
