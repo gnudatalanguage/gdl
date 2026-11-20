@@ -557,17 +557,12 @@ function configure_gdl {
     log "Configuring GDL in ${BUILD_DIR}..."
 
     # src/whereami is a git submodule: it is empty if GDL was cloned without --recursive
-    if [[ ! -f "${GDL_SRC_DIR}/src/whereami/src/whereami.c" ]]; then
-        if [[ -e "${GDL_SRC_DIR}/.git" ]]; then
-            log "Initialising git submodules (src/whereami)..."
-            git -C "${GDL_SRC_DIR}" submodule update --init --recursive || {
-                log "Fatal error! 'git submodule update --init' failed."
-                exit 1
-            }
-        else
-            log "Fatal error! src/whereami is missing and ${GDL_SRC_DIR} is not a git clone."
+    if [[ ! -f "${GDL_SRC_DIR}/src/whereami/src/whereami.c" && -e "${GDL_SRC_DIR}/.git" ]]; then
+        log "Initialising git submodules (src/whereami)..."
+        git -C "${GDL_SRC_DIR}" submodule update --init --recursive || {
+            log "Fatal error! 'git submodule update --init' failed."
             exit 1
-        fi
+        }
     fi
 
     if [[ ${DEPS} != "standard" && ${DEPS} != "headless" && ${DEPS} != "debug" ]]; then
@@ -835,7 +830,7 @@ function pack_gdl {
     read_build_settings || return 1
     log "Packaging GDL..."
     if [ ${BUILD_OS} == "Windows" ]; then
-        if [ $arch == "x86_64" ]; then
+        if [[ $arch == "x86_64" || $arch == "ucrt-x86_64" ]]; then
             cd "${ROOT_DIR}" || return 1
             download_file "https://github.com/gnudatalanguage/gdlde/releases/download/${GDLDE_VERSION}/gdlde.product-win32.win32.x86_64.zip"
             decompress_file -o -d gdlde
