@@ -280,6 +280,7 @@ public:
     delete guarded;
     guarded = newGuarded;
   }  
+  void Cleanup() { Reset(NULL); }
   // for compatibiltiy with replaced auto_ptr
   void reset( T* newGuarded)
   {
@@ -369,10 +370,18 @@ public:
   
   ~StackGuard()
   {
+    Cleanup();
+  }
+
+  void Cleanup()
+  {
     for( typename T::size_type s=container.size(); s > cSize; s--)
       {
-	delete container.back();
+	// Local object cleanup can run interpreter code during destruction.
+	// Remove the frame before its virtual methods become unavailable.
+	auto* frame = container.back();
 	container.pop_back();
+	delete frame;
       }
   }
 };

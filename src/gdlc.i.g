@@ -47,7 +47,8 @@ header {
 
 #include <map>
 #include <iomanip>
-//#include <exception>
+#include <exception>
+#include <utility>
 
 #include "datatypes.hpp"
 #include "objects.hpp"
@@ -98,6 +99,7 @@ private:
     // ASTNULL replacement
     static ProgNode  NULLProgNode;
     static ProgNodeP NULLProgNodeP;
+    static std::exception_ptr deferredCleanupException;
 
     friend class BaseGDL;
     friend class ProgNode;
@@ -229,6 +231,7 @@ protected:
     BaseGDL** returnValueL; // holding the return value for l_functions
 
     bool interruptEnable;
+    EnvUDT* executeEnv = nullptr; // caller of the innermost active EXECUTE
 public:
     bool InterruptEnable() const { return interruptEnable;}
     // procedure (searchForPro == true) or function (searchForPro == false)
@@ -470,6 +473,33 @@ public:
 	    DecRef( id);
        }
     }
+   static void RethrowCleanupException()
+    {
+        if( deferredCleanupException)
+        {
+            auto error = std::exchange(deferredCleanupException, nullptr);
+            std::rethrow_exception( error);
+        }
+    }
+   static void ApplyCleanupException(GDLException& error)
+    {
+        if (!deferredCleanupException) return;
+        try {
+            RethrowCleanupException();
+        } catch (GDLException& cleanupError) {
+            error = cleanupError;
+        }
+    }
+
+    static void ReportExecuteError(GDLException& error)
+    {
+        if (error.IsReported()) return;
+        const std::string prefix = error.Prefix() ? SysVar::MsgPrefix() : "";
+        std::cerr << prefix << error.toString() << std::endl;
+        lib::write_journal_comment(prefix + error.toString());
+        error.SetReported();
+    }
+
    static void DecRefObj( DObj id)
     {
 	if( id != 0 and IsEnabledGC())
@@ -480,7 +510,8 @@ std::cout << "-- <ObjHeapVar" << id << ">" << std::endl;
 		ObjHeapT::iterator it=objHeap.find( id);
 		if( it != objHeap.end()) 
 		    { 
-		       if( (*it).second.Dec() and (*it).second.IsEnabledGC() )
+		       if( (*it).second.Dec() and (*it).second.IsEnabledGC() &&
+                           (!deferredCleanupException || std::uncaught_exception()))
 			   {
 #ifdef GDL_DEBUG_HEAP
 			       std::cout << "Out of scope (garbage collected): <ObjHeapVar" << id 
@@ -489,7 +520,17 @@ std::cout << "-- <ObjHeapVar" << id << ">" << std::endl;
 					 << "  line: " << callStack.back()->GetLineNumber()
 					 << std::endl; 
 #endif
-			       callStack.back()->ObjCleanup( id);
+                               // CLEANUP may run inside a noexcept destructor.
+                               const bool unwinding = std::uncaught_exception();
+                               try {
+                                   callStack.back()->ObjCleanup( id);
+                               }
+                               catch( ...) {
+                                   // During unwinding IDL runs all cleanups and retains
+                                   // the last error. Normal releases stop at the first.
+                                   if( unwinding || !deferredCleanupException)
+                                       deferredCleanupException = std::current_exception();
+                               }
 //			     FreeObjHeapDirect( id, it);
 			   }
 #ifdef GDL_DEBUG_HEAP
@@ -980,6 +1021,10 @@ execute returns[ RetCode retCode]
 //    RetCode retCode;
     ValueGuard<bool> guard( interruptEnable);
     interruptEnable = false;
+    ValueGuard<std::exception_ptr> cleanupGuard( deferredCleanupException);
+    deferredCleanupException = nullptr;
+    ValueGuard<EnvUDT*> executeGuard( executeEnv);
+    executeEnv = callStack.back();
 
 //	return statement_list(_t);
 }
@@ -991,6 +1036,9 @@ execute returns[ RetCode retCode]
 call_fun returns[ BaseGDL* res]
 {
 
+    // A caller's pending cleanup error belongs to its own statement.
+    ValueGuard<std::exception_ptr> cleanupGuard( deferredCleanupException);
+    deferredCleanupException = nullptr;
     res = NULL;
     assert(returnValue == NULL);
     RetCode retCode;
@@ -1028,6 +1076,8 @@ call_fun returns[ BaseGDL* res]
 
 call_lfun returns[ BaseGDL** res]
 {
+    ValueGuard<std::exception_ptr> cleanupGuard( deferredCleanupException);
+    deferredCleanupException = nullptr;
     res = NULL;
     assert(returnValueL == NULL);
     RetCode retCode;
@@ -1063,6 +1113,8 @@ call_lfun returns[ BaseGDL** res]
 // used to call procedures
 call_pro
 {
+    ValueGuard<std::exception_ptr> cleanupGuard( deferredCleanupException);
+    deferredCleanupException = nullptr;
     RetCode retCode;
 
 	for (; _t != NULL;) {
@@ -1113,12 +1165,14 @@ statement returns[ RetCode retCode]
 			last = _retTree;
 			callStack.back()->SetLineNumber(last->getLine()); // track actual line number
 			retCode = last->Run(); // Run() sets _retTree
+			RethrowCleanupException();
 		} while (_retTree != NULL && retCode == RC_OK && !(sigControlC) && (debugMode <= DEBUG_RETURN)); //loops if debug_clear or debug_return
 	} else { //will not test for sigControlC 
 		do {
 			last = _retTree;
 			callStack.back()->SetLineNumber(last->getLine()); // track actual line number
 			retCode = last->Run(); // Run() sets _retTree
+			RethrowCleanupException();
 		} while (_retTree != NULL && retCode == RC_OK && (debugMode <= DEBUG_RETURN)); //loops if debug_clear or debug_return
 	}
 	if (_retTree != NULL && debugMode != DEBUG_RETURN ) last = _retTree;
@@ -1253,6 +1307,8 @@ statement returns[ RetCode retCode]
     exception 
     catch [ GDLException& e] 
     { 
+        // A cleanup failure during unwinding replaces the preceding error.
+        ApplyCleanupException(e);
      		// errors while typing commands in inner loop (called via Control-C, STOP, error) should be ignored.
 		if (e.Interpreter()->IsInnerInterpreterLoop()) {
 		  e.Interpreter()->SetInnerInterpeterLoop(false);
@@ -1276,7 +1332,8 @@ statement returns[ RetCode retCode]
 	static unsigned codeTag = errorStateDesc->TagIndex( "CODE");
 	static unsigned msgTag = errorStateDesc->TagIndex( "MSG");
 
-	if( e.IsIOException())
+	// EXECUTE returns a status instead of entering handlers in its caller.
+	if( e.IsIOException() && callStack.back() != executeEnv)
 	    {
 //		assert( dynamic_cast< GDLIOException*>( &e) != NULL);  //removed. for some reason dynamic_cast returns NULL on bona fide GDLIOException objects.
 		// set the jump target - also logs the jump
@@ -1299,9 +1356,12 @@ statement returns[ RetCode retCode]
 		    }
 	    }
 
+	// ON_IOERROR applies only in the routine where the I/O error occurred.
+	e.ClearIOException();
+
 	// handle CATCH
 	ProgNodeP catchNode = callStack.back()->GetCatchNode();
-	if( catchNode != NULL)
+	if( catchNode != nullptr && callStack.back() != executeEnv)
 	    {
 	DStructGDL* errorState = SysVar::Error_State();
 	(*static_cast<DStringGDL*>( errorState->GetTag( nameTag)))[0] = 
@@ -1320,12 +1380,8 @@ statement returns[ RetCode retCode]
 		return RC_OK;
 	    }
 
-	EnvUDT* targetEnv = e.GetTargetEnv();
-	if( targetEnv == NULL)
-	{
-	    // initial exception, set target env
-	    
-	// set !ERROR_STATE here
+	// Cleanup during unwinding may have changed the error state.
+	// Restore the current error even when its target is already known.
 	DStructGDL* errorState = SysVar::Error_State();
 	(*static_cast<DStringGDL*>( errorState->GetTag( nameTag)))[0] = 
 	    "IDL_M_FAILURE";
@@ -1335,6 +1391,29 @@ statement returns[ RetCode retCode]
 	(*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0] = 
 	    e.getMessage();
 	SysVar::SetErr_String( e.getMessage());
+
+	EnvUDT* targetEnv = e.GetTargetEnv();
+	if( targetEnv == nullptr)
+	{
+	    // Keep errors from called routines from becoming normal returns.
+	    // Unwind to EXECUTE, allowing handlers in intervening routines.
+	    if( executeEnv != nullptr && callStack.back() != executeEnv)
+	    {
+	        bool caught = false;
+	        for (long ix = callStack.size() - 1; ix >= 0 && callStack[ix] != executeEnv; --ix)
+	            if (callStack[ix]->GetCatchNode() != nullptr) caught = true;
+	        if (!caught) ReportExecuteError(e);
+	        throw;
+	    }
+
+	    // A caller's CATCH takes precedence over ON_ERROR.
+	    for( long ix = callStack.size() - 1; ix >= 0; --ix)
+	    {
+	        if( callStack[ix] == executeEnv)
+	            break;
+	        if( callStack[ix]->GetCatchNode() != nullptr)
+	            throw;
+	    }
 
 	    // look if ON_ERROR is set somewhere
 	    // for( EnvStackT::reverse_iterator i = callStack.rbegin();
@@ -1449,23 +1528,18 @@ statement returns[ RetCode retCode]
 	else
 	    {
 
-		DString msgPrefix = SysVar::MsgPrefix();
-		if( e.Prefix())
-		    {
-			std::cerr << msgPrefix << e.toString() << std::endl;
-			lib::write_journal_comment(msgPrefix+e.toString());
-		    }
-		else
-		    {
-			std::cerr << e.toString() << std::endl;
-			lib::write_journal_comment(e.toString());
-		    }
+		ReportExecuteError(e);
 
 		retCode = RC_ABORT;
 	    }
 
 	return retCode;
     } // catch [ GDLException& e] 
+    catch [...]
+    {
+        deferredCleanupException = nullptr;
+        throw;
+    }
 
 
 

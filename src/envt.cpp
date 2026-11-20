@@ -18,6 +18,8 @@
 #include "includefirst.hpp"
 
 #include <iomanip>
+#include <memory>
+#include <utility>
 
 //#include "envt.hpp"
 #include "dinterpreter.hpp" //calls envt
@@ -617,24 +619,21 @@ void EnvBaseT::ObjCleanup( DObj actID)
     {
       InProgressGuard inProgressGuard( actID); // exception save
     
-      Guard<BaseGDL> actObjGDL_guard;
+      std::unique_ptr<DObjGDL> actObjGDL_guard;
       try{
 	// call CLEANUP function
 	DPro* objCLEANUP= actObj->Desc()->GetPro( "CLEANUP");
 
 	if( objCLEANUP != NULL)
 	  {
-	    DObjGDL* actObjGDL = new DObjGDL( actID);
-	    actObjGDL_guard.Init( actObjGDL);
+	    actObjGDL_guard = std::make_unique<DObjGDL>(actID);
+	    auto* actObjGDL = actObjGDL_guard.get();
 	    GDLInterpreter::IncRefObj( actID); // set refcount to 1
   
+	    StackGuard<EnvStackT> stackGuard( interpreter->CallStack());
 	    PushNewEmptyEnvUD( objCLEANUP, &actObjGDL);
   
 	    interpreter->call_pro( objCLEANUP->GetTree());
-  
-	    EnvBaseT* callStackBack =  interpreter->CallStack().back();
-	    interpreter->CallStack().pop_back();
-	    delete callStackBack;
 	  }
       }
       catch( ...)
@@ -665,33 +664,34 @@ void EnvT::ObjCleanup( DObj actID)
 	// 		actObj=GDLInterpreter::GetObjHeap( actID, it);
       }
       catch( GDLInterpreter::HeapException) {
+        // Repeated OBJ_DESTROY silently accepts an invalid object reference.
 	actObj=NULL;
       }
 
       if( actObj != NULL)
         {
-	  // call CLEANUP function
-	  DPro* objCLEANUP= actObj->Desc()->GetPro( "CLEANUP");
+          InProgressGuard inProgressGuard( actID);
+          std::unique_ptr<DObjGDL> actObjGDL_guard;
+          try {
+            DPro* objCLEANUP = actObj->Desc()->GetPro( "CLEANUP");
+            if( objCLEANUP != nullptr)
+              {
+                actObjGDL_guard = std::make_unique<DObjGDL>(actID);
+                auto* actObjGDL = actObjGDL_guard.get();
+                GDLInterpreter::IncRefObj( actID);
 
-	  if( objCLEANUP != NULL)
-            {
-	      DObjGDL* actObjGDL = new DObjGDL( actID);
-	      Guard<BaseGDL> actObjGDL_guard( actObjGDL);
-	      GDLInterpreter::IncRefObj( actID);
-
-	      StackGuard<EnvStackT> guard( interpreter->CallStack());
-	      EnvUDT* newEnv = PushNewEnvUD( objCLEANUP, 1, &actObjGDL);
-
-	      inProgress.insert( actID);
-
-	      interpreter->call_pro( objCLEANUP->GetTree());
-
-	      inProgress.erase( actID);
-	      //                 delete newEnv;
-	      //                 interpreter->CallStack().pop_back();
-            }
-
-	  FreeObjHeap( actID); // the actual freeing
+                StackGuard<EnvStackT> guard( interpreter->CallStack());
+                PushNewEnvUD( objCLEANUP, 1, &actObjGDL);
+                interpreter->call_pro( objCLEANUP->GetTree());
+              }
+          }
+          catch( ...) {
+            // IDL invalidates the object even when its own CLEANUP or a
+            // child's CLEANUP fails, and propagates the original error.
+            FreeObjHeap( actID);
+            throw;
+          }
+          FreeObjHeap( actID);
         }
     }
 }
@@ -1331,7 +1331,8 @@ bool EnvBaseT::Removeall()
   DSubUD* proD=dynamic_cast<DSubUD*>(pro);
   int osz = env.size();
   for( ssize_t ix=osz-1; ix >= 0; ix--) {
-    if( env[ix] != NULL) GDLDelete( env[ix]);
+    // A cleanup prompt must not see a variable whose value is being deleted.
+    GDLDelete( std::exchange(env[ix], nullptr));
     env.pop_back();
   }
   proD->Resize(0);

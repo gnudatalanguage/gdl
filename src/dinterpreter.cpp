@@ -89,6 +89,7 @@ GDLInterpreter::HeapT     GDLInterpreter::heap;
 GDLInterpreter::ObjHeapT  GDLInterpreter::objHeap; 
 SizeT                     GDLInterpreter::heapIx;
 EnvStackT                 GDLInterpreter::callStack;
+std::exception_ptr        GDLInterpreter::deferredCleanupException;
 DLong                     GDLInterpreter::stepCount;
 std::string               GDLInterpreter::MyProName;
 bool                      GDLInterpreter::noInteractive; // To exit on error or stop in line execution mode (gdl -e do_something)
@@ -1740,6 +1741,7 @@ else
 
  RetCode DInterpreter::InnerInterpreterLoop(SizeT lineOffset) {
   ProgNodeP retTreeSave = _retTree;
+  ValueGuard<bool> innerLoopGuard(inInnerInterpreterLoop);
   
   for (;;) {
 
@@ -2054,6 +2056,16 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
       bool resetCmd = (retAllEx.Code() == RetAllException::RESET);
       bool fullResetCmd = (retAllEx.Code() == RetAllException::FULL_RESET);
       if (resetCmd || fullResetCmd) {
+        // CLEANUP may inspect the stack or stop at a prompt. Keep $MAIN$
+        // intact until its variables have been released.
+        callStack.back()->Removeall();
+        try {
+          RethrowCleanupException();
+        } catch (GDLException& error) {
+          Warning(error.toString());
+        } catch (RetAllException&) {
+          // RETALL at a cleanup prompt still allows the reset to finish.
+        }
         // remove $MAIN$
         delete callStack.back();
         callStack.pop_back();

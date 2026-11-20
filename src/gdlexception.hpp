@@ -42,6 +42,7 @@ class GDLException: public antlr::ANTLRException
   SizeT col;
   std::string filename; //the filename (or "" for interactive $MAIN$) where the problem arised
   bool prefix;
+  bool reported = false;
   
   bool arrayexprIndexeeFailed;
   
@@ -139,6 +140,9 @@ public:
   }
 
   bool IsIOException() const { return ioException;}
+  void ClearIOException() { ioException = false;}
+  bool IsReported() const { return reported;}
+  void SetReported() { reported = true;}
 };
 
 // for ON_IOERROR

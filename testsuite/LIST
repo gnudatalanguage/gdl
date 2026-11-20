@@ -63,6 +63,9 @@ test_call_function_extra.pro
 test_call_procedure.pro
 test_call_procedure_extra.pro
 test_chisqr_cvf.pro
+test_cleanup_exceptions.pro
+test_cleanup_interactive.pro
+test_cleanup_precedence.pro
 test_clip.pro
 test_color_convert.pro
 test_common.pro
@@ -149,6 +152,7 @@ test_norm.pro
 test_null.pro
 test_numeric_limits.pro
 test_obj_destroy.pro
+test_obj_destroy_errors.pro
 test_obj_hasmethod.pro
 test_obj_isa.pro
 test_obj_new.pro
