@@ -26,7 +26,7 @@
 // wxwidgets headers
 #include <wx/wx.h>
 
-#include "plDevs.h"
+#include <plDevs.h>
 
 // plplot headers
 #include "plplotP.h"
