@@ -511,7 +511,7 @@ function prep_packages_dryrun {
 }
 
 function find_dlls {
-    for dll in $(strings $1 | grep -o '\S*\.dll' | grep -v $(basename $1)); do
+    for dll in $(strings "$1" | grep -o '\S*\.dll' | grep -v "$(basename "$1")"); do
         dll="/${mname}/bin/$dll"
 
         if [ -f "$dll" ] && [[ ! ${found_dlls[@]} =~ (^|[[:space:]])"$dll"($|[[:space:]]) ]]; then
@@ -557,15 +557,15 @@ function configure_gdl {
     log "Configuring GDL in ${BUILD_DIR}..."
 
     # src/whereami is a git submodule: it is empty if GDL was cloned without --recursive
-    if [[ ! -f "${GDL_DIR}/src/whereami/src/whereami.c" ]]; then
-        if [[ -e "${GDL_DIR}/.git" ]]; then
+    if [[ ! -f "${GDL_SRC_DIR}/src/whereami/src/whereami.c" ]]; then
+        if [[ -e "${GDL_SRC_DIR}/.git" ]]; then
             log "Initialising git submodules (src/whereami)..."
-            git -C "${GDL_DIR}" submodule update --init --recursive || {
+            git -C "${GDL_SRC_DIR}" submodule update --init --recursive || {
                 log "Fatal error! 'git submodule update --init' failed."
                 exit 1
             }
         else
-            log "Fatal error! src/whereami is missing and ${GDL_DIR} is not a git clone."
+            log "Fatal error! src/whereami is missing and ${GDL_SRC_DIR} is not a git clone."
             exit 1
         fi
     fi
@@ -655,19 +655,6 @@ function configure_gdl {
     # Explicit CMake arguments take precedence over helper settings.
     "${CMAKE_COMMAND:-cmake}" -S "${GDL_SRC_DIR}" -B "${BUILD_DIR}" "${gdl_generator_args[@]}" "${gdl_config_args[@]}" "$@"
 
-    # The INTERACTIVE_GRAPHICS option is removed. 
-    # Now plplot drivers is part of GDL
-    cmake ${GDL_DIR} -G"${GENERATOR}" \
-        -DCMAKE_BUILD_TYPE=${Configuration} \
-        -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
-        -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} -DOPENMP=${WITH_OPENMP} \
-        -DWXWIDGETS=${WITH_WXWIDGETS} -DX11=${WITH_X11} -DGRAPHICSMAGICK=${WITH_GRAPHICSMAGICK} \
-        -DNETCDF=${WITH_NETCDF} -DHDF=${WITH_HDF4} -DHDF5=${WITH_HDF5} \
-        -DMPI=${WITH_MPI} -DTIFF=${WITH_TIFF} -DGEOTIFF=${WITH_GEOTIFF} \
-        -DLIBPROJ=${WITH_LIBPROJ} -DPYTHON=${WITH_PYTHON} -DPYTHONVERSION=${PYTHONVERSION} -DFFTW=${WITH_FFTW} \
-        -DUDUNITS2=${WITH_UDUNITS2} -DGLPK=${WITH_GLPK} -DGRIB=${WITH_GRIB} -DOPENMP=${WITH_OPENMP} \
-         ${CMAKE_ADDITIONAL_ARGS[@]} ${CMAKE_QHULLDIR_OPT} \
-        -DMACHINE_ARCH=${Platform}
 }
 
 function require_build_dir {
