@@ -20,6 +20,8 @@
 
 #include <string>
 #include <algorithm>
+#include <memory>
+#include <utility>
 #include <vector>
 #include <map>
 #include <unordered_map>
@@ -376,6 +378,17 @@ public:
   void Reset();
   void DelTree();
   void SetTree( ProgNodeP t) { tree = t;}
+
+  // The $MAIN$ frame outlives this handle. At STOP the compiler can install
+  // a replacement tree with its own labels and loop count in the same frame.
+  auto TakeMainProgram() noexcept
+  {
+    auto finish = [this](ProgNode* completed) noexcept {
+      if (!tree) DelTree(); // Discard the completed program's labels and loop count.
+      delete completed;
+    };
+    return std::unique_ptr<ProgNode, decltype(finish)>(std::exchange(tree, nullptr), finish);
+  }
   
   //converts a SemiCompiledCode (chained list of DNodes) to a 'flat' vector of sccstruct and insert the vector in the map pointed by "sccList"
   void SetSCC( RefDNode n);

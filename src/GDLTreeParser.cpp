@@ -37,7 +37,7 @@ void GDLTreeParser::translation_unit(RefDNode _t) {
 	RefDNode retAST = RefDNode(antlr::nullAST);
 	
 	//    returnProgNodeP = _t;
-	bool mainStarted = false;
+	mainStarted = false;
 	
 	
 	try {      // for error handling

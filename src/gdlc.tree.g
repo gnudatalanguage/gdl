@@ -73,6 +73,7 @@ options {
     
     DCompiler       comp; // each tree parser has its own compiler
     
+    bool mainStarted = false;
     IDList          loopVarStack;
     
     bool LoopVar( RefDNode& lN)
@@ -173,6 +174,7 @@ private:
         setASTFactory( &DNodeFactory );
     }
 
+  bool MainStarted() const { return mainStarted; }
   bool ActiveProCompiled() const { return comp.ActiveProCompiled();} 
   int NCompileErrors() const { return comp.NCompileErrors();} 
 }
@@ -181,7 +183,7 @@ private:
 translation_unit
 {
 //    returnProgNodeP = _t;
-    bool mainStarted = false;
+    mainStarted = false;
 }
 	: (   options {greedy=true;}: procedure_def
     | function_def
