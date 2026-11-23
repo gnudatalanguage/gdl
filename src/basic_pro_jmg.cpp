@@ -1289,7 +1289,7 @@ early_return:
     wchr[image.size()] = 0;
     std::copy(image.begin(), image.end(), wchr);
     HMODULE handle = LoadLibraryW(wchr);
-    delete(wchr);
+    delete[] wchr;
 #else
     void* handle =  dlopen(image.c_str(), RTLD_LAZY);
 #endif
