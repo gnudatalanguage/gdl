@@ -23,9 +23,13 @@ if (STRLOWCASE(!version.os) EQ 'darwin') then begin
    known_case=1
    version=GDL_IDL_FL()
    if version EQ 'GDL' then begin
-      tmp=!GDL_MAPS_DIR
-      tmp=FILE_DIRNAME(FILE_DIRNAME(FILE_DIRNAME(FILE_DIRNAME(tmp))))
-      get_abspath_to_exe=FILE_WHICH(tmp+'/bin', 'gdl')
+      get_abspath_to_exe=GETENV('GDL_BUILD_EXECUTABLE')
+      if ~FILE_TEST(get_abspath_to_exe, /EXECUTABLE, /REGULAR) then begin
+         ; Installed GDL has bin/gdl alongside share/gnudatalanguage.
+         tmp=!GDL_MAPS_DIR
+         tmp=FILE_DIRNAME(FILE_DIRNAME(FILE_DIRNAME(FILE_DIRNAME(tmp))))
+         get_abspath_to_exe=FILE_WHICH(tmp+'/bin', 'gdl')
+      endif
    endif
    if version EQ 'IDL' then begin
       get_abspath_to_exe=FILE_WHICH(FILE_DIRNAME(!dlm_path), 'idl')

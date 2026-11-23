@@ -46,7 +46,7 @@ class BuildHelpers(unittest.TestCase):
 int main(int argc, char **argv) {
   char cwd[8192];
   const char *names[] = {"GDL_DIR", "GDL_MAPS_DIR", "PLPLOT_LIB", "GDL_PATH",
-    "GDL_DLM_PATH", "GDL_STARTUP", "IDL_STARTUP", NULL};
+    "GDL_DLM_PATH", "GDL_STARTUP", "IDL_STARTUP", "GDL_BUILD_EXECUTABLE", NULL};
   printf("CONFIG=%s\n", CONFIG);
   printf("CWD=%s\n", getcwd(cwd, sizeof cwd));
   for (int i=0; names[i]; ++i)
@@ -322,7 +322,8 @@ include("''' + str(REPO / "CMakeModules/FindGSL.cmake") + '''")
         output = self.command([self.build / "run-gdl", "-e", "print, 'hello world'", "", "*"],
                               cwd=caller, env=env, status=23)
         data = self.build / "share/gnudatalanguage"
-        for line in (f"GDL_DIR={data}", f"GDL_MAPS_DIR={data}/resource/maps",
+        for line in (f"GDL_BUILD_EXECUTABLE={self.build}/custom bin/gdl",
+                     f"GDL_DIR={data}", f"GDL_MAPS_DIR={data}/resource/maps",
                      f"PLPLOT_LIB={self.source}/src/plplot/data",
                      f"GDL_PATH=+{data}/lib:/user path", f"CWD={caller}",
                      "GDL_STARTUP=/startup", "IDL_STARTUP=/idl startup",
