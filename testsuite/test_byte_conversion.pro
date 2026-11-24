@@ -236,6 +236,77 @@ TEST_BYTE_BASIC_32768, nb_errors, test=test, verbose=verbose
 ; fails on ia64?
 TEST_BYTE_BASIC_32768, nb_errors, /NEGATIVE, test=test, verbose=verbose
 ;
+; Exercise the same boundary values on the serial and threaded array paths.
+saved_cpu = !CPU
+values = [-32769.75, -257.75, -0.5, 255.75, 256., 32769., $
+          !values.f_nan, !values.f_infinity, -!values.f_infinity]
+expected = [255b, 255b, 0b, 255b, 0b, 1b, 0b, 0b, 0b]
+foreach threads, [1, 4] do begin
+   CPU, TPOOL_NTHREADS=threads, TPOOL_MIN_ELTS=1, TPOOL_MAX_ELTS=0
+   foreach type, [4, 5, 6, 9] do begin
+      source = FIX(values, TYPE=type)
+      if (type eq 6 || type eq 9) then source += COMPLEX(0, 17)
+      if ~ARRAY_EQUAL(BYTE(source), expected) then $
+         ERRORS_ADD, nb_errors, 'BYTE array conversion for '+TYPENAME(source)
+   endforeach
+endforeach
+;
+; Arrays spanning several 1024-element blocks, with values outside the LONG
+; range in some blocks only, must convert like their scalars.
+values = DINDGEN(3000) * 2.7D6 - 4D9
+values[1024:2047] = values[1024:2047] MOD 1D9
+values[[17, 2500, 2999]] = [!VALUES.D_NAN, !VALUES.D_INFINITY, 1D20]
+saved_except = !EXCEPT
+!EXCEPT = 0
+foreach threads, [1, 4] do begin
+   CPU, TPOOL_NTHREADS=threads, TPOOL_MIN_ELTS=1, TPOOL_MAX_ELTS=0
+   foreach source_type, [4, 5, 6, 9] do begin
+      source = FIX(values, TYPE=source_type)
+      foreach type, [1, 2, 12, 3] do begin
+         array = FIX(source, TYPE=type)
+         scalars = array
+         for i = 0, N_ELEMENTS(source) - 1 do scalars[i] = FIX(source[i], TYPE=type)
+         if ~ARRAY_EQUAL(array, scalars) then $
+            ERRORS_ADD, nb_errors, 'Block conversion of '+TYPENAME(source)+ $
+               ' to type '+STRING(type, FORMAT='(I0)')+' with '+ $
+               STRING(threads, FORMAT='(I0)')+' threads'
+      endforeach
+   endforeach
+endforeach
+;
+if BYTE(4294967299.75d) ne 3b then ERRORS_ADD, nb_errors, 'BYTE of a large DOUBLE'
+if BYTE(!VALUES.F_NAN) ne 0b then ERRORS_ADD, nb_errors, 'BYTE of NaN'
+if LONG(-2147483648.75D) ne (-2147483647L - 1L) then $
+   ERRORS_ADD, nb_errors, 'LONG at the negative truncation boundary'
+;
+; Check the flag independently of the converted value. Only the last
+; block has the test operand, so workers must report it to the caller.
+values = [!VALUES.D_NAN, !VALUES.D_INFINITY, 1D20, -1D19, 300D, 3D9, 1D19, -1.5D, $
+          -2147483649D, -2147483648.75D, 2147483647.75D, 2147483648D]
+illegal32 = [1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1]
+illegal64 = [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+source = DBLARR(8192)
+foreach threads, [1, 4] do begin
+   CPU, TPOOL_NTHREADS=threads, TPOOL_MIN_ELTS=1, TPOOL_MAX_ELTS=0
+   foreach type, [1, 2, 12, 3, 13, 14, 15] do begin
+      illegal = type le 12 ? illegal32 : illegal64
+      for i = 0, N_ELEMENTS(values) - 1 do begin
+         source[8191] = values[i]
+         flags = CHECK_MATH()
+         scalar = FIX(values[i], TYPE=type)
+         scalar_flags = CHECK_MATH()
+         array = FIX(source, TYPE=type)
+         flags = CHECK_MATH()
+         if (scalar ne array[8191]) || (((scalar_flags and 128) ne 0) ne illegal[i]) || $
+            (((flags and 128) ne 0) ne illegal[i]) then $
+            ERRORS_ADD, nb_errors, 'Value or CHECK_MATH flag for '+STRING(values[i])+ $
+               ' to type '+STRING(type, FORMAT='(I0)')+' with '+STRING(threads, FORMAT='(I0)')+' threads'
+      endfor
+   endforeach
+endforeach
+flags = CHECK_MATH()
+!EXCEPT = saved_except
+CPU, RESTORE=saved_cpu
 ;
 TEST_BYTE_STRING2BYTE, nb_errors, test=test, verbose=verbose
 ;

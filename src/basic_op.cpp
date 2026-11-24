@@ -156,9 +156,11 @@ template<>
 BaseGDL* Data_<SpDString>::UMinus() { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   ULong nEl = N_Elements();
   assert(nEl != 0);
-  Data_<SpDFloat>* newThis = static_cast<Data_<SpDFloat>*> (this->Convert2(GDL_FLOAT));
-  //  this is deleted by convert2!!!
-  return static_cast<BaseGDL*> (newThis->UMinus());
+  // Constant folding keeps this string in its AST node until UMinus succeeds.
+  Guard<BaseGDL> result(Convert2(GDL_FLOAT, BaseGDL::COPY));
+  result->UMinus();
+  delete this;
+  return result.release();
 }
 
 template<>

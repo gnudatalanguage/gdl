@@ -2878,8 +2878,8 @@ bool Data_<Sp>::ForCheck(BaseGDL** lEnd, BaseGDL** lStep) {
   
   //float type are simple:
   if (FloatType(this->t) || this->t == GDL_LONG64 ) { //unsigned rule and other simple cases where 'this' rules
-      *lEnd = (*lEnd)->Convert2(this->t);
-      if (lStep != NULL) *lStep = (*lStep)->Convert2(this->t);
+      BaseGDL::Convert2InPlace(*lEnd, this->t);
+      if (lStep != NULL) BaseGDL::Convert2InPlace(*lStep, this->t);
       return true;
     }
   
@@ -2892,29 +2892,29 @@ bool Data_<Sp>::ForCheck(BaseGDL** lEnd, BaseGDL** lStep) {
   if (this->t == GDL_BYTE) {
     //early exit with simple check is needed for Bytes beacuse the arithmetic is not the same as for other types.
     // simple check: end vs. start
-    (*lEnd) = (*lEnd)->Convert2(GDL_BYTE); //convert to byte!
+    BaseGDL::Convert2InPlace(*lEnd, GDL_BYTE); //convert to byte!
     DByte* endval = static_cast<DByte*> ((*lEnd)->DataAddr());
     DByte* startval = static_cast<DByte*> (this->DataAddr());
 
     if (lStep != NULL) { //overflow case NOT handled in forAddCondUp
-      (*lStep) = (*lStep)->Convert2(GDL_LONG); //check a few things with a long argument
+      BaseGDL::Convert2InPlace(*lStep, GDL_LONG); //check a few things with a long argument
       //now what if end+step > 255 ? 
       DLong* step = static_cast<DLong*> ((*lStep)->DataAddr());
       if (std::signbit(step[0])) {
         // 1) check lEnd is not already smaller than lStart
         if (endval[0] > startval[0]) return false;
         // 2) We must convert to INTs, but this may be a problem.
-        (*lEnd) = (*lEnd)->Convert2(GDL_INT);
+        BaseGDL::Convert2InPlace(*lEnd, GDL_INT);
       } else { //step >= 0
         if (endval[0] < startval[0]) return false;
         int final = endval[0] + step[0];
         if (final > 255) { //whatever the start value, the end value must be 255 when the final step is reached.
           //We must convert to INTs, but this may be a problem.
-          (*lEnd) = (*lEnd)->Convert2(GDL_INT);
+          BaseGDL::Convert2InPlace(*lEnd, GDL_INT);
         }
       }
       //Must have lStep always as LEnd
-      (*lStep) = (*lStep)->Convert2((*lEnd)->Type());
+      BaseGDL::Convert2InPlace(*lStep, (*lEnd)->Type());
     } else if (endval[0] < startval[0]) return false; //lStep==NULL case
     return true;
   }
@@ -2924,12 +2924,12 @@ bool Data_<Sp>::ForCheck(BaseGDL** lEnd, BaseGDL** lStep) {
   // forAddCondUp is used and will save the day as the test is made in the right order. this is not the general case, where the
   //addition (or substraction) is made in the prognode Run() loop. In that case we *NEED* to promote the loop variable correctly.
 
-  (*lEnd) = (*lEnd)->Convert2(GDL_LONG64); // upgrade to safe encoding
+  BaseGDL::Convert2InPlace(*lEnd, GDL_LONG64); // upgrade to safe encoding
   DLong64* endval = static_cast<DLong64*> ((*lEnd)->DataAddr());
   
   DLong64 testVal=endval[0];
   
-  if (lStep != NULL) (*lStep) = (*lStep)->Convert2(GDL_LONG64); //idem
+  if (lStep != NULL) BaseGDL::Convert2InPlace(*lStep, GDL_LONG64); //idem
   DLong64* step = NULL;
   if (lStep != NULL) {
     step = static_cast<DLong64*> ((*lStep)->DataAddr());
@@ -2937,21 +2937,21 @@ bool Data_<Sp>::ForCheck(BaseGDL** lEnd, BaseGDL** lStep) {
   }
   
   if (this->t == GDL_INT) {
-    if (testVal < std::numeric_limits< DInt>::max() && testVal > std::numeric_limits< DInt>::min()) *lEnd = (*lEnd)->Convert2(GDL_INT);
-    else if (testVal < std::numeric_limits< DLong>::max() && testVal > std::numeric_limits< DLong>::min()) *lEnd = (*lEnd)->Convert2(GDL_LONG);
+    if (testVal < std::numeric_limits< DInt>::max() && testVal > std::numeric_limits< DInt>::min()) BaseGDL::Convert2InPlace(*lEnd, GDL_INT);
+    else if (testVal < std::numeric_limits< DLong>::max() && testVal > std::numeric_limits< DLong>::min()) BaseGDL::Convert2InPlace(*lEnd, GDL_LONG);
     //Must have lStep always as LEnd
-    if (lStep != NULL) (*lStep) = (*lStep)->Convert2((*lEnd)->Type());
+    if (lStep != NULL) BaseGDL::Convert2InPlace(*lStep, (*lEnd)->Type());
     return true; // finished for GDL_INT
   }
   if (this->t == GDL_LONG) {
-    if (testVal < std::numeric_limits< DLong>::max() && testVal > std::numeric_limits< DLong>::min()) *lEnd = (*lEnd)->Convert2(GDL_LONG);
+    if (testVal < std::numeric_limits< DLong>::max() && testVal > std::numeric_limits< DLong>::min()) BaseGDL::Convert2InPlace(*lEnd, GDL_LONG);
     //Must have lStep always as LEnd
-    if (lStep != NULL) (*lStep) = (*lStep)->Convert2((*lEnd)->Type());
+    if (lStep != NULL) BaseGDL::Convert2InPlace(*lStep, (*lEnd)->Type());
     return true; // finished for GDL_LONG
   }
   // other cases: no promotion
-  *lEnd = (*lEnd)->Convert2(this->t);
-  if (lStep != NULL) *lStep = (*lStep)->Convert2(this->t);
+  BaseGDL::Convert2InPlace(*lEnd, this->t);
+  if (lStep != NULL) BaseGDL::Convert2InPlace(*lStep, this->t);
   return true;
 }
 
@@ -3586,7 +3586,7 @@ Data_<Sp>* Data_<Sp>::CatArray( ExprListT& exprList,
   for(; i != exprList.end(); ++i)
     {
       // conversion done already here to throw if type is Assoc_<>
-      (*i)=(*i)->Convert2( this->t);
+      BaseGDL::Convert2InPlace(*i, this->t);
 
       for( SizeT dIx=0; dIx<=maxIx; dIx++)
 	{
@@ -4786,40 +4786,55 @@ SizeT Data_<SpDLong64>::GetAsIndexStrict( SizeT i) const
 		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
   return (*this)[i];
 }	
-template<>
-SizeT Data_<SpDFloat>::GetAsIndex( SizeT i) const
-{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  if( (*this)[i] <= 0.0)
+namespace {
+
+template <typename RealT>
+SizeT realArrayIndex(RealT value, SizeT i, bool strict) {
+  if (value <= 0) {
+    if (strict && value <= -1) {
+      throw GDLException(-1, nullptr,
+                         "Array used to subscript array contains out of range "
+                         "(<0) subscript (at index: " + i2s(i) + ").",
+                         true, false);
+    }
     return 0;
-  return Real2Int<SizeT,float>((*this)[i]);
-}	
-template<>
-SizeT Data_<SpDFloat>::GetAsIndexStrict( SizeT i) const
-{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  if( (*this)[i] <= -1.0)
-    throw GDLException(-1,NULL,"Array used to subscript array "
-		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
-  if( (*this)[i] <= 0.0)
-    return 0;
-  return Real2Int<SizeT,float>((*this)[i]);
-}	
-template<>
-SizeT Data_<SpDDouble>::GetAsIndex( SizeT i) const
-{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  if( (*this)[i] <= 0.0)
-    return 0;
-  return Real2Int<SizeT,double>((*this)[i]);
-}	
-template<>
-SizeT Data_<SpDDouble>::GetAsIndexStrict( SizeT i) const
-{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  if( (*this)[i] <= -1.0)
-    throw GDLException(-1,NULL,"Array used to subscript array "
-		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
-  if( (*this)[i] <= 0.0)
-    return 0;
-  return Real2Int<SizeT,double>((*this)[i]);
-}	
+  }
+  const RealT limit = std::ldexp(RealT{1}, std::numeric_limits<SizeT>::digits);
+  if (std::isless(value, limit)) {
+    return static_cast<SizeT>(value);
+  }
+  // The indexing caller clips this to its upper bound or raises in strict mode.
+  // NaN follows the same out-of-range path as positive infinity.
+  std::feraiseexcept(FE_INVALID);
+  return std::numeric_limits<SizeT>::max();
+}
+
+}  // namespace
+
+template <>
+SizeT Data_<SpDFloat>::GetAsIndex(SizeT i) const {
+  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+  return realArrayIndex((*this)[i], i, false);
+}
+
+template <>
+SizeT Data_<SpDFloat>::GetAsIndexStrict(SizeT i) const {
+  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+  return realArrayIndex((*this)[i], i, true);
+}
+
+template <>
+SizeT Data_<SpDDouble>::GetAsIndex(SizeT i) const {
+  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+  return realArrayIndex((*this)[i], i, false);
+}
+
+template <>
+SizeT Data_<SpDDouble>::GetAsIndexStrict(SizeT i) const {
+  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+  return realArrayIndex((*this)[i], i, true);
+}
+
 template<>
 SizeT Data_<SpDString>::GetAsIndex( SizeT i) const
 { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
@@ -4852,39 +4867,28 @@ SizeT Data_<SpDString>::GetAsIndexStrict( SizeT i) const
   return l;
 }	
 
-template<>
-SizeT Data_<SpDComplex>::GetAsIndex( SizeT i) const
-{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  if( real((*this)[i]) <= 0.0)
-    return 0;
-  return Real2Int<SizeT,float>(real((*this)[i]));
-}	
-template<>
-SizeT Data_<SpDComplex>::GetAsIndexStrict( SizeT i) const
-{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  if( real((*this)[i]) <= -1.0)
-    throw GDLException(-1,NULL,"Array used to subscript array "
-		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
-  if( real((*this)[i]) <= 0.0)
-    return 0;
-  return Real2Int<SizeT,float>(real((*this)[i]));
-}	
-template<>
-SizeT Data_<SpDComplexDbl>::GetAsIndex( SizeT i) const
-{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  if( real((*this)[i]) <= 0.0)
-    return 0;
-  return Real2Int<SizeT,double>(real((*this)[i]));
-}	
-template<>
-SizeT Data_<SpDComplexDbl>::GetAsIndexStrict( SizeT i) const
-{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  if( real((*this)[i]) <= -1.0)
-    throw GDLException(-1,NULL,"Array used to subscript array "
-		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
-  if( real((*this)[i]) <= 0.0)
-    return 0;
-  return Real2Int<SizeT,double>(real((*this)[i]));
+template <>
+SizeT Data_<SpDComplex>::GetAsIndex(SizeT i) const {
+  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+  return realArrayIndex((*this)[i].real(), i, false);
+}
+
+template <>
+SizeT Data_<SpDComplex>::GetAsIndexStrict(SizeT i) const {
+  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+  return realArrayIndex((*this)[i].real(), i, true);
+}
+
+template <>
+SizeT Data_<SpDComplexDbl>::GetAsIndex(SizeT i) const {
+  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+  return realArrayIndex((*this)[i].real(), i, false);
+}
+
+template <>
+SizeT Data_<SpDComplexDbl>::GetAsIndexStrict(SizeT i) const {
+  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+  return realArrayIndex((*this)[i].real(), i, true);
 }
 #ifdef ONE_DATAFILE
 //#warning "using a big datatype.cpp file, compilation slow"

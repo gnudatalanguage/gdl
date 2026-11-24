@@ -435,12 +435,12 @@ public:
   };
 
   enum Convert2Mode {
+    KEEP_SOURCE=0,             // reuse the input on a type match
     CONVERT=1,
     COPY=2,
     COPY_BYTE_AS_INT=(4|2),    // for GDL_STRING function
     THROWIOERROR=8,            // for DStringGDL::Convert2()
-    COPY_THROWIOERROR=(8|2),   // for DStringGDL::Convert2()
-    CONVERT_THROWIOERROR=(8|1) // for DStringGDL::Convert2() (SA: used in NEWTON())
+    COPY_THROWIOERROR=(8|2)    // for DStringGDL::Convert2()
   };
 
   enum IOMode {
@@ -568,6 +568,8 @@ public:
   virtual BaseGDL* Dup() const;
 //   virtual BaseGDL* Dup( char*) const; 
   virtual BaseGDL* Convert2( DType destTy, Convert2Mode mode=CONVERT);
+  // Replace an owned value only after its conversion succeeds.
+  static void Convert2InPlace(BaseGDL*& value, DType destTy);
   virtual BaseGDL* GetTag() const; 
   virtual BaseGDL* GetInstance() const;
   virtual BaseGDL* GetEmptyInstance() const;

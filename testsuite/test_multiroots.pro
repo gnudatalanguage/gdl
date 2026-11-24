@@ -98,7 +98,26 @@ function moist_isentrope, x
   return, f
 end
 
+function multiroots_invalid_result, x
+  return, replicate('invalid', n_elements(x))
+end
+
+pro test_multiroots_invalid, solver
+  catch, error
+  if error ne 0 then begin
+    catch, /cancel
+    if strpos(!error_state.msg, 'failed to convert the result') lt 0 then $
+      message, solver+' returned an unexpected error: '+!error_state.msg
+    return
+  endif
+  out = call_function(solver, [1D, 2D], 'multiroots_invalid_result')
+  catch, /cancel
+  message, solver+' accepted an invalid STRING result'
+end
+
 pro test_multiroots
+  test_multiroots_invalid, 'NEWTON'
+  test_multiroots_invalid, 'BROYDEN'
 
   x0 = moist_isentrope_init()
 

@@ -202,7 +202,7 @@ void DStructGDL::SetDesc( DStructDesc* nDesc)
       if( ConvertableType( actTType))     // not for struct, obj, ptr
 	{
 	  if( typeVar[ t]->Type() != actTType)
-	    typeVar[ t] = typeVar[ t]->Convert2( actTType);
+	    Convert2InPlace(typeVar[t], actTType);
 	}
     }
   // finally replace the descriptor

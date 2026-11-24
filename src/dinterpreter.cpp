@@ -621,12 +621,12 @@ void GDLInterpreter::AdjustTypes(BaseGDL* &a, BaseGDL* &b)
   if( DTypeOrder[aTy] > DTypeOrder[bTy])
     {
       // convert b to a
-      b=b->Convert2( aTy);
+      BaseGDL::Convert2InPlace(b, aTy);
     }
   else
     {
       // convert a to b
-      a=a->Convert2( bTy);
+      BaseGDL::Convert2InPlace(a, bTy);
     }
 }
 

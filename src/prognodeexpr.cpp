@@ -755,8 +755,10 @@ ProgNodeP QUESTIONNode::GetThisBranch()
 // unary operators
 BaseGDL* UMINUSNode::Eval()
 {
-  BaseGDL* e1 = down->Eval();
-  return e1->UMinus(); // might delete e1 (GDL_STRING)
+  std::unique_ptr<BaseGDL, decltype(&GDLDelete)> operand(down->Eval(), &GDLDelete);
+  BaseGDL* result = operand->UMinus();
+  operand.release(); // UMinus reuses or consumes the operand on success.
+  return result;
 }
 BaseGDL* NOT_OPNode::Eval()
 {

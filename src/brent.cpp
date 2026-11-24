@@ -2657,18 +2657,16 @@ namespace lib {
     }
     DDoubleGDL* dres;
     try {
-      // BUT: Convert2(...) with CONVERT already deletes 'res' here if the type is changed
-      dres = static_cast<DDoubleGDL*>(res->Convert2(GDL_DOUBLE, BaseGDL::CONVERT_THROWIOERROR));
-    }    
-    catch (GDLIOException& ex) {
+      // res_guard owns the input throughout the conversion.
+      dres = static_cast<DDoubleGDL*>(
+          res->Convert2(GDL_DOUBLE, BaseGDL::THROWIOERROR));
+    } catch (const GDLIOException&) {
      brent_func_data.failed=true;
       brent_func_data.errmsg = "failed to convert the result of your function to double";
       dres=new DDoubleGDL(dimension(n),BaseGDL::ZERO); //we do not return, dres MUST exist!
     }
     if (res != dres) {
-      // prevent 'res' from being deleted again
-      res_guard.Release();
-      res_guard.Init(dres);
+      res_guard.Reset(dres);
     }
     return (*dres)[0];
   }

@@ -345,6 +345,83 @@ if KEYWORD_SET(test) then STOP
 
 end
 
+pro TEST_CONVERT2_WRAP, cumul_errors, values, expected, illegal, source_types
+type = SIZE(expected, /TYPE)
+foreach threads, [1, 4] do begin
+   CPU, TPOOL_NTHREADS=threads, TPOOL_MIN_ELTS=1, TPOOL_MAX_ELTS=0
+   foreach source_type, source_types do begin
+      source = FIX(values, TYPE=source_type)
+      input = REPLICATE(FIX(0, TYPE=source_type), 4097)
+      ; Exercise a whole worker group, one exceptional lane, and the final tail.
+      foreach pos, [3968L, 4087L, 4096L] do begin
+         last = pos eq 3968L ? pos + 63L : pos
+         for i = 0, N_ELEMENTS(source) - 1 do begin
+            input[pos:last] = source[i]
+            flags = CHECK_MATH()
+            scalar = FIX(source[i], TYPE=type)
+            scalar_flags = CHECK_MATH()
+            array = FIX(input, TYPE=type)
+            flags = CHECK_MATH()
+            if (scalar ne expected[i]) || ~ARRAY_EQUAL(array[pos:last], REPLICATE(expected[i], last - pos + 1)) || $
+               ((scalar_flags and 128) ne illegal[i]) || ((flags and 128) ne illegal[i]) then $
+               ERRORS_ADD, cumul_errors, TYPENAME(source)+' to '+TYPENAME(expected)+ $
+                  ' at '+STRING(values[i], FORMAT='(G24.17)')+ $
+                  ' with '+STRING(threads, FORMAT='(I0)')+' thread(s)'
+         endfor
+         input[pos:last] = 0
+      endforeach
+   endforeach
+endforeach
+end
+
+pro TEST_CONVERT2_INDICES, cumul_errors
+saved_except = !EXCEPT
+!EXCEPT = 0
+values = [11, 22, 33]
+indices = [-!VALUES.D_INFINITY, -0.75D, 1.75D, 2D^64, !VALUES.D_INFINITY, !VALUES.D_NAN]
+foreach type, [4, 5, 6, 9] do begin
+   idx = FIX(indices, TYPE=type)
+   if ~ARRAY_EQUAL(values[idx], [11, 11, 22, 33, 33, 33]) then $
+      ERRORS_ADD, cumul_errors, 'Array subscript clipping for '+TYPENAME(idx)
+   ; REPLICATE_INPLACE checks the subscripts on its selected dimension strictly.
+   rows = INTARR(2, 3)
+   REPLICATE_INPLACE, rows, 1, 1, [0, 0], 2, idx[1:2]
+   if ~ARRAY_EQUAL(rows[0, *], [1, 1, 0]) then $
+      ERRORS_ADD, cumul_errors, 'Strict fractional subscripts for '+TYPENAME(idx)
+   ; NaN takes the positive overflow path, which also sets CHECK_MATH.
+   flags = CHECK_MATH()
+   nan_pick = values[idx[[5]]]
+   flags = CHECK_MATH()
+   if (nan_pick[0] ne 33) || ((flags and 128) eq 0) then $
+      ERRORS_ADD, cumul_errors, 'NaN subscript or CHECK_MATH flag for '+TYPENAME(idx)
+   updated = values
+   updated[idx[[5]]] = 99
+   if ~ARRAY_EQUAL(updated, [11, 22, 99]) then $
+      ERRORS_ADD, cumul_errors, 'NaN subscript assignment for '+TYPENAME(idx)
+   ; Strict indexing rejects negative, overflowing and NaN subscripts.
+   foreach i, [0, 3, 4, 5] do begin
+      bad = idx[[1, i]]
+      if EXECUTE('REPLICATE_INPLACE, rows, 1, 1, [0, 0], 2, bad', 1) then $
+         ERRORS_ADD, cumul_errors, 'Strict indexing accepted an out-of-range '+TYPENAME(idx)
+   endforeach
+endforeach
+flags = CHECK_MATH()
+!EXCEPT = saved_except
+end
+
+pro TEST_CONVERT2_INVALID_STRING, cumul_errors
+values = REPLICATE('7', 1024)
+values[1023] = 'invalid'
+result = -1L
+ON_IOERROR, invalid_element
+result = LONG(values)
+ERRORS_ADD, cumul_errors, 'LONG did not raise ON_IOERROR for a late invalid string'
+return
+invalid_element:
+if ~ARRAY_EQUAL(result, -1L) then $
+   ERRORS_ADD, cumul_errors, 'Failed STRING conversion overwrote the assignment target'
+end
+
 ; ---------------------SUMMARY-----------------------------
 ;
 
@@ -358,6 +435,163 @@ if KEYWORD_SET(help) then begin
 endif 
 ;
 cumul_errors=0
+;
+saved_cpu = !CPU
+foreach type, [2, 12, 3, 13, 14, 15] do begin
+   CPU, TPOOL_NTHREADS=1, TPOOL_MIN_ELTS=64, TPOOL_MAX_ELTS=0
+   values = INDGEN(8192, TYPE=type)
+   expected = STRING(values)
+   CPU, TPOOL_NTHREADS=4
+   if ~ARRAY_EQUAL(STRING(values), expected) then $
+      ERRORS_ADD, cumul_errors, 'Parallel STRING conversion differs for '+TYPENAME(values)
+endforeach
+;
+; 40000 wraps to -25536 in a signed 16-bit INT on every conversion path.
+if FIX(40000.) ne -25536 then $
+   ERRORS_ADD, cumul_errors, 'Scalar FIX(40000.) must return -25536'
+values = REPLICATE(40000., 8192)
+expected = REPLICATE(-25536, 8192)
+foreach threads, [1, 4] do begin
+   CPU, TPOOL_NTHREADS=threads, TPOOL_MIN_ELTS=1, TPOOL_MAX_ELTS=0
+   if ~ARRAY_EQUAL(FIX(values), expected) then $
+      ERRORS_ADD, cumul_errors, 'FIX of a 40000. array must return -25536 with '+ $
+         STRING(threads, FORMAT='(I0)')+' thread(s)'
+endforeach
+CPU, RESTORE=saved_cpu
+;
+; Cover the complete numeric dispatch matrix on the threaded array path.
+CPU, TPOOL_NTHREADS=4, TPOOL_MIN_ELTS=1, TPOOL_MAX_ELTS=0
+numeric_types = [1, 2, 12, 3, 13, 14, 15, 4, 5, 6, 9]
+base_values = LINDGEN(4097) MOD 43
+foreach source_type, numeric_types do begin
+   source = FIX(base_values, TYPE=source_type)
+   foreach destination_type, numeric_types do begin
+      result = FIX(source, TYPE=destination_type)
+      if (SIZE(result, /TYPE) ne destination_type) || ~ARRAY_EQUAL(result, base_values) then $
+         ERRORS_ADD, cumul_errors, 'Numeric conversion '+TYPENAME(source)+ $
+            ' to type '+STRING(destination_type, FORMAT='(I0)')
+   endforeach
+endforeach
+;
+; Integer narrowing must retain the low destination-width bits.
+if FIX(65535L, TYPE=2) ne -1 then $
+   ERRORS_ADD, cumul_errors, 'LONG to INT low-bit conversion'
+if FIX(-1L, TYPE=12) ne 65535U then $
+   ERRORS_ADD, cumul_errors, 'LONG to UINT low-bit conversion'
+if FIX(4294967295ULL, TYPE=3) ne -1L then $
+   ERRORS_ADD, cumul_errors, 'ULONG64 to LONG low-bit conversion'
+if FIX(-1LL, TYPE=13) ne 4294967295UL then $
+   ERRORS_ADD, cumul_errors, 'LONG64 to ULONG low-bit conversion'
+if FIX(NOT 0ULL, TYPE=14) ne -1LL then $
+   ERRORS_ADD, cumul_errors, 'ULONG64 to LONG64 low-bit conversion'
+;
+; Finite inputs truncate toward zero and retain the low destination bits.
+; These values are exactly representable in all four source types.
+saved_except = !EXCEPT
+!EXCEPT = 0
+min32 = -2147483647L - 1L
+max32 = 2147483647L
+min64 = -9223372036854775807LL - 1LL
+max64 = 9223372036854775807LL
+umax32 = 4294967295UL
+umax64 = 18446744073709551615ULL
+bound = 2D^63
+values = [0D, -3D9, 3D9, -1.5D, -0.75D, 2D^31, 2D^32, -bound, bound, 2D*bound]
+types = [4, 5, 6, 9]
+illegal64 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 128]
+TEST_CONVERT2_WRAP, cumul_errors, values, $
+   [0L, 1294967296L, -1294967296L, -1L, 0L, min32, 0L, 0L, 0L, 0L], $
+   [0, 128, 128, 0, 0, 128, 128, 128, 128, 128], types
+TEST_CONVERT2_WRAP, cumul_errors, values, $
+   [0UL, 1294967296UL, 3000000000UL, umax32, 0UL, 2147483648UL, 0UL, 0UL, 0UL, 0UL], $
+   illegal64, types
+TEST_CONVERT2_WRAP, cumul_errors, values, $
+   [0LL, -3000000000LL, 3000000000LL, -1LL, 0LL, 2147483648LL, 4294967296LL, min64, min64, 0LL], $
+   illegal64, types
+highbit = 9223372036854775808ULL
+TEST_CONVERT2_WRAP, cumul_errors, values, $
+   [0ULL, umax64-2999999999ULL, 3000000000ULL, umax64, 0ULL, 2147483648ULL, 4294967296ULL, highbit, highbit, 0ULL], $
+   illegal64, types
+;
+; NaN and infinities keep their established results and set the illegal flag.
+values = [!VALUES.D_NAN, !VALUES.D_INFINITY, -!VALUES.D_INFINITY]
+illegal = [128, 128, 128]
+TEST_CONVERT2_WRAP, cumul_errors, values, [min32, min32, min32], illegal, types
+TEST_CONVERT2_WRAP, cumul_errors, values, [0UL, 0UL, 0UL], illegal, types
+TEST_CONVERT2_WRAP, cumul_errors, values, [min64, min64, min64], illegal, types
+TEST_CONVERT2_WRAP, cumul_errors, values, $
+   [highbit, 0ULL, highbit], illegal, types
+;
+; Adjacent DOUBLEs at the signed cast boundary differ in their low fraction bits.
+edge = 2D^31
+below = edge - 2D^(-22)
+above = edge + 2D^(-21)
+TEST_CONVERT2_WRAP, cumul_errors, [below, edge, above, -below, -edge, -above], $
+   [max32, min32, min32, -max32, min32, min32], [0, 128, 128, 0, 0, 0], [5, 9]
+; An exceptional imaginary component must not affect the real conversion or its flags.
+real_values = LINDGEN(4097) MOD 43 - 21L
+imag_values = REPLICATE(!VALUES.D_NAN, N_ELEMENTS(real_values))
+foreach wide, [0, 1] do begin
+   source = COMPLEX(real_values, imag_values, DOUBLE=wide)
+   flags = CHECK_MATH()
+   result = LONG(source)
+   flags = CHECK_MATH()
+   if ~ARRAY_EQUAL(result, real_values) || ((flags and 128) ne 0) then $
+      ERRORS_ADD, cumul_errors, 'Imaginary NaN in '+TYPENAME(source)+' to LONG'
+endforeach
+; Check adjacent DOUBLE values and fractions whose truncation still fits.
+TEST_CONVERT2_WRAP, cumul_errors, [-2147483648.75D, 2147483647.75D], $
+   [min32, max32], [0, 0], [5, 9]
+TEST_CONVERT2_WRAP, cumul_errors, [4294967295.75D, 4294967296D], $
+   [umax32, 0UL], [0, 0], [5, 9]
+values = [-bound-2048D, -bound, -bound+1024D, bound-1024D, bound, bound+2048D]
+TEST_CONVERT2_WRAP, cumul_errors, values, $
+   [max64-2047LL, min64, min64+1024LL, max64-1023LL, min64, min64+2048LL], $
+   [128, 0, 0, 0, 0, 0], [5, 9]
+TEST_CONVERT2_WRAP, cumul_errors, [bound+2048D, 2D*bound-2048D, 2D*bound, 2D*bound+4096D], $
+   [highbit+2048ULL, umax64-2047ULL, 0ULL, 4096ULL], [0, 0, 128, 128], [5, 9]
+TEST_CONVERT2_WRAP, cumul_errors, [-2D*bound-4096D, -1D300, 1D300], $
+   [umax64-4095ULL, 0ULL, 0ULL], [128, 128, 128], [5, 9]
+TEST_CONVERT2_WRAP, cumul_errors, [1D300], [0L], [128], [5, 9]
+; Immediately below each cutoff, one destination bit still survives.
+cutoff = 2D^84
+values = [-(cutoff - 2D^31), cutoff - 2D^31, cutoff, -cutoff, cutoff + 2D^32]
+TEST_CONVERT2_WRAP, cumul_errors, values, [min32, min32, 0L, 0L, 0L], $
+   REPLICATE(128, 5), [5, 9]
+cutoff = 2D^116
+values = [-(cutoff - bound), cutoff - bound, cutoff, -cutoff, cutoff + 2D^64]
+TEST_CONVERT2_WRAP, cumul_errors, values, [highbit, highbit, 0ULL, 0ULL, 0ULL], $
+   REPLICATE(128, 5), [5, 9]
+TEST_CONVERT2_WRAP, cumul_errors, [-(2D^31)], [0B], [0], [4, 6]
+TEST_CONVERT2_WRAP, cumul_errors, [2D^55], [0UL], [0], [4, 6]
+flags = CHECK_MATH()
+!EXCEPT = saved_except
+;
+; A NUL terminates its own row. A full row retains every byte.
+bytes = REFORM([0b,90b,90b, 65b,0b,90b, 128b,255b,66b], 3, 3)
+strings = STRING(bytes)
+if (strings[0] ne '') || (strings[1] ne 'A') || $
+   ~ARRAY_EQUAL(BYTE(strings[2]), [128b,255b,66b]) then $
+   ERRORS_ADD, cumul_errors, 'BYTE rows with embedded NUL or high-bit bytes'
+;
+; Preserve whitespace, prefix parsing, and Fortran D-exponent compatibility.
+integer_strings = REPLICATE('  -42 trailing', 1024)
+foreach type, [2, 12, 3, 13, 14, 15] do begin
+   expected = REPLICATE(FIX(-42LL, TYPE=type), 1024)
+   if ~ARRAY_EQUAL(FIX(integer_strings, TYPE=type), expected) then $
+      ERRORS_ADD, cumul_errors, 'STRING conversion to integer type '+ $
+         STRING(type, FORMAT='(I0)')
+endforeach
+real_strings = REPLICATE('  1D2 trailing', 1024)
+foreach type, [4, 5, 6, 9] do begin
+   expected = REPLICATE(FIX(100D, TYPE=type), 1024)
+   if ~ARRAY_EQUAL(FIX(real_strings, TYPE=type), expected) then $
+      ERRORS_ADD, cumul_errors, 'STRING conversion to real type '+ $
+         STRING(type, FORMAT='(I0)')
+endforeach
+TEST_CONVERT2_INVALID_STRING, cumul_errors
+TEST_CONVERT2_INDICES, cumul_errors
+CPU, RESTORE=saved_cpu
 ;
 TEST_FLOAT2STR, cumul_errors, test=test, verbose=verbose
 TEST_DOUBLE2STR, cumul_errors, test=test, verbose=verbose

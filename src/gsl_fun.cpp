@@ -1659,19 +1659,15 @@ namespace lib {
     }
     DDoubleGDL *dres;
     try {
-      // BUT: Convert2(...) with CONVERT already deletes 'res' here if the type is changed
-      dres = static_cast<DDoubleGDL *> (
-					res->Convert2(GDL_DOUBLE, BaseGDL::CONVERT_THROWIOERROR)
-					);
-    }
-    catch (GDLIOException &ex) {
+      // res_guard owns the input throughout the conversion.
+      dres = static_cast<DDoubleGDL*>(
+          res->Convert2(GDL_DOUBLE, BaseGDL::THROWIOERROR));
+    } catch (const GDLIOException&) {
       p->errmsg = "failed to convert the result of the user-defined function to double";
       return GSL_EBADFUNC;
     }
     if (res != dres) {
-      // prevent 'res' from being deleted again
-      res_guard.Release();
-      res_guard.Init(dres);
+      res_guard.Reset(dres);
     }
     // copying from GDL to GSL
     for (size_t i = 0; i < x->size; i++) gsl_vector_set(f, i, (*dres)[i]);
@@ -1770,6 +1766,9 @@ namespace lib {
     }
     GDLGuard<gsl_multiroot_fsolver> g2(solver, gsl_multiroot_fsolver_free);
     gsl_multiroot_fsolver_set(solver, &F, x);
+    if (!param.errmsg.empty()) {
+      e->Throw(param.errmsg);
+    }
 
     // GDL handling fine-tuning keywords
     // (intentionally not making keyword indices static here (NEWTON vs. BROYDEN))
@@ -1859,18 +1858,16 @@ namespace lib {
     }
     DDoubleGDL *dres;
     try {
-      // BUT: Convert2(...) with CONVERT already deletes 'res' here if the type is changed
-      dres = static_cast<DDoubleGDL *>(res->Convert2(GDL_DOUBLE, BaseGDL::CONVERT_THROWIOERROR));
-    }
-    catch (GDLIOException &ex) {
+      // res_guard owns the input throughout the conversion.
+      dres = static_cast<DDoubleGDL*>(
+          res->Convert2(GDL_DOUBLE, BaseGDL::THROWIOERROR));
+    } catch (const GDLIOException&) {
       p->failed = true;
       p->errmsg = "failed to convert the result of the user-defined function \"" + p->funcname + "\" to double";
       dres = new DDoubleGDL(std::numeric_limits<double>::quiet_NaN()); //we do not return, dres MUST exist!
     }
     if (res != dres) {
-      // prevent 'res' from being deleted again
-      res_guard.Release();
-      res_guard.Init(dres);
+      res_guard.Reset(dres);
     }
     // copying from GDL to GSL
     return (*dres)[0];
@@ -2169,18 +2166,16 @@ namespace lib {
     }
     DDoubleGDL *dres;
     try {
-      // BUT: Convert2(...) with CONVERT already deletes 'res' here if the type is changed
-      dres = static_cast<DDoubleGDL *>(res->Convert2(GDL_DOUBLE, BaseGDL::CONVERT_THROWIOERROR));
-    }
-    catch (GDLIOException &ex) {
+      // res_guard owns the input throughout the conversion.
+      dres = static_cast<DDoubleGDL*>(
+          res->Convert2(GDL_DOUBLE, BaseGDL::THROWIOERROR));
+    } catch (const GDLIOException&) {
       p->failed = true;
       p->errmsg = "failed to convert the result of the user-defined function \"" + p->funcname_f + "\" to double";
       dres = new DDoubleGDL(std::numeric_limits<double>::quiet_NaN()); //we do not return, dres MUST exist!
     }
     if (res != dres) {
-      // prevent 'res' from being deleted again
-      res_guard.Release();
-      res_guard.Init(dres);
+      res_guard.Reset(dres);
     }
     // copying from GDL to GSL
     return (*dres)[0];
@@ -2208,19 +2203,17 @@ namespace lib {
     }
     DDoubleGDL *dres;
     try {
-      // BUT: Convert2(...) with CONVERT already deletes 'res' here if the type is changed
-      dres = static_cast<DDoubleGDL *>(res->Convert2(GDL_DOUBLE, BaseGDL::CONVERT_THROWIOERROR));
-    }
-    catch (GDLIOException &ex) {
+      // res_guard owns the input throughout the conversion.
+      dres = static_cast<DDoubleGDL*>(
+          res->Convert2(GDL_DOUBLE, BaseGDL::THROWIOERROR));
+    } catch (const GDLIOException&) {
       p->failed = true;
       p->errmsg =
 	"failed to convert the result of the user-defined function \"" + p->funcname_df + "\" to double";
       dres = new DDoubleGDL(dimension(x->size), BaseGDL::ZERO); //we do not return, dres MUST exist!
     }
     if (res != dres) {
-      // prevent 'res' from being deleted again
-      res_guard.Release();
-      res_guard.Init(dres);
+      res_guard.Reset(dres);
     }
     // copying from GDL to GSL:
     for (SizeT i = 0; i < dres->N_Elements(); ++i) gsl_vector_set(g, i, (*(DDoubleGDL *) dres)[i]);
@@ -2249,18 +2242,16 @@ namespace lib {
     }
     DDoubleGDL *dres;
     try {
-      // BUT: Convert2(...) with CONVERT already deletes 'res' here if the type is changed
-      dres = static_cast<DDoubleGDL *>(res->Convert2(GDL_DOUBLE, BaseGDL::CONVERT_THROWIOERROR));
-    }
-    catch (GDLIOException &ex) {
+      // res_guard owns the input throughout the conversion.
+      dres = static_cast<DDoubleGDL*>(
+          res->Convert2(GDL_DOUBLE, BaseGDL::THROWIOERROR));
+    } catch (const GDLIOException&) {
       p->failed = true;
       p->errmsg = "failed to convert the result of your function(s) to double";
       dres = new DDoubleGDL(dimension(x->size), BaseGDL::ZERO); //we do not return, dres MUST exist!
     }
     if (res != dres) {
-      // prevent 'res' from being deleted again
-      res_guard.Release();
-      res_guard.Init(dres);
+      res_guard.Reset(dres);
     }
     // copying from GDL to GSL:
     *f = (*(DDoubleGDL *) dres)[0];
