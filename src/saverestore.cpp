@@ -17,6 +17,8 @@
 
 #include "dinterpreter.hpp"
 #include <queue>
+#include <memory>
+#include <vector>
 
 #include "print_tree.hpp"
 
@@ -51,6 +53,17 @@ const int sizeOfType[] = {0, 1, 2, 4, 4, 8, 8, 0, 0, 16,0,0,2,4,8,8};
 namespace lib {
 
   using namespace std;
+
+  // Owns a string allocated by xdr_string() (called with a NULL pointer)
+  // and frees it with the XDR library when leaving the scope, whatever the path.
+  struct XdrString {
+    char* p = nullptr;
+    XdrString() {}
+    ~XdrString() { if (p) xdr_free((xdrproc_t) xdr_wrapstring, (char*) &p); }
+    XdrString(const XdrString&) = delete;
+    XdrString& operator=(const XdrString&) = delete;
+  };
+
 enum {
   START_MARKER=0, // Start of SAVE file
   COMMONBLOCK=1, // Block contains a common block definition
@@ -836,8 +849,8 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
       cerr << "structure is not a structure! abort." << endl;
       return NULL;
     }
-    char* structname = 0;
-    if (!xdr_string(xdrs, &structname, 2048)) return NULL;
+    XdrString structname;
+    if (!xdr_string(xdrs, &structname.p, 2048)) return NULL;
     int32_t structure_def_flags;
     if (!xdr_int32_t(xdrs, &structure_def_flags)) return NULL;
     bool ispredef = false; //ispredef means that this struct has been already defined inside the save file,
@@ -866,11 +879,11 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     if (DEBUG_SAVERESTORE) {
      if (isObjStruct) {
        cerr<<std::hex<<structure_def_flags<<std::dec<<std::endl;
-       cerr << "Object name:\"" << structname << "\"";
+       cerr << "Object name:\"" << structname.p << "\"";
        if (inherits) cerr << ", inherits";
        if (is_super) cerr << ", is a Superclass";
      } else {
-       cerr << "Structure name:\"" << structname << "\"";
+       cerr << "Structure name:\"" << structname.p << "\"";
      }
      if (unknown_flag) cerr << ", is tagged by unknown flag 0x08";
      if (ispredef) cerr << ", is already defined";
@@ -885,7 +898,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     //structure has already been presented and we should reuse it.
     // otherwise, we define the structure using the following entries:
     if (ispredef) {
-      std::string name = std::string(structname);
+      std::string name = std::string(structname.p);
       //beautify
       assert(name != "$truct") ; // named struct
         name = StrUpCase(name);
@@ -902,10 +915,9 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
       // and if this definition is in accordance with the structure defined here, i.e., in the save file.
       //TAG_DESC repated ntags times:
       int32_t tag_typecode[ntags];
-      char* tag_name[ntags];
+      std::vector<XdrString> tag_name(ntags); // strings freed automatically
       int32_t tag_flag[ntags];
       int32_t tag_offset[ntags];
-      for (int i = 0; i < ntags; ++i) tag_name[i] = 0;
       for (int i = 0; i < ntags; ++i)
       {
         //TAG_DESC:
@@ -916,22 +928,22 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
       for (int i = 0; i < ntags; ++i)
       {
         //TAGNAMES x NTAGS:
-        if (!xdr_string(xdrs, &tag_name[i], 2048)) break;
+        if (!xdr_string(xdrs, &tag_name[i].p, 2048)) break;
       }
 
       int32_t narrays = 0;
       int32_t nstructs = 0;
       for (int i = 0; i < ntags; ++i) if (tag_flag[i] & 0x20) nstructs++;
       for (int i = 0; i < ntags; ++i) if (tag_flag[i] & 0x04) narrays++;
-      dimension * tagdimensions[narrays + 1]; //Always >0: FIXME IF MEMORY LEAK!
+      std::vector<std::unique_ptr<dimension>> tagdimensions(narrays); // freed automatically
       //if there are any tag flags indicating the tag is an array, read the ARRDESC
       for (int i = 0; i < narrays; ++i)
       {
-        tagdimensions[i] = getArrDesc(xdrs);
-        if (tagdimensions[i] == NULL) return NULL;
+        tagdimensions[i].reset(getArrDesc(xdrs));
+        if (!tagdimensions[i]) return NULL;
       }
 
-      std::string stru_name = std::string(structname);
+      std::string stru_name = std::string(structname.p);
       if( stru_name == "IDL_OBJECT") stru_name = GDL_OBJECT_NAME; // replacement also done in GDLParser
       if( stru_name == "IDL_CONTAINER") stru_name = GDL_CONTAINER_NAME; // replacement also done in GDLParser
       DStructDesc* stru_desc=NULL;
@@ -992,55 +1004,55 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
         if (tag_flag[i] & 0x04)
         {
           // modify pardim and push index;
-          pardim = *(tagdimensions[j++]); //memory leak?
+          pardim = *(tagdimensions[j++]);
         }
 
         switch (tag_typecode[i]) {
           case GDL_BYTE: //	Byte
           {
             SpDByte entry(pardim);
-            stru_desc->AddTag(tag_name[i], &entry);
+            stru_desc->AddTag(tag_name[i].p,&entry);
           }
             break;
 
           case GDL_INT: //	16-bit Integer 
           {
             SpDInt entry(pardim);
-            stru_desc->AddTag(tag_name[i], &entry);
+            stru_desc->AddTag(tag_name[i].p,&entry);
           }
             break;
 
           case GDL_LONG: //	32-bit Long Integer 
           {
             SpDLong entry(pardim);
-            stru_desc->AddTag(tag_name[i], &entry);
+            stru_desc->AddTag(tag_name[i].p,&entry);
           }
             break;
 
           case GDL_FLOAT: //	32-bit Floating Point Number 
           {
             SpDFloat entry(pardim);
-            stru_desc->AddTag(tag_name[i], &entry);
+            stru_desc->AddTag(tag_name[i].p,&entry);
           }
             break;
 
           case GDL_DOUBLE: //	64-bit Floating Point Number 
           {
             SpDDouble entry(pardim);
-            stru_desc->AddTag(tag_name[i], &entry);
+            stru_desc->AddTag(tag_name[i].p,&entry);
           }
             break;
 
           case GDL_COMPLEX: //	Complex Floating Point Number (32-bits each) 
           {
             SpDComplex entry(pardim);
-            stru_desc->AddTag(tag_name[i], &entry);
+            stru_desc->AddTag(tag_name[i].p,&entry);
           }
             break;
           case GDL_STRING: //	String
           {
             SpDString entry(pardim);
-            stru_desc->AddTag(tag_name[i], &entry);
+            stru_desc->AddTag(tag_name[i].p,&entry);
           }
             break;
           case GDL_STRUCT: //	Structure (never a scalar)
@@ -1048,54 +1060,54 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
             bool dummy;
             DStructGDL* parStruct = getDStruct(e, xdrs, &pardim, dummy);
             if (parStruct == NULL) return NULL;
-            stru_desc->AddTag(tag_name[i], parStruct);
+            stru_desc->AddTag(tag_name[i].p,parStruct);
           }
             break;
 
           case GDL_COMPLEXDBL: //	Complex Floating Point Number (64-bits each) 
           {
             SpDComplexDbl entry(pardim);
-            stru_desc->AddTag(tag_name[i], &entry);
+            stru_desc->AddTag(tag_name[i].p,&entry);
           }
             break;
 
           case GDL_PTR: //	Heap Pointer 
           {
             DPtrGDL entry(pardim);
-            stru_desc->AddTag(tag_name[i], &entry);
+            stru_desc->AddTag(tag_name[i].p,&entry);
           }
             break;
           case GDL_OBJ: //	Object Reference (not supported by CMSVLIB)
           {
             DObjGDL entry(pardim);
-            stru_desc->AddTag(tag_name[i], &entry);
+            stru_desc->AddTag(tag_name[i].p,&entry);
           }
             break;
           case GDL_UINT: //	16-bit Unsigned Integer 
           {
             SpDUInt entry(pardim);
-            stru_desc->AddTag(tag_name[i], &entry);
+            stru_desc->AddTag(tag_name[i].p,&entry);
           }
             break;
 
           case GDL_ULONG: //	32-bit Unsigned Integer 
           {
             SpDULong entry(pardim);
-            stru_desc->AddTag(tag_name[i], &entry);
+            stru_desc->AddTag(tag_name[i].p,&entry);
           }
             break;
 
           case GDL_LONG64: //	64-bit Integer 
           {
             SpDLong64 entry(pardim);
-            stru_desc->AddTag(tag_name[i], &entry);
+            stru_desc->AddTag(tag_name[i].p,&entry);
           }
             break;
 
           case GDL_ULONG64: //	64-bit Unsigned Integer 
           {
             SpDULong64 entry(pardim);
-            stru_desc->AddTag(tag_name[i], &entry);
+            stru_desc->AddTag(tag_name[i].p,&entry);
           }
             break;
 
@@ -1111,9 +1123,9 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
       //Then there should be CLASSNAME if INHERITS or IS_SUPER 
       if (isObjStruct || is_super)
       {
-        char* classname = 0;
-        if (!xdr_string(xdrs, &classname, 2048)) return NULL;
-        if (DEBUG_SAVERESTORE) cerr << "CLASSNAME: \"" << classname << "\"" << endl;
+        XdrString classname;
+        if (!xdr_string(xdrs, &classname.p, 2048)) return NULL;
+        if (DEBUG_SAVERESTORE) cerr << "CLASSNAME: \"" << classname.p << "\"" << endl;
         //NSUPCLASSES:
         int32_t nsupclasses = 0;
         if (!xdr_int32_t(xdrs, &nsupclasses)) return NULL;
@@ -1122,16 +1134,17 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
         {
           for (int i = 0; i < nsupclasses; ++i)
           {
-            char* supclassname = 0;
-            if (!xdr_string(xdrs, &supclassname, 2048)) return NULL;
-            if (DEBUG_SAVERESTORE) cerr << "SUPCLASSNAME " << i << ": " << supclassname << endl;
+            XdrString supclassname;
+            if (!xdr_string(xdrs, &supclassname.p, 2048)) return NULL;
+            if (DEBUG_SAVERESTORE) cerr << "SUPCLASSNAME " << i << ": " << supclassname.p << endl;
           }
           for (int i = 0; i < nsupclasses; ++i)
           {
             //define all parent classes in objheap.
             DStructGDL* superclass = NULL;
             bool dummy=false;
-            superclass = getDStruct(e, xdrs, new dimension(1), dummy); // will define the class as an object.
+            dimension one(1);
+            superclass = getDStruct(e, xdrs, &one, dummy); // will define the class as an object.
             if (superclass) stru_desc->AddParentListOnly(superclass->Desc());
 //            if (isObjStruct)  {
 //             DPtr ptr= e->NewObjHeap(1, static_cast<DStructGDL*>(superclass));
@@ -1144,12 +1157,14 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
         try
         {
           ref_desc->AssureIdentical(stru_desc);
-          stru_desc=ref_desc; //OK, switch back.
         }        catch (GDLException& ex)
         {
+          delete stru_desc; // temporary anonymous descriptor, only used for the comparison
           e->Throw("Structure not restored due to conflict with existing definition: "+stru_name);
           return NULL;
         }
+        delete stru_desc; // temporary anonymous descriptor, only used for the comparison
+        stru_desc=ref_desc; //OK, switch back.
       }
       return new DStructGDL(stru_desc, *inputdims);
     }
@@ -1391,6 +1406,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
       }
     }
 
+    delete dims; // var holds its own copy of the dimension
     return var;
   }
 
@@ -2312,10 +2328,10 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
         if (DEBUG_SAVERESTORE) cerr<<"Variable ";
           if (isCompress) xdrs = uncompress_trick(fid, xdrsmem, expanded, nextptr, currentptr);
         {
-          char* varname = 0;
-          if (!xdr_string(xdrs, &varname, 2048)) break;
-          string varName(varname);
-          if (DEBUG_SAVERESTORE) cerr<<varname<<endl;
+          XdrString varname;
+          if (!xdr_string(xdrs, &varname.p, 2048)) break;
+          string varName(varname.p);
+          if (DEBUG_SAVERESTORE) cerr<<varname.p<<endl;
           bool isObjStruct=false;
           BaseGDL* ret = getVariable(e, xdrs, isSysVar, isObjStruct);
           if (ret == NULL)
@@ -2426,6 +2442,7 @@ endoffile:
     while (!guardVector.empty())
     {
       guardVector.back()->Release();
+      delete guardVector.back(); // the variable is kept, but the Guard object itself must be freed
       guardVector.pop_back();
     }
 
