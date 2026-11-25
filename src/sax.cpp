@@ -55,6 +55,31 @@ static DStructGDL* GetOBJ( BaseGDL* Objptr, EnvUDT* e)
 #else
 # define XML_FMT_STR "s"
 #endif
+#include <expat.h>
+#include <stdint.h>
+
+// AC 2026/11/25 : evolution since Expat 2.9.0
+
+static uint64_t XMLGetCurrentColumnNumber(XML_Parser parser)
+{
+#if XML_MAJOR_VERSION > 2 || (XML_MAJOR_VERSION == 2 && XML_MINOR_VERSION >= 9)
+    return XML_GetCurrentColumnNumber64(parser);
+#else
+    return (uint64_t)XML_GetCurrentColumnNumber(parser);
+#endif
+}
+static uint64_t XMLGetCurrentLineNumber(XML_Parser parser)
+{
+#if XML_MAJOR_VERSION > 2 || (XML_MAJOR_VERSION == 2 && XML_MINOR_VERSION >= 9)
+    return XML_GetCurrentLineNumber64(parser);
+#else
+    return (uint64_t)XML_GetCurrentLineNumber(parser);
+#endif
+}
+
+
+
+
 
 typedef struct gdlSaxXmlLocator {
   EnvUDT* e;
@@ -307,9 +332,9 @@ static void handleFatalError(XML_Parser parser, void *data) {
   DStringGDL* ret;
   ret=new DStringGDL("UnknownSystemID");
   if (method->NPar() > par) curenv->GetPar(par++) = ret;
-  ret=new DStringGDL(i2s(XML_GetCurrentLineNumber(parser)));
+  ret=new DStringGDL(i2s(XMLGetCurrentLineNumber(parser)));
   if (method->NPar() > par) curenv->GetPar(par++) = ret;
-  ret=new DStringGDL(i2s(XML_GetCurrentColumnNumber(parser)));
+  ret=new DStringGDL(i2s(XMLGetCurrentColumnNumber(parser)));
   if (method->NPar() > par) curenv->GetPar(par++) = ret;
   ret=new DStringGDL(XML_ErrorString(XML_GetErrorCode(parser)));
   if (method->NPar() > par) curenv->GetPar(par++) = ret;
@@ -424,8 +449,8 @@ namespace lib {
       gdlSaxXmlLocator *data = (gdlSaxXmlLocator *) XML_GetUserData(parser);
 
       e->Throw("Parser SAX fatal error: File: " + *(data->fileP) + ", line: " +
-            i2s(XML_GetCurrentLineNumber(parser)) + ", column: " +
-            i2s(XML_GetCurrentColumnNumber(parser)) +
+            i2s(XMLGetCurrentLineNumber(parser)) + ", column: " +
+            i2s(XMLGetCurrentColumnNumber(parser)) +
             " :: " + XML_ErrorString(XML_GetErrorCode(parser)));
     }
   }
@@ -452,8 +477,8 @@ namespace lib {
     if (parser) {
       gdlSaxXmlLocator *data = (gdlSaxXmlLocator *) XML_GetUserData(parser);
       s=new DStringGDL(*(data->fileP));
-      (*val)[0] = XML_GetCurrentLineNumber(parser);
-      (*val)[1] = XML_GetCurrentColumnNumber(parser);
+      (*val)[0] = XMLGetCurrentLineNumber(parser);
+      (*val)[1] = XMLGetCurrentColumnNumber(parser);
     } else s=new DStringGDL(""); 
 
     if (e->KeywordPresent(FILENAME)) e->SetKW(FILENAME, s);
