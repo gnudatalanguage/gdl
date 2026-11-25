@@ -20,7 +20,12 @@
 #include "dinterpreter.hpp"
 
 // needed with gcc-3.3.2
+#include <algorithm>
+#include <array>
 #include <cassert>
+#include <cstring>
+#include <limits>
+#include <memory>
 
 
 #include "ofmt.hpp"
@@ -1263,28 +1268,6 @@ bool_t xdr_dcomplex(XDR *xdrs, DComplexDbl *p)
 //} 
 //
 
-//this is the routined used by IDL as per the documentation.
-//It happens to write twice the number of chars in the file, not very clever.
-bool_t xdr_counted_string(XDR *xdrs, char **p)  
-{  
-  int input = (xdrs->x_op == XDR_DECODE);  
-  short length;  
-  
-  /* If writing, obtain the length */  
-  if (!input) length = strlen(*p);  
-  
-  /* Transfer the string length */  
-  if (!xdr_short(xdrs, (short *) &length)) return(FALSE);  
-  /* If reading, obtain room for the string */  
-  if (input)  
-  {  
-      *p = (char*) malloc((unsigned) (length + 1));  
-         (*p)[length] = '\0'; /* Null termination */  
-  }  
-  /* If the string length is nonzero, transfer it */  
-  return(length ? xdr_string(xdrs, p, length) : TRUE);  
-}
-
 int xdr_convert(XDR *xdrs, DByte *buf)
 {
   assert(false); return 0;
@@ -1359,37 +1342,24 @@ ostream& Data_<Sp>::Write( ostream& os, bool swapEndian, bool compress, XDR *xdr
 
   SizeT count = dd.size( );
 
-  if ( swapEndian && (sizeof (Ty) != 1) ) {
-    char* cData = reinterpret_cast<char*> (&(*this)[0]);
-    SizeT cCount = count * sizeof (Ty);
-    if ( Data_<Sp>::IS_COMPLEX ) {
-      char *swapBuf = (char*) malloc( sizeof (char) * sizeof (Ty) / 2 );
-      for ( SizeT i = 0; i < cCount; i += sizeof (Ty) / 2 ) {
-        SizeT src = i + sizeof (Ty) / 2 - 1;
-        for ( SizeT dst = 0; dst<sizeof (Ty) / 2; dst++ ) swapBuf[dst]=cData[ src--];
-        os.write( swapBuf, sizeof (Ty) / 2 );
-      }
-      free( swapBuf );
-    } else {
-      char swapBuf[ sizeof (Ty)];
-      for ( SizeT i = 0; i < cCount; i += sizeof (Ty) ) {
-        SizeT src = i + sizeof (Ty) - 1;
-        for ( SizeT dst = 0; dst<sizeof (Ty); dst++ ) swapBuf[dst] = cData[ src--];
-        os.write( swapBuf, sizeof (Ty) );
-      }
+  if (swapEndian && sizeof(Ty) != 1) {
+    // Complex values swap each component independently.
+    constexpr size_t width = Sp::IS_COMPLEX ? sizeof(Ty) / 2 : sizeof(Ty);
+    std::array<char, width> word;
+    auto* bytes = reinterpret_cast<const char*>(&(*this)[0]);
+    for (SizeT offset = 0; offset < count * sizeof(Ty); offset += width) {
+      std::reverse_copy(bytes + offset, bytes + offset + width, word.begin());
+      os.write(word.data(), word.size());
     }
-  } else if ( xdrs != NULL ) {
-    long fac = 1;
-    if ( sizeof (Ty) == 2 ) fac = 2;
-    SizeT bufsize = sizeof (Ty)*fac;
-    char *buf = (char *) calloc( bufsize, sizeof (char) );
-    for ( SizeT i = 0; i < count; i++ ) {
-      xdrmem_create( xdrs, buf, bufsize, XDR_ENCODE );
-      if ( !xdr_convert( xdrs, (&(*this)[i]) ) ) cerr << "Error in XDR write" << endl;
-      xdr_destroy( xdrs );
-      os.write( buf, bufsize );
+  } else if (xdrs != nullptr) {
+    // XDR encodes 16-bit integers in a 4-byte word.
+    alignas(DLong) std::array<char, sizeof(Ty) == 2 ? 4 : sizeof(Ty)> word{};
+    for (SizeT i = 0; i < count; ++i) {
+      xdrmem_create(xdrs, word.data(), word.size(), XDR_ENCODE);
+      if (!xdr_convert(xdrs, &(*this)[i])) cerr << "Error in XDR write" << endl;
+      xdr_destroy(xdrs);
+      os.write(word.data(), word.size());
     }
-    free( buf );
   } else if (compress)
   {
     (static_cast<ogzstream&>(os)).write(reinterpret_cast<char*> (&(*this)[0]), count * sizeof (Ty));
@@ -1415,18 +1385,18 @@ bool compress, XDR *xdrs ) {
   SizeT count = dd.size( );
 
   if ( xdrs != NULL ) {
-    int bufsize = 4 + 4 * ((count - 1) / 4 + 1);
-    char *buf = (char *) calloc( bufsize, sizeof (char) );
-
-    // XDR adds an addition string length
-    xdrmem_create( xdrs, &buf[0], 4, XDR_ENCODE );
-    short int length = count;
-    if ( !xdr_short( xdrs, (short int *) &length ) ) cerr << "Error in XDR write" << endl;
-    xdr_destroy( xdrs );
-    //do it ourselves
-    for ( SizeT i = 0; i < count; i++ ) buf[i + 4] = (*this)[i];
-    os.write( buf, bufsize );
-    free( buf );
+    if (count > std::numeric_limits<DULong>::max())
+      throw GDLIOException("BYTE array is too long for XDR.");
+    DULong length = static_cast<DULong>(count);
+    alignas(DULong) std::array<char, 4> header;
+    xdrmem_create(xdrs, header.data(), header.size(), XDR_ENCODE);
+    const bool encoded = xdr_convert(xdrs, &length);
+    xdr_destroy(xdrs);
+    if (!encoded) throw GDLIOException("Problem writing XDR byte count.");
+    os.write(header.data(), header.size());
+    if (count > 0) os.write(reinterpret_cast<const char*>(&(*this)[0]), count);
+    const std::array<char, 3> padding{};
+    os.write(padding.data(), (4 - count % 4) % 4);
   } else if (compress)
   {
     (static_cast<ogzstream&>(os)).write( reinterpret_cast<char*> (&(*this)[0]), count );
@@ -1452,16 +1422,30 @@ bool compress, XDR *xdrs ) {
 
   SizeT count = dd.size( );
 
-  for ( SizeT i = 0; i < count; i++ ) {
-    if ( xdrs != NULL ) {
-      int bufsize = 8 + 4 * (((*this)[i].size( ) - 1) / 4 + 1);
-      char *buf = (char *) malloc( bufsize * sizeof (char) );
-      xdrmem_create( xdrs, &buf[0], bufsize, XDR_ENCODE );
-      char* bufptr = (char *) (*this)[i].c_str( );
-      if ( !xdr_counted_string( xdrs, &bufptr ) ) cerr << "Error in XDR write" << endl;
-      xdr_destroy( xdrs );
-      os.write( buf, bufsize );
-      free( buf );
+  if (xdrs) {
+    // Validate the entire array before emitting its first record.
+    for (SizeT i = 0; i < count; ++i) {
+      if ((*this)[i].size() > std::numeric_limits<DLong>::max())
+        throw GDLIOException("String is too long for a 32-bit XDR string length.");
+    }
+  }
+
+  for (SizeT i = 0; i < count; ++i) {
+    if (xdrs) {
+      const auto& value = (*this)[i];
+      DLong length = static_cast<DLong>(value.size());
+      // IDL uses an outer count followed by a counted XDR string when nonempty.
+      alignas(DLong) std::array<char, 8> header;
+      xdrmem_create(xdrs, header.data(), header.size(), XDR_ENCODE);
+      DULong innerLength = static_cast<DULong>(length);
+      const bool encoded = xdr_convert(xdrs, &length) && (!length || xdr_convert(xdrs, &innerLength));
+      const auto written = xdr_getpos(xdrs);
+      xdr_destroy(xdrs);
+      if (!encoded) throw GDLIOException("Problem writing XDR string.");
+      os.write(header.data(), written);
+      os.write(value.data(), length);
+      const std::array<char, 3> padding{};
+      os.write(padding.data(), (4 - length % 4) % 4);
     } else if (compress)
     {
       (static_cast<ogzstream&> (os)).write((*this)[i].c_str( ), (*this)[i].size( ));
@@ -1489,52 +1473,24 @@ bool compress, XDR *xdrs ) {
 
   SizeT count = dd.size( );
 
-  if ( swapEndian && (sizeof (Ty) != 1) ) {
-    char* cData = reinterpret_cast<char*> (&(*this)[0]);
-    SizeT cCount = count * sizeof (Ty);
-
-    if ( Data_<Sp>::IS_COMPLEX ) {
-      char *swapBuf = (char*) malloc( sizeof (char) * sizeof (Ty) / 2 );
-      for ( SizeT i = 0; i < cCount; i += sizeof (Ty) / 2 ) {
-        is.read( swapBuf, sizeof (Ty) / 2 );
-        SizeT src = i + sizeof (Ty) / 2 - 1;
-        for ( SizeT dst = 0; dst<sizeof (Ty) / 2; dst++ ) cData[ src--] = swapBuf[dst];
-      }
-      free( swapBuf );
-    } else {
-      char swapBuf[ sizeof (Ty)];
-      for ( SizeT i = 0; i < cCount; i += sizeof (Ty) ) {
-        is.read( swapBuf, sizeof (Ty) );
-        SizeT src = i + sizeof (Ty) - 1;
-        for ( SizeT dst = 0; dst<sizeof (Ty); dst++ ) cData[ src--] = swapBuf[dst];
-      }
+  if (swapEndian && sizeof(Ty) != 1) {
+    // Complex values swap each component independently.
+    constexpr size_t width = Sp::IS_COMPLEX ? sizeof(Ty) / 2 : sizeof(Ty);
+    std::array<char, width> word;
+    auto* bytes = reinterpret_cast<char*>(&(*this)[0]);
+    for (SizeT offset = 0; offset < count * sizeof(Ty); offset += width) {
+      if (!is.read(word.data(), word.size())) break;
+      std::reverse_copy(word.begin(), word.end(), bytes + offset);
     }
-  } else if ( xdrs != NULL ) {
-    long fac = 1;
-    if ( sizeof (Ty) == 2 ) fac = 2;
-    SizeT bufsize = sizeof (Ty)*fac;
-    char *buf = (char *) calloc( bufsize, sizeof (char) );
-    for ( SizeT i = 0; i < count; i++ ) {
-      xdrmem_create( xdrs, buf, bufsize, XDR_DECODE );
-      is.read( buf, bufsize );
-      if ( !xdr_convert( xdrs, (&(*this)[i]) ) ) cerr << "Error in XDR read" << endl;
-      xdr_destroy( xdrs );
+  } else if (xdrs != nullptr) {
+    // XDR encodes 16-bit integers in a 4-byte word.
+    alignas(DLong) std::array<char, sizeof(Ty) == 2 ? 4 : sizeof(Ty)> word{};
+    for (SizeT i = 0; i < count; ++i) {
+      if (!is.read(word.data(), word.size())) break;
+      xdrmem_create(xdrs, word.data(), word.size(), XDR_DECODE);
+      if (!xdr_convert(xdrs, &(*this)[i])) cerr << "Error in XDR read" << endl;
+      xdr_destroy(xdrs);
     }
-    free( buf );
-  } else if ( compress )
-    /* GD: minimum (?) hack since we want to keep trace of the position in gzipped stream.*/
-  {
-    int typesize=sizeof(Ty);
-    SizeT totCount = count * typesize;
-    char curVal[typesize];    
-    for (SizeT i = 0; i < count; ++i) 
-    { 
-      for (int k=0; k<typesize; ++k) is.get(curVal[k]);
-      char* cData = reinterpret_cast<char*>(&(*this)[i]);
-      for (int k=0; k<typesize; ++k) cData[k]=curVal[k];
-    }
-    (static_cast<igzstream&> (is)).rdbuf()->incrementPosition(totCount); //ugly patch to maintain position        
-//was:    (static_cast<igzstream&>(is)).read( reinterpret_cast<char*> (&(*this)[0]), count * sizeof (Ty) );
   } else {
     is.read( reinterpret_cast<char*> (&(*this)[0]), count * sizeof (Ty) );
   }
@@ -1549,6 +1505,25 @@ bool compress, XDR *xdrs ) {
   return is;
 }
 
+template<typename Length>
+static Length read_xdr_length(std::istream& is, XDR* xdrs) {
+  alignas(DLong) std::array<char, 4> header;
+  if (!is.read(header.data(), header.size()))
+    throw GDLIOException(is.eof() ? "End of file encountered." : "Problem reading XDR file.");
+  xdrmem_create(xdrs, header.data(), header.size(), XDR_DECODE);
+  Length length = 0;
+  const bool decoded = xdr_convert(xdrs, &length);
+  xdr_destroy(xdrs);
+  if (!decoded) throw GDLIOException("Problem reading XDR file.");
+  return length;
+}
+
+static void read_xdr_padding(std::istream& is, SizeT length) {
+  const std::streamsize padding = (4 - length % 4) % 4;
+  if (padding && is.ignore(padding).gcount() != padding)
+    throw GDLIOException("Problem reading XDR file.");
+}
+
 template<>
 istream& Data_<SpDByte>::Read( istream& is, bool swapEndian, bool compress, XDR *xdrs ) {
   if ( is.eof( ) )
@@ -1557,38 +1532,16 @@ istream& Data_<SpDByte>::Read( istream& is, bool swapEndian, bool compress, XDR 
   SizeT count = dd.size( );
 
   if ( xdrs != NULL ) {
-    unsigned int nChar = this->N_Elements( );
-
-    //read byte length in file
-    char* buf = (char *) malloc( 4 );
-    is.read( buf, 4 );
-    xdrmem_create( xdrs, &buf[0], 4, XDR_DECODE );
-    short int length = 0;
-    if ( !xdr_short( xdrs, &length ) ) {free( buf ); throw GDLIOException( "Problem reading XDR file." );}
-    xdr_destroy( xdrs );
-    free( buf );
-    if ( length <= 0 ) return is;
-
-    int bufsize = 4 * ((length - 1) / 4 + 1);
-    buf = (char *) calloc( bufsize, sizeof (char) );
-    is.read( &buf[0], bufsize );
-    if ( !is.good( ) ) {free( buf ); throw GDLIOException( "Problem reading XDR file." );} //else we are correctly aligned for next read!
-    //do it by ourselves, faster and surer!
-    if ( bufsize < nChar ) nChar = bufsize; //truncate eventually
-    for ( SizeT i = 0; i < nChar; i++ ) ( *this )[i] = buf[i];
-    free( buf );
-  } else if ( compress ) {
-    /* GD: minimum (?) hack since we want to keep trace of the position in gzipped stream.*/
-    char* cData = reinterpret_cast<char*> (&(*this)[0]);
-    for (SizeT i = 0; i < count; ++i) (static_cast<igzstream&> (is)).get(cData[ i]);
-    (static_cast<igzstream&> (is)).rdbuf()->incrementPosition(count); //ugly patch to maintain position
-//    (static_cast<igzstream&>(os)).read( reinterpret_cast<char*> (&(*this)[0]), count );
+    if (read_xdr_length<DULong>(is, xdrs) == 0 || count == 0) return is;
+    // IDL advances by the padded destination size, even when the counts differ.
+    // Treat bytes beyond the encoded array as ordinary input from the stream.
+    // Commit only after both payload and padding have been read successfully.
+    std::unique_ptr<char[]> buf(new char[count]);
+    if (!is.read(buf.get(), count))
+      throw GDLIOException("Problem reading XDR file.");
+    read_xdr_padding(is, count);
+    std::copy_n(buf.get(), count, dd.GetBuffer());
   } else {
-//    is.clear();
-//    is.seekg(is.tellg()); //a VERY SLOW solution to avoid the bug described as "Known problem with sync()" in test_fstat.
-//    we prefer to do this after each high-level PRINTF or WRITEU by looking at all streams thta "follow" the same filename.
-//    Note that at the moment ASSOC Writes do NOT do this synchro. Hopefully nobody wants to READU in parallel
-//    from an ASSOC file (as this would be silly programming!)   
     is.read( reinterpret_cast<char*> (&(*this)[0]), count );
   }
 
@@ -1613,22 +1566,26 @@ bool compress, XDR *xdrs ) {
     SizeT nChar = (*this)[i].size( );
 
     if ( xdrs != NULL ) {
-      //read counted string length in file
-      char* buf = (char *) malloc( 4 );
-      is.read( buf, 4 );
-      xdrmem_create( xdrs, &buf[0], 4, XDR_DECODE );
-      short int length = 0;
-      if ( !xdr_short( xdrs, &length ) ) throw GDLIOException( "Problem reading XDR file." );
-      xdr_destroy( xdrs );
-      free( buf );
-      if ( length <= 0 ) {
+      const DLong length = read_xdr_length<DLong>(is, xdrs);
+      if (length < 0)
+        throw GDLIOException("Invalid XDR string length.");
+      if (length == 0) {
         (*this)[i].clear();
       } else {
-        int bufsize = 4 + 4 * ((length - 1) / 4 + 1) ;
-        buf = (char *) calloc( bufsize, sizeof (char) );
-        is.read( &buf[0], bufsize );
-        if ( !is.good( ) ) throw GDLIOException( "Problem reading XDR file." ); //else we are correctly aligned for next read!
-        (*this)[i].assign( &buf[4], length );
+        if (read_xdr_length<DULong>(is, xdrs) != static_cast<DULong>(length))
+          throw GDLIOException("Inconsistent XDR string lengths.");
+        // Grow the string only as payload arrives. A truncated record can
+        // declare a much larger length than the amount of data in the stream.
+        DString value;
+        std::array<char, 8192> block;
+        for (size_t left = length; left; ) {
+          const size_t n = std::min(left, block.size());
+          if (!is.read(block.data(), n)) throw GDLIOException("Problem reading XDR file.");
+          value.append(block.data(), n);
+          left -= n;
+        }
+        read_xdr_padding(is, length);
+        (*this)[i].swap(value);
       }
     } else {
 
@@ -1640,18 +1597,7 @@ bool compress, XDR *xdrs ) {
           maxLen = nChar;
           vbuf.resize( maxLen );
         }
-        if ( compress ) {
-        /* GD: minimum (?) hack since we want to keep trace of the position in gzipped stream.*/
-          char c;
-          vbuf.clear( );
-          for ( SizeT i = 0; i < nChar; i++ ) {
-            (static_cast<igzstream&>(is)).get( c ); //which does nothing more than os.get(c)...
-            vbuf.push_back( c );
-          }
-          (static_cast<igzstream&>(is)).rdbuf()->incrementPosition(nChar);  //ugly patch to maintain position        
-        } else {
-          is.read( &vbuf[0], nChar );
-        }
+        is.read(vbuf.data(), nChar);
         //we have read nChar but this (a std::string) may be filled with ASCII NULL chars. These MUST be removed if we want the rest of GDL behave correctly on string manipulations (strlen, where etc...)
         while (vbuf[nChar-1]==0 && nChar>1) {nChar--;}
 	(*this)[i].assign( &vbuf[0], nChar );

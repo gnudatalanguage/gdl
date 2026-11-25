@@ -23,6 +23,7 @@
 
 #include <string>
 #include <fstream>
+#include <limits>
 #include <memory>
 #include <set>
 #include <iterator>
@@ -657,11 +658,22 @@ namespace lib {
 
     static int getlunIx=e->KeywordIx("GET_LUN"); 
     bool getlunIsSet=e->KeywordSet(getlunIx);
-    if (getlunIsSet) get_lun(e);
-    // par 0 contains now the LUN
-
+    // Roll back an automatic reservation on any failure, including argument validation.
+    // A caller-supplied LUN retains its reservation if opening the socket fails.
+    auto rollback = [getlunIsSet](GDLStream* unit) {
+      if (getlunIsSet) unit->Free();
+      else unit->Close();
+    };
+    std::unique_ptr<GDLStream, decltype(rollback)> pending(nullptr, rollback);
     DLong lun;
-    e->AssureLongScalarPar(0, lun);
+    if (getlunIsSet) {
+      e->AssureGlobalPar(0);
+      lun = GetLUN();
+      if (lun == 0) e->Throw("All available logical units are currently in use.");
+      pending.reset(&fileUnits[lun - 1]);
+    } else {
+      e->AssureLongScalarPar(0, lun);
+    }
 
     bool stdLun = check_lun(e, lun);
     if (stdLun)
@@ -680,25 +692,21 @@ namespace lib {
       // look up /etc/services
       struct servent *servent=getservbyname(s.c_str(),NULL);
       if (servent==NULL)        e->Throw("Unable to connect to host. Unit: "+i2s(lun)+", File: "+host+"."+s);
-      else port=servent->s_port;
+      else port=ntohs(servent->s_port);
       endservent();
 #else 
       e->Throw("Unable to connect to host. Unit: "+i2s(lun)+", File: "+host+"."+s);
 #endif      
-    } else if (p2->Type() == GDL_UINT) {
-      e->AssureScalarPar<DUIntGDL>(2, port);
-    } else if (p2->Type() == GDL_INT) {
-      DInt p;
-      e->AssureScalarPar<DIntGDL>(2, p);
-      port = p;
-    } else if (p2->Type() == GDL_LONG) {
-      DLong p;
-      e->AssureScalarPar<DLongGDL>(2, p);
-      port = p;
-    } else if (p2->Type() == GDL_ULONG) {
-      DULong p;
-      e->AssureScalarPar<DULongGDL>(2, p);
-      port = p;
+    } else if (IntType(p2->Type())) {
+      if (!p2->Scalar())
+        e->Throw("Parameter must be a scalar or 1 element array in this context: " + e->GetParString(2));
+      // Every negative integer also converts to a value above the port range.
+      const DULong64 portNumber = (*e->GetParAs<DULong64GDL>(2))[0];
+      if (portNumber > std::numeric_limits<DUInt>::max())
+        e->Throw("Port number must be between 0 and 65535.");
+      port = static_cast<DUInt>(portNumber);
+    } else {
+      e->Throw("Port must be an integer or service name.");
     }
 
     // endian
@@ -734,8 +742,11 @@ namespace lib {
     }
 
     try {
-      fileUnits[lun - 1].Socket(host, port, swapEndian,
-        c_timeout, r_timeout, c_timeout, width);
+      GDLStream& unit = fileUnits[lun - 1];
+      if (unit.IsOpen() || unit.SockNum() != -1)
+        throw GDLIOException("File unit is already open.");
+      if (!getlunIsSet) pending.reset(&unit);
+      unit.Socket(host, port, swapEndian, c_timeout, r_timeout, w_timeout, width);
     } catch (GDLException& ex) {
       DString errorMsg = ex.toString() + " Unit: " + i2s(lun) +
         ", File: " + fileUnits[lun - 1].Name();
@@ -743,23 +754,13 @@ namespace lib {
       if (!errorKeyword)
         e->Throw(errorMsg);
 
-      BaseGDL** err = &e->GetTheKW(errorIx);
-
-      GDLDelete((*err));
-      //    if( *err != e->Caller()->Object()) delete (*err);
-
-      *err = new DLongGDL(1);
+      e->SetKW(errorIx, new DLongGDL(1));
       return;
     }
 
-    if (errorKeyword) {
-      BaseGDL** err = &e->GetTheKW(errorIx);
-
-      // 	if( *err != e->Caller()->Object()) delete (*err);
-      GDLDelete((*err));
-
-      *err = new DLongGDL(0);
-    }
+    if (getlunIsSet) e->SetPar(0, new DLongGDL(lun));
+    if (errorKeyword) e->SetKW(errorIx, new DLongGDL(0));
+    pending.release();
   }
 
   // FLUSH based on a patch from Orion Poplawski

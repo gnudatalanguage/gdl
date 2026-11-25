@@ -80,12 +80,18 @@ end
 ;
 pro TEST_BIGTIFF_GEOTIFF, ntoterr, dir, test=test, verbose=verbose
 nerr=0
+catch, err
+if err ne 0 then begin
+   catch, /cancel
+   ERRORS_ADD, ntoterr, !error_state.msg
+   return
+endif
 ; larger than 32 kB, so the GeoKeys sit beyond a 16-bit file offset
 img=bytscl(dist(300,200))
 ; one double key and a short citation: in BigTIFF both values are 8 bytes or less and sit inside the entry
 geoshort = { ModelPixelScaleTag: [10d, 10d, 0d], $
           ModelTiepointTag: [0d, 0d, 0d, 500000d, 4000000d, 0d], $
-          GTModelTypeGeoKey: 1, GTRasterTypeGeoKey: 1, ProjectedCSTypeGeoKey: 32652, $
+          GTModelTypeGeoKey: 1, GTRasterTypeGeoKey: 2, ProjectedCSTypeGeoKey: 32652, $
           ProjNatOriginLatGeoKey: 37.5d, $
           GTCitationGeoKey: 'UTM52' }
 ; several double keys and a long citation: written after the IFD in both formats.
@@ -108,6 +114,7 @@ foreach g, list(geoshort, geolong), k do begin
       endif
       if ~ARRAY_EQUAL(tags.MODELPIXELSCALETAG, g.ModelPixelScaleTag) then ERRORS_ADD, nerr, file+': ModelPixelScaleTag differs'
       if ~ARRAY_EQUAL(tags.MODELTIEPOINTTAG[*], g.ModelTiepointTag) then ERRORS_ADD, nerr, file+': ModelTiepointTag differs'
+      if tags.GTRASTERTYPEGEOKEY ne g.GTRasterTypeGeoKey then ERRORS_ADD, nerr, file+': GTRasterTypeGeoKey differs'
       if tags.PROJECTEDCSTYPEGEOKEY ne 32652 then ERRORS_ADD, nerr, file+': ProjectedCSTypeGeoKey differs'
       if abs(tags.PROJNATORIGINLATGEOKEY - 37.5d) gt 1d-12 then ERRORS_ADD, nerr, file+': ProjNatOriginLatGeoKey differs'
       if strtrim(tags.GTCITATIONGEOKEY,2) ne g.GTCitationGeoKey then ERRORS_ADD, nerr, file+': GTCitationGeoKey differs'

@@ -21,6 +21,8 @@
 #include "includefirst.hpp"
 
 #include <fstream>
+#include <memory>
+#include <vector>
 #include <iostream>
 #include <string>
 #include <cmath>
@@ -53,39 +55,26 @@ const SizeT defaultStreamWidth = 80; // used by open_lun
 
 class AnyStream
 {
-// GGH made all these public
 public:
-  bool ispipe;
-  int pin_fd; //pipe in fd
-  int pout_fd; //pipe out fd
-  std::fstream* fStream;
-  std::fstream* ofStream;
-  igzstream* igzStream; // for gzip compressed input
-  ogzstream* ogzStream; // for gzip compressed output
-  std::basic_streambuf<char> *old_rdbuf_in;
-  std::basic_streambuf<char> *old_rdbuf_out;
-  //public:
-  // AC2006 : see as a potential bug that the order pin/pout was not enforced below
-  AnyStream()
-    : ispipe(false)
-    , pin_fd(-1)
-    , pout_fd(-1)
-    , fStream(NULL) 
-    , ofStream(NULL) 
-    , igzStream(NULL) 
-    , ogzStream(NULL)
-    , old_rdbuf_in(NULL)
-    , old_rdbuf_out(NULL)
-  {}
+  enum class FileAccess { Untracked, Initial, Read, Write };
+private:
+  FileAccess lastFileAccess = FileAccess::Untracked;
+  // The fstreams borrow these buffers when connected to a child process.
+  std::unique_ptr<std::streambuf> pipeInput, pipeOutput;
+  std::unique_ptr<std::fstream> fStream, ofStream;
+  std::unique_ptr<igzstream> igzStream;
+  std::unique_ptr<ogzstream> ogzStream;
 
+public:
   void Flush() ;
   void Close();
   void OpenAsPipes(const std::string& name_, const std::ios_base::openmode mode_, const int pipeInFd, const int pipeOutFd); 
   void Open(const std::string& name_, std::ios_base::openmode mode_ , bool compress_);
-  std::fstream* oFStream(){return ofStream;}
-  std::fstream* FStream(){return fStream;}
-  igzstream* IgzStream(){return igzStream;} // for gzip compressed input
-  ogzstream* OgzStream(){return ogzStream;} // for gzip compressed output
+  std::fstream* oFStream(){return ofStream.get();}
+  std::fstream* FStream(){return fStream.get();}
+  std::fstream& FileFor(FileAccess access);
+  igzstream* IgzStream(){return igzStream.get();} // for gzip compressed input
+  ogzstream* OgzStream(){return ogzStream.get();} // for gzip compressed output
 
   void ClearEof();
 
@@ -133,18 +122,18 @@ class GDLStream
   std::string name;
   std::ios_base::openmode mode;
 
-  AnyStream* anyStream;
+  std::unique_ptr<AnyStream> anyStream;
 
   bool f77; // FORTRAN unformatted
   bool swapEndian;
   bool deleteOnClose;
   bool varlenVMS;
   bool compress;
-  XDR *xdrs;
+  std::unique_ptr<XDR> xdrs;
 
-  std::istringstream* iSocketStream;
+  std::unique_ptr<std::istringstream> iSocketStream;
   int sockNum;
-  std::string* recvBuf;
+  std::unique_ptr<std::string> recvBuf;
   DDouble c_timeout;
   DDouble r_timeout;
   DDouble w_timeout;
@@ -163,17 +152,13 @@ public:
     getLunLock(false),
     name(), 
     mode(), 
-    anyStream(NULL), 
     f77(false),
     swapEndian(false),
     deleteOnClose(false),
     varlenVMS(false),
     compress(false),
-    xdrs(NULL),
 
-    iSocketStream(NULL), 
     sockNum( -1),
-    recvBuf(NULL),
     c_timeout(0.0),
     r_timeout(0.0),
     w_timeout(0.0),
@@ -185,16 +170,10 @@ public:
     {
     }
  
-  ~GDLStream() 
-  {
-    delete xdrs;
+  GDLStream(const GDLStream&) = delete;
+  GDLStream& operator=(const GDLStream&) = delete;
+  ~GDLStream() { Close(); }
 
-    delete anyStream;
-    /*    delete fStream;
-	  delete igzStream;
-	  delete ogzStream;*/
-    delete iSocketStream;
-  }
   bool CanOpenAsPipes();  
   void OpenAsPipes(const std::string& name, const std::ios_base::openmode mode_, const int pipeInFd, const int pipeOutFd );
   void Open( const std::string& name_,
@@ -238,7 +217,7 @@ public:
 
   void SeekPad( std::streampos pos);
   
-  bool InUse() { return (anyStream != NULL && anyStream->InUse());}
+  bool InUse() { return sockNum != -1 || (anyStream != NULL && anyStream->InUse()); }
 
   bool IsOpen()
   { return (anyStream != NULL && anyStream->IsOpen());} 
@@ -264,7 +243,7 @@ public:
   igzstream& IgzStream(); 
   ogzstream& OgzStream(); 
 
-  XDR *Xdr() { return xdrs;}
+  XDR *Xdr() { return xdrs.get();}
 
   std::fstream& IStream(); 
   std::fstream& OStream(); 
@@ -288,6 +267,6 @@ public:
 };
 
 
-typedef std::vector<GDLStream> GDLFileListT;
+using GDLFileListT = std::vector<GDLStream>;
 
 #endif

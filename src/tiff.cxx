@@ -25,7 +25,10 @@
 
 #include "tiff.hxx"
 #include "dstructfactory.hxx"
+#include <fstream>
+#include <new>
 #include <type_traits>
+#include <vector>
 
 template<typename E>
 typename std::underlying_type<E>::type enumIntegralValue(E e)
@@ -90,14 +93,6 @@ namespace lib
             return pixelType;
         }
 
-        #ifdef USE_GEOTIFF
-        GeoKey::~GeoKey()
-        {
-            if(value.ptr)
-                free(value.ptr);
-        }
-        #endif
-
         Handler::Handler()
         {
             defEH_ = TIFFSetErrorHandler([](const char* mod, const char* fmt, va_list args) {
@@ -119,27 +114,26 @@ namespace lib
         {
             Close();
 
-            if(defEH_) TIFFSetErrorHandler(defEH_);
-            if(defWH_) TIFFSetWarningHandler(defWH_);
+            TIFFSetErrorHandler(defEH_);
+            TIFFSetWarningHandler(defWH_);
         }
 
         bool Handler::Open(const char* file, const char* mode)
         {
             TIFFHeaderCommon head;
-            FILE* fptr;
-
-            if(!(fptr = fopen(file, "r"))) {
-                fprintf(stderr, "%s: could not open file for reading\n", file);
-                return false;
+            {
+                std::ifstream input(file, std::ios::binary);
+                if (!input) {
+                    fprintf(stderr, "%s: could not open file for reading\n", file);
+                    return false;
+                }
+                if (!input.read(reinterpret_cast<char*>(&head), sizeof(head))) {
+                    fprintf(stderr, "%s: could not read TIFF header\n", file);
+                    return false;
+                }
             }
 
-            if(!fread(&head, sizeof(head), 1, fptr)) {
-                fprintf(stderr, "%s: could not read TIFF header\n", file);
-                fclose(fptr);
-                return false;
-            }
-
-            fclose(fptr);
+            Close();
             verNum_ = head.tiff_version;
 
             union { uint16_t w; uint8_t b[2]; } u = { 0xBEEF };
@@ -149,36 +143,29 @@ namespace lib
                 TIFFSwabShort(&verNum_);
 
             #ifdef USE_GEOTIFF
-            if(!(tiff_ = XTIFFOpen(file, mode)))
-                return (Close(), false);
-
-            if(!(gtif_ = GTIFNew(tiff_)))
-                return (Close(), false);
+            tiff_.reset(XTIFFOpen(file, mode));
+            if (!tiff_) return false;
+            gtif_.reset(GTIFNew(tiff_.get()));
+            if (!gtif_) {
+                Close();
+                return false;
+            }
             #else
-            if(!(tiff_ = TIFFOpen(file, mode)))
-                return (Close(), false);
+            tiff_.reset(TIFFOpen(file, mode));
+            if (!tiff_) return false;
             #endif
 
-            while(TIFFReadDirectory(tiff_)) nDirs_++;
-            TIFFSetDirectory(tiff_, 0);
+            while(TIFFReadDirectory(tiff_.get())) nDirs_++;
+            TIFFSetDirectory(tiff_.get(), 0);
             return true;
         }
 
         void Handler::Close()
         {
             #ifdef USE_GEOTIFF
-            if(gtif_)
-            {
-                GTIFFree(gtif_);
-                gtif_ = nullptr;
-            }
+            gtif_.reset();
             #endif
-
-            if(tiff_)
-            {
-                TIFFClose(tiff_);
-                tiff_ = nullptr;
-            }
+            tiff_.reset();
 
             nDirs_ = 1;
             verNum_ = 0;
@@ -186,7 +173,7 @@ namespace lib
 
         bool Handler::GetDirectory(tdir_t index, Directory& dir) const
         {
-            if(!tiff_ || !TIFFSetDirectory(tiff_, index))
+            if(!tiff_ || !TIFFSetDirectory(tiff_.get(), index))
                 return false;
 
             try {
@@ -240,31 +227,14 @@ namespace lib
             return (tiff_ ? verNum_ : 0);
         }
 
-        typedef void (*ScanlineFn)(BaseGDL*, uint32_t, uint32_t, const void*, size_t);
-        template<typename T>
-        ScanlineFn createScanlineFn(BaseGDL*& var, T* val)
-        {
-            if(!(var = val))
-                return nullptr;
-
-            return [](BaseGDL* image, uint32_t x, uint32_t y, const void* buf, size_t bytes) {
-                auto img = static_cast<T*>(image);
-                auto ptr = reinterpret_cast<typename T::Ty*>(img->DataAddr());
-                auto dim = img->Dim();
-                auto w = dim[dim.Rank() - 2];
-                auto c = dim.Rank() > 2 ? dim[0] : 1;
-                memcpy(ptr + (y * w + x) * c, buf, bytes);
-            };
-        }
-
-        BaseGDL* Handler::ReadImage(const Directory& dir, const Rectangle& rect)
+        std::unique_ptr<BaseGDL> Handler::ReadImage(const Directory& dir, const Rectangle& rect)
         {
             uint32_t c = dir.samplesPerPixel;
             uint32_t w = (rect.w ? rect.w : dir.width - rect.x);
             uint32_t h = (rect.h ? rect.h : dir.height - rect.y);
+            if (!c || !w || !h) return nullptr;
 
-            ScanlineFn addScanline;
-            BaseGDL* image = nullptr;
+            std::unique_ptr<BaseGDL> image;
             dimension dim(w, h);
 
             if(c > 1) {
@@ -273,53 +243,67 @@ namespace lib
             }
 
             switch(dir.PixelType()) {
-            case GDL_BYTE:      addScanline = createScanlineFn(image, new DByteGDL(dim));       break;
-            case GDL_UINT:      addScanline = createScanlineFn(image, new DUIntGDL(dim));       break;
-            case GDL_ULONG:     addScanline = createScanlineFn(image, new DULongGDL(dim));      break;
-            case GDL_ULONG64:   addScanline = createScanlineFn(image, new DULong64GDL(dim));    break;
-            case GDL_INT:       addScanline = createScanlineFn(image, new DIntGDL(dim));        break;
-            case GDL_LONG:      addScanline = createScanlineFn(image, new DLongGDL(dim));       break;
-            case GDL_LONG64:    addScanline = createScanlineFn(image, new DLong64GDL(dim));     break;
-            case GDL_FLOAT:     addScanline = createScanlineFn(image, new DFloatGDL(dim));      break;
-            case GDL_DOUBLE:    addScanline = createScanlineFn(image, new DDoubleGDL(dim));     break;
-            case GDL_COMPLEX:    addScanline = createScanlineFn(image, new DComplexGDL(dim));     break;
-            case GDL_COMPLEXDBL:    addScanline = createScanlineFn(image, new DComplexDblGDL(dim));     break;
+            case GDL_BYTE:      image = std::make_unique<DByteGDL>(dim); break;
+            case GDL_UINT:      image = std::make_unique<DUIntGDL>(dim); break;
+            case GDL_ULONG:     image = std::make_unique<DULongGDL>(dim); break;
+            case GDL_ULONG64:   image = std::make_unique<DULong64GDL>(dim); break;
+            case GDL_INT:       image = std::make_unique<DIntGDL>(dim); break;
+            case GDL_LONG:      image = std::make_unique<DLongGDL>(dim); break;
+            case GDL_LONG64:    image = std::make_unique<DLong64GDL>(dim); break;
+            case GDL_FLOAT:     image = std::make_unique<DFloatGDL>(dim); break;
+            case GDL_DOUBLE:    image = std::make_unique<DDoubleGDL>(dim); break;
+            case GDL_COMPLEX:   image = std::make_unique<DComplexGDL>(dim); break;
+            case GDL_COMPLEXDBL: image = std::make_unique<DComplexDblGDL>(dim); break;
 
             default:
                 fprintf(stderr, "Unsupported PIXEL_TYPE: %d\n", dir.PixelType());
                 return nullptr;
             }
 
-            char *buffer = nullptr, *start;
-            ptrdiff_t sampOff = (c * (dir.bitsPerSample >= 8 ? (dir.bitsPerSample / 8) : 1));
-
-            // Scanline-based images
-            if(!TIFFIsTiled(tiff_)) {
-                auto scanSize = TIFFScanlineSize(tiff_);
-
-                if(!(buffer = static_cast<char*>(_TIFFmalloc(scanSize)))) {
-                    fprintf(stderr, "Could not allocate %ld bytes for TIFF scanline buffer\n", (long)scanSize);
-                    goto error;
+            const bool tiled = TIFFIsTiled(tiff_.get());
+            const auto size = tiled ? TIFFTileSize(tiff_.get()) : TIFFScanlineSize(tiff_.get());
+            const auto rowBytes = tiled ? TIFFTileRowSize(tiff_.get()) : size;
+            const uint32_t rowWidth = tiled ? dir.tileWidth : dir.width;
+            const uint32_t rows = tiled ? dir.tileHeight : 1;
+            const uint64_t rowBits = static_cast<uint64_t>(rowWidth) * c * dir.bitsPerSample;
+            if (!rowWidth || !rows || size <= 0 || rowBytes <= 0 || rowBytes > size / rows ||
+                static_cast<uint64_t>(rowBytes) < (rowBits + 7) / 8)
+                return nullptr;
+            std::unique_ptr<char[]> scratch(new (std::nothrow) char[size]);
+            char* buffer = scratch.get();
+            if (!buffer) {
+                fprintf(stderr, "Could not allocate %ld bytes for TIFF image buffer\n", (long)size);
+                return nullptr;
+            }
+            const size_t pixelBytes = c * image->Sizeof();
+            const auto bits = dir.bitsPerSample;
+            const bool msbFirst = TIFFIsMSB2LSB(tiff_.get());
+            auto* pixels = static_cast<char*>(image->DataAddr());
+            auto copyRow = [&](uint32_t x, uint32_t y, const char* src, uint32_t srcX, size_t count) {
+                auto* dst = pixels + (static_cast<size_t>(y) * w + x) * pixelBytes;
+                if (bits >= 8) {
+                    memcpy(dst, src + srcX * pixelBytes, count * pixelBytes);
+                } else {
+                    // TIFF packs 1- and 4-bit samples. GDL exposes each sample as a byte.
+                    size_t bit = static_cast<size_t>(srcX) * c * bits;
+                    for (size_t i = 0; i < count * c; ++i, bit += bits) {
+                        const unsigned shift = msbFirst ? 8 - bits - bit % 8 : bit % 8;
+                        dst[i] = (static_cast<unsigned char>(src[bit / 8]) >> shift) & ((1u << bits) - 1);
+                    }
                 }
+            };
 
+            if (!tiled) {
                 for(uint32_t y = 0; y < h; ++y) {
-                    if(TIFFReadScanline(tiff_, buffer, rect.y + y, 0) == -1)
-                        goto error;
+                    if(TIFFReadScanline(tiff_.get(), buffer, rect.y + y, 0) == -1)
+                        return nullptr;
 
-                    start = buffer + (sampOff * rect.x);
-                    addScanline(image, 0, y, start, sampOff * w);
+                    copyRow(0, y, buffer, rect.x, w);
                 }
             }
 
             // Tile-based images
             else {
-                auto tileSize = TIFFTileSize(tiff_);
-
-                if(!(buffer = static_cast<char*>(_TIFFmalloc(tileSize)))) {
-                    fprintf(stderr, "Could not allocate %ld bytes for TIFF tile buffer\n", (long)tileSize);
-                    goto error;
-                }
-
                 for(uint32_t y = 0, yrem, yoff; y < h; y += yrem) {
                     yoff = (rect.y + y) % dir.tileHeight;
 
@@ -327,45 +311,30 @@ namespace lib
                         yrem = h - y;
 
                     for(uint32_t x = 0, xrem, xoff; x < w; x += xrem) {
-                        if(TIFFReadTile(tiff_, buffer, rect.x + x, rect.y + y, 0, 0) == -1)
-                            goto error;
+                        if(TIFFReadTile(tiff_.get(), buffer, rect.x + x, rect.y + y, 0, 0) == -1)
+                            return nullptr;
 
                         xoff = (rect.x + x) % dir.tileWidth;
-                        start = buffer + (sampOff * ((yoff * dir.tileWidth) + xoff));
-
                         if(((xrem = dir.tileWidth - xoff) + x) > w)
                             xrem = w - x;
 
-                        for(uint32_t ty = 0; ty < yrem; ++ty, start += (sampOff * dir.tileWidth))
-                            addScanline(image, x, y + ty, start, sampOff * xrem);
+                        for (uint32_t ty = 0; ty < yrem; ++ty)
+                            copyRow(x, y + ty, buffer + (yoff + ty) * rowBytes, xoff, xrem);
                     }
                 }
             }
 
-            if(buffer)
-                _TIFFfree(buffer);
-
             return image;
-
-        error:
-            if(buffer)
-                _TIFFfree(buffer);
-
-            if(image)
-                delete image;
-
-            return nullptr;
         }
 
         #ifdef USE_GEOTIFF
         BaseGDL* Handler::CreateGeoStructOrZero(tdir_t index) const
         {
-            if(!tiff_ || !TIFFSetDirectory(tiff_, index))
+            if(!tiff_ || !TIFFSetDirectory(tiff_.get(), index))
                 return nullptr;
 
             DStructFactory gtif;
-            TIFF::GeoKey gk;
-            int16_t nvals;
+            uint16_t nvals;
             double* val;
 
             // TIFF geo fields
@@ -377,94 +346,77 @@ namespace lib
                 gtif.AddMat<DDoubleGDL>("MODELTIEPOINTTAG", 6, nvals / 6, val);
 
             // GeoTIFF keys
-            if(GetGeoKey(GTModelTypeGeoKey, gk))
-                gtif.Add<DIntGDL>("GTMODELTYPEGEOKEY", *gk.value.i);
-            if(GetGeoKey(GTModelTypeGeoKey, gk))
-                gtif.Add<DIntGDL>("GTRASTERTYPEGEOKEY", *gk.value.i);
-            if(GetGeoKey(GTCitationGeoKey, gk))
-                gtif.Add<DStringGDL>("GTCITATIONGEOKEY", gk.value.str);
-            if(GetGeoKey(GeographicTypeGeoKey, gk))
-                gtif.Add<DIntGDL>("GEOGRAPHICTYPEGEOKEY", *gk.value.i);
-            if(GetGeoKey(GeogCitationGeoKey, gk))
-                gtif.Add<DStringGDL>("GEOGCITATIONGEOKEY", gk.value.str);
-            if(GetGeoKey(GeogGeodeticDatumGeoKey, gk))
-                gtif.Add<DIntGDL>("GEOGGEODETICDATUMGEOKEY", *gk.value.i);
-            if(GetGeoKey(GeogPrimeMeridianGeoKey, gk))
-                gtif.Add<DIntGDL>("GEOGPRIMEMERIDIANGEOKEY", *gk.value.i);
-            if(GetGeoKey(GeogLinearUnitsGeoKey, gk))
-                gtif.Add<DIntGDL>("GEOGLINEARUNITSGEOKEY", *gk.value.i);
-            if(GetGeoKey(GeogLinearUnitSizeGeoKey, gk))
-                gtif.Add<DDoubleGDL>("GEOGLINEARUNITSIZEGEOKEY", *gk.value.d);
-            if(GetGeoKey(GeogAngularUnitsGeoKey, gk))
-                gtif.Add<DIntGDL>("GEOGANGULARUNITSGEOKEY", *gk.value.i);
-            if(GetGeoKey(GeogAngularUnitSizeGeoKey, gk))
-                gtif.Add<DDoubleGDL>("GEOGANGULARUNITSIZEGEOKEY", *gk.value.d);
-            if(GetGeoKey(GeogEllipsoidGeoKey, gk))
-                gtif.Add<DIntGDL>("GEOGELLIPSOIDGEOKEY", *gk.value.i);
-            if(GetGeoKey(GeogSemiMajorAxisGeoKey, gk))
-                gtif.Add<DDoubleGDL>("GEOGSEMIMAJORAXISGEOKEY", *gk.value.d);
-            if(GetGeoKey(GeogSemiMinorAxisGeoKey, gk))
-                gtif.Add<DDoubleGDL>("GEOGSEMIMINORAXISGEOKEY", *gk.value.d);
-            if(GetGeoKey(GeogInvFlatteningGeoKey, gk))
-                gtif.Add<DDoubleGDL>("GEOGINVFLATTENINGGEOKEY", *gk.value.d);
-            if(GetGeoKey(GeogAzimuthUnitsGeoKey, gk))
-                gtif.Add<DIntGDL>("GEOGAZIMUTHUNITSGEOKEY", *gk.value.i);
-            if(GetGeoKey(GeogPrimeMeridianLongGeoKey, gk))
-                gtif.Add<DDoubleGDL>("GEOGPRIMEMERIDIANLONGGEOKEY", *gk.value.d);
-            if(GetGeoKey(ProjectedCSTypeGeoKey, gk))
-                gtif.Add<DIntGDL>("PROJECTEDCSTYPEGEOKEY", *gk.value.i);
-            if(GetGeoKey(PCSCitationGeoKey, gk))
-                gtif.Add<DStringGDL>("PCSCITATIONGEOKEY", gk.value.str);
-            if(GetGeoKey(ProjectionGeoKey, gk))
-                gtif.Add<DIntGDL>("PROJECTIONGEOKEY", *gk.value.i);
-            if(GetGeoKey(ProjCoordTransGeoKey, gk))
-                gtif.Add<DIntGDL>("PROJCOORDTRANSGEOKEY", *gk.value.i);
-            if(GetGeoKey(ProjLinearUnitsGeoKey, gk))
-                gtif.Add<DIntGDL>("PROJLINEARUNITSGEOKEY", *gk.value.i);
-            if(GetGeoKey(ProjLinearUnitSizeGeoKey, gk))
-                gtif.Add<DDoubleGDL>("PROJLINEARUNITSIZEGEOKEY", *gk.value.d);
-            if(GetGeoKey(ProjStdParallel1GeoKey, gk))
-                gtif.Add<DDoubleGDL>("PROJSTDPARALLEL1GEOKEY", *gk.value.d);
-            if(GetGeoKey(ProjStdParallel2GeoKey, gk))
-                gtif.Add<DDoubleGDL>("PROJSTDPARALLEL2GEOKEY", *gk.value.d);
-            if(GetGeoKey(ProjNatOriginLongGeoKey, gk))
-                gtif.Add<DDoubleGDL>("PROJNATORIGINLONGGEOKEY", *gk.value.d);
-            if(GetGeoKey(ProjNatOriginLatGeoKey, gk))
-                gtif.Add<DDoubleGDL>("PROJNATORIGINLATGEOKEY", *gk.value.d);
-            if(GetGeoKey(ProjFalseEastingGeoKey, gk))
-                gtif.Add<DDoubleGDL>("PROJFALSEEASTINGGEOKEY", *gk.value.d);
-            if(GetGeoKey(ProjFalseNorthingGeoKey, gk))
-                gtif.Add<DDoubleGDL>("PROJFALSENORTHINGGEOKEY", *gk.value.d);
-            if(GetGeoKey(ProjFalseOriginLongGeoKey, gk))
-                gtif.Add<DDoubleGDL>("PROJFALSEORIGINLONGGEOKEY", *gk.value.d);
-            if(GetGeoKey(ProjFalseOriginLatGeoKey, gk))
-                gtif.Add<DDoubleGDL>("PROJFALSEORIGINLATGEOKEY", *gk.value.d);
-            if(GetGeoKey(ProjFalseOriginEastingGeoKey, gk))
-                gtif.Add<DDoubleGDL>("PROJFALSEORIGINEASTINGGEOKEY", *gk.value.d);
-            if(GetGeoKey(ProjFalseOriginNorthingGeoKey, gk))
-                gtif.Add<DDoubleGDL>("PROJFALSEORIGINNORTHINGGEOKEY", *gk.value.d);
-            if(GetGeoKey(ProjCenterLongGeoKey, gk))
-                gtif.Add<DDoubleGDL>("PROJCENTERLONGGEOKEY", *gk.value.d);
-            if(GetGeoKey(ProjCenterEastingGeoKey, gk))
-                gtif.Add<DDoubleGDL>("PROJCENTEREASTINGGEOKEY", *gk.value.d);
-            if(GetGeoKey(ProjCenterNorthingGeoKey, gk))
-                gtif.Add<DDoubleGDL>("PROJCENTERNORTHINGGEOKEY", *gk.value.d);
-            if(GetGeoKey(ProjScaleAtNatOriginGeoKey, gk))
-                gtif.Add<DDoubleGDL>("PROJSCALEATNATORIGINGEOKEY", *gk.value.d);
-            if(GetGeoKey(ProjScaleAtCenterGeoKey, gk))
-                gtif.Add<DDoubleGDL>("PROJSCALEATCENTERGEOKEY", *gk.value.d);
-            if(GetGeoKey(ProjAzimuthAngleGeoKey, gk))
-                gtif.Add<DDoubleGDL>("PROJAZIMUTHANGLEGEOKEY", *gk.value.d);
-            if(GetGeoKey(ProjStraightVertPoleLongGeoKey, gk))
-                gtif.Add<DDoubleGDL>("PROJSTRAIGHTVERTPOLELONGGEOKEY", *gk.value.d);
-            if(GetGeoKey(VerticalCSTypeGeoKey, gk))
-                gtif.Add<DIntGDL>("VERTICALCSTYPEGEOKEY", *gk.value.i);
-            if(GetGeoKey(VerticalCitationGeoKey, gk))
-                gtif.Add<DStringGDL>("VERTICALCITATIONGEOKEY", gk.value.str);
-            if(GetGeoKey(VerticalDatumGeoKey, gk))
-                gtif.Add<DIntGDL>("VERTICALDATUMGEOKEY", *gk.value.i);
-            if(GetGeoKey(VerticalUnitsGeoKey, gk))
-                gtif.Add<DIntGDL>("VERTICALUNITSGEOKEY", *gk.value.i);
+            // Read scalar numeric keys into their native type. ASCII keys have a
+            // variable count and need room for a trailing nul.
+            auto getNumber = [&](geokey_t key, tagtype_t expected, auto& value) {
+                int size;
+                tagtype_t type;
+                return GTIFKeyInfo(gtif_.get(), key, &size, &type) > 0 && type == expected &&
+                       size == static_cast<int>(sizeof(value)) && GTIFKeyGet(gtif_.get(), key, &value, 0, 1);
+            };
+            auto addShort = [&](geokey_t key, const char* name) {
+                unsigned short value;
+                if (getNumber(key, TYPE_SHORT, value)) gtif.Add<DIntGDL>(name, value);
+            };
+            auto addDouble = [&](geokey_t key, const char* name) {
+                double value;
+                if (getNumber(key, TYPE_DOUBLE, value)) gtif.Add<DDoubleGDL>(name, value);
+            };
+            auto addString = [&](geokey_t key, const char* name) {
+                int size;
+                tagtype_t type;
+                int count = GTIFKeyInfo(gtif_.get(), key, &size, &type);
+                if (count > 0 && type == TYPE_ASCII && size == 1) {
+                    std::vector<char> value(static_cast<size_t>(count) + 1);
+                    if (GTIFKeyGet(gtif_.get(), key, value.data(), 0, count))
+                        gtif.Add<DStringGDL>(name, value.data());
+                }
+            };
+
+            addShort(GTModelTypeGeoKey, "GTMODELTYPEGEOKEY");
+            addShort(GTRasterTypeGeoKey, "GTRASTERTYPEGEOKEY");
+            addString(GTCitationGeoKey, "GTCITATIONGEOKEY");
+            addShort(GeographicTypeGeoKey, "GEOGRAPHICTYPEGEOKEY");
+            addString(GeogCitationGeoKey, "GEOGCITATIONGEOKEY");
+            addShort(GeogGeodeticDatumGeoKey, "GEOGGEODETICDATUMGEOKEY");
+            addShort(GeogPrimeMeridianGeoKey, "GEOGPRIMEMERIDIANGEOKEY");
+            addShort(GeogLinearUnitsGeoKey, "GEOGLINEARUNITSGEOKEY");
+            addDouble(GeogLinearUnitSizeGeoKey, "GEOGLINEARUNITSIZEGEOKEY");
+            addShort(GeogAngularUnitsGeoKey, "GEOGANGULARUNITSGEOKEY");
+            addDouble(GeogAngularUnitSizeGeoKey, "GEOGANGULARUNITSIZEGEOKEY");
+            addShort(GeogEllipsoidGeoKey, "GEOGELLIPSOIDGEOKEY");
+            addDouble(GeogSemiMajorAxisGeoKey, "GEOGSEMIMAJORAXISGEOKEY");
+            addDouble(GeogSemiMinorAxisGeoKey, "GEOGSEMIMINORAXISGEOKEY");
+            addDouble(GeogInvFlatteningGeoKey, "GEOGINVFLATTENINGGEOKEY");
+            addShort(GeogAzimuthUnitsGeoKey, "GEOGAZIMUTHUNITSGEOKEY");
+            addDouble(GeogPrimeMeridianLongGeoKey, "GEOGPRIMEMERIDIANLONGGEOKEY");
+            addShort(ProjectedCSTypeGeoKey, "PROJECTEDCSTYPEGEOKEY");
+            addString(PCSCitationGeoKey, "PCSCITATIONGEOKEY");
+            addShort(ProjectionGeoKey, "PROJECTIONGEOKEY");
+            addShort(ProjCoordTransGeoKey, "PROJCOORDTRANSGEOKEY");
+            addShort(ProjLinearUnitsGeoKey, "PROJLINEARUNITSGEOKEY");
+            addDouble(ProjLinearUnitSizeGeoKey, "PROJLINEARUNITSIZEGEOKEY");
+            addDouble(ProjStdParallel1GeoKey, "PROJSTDPARALLEL1GEOKEY");
+            addDouble(ProjStdParallel2GeoKey, "PROJSTDPARALLEL2GEOKEY");
+            addDouble(ProjNatOriginLongGeoKey, "PROJNATORIGINLONGGEOKEY");
+            addDouble(ProjNatOriginLatGeoKey, "PROJNATORIGINLATGEOKEY");
+            addDouble(ProjFalseEastingGeoKey, "PROJFALSEEASTINGGEOKEY");
+            addDouble(ProjFalseNorthingGeoKey, "PROJFALSENORTHINGGEOKEY");
+            addDouble(ProjFalseOriginLongGeoKey, "PROJFALSEORIGINLONGGEOKEY");
+            addDouble(ProjFalseOriginLatGeoKey, "PROJFALSEORIGINLATGEOKEY");
+            addDouble(ProjFalseOriginEastingGeoKey, "PROJFALSEORIGINEASTINGGEOKEY");
+            addDouble(ProjFalseOriginNorthingGeoKey, "PROJFALSEORIGINNORTHINGGEOKEY");
+            addDouble(ProjCenterLongGeoKey, "PROJCENTERLONGGEOKEY");
+            addDouble(ProjCenterEastingGeoKey, "PROJCENTEREASTINGGEOKEY");
+            addDouble(ProjCenterNorthingGeoKey, "PROJCENTERNORTHINGGEOKEY");
+            addDouble(ProjScaleAtNatOriginGeoKey, "PROJSCALEATNATORIGINGEOKEY");
+            addDouble(ProjScaleAtCenterGeoKey, "PROJSCALEATCENTERGEOKEY");
+            addDouble(ProjAzimuthAngleGeoKey, "PROJAZIMUTHANGLEGEOKEY");
+            addDouble(ProjStraightVertPoleLongGeoKey, "PROJSTRAIGHTVERTPOLELONGGEOKEY");
+            addShort(VerticalCSTypeGeoKey, "VERTICALCSTYPEGEOKEY");
+            addString(VerticalCitationGeoKey, "VERTICALCITATIONGEOKEY");
+            addShort(VerticalDatumGeoKey, "VERTICALDATUMGEOKEY");
+            addShort(VerticalUnitsGeoKey, "VERTICALUNITSGEOKEY");
 
             if(auto geoStruct = gtif.Create())
 	        return geoStruct;
@@ -472,25 +424,6 @@ namespace lib
             return new DLongGDL(0);
         }
 
-        bool Handler::GetGeoKey(geokey_t key, GeoKey& res) const
-        {
-            int size;
-
-            if((gtif_ && (res.count = GTIFKeyInfo(gtif_, key, &size, &res.type)))) {
-                if(res.value.ptr)
-                    free(res.value.ptr);
-
-                if((res.value.ptr = malloc(size * res.count))) {
-                    if(GTIFKeyGet(gtif_, key, res.value.ptr, 0, res.count))
-                        return true;
-
-                    free(res.value.ptr);
-                }
-            }
-
-            res = GeoKey();
-            return false;
-        }
         #endif
     }
 
@@ -589,7 +522,7 @@ namespace lib
 
         TIFF::Handler tiff;
         TIFF::Directory dir;
-        BaseGDL* image = nullptr;
+        std::unique_ptr<BaseGDL> image;
 
         if(tiff.Open(filename.c_str(), "r")) {
             if(!tiff.GetDirectory(imageIndex, dir))
@@ -642,7 +575,7 @@ namespace lib
             // Use exclicitly defined sub rectangle if present
             static int subRectIx = e->KeywordIx("SUB_RECT");
             if(e->KeywordSet(subRectIx)) {
-                auto subRect = static_cast<DULongGDL*>(e->GetKW(subRectIx)->Convert2(GDL_ULONG, BaseGDL::COPY));
+                auto* subRect = e->GetKWAs<DULongGDL>(subRectIx);
 
                 if(subRect->N_Elements() != 4)
                     e->Throw("Invalid number of elements in SUB_RECT array (4 expected)");
@@ -652,7 +585,8 @@ namespace lib
                 rect.w = (*subRect)[2];
                 rect.h = (*subRect)[3];
 
-                if((rect.x + rect.w > dir.width) || (rect.y + rect.h > dir.height))
+                if (rect.x >= dir.width || rect.y >= dir.height ||
+                    rect.w > dir.width - rect.x || rect.h > dir.height - rect.y)
                     e->Throw("Invalid SUB_RECT value exeeds image dimensions");
             }
 
@@ -715,9 +649,11 @@ namespace lib
             if(e->KeywordPresent(planarConfigIx)) {
                 e->SetKW(planarConfigIx, new DLongGDL(enumIntegralValue(dir.planarConfig)));
             }
+       } else {
+           e->Throw("Unable to open TIFF file: " + filename);
        }
 
-       return image;
+       return image.release();
    }
 }
 

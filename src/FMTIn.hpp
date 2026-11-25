@@ -34,18 +34,18 @@ public:
 
         NextPar();
 
-        format( fmt);
-        
-        SizeT nextParIxComp = nextParIx;
-        SizeT valIxComp = valIx;
+        SizeT previousPar = nextParIx;
+        SizeT previousVal = valIx;
+        format(fmt);
 
         // format reversion
-        while( actPar != NULL)
-        {
-            format_reversion( reversionAnker);
-            
-            if( (nextParIx == nextParIxComp) && (valIx == valIxComp))   
-                throw GDLException("Format in Error."); //Infinite format loop detected.");
+        while (actPar) {
+            if (nextParIx == previousPar && valIx == previousVal)
+                throw GDLException("Infinite format loop detected.");
+
+            previousPar = nextParIx;
+            previousVal = valIx;
+            format_reversion(reversionAnker);
         }
     }
     

@@ -193,6 +193,80 @@ end
 ;
 ; --------------------------------------------
 ;
+pro TEST_READF_COMPRESSED, errors
+catch, err
+if err ne 0 then begin
+   msg = !error_state.msg
+   catch, /cancel
+   ERRORS_ADD, errors, msg
+   if n_elements(u) ne 0 then free_lun, u
+   return
+endif
+file = 'test_readf_compressed.gz'
+get_lun, u
+openw, u, file, /compress
+; Cross input buffer boundaries while alternating numeric and string reads.
+for i=0L,511L do begin
+   printf, u, '12 34'
+   printf, u, 'line '+strtrim(i,2)
+endfor
+close, u
+openr, u, file, /compress, /delete
+x=0L & y=0L & line=''
+for i=0L,511L do begin
+   readf, u, x, y
+   readf, u, line
+   if x ne 12 or y ne 34 or line ne 'line '+strtrim(i,2) then $
+      message, 'Incorrect compressed READF at record '+strtrim(i,2)
+endfor
+free_lun, u
+end
+;
+; Tabs and X position within a single record, preserving text they pass over.
+pro TEST_FORMAT_TABS, errors
+catch, err
+if err ne 0 then begin
+   msg = !error_state.msg
+   catch, /cancel
+   ERRORS_ADD, errors, msg
+   if n_elements(u) ne 0 then free_lun, u
+   return
+endif
+expected = ['abXY   !','aXc','dYf','first','Second','aXcdefg!ij','abXdef!hij','abc   !', $
+            'abcd!','abcd!fgh']
+lines = [string(format='(A,TL2,A,T8,A)', 'abcd', 'XY', '!'), $
+         string(format='(A,T2,A)', ['abc','X','def','Y']), $
+         string(format='(A,/,A,TL9,A)', 'first', 'second', 'S'), $
+         string(format='(A,T2,A,T8,A)', 'abcdefghij', 'X', '!'), $
+         string(format='(A,TL8,A,TR3,A)', 'abcdefghij', 'X', '!'), $
+         string(format='(A,TL2,TR5,A)', 'abc', '!'), $
+         string(format='(A,TL2,2X,A)', 'abcd', '!'), $
+         string(format='(A,T3,2X,A)', 'abcdefgh', '!')]
+if ~array_equal(lines, expected) then ERRORS_ADD, errors, 'Incorrect tab output from STRING'
+file = 'test_format_tabs.txt'
+foreach compress, [0,1] do begin
+   openw, u, file, /get_lun, compress=compress
+   printf, u, 'header'
+   printf, u, format='(A,TL2,A,T8,A)', 'abcd', 'XY', '!'
+   ; Format reversion and an explicit slash both start a new record.
+   printf, u, format='(A,T2,A)', ['abc','X','def','Y']
+   printf, u, format='(A,/,A,TL9,A)', 'first', 'second', 'S'
+   printf, u, format='(A,T2,A,T8,A)', 'abcdefghij', 'X', '!'
+   printf, u, format='(A,TL8,A,TR3,A)', 'abcdefghij', 'X', '!'
+   printf, u, format='(A,TL2,TR5,A)', 'abc', '!'
+   printf, u, format='(A,TL2,2X,A)', 'abcd', '!'
+   printf, u, format='(A,T3,2X,A)', 'abcdefgh', '!'
+   free_lun, u
+   openr, u, file, /get_lun, compress=compress, /delete
+   lines = strarr(1+n_elements(expected))
+   readf, u, lines
+   if ~eof(u) then ERRORS_ADD, errors, 'Unexpected record after last tab test'
+   free_lun, u
+   if ~array_equal(lines, ['header',expected]) then $
+      ERRORS_ADD, errors, 'Incorrect tab output with COMPRESS='+strtrim(compress,2)
+endforeach
+end
+;
 pro TEST_READF, verbose=verbose, no_erase=no_erase, help=help, $
                 no_exit=no_exit, test=test
 ;
@@ -215,6 +289,8 @@ TESTREADF, verbose=verbose, no_erase=no_erase, errors=errors, type='LF'
 TESTREADF, verbose=verbose, no_erase=no_erase, errors=errors, type='CRLF'
 ;
 TEST_BUG_573, verbose=verbose, no_erase=no_erase, errors=errors
+TEST_READF_COMPRESSED, errors
+TEST_FORMAT_TABS, errors
 TEST_READS_STRUCT_2, verbose=verbose, no_erase=no_erase, errors=errors
 ;
 if ~KEYWORD_SET(no_exit) then begin

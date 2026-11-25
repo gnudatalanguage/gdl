@@ -17,7 +17,9 @@
 
 #include "includefirst.hpp"
 
+#include <algorithm>
 #include <cstdio> // std::remove(...)
+#include <limits>
 #include "objects.hpp"
 #include "io.hpp"
 #ifdef __MINGW32__
@@ -29,9 +31,38 @@
 #include <ext/stdio_filebuf.h>// TODO: is it portable across compilers?
 using __gnu_cxx::stdio_filebuf;
 
-inline stdio_filebuf<char> * fileBufFromFD(int fd, std::_Ios_Openmode mode) {
-  return (new stdio_filebuf<char> (fd, mode));
+namespace {
+// Keep the logical output offset even though the child process pipe cannot seek.
+class PipeOutputBuffer final : public std::streambuf {
+  stdio_filebuf<char> pipe;
+  std::streamoff written = 0;
+
+public:
+  explicit PipeOutputBuffer(int fd) : pipe(fd, std::ios::out) {}
+
+protected:
+  std::streamsize xsputn(const char* data, std::streamsize size) override {
+    const auto count = pipe.sputn(data, size);
+    written += count;
+    return count;
+  }
+
+  int_type overflow(int_type c) override {
+    if (traits_type::eq_int_type(c, traits_type::eof())) return traits_type::not_eof(c);
+    const auto result = pipe.sputc(traits_type::to_char_type(c));
+    if (!traits_type::eq_int_type(result, traits_type::eof())) ++written;
+    return result;
+  }
+
+  int sync() override { return pipe.pubsync(); }
+
+  pos_type seekoff(off_type offset, std::ios::seekdir dir, std::ios::openmode which) override {
+    if ((which & std::ios::out) && dir == std::ios::cur && offset == 0) return written;
+    return pos_type(-1);
+  }
+};
 }
+
 bool GDLStream::CanOpenAsPipes(){return true;}
 #else
 bool GDLStream::CanOpenAsPipes(){return false;}
@@ -196,143 +227,75 @@ const string StreamInfo(ios* searchStream) {
 }
 
 void AnyStream::Close() {
-  if (fStream != NULL && fStream->is_open()) {
-    fStream->flush();
-    if (old_rdbuf_in != nullptr) {
-      std::basic_streambuf<char> *current=fStream->std::ios::rdbuf();
-      fStream->std::ios::rdbuf(old_rdbuf_in);
-      old_rdbuf_in=nullptr;
-      ispipe = false;
-      close(pin_fd);
-      pin_fd=-1;
-    }
-    fStream->close();
-    fStream->clear();
-    delete fStream;
-    fStream = NULL;
-  }
-  if (ofStream != NULL && ofStream->is_open()) {
-    ofStream->flush();
-    if (old_rdbuf_out != nullptr) {
-      std::basic_streambuf<char> *current=ofStream->std::ios::rdbuf();
-      ofStream->std::ios::rdbuf(old_rdbuf_out);
-      old_rdbuf_out=nullptr;
-      ispipe = false;
-      close(pout_fd);
-      pout_fd=-1;
-    }
-    ofStream->close();
-    ofStream->clear();
-    delete ofStream;
-    ofStream = NULL;
-  }
-  if (igzStream != NULL && igzStream->rdbuf()->is_open()) {
-    igzStream->close();
-    igzStream->clear();
-  }
-  if (ogzStream != NULL && ogzStream->rdbuf()->is_open()) {
-    ogzStream->close();
-    ogzStream->clear();
-  }
+  lastFileAccess = FileAccess::Untracked;
+  fStream.reset();
+  ofStream.reset();
+  pipeInput.reset();
+  pipeOutput.reset();
+  igzStream.reset();
+  ogzStream.reset();
 }
 
-void AnyStream::OpenAsPipes(const std::string& name_, const std::ios_base::openmode mode_, const int pipeInFd, const int pipeOutFd) {
+void AnyStream::OpenAsPipes(const std::string& name_, std::ios_base::openmode mode_,
+                            int pipeInFd, int pipeOutFd) {
 #ifdef HAVE_EXT_STDIO_FILEBUF_H
-  delete igzStream;
-  igzStream = NULL;
-  delete ogzStream;
-  ogzStream = NULL;
-  // Here we invoke the black arts of converting from a C FILE*fd to an fstream object
-  if (mode_ & std::ios_base::in) {
-    pin_fd = pipeInFd;
-    stdio_filebuf<char> * in = fileBufFromFD(pipeInFd, std::ios_base::in);
-    if (fStream == NULL) fStream = new fstream();
-    fStream->open("/dev/null", std::ios_base::in);
-    if (fStream->fail()) {
-      delete fStream;
-      fStream = NULL;
-      throw GDLIOException(-1, "Error opening special infile.");
+  // GNU stdio_filebuf owns the descriptor passed to its constructor.
+  auto input = (mode_ & ios::in) ? std::make_unique<stdio_filebuf<char>>(pipeInFd, ios::in) : nullptr;
+  auto output = (mode_ & ios::out) ? std::make_unique<PipeOutputBuffer>(pipeOutFd) : nullptr;
+  auto openPipe = [](std::streambuf* buffer, ios::openmode mode) {
+    std::unique_ptr<fstream> stream;
+    if (buffer) {
+      stream = std::make_unique<fstream>("/dev/null", mode);
+      if (!*stream) throw GDLIOException(-1, "Error opening pipe stream.");
+      stream->std::ios::rdbuf(buffer);
     }
-    old_rdbuf_in = fStream->std::ios::rdbuf();
-    fStream->std::ios::rdbuf(in);
-    ispipe=true;
-  }
-  if (mode_ & std::ios_base::out) {
-    pout_fd=pipeOutFd;
-    stdio_filebuf<char> * out = fileBufFromFD(pipeOutFd, std::ios_base::out);
-    if (out != nullptr) {
-      if (ofStream == NULL) ofStream = new fstream();
-      ofStream->open("/dev/null", std::ios_base::out);
-      if (ofStream->fail()) {
-        delete ofStream;
-        ofStream = NULL;
-        throw GDLIOException(-1, "Error opening special outfile.");
-      }
-      old_rdbuf_out = ofStream->std::ios::rdbuf();
-      ofStream->std::ios::rdbuf(out);
-      ispipe=true;
-    }
-  }
+    return stream;
+  };
+  auto in = openPipe(input.get(), ios::in);
+  auto out = openPipe(output.get(), ios::out);
+  pipeInput = std::move(input);
+  pipeOutput = std::move(output);
+  fStream = std::move(in);
+  ofStream = std::move(out);
 #else
   throw GDLException("This command relies on GNU extensions to the std C++ library that were not available during compilation on your system (?)");
 #endif
 }
-  void AnyStream::Open(const std::string& name_, ios_base::openmode mode_, bool compress_) {
+
+void AnyStream::Open(const std::string& name_, ios_base::openmode mode_, bool compress_) {
   if (compress_) {
-
-    delete fStream;
-    fStream = NULL;
-    delete ofStream;
-    ofStream = NULL;
-    
-    if ((mode_ & std::ios::out)) {
-      if (ogzStream == NULL)
-        ogzStream = new ogzstream();
-
-      ogzStream->open(name_.c_str(), mode_ & ~std::ios::in);
-
-      if (ogzStream->fail()) {
-        delete ogzStream;
-        ogzStream = NULL;
-        throw GDLIOException("Error opening compressed file for output.");
-      }
+    if (mode_ & ios::out) {
+      auto stream = std::make_unique<ogzstream>();
+      stream->open(name_.c_str(), mode_ & ~ios::in);
+      if (!*stream) throw GDLIOException("Error opening compressed file for output.");
+      ogzStream = std::move(stream);
     } else {
-      delete ogzStream;
-      ogzStream = NULL;
+      auto stream = std::make_unique<igzstream>();
+      stream->open(name_.c_str(), mode_);
+      if (!*stream) throw GDLIOException("Error opening compressed file for input.");
+      igzStream = std::move(stream);
     }
-    if ((mode_ & std::ios::in) && !(mode_ & std::ios::out)) {
-      if (igzStream == NULL)
-        igzStream = new igzstream();
-
-      igzStream->open(name_.c_str(), mode_ & ~std::ios::out);
-
-      if (igzStream->fail()) {
-        delete igzStream;
-        igzStream = NULL;
-        throw GDLIOException("Error opening compressed file for input.");
-      }
-    } else {
-      delete igzStream;
-      igzStream = NULL;
-    }
-  } else {
-    delete igzStream;
-    igzStream = NULL;
-    delete ogzStream;
-    ogzStream = NULL;
-
-  if (fStream == NULL)
-    fStream = new fstream();
-    fStream->open(name_.c_str(), mode_);
-
-  if (fStream->fail()) {
-    delete fStream;
-    fStream = NULL;
-    if (((mode_ | ios_base::in) != 0) && ((mode_ | ios_base::out) == 0))
-      throw GDLIOException(-265, "Error opening file for reading.");
-    throw GDLIOException(-1, "Error opening file.");
+    return;
   }
+
+  auto stream = std::make_unique<fstream>(name_.c_str(), mode_);
+  if (!*stream) throw GDLIOException(-1, "Error opening file.");
+  if ((mode_ & ios::in) && (mode_ & ios::out) &&
+      stream->rdbuf()->pubseekoff(0, ios::cur) != std::streampos(-1))
+    lastFileAccess = FileAccess::Initial;
+  fStream = std::move(stream);
 }
+
+std::fstream& AnyStream::FileFor(FileAccess access) {
+  if (lastFileAccess != FileAccess::Untracked) {
+    // An update stream needs a positioning operation when changing direction.
+    // Seek at the logical position so buffered read-ahead is accounted for.
+    if (lastFileAccess != FileAccess::Initial && lastFileAccess != access &&
+        fStream->rdbuf()->pubseekoff(0, ios::cur) == std::streampos(-1))
+      throw GDLIOException("Error positioning file when switching between reading and writing.");
+    lastFileAccess = access;
+  }
+  return *fStream;
 }
 
 void AnyStream::ClearEof() {
@@ -348,7 +311,7 @@ void AnyStream::Write(char* buf, std::streamsize nBytes) {
     ofStream->write(buf, nBytes);
   } else 
     if (fStream != NULL) {
-    fStream->write(buf, nBytes);
+    FileFor(FileAccess::Write).write(buf, nBytes);
   } else if (ogzStream != NULL) {
     ogzStream->write(buf, nBytes);
   } else assert(0);
@@ -356,7 +319,7 @@ void AnyStream::Write(char* buf, std::streamsize nBytes) {
 
 void AnyStream::Read(char* buf, std::streamsize nBytes) {
   if (fStream != NULL) {
-    fStream->read(buf, nBytes);
+    FileFor(FileAccess::Read).read(buf, nBytes);
   } else if (igzStream != NULL) {
     igzStream->read(buf, nBytes);
   } else assert(0);
@@ -420,9 +383,9 @@ bool AnyStream::Eof() {
   if (fStream != NULL) {
     fStream->clear(); // clear old EOF	
 
-    if (ispipe) return true;
+    if (pipeInput) return true;
     else {
-      std::istream::int_type c = fStream->peek();  // peek character, test EOF
+      std::istream::int_type c = FileFor(FileAccess::Read).peek();  // peek character, test EOF
 
   if ( c == std::char_traits<char>::eof() )  {fStream->clear(); return true;}
   else return false;
@@ -434,7 +397,7 @@ bool AnyStream::Eof() {
 
     std::istream::int_type c = igzStream->peek(); // peek character, test EOF
 
-    if (c == std::char_traits<char>::eof())   {fStream->clear(); return true;}
+    if (c == std::char_traits<char>::eof())   {igzStream->clear(); return true;}
     else return false;
   }
   return true;
@@ -479,7 +442,7 @@ DLong64 AnyStream::Skip(std::streampos pos, bool doThrow) {
       fStream->clear();
 
     std::streampos  cur=fStream->tellg();
-    fStream->ignore(pos);
+    FileFor(FileAccess::Read).ignore(pos);
     if ( doThrow && fStream->eof()) throw GDLException("End of file encountered.");
     DLong64 ret=fStream->tellg()-cur;
     return ret;
@@ -504,8 +467,9 @@ DLong AnyStream::SkipLines(DLong nlines, bool doThrow) {
     if (fStream->eof())
       fStream->clear();
     DLong i = 0;
+    std::fstream& input = FileFor(FileAccess::Read);
     for (; i < nlines; ++i) {
-      fStream->ignore(std::numeric_limits<ptrdiff_t>::max(), '\n');
+      input.ignore(std::numeric_limits<ptrdiff_t>::max(), '\n');
       if (fStream->eof()) {
         if (doThrow) throw GDLException("End of file encountered.");
         else break;
@@ -564,7 +528,7 @@ std::streampos AnyStream::Tell() {
   if (fStream != NULL) return fStream->tellp();
   else if (ofStream != NULL) return ofStream->tellg();
   else if (igzStream != NULL)
-    return igzStream->rdbuf()->getPosition(); 
+    return igzStream->tellg();
   else if (ogzStream != NULL)
     return ogzStream->tellp();
   else {
@@ -579,19 +543,24 @@ void AnyStream::SeekPad(std::streampos pos) {
     if (ofStream->eof())
       ofStream->clear();
 
-    std::streampos fSize = Size();
-    if (pos > fSize) Pad(pos - fSize);
-
-    ofStream->rdbuf()->pubseekpos(pos, std::ios_base::out);
+    const auto current = ofStream->tellp();
+    if (current == std::streampos(-1) || pos < current)
+      throw GDLIOException("Cannot seek backwards on an output pipe.");
+    if (pos > current) Pad(pos - current);
+    if (!*ofStream) throw GDLIOException("Error padding an output pipe.");
   } else 
     if (fStream != NULL) {
     if (fStream->eof())
       fStream->clear();
 
-    std::streampos fSize = Size();
-    if (pos > fSize) Pad(pos - fSize);
-
-    fStream->rdbuf()->pubseekpos(pos, std::ios_base::in | std::ios_base::out);
+    // Append the gap after the existing records.
+    auto& output = FileFor(FileAccess::Write);
+    output.seekp(0, std::ios::end);
+    const auto end = output.tellp();
+    if (end == std::streampos(-1)) throw GDLIOException("Cannot find the end of the file.");
+    if (pos > end) Pad(pos - end);
+    else output.seekp(pos);
+    if (!output) throw GDLIOException("Error positioning file for record write.");
   } else  {
     if (ogzStream->eof())
       ogzStream->clear();
@@ -606,7 +575,7 @@ void AnyStream::SeekPad(std::streampos pos) {
 void GDLStream::OpenAsPipes(const string& name_, const std::ios_base::openmode mode_, const int pipeInFd, const int pipeOutFd ) {
   if (anyStream != NULL && anyStream->IsOpen())  throw GDLIOException("File unit is already open.");
 
-  if (anyStream == NULL) anyStream = new AnyStream();
+  if (anyStream == NULL) anyStream = std::make_unique<AnyStream>();
 
   name = name_;
   mode = mode_;
@@ -616,7 +585,7 @@ void GDLStream::OpenAsPipes(const string& name_, const std::ios_base::openmode m
   anyStream->OpenAsPipes(name, mode_, pipeInFd, pipeOutFd );
 
   swapEndian = false;
-  deleteOnClose = true;
+  deleteOnClose = false; // A pipe's display name is not a file to unlink.
 
   lastSeekPos = 0;
   lastRecord = 0;
@@ -633,29 +602,24 @@ void GDLStream::Open(const string& name_,
   string expName = name_;
   WordExp(expName);
 
-  f77 = f77_;
-
-  //   if( f77_)
-  //     throw GDLException("F77_UNFORMATTED format not supported.");
-
-  //  if( (fStream != NULL && fStream->is_open()) || (igzStream != NULL && igzStream->rdbuf()->is_open()) || (ogzStream != NULL && ogzStream->rdbuf()->is_open()))
   if (anyStream != NULL && anyStream->IsOpen())
     throw GDLIOException("File unit is already open.");
 
   if (anyStream == NULL)
-    anyStream = new AnyStream();
+    anyStream = std::make_unique<AnyStream>();
 
-  name = expName;
+  auto xdr = xdr_ ? std::make_unique<XDR>() : nullptr;
+  anyStream->Open(expName, mode_, compress_);
+
+  name = std::move(expName);
   mode = mode_;
   compress = compress_;
-
-  anyStream->Open(expName, mode_, compress_);
+  f77 = f77_;
+  xdrs = std::move(xdr);
 
   swapEndian = swapEndian_;
   deleteOnClose = dOC;
 
-  if (xdr_)
-    xdrs = new XDR;
 
   lastSeekPos = 0;
   lastRecord = 0;
@@ -672,10 +636,10 @@ void GDLStream::Socket(const string& host,
     DDouble c_timeout_, DDouble r_timeout_,
     DDouble w_timeout_, SizeT width) {
   if (iSocketStream == NULL)
-    iSocketStream = new istringstream;
+    iSocketStream = std::make_unique<istringstream>();
 
   if (recvBuf == NULL)
-    recvBuf = new string;
+    recvBuf = std::make_unique<string>();
 
   name = host + "." + i2s(port);;
 
@@ -703,10 +667,9 @@ void GDLStream::Socket(const string& host,
 
   //  cout << inet_ntoa(*((struct in_addr *)h->h_addr)) << endl;
 
-  int status = inet_pton(AF_INET, inet_ntoa(*((struct in_addr *) h->h_addr)),
-      &m_addr.sin_addr);
-
-  status = connect(sockNum, (sockaddr *) & m_addr, sizeof (m_addr));
+  memcpy(&m_addr.sin_addr, h->h_addr_list[0], sizeof(m_addr.sin_addr));
+  if (connect(sockNum, (sockaddr *) &m_addr, sizeof(m_addr)) != 0)
+    throw GDLIOException("Unable to connect to host.");
 
   swapEndian = swapEndian_;
 
@@ -721,12 +684,24 @@ void GDLStream::Socket(const string& host,
   DDouble c_timeout_, DDouble r_timeout_,
   DDouble w_timeout_, SizeT width) {
   if (iSocketStream == NULL)
-    iSocketStream = new istringstream;
+    iSocketStream = std::make_unique<istringstream>();
 
   if (recvBuf == NULL)
-    recvBuf = new string;
+    recvBuf = std::make_unique<string>();
 
-  name = host + "." + i2s(port);
+  const std::string service = i2s(port);
+  name = host + "." + service;
+
+  addrinfo hints{};
+  hints.ai_family = AF_INET;
+  hints.ai_socktype = SOCK_STREAM;
+  addrinfo* result = nullptr;
+  const int lookupError = getaddrinfo(host.c_str(), service.c_str(), &hints, &result);
+  if (lookupError != 0) {
+    std::cerr << gai_strerror(lookupError) << std::endl;
+    throw GDLIOException("Unable to lookup host.");
+  }
+  std::unique_ptr<addrinfo, decltype(&freeaddrinfo)> addresses(result, &freeaddrinfo);
 
   sockNum = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
 
@@ -740,31 +715,8 @@ void GDLStream::Socket(const string& host,
     throw GDLIOException("Error opening file.");
   }
 
-  sockaddr_in m_addr;
-  m_addr.sin_family = AF_INET;
-  m_addr.sin_port = htons(port);
-
-  // Convert host to IPv4 format
-  struct addrinfo hints, *result;
-  int err;
-  memset(&hints, 0, sizeof(hints));
- hints.ai_family = AF_INET;    /* Allow IPv4 or IPv6 */
- hints.ai_socktype = SOCK_STREAM; /* Sequenced, reliable, connection-based
-				   byte streams.  */
-  
-  if ((err = getaddrinfo(host.c_str(),NULL,&hints, &result)) != 0) { // get the host info
-    std::cerr<<gai_strerror(err)<<std::endl;
-    throw GDLIOException("Unable to lookup host.");
-  }
-struct in_addr addr;
-addr.s_addr = ((struct sockaddr_in *)(result->ai_addr))->sin_addr.s_addr;
-
-// printf("ip address : %s\n", inet_ntoa(addr));
-
-  int status = inet_pton(AF_INET, inet_ntoa(addr), &m_addr.sin_addr);
-  if (status != 1) perror(__func__);
-  status = connect(sockNum, (sockaddr *) & m_addr, sizeof (m_addr));
-  if (status != 0) perror(__func__);
+  if (connect(sockNum, addresses->ai_addr, addresses->ai_addrlen) != 0)
+    throw GDLIOException("Unable to connect to host.");
   int flags = fcntl(sockNum, F_GETFL, 0); 
   fcntl(sockNum,F_SETFD, flags|FD_CLOEXEC);
   swapEndian = swapEndian_;
@@ -803,12 +755,17 @@ void GDLStream::Close() {
   compress = false;
   deleteOnClose = false;
 
-  delete xdrs;
-  xdrs = NULL;
+  xdrs.reset();
 
   width = defaultStreamWidth;
   //Do not forget sockets!
-  if (sockNum != -1) close(sockNum);
+  if (sockNum != -1) {
+#ifdef __MINGW32__
+    closesocket(sockNum);
+#else
+    close(sockNum);
+#endif
+  }
   sockNum = -1;
   c_timeout = 0.0;
   r_timeout = 0.0;
@@ -818,14 +775,11 @@ void GDLStream::Close() {
 void GDLStream::Free() {
   Close();
 
-  delete anyStream;
-  anyStream = NULL;
+  anyStream.reset();
 
-  delete iSocketStream;
-  iSocketStream = NULL;
+  iSocketStream.reset();
 
-  delete recvBuf;
-  recvBuf = NULL;
+  recvBuf.reset();
 
   getLunLock = false;
 }
@@ -851,7 +805,7 @@ fstream& GDLStream::IStream() { //IStream is always FStream (normal file)
     throw GDLIOException("File unit is not open.");
   if (!(mode & ios::in))
     throw GDLIOException("File unit is not open for reading.");
-  return *anyStream->FStream();
+  return anyStream->FileFor(AnyStream::FileAccess::Read);
 }
 
 fstream& GDLStream::OStream() { //OStream may be oFStream if oFStream is not NULL (different pipe)
@@ -862,7 +816,7 @@ fstream& GDLStream::OStream() { //OStream may be oFStream if oFStream is not NUL
   // old behaviour for normal files
   if (anyStream->FStream() == NULL) throw GDLIOException("File unit is not open.");
   if (!(mode & ios::out))  throw GDLIOException("File unit is not open for writing.");
-  return *anyStream->FStream();
+  return anyStream->FileFor(AnyStream::FileAccess::Write);
 }
 
 istringstream& GDLStream::ISocketStream() {
@@ -882,12 +836,13 @@ void AnyStream::Pad(std::streamsize nBytes) {
   SizeT nBuf = nBytes / bufSize;
   std::streamsize lastBytes = nBytes % bufSize;
   if (ofStream != NULL) {
-    for (SizeT i = 0; i < nBuf; ++i) fStream->write(buf, bufSize);
+    for (SizeT i = 0; i < nBuf && *ofStream; ++i) ofStream->write(buf, bufSize);
     if (lastBytes > 0) ofStream->write(buf, lastBytes);
   } else 
     if (fStream != NULL) {
-    for (SizeT i = 0; i < nBuf; ++i) fStream->write(buf, bufSize);
-    if (lastBytes > 0) fStream->write(buf, lastBytes);
+    std::fstream& output = FileFor(FileAccess::Write);
+    for (SizeT i = 0; i < nBuf && output; ++i) output.write(buf, bufSize);
+    if (lastBytes > 0) output.write(buf, lastBytes);
   } else if (ogzStream != NULL) {
     for (SizeT i = 0; i < nBuf; ++i) ogzStream->write(buf, bufSize);
     if (lastBytes > 0) ogzStream->write(buf, lastBytes);
@@ -1000,62 +955,57 @@ void GDLStream::Truncate() {
   if (anyStream == NULL)
     throw GDLException("File unit is not open.");
   std::streampos currentPos = anyStream->Tell();
-  char* buffer = (char*) malloc(currentPos);
+  const std::streamoff length = currentPos;
+  if (length < 0 || static_cast<DULong64>(length) > std::numeric_limits<size_t>::max())
+    throw GDLIOException("Invalid position for truncating file: " + name);
+  // Zero-initialized: POINT_LUN may have positioned the unit beyond the end of the file.
+  auto storage = std::make_unique<char[]>(static_cast<size_t>(length));
+  char* buffer = storage.get();
   anyStream->Seek(0);
-  anyStream->Read(buffer, currentPos);
+  if (length > 0) {
+    anyStream->Read(buffer, length);
+    if (!anyStream->Good() && !anyStream->EofRaw())
+      throw GDLIOException("Error reading file before truncation: " + name);
+  }
   anyStream->Close();
   anyStream->Open(name, fstream::out | fstream::trunc, compress);
   lastSeekPos = 0;
   lastRecord = 0;
   lastRecordStart = 0;
-  anyStream->Write(buffer, currentPos);
+  if (length > 0) {
+    anyStream->Write(buffer, length);
+    anyStream->Flush();
+    if (!anyStream->Good()) throw GDLIOException("Error writing truncated file: " + name);
+  }
   anyStream->Close();
   anyStream->Open(name, mode & ~fstream::trunc, compress); //write again but not trunc!
   anyStream->Seek(currentPos);
   lastSeekPos = anyStream->Tell();
-  free(buffer);
 }
 
 //should work with compressed files too
 DLong64 GDLStream::CopySomeTo(DLong64 nbytes, GDLStream& to, bool doThrow) {
-  DLong64 chunksize = 1000000; //1 megabyte
-  DLong64 nchunk = nbytes / chunksize;
-  ssize_t remainder = nbytes - (nchunk * chunksize);
-  char* buffer = (char*) malloc(chunksize);
-  bool earlyEnd = false;
-  std::streampos size = this->Size();
-  DLong64 ret = 0;
-  DLong64 n = 0;  
-  //the first nchunk chunks...
-  for (int i = 0; i < nchunk; ++i) {
-    //current position in 'in'
-    std::streampos startpos = anyStream->Tell();
-    anyStream->Read(buffer, chunksize);
-    //perhaps we encountered end of file. The principle is that all the valid data has already been copied BEFORE end-of-file is reported
-    if (!anyStream->Good()) {
-      n = size - startpos; //error eof
-      earlyEnd = true;
-      to.anyStream->Write(buffer, n);
-      ret += n;
-      break; //no input bytes anymore!
+  if (nbytes < 0) throw GDLIOException("Invalid byte count for COPY_LUN.");
+  const DLong64 chunkSize = 1000000;
+  auto storage = std::make_unique<char[]>(static_cast<size_t>(std::min(nbytes, chunkSize)));
+  char* buffer = storage.get();
+  DLong64 copied = 0;
+  while (copied < nbytes) {
+    const auto requested = std::min(nbytes - copied, chunkSize);
+    anyStream->Read(buffer, requested);
+    const auto count = anyStream->Gcount();
+    if (count > 0) {
+      to.anyStream->Write(buffer, count);
+      if (!to.anyStream->Good()) throw GDLIOException("Error writing file: " + to.name);
+      copied += count;
     }
-    to.anyStream->Write(buffer, chunksize);
-    ret += chunksize;
+    if (count < requested) {
+      if (!anyStream->EofRaw()) throw GDLIOException("Error reading file: " + name);
+      if (doThrow) throw GDLException("End of file encountered. File: " + name);
+      break;
+    }
   }
-  //remainder: idem except if early end
-  if (!earlyEnd) {
-    //current position in 'in'
-    std::streampos startpos = anyStream->Tell();
-    anyStream->Read(buffer, remainder);
-    if (!anyStream->Good()) {
-      n = size - startpos; //error eof
-    } else n = remainder;
-    to.anyStream->Write(buffer, n);
-    ret += n;
-  }
-  free(buffer);
-  if (doThrow && !anyStream->Good()) throw GDLException("End of file encountered. File: " + name);
-  return ret;
+  return copied;
 }
 //Slow as does the copy byte per byte. Could be improved for normal files.
 DLong GDLStream::CopySomeLinesTo(DLong nlines, GDLStream& to, bool doThrow) {
@@ -1138,7 +1088,7 @@ namespace GZSTREAM_NAMESPACE {
   gzstreambuf* gzstreambuf::open(const char* name, int open_mode) {
     if (is_open())
       return (gzstreambuf*) 0;
-    position = 0;
+    inputBufferEnd = 0;
     mode = open_mode;
     // no append nor read/write mode
     if ((mode & std::ios::ate) || (mode & std::ios::app)
@@ -1166,7 +1116,6 @@ namespace GZSTREAM_NAMESPACE {
         buffer + buf4); // end position      
       sync();
       opened = 0;
-      position = 0;
       if (gzclose(file) == Z_OK)
         return this;
     }
@@ -1183,12 +1132,16 @@ namespace GZSTREAM_NAMESPACE {
     int n_putback = gptr() - eback();
     if (n_putback > buf4)
       n_putback = buf4;
-    memcpy(buffer + (buf4 - n_putback), gptr() - n_putback, n_putback);
+    memmove(buffer + (buf4 - n_putback), gptr() - n_putback, n_putback);
 
     int num = gzread(file, buffer + buf4, bufferSize - buf4);
-    if (num <= 0) // ERROR or EOF
+    if (num <= 0) {
+      // Only the saved putback bytes remain available after this refill.
+      setg(buffer + buf4 - n_putback, buffer + buf4, buffer + buf4);
       return EOF;
+    }
 
+    inputBufferEnd += num;
     // reset buffer pointers
     setg(buffer + (buf4 - n_putback), // beginning of putback area
       buffer + buf4, // read position
@@ -1231,102 +1184,46 @@ namespace GZSTREAM_NAMESPACE {
     return 0;
   }
 
-  std::streampos gzstreambuf::pubseekpos(std::streampos sp, std::ios_base::openmode which) {
-    if (is_open()) {
-//            cerr<<"seeking "<<sp<<" when we are at "<<gztell(this->file)<<endl;
-      if ((which & std::ios_base::in && this->mode & std::ios::in) || /* read mode : ok */
-        (which & std::ios_base::out && this->mode & std::ios::out &&
-        static_cast<z_off_t> (sp) >= gztell(this->file))) /* write mode : seek forward only */ {
-        z_off_t off = gzseek(this->file, static_cast<z_off_t> (0), SEEK_SET); //absolutely necessary to rewind!!!
-        position = 0;
-        setg(buffer + buf4, buffer + buf4, buffer + buf4);
-        if (sp != 0) off = gzseek(this->file, static_cast<z_off_t> (sp), SEEK_SET);
-//                fprintf(stderr, "Seek: %d=pubseekpos(sp=%d)\n", off, static_cast<z_off_t> (sp));
-        // GD. seems reset of buffer is needed only when rewinded at 0.
-        if (which & std::ios_base::in && off == 0) setg(buffer + buf4, buffer + buf4, buffer + buf4);
-        position = off;
-        return off;
-      } else {
-        z_off_t off = static_cast<std::streampos> (gztell(this->file)); /* Just don't Seek, no error */
-//                fprintf(stderr, "Tell: %d=pubseekpos(sp=%d)\n", off, static_cast<z_off_t> (sp));
-        position = off;
-        return off;
-      }
+  std::streampos gzstreambuf::seekpos(std::streampos sp, std::ios_base::openmode which) {
+    if (!is_open()) return -1;
+    const bool reading = (which & std::ios::in) && (mode & std::ios::in);
+    // READF backs up one character after a numeric field, often once per line.
+    if (reading && sp >= std::streampos(inputBufferEnd - (egptr() - eback())) && sp <= std::streampos(inputBufferEnd)) {
+      gbump(static_cast<int>(sp - inputPosition()));
+      return sp;
     }
-    //    fprintf(stderr, "EOF: -1=pubseekpos(sp=%d)\n", static_cast<z_off_t> (sp));
-    return -1;
+    if (sp < std::streampos(0) || sp > std::streampos(std::numeric_limits<z_off_t>::max())) return -1;
+    if (reading) {
+      const auto off = gzseek(file, static_cast<z_off_t>(sp), SEEK_SET);
+      if (off >= 0) {
+        setg(buffer + buf4, buffer + buf4, buffer + buf4);
+        inputBufferEnd = off;
+      }
+      return off;
+    }
+    if (!(which & std::ios::out) || !(mode & std::ios::out)) return -1;
+    const auto current = outputPosition();
+    if (sp <= current) return current; // Output streams only seek forward.
+    if (sync() != 0) return -1;
+    return gzseek(file, static_cast<z_off_t>(sp), SEEK_SET);
   }
 
-  std::streampos gzstreambuf::pubseekoff(std::streamoff offIn, std::ios_base::seekdir way, std::ios_base::openmode which) {
-    // debug aid
-//        string str;
-//        switch(way)
-//        {
-//            case std::ios_base::beg:
-//                str="beg"; break;
-//            case std::ios_base::cur:
-//                str="cur"; break;
-//            case std::ios_base::end:
-//                str="end"; break;
-//        }
-//        string strw;
-//        switch(which)
-//        {
-//            case std::ios_base::in:
-//                strw="in"; break;
-//            case std::ios_base::out:
-//                strw="out"; break;
-//            case std::ios_base::out|std::ios_base::in:
-//                strw="in|out"; break;
-//        }
-//                fprintf(stderr, "offIn: %d, seekdir: %s, openmode %s\n" , offIn, str.c_str(), strw.c_str());
-        
-        if (is_open() && way != std::ios_base::end) /* No seek with SEEK_END */
-    {
-      if ((which & std::ios_base::in && this->mode & std::ios::in) || /* read mode : ok */
-        (which & std::ios_base::out && this->mode & std::ios::out && /* write mode : ok if */
-        ((way == std::ios_base::cur && offIn >= 0) || /* SEEK_CUR with positive offset */
-        (way == std::ios_base::beg && static_cast<z_off_t> (offIn) >= gztell(this->file))))) /* or SEEK_SET which go forward */ {
-        z_off_t off = gzseek(this->file, static_cast<z_off_t> (offIn), (way == std::ios_base::beg ? SEEK_SET : SEEK_CUR));
-//                fprintf(stderr, "Seek: %d=pubseekoff(offIn=%d,way=%s)\n", off, static_cast<z_off_t> (offIn), str.c_str());
-        // GD. seems reset of buffer is needed only when rewinded at 0.
-        if (which & std::ios_base::in && off == 0) setg(buffer + buf4, buffer + buf4, buffer + buf4);
-        position = off;
-        return off;
-      } else {
-        z_off_t off = static_cast<std::streampos> (gztell(this->file)); /* Just don't Seek, no error */
-//                fprintf(stderr, "Just Tell: %d=pubseekoff(offIn=%d,way=%s)\n", off, static_cast<z_off_t> (offIn), str.c_str());
-        position = off;
-        return off;
+  std::streampos gzstreambuf::seekoff(std::streamoff offset, std::ios_base::seekdir way, std::ios_base::openmode which) {
+    if (!is_open()) return -1;
+    if ((which & std::ios::in) && (mode & std::ios::in)) {
+      if (way == std::ios::beg) return pubseekpos(offset, which);
+      if (way == std::ios::end) {
+        // zlib cannot seek relative to the end of the uncompressed data.
+        while (sgetc() != traits_type::eof()) gbump(static_cast<int>(egptr() - gptr()));
+        if (!gzeof(file)) return -1;
       }
-    } else if (is_open()) { //decompress, nothing else possible:
-      z_off_t off=gztell(this->file);
-      static char buf[32];
-      int i=0;
-      do {
-        i=gzread(this->file,buf,32);
-        if (i>0) off+=i;
-      }
-      while (i > 0);
-      return off-1; //apparently reads a spurious EOF , maybe different on differents Oses?
-    } 
-//    fprintf(stderr, "EOF: -1=pubseekoff(offIn=%d,way=%s)\n", static_cast<z_off_t> (offIn), str.c_str());
-    return -1;
-  }
-  
-  std::streampos gzstreambuf::seeknext(int_type __delim) {
-    if (is_open()) { //decompress and find char, nothing else possible:
-      z_off_t off=gztell(this->file);
-      static char buf[1];
-      int i=0;
-      do {
-        i=gzread(this->file,buf,1);
-        if (i==1 && buf[0]==__delim) break;
-        if (i>0) off+=i;
-      } while (i > 0);
-      return off-1; // was 1 too much.
-    } 
-    return -1;
+      const auto current = inputPosition();
+      return offset == 0 ? current : pubseekpos(current + offset, which);
+    }
+    if (!(which & std::ios::out) || !(mode & std::ios::out)) return -1;
+    if (way == std::ios::beg) return pubseekpos(offset, which);
+    const auto current = outputPosition(); // The writable gzip stream is always at its end.
+    return offset == 0 ? current : pubseekpos(current + offset, which);
   }
 
   // --------------------------------------
@@ -1371,20 +1268,8 @@ namespace GZSTREAM_NAMESPACE {
     return *this;
   }
 
-  igzstream& igzstream::ignore(std::streamsize __n) {
-    if (rdbuf()->pubseekoff(__n, ios_base::cur, ios_base::in) == std::streampos(-1))
-      this->setstate(std::ios_base::badbit);
-    else this->setstate(std::ios_base::goodbit);
-    return *this;
-  }
-  igzstream& igzstream::ignore(std::streamsize __n, int_type __delim) {
-    if (rdbuf()->seeknext(__delim) == std::streampos(-1))
-      this->setstate(std::ios_base::badbit);
-    else this->setstate(std::ios_base::goodbit);
-    return *this;
-  }
-  std::streampos igzstream::tellg(){
-    return rdbuf()->pubseekoff( 0, std::ios_base::cur, std::ios_base::in);
+  std::streampos igzstream::tellg() {
+    return rdbuf()->inputPosition();
   }
 
   // --------------------------------------
@@ -1405,7 +1290,7 @@ namespace GZSTREAM_NAMESPACE {
     return *this;
   }
   std::streampos ogzstream::tellp(){
-    return rdbuf()->pubseekoff( 0, std::ios_base::cur, std::ios_base::in);
+    return rdbuf()->pubseekoff(0, std::ios_base::cur, std::ios_base::out);
   }  
 #ifdef GZSTREAM_NAMESPACE
 } // namespace GZSTREAM_NAMESPACE

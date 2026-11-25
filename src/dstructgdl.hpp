@@ -18,6 +18,7 @@
 #ifndef dstructgdl_hpp_
 #define dstructgdl_hpp_
 
+#include <memory>
 #include <string>
 #include "typedefs.hpp"
 #include "datatypes.hpp" // for friend declaration
@@ -71,6 +72,9 @@ public:
   //  DStructGDL(): SpDStruct(), d() {}
   
   // new array (desc defined)
+  DStructGDL(std::unique_ptr<DStructDesc> desc_, const dimension& dim_)
+    : DStructGDL(desc_.release(), dim_) {}
+
   DStructGDL( DStructDesc* desc_, const dimension& dim_)
     : SpDStruct( desc_, dim_)
     , typeVar( desc_->NTags())

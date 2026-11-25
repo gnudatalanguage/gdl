@@ -70,6 +70,7 @@ test_compile_opt_scope.pro
 test_constants.pro
 test_convert2.pro
 test_convert_coord.pro
+test_copy_lun.pro
 test_correlate.pro
 test_csv.pro
 test_delvarrnew.pro
@@ -153,6 +154,7 @@ test_obj_hasmethod.pro
 test_obj_isa.pro
 test_obj_new.pro
 test_obj_valid.pro
+test_openu.pro
 test_operators.pro
 test_parse_url.pro
 test_plot_ranges.pro
@@ -188,6 +190,7 @@ test_simplex.pro
 test_size.pro
 test_sort.pro
 test_sparse_matrix.pro
+test_spawn_unit.pro
 test_spher_harm.pro
 test_spl.pro
 test_standardize.pro
