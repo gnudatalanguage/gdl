@@ -1665,7 +1665,7 @@ namespace lib {
       if (debug) std::printf(" ReadFile .. ");
       bSuccess = ReadFile(g_Rd, chbuf, BUFSIZE, &dwRead, NULL);
       if (!bSuccess || dwRead == 0) break;
-      if (debug) std::printf(" dwRead, pos= %d %d ", dwRead, ptr);
+      if (debug) std::printf(" dwRead, pos= %lu %d ", dwRead, ptr);
 
       len = 0;
       while (dwRead > 0) {
@@ -1793,7 +1793,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
           CloseHandle(g_hChildStd_ERR_Rd);
         }
       } else
-        std::printf(" error from CreateProcess: progress = 0x%x \n", progress);
+        std::printf(" error from CreateProcess: progress = 0x%lx \n", progress);
 
       }
       else
