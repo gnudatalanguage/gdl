@@ -10,21 +10,19 @@
 ; the copy is needed for "make check"
 pro DEL_TEST_FILES, to_delete, verbose=verbose
 ;
-; Delete files and directories
+; Delete literal file and directory names, including names containing '*'.
 ;
 for ii=0, N_ELEMENTS(to_delete)-1 do begin
    if KEYWORD_SET(verbose) then begin
       print, 'File or Dir. >>'+to_delete[ii]+'<< to be deleted'
-      print, 'Interpreted as: >>'+ESCAPE_SPECIAL_CHAR(to_delete[ii])+'<<'
    endif
-   if (FILE_TEST(to_delete[ii]) eq 1) then begin
-	file_delete,to_delete[ii],/recursive
+   if (FILE_TEST(to_delete[ii], /noexpand_path) eq 1) then begin
+	file_delete,to_delete[ii],/recursive,/noexpand_path
 
       ;; we don't check whether the file is deleted or not
    endif else begin
       if KEYWORD_SET(verbose) then begin
          print, 'File or Dir. >>'+to_delete[ii]+'<< not found'
-         print, 'Interpreted as: >>'+ESCAPE_SPECIAL_CHAR(to_delete[ii])+'<<'
       endif
    endelse
 endfor
@@ -48,7 +46,7 @@ pro TEST_FILE_COPY, test=test, verbose=verbose
 
 ; Clean up any residue and create test directory
 tdir='tdir_test_f_copy_gdl'
-file_delete,tdir,/recursive
+if FILE_TEST(tdir) then file_delete,tdir,/recursive
 file_mkdir,tdir
 
 all_files_and_directories=tdir 
@@ -73,7 +71,7 @@ f1=tdir+'/'+files1
 if ~FILE_TEST(files1[0]) then CREATE_DUMMYFILE,files1[0]
 if ~FILE_TEST(files1[1]) then CREATE_DUMMYFILE,files1[1]
 if !version.os_family eq 'unix' then $
-   if FILE_TEST(file2) EQ 0 then CREATE_DUMMYFILE,ESCAPE_SPECIAL_CHAR(file2)
+   if FILE_TEST(file2, /noexpand_path) EQ 0 then CREATE_DUMMYFILE,file2
 ;
 ; Add elements to files
 for ii=0, N_ELEMENTS(files1)-1 do file_append, files1[ii], more
