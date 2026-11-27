@@ -1046,6 +1046,9 @@ namespace SysVar
     case PROCESSOR_ARCHITECTURE_ARM:
       arch = new DStringGDL("ARM");
       break;
+    case PROCESSOR_ARCHITECTURE_ARM64:
+      arch = new DStringGDL("arm64");
+      break;
     default:
       arch = new DStringGDL("unknown");
     }

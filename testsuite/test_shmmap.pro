@@ -11,6 +11,10 @@
 ;
 pro TEST_SHMMAP, test=test, no_exit=no_exit, help=help
 ;
+; SHMMAP not available on Windows
+if (!version.os_family eq 'Windows') then EXIT, status=77
+;
+;
 if KEYWORD_SET(help) then begin
    print, 'pro TEST_SHMMAP, test=test, no_exit=no_exit, help=help'
    return

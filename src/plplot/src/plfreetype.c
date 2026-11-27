@@ -63,7 +63,7 @@
 //
 //
 
-#include "plConfig.h"
+#include <plConfig.h>
 #if !PL_HAVE_UNISTD_H
   #define F_OK    1
   #include <stdio.h>
@@ -87,7 +87,7 @@ int access( char *filename, int flag )
 
 #define makeunixslash( b )    do { char *I; for ( I = b; *I != 0; *I++ ) if ( *I == '\\' ) *I = '/';} while ( 0 )
 
-#include "plDevs.h"
+#include <plDevs.h>
 #include "plplotP.h"
 #include "drivers.h"
 #ifdef PL_HAVE_FREETYPE

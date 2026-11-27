@@ -27,7 +27,7 @@
 
 #include "plplotP.h"
 #include "drivers.h"
-#include "plDevs.h"
+#include <plDevs.h>
 #include "disptab.h"
 
 #ifdef ENABLE_DYNDRIVERS
