@@ -4,7 +4,7 @@ pro test_pmulti
   foreach dev, ['z', 'ps', 'svg'] do begin
 
     set_plot, dev
-    if dev ne 'z' then device, filename='/dev/null'
+    if dev ne 'z' then device, filename=(!version.os_family eq 'Windows') ? 'NUL' : '/dev/null'
 
     !P.MULTI=[1,3,1] & plot, [0] 
     if !P.MULTI[0] ne 0 then begin

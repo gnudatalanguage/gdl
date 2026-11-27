@@ -23,6 +23,9 @@ endif
 ;Errors count is 0 at the beginning
 total_errors = 0
 ;
+; FILE_LINK is not available on Windows: skip the symlink parts
+is_windows = (STRLOWCASE(!version.os_family) EQ 'windows')
+;
 ; -------------------------------------
 ;   FILE_INFO on directories and symlink
 ;
@@ -40,24 +43,26 @@ if (dirInfo.directory NE 1) then ERRORS_ADD, total_errors, 'Dir. not considered 
 ;Test if it is symlink
 if (dirInfo.symlink NE 0) then ERRORS_ADD, total_errors, 'Dir. is considered as symlink'
 ;
-;Create test folder symlink
-tdirsym='testSymlinkDirectory_for_FILE_INFO'
-;;old SPAWN, 'ln -s '+tdir+" "+tdirsym
-FILE_LINK, tdir, tdirsym
-;
-; reading the info for the link
-dirsyminfo=FILE_INFO(tdirsym)
-;Test if it exists
-if (dirsyminfo.exists NE 1) then ERRORS_ADD, total_errors, 'symlink of Dir. not detected'
-;Test if it is symlink of directory
-if (dirsyminfo.directory NE 1) then ERRORS_ADD, total_errors, 'symlink of Dir. not considered as Dir.'
-;Test if it is symlink
-if (dirsyminfo.symlink NE 1) then ERRORS_ADD, total_errors, 'symlink is not considered as symlink'
-;
-;Remove test directory and symlink
-;;old SPAWN, 'rm -r '+tdir
-;;old SPAWN, 'rm '+tdirsym
-FILE_DELETE, tdirsym
+if ~is_windows then begin
+   ;Create test folder symlink
+   tdirsym='testSymlinkDirectory_for_FILE_INFO'
+   ;;old SPAWN, 'ln -s '+tdir+" "+tdirsym
+   FILE_LINK, tdir, tdirsym
+   ;
+   ; reading the info for the link
+   dirsyminfo=FILE_INFO(tdirsym)
+   ;Test if it exists
+   if (dirsyminfo.exists NE 1) then ERRORS_ADD, total_errors, 'symlink of Dir. not detected'
+   ;Test if it is symlink of directory
+   if (dirsyminfo.directory NE 1) then ERRORS_ADD, total_errors, 'symlink of Dir. not considered as Dir.'
+   ;Test if it is symlink
+   if (dirsyminfo.symlink NE 1) then ERRORS_ADD, total_errors, 'symlink is not considered as symlink'
+   ;
+   ;Remove test directory and symlink
+   ;;old SPAWN, 'rm -r '+tdir
+   ;;old SPAWN, 'rm '+tdirsym
+   FILE_DELETE, tdirsym
+endif
 FILE_DELETE, tdir
 ;
 ; -------------------------------------
@@ -82,23 +87,25 @@ if (fileinfo.symlink NE 0) then ERRORS_ADD, total_errors, 'file is considered as
 ; -------------------------------------
 ;   FILE_INFO on symlinked file
 ;
-;Create test file symlink
-tfilesym='testSymlinkFile_for_FILE_INFO'
-;;old SPAWN, 'ln -s '+tfile+" "+tfilesym
-FILE_LINK, tfile, tfilesym
-;
-;info
-filesyminfo=FILE_INFO(tfilesym)
-;Test if it exists
-if (filesyminfo.exists NE 1) then ERRORS_ADD, total_errors, 'symlink of file not detected'
-;Test if it is symlink of directory
-if (filesyminfo.directory NE 0) then ERRORS_ADD, total_errors, 'symlink of file is considered as Dir.'
-;Test if it is symlink
-if (filesyminfo.symlink NE 1) then ERRORS_ADD, total_errors, 'symlink of file is not considered as symlink'
-;Remove test file and symlink
-;;old SPAWN, 'rm '+tfile
-;;old SPAWN, 'rm '+tfilesym
-FILE_DELETE, tfilesym
+if ~is_windows then begin
+   ;Create test file symlink
+   tfilesym='testSymlinkFile_for_FILE_INFO'
+   ;;old SPAWN, 'ln -s '+tfile+" "+tfilesym
+   FILE_LINK, tfile, tfilesym
+   ;
+   ;info
+   filesyminfo=FILE_INFO(tfilesym)
+   ;Test if it exists
+   if (filesyminfo.exists NE 1) then ERRORS_ADD, total_errors, 'symlink of file not detected'
+   ;Test if it is symlink of directory
+   if (filesyminfo.directory NE 0) then ERRORS_ADD, total_errors, 'symlink of file is considered as Dir.'
+   ;Test if it is symlink
+   if (filesyminfo.symlink NE 1) then ERRORS_ADD, total_errors, 'symlink of file is not considered as symlink'
+   ;Remove test file and symlink
+   ;;old SPAWN, 'rm '+tfile
+   ;;old SPAWN, 'rm '+tfilesym
+   FILE_DELETE, tfilesym
+endif
 FILE_DELETE, tfile
 ;
 ; ----------------------------

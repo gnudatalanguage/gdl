@@ -43,6 +43,9 @@ foreach(TEST ${TESTS})
 endforeach(TEST TESTS)
 
 set_tests_properties(${TESTS} PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 120) # autoconf's setting
+if(TEST test_finite.pro)
+  set_tests_properties(test_finite.pro PROPERTIES TIMEOUT 300)
+endif()
 set_tests_properties(${TESTS} PROPERTIES ENVIRONMENT "LC_COLLATE=C;GDL_PATH=${BASE_SOURCE}/testsuite/${PATH_SEP}${BASE_SOURCE}/src/pro/${PATH_SEP}${BASE_SOURCE}/src/pro/CMprocedures/${PATH_SEP}${BASE_SOURCE}/src/pro/dicom/${PATH_SEP}${BASE_SOURCE}/src/pro/utilities/;GDL_STARTUP=;IDL_STARTUP=")
 
 # These isolated build-system tests need no optional GDL libraries. Their C

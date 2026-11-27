@@ -8,6 +8,8 @@ if [ ! -x "$gdl_binary" ]; then
     echo "run-gdl: executable not found: $gdl_binary (build GDL first)" >&2
     exit 127
 fi
+# Tests that start a second session need this build's executable.
+export GDL_BUILD_EXECUTABLE="$gdl_binary"
 GDL_DIR=@GDL_RUN_DATA@
 GDL_MAPS_DIR="$GDL_DIR/resource/maps"
 PLPLOT_LIB=@GDL_RUN_PLPLOT@
