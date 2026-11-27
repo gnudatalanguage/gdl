@@ -92,7 +92,7 @@
 // drivers, your terminal may be left in a strange state.
 //--------------------------------------------------------------------------
 
-#include "plConfig.h"
+#include <plConfig.h>
 #ifdef caddr_t
 #undef caddr_t
 #ifndef __USE_BSD
@@ -143,7 +143,7 @@ typedef char * caddr_t;
 #define pl_fgetpos( a, b )    ( -1L == ( *b = ftell( a ) ) )
 #endif
 
-#include "pldll.h"
+#include <pldll.h>
 
 // Include all externally-visible definitions and prototypes
 // plplot.h also includes some handy system header files

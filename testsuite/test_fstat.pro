@@ -311,7 +311,8 @@ endif
 if !version.os_family eq 'Windows' then begin
    txt='We don''t know the status of FSTAT() on MSwin'
    MESSAGE, /continue, txt+' Please report any feedback/bug report'
-   EXIT, status=77
+   ;; AC 2026-11-16 OK since we move to 'ucrt-x86_64'
+   ;; EXIT, status=77
 endif
 ;
 cumul_errors=0

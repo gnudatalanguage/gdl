@@ -813,21 +813,31 @@ namespace lib {
 
   //TAN
 
+  template<typename T>
+  static inline T tan_value(const T& value) {
+    return std::tan(value);
+  }
+
+  static inline DComplex tan_value(const DComplex& value) {
+    // Extra precision limits cancellation near a pole of the complex tangent.
+    return DComplex(std::tan(DComplexDbl(value)));
+  }
+
   template< typename T>
   BaseGDL* tan_fun_template(BaseGDL* p0) {
     T* p0C = static_cast<T*> (p0);
     T* res = new T(p0C->Dim(), BaseGDL::NOZERO);
     SizeT nEl = p0->N_Elements();
     if (nEl == 1) {
-      (*res)[0] = tan((*p0C)[0]);
+      (*res)[0] = tan_value((*p0C)[0]);
       return res;
     }
     if ((GDL_NTHREADS=parallelize( nEl))==1) {
-      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = tan((*p0C)[ i]);
+      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = tan_value((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = tan((*p0C)[ i]);
+        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = tan_value((*p0C)[ i]);
     }
     return res;
   }
@@ -837,15 +847,15 @@ namespace lib {
     T* p0C = static_cast<T*> (p0);
     SizeT nEl = p0->N_Elements();
     if (nEl == 1) {
-      (*p0C)[0] = tan((*p0C)[0]);
+      (*p0C)[0] = tan_value((*p0C)[0]);
       return p0;
     }
     if ((GDL_NTHREADS=parallelize( nEl))==1) {
-      for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = tan((*p0C)[ i]);
+      for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = tan_value((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = tan((*p0C)[ i]);
+        for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = tan_value((*p0C)[ i]);
     }
     return p0;
   }
@@ -1017,21 +1027,31 @@ namespace lib {
 
   //TANH
 
+  template<typename T>
+  static inline T tanh_value(const T& value) {
+    return std::tanh(value);
+  }
+
+  static inline DComplex tanh_value(const DComplex& value) {
+    // Extra precision limits cancellation near a pole of the complex hyperbolic tangent.
+    return DComplex(std::tanh(DComplexDbl(value)));
+  }
+
   template< typename T>
   BaseGDL* tanh_fun_template(BaseGDL* p0) {
     T* p0C = static_cast<T*> (p0);
     T* res = new T(p0C->Dim(), BaseGDL::NOZERO);
     SizeT nEl = p0->N_Elements();
     if (nEl == 1) {
-      (*res)[0] = tanh((*p0C)[0]);
+      (*res)[0] = tanh_value((*p0C)[0]);
       return res;
     }
     if ((GDL_NTHREADS=parallelize( nEl))==1) {
-      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = tanh((*p0C)[ i]);
+      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = tanh_value((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = tanh((*p0C)[ i]);
+        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = tanh_value((*p0C)[ i]);
     }
     return res;
   }
@@ -1041,15 +1061,15 @@ namespace lib {
     T* p0C = static_cast<T*> (p0);
     SizeT nEl = p0->N_Elements();
     if (nEl == 1) {
-      (*p0C)[0] = tanh((*p0C)[0]);
+      (*p0C)[0] = tanh_value((*p0C)[0]);
       return p0;
     }
     if ((GDL_NTHREADS=parallelize( nEl))==1) {
-      for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = tanh((*p0C)[ i]);
+      for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = tanh_value((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = tanh((*p0C)[ i]);
+        for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = tanh_value((*p0C)[ i]);
     }
     return p0;
   }

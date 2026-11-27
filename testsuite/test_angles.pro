@@ -1,5 +1,5 @@
 ; by Sylwester Arabas <slayoo (at) igf.fuw.edu.pl>
-; tests: ATAN, LL_ARC_DISTANCE and values of !PI, !DPI, !DTOR, !RADEG
+; tests: ATAN, TANH, LL_ARC_DISTANCE and values of !PI, !DPI, !DTOR, !RADEG
 
 pro test_angles
   
@@ -231,6 +231,16 @@ pro test_angles
       endfor
     endfor
   endfor
+
+  ; Complex TANH near i*pi/2. The reference uses 200-bit arithmetic
+  ; on the single-precision input.
+  z = complex(0.000363396626, 1.57048452)
+  expected = complex(1584.93869, 1359.93600)
+  actual = tanh(z)
+  if size(actual, /type) ne 6 || ~finite(actual) || abs(actual - expected) gt 0.001 then begin
+    message, 'FAILED: TANH near i*pi/2, got ' + string(actual), /continue
+    exit, status=1
+  endif
 
   message, 'PASSED', /continue
 

@@ -1594,7 +1594,12 @@ char* DInterpreter::NoReadline( const string& prompt) {
 	GDLEventHandler();
 	if (inputstr.size() > inputStrMaxSize) {
 	  Warning("Input line is too long for input buffer of " + i2s(inputStrMaxSize) + " characters.");
-	  pthread_cancel(h);
+    // libc++ on Windows uses Win32 threads (no pthread_cancel); exit() below ends all threads.
+    #if defined(_WIN32) && defined(_LIBCPP_VERSION)
+        (void)h;
+    #else
+        pthread_cancel(h);
+    #endif
 
 	  exit(EXIT_FAILURE);
 	}
