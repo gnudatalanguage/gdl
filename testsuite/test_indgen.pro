@@ -164,14 +164,30 @@ u_gdl=UINDGEN(sampleSIZE,start=33.122,incr=0.017)
 c_gdl=CINDGEN(sampleSIZE,start=33.122,incr=0.017)
 dc_gdl=DCINDGEN(sampleSIZE,start=33.122,incr=0.017)
 ;
-if (TOTAL(b-b_gdl) ne 0) then ERRORS_ADD, nerr, 'Internal logic error, RANDOMU values not equal with IDL'
-if (TOTAL(byt_gdl[b]-byt) ne 0) then ERRORS_ADD, nerr, 'parallel large BINDGEN yields wrong results' 
-if (TOTAL(f_gdl[b]-f) ne 0) then ERRORS_ADD, nerr, 'parallel large FINDGEN yields wrong results' 
-if (TOTAL(d_gdl[b]-d) ne 0) then ERRORS_ADD, nerr, 'parallel large dindgen yields wrong results' 
-if (TOTAL(i_gdl[b]-i) ne 0) then ERRORS_ADD, nerr, 'parallel large indgen yields wrong results' 
-if (TOTAL(u_gdl[b]-u) ne 0) then ERRORS_ADD, nerr, 'parallel large uindgen yields wrong results' 
-if (TOTAL(c_gdl[b]-c) ne COMPLEX(0,0)) then ERRORS_ADD, nerr, 'parallel large CINDGEN yields wrong results' 
-if (TOTAL(dc_gdl[b]-dc) ne DCOMPLEX(0,0)) then ERRORS_ADD, nerr, 'parallel large dCINDGEN yields wrong results' 
+; Compare every element so that errors cannot cancel. Indices and integers
+; must match exactly. Floating-point results may differ by one relative
+; machine epsilon because fused and separate multiply/add round differently.
+eps_f=DOUBLE((MACHAR()).eps)
+eps_d=(MACHAR(/DOUBLE)).eps
+if ~ARRAY_EQUAL(b, b_gdl) then ERRORS_ADD, nerr, 'Internal logic error, RANDOMU values not equal with IDL'
+if ~ARRAY_EQUAL(byt_gdl[b], byt) then ERRORS_ADD, nerr, 'parallel large BINDGEN yields wrong results'
+if ~ARRAY_EQUAL(i_gdl[b], i) then ERRORS_ADD, nerr, 'parallel large indgen yields wrong results'
+if ~ARRAY_EQUAL(u_gdl[b], u) then ERRORS_ADD, nerr, 'parallel large uindgen yields wrong results'
+; Evaluate FLOAT differences in double precision. Requiring LE (rather than
+; looking for GT) also rejects unexpected NaNs in these finite samples.
+if ~ARRAY_EQUAL(ABS(DOUBLE(f_gdl[b])-DOUBLE(f)) le eps_f*ABS(DOUBLE(f)), 1b) then $
+   ERRORS_ADD, nerr, 'parallel large FINDGEN yields wrong results'
+if ~ARRAY_EQUAL(ABS(d_gdl[b]-d) le eps_d*ABS(d), 1b) then $
+   ERRORS_ADD, nerr, 'parallel large dindgen yields wrong results'
+; Check complex components separately; a zero reference component must stay zero.
+if ~ARRAY_EQUAL(ABS(DOUBLE(c_gdl[b])-DOUBLE(c)) le eps_f*ABS(DOUBLE(c)), 1b) or $
+   ~ARRAY_EQUAL(ABS(DOUBLE(IMAGINARY(c_gdl[b]))-DOUBLE(IMAGINARY(c))) le $
+                eps_f*ABS(DOUBLE(IMAGINARY(c))), 1b) then $
+   ERRORS_ADD, nerr, 'parallel large CINDGEN yields wrong results'
+if ~ARRAY_EQUAL(ABS(DOUBLE(dc_gdl[b])-DOUBLE(dc)) le eps_d*ABS(DOUBLE(dc)), 1b) or $
+   ~ARRAY_EQUAL(ABS(IMAGINARY(dc_gdl[b])-IMAGINARY(dc)) le $
+                eps_d*ABS(IMAGINARY(dc)), 1b) then $
+   ERRORS_ADD, nerr, 'parallel large dCINDGEN yields wrong results'
 ;
 ; ----- final ----
 ;
