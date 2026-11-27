@@ -31,6 +31,18 @@
 #  include <map>
 #endif
 
+#if defined(USE_GRIB) && defined(_WIN32)
+#  ifndef NOMINMAX
+#    define NOMINMAX
+#  endif
+#  ifndef WIN32_LEAN_AND_MEAN
+#    define WIN32_LEAN_AND_MEAN
+#  endif
+#  include <windows.h>
+#  include <cstdlib>
+#  include <string>
+#endif
+
 namespace lib {
 
   using namespace std;
@@ -45,6 +57,33 @@ namespace lib {
   /*
    * GRIB: FILE RELATED FUNCTIONS AND PROCEDURES
    */
+#if defined(USE_GRIB) && defined(_WIN32)
+  // ecCodes from MSYS2 has a POSIX definitions path built in (e.g. /ucrt64/share/eccodes/definitions),
+  // which a native gdl.exe cannot use. If ECCODES_DEFINITION_PATH is not set, use
+  // <dir of libeccodes.dll>/../share/eccodes/definitions (MSYS2, or GDL installed by build_gdl.sh).
+  static void grib_set_definition_path()
+  {
+    static bool done = false;
+    if (done) return;
+    done = true;
+    const char* env = getenv("ECCODES_DEFINITION_PATH");
+    if (env != NULL && env[0] != '\0') return;
+    HMODULE h = GetModuleHandleA("libeccodes.dll");
+    if (h == NULL) return;
+    char buf[MAX_PATH];
+    DWORD n = GetModuleFileNameA(h, buf, MAX_PATH);
+    if (n == 0 || n >= MAX_PATH) return;
+    std::string dir(buf, n);
+    for (int i = 0; i < 2; ++i) { // remove "\libeccodes.dll", then "\bin"
+      size_t pos = dir.find_last_of("\\/");
+      if (pos == std::string::npos) return;
+      dir.erase(pos);
+    }
+    std::string definitions = dir + "\\share\\eccodes\\definitions";
+    if (GetFileAttributesA(definitions.c_str()) == INVALID_FILE_ATTRIBUTES) return;
+    _putenv_s("ECCODES_DEFINITION_PATH", definitions.c_str());
+  }
+#endif
 
   BaseGDL* grib_open_file_fun(EnvT* e)
   {
@@ -61,7 +100,10 @@ namespace lib {
 
     FILE* in = NULL; 
     // TODO: handle RO/RW parameters (but currently anyhow no write methods are implemented...)
-    in = fopen(filename.c_str(), "r"); 
+    #ifdef _WIN32
+      grib_set_definition_path();
+    #endif
+    in = fopen(filename.c_str(), "rb"); 
     if (!in) e->Throw("unable to open file: " + filename);
 
     DLong ifile = GribFileList.end()->first;

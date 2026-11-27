@@ -41,7 +41,7 @@
 #ifndef __PLPLOT_H__
 #define __PLPLOT_H__
 
-#include "plConfig.h"
+#include <plConfig.h>
 
 //--------------------------------------------------------------------------
 //    USING PLplot
@@ -125,7 +125,7 @@
 //--------------------------------------------------------------------------
 // dll functions
 //--------------------------------------------------------------------------
-#include "pldll.h"
+#include <pldll.h>
 
 // Macro to mark function parameters as unused.
 // For gcc this uses the unused attribute to remove compiler warnings.
