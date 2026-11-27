@@ -487,7 +487,8 @@ void WordExp(std::string& s, bool squash)
   //after blank escaping we refer to wordexp to manage the (eventually complicated) expansions.    
   wordexp_t p;
 // std::cerr<<sEsc<<std::endl;
-  void (*oldsig)(int) = signal(SIGCHLD, SIG_DFL);
+  // gdl.cpp ignores SIGCHLD; macOS wordexp() runs a shell and fails when it cannot wait for it.
+  auto oldsig = signal(SIGCHLD, SIG_DFL);
   int ok0 = wordexp(sEsc.c_str(), &p, WRDE_NOCMD);
   signal(SIGCHLD, oldsig);
   if (ok0 == 0) {
