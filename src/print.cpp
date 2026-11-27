@@ -216,6 +216,22 @@ no_implied:
       e->AssureScalarKW<DStringGDL>(0, fmtString);
 
       if (fmtString != "") {
+        // Select C-style formats before parsing, so syntax and output errors
+        // propagate without retrying with a different format.
+        // Keep accepting leading whitespace before a FORTRAN format.
+        SizeT first = fmtString.find_first_not_of(" \t");
+        if (first == DString::npos || fmtString[first] != '(') {
+          DString quoted;
+          for (SizeT i = 0; i < fmtString.size(); ++i) {
+            char c = fmtString[i];
+            // Protect the wrapper's delimiter, preserving existing escapes.
+            if (c == '"') quoted += '\\';
+            quoted += c;
+            if (c == '\\' && i + 1 < fmtString.size())
+              quoted += fmtString[++i];
+          }
+          fmtString = "(%\"" + quoted + "\")";
+        }
         try {
           RefFMTNode fmtAST = GetFMTAST(fmtString);
 #ifdef GDL_DEBUG
@@ -229,21 +245,10 @@ no_implied:
           FMTOut Formatter(fmtAST, os, e, parOffset);
           os->flush();
           return;
-        } catch (GDLException const &ex) {
-          throw ex;
+        } catch (GDLException const &) {
+          throw;
         } catch (antlr::ANTLRException const &ex) {
-          //Authorize the format to be "new" C format. Should better be handled in the parser, FIXME!
-          try {
-            DString fmtSTring2 = "(%\"" + fmtString + "\")";
-            RefFMTNode fmtAST = GetFMTAST(fmtSTring2);
-            FMTOut Formatter(fmtAST, os, e, parOffset);
-            os->flush();
-            return;
-          } catch (GDLException const &ex) {
-            throw ex;
-          } catch (antlr::ANTLRException const &ex) {
-            e->Throw(ex.getMessage());
-          }
+          e->Throw(ex.getMessage());
         }
       }
     }
