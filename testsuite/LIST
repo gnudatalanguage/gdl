@@ -180,6 +180,7 @@ test_routine_dir.pro
 test_routine_filepath.pro
 test_routine_name.pro
 test_routine_names.pro
+test_run_recompile.pro
 test_same_name.pro
 test_save_restore.pro
 test_scope_varfetch.pro

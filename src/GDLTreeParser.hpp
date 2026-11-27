@@ -20,6 +20,7 @@ class CUSTOM_API GDLTreeParser : public antlr::TreeParser, public GDLTreeParserT
     
     DCompiler       comp; // each tree parser has its own compiler
     
+    bool mainStarted = false;
     IDList          loopVarStack;
     
     bool LoopVar( RefDNode& lN)
@@ -120,6 +121,7 @@ private:
         setASTFactory( &DNodeFactory );
     }
 
+  bool MainStarted() const { return mainStarted; }
   bool ActiveProCompiled() const { return comp.ActiveProCompiled();} 
   int NCompileErrors() const { return comp.NCompileErrors();} 
 public:

@@ -199,13 +199,13 @@ void DCompiler::EndPro() // inserts in proList
 	{
 	  if( *p != NULL)
 	    {
-	      delete *p;
 	      if( IsActivePro( *p))
 		{
 		  Warning( "Procedure was compiled while active: "+
 			   pro->ObjectName()+". Returning.");
 		  activeProCompiled = true;
 		}
+	      delete *p;
 	    }
 	  *p=static_cast<DPro*>(pro);
 	}
@@ -277,13 +277,13 @@ void DCompiler::EndFun() // inserts in funList
     {
       if( *p != NULL)
 	{
-	  delete *p;
 	  if( IsActivePro( *p))
 	    {
 	      Warning( "Procedure was compiled while active: "+
 		       pro->ObjectName()+". Returning.");
 	      activeProCompiled = true;
 	    }
+	  delete *p;
 	}
       *p=static_cast<DFun*>(pro);
     }

@@ -78,6 +78,7 @@ public:
 
 private:
   bool inInnerInterpreterLoop=false;
+  bool runningMain = false;
   // execute GDL command (.run, .step, ...)
   CommandCode ExecuteCommand(const std::string& command);
   CommandCode CmdCompileOrRun(const std::string& command, bool doRun=false);
