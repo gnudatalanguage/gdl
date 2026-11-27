@@ -808,7 +808,7 @@ namespace lib {
         b1 += ((*p0)[j + 1 + nbX * (k + 1)] + 2 * (*p0)[j + 1 + nbX * k]+(*p0)[j + 1 + nbX * (k - 1)]);
         T3 b2 = -((*p0)[j - 1 + nbX * (k + 1)] + 2 * (*p0)[j + nbX * (k + 1)]+(*p0)[j + 1 + nbX * (k + 1)]);
         b2 += ((*p0)[j - 1 + nbX * (k - 1)] + 2 * (*p0)[j + nbX * (k - 1)]+(*p0)[j + 1 + nbX * (k - 1)]);
-        a = labs(b1) + labs(b2);
+        a = std::llabs(b1) + std::llabs(b2);
         (*res)[j + nbX * k] = a;
       }
     }

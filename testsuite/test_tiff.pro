@@ -160,6 +160,121 @@ end
 ;
 ; ------------------------------------------
 ;
+; Read the single strip written by GDL, using its actual IFD and StripByteCounts.
+function TEST_TIFF_STRIP, file, ifd, second=second
+openr, u, file, /get_lun, /swap_if_big_endian
+catch, error
+if error ne 0 then begin
+   catch, /cancel
+   msg=!error_state.msg
+   free_lun, u
+   message, msg
+endif
+order=0us & version=0us
+readu, u, order, version
+if version eq 43 then begin
+   skip_lun, u, 4
+   ifd=0ull & n=0ull
+   entry={tag:0us, type:0us, count:0ull, value:0ull}
+   entryBytes=20
+endif else begin
+   ifd=0ul & n=0us
+   entry={tag:0us, type:0us, count:0ul, value:0ul}
+   entryBytes=12
+endelse
+readu, u, ifd
+point_lun, u, ifd
+readu, u, n
+if keyword_set(second) then begin
+   skip_lun, u, n*entryBytes
+   readu, u, ifd
+   point_lun, u, ifd
+   readu, u, n
+endif
+entries=replicate(entry, n)
+readu, u, entries
+offset=entries[where(entries.tag eq 273us)].value
+count=entries[where(entries.tag eq 279us)].value
+strip=bytarr(count[0])
+point_lun, u, offset[0]
+readu, u, strip
+free_lun, u
+return, strip
+end
+;
+pro CHECK_WRITE_TIFF_BITS, file, img, bps, expected, name, is_gdl, nerr
+WRITE_TIFF, file, img, bits_per_sample=bps
+if is_gdl then begin
+   strip=TEST_TIFF_STRIP(file)
+   if ~ARRAY_EQUAL(strip, expected) then ERRORS_ADD, nerr, name+' wrong strip length or bytes'
+endif else begin
+   if QUERY_TIFF(file, info) eq 0 then ERRORS_ADD, nerr, name+' unreadable TIFF' $
+   else if info.bits_per_sample ne bps then ERRORS_ADD, nerr, name+' wrong BitsPerSample'
+   if ~ARRAY_EQUAL(READ_TIFF(file), img) then ERRORS_ADD, nerr, name+' wrong grayscale pixels'
+endelse
+end
+;
+pro TEST_WRITE_TIFF_BITS, ntoterr, is_gdl, test=test, verbose=verbose
+nerr=0
+file=''
+catch, error
+if error ne 0 then begin
+   catch, /cancel
+   ERRORS_ADD, nerr, !error_state.msg
+   goto, cleanup
+endif
+repeat begin
+   suffix=STRTRIM(RANDOMU(seed, /ulong), 2)
+   candidate=FILEPATH('test_write_tiff_'+suffix+'.tif', /tmp)
+endrep until ~FILE_TEST(candidate)
+file=candidate
+;
+img=bytarr(10,2)
+img[*,0]=[1,0,1,0,1,0,1,0,1,1]
+img[9,1]=1
+CHECK_WRITE_TIFF_BITS, file, img, 1, [170b,192b,0b,64b], '1-bit 10x2', is_gdl, nerr
+;
+img=bytarr(3,2)
+img[*,0]=[1,2,3]
+img[*,1]=[15,14,13]
+CHECK_WRITE_TIFF_BITS, file, img, 4, ['12'xb,'30'xb,'fe'xb,'d0'xb], '4-bit 3x2', is_gdl, nerr
+;
+img=reform([1b,1b],1,2)
+CHECK_WRITE_TIFF_BITS, file, img, 1, [128b,128b], '1-bit 1x2', is_gdl, nerr
+;
+if is_gdl then begin
+   ; IDL ignores BITS_PER_SAMPLE for RGB images.
+   img=bytarr(3,1,2)
+   img[*,0,0]=[1,2,3]
+   img[*,0,1]=[4,5,6]
+   CHECK_WRITE_TIFF_BITS, file, img, 4, ['12'xb,'30'xb,'45'xb,'60'xb], '4-bit RGB 1x2', is_gdl, nerr
+   ;
+   ; A 6x3 bilevel image needs three strip bytes, followed by directory alignment.
+   img=bytarr(6,3)
+   img[0,0]=1 & img[1,1]=1 & img[2,2]=1
+   for big=0,1 do begin
+      alignment=big ? 8 : 2
+      WRITE_TIFF, file, img, bits_per_sample=1, bigtiff=big
+      WRITE_TIFF, file, reverse(img,2), bits_per_sample=1, /append
+      strip=TEST_TIFF_STRIP(file, ifd)
+      if ifd ne (big ? 24 : 12) then ERRORS_ADD, nerr, 'Wrong first IFD offset'
+      if ~ARRAY_EQUAL(strip, [128b,64b,32b]) then ERRORS_ADD, nerr, 'Wrong first strip length or bytes'
+      strip=TEST_TIFF_STRIP(file, ifd, /second)
+      if ifd mod alignment ne 0 then ERRORS_ADD, nerr, 'Misaligned appended IFD'
+      if ~ARRAY_EQUAL(strip, [32b,64b,128b]) then ERRORS_ADD, nerr, 'Wrong appended strip length or bytes'
+   endfor
+endif
+;
+cleanup:
+catch, /cancel
+if file ne '' then FILE_DELETE, file, /allow_nonexistent
+BANNER_FOR_TESTSUITE, 'TEST_WRITE_TIFF_BITS', nerr, /status
+ERRORS_CUMUL, ntoterr, nerr
+if KEYWORD_SET(test) then STOP
+end
+;
+; ------------------------------------------
+;
 pro TEST_TIFF, help=help, test=test, no_exit=no_exit, verbose=verbose
 
 if KEYWORD_SET(help) then begin
@@ -186,7 +301,8 @@ endelse
 ;
 if status_tiff then begin
    TEST_QUERY_TIFF, ntoterr, test=test, verbose=verbose
-   TEST_READ_TIFF, ntoterr, test=test, verbose=verbose   
+   TEST_READ_TIFF, ntoterr, test=test, verbose=verbose
+   TEST_WRITE_TIFF_BITS, ntoterr, is_it_gdl, test=test, verbose=verbose
 endif
 if status_geotiff then TEST_QUERY_GEOTIFF, ntoterr, test=test, verbose=verbose
 ;

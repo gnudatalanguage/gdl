@@ -2,7 +2,14 @@
 ;
 ; Init method.
 ; Called when the ob_xml_to_struct object is created.
-
+;
+; -----------------------------------
+; Modifications history :
+; - 2026-11-25 : AC. adding a way to get the content of a field (see
+;   PR 2281)
+;
+; -----------------------------------
+;
 FUNCTION ob_xml_to_struct::Init
   RETURN, self->IDLffXMLSAX::Init()
 END
@@ -12,7 +19,7 @@ END
 ; Called when the ob_xml_to_struct object is destroyed.
 
 PRO ob_xml_to_struct::Cleanup
-                                ; Call superclass cleanup method
+;; Call superclass cleanup method
   self->IDLffXMLSAX::Cleanup
 END
 
@@ -50,7 +57,10 @@ END
 
 PRO ob_xml_to_struct::EndElement, URI, Local, strName
    case strName of
-   "DIAMETER": self.print=1
+      "DIAMETER": begin
+         self.print=1
+         self.diameter = strtrim(self.element, 2)
+         end
    else: self.print=0
    endcase
 
@@ -61,6 +71,12 @@ PRO ob_xml_to_struct::EndElement, URI, Local, strName
   ENDIF
 
 END
+;
+;---------------------------------------------------------------------------
+; Méthode d'accès à appeler après ParseFile
+FUNCTION ob_xml_to_struct::GetStruct
+   RETURN, {DIAMETER: self.diameter}
+END
 
 ;---------------------------------------------------------------------------
 ; Object class definition method.
@@ -69,6 +85,8 @@ PRO ob_xml_to_struct__define
 
    void = {ob_xml_to_struct, $
            INHERITS IDLffXMLSAX, $
-           element: '', print: 0}
+           element: '', $
+           diameter: '', $
+           print: 0}
     
 END
