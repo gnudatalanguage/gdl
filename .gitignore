@@ -1,6 +1,7 @@
 *~
 src/gdl
 testsuite/launchtest.c
+/testsuite/cmake_install.cmake
 nbproject/
 build/
 cmake-build*/

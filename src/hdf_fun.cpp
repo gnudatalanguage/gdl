@@ -422,9 +422,10 @@ namespace lib {
     e->AssureLongScalarPar(1, dim_index);
 
     {
-      char fieldname[256];
-      int32 null[MAXRANK];
-      status = SDgetinfo(sds_id, fieldname, &rank, null, null, null);
+      status = SDgetinfo(sds_id, NULL, &rank, NULL, NULL, NULL);
+      if (status != FAIL && rank > (int32)MAXRANK)
+        e->Throw("dataset rank " + i2s(rank) +
+                 " exceeds the supported maximum (" + MAXRANK_STR + ")");
     }
 
     if (status != 0) e->Throw("Invalid SD dataset ID: " + i2s(sds_id));
