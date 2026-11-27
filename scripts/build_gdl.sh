@@ -705,6 +705,12 @@ function install_gdl {
             cp -f "${PYTHON_DLL}" bin/
         fi
 
+        if [[ $WITH_GRIB == "ON" ]]; then
+            log "Copying ecCodes definitions to install directory..."
+            mkdir -p share
+            cp -rf /${mname}/share/eccodes share/
+        fi
+
         if [[ $WITH_UDUNITS2 == "ON" ]]; then
             log "Copying udunits xml files to install directory..."
             cp -rf /${mname}/share/udunits share/

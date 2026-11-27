@@ -354,7 +354,7 @@ namespace lib {
                 indent,"", tagName.c_str(), rank );
         for(int i=0; i<rank; i++)
           printf("%lld%s", tag->Dim(i), (i<rank-1) ? "," : "");
-        printf("), size=%lld, offs=%ld\n", tag->NBytes(), member_offset);
+        printf("), size=%lld, offs=%zu\n", tag->NBytes(), member_offset);
       }
 
       /* obtain tag's HDF5 data type */
@@ -390,7 +390,7 @@ namespace lib {
     SizeT nTags = d_struct->Desc()->NTags();
 
     if (debug) printf( "%*sgathering data for struct '%s' "
-                       "of size %ld with %lld members\n",
+                       "of size %zu with %lld members\n",
                        indent,"", d_struct->Desc()->Name().c_str(),
                        cmp_sz, nTags );
 
@@ -407,7 +407,7 @@ namespace lib {
                 indent,"", tagName.c_str(), rank );
         for(int i=0; i<rank; i++)
           printf("%lld%s", tag->Dim(i), (i<rank-1) ? "," : "");
-        printf( "), size=%lld, offs=%ld\n",
+        printf( "), size=%lld, offs=%zu\n",
                 tag->NBytes()+tag_NBytes_0(tag), member_offset );
       }
 
@@ -447,7 +447,7 @@ namespace lib {
     size_t cmp_sz = H5Tget_size( parent_type );
     int idx, n_mem = H5Tget_nmembers( parent_type );
 
-    if (debug) printf( "%*scompound datatype of size %ld with %d members\n",
+    if (debug) printf( "%*scompound datatype of size %zu with %d members\n",
                        indent,"", cmp_sz, n_mem );
 
     for(idx=0; idx<n_mem; idx++) {
@@ -523,7 +523,7 @@ namespace lib {
       }
 
       if (debug)
-         printf( "%*sfound %s element '%s' of size %ld at offset %ld\n",
+         printf( "%*sfound %s element '%s' of size %zu at offset %zu\n",
                  indent, "", type_lbl, member_name, member_sz, member_offs );
 
       hid_t elem_type;
@@ -887,7 +887,7 @@ namespace lib {
           int len = strlen(raw[i]);
           char *str = (char*) malloc((len+1)*sizeof(char));
           strncpy(str, raw[i], len+1);
-          if(debug) printf("str[%ld]='%s' is of length %d\n", i, str, len);
+          if(debug) printf("str[%zu]='%s' is of length %d\n", i, str, len);
           (*(static_cast<DStringGDL*> (res)))[i] = str;
         }
 

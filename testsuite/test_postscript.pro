@@ -22,6 +22,7 @@ prefix=GDL_IDL_FL(/prefix)
 filename=prefix+'test_tv_pmulti.ps'
 MESSAGE, /continue, 'writing file : '+filename
 ;
+olddev = !d.name
 SET_PLOT,'PS'
 DEVICE, filename=filename, encap=encap, port=port, xsize=20, ysize=30, /color
 ;
@@ -36,7 +37,8 @@ for i=0,5 do begin
 ;
 DEVICE, /close
 !P.MULTI=0
-SET_PLOT, 'X'
+; restore the previous device ('X' does not exist on Windows)
+SET_PLOT, olddev
 ;
 end
 ;
@@ -48,6 +50,7 @@ prefix=GDL_IDL_FL(/prefix)
 filename=prefix+'appleman.ps'
 MESSAGE, /continue, 'writing file : '+filename
 ;
+olddev = !d.name
 SET_PLOT, 'PS'
 DEVICE, filename=filename, xsize=8,ysize=30, /land,/color
 
@@ -61,7 +64,7 @@ LOADCT, 15
 TV, res, 0, 0, xsize=200, ysize=300, /DATA
 ;
 DEVICE, /close
-SET_PLOT, 'X'
+SET_PLOT, olddev
 ;
 end
 ;
@@ -71,6 +74,7 @@ pro TEST_POSTSCRIPT_BASIC
 ;
 prefix=GDL_IDL_FL(/prefix)+'ps_basic_'
 ;
+olddev = !d.name
 SET_PLOT, 'PS'
 ;
 filename=prefix+'1.ps'
@@ -106,7 +110,7 @@ plot, FINDGEN(10), title='xsize=21, ysize=27, xoffset=10, yoffset=5'
 device, /close
 ;
 ; back to X11
-SET_PLOT, 'X'
+SET_PLOT, olddev
 ;
 end
 ;
