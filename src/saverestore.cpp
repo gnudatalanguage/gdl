@@ -17,6 +17,7 @@
 
 #include "dinterpreter.hpp"
 #include <queue>
+#include <limits>
 #include <memory>
 #include <vector>
 
@@ -58,8 +59,16 @@ namespace lib {
   // and frees it with the XDR library when leaving the scope, whatever the path.
   struct XdrString {
     char* p = nullptr;
-    XdrString() {}
-    ~XdrString() { if (p) xdr_free((xdrproc_t) xdr_wrapstring, (char*) &p); }
+    XdrString() = default;
+    ~XdrString() {
+      if (p) {
+        // On libtirpc, xdr_wrapstring limits even XDR_FREE to 9000 bytes.
+        // Saved string values can exceed that limit. Free them with xdr_string itself.
+        XDR cleanup{};
+        cleanup.x_op = XDR_FREE;
+        xdr_string(&cleanup, &p, (std::numeric_limits<u_int>::max)());
+      }
+    }
     XdrString(const XdrString&) = delete;
     XdrString& operator=(const XdrString&) = delete;
   };
@@ -948,6 +957,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
       if( stru_name == "IDL_CONTAINER") stru_name = GDL_CONTAINER_NAME; // replacement also done in GDLParser
       DStructDesc* stru_desc=NULL;
       DStructDesc* ref_desc=NULL;
+      std::unique_ptr<DStructDesc> comparisonDesc;
       bool checkStruct=false;
       //take care of named structures. Here is also where one should try to create an object, since, if it exists, its structure must be
       //compared with the current one.
@@ -992,7 +1002,10 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
           if (DEBUG_SAVERESTORE) cerr<<stru_name<<": is a known Object."<<endl;
           checkStruct=true;
           ref_desc=stru_desc;
-          stru_desc=new DStructDesc("$truct"); //make it anonymous, test if equality at end!
+          // A named descriptor owns the operator list copied from a GDL_OBJECT parent.
+          // Keep this second definition local while comparing it with the registered class.
+          comparisonDesc = std::make_unique<DStructDesc>(stru_name);
+          stru_desc = comparisonDesc.get();
         }
       } else stru_desc=new DStructDesc("$truct");
       //summary & tag population:
@@ -1159,11 +1172,9 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
           ref_desc->AssureIdentical(stru_desc);
         }        catch (GDLException& ex)
         {
-          delete stru_desc; // temporary anonymous descriptor, only used for the comparison
           e->Throw("Structure not restored due to conflict with existing definition: "+stru_name);
           return NULL;
         }
-        delete stru_desc; // temporary anonymous descriptor, only used for the comparison
         stru_desc=ref_desc; //OK, switch back.
       }
       return new DStructGDL(stru_desc, *inputdims);
@@ -1383,10 +1394,11 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
           var = new DComplexDblGDL(*dims,BaseGDL::NOZERO);
           break;
         case GDL_PTR: //	Heap Pointer 
-          var = new DPtrGDL(*dims,BaseGDL::NOZERO);
+          // RESTORE can discard heap entries before the second pass has filled them.
+          var = new DPtrGDL(*dims, BaseGDL::ZERO);
           break;
         case GDL_OBJ: //	Object Reference (not supported by CMSVLIB) 
-          var = new DObjGDL(*dims,BaseGDL::NOZERO);
+          var = new DObjGDL(*dims, BaseGDL::ZERO);
           break;
         case GDL_UINT: //	16-bit Unsigned Integer 
           var = new DUIntGDL(*dims,BaseGDL::NOZERO);
@@ -1410,7 +1422,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     return var;
   }
 
-  void fillVariableData(XDR* xdrs, BaseGDL* var) {
+  static const char* fillVariableData(XDR* xdrs, BaseGDL* var) {
     u_int nEl = var->N_Elements();
     switch (var->Type()) {
 
@@ -1477,12 +1489,14 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
         for (SizeT i = 0; i < nEl; ++i)
         {
           int32_t length;
-          if (!xdr_int32_t(xdrs, &length)) cerr << "error reading string length" << endl;
+          if (!xdr_int32_t(xdrs, &length) || length < 0)
+            return "Error reading string length";
           if (length > 0)
           {
-            char* chars = 0;
-            if (!xdr_string(xdrs, &chars, length)) cerr << "error getting string" << endl;
-            (*static_cast<DStringGDL*> (var))[i].assign(chars);
+            XdrString chars;
+            if (!xdr_string(xdrs, &chars.p, length))
+              return "Error reading string data";
+            (*static_cast<DStringGDL*>(var))[i].assign(chars.p);
           }
         }
       }
@@ -1491,7 +1505,12 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
       {
         DStructGDL* str = static_cast<DStructGDL*> (var);
         SizeT nTags = str->Desc()->NTags();
-        for (SizeT ix = 0; ix < nEl; ++ix) for (SizeT t = 0; t < nTags; ++t) fillVariableData(xdrs, str->GetTag(t, ix));
+        for (SizeT ix = 0; ix < nEl; ++ix) {
+          for (SizeT t = 0; t < nTags; ++t) {
+            if (const char* error = fillVariableData(xdrs, str->GetTag(t, ix)))
+              return error;
+          }
+        }
         break;
       }
       case GDL_PTR:
@@ -1524,6 +1543,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
       }
       default: assert(false);
     }
+    return nullptr;
   }
   
   void writeVariableData(XDR* xdrs, BaseGDL* var) {
@@ -2229,7 +2249,8 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     nextptr = LONG;
     SomethingFussyHappened = true;
 
-    while (1)
+    const char* dataError = nullptr;
+    while (!dataError)
     {
 
       xdrs = xdrsfile; //back to file if we were smarting the xdr to read a char* due to compression.
@@ -2351,7 +2372,11 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
             e->Throw("Lost track in VARIABLE definition at offset " + i2s(nextptr));
           }
 
-          fillVariableData(xdrs, ret);
+          dataError = fillVariableData(xdrs, ret);
+          if (dataError) {
+            GDLDelete(ret);
+            break;
+          }
           if (isSysVar & 0x03) { //readonly system var
 			std::string name=varName.substr(1);
 		    if (FindInVarList(sysVarRdOnlyList, name) != NULL) { //exists as readonly
@@ -2388,7 +2413,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
           } else {
             BaseGDL* ret = heapIndexMapRestore.find(heap_index)->second.first;
             if (ret == NullGDL::GetSingleInstance()) break; //no data follows as this is a !NULL
-            fillVariableData(xdrs, ret);
+            dataError = fillVariableData(xdrs, ret);
             if (DEBUG_SAVERESTORE) std::cerr<<"at offset #"<<heapIndexMapRestore.find(heap_index)->second.second<<std::endl;
           }
 
@@ -2405,8 +2430,23 @@ endoffile:
     delete xdrsmem;
     delete xdrsfile;
 
-    //if problem, guards should deleted the allocated BaseGDLs.
-    if (SomethingFussyHappened) e->Throw("Error Reading File: " + name + ".");
+    if (SomethingFussyHappened) {
+      // These variables are still queued. None has been installed in the interpreter.
+      for (auto* guard : guardVector) {
+        GDLDelete(guard->release());
+        delete guard;
+      }
+      // The first pass allocated these heap entries solely for this RESTORE.
+      // Their IDs are shared across the pointer and object heaps.
+      for (const auto& entry : heapIndexMapRestore) {
+        DPtr id = entry.second.second;
+        GDLInterpreter::FreeHeap(id);
+        GDLInterpreter::FreeObjHeap(id);
+      }
+      heapIndexMapRestore.clear();
+      if (dataError) e->Throw(std::string(dataError) + " in " + name + ".");
+      e->Throw("Error Reading File: " + name + ".");
+    }
     //here everything was ok
 
 
