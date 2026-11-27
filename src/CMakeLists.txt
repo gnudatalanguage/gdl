@@ -219,6 +219,13 @@ ${WX_RC}
 endif(HAVE_LIBWXWIDGETS AND WIN32)
 set_source_files_properties(magick_cl.cpp PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
 set_source_files_properties(libinit_cl.cpp PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
+   CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64|AMD64)$")
+  include(GdlCheckComplexConversion)
+  gdl_check_complex_conversion()
+endif()
+
 #whereami
 add_library(whereami STATIC ${CMAKE_SOURCE_DIR}/src/whereami/src/whereami.c)
 add_subdirectory(antlr)
