@@ -19,6 +19,7 @@
 #include "includefirst.hpp"
 
 #include <cstdlib>
+#include <csignal>
 
 // that's enough with Cygwin >= 1.7.1 
 //#ifdef __CYGWIN__
@@ -486,7 +487,10 @@ void WordExp(std::string& s, bool squash)
   //after blank escaping we refer to wordexp to manage the (eventually complicated) expansions.    
   wordexp_t p;
 // std::cerr<<sEsc<<std::endl;
+  // gdl.cpp ignores SIGCHLD; macOS wordexp() runs a shell and fails when it cannot wait for it.
+  auto oldsig = signal(SIGCHLD, SIG_DFL);
   int ok0 = wordexp(sEsc.c_str(), &p, WRDE_NOCMD);
+  signal(SIGCHLD, oldsig);
   if (ok0 == 0) {
     if (p.we_wordv[0] !=NULL) s=std::string(p.we_wordv[0]);
 #if defined(__APPLE__)

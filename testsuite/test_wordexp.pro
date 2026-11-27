@@ -19,6 +19,7 @@
 ; Modifications history :
 ;
 ; - 2018-MAR-21 : AC. rewriting and expand of initial version
+; - 2026-NOV-26 : testing '~', '$HOME' and wildcards (#2022, #2209)
 ;
 ; ---------------------------------------
 ;
@@ -39,6 +40,86 @@ if KEYWORD_SET(verbose) then begin
    print, 'Trying to create : ', files
    print, 'Succeed to create : ', FILE_TEST(files)
 endif
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
+; -----------------------------------------------
+;
+; helpers returning a failure value instead of halting
+;
+function TEST_WE_LINES, name
+CATCH, error_status
+if error_status NE 0 then begin
+   CATCH, /cancel
+   return, -1
+endif
+return, FILE_LINES(name)
+end
+;
+function TEST_WE_OPEN, name, write=write
+CATCH, error_status
+if error_status NE 0 then begin
+   CATCH, /cancel
+   return, 0
+endif
+if KEYWORD_SET(write) then OPENW, lun, name, /GET_LUN $
+else OPENR, lun, name, /GET_LUN
+FREE_LUN, lun
+return, 1
+end
+;
+function TEST_WE_CD, name
+CATCH, error_status
+if error_status NE 0 then begin
+   CATCH, /cancel
+   return, ''
+endif
+CD, name, current=old_dir
+CD, current=new_dir
+CD, old_dir
+return, new_dir
+end
+;
+; '~', '$HOME' and wildcards must be expanded. They were not on macOS
+; while GDL ignored SIGCHLD: macOS wordexp() runs a shell and waits
+; for it (#2022, #2209). HOME is set to "home" so that the files
+; created there by TEST_WE_CREATE_FILES are in '~'.
+;
+pro TEST_WE_EXPANSION, nb_errors, home, test=test, verbose=verbose
+;
+errors_exp=0
+old_home=GETENV('HOME')
+SETENV, 'HOME='+home
+;
+; 'a.5' is the only file matching 'a.?' and 'a.*'
+expected=home+'/a.5'
+names=['~/a.5', '$HOME/a.5', home+'/a.?', '~/a.*']
+for ii=0, N_ELEMENTS(names)-1 do begin
+   info=FILE_INFO(names[ii])
+   if KEYWORD_SET(verbose) then print, names[ii], ' -> ', info.name
+   if info.name NE expected then $
+      ERRORS_ADD, errors_exp, 'FILE_INFO with : '+names[ii]
+   if TEST_WE_LINES(names[ii]) NE 5 then $
+      ERRORS_ADD, errors_exp, 'FILE_LINES with : '+names[ii]
+   if ~TEST_WE_OPEN(names[ii]) then $
+      ERRORS_ADD, errors_exp, 'OPENR with : '+names[ii]
+endfor
+;
+; CD gives the resolved path, so compare with CD to "home" itself
+if TEST_WE_CD('~') NE TEST_WE_CD(home) then $
+   ERRORS_ADD, errors_exp, 'CD with : ~'
+;
+; '~' must be expanded for a file that does not exist yet
+if ~TEST_WE_OPEN('~/new_file', /write) || ~FILE_TEST(home+'/new_file') then $
+   ERRORS_ADD, errors_exp, 'OPENW with : ~/new_file'
+FILE_DELETE, home+'/new_file', /ALLOW_NONEXISTENT
+;
+SETENV, 'HOME='+old_home
+;
+BANNER_FOR_TESTSUITE, 'testing ~, $HOME and wildcards', errors_exp, /short
+ERRORS_CUMUL, nb_errors, errors_exp
 ;
 if KEYWORD_SET(test) then STOP
 ;
@@ -291,6 +372,13 @@ for ii=0, N_ELEMENTS(subdirs)-1 do begin
 endfor
 BANNER_FOR_TESTSUITE, 'testing FILE_INFO', errors_info, /short
 ERRORS_CUMUL, nb_errors, errors_info
+;
+; ----------------------------------
+; testing expansion of '~', '$HOME' and wildcards
+; (the WordExp() used on Windows does not expand wildcards)
+;
+if !version.os_family NE 'Windows' then $
+   TEST_WE_EXPANSION, nb_errors, working_dir+PATH_SEP()+'normal', verbose=verbose
 ;
 ; -----------------
 ;
