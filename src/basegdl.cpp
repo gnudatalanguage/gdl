@@ -195,6 +195,16 @@ BaseGDL* BaseGDL::Convert2( DType destTy, Convert2Mode mode)
   throw GDLException("BaseGDL::Convert2(...) called.");
 }
 
+void BaseGDL::Convert2InPlace(BaseGDL*& value, DType destTy)
+{
+  BaseGDL* converted = value->Convert2(destTy, KEEP_SOURCE);
+  if (converted != value) {
+    BaseGDL* original = value;
+    value = converted;
+    GDLDelete(original);
+  }
+}
+
 BaseGDL* BaseGDL::GetTag() const 
 {
   throw GDLException("BaseGDL::GetTag(...) called.");

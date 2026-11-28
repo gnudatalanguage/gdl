@@ -92,6 +92,7 @@ test_file_move.pro
 test_file_readlink.pro
 test_file_which.pro
 test_finite.pro
+test_fix.pro
 test_fixprint.pro
 test_foreach.pro
 test_format.pro

@@ -6547,7 +6547,7 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style,
     
   if( vValue->Type() != GDL_STRING)
   {
-    vValue = static_cast<DStringGDL*> (vValue->Convert2( GDL_STRING, BaseGDL::CONVERT ));
+    BaseGDL::Convert2InPlace(vValue, GDL_STRING);
   }
   DStringGDL* val = static_cast<DStringGDL*> (vValue);
 
@@ -6637,13 +6637,28 @@ void GDLWidgetList::SetWidgetSize(DLong sizex, DLong sizey)
 #endif
 }
 
-void GDLWidgetList::SetValue(BaseGDL *value){
-  GDLDelete(vValue);
-  vValue=value;
- if( vValue->Type() != GDL_STRING)
-  {
-    vValue = static_cast<DStringGDL*> (vValue->Convert2( GDL_STRING, BaseGDL::CONVERT ));
+namespace {
+
+// Each setter takes ownership of the incoming value. Keep the current widget
+// value usable if converting the incoming value throws.
+void setWidgetStrings(BaseGDL*& current, BaseGDL* value) {
+  std::unique_ptr<BaseGDL, decltype(&GDLDelete)> incoming(
+      value == current ? nullptr : value, &GDLDelete);
+  BaseGDL* converted = value->Type() == GDL_STRING
+      ? value : value->Convert2(GDL_STRING, BaseGDL::COPY);
+  if (converted == value) {
+    incoming.release();
   }
+  if (current != converted) {
+    GDLDelete(current);
+    current = converted;
+  }
+}
+
+} // namespace
+
+void GDLWidgetList::SetValue(BaseGDL *value){
+  setWidgetStrings(vValue, value);
   DStringGDL* val = static_cast<DStringGDL*> (vValue);
 
   wxArrayString newchoices; // = new wxString[n];
@@ -6758,12 +6773,7 @@ TIDY_WIDGET(gdlBORDER_SPACE);
 }
   
 void GDLWidgetDropList::SetValue(BaseGDL *value){
-   GDLDelete(vValue);
-  vValue=value;
- if( vValue->Type() != GDL_STRING)
-  {
-    vValue = static_cast<DStringGDL*> (vValue->Convert2( GDL_STRING, BaseGDL::CONVERT ));
-  }
+  setWidgetStrings(vValue, value);
   DStringGDL* val = static_cast<DStringGDL*> (vValue);
   wxArrayString newchoices; // = new wxString[n];
   for ( SizeT i = 0; i < val->N_Elements( ); ++i )  newchoices.Add( wxString( (*val)[i].c_str( ), wxConvUTF8 ) );
@@ -6860,12 +6870,7 @@ inline wxSize GDLWidgetComboBox::computeWidgetSize() {
   return widgetSize;
 }
 void GDLWidgetComboBox::SetValue(BaseGDL *value){
-  GDLDelete(vValue);
-  vValue=value;
- if( vValue->Type() != GDL_STRING)
-  {
-    vValue = static_cast<DStringGDL*> (vValue->Convert2( GDL_STRING, BaseGDL::CONVERT ));
-  }
+  setWidgetStrings(vValue, value);
   DStringGDL* val = static_cast<DStringGDL*> (vValue);
   wxArrayString newchoices; // = new wxString[n];
   for ( SizeT i = 0; i < val->N_Elements( ); ++i )  newchoices.Add( wxString( (*val)[i].c_str( ), wxConvUTF8 ) );

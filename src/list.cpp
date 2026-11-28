@@ -769,8 +769,7 @@ namespace lib {
             BaseGDL* eqRes = dataL->EqOp(dataR);
             if (eqRes->Type() != GDL_BYTE) {
               Guard<BaseGDL> eqResGuardTmp(eqRes);
-              eqRes = eqRes->Convert2(GDL_BYTE, BaseGDL::CONVERT);
-              eqResGuardTmp.Release();
+              eqRes = eqRes->Convert2(GDL_BYTE, BaseGDL::COPY);
             }
             Guard<BaseGDL> eqResGuard(eqRes);
             DByteGDL* eqResByte = static_cast<DByteGDL*> (eqRes);
@@ -805,8 +804,7 @@ namespace lib {
 
             if (eqRes->Type() != GDL_BYTE) {
               Guard<BaseGDL> eqResGuardTmp(eqRes);
-              eqRes = eqRes->Convert2(GDL_BYTE, BaseGDL::CONVERT);
-              eqResGuardTmp.Release();
+              eqRes = eqRes->Convert2(GDL_BYTE, BaseGDL::COPY);
             }
             Guard<BaseGDL> eqResGuard(eqRes);
             DByteGDL* eqResByte = static_cast<DByteGDL*> (eqRes);

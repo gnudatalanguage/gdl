@@ -155,7 +155,7 @@ template<>
 template<> 
 /*typename*/ Data_<SpDUInt>::Ty Data_<SpDFloat>::GetAs<SpDUInt>( SizeT i)
   {
-    return static_cast< DUInt>((*this)[i]);
+    return Real2Int<DUInt>((*this)[i]);
   }
 template<>
 template<> 
@@ -173,13 +173,13 @@ template<>
 template<> 
 /*typename*/ Data_<SpDULong>::Ty Data_<SpDFloat>::GetAs<SpDULong>( SizeT i)
   {
-    return static_cast< DULong>((*this)[i]);
+    return Real2Int<DULong>((*this)[i]);
   }
 template<>
 template<> 
 /*typename*/ Data_<SpDULong64>::Ty Data_<SpDFloat>::GetAs<SpDULong64>( SizeT i)
   {
-    return static_cast< DULong64>((*this)[i]);
+    return Real2Int<DULong64>((*this)[i]);
   }
 template<>
 template<> 
@@ -207,7 +207,7 @@ template<>
 template<> 
 /*typename*/ Data_<SpDUInt>::Ty Data_<SpDDouble>::GetAs<SpDUInt>( SizeT i)
   {
-    return static_cast< DUInt>((*this)[i]);
+    return Real2Int<DUInt>((*this)[i]);
   }
 template<>
 template<> 
@@ -225,13 +225,13 @@ template<>
 template<> 
 /*typename*/ Data_<SpDULong>::Ty Data_<SpDDouble>::GetAs<SpDULong>( SizeT i)
   {
-    return static_cast< DULong>((*this)[i]);
+    return Real2Int<DULong>((*this)[i]);
   }
 template<>
 template<> 
 /*typename*/ Data_<SpDULong64>::Ty Data_<SpDDouble>::GetAs<SpDULong64>( SizeT i)
   {
-    return static_cast< DULong64>((*this)[i]);
+    return Real2Int<DULong64>((*this)[i]);
   }
 template<>
 template<> 
@@ -425,7 +425,7 @@ template<>
 template<> 
 /*typename*/ Data_<SpDUInt>::Ty Data_<SpDComplex>::GetAs<SpDUInt>( SizeT i)
   {
-    return static_cast< DUInt>(real((*this)[i]));
+    return Real2Int<DUInt>(real((*this)[i]));
   }
 template<>
 template<> 
@@ -443,13 +443,13 @@ template<>
 template<> 
 /*typename*/ Data_<SpDULong>::Ty Data_<SpDComplex>::GetAs<SpDULong>( SizeT i)
   {
-    return static_cast< DULong>(real((*this)[i]));
+    return Real2Int<DULong>(real((*this)[i]));
   }
 template<>
 template<> 
 /*typename*/ Data_<SpDULong64>::Ty Data_<SpDComplex>::GetAs<SpDULong64>( SizeT i)
   {
-    return static_cast< DULong64>(real((*this)[i]));
+    return Real2Int<DULong64>(real((*this)[i]));
   }
 template<>
 template<> 
@@ -489,7 +489,7 @@ template<>
 template<> 
 /*typename*/ Data_<SpDUInt>::Ty Data_<SpDComplexDbl>::GetAs<SpDUInt>( SizeT i)
   {
-    return static_cast< DUInt>(real((*this)[i]));
+    return Real2Int<DUInt>(real((*this)[i]));
   }
 template<>
 template<> 
@@ -507,13 +507,13 @@ template<>
 template<> 
 /*typename*/ Data_<SpDULong>::Ty Data_<SpDComplexDbl>::GetAs<SpDULong>( SizeT i)
   {
-    return static_cast< DULong>(real((*this)[i]));
+    return Real2Int<DULong>(real((*this)[i]));
   }
 template<>
 template<> 
 /*typename*/ Data_<SpDULong64>::Ty Data_<SpDComplexDbl>::GetAs<SpDULong64>( SizeT i)
   {
-    return static_cast< DULong64>(real((*this)[i]));
+    return Real2Int<DULong64>(real((*this)[i]));
   }
 template<>
 template<> 
