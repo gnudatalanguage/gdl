@@ -26,99 +26,55 @@
 
 namespace real2int_detail {
 
-// Every destination value of BYTE, INT, UINT and LONG fits in int32.
+// BYTE and the 16-bit types use the same conversion word as LONG and ULONG.
 template <typename IntT>
-constexpr bool fitsInt32() {
-  return std::numeric_limits<IntT>::digits <=
-         std::numeric_limits<std::int32_t>::digits;
-}
+using SignedWord = typename std::conditional<(sizeof(IntT) <= sizeof(std::int32_t)),
+                                             std::int32_t, std::int64_t>::type;
 
-// At this magnitude finite operands both signal invalid and have zero low
-// destination bits. Binary floating-point spacing is at least 2^bits.
-template <typename IntT, typename RealT>
-constexpr RealT zeroWithInvalidThreshold() {
-  using UIntT = typename std::make_unsigned<IntT>::type;
-  constexpr int zeroExponent =
-      std::numeric_limits<UIntT>::digits + std::numeric_limits<RealT>::digits - 1;
-  constexpr int invalidExponent = fitsInt32<IntT>() ? 32 : 64;
-  constexpr int exponent = zeroExponent > invalidExponent ? zeroExponent : invalidExponent;
-  RealT threshold = 1;
-  for (int i = 0; i < exponent; ++i) threshold *= 2;
-  return threshold;
-}
-
-// The lower limit applies after truncation. FLOAT has no representable
-// values between -2147483649 and -2147483648, but DOUBLE does.
-// Evaluate both comparisons so the array loop can vectorize.
-inline bool truncatesIntoInt32(float r) {
-  const int above = std::isgreaterequal(r, -2147483648.0f);
-  return above & std::isless(r, 2147483648.0f);
-}
-
-inline bool truncatesIntoInt32(double r) {
-  const int above = std::isgreater(r, -2147483649.0);
-  return above & std::isless(r, 2147483648.0);
-}
-
-// Truncate finite values and retain the low destination bits. Accumulate
-// invalid operands so a parallel conversion can report them on its caller.
-template <typename IntT, typename RealT>
-inline IntT convertWide(const RealT r, bool& invalid) {
-  // Both bounds are exact powers of two.
-  constexpr RealT two63 =
-      -static_cast<RealT>(std::numeric_limits<std::int64_t>::min());
-  if (std::isgreaterequal(r, -two63) && std::isless(r, two63)) {
-    return static_cast<IntT>(static_cast<std::int64_t>(r));
-  }
-  // [2^63, 2^64): r - 2^63 is exact and fits int64, so nothing signals.
-  if (std::isgreaterequal(r, two63) && std::isless(r, 2 * two63)) {
-    const auto low =
-        static_cast<std::uint64_t>(static_cast<std::int64_t>(r - two63));
-    return static_cast<IntT>(low + (std::uint64_t{1} << 63));
-  }
-
-  invalid = true;
-  using UIntT = typename std::make_unsigned<IntT>::type;
-  constexpr int bits = std::numeric_limits<UIntT>::digits;
-  constexpr UIntT signBit = std::numeric_limits<UIntT>::max() / 2 + 1;
-  if (!std::isfinite(r)) {
-    if (std::is_signed<IntT>::value) {
-      return static_cast<IntT>(bits < 32 ? 0
-                                         : std::numeric_limits<IntT>::min());
-    }
-    return static_cast<IntT>(
-        bits == 64 && (std::isnan(r) || std::signbit(r)) ? signBit : 0);
-  }
-  // At this magnitude every FLOAT and DOUBLE is already a whole number.
-  const RealT magnitude = std::abs(r);
-  constexpr RealT zeroThreshold = zeroWithInvalidThreshold<IntT, RealT>();
-  if (magnitude >= zeroThreshold) {
-    return IntT{0};
-  }
-  UIntT lowBits = static_cast<UIntT>(
-      std::fmod(magnitude, std::ldexp(static_cast<RealT>(1), bits)));
-  if (r < 0) {
-    lowBits = static_cast<UIntT>(0) - lowBits;
-  }
-  return static_cast<IntT>(lowBits);
-}
-
-// Checked conversion shared by scalar callers and exceptional array elements.
+// Wrap a truncated value within one unsigned word in either direction.
+// NaN, infinity and magnitudes at or beyond the limit share one sentinel.
 template <typename IntT, typename RealT>
 inline IntT convertChecked(RealT r, bool& invalid) {
-  if (fitsInt32<IntT>()) {
-    if (truncatesIntoInt32(r)) {
-      return static_cast<IntT>(static_cast<std::int32_t>(r));
+  using Word = SignedWord<IntT>;
+  constexpr bool fullWidthUnsigned = std::is_unsigned<IntT>::value && sizeof(IntT) == sizeof(Word);
+  constexpr Word minimum = std::numeric_limits<Word>::min();
+  constexpr RealT half = -static_cast<RealT>(minimum);
+  constexpr RealT limit = 2 * half;
+  const bool inWindow = std::isless(std::abs(r), limit);
+  if (sizeof(Word) == sizeof(std::int32_t)) {
+    if (!fullWidthUnsigned) {
+      // DOUBLE can truncate to INT32_MIN from fractions below it.
+      constexpr double lowerCutoff = static_cast<double>(minimum) - 1;
+      const bool aboveLowerCutoff = std::isgreater(static_cast<double>(r), lowerCutoff);
+      invalid |= !(aboveLowerCutoff & std::isless(r, half));
+    } else {
+      invalid |= !inWindow;
     }
-    invalid = true;
+    return inWindow ? static_cast<IntT>(static_cast<std::int64_t>(r))
+                    : static_cast<IntT>(minimum);
   }
-  return convertWide<IntT>(r, invalid);
+  if (!inWindow) {
+    invalid = true;
+    return static_cast<IntT>(minimum);
+  }
+
+  // In the outer half of the 64-bit window FLOAT and DOUBLE are already
+  // integral. Shifting by one word is exact and brings them into int64.
+  if (r >= half) {
+    invalid |= !fullWidthUnsigned;
+    r -= limit;
+  } else if (r < -half) {
+    invalid = true;
+    r += limit;
+  }
+  return static_cast<IntT>(static_cast<std::int64_t>(r));
 }
 
 }  // namespace real2int_detail
 
-// CHECK_MATH reports NaN, infinity and values whose truncated integer falls
-// outside int32 (BYTE, INT, UINT, LONG) or [-2^63, 2^64) (other integers).
+// FE_INVALID marks NaN, infinity and magnitudes outside the wrap window.
+// It also marks truncated values outside int32 for BYTE, INT, UINT and LONG,
+// or outside int64 for LONG64. ULONG64 also warns below -2^63.
 template <typename IntT, typename RealT>
 inline IntT Real2Int(const RealT r) {
   static_assert(std::is_integral<IntT>::value,

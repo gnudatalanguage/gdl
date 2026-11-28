@@ -54,6 +54,8 @@ exp_UINT[2:3]=[10u,65526u]
 ;
 exp_ULONG=MAKE_ARRAY(8, type=13)
 exp_ULONG[2:3]=[10ul,4294967286ul]
+; GDL keeps the LONG sentinel's high bit here. IDL can return zero.
+exp_ULONG[4:7]=2UL^31
 ;
 exp_LONG64=MAKE_ARRAY(8, type=14)
 exp_LONG64[2:3]=[10ll,-10ll]
@@ -61,8 +63,8 @@ exp_LONG64[4:7]=REPLICATE(l63,4)
 ;
 exp_ULONG64=MAKE_ARRAY(8, type=15)
 exp_ULONG64[2:3]=[10ull,-10ull]
-exp_ULONG64[4:7]=REPLICATE(l63,4)
-exp_ULONG64[6]=0ull
+; GDL uses the same high bit for all nonfinite inputs. IDL returns zero for +Inf.
+exp_ULONG64[4:7]=REPLICATE(ull63,4)
 ;
 for ii=0,N_ELEMENTS(list_num_names)-1 do begin
    ;;

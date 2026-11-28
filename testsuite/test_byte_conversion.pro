@@ -274,7 +274,8 @@ foreach threads, [1, 4] do begin
    endforeach
 endforeach
 ;
-if BYTE(4294967299.75d) ne 3b then ERRORS_ADD, nb_errors, 'BYTE of a large DOUBLE'
+if BYTE(300.) ne 44b then ERRORS_ADD, nb_errors, 'BYTE(300.) must wrap to 44'
+if BYTE(4294967299.75d) ne 0b then ERRORS_ADD, nb_errors, 'BYTE above the 32-bit window'
 if BYTE(!VALUES.F_NAN) ne 0b then ERRORS_ADD, nb_errors, 'BYTE of NaN'
 if LONG(-2147483648.75D) ne (-2147483647L - 1L) then $
    ERRORS_ADD, nb_errors, 'LONG at the negative truncation boundary'
@@ -282,14 +283,17 @@ if LONG(-2147483648.75D) ne (-2147483647L - 1L) then $
 ; Check the flag independently of the converted value. Only the last
 ; block has the test operand, so workers must report it to the caller.
 values = [!VALUES.D_NAN, !VALUES.D_INFINITY, 1D20, -1D19, 300D, 3D9, 1D19, -1.5D, $
-          -2147483649D, -2147483648.75D, 2147483647.75D, 2147483648D]
-illegal32 = [1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1]
-illegal64 = [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+          -2147483649D, -2147483648.75D, 2147483647.75D, 2147483648D, 1D10]
 source = DBLARR(8192)
 foreach threads, [1, 4] do begin
    CPU, TPOOL_NTHREADS=threads, TPOOL_MIN_ELTS=1, TPOOL_MAX_ELTS=0
    foreach type, [1, 2, 12, 3, 13, 14, 15] do begin
-      illegal = type le 12 ? illegal32 : illegal64
+      case type of
+         13:   illegal = [1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1] ; ULONG
+         14:   illegal = [1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0] ; LONG64
+         15:   illegal = [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0] ; ULONG64
+         else: illegal = [1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1] ; signed LONG conversion
+      endcase
       for i = 0, N_ELEMENTS(values) - 1 do begin
          source[8191] = values[i]
          flags = CHECK_MATH()

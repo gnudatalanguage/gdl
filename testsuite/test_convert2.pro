@@ -350,7 +350,10 @@ type = SIZE(expected, /TYPE)
 foreach threads, [1, 4] do begin
    CPU, TPOOL_NTHREADS=threads, TPOOL_MIN_ELTS=1, TPOOL_MAX_ELTS=0
    foreach source_type, source_types do begin
-      source = FIX(values, TYPE=source_type)
+      if (source_type eq 6) || (source_type eq 9) then begin
+         ; Only the real component contributes to the result and its flags.
+         source = COMPLEX(values, REPLICATE(!VALUES.F_NAN, N_ELEMENTS(values)), DOUBLE=(source_type eq 9))
+      endif else source = FIX(values, TYPE=source_type)
       input = REPLICATE(FIX(0, TYPE=source_type), 4097)
       ; Exercise a whole worker group, one exceptional lane, and the final tail.
       foreach pos, [3968L, 4087L, 4096L] do begin
@@ -485,7 +488,7 @@ if FIX(-1LL, TYPE=13) ne 4294967295UL then $
 if FIX(NOT 0ULL, TYPE=14) ne -1LL then $
    ERRORS_ADD, cumul_errors, 'ULONG64 to LONG64 low-bit conversion'
 ;
-; Finite inputs truncate toward zero and retain the low destination bits.
+; Inside the wrap window, truncation retains the low destination bits.
 ; These values are exactly representable in all four source types.
 saved_except = !EXCEPT
 !EXCEPT = 0
@@ -498,29 +501,29 @@ umax64 = 18446744073709551615ULL
 bound = 2D^63
 values = [0D, -3D9, 3D9, -1.5D, -0.75D, 2D^31, 2D^32, -bound, bound, 2D*bound]
 types = [4, 5, 6, 9]
-illegal64 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 128]
+high32 = 2147483648UL
+high64 = 9223372036854775808ULL
 TEST_CONVERT2_WRAP, cumul_errors, values, $
-   [0L, 1294967296L, -1294967296L, -1L, 0L, min32, 0L, 0L, 0L, 0L], $
+   [0L, 1294967296L, -1294967296L, -1L, 0L, min32, min32, min32, min32, min32], $
    [0, 128, 128, 0, 0, 128, 128, 128, 128, 128], types
 TEST_CONVERT2_WRAP, cumul_errors, values, $
-   [0UL, 1294967296UL, 3000000000UL, umax32, 0UL, 2147483648UL, 0UL, 0UL, 0UL, 0UL], $
-   illegal64, types
+   [0UL, 1294967296UL, 3000000000UL, umax32, 0UL, high32, high32, high32, high32, high32], $
+   [0, 0, 0, 0, 0, 0, 128, 128, 128, 128], types
 TEST_CONVERT2_WRAP, cumul_errors, values, $
-   [0LL, -3000000000LL, 3000000000LL, -1LL, 0LL, 2147483648LL, 4294967296LL, min64, min64, 0LL], $
-   illegal64, types
-highbit = 9223372036854775808ULL
+   [0LL, -3000000000LL, 3000000000LL, -1LL, 0LL, 2147483648LL, 4294967296LL, min64, min64, min64], $
+   [0, 0, 0, 0, 0, 0, 0, 0, 128, 128], types
 TEST_CONVERT2_WRAP, cumul_errors, values, $
-   [0ULL, umax64-2999999999ULL, 3000000000ULL, umax64, 0ULL, 2147483648ULL, 4294967296ULL, highbit, highbit, 0ULL], $
-   illegal64, types
+   [0ULL, umax64-2999999999ULL, 3000000000ULL, umax64, 0ULL, 2147483648ULL, 4294967296ULL, high64, high64, high64], $
+   [0, 0, 0, 0, 0, 0, 0, 0, 0, 128], types
 ;
-; NaN and infinities keep their established results and set the illegal flag.
+; NaN and both infinities have the same sentinel as an oversized finite value.
 values = [!VALUES.D_NAN, !VALUES.D_INFINITY, -!VALUES.D_INFINITY]
 illegal = [128, 128, 128]
 TEST_CONVERT2_WRAP, cumul_errors, values, [min32, min32, min32], illegal, types
-TEST_CONVERT2_WRAP, cumul_errors, values, [0UL, 0UL, 0UL], illegal, types
+TEST_CONVERT2_WRAP, cumul_errors, values, [high32, high32, high32], illegal, types
 TEST_CONVERT2_WRAP, cumul_errors, values, [min64, min64, min64], illegal, types
 TEST_CONVERT2_WRAP, cumul_errors, values, $
-   [highbit, 0ULL, highbit], illegal, types
+   [high64, high64, high64], illegal, types
 ;
 ; Adjacent DOUBLEs at the signed cast boundary differ in their low fraction bits.
 edge = 2D^31
@@ -542,28 +545,45 @@ endforeach
 ; Check adjacent DOUBLE values and fractions whose truncation still fits.
 TEST_CONVERT2_WRAP, cumul_errors, [-2147483648.75D, 2147483647.75D], $
    [min32, max32], [0, 0], [5, 9]
-TEST_CONVERT2_WRAP, cumul_errors, [4294967295.75D, 4294967296D], $
-   [umax32, 0UL], [0, 0], [5, 9]
+; Nearest DOUBLE on each side of the positive and negative wrap limits.
+cutoff = 2D^32
+below = cutoff - 2D^(-21)
+above = cutoff + 2D^(-20)
+values = [-above, -cutoff, -below, below, cutoff, above]
+flags_at_cutoff = [128, 128, 0, 0, 128, 128]
+TEST_CONVERT2_WRAP, cumul_errors, values, $
+   [min32, min32, 1L, -1L, min32, min32], REPLICATE(128, 6), [5, 9]
+TEST_CONVERT2_WRAP, cumul_errors, values, $
+   [high32, high32, 1UL, umax32, high32, high32], flags_at_cutoff, [5, 9]
+foreach type, [1, 2, 12] do begin
+   expected = FIX([0L, 0L, 1L, -1L, 0L, 0L], TYPE=type)
+   TEST_CONVERT2_WRAP, cumul_errors, values, expected, REPLICATE(128, 6), [5, 9]
+endforeach
 values = [-bound-2048D, -bound, -bound+1024D, bound-1024D, bound, bound+2048D]
 TEST_CONVERT2_WRAP, cumul_errors, values, $
    [max64-2047LL, min64, min64+1024LL, max64-1023LL, min64, min64+2048LL], $
+   [128, 0, 0, 0, 128, 128], [5, 9]
+TEST_CONVERT2_WRAP, cumul_errors, values, $
+   [high64-2048ULL, high64, high64+1024ULL, high64-1024ULL, high64, high64+2048ULL], $
    [128, 0, 0, 0, 0, 0], [5, 9]
-TEST_CONVERT2_WRAP, cumul_errors, [bound+2048D, 2D*bound-2048D, 2D*bound, 2D*bound+4096D], $
-   [highbit+2048ULL, umax64-2047ULL, 0ULL, 4096ULL], [0, 0, 128, 128], [5, 9]
-TEST_CONVERT2_WRAP, cumul_errors, [-2D*bound-4096D, -1D300, 1D300], $
-   [umax64-4095ULL, 0ULL, 0ULL], [128, 128, 128], [5, 9]
-TEST_CONVERT2_WRAP, cumul_errors, [1D300], [0L], [128], [5, 9]
-; Immediately below each cutoff, one destination bit still survives.
-cutoff = 2D^84
-values = [-(cutoff - 2D^31), cutoff - 2D^31, cutoff, -cutoff, cutoff + 2D^32]
-TEST_CONVERT2_WRAP, cumul_errors, values, [min32, min32, 0L, 0L, 0L], $
-   REPLICATE(128, 5), [5, 9]
-cutoff = 2D^116
-values = [-(cutoff - bound), cutoff - bound, cutoff, -cutoff, cutoff + 2D^64]
-TEST_CONVERT2_WRAP, cumul_errors, values, [highbit, highbit, 0ULL, 0ULL, 0ULL], $
-   REPLICATE(128, 5), [5, 9]
-TEST_CONVERT2_WRAP, cumul_errors, [-(2D^31)], [0B], [0], [4, 6]
-TEST_CONVERT2_WRAP, cumul_errors, [2D^55], [0UL], [0], [4, 6]
+cutoff = 2D * bound
+values = [-cutoff-4096D, -cutoff, -cutoff+2048D, cutoff-2048D, cutoff, cutoff+4096D]
+TEST_CONVERT2_WRAP, cumul_errors, values, $
+   [min64, min64, 2048LL, -2048LL, min64, min64], REPLICATE(128, 6), [5, 9]
+TEST_CONVERT2_WRAP, cumul_errors, values, $
+   [high64, high64, 2048ULL, umax64-2047ULL, high64, high64], [128, 128, 128, 0, 128, 128], [5, 9]
+TEST_CONVERT2_WRAP, cumul_errors, [-1D19, 1D19], $
+   [8446744073709551616LL, -8446744073709551616LL], [128, 128], [5, 9]
+TEST_CONVERT2_WRAP, cumul_errors, [-1D19, 1D19], $
+   [8446744073709551616ULL, 10000000000000000000ULL], [128, 0], [5, 9]
+TEST_CONVERT2_WRAP, cumul_errors, [-1D300, 1D300], [min64, min64], [128, 128], [5, 9]
+; Adjacent single-precision values below 2^32 and above 2^63.
+TEST_CONVERT2_WRAP, cumul_errors, [4294967040.], [-256L], [128], [4, 6]
+TEST_CONVERT2_WRAP, cumul_errors, [4294967040.], [4294967040UL], [0], [4, 6]
+TEST_CONVERT2_WRAP, cumul_errors, [2.^63 + 2.^40], [min64 + 2LL^40], [128], [4, 6]
+edge = 2.^63 + 2.^40
+TEST_CONVERT2_WRAP, cumul_errors, [-edge, edge], $
+   [high64 - 2ULL^40, high64 + 2ULL^40], [128, 0], [4, 6]
 flags = CHECK_MATH()
 !EXCEPT = saved_except
 ;

@@ -166,8 +166,7 @@ bool groupFits(const SourceT* in, RealT limit) {
 template <typename DestT, typename SourceT>
 bool convertIntegerBlock(const SourceT* in, DestT* out, SizeT nEl) {
   using RealT = decltype(realPart(*in));
-  using Intermediate = typename std::conditional<real2int_detail::fitsInt32<DestT>(),
-                                                std::int32_t, std::int64_t>::type;
+  using Intermediate = real2int_detail::SignedWord<DestT>;
   constexpr RealT limit = -static_cast<RealT>(std::numeric_limits<Intermediate>::min());
   // Longer groups help with interleaved COMPLEX real lanes and amortize
   // the range reduction when both the input and the result are 64 bits.
@@ -189,18 +188,11 @@ bool convertIntegerBlock(const SourceT* in, DestT* out, SizeT nEl) {
       continue;
     }
 
-    // Preserve the flag when every finite value in the group has zero low bits.
-    constexpr RealT zeroThreshold = real2int_detail::zeroWithInvalidThreshold<DestT, RealT>();
-    bool allZero = true;
-    for (SizeT j = 0; j < groupSize; ++j) {
-      const RealT r = realPart(in[i + j]);
-      // Evaluate both tests without short-circuiting so the loop can vectorize.
-      const int large = std::isgreaterequal(std::abs(r), zeroThreshold);
-      allZero &= large & std::isfinite(r);
-    }
-    if (allZero) {
-      std::fill_n(out + i, groupSize, DestT{0});
-      invalid = true;
+    // The rest of the ULONG wrap window fits in int64, including negative values.
+    if (std::is_same<DestT, DULong>::value && groupFits<groupSize>(in + i, 2 * limit)) {
+      for (SizeT j = 0; j < groupSize; ++j) {
+        out[i + j] = static_cast<DestT>(static_cast<std::int64_t>(realPart(in[i + j])));
+      }
       continue;
     }
 
