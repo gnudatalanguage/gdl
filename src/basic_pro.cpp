@@ -369,6 +369,7 @@ namespace lib {
 	if( par == NULL or par->Type() != GDL_OBJ) return;
 	DObjGDL* op= static_cast<DObjGDL*>(par);
 
+    // IDL stops at the first failing CLEANUP, leaving later elements valid.
     SizeT nEl = op->N_Elements();
 	for( SizeT i=0; i<nEl; i++)	
 			e->ObjCleanup( (*op)[i]);

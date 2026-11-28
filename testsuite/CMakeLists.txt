@@ -47,6 +47,8 @@ if(TEST test_finite.pro)
   set_tests_properties(test_finite.pro PROPERTIES TIMEOUT 300)
 endif()
 set_tests_properties(${TESTS} PROPERTIES ENVIRONMENT "LC_COLLATE=C;GDL_PATH=${BASE_SOURCE}/testsuite/${PATH_SEP}${BASE_SOURCE}/src/pro/${PATH_SEP}${BASE_SOURCE}/src/pro/CMprocedures/${PATH_SEP}${BASE_SOURCE}/src/pro/dicom/${PATH_SEP}${BASE_SOURCE}/src/pro/utilities/;GDL_STARTUP=;IDL_STARTUP=")
+set_property(TEST test_cleanup_interactive.pro APPEND PROPERTY ENVIRONMENT
+  "GDL_TEST_EXECUTABLE=$<TARGET_FILE:gdl>")
 
 # These isolated build-system tests need no optional GDL libraries. Their C
 # executable fixture uses POSIX APIs, so register them on POSIX hosts only.

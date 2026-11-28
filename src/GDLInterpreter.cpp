@@ -87,12 +87,14 @@ GDLInterpreter::GDLInterpreter()
 					last = _retTree;
 					callStack.back()->SetLineNumber(last->getLine()); // track actual line number
 					retCode = last->Run(); // Run() sets _retTree
+					RethrowCleanupException();
 				} while (_retTree != NULL && retCode == RC_OK && !(sigControlC) && (debugMode <= DEBUG_RETURN)); //loops if debug_clear or debug_return
 			} else { //will not test for sigControlC 
 				do {
 					last = _retTree;
 					callStack.back()->SetLineNumber(last->getLine()); // track actual line number
 					retCode = last->Run(); // Run() sets _retTree
+					RethrowCleanupException();
 				} while (_retTree != NULL && retCode == RC_OK && (debugMode <= DEBUG_RETURN)); //loops if debug_clear or debug_return
 			}
 			if (_retTree != NULL && debugMode != DEBUG_RETURN ) last = _retTree;
@@ -428,6 +430,8 @@ GDLInterpreter::GDLInterpreter()
 	}
 	catch ( GDLException& e) {
 		
+			// A cleanup failure during unwinding replaces the preceding error.
+			ApplyCleanupException(e);
 				// errors while typing commands in inner loop (called via Control-C, STOP, error) should be ignored.
 				if (e.Interpreter()->IsInnerInterpreterLoop()) {
 				  e.Interpreter()->SetInnerInterpeterLoop(false);
@@ -451,7 +455,8 @@ GDLInterpreter::GDLInterpreter()
 			static unsigned codeTag = errorStateDesc->TagIndex( "CODE");
 			static unsigned msgTag = errorStateDesc->TagIndex( "MSG");
 		
-			if( e.IsIOException())
+			// EXECUTE returns a status instead of entering handlers in its caller.
+			if( e.IsIOException() && callStack.back() != executeEnv)
 			    {
 		//		assert( dynamic_cast< GDLIOException*>( &e) != NULL);  //removed. for some reason dynamic_cast returns NULL on bona fide GDLIOException objects.
 				// set the jump target - also logs the jump
@@ -474,9 +479,12 @@ GDLInterpreter::GDLInterpreter()
 				    }
 			    }
 		
+			// ON_IOERROR applies only in the routine where the I/O error occurred.
+			e.ClearIOException();
+
 			// handle CATCH
 			ProgNodeP catchNode = callStack.back()->GetCatchNode();
-			if( catchNode != NULL)
+			if( catchNode != nullptr && callStack.back() != executeEnv)
 			    {
 			DStructGDL* errorState = SysVar::Error_State();
 			(*static_cast<DStringGDL*>( errorState->GetTag( nameTag)))[0] = 
@@ -495,12 +503,8 @@ GDLInterpreter::GDLInterpreter()
 				return RC_OK;
 			    }
 		
-			EnvUDT* targetEnv = e.GetTargetEnv();
-			if( targetEnv == NULL)
-			{
-			    // initial exception, set target env
-			    
-			// set !ERROR_STATE here
+			// Cleanup during unwinding may have changed the error state.
+			// Restore the current error even when its target is already known.
 			DStructGDL* errorState = SysVar::Error_State();
 			(*static_cast<DStringGDL*>( errorState->GetTag( nameTag)))[0] = 
 			    "IDL_M_FAILURE";
@@ -511,6 +515,29 @@ GDLInterpreter::GDLInterpreter()
 			    e.getMessage();
 			SysVar::SetErr_String( e.getMessage());
 		
+			EnvUDT* targetEnv = e.GetTargetEnv();
+			if( targetEnv == nullptr)
+			{
+			    // Keep errors from called routines from becoming normal returns.
+			    // Unwind to EXECUTE, allowing handlers in intervening routines.
+			    if( executeEnv != nullptr && callStack.back() != executeEnv)
+			    {
+			        bool caught = false;
+			        for (long ix = callStack.size() - 1; ix >= 0 && callStack[ix] != executeEnv; --ix)
+			            if (callStack[ix]->GetCatchNode() != nullptr) caught = true;
+			        if (!caught) ReportExecuteError(e);
+			        throw;
+			    }
+
+			    // A caller's CATCH takes precedence over ON_ERROR.
+			    for( long ix = callStack.size() - 1; ix >= 0; --ix)
+			    {
+			        if( callStack[ix] == executeEnv)
+			            break;
+			        if( callStack[ix]->GetCatchNode() != nullptr)
+			            throw;
+			    }
+
 			    // look if ON_ERROR is set somewhere
 			    // for( EnvStackT::reverse_iterator i = callStack.rbegin();
 			    //     i != callStack.rend(); ++i)
@@ -624,23 +651,17 @@ GDLInterpreter::GDLInterpreter()
 			else
 			    {
 		
-				DString msgPrefix = SysVar::MsgPrefix();
-				if( e.Prefix())
-				    {
-					std::cerr << msgPrefix << e.toString() << std::endl;
-					lib::write_journal_comment(msgPrefix+e.toString());
-				    }
-				else
-				    {
-					std::cerr << e.toString() << std::endl;
-					lib::write_journal_comment(e.toString());
-				    }
-		
+				ReportExecuteError(e);
+
 				retCode = RC_ABORT;
 			    }
 		
 			return retCode;
 		
+	}
+	catch (...) {
+		deferredCleanupException = nullptr;
+		throw;
 	}
 	_retTree = _t;
 	return retCode;
@@ -653,6 +674,10 @@ GDLInterpreter::GDLInterpreter()
 	//    RetCode retCode;
 	ValueGuard<bool> guard( interruptEnable);
 	interruptEnable = false;
+	ValueGuard<std::exception_ptr> cleanupGuard( deferredCleanupException);
+	deferredCleanupException = nullptr;
+	ValueGuard<EnvUDT*> executeGuard( executeEnv);
+	executeEnv = callStack.back();
 	
 	//	return statement_list(_t);
 	
@@ -704,6 +729,9 @@ GDLInterpreter::GDLInterpreter()
 	 BaseGDL* res;
 	ProgNodeP call_fun_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
+	// A caller's pending cleanup error belongs to its own statement.
+	ValueGuard<std::exception_ptr> cleanupGuard( deferredCleanupException);
+	deferredCleanupException = nullptr;
 	
 	res = NULL;
 	assert(returnValue == NULL);
@@ -760,6 +788,8 @@ GDLInterpreter::GDLInterpreter()
 	 BaseGDL** res;
 	ProgNodeP call_lfun_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
+	ValueGuard<std::exception_ptr> cleanupGuard( deferredCleanupException);
+	deferredCleanupException = nullptr;
 	res = NULL;
 	assert(returnValueL == NULL);
 	RetCode retCode;
@@ -811,6 +841,8 @@ GDLInterpreter::GDLInterpreter()
 void GDLInterpreter::call_pro(ProgNodeP _t) {
 	ProgNodeP call_pro_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
+	ValueGuard<std::exception_ptr> cleanupGuard( deferredCleanupException);
+	deferredCleanupException = nullptr;
 	RetCode retCode;
 	
 		for (; _t != NULL;) {

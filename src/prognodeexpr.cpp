@@ -3118,7 +3118,29 @@ BaseGDL** FCALL_LIB_N_ELEMENTSNode::LEval()
     throw GDLException(this,"Internal error: N_ELEMENTS called as left expr.");
 }
 
+// Complete frame destruction before the enclosing expression can continue.
+// Keep an owned return value guarded if a local object's CLEANUP failed.
+template<class FrameGuard>
+static BaseGDL* FinishFunctionCall(FrameGuard& frame, BaseGDL* value,
+                                   BaseGDL** reference = nullptr)
+{
+    Guard<BaseGDL> resultGuard(reference == nullptr ? value : nullptr);
+    frame.Cleanup();
+    GDLInterpreter::RethrowCleanupException();
+    resultGuard.release();
+    return value;
+}
+
 BaseGDL* FCALL_LIB_N_ELEMENTSNode::Eval()
+{
+    // Parameter temporaries are destroyed after EvalNElements' error handler.
+    // Their cleanup errors must not be mistaken for an undefined argument.
+    Guard<BaseGDL> result(EvalNElements());
+    GDLInterpreter::RethrowCleanupException();
+    return result.release();
+}
+
+BaseGDL* FCALL_LIB_N_ELEMENTSNode::EvalNElements()
 {
     if( this->getFirstChild()->getNextSibling() != 0) 
               throw GDLException(this,"Keyword parameters not allowed in call.");
@@ -3185,7 +3207,7 @@ BaseGDL* FCALL_LIB_RETNEWNode::Eval()
     BaseGDL* res = this->libFunFun(newEnv);
     //*** MUST always return a defined expression
     assert( res != NULL);
-    return res;
+    return FinishFunctionCall(guardEnv, res);
 }
 
 BaseGDL** FCALL_LIB_DIRECTNode::LEval()
@@ -3273,6 +3295,7 @@ BaseGDL** FCALL_LIBNode::EvalRefCheck( BaseGDL*& rEval)
     rEval = this->libFunFun(newEnv);
 //     BaseGDL** res = ProgNode::interpreter->CallStackBack()->GetPtrTo( rEval);
     BaseGDL** res = newEnv->GetPtrToReturnValue();
+    FinishFunctionCall(guardEnv, rEval, res);
     return res; // NULL ok, rEval set properly
 
 }
@@ -3336,7 +3359,7 @@ BaseGDL* FCALL_LIBNode::EvalFCALL_LIB(BaseGDL**& retValPtr)
 
     //     ProgNode::interpreter->CallStackBack()->SetPtrToReturnValue( newEnv->GetPtrToReturnValueNull());
     retValPtr = newEnv->GetPtrToReturnValue();
-    return res;
+    return FinishFunctionCall(guardEnv, res, retValPtr);
 }
 
 // returns always a new variable - see EvalFCALL_LIB
@@ -3358,9 +3381,9 @@ BaseGDL* FCALL_LIBNode::Eval()
     //       throw GDLException( _t, "");
 
     if( newEnv->GetPtrToReturnValue() != NULL)
-        return res->Dup();
+        return FinishFunctionCall(guardEnv, res->Dup());
 
-    return res;
+    return FinishFunctionCall(guardEnv, res);
 }
 
 BaseGDL** MFCALLNode::EvalRefCheck( BaseGDL*& rEval)
@@ -3390,6 +3413,7 @@ BaseGDL** MFCALLNode::EvalRefCheck( BaseGDL*& rEval)
     rEval=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
     BaseGDL** res = newEnv->GetPtrToGlobalReturnValue();
+    FinishFunctionCall(guard, rEval, res);
     return res; // NULL ok, rEval set properly
 }
 
@@ -3421,6 +3445,8 @@ BaseGDL** MFCALLNode::LEval()
                     call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
     //ProgNode::interpreter->SetRetTree( this->getNextSibling());
+    guard.Cleanup();
+    GDLInterpreter::RethrowCleanupException();
     return res;
 }
 
@@ -3452,7 +3478,7 @@ BaseGDL* MFCALLNode::Eval()
     BaseGDL* res=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
     //ProgNode::interpreter->SetRetTree( this->getNextSibling());
-    return res;
+    return FinishFunctionCall(guard, res);
 }
 
 BaseGDL** MFCALL_PARENTNode::EvalRefCheck( BaseGDL*& rEval)
@@ -3483,6 +3509,7 @@ BaseGDL** MFCALL_PARENTNode::EvalRefCheck( BaseGDL*& rEval)
     // make the call
     rEval=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
     BaseGDL** res = newEnv->GetPtrToGlobalReturnValue();
+    FinishFunctionCall(guard, rEval, res);
     return res; // NULL ok, rEval set properly
 }
 
@@ -3517,6 +3544,8 @@ BaseGDL** MFCALL_PARENTNode::LEval()
                   call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
     //ProgNode::interpreter->SetRetTree( this->getNextSibling());
+    guard.Cleanup();
+    GDLInterpreter::RethrowCleanupException();
     return res;
 }
 
@@ -3550,7 +3579,7 @@ BaseGDL* MFCALL_PARENTNode::Eval()
     BaseGDL* res=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
     //ProgNode::interpreter->SetRetTree( this->getNextSibling());
-    return res;
+    return FinishFunctionCall(guard, res);
 }
 
 BaseGDL** FCALLNode::EvalRefCheck( BaseGDL*& rEval)
@@ -3587,6 +3616,7 @@ BaseGDL** FCALLNode::EvalRefCheck( BaseGDL*& rEval)
     // make the call
     rEval=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
     BaseGDL** res = newEnv->GetPtrToGlobalReturnValue();
+    FinishFunctionCall(guard, rEval, res);
     return res; // NULL ok, rEval set properly
 }
 
@@ -3656,7 +3686,8 @@ BaseGDL** FCALLNode::LEval()
     BaseGDL** res=
         ProgNode::interpreter->call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
-    //ProgNode::interpreter->SetRetTree( this->getNextSibling());
+    guard.Cleanup();
+    GDLInterpreter::RethrowCleanupException();
     return res;
 }
 
@@ -3747,7 +3778,7 @@ BaseGDL* FCALLNode::Eval()
     res=ProgNode::interpreter->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
     //ProgNode::interpreter->SetRetTree( this->getNextSibling());
-    return res;
+    return FinishFunctionCall(guard, res);
 }
 
 BaseGDL* ARRAYEXPR_FCALLNode::Eval()
@@ -3836,6 +3867,7 @@ BaseGDL** ARRAYEXPR_MFCALLNode::EvalRefCheck( BaseGDL*& rEval)
     rEval= ProgNode::interpreter->
            call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
     res = newEnv->GetPtrToGlobalReturnValue();
+    FinishFunctionCall(guard, rEval, res);
     return res; // NULL ok, rEval set properly
 
 tryARRAYEXPR:
@@ -3886,7 +3918,10 @@ BaseGDL** ARRAYEXPR_MFCALLNode::LEval()
     ProgNode::interpreter->CallStack().push_back(newEnv);
 
     // make the call
-    return ProgNode::interpreter->call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+    BaseGDL** res = ProgNode::interpreter->call_lfun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+    guard.Cleanup();
+    GDLInterpreter::RethrowCleanupException();
+    return res;
 }
 
 
@@ -3931,7 +3966,7 @@ BaseGDL* ARRAYEXPR_MFCALLNode::Eval()
         call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
 
     //ProgNode::interpreter->SetRetTree( this->getNextSibling());
-    return res;
+    return FinishFunctionCall(guard, res);
 
 tryARRAYEXPR:
     ;
