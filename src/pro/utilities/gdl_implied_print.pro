@@ -58,7 +58,7 @@ end
 function maketab
 common json_serialize_gdl_level, width, level
 tab=''
-for i=0,level do tab+='    '
+for i=0,level do tab+='  '
 return, tab
 end
 
@@ -140,22 +140,20 @@ comma=','
   endcase
 
 
+  endif else if type eq 8 then begin
+     tmpstr+=SquareBraceleft
+     level++
+     for i=0,n-1 do begin
+        tmpstr+=LF+maketab()+pretty_serialize(value[i])
+        if i lt n-1 then tmpstr+=comma
+     endfor
+     level--
+     tmpstr+=LF+maketab()+']'
   endif else begin
      nel=n_elements(value)
      if nel gt 1 then tmpstr+='['
      for i=0,nel-1 do begin
         case type of
-           8: begin
-              tagn=tag_names(value[i])
-              tmpstr+=braceleft & level++
-              for j=0,n_tags(value[i])-1 do begin
-                 tmpstr+=LF+pretty_serialize(tagname=tagn[j],value[i].(j))
-                 if (j lt n_tags(value[i])-1 ) then tmpstr+=comma
-              end
-			  level--
-              tmpstr+=maketab()+'}'+LF
-           end
-           
            11: begin            ; more tricky depending on single value of array
               mytype=typename(value[i])
               if (mytype eq 'LIST') then begin
