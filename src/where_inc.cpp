@@ -34,8 +34,8 @@ void Data_<Sp>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &c
         countno+=(!tmp);
       }
       passed_count=countyes;
-      if (countyes) ret=(DLong64*)REALLOC(yes,countyes * sizeof (DLong64)); else {FREE(yes); ret=NULL;}
-      if (countno) comp_ret=(DLong64*)REALLOC(no,countno * sizeof (DLong64)); else {FREE(no); comp_ret=NULL;}
+      ret = trimWhereIndices(yes, countyes, nEl);
+      comp_ret = trimWhereIndices(no, countno, nEl);
       return;
     } else {
       SizeT chunksize = nEl / nchunk;
@@ -116,7 +116,7 @@ void Data_<Sp>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &c
         count+=tmp;
       }
       passed_count=count;
-      if (count) ret=(DLong64*)REALLOC(yes,count * sizeof (DLong64)); else {FREE(yes); ret=NULL;}
+      ret = trimWhereIndices(yes, count, nEl);
       return;
     } else {
       SizeT chunksize = nEl / nchunk;
@@ -190,8 +190,8 @@ void Data_<Sp>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_
         countno+=(!tmp);
       }
       passed_count=countyes;
-      if (countyes) ret=(DLong*)REALLOC(yes,countyes * sizeof (DLong)); else {FREE(yes); ret=NULL;}
-      if (countno) comp_ret=(DLong*)REALLOC(no,countno * sizeof (DLong)); else {FREE(no); comp_ret=NULL;}
+      ret = trimWhereIndices(yes, countyes, nEl);
+      comp_ret = trimWhereIndices(no, countno, nEl);
       return;
     } else {
       SizeT chunksize = nEl / nchunk;
@@ -272,7 +272,7 @@ void Data_<Sp>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_
         count+=tmp;
       }
       passed_count=count;
-      if (count) ret=(DLong*)REALLOC(yes,count * sizeof (DLong)); else {FREE(yes); ret=NULL;}
+      ret = trimWhereIndices(yes, count, nEl);
       return;
     } else {
       SizeT chunksize = nEl / nchunk;

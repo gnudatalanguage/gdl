@@ -383,6 +383,8 @@ include("''' + str(REPO / "CMakeModules/FindGSL.cmake") + '''")
         (suite / "LIST").write_text("test_call_external.pro\n")
         (suite / "example.grib").touch()
         (suite / "libtest_ce.cpp").write_text("int test_library() { return 0; }\n")
+        (suite / "dlm").mkdir()
+        (suite / "dlm/mem_realloc.cpp").touch()
         cmake = self.source / "CMakeLists.txt"
         cmake.write_text(cmake.read_text().replace("project(LauncherTest C)", "project(LauncherTest C CXX)")
                          + "add_subdirectory(testsuite)\n")

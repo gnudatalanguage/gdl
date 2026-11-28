@@ -48,6 +48,26 @@ if(TEST test_finite.pro)
 endif()
 set_tests_properties(${TESTS} PROPERTIES ENVIRONMENT "LC_COLLATE=C;GDL_PATH=${BASE_SOURCE}/testsuite/${PATH_SEP}${BASE_SOURCE}/src/pro/${PATH_SEP}${BASE_SOURCE}/src/pro/CMprocedures/${PATH_SEP}${BASE_SOURCE}/src/pro/dicom/${PATH_SEP}${BASE_SOURCE}/src/pro/utilities/;GDL_STARTUP=;IDL_STARTUP=")
 
+# Load this module into the running GDL so its normal end-of-call cleanup runs.
+if(UNIX)
+  add_library(test_dlm_realloc MODULE EXCLUDE_FROM_ALL dlm/mem_realloc.cpp)
+  if(APPLE)
+    set_target_properties(test_dlm_realloc PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
+  endif()
+  add_test(NAME test_build_dlm_realloc COMMAND "${CMAKE_COMMAND}"
+    --build "${CMAKE_BINARY_DIR}" --config "$<CONFIG>" --target test_dlm_realloc)
+  set_tests_properties(test_build_dlm_realloc PROPERTIES FIXTURES_SETUP dlm_realloc_library)
+  # The unused argument avoids the zero-length argv array of a zero-argument DLM call.
+  string(CONCAT check_dlm_realloc
+    "linkimage, 'CHECK_MEM_REALLOC', '$<TARGET_FILE:test_dlm_realloc>', 1,"
+    " 'check_mem_realloc', dlm_info='REALLOC'"
+    " & if call_function('CHECK_MEM_REALLOC', 0L) ne 1 then exit, status=1"
+    " & print, 'DLM realloc passed'")
+  add_test(NAME test_dlm_realloc COMMAND ${GDL_BINARY} -quiet -e "${check_dlm_realloc}")
+  set_tests_properties(test_dlm_realloc PROPERTIES FIXTURES_REQUIRED dlm_realloc_library
+    ENVIRONMENT "GDL_STARTUP=;IDL_STARTUP=" PASS_REGULAR_EXPRESSION "[\r\n]DLM realloc passed[\r\n]")
+endif()
+
 # These isolated build-system tests need no optional GDL libraries. Their C
 # executable fixture uses POSIX APIs, so register them on POSIX hosts only.
 if(UNIX)
