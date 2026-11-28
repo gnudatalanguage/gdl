@@ -101,7 +101,7 @@ inline void* gdlAlignedMalloc(std::size_t size) {
 #endif
 }
 
-inline void* gdlAlignedRealloc(void *ptr, std::size_t new_size, std::size_t old_size=0) { //apparently Eigen does not use old_size anymore. Pfewh.
+inline void* gdlAlignedRealloc(void* ptr, std::size_t new_size, std::size_t old_size) {
 #if defined(USE_EIGEN)
  return Eigen::internal::aligned_realloc(ptr,new_size,old_size);
 #else

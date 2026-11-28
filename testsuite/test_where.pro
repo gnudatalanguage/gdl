@@ -160,6 +160,24 @@ end
 ;
 ; ------------------------
 ;
+pro TEST_WHERE_RESIZE, nb_errors
+  saved_cpu = !cpu
+  cpu, tpool_nthreads=1
+  for n = 1L, 48L do begin
+    mask = lindgen(2*n+1) mod 2
+    odd = 2*lindgen(n)+1
+    even = 2*lindgen(n+1)
+    for use64 = 0, 1 do begin
+      indices = where(mask, l64=use64)
+      if ~array_equal(indices, odd) then errors_add, nb_errors, 'WHERE resized indices'
+      indices = where(mask, complement=rest, l64=use64)
+      if ~array_equal(indices, odd) then errors_add, nb_errors, 'WHERE resized indices with complement'
+      if ~array_equal(rest, even) then errors_add, nb_errors, 'WHERE resized complement'
+    endfor
+  endfor
+  cpu, restore=saved_cpu
+end
+
 pro TEST_WHERE, size, help=help, verbose=verbose, no_exit=no_exit, test=test
 ;
 if KEYWORD_SET(help) then begin
@@ -173,6 +191,7 @@ endif
 if (n_elements(size) le 0) then size=1E6 
 nb_errors=0
 ;
+TEST_WHERE_RESIZE, nb_errors
 TEST_WHERE_NULL, nb_errors, verbose=verbose 
 ;
 TEST_WHERE_WITH_RANDOM, size, nb_errors, verbose=verbose

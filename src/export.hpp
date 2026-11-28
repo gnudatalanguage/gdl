@@ -32,6 +32,9 @@
 #include "datatypes.hpp"
 #include "GDLInterpreter.hpp"
 #include "terminfo.hpp"
+#include <limits>
+#include <memory>
+#include <unordered_map>
 #include <setjmp.h>
 #if !defined(_WIN32) || defined(__CYGWIN__)
 #include <execinfo.h>
@@ -68,66 +71,55 @@ static std::vector<callableInfo> CollectedDLMSymbols; //vector of possible funct
 static std::vector<EXPORT_VPTR> GlobalVPTRList;
 static std::vector<EXPORT_VPTR> GlobalVPTRKwList;
 
-// list of memory (strings...) to be released when GDL_FreeResources() is called.
-// If each call is ended by freeing the resources, this list does not need to be private to each CallDllFunc/CallDllpro I guess.
-static std::vector<void*> FreeAtEnd;
+// Memory allocated during a DLM call, with its size; freed when the call returns.
+static std::unordered_map<void*, std::size_t> dlmAllocations;
 static jmp_buf callerEnv;
 
 #define ISSCALAR(me) ((me->flags & GDL_V_ARR)==0)
 #define ISARRAY(me) (me->flags & GDL_V_ARR)
 #define ISTEMP(me) (me->flags & (GDL_V_TEMP|GDL_V_CONST))
-inline void* MyMallocDestroyedOnExit(size_t size) {
-	//BACKTRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-	void* ret =  gdlAlignedMalloc(size);
-//	memset(ret, 0, size);
-	FreeAtEnd.push_back(ret);
-	return ret;
+inline void* MyMallocDestroyedOnExit(std::size_t size) {
+  // Keep ownership until registration succeeds.
+  std::unique_ptr<void, decltype(&gdlAlignedFree)> data(gdlAlignedMalloc(size), &gdlAlignedFree);
+  if (data) dlmAllocations[data.get()] = size;
+  return data.release();
 }
 
-inline void* MyCallocDestroyedOnExit(size_t nmemb, size_t size) {
-	BACKTRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-	void* ret = gdlAlignedMalloc(nmemb*size);
-	memset(ret,0,nmemb*size);
-	FreeAtEnd.push_back(ret);
-	return ret;
-}
-inline void MyFree(void* p) {//BACKTRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-	gdlAlignedFree(p);
-}
-void FreeIntermediateMemory(){	BACKTRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-for (auto it = FreeAtEnd.begin(); it != FreeAtEnd.end(); ++it) {
-#ifdef GDL_DEBUG
-	std::cerr<<std::hex<<"freeing #"<<(*it)<<std::endl;
-#endif  
-	MyFree(*it);
-}
-	FreeAtEnd.clear();
+inline void* MyCallocDestroyedOnExit(std::size_t nmemb, std::size_t size) {
+  BACKTRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+  const std::size_t bytes = nmemb * size;
+  void* ptr = MyMallocDestroyedOnExit(bytes);
+  if (ptr) std::memset(ptr, 0, bytes);
+  return ptr;
 }
 
-void FreeThisInIntermediateMemory(void* p) {
-	BACKTRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-	for (auto it = FreeAtEnd.begin(); it != FreeAtEnd.end(); ++it) {
-#ifdef GDL_DEBUG
-		std::cerr << std::hex << "immediate freeing of #" << p << std::endl;
-#endif  
-		if ((*it) == p) {
-			MyFree(*it);
-			FreeAtEnd.erase(it); //very unefficient but probably never occuring.
-			break;
-		}
-	}
+void RemoveFromIntermediateMemoryListToFree(void* ptr) {
+  dlmAllocations.erase(ptr);
 }
-void RemoveFromIntermediateMemoryListToFree(void* p) {
-	BACKTRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-	for (auto it = FreeAtEnd.begin(); it != FreeAtEnd.end(); ++it) {
+
+inline void MyFree(void* ptr) {
+  dlmAllocations.erase(ptr);
+  gdlAlignedFree(ptr);
+}
+
+void FreeIntermediateMemory() {
+  BACKTRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+  for (const auto& allocation : dlmAllocations) {
 #ifdef GDL_DEBUG
-		std::cerr << std::hex << "will NOT free #" << p << std::endl;
-#endif  
-		if ((*it) == p) {
-			FreeAtEnd.erase(it); //very unefficient but probably never occuring.
-			break;
-		}
-	}
+    std::cerr << std::hex << "freeing #" << allocation.first << std::endl;
+#endif
+    gdlAlignedFree(allocation.first);
+  }
+  dlmAllocations.clear();
+}
+
+void FreeThisInIntermediateMemory(void* ptr) {
+  if (dlmAllocations.erase(ptr) != 0) {
+#ifdef GDL_DEBUG
+    std::cerr << std::hex << "immediate freeing of #" << ptr << std::endl;
+#endif
+    gdlAlignedFree(ptr);
+  }
 }
 
 typedef struct {
@@ -2881,7 +2873,34 @@ DLL_PUBLIC void  GDL_CDECL IDL_KWFreeAll(void) {BACKTRACE_ROUTINE(__FUNCTION__, 
 	}
 
 	DLL_PUBLIC void * GDL_CDECL IDL_MemRealloc(void *ptr, EXPORT_MEMINT n, const char *err_str, int action) {
-		BACKTRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__) return gdlAlignedRealloc(ptr, n); //could be NOT ALIGNED!
+		BACKTRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+		if (n > std::numeric_limits<std::ptrdiff_t>::max()) return nullptr;
+		void* resized = nullptr;
+		try {
+			if (!ptr) return n == 0 ? nullptr : MyMallocDestroyedOnExit(n);
+			const auto it = dlmAllocations.find(ptr);
+			if (it == dlmAllocations.end()) return nullptr; // Unknown allocation size.
+			if (n == 0) {
+				dlmAllocations.erase(it);
+				gdlAlignedFree(ptr);
+				return nullptr;
+			}
+			resized = gdlAlignedRealloc(ptr, n, it->second);
+			if (!resized) return nullptr; // The caller still owns the original allocation.
+			if (resized == ptr) {
+				it->second = n;
+				return resized;
+			}
+			dlmAllocations.erase(it);
+		} catch (const std::bad_alloc&) {
+			return nullptr; // The caller still owns the original allocation.
+		}
+		try {
+			dlmAllocations[resized] = n;
+		} catch (const std::bad_alloc&) {
+			// The moved block is still valid, but it is no longer freed when the call returns.
+		}
+		return resized;
 	}
 
 	DLL_PUBLIC void GDL_CDECL IDL_MemFree(GDL_REGISTER void *m, const char *err_str, int msg_action) {
