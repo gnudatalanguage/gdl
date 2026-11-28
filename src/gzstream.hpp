@@ -53,8 +53,11 @@ private:
     char             buffer[bufferSize]; // data buffer
     char             opened;             // open/close state of stream
     int              mode;               // I/O mode
-    std::streampos   position;
+    std::streamoff   inputBufferEnd = 0;
     int flush_buffer();
+    std::streampos outputPosition() const {
+        return static_cast<std::streamoff>(gztell(file)) + (pptr() - pbase());
+    }
 public:
     gzstreambuf() : opened(0) {
         setp( buffer, buffer + (bufferSize-1));
@@ -68,17 +71,14 @@ public:
     gzstreambuf* close();
     ~gzstreambuf() { close(); }
     
-    virtual int     overflow( int c = EOF);
-    virtual int     underflow();
-    virtual int     sync();
-    std::streampos pubseekpos(std::streampos sp, std::ios_base::openmode which=std::ios_base::in|std::ios_base::out);
-    std::streampos pubseekoff(std::streamoff off, std::ios_base::seekdir way, std::ios_base::openmode which=std::ios_base::in|std::ios_base::out);
-    //hacks for not being lost with input gzipped streams
-    std::streampos getPosition(){return position;}
-    void setPosition(long pos){position=pos;} 
-    void incrementPosition(long pos=1){position+=pos;}
-    void decrementPosition(long pos=1){position-=pos;}
-    std::streampos seeknext(int_type __delim);
+    int overflow(int c = EOF) override;
+    int underflow() override;
+    int sync() override;
+    // The unread part of the get area has already been fetched from zlib.
+    std::streampos inputPosition() const { return inputBufferEnd - (egptr() - gptr()); }
+protected:
+    pos_type seekpos(pos_type sp, std::ios_base::openmode which) override;
+    pos_type seekoff(off_type off, std::ios_base::seekdir way, std::ios_base::openmode which) override;
 };
 
 class gzstreambase : virtual public std::ios {
@@ -110,8 +110,6 @@ public:
     }
     igzstream& seekg(std::streampos); 
     igzstream& seekg(std::streamoff, std::ios_base::seekdir);
-    igzstream& ignore(std::streamsize __n);
-    igzstream& ignore(std::streamsize __n, int_type __delim);
     std::streampos tellg();
 };
 

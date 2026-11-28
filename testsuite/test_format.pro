@@ -102,6 +102,53 @@ end
 ;
 ; ------------------------------------
 ;
+pro TEST_FORMAT_LOOP_ERROR, errors, fmt, values, input=input, unit=unit
+catch, err
+if err ne 0 then begin
+   msg = !error_state.msg
+   catch, /cancel
+   if strpos(msg, 'Infinite format loop detected.') lt 0 then $
+      ERRORS_ADD, errors, 'Unexpected error for '+fmt+' '+msg
+   return
+endif
+if keyword_set(input) then begin
+   result = values
+   reads, ['123','abc'], result, format=fmt
+endif else if n_elements(unit) ne 0 then begin
+   printf, unit, format=fmt, values
+endif else print, format=fmt, values
+ERRORS_ADD, errors, 'Expected an infinite format loop error for '+fmt
+end
+;
+pro TEST_FORMAT_LOOP_FILE, errors
+file = 'test_format_loop_output.dat'
+get_lun, u
+foreach compress, [0,1] do begin
+   openw, u, file, compress=compress
+   TEST_FORMAT_LOOP_ERROR, errors, '("abc")', 1, unit=u
+   TEST_FORMAT_LOOP_ERROR, errors, '(I0,("abc"))', [1,2], unit=u
+   close, u
+   openr, u, file, compress=compress, /delete
+   if ~eof(u) then ERRORS_ADD, errors, 'Failed PRINTF wrote data to an empty file'
+   close, u
+
+   foreach fmt, ['(I0,("abc"))', '(I0,/,("abc"))'] do begin
+      openw, u, file, compress=compress
+      printf, u, format='(A)', 'before'
+      TEST_FORMAT_LOOP_ERROR, errors, fmt, [1,2], unit=u
+      printf, u, format='(A)', 'after'
+      close, u
+      openr, u, file, compress=compress, /delete
+      lines = strarr(2)
+      readf, u, lines
+      if ~array_equal(lines, ['before','after']) || ~eof(u) then $
+         ERRORS_ADD, errors, 'Failed PRINTF changed surrounding records for '+fmt+' with COMPRESS='+strtrim(compress,2)
+      close, u
+   endforeach
+endforeach
+free_lun, u
+end
+;
 pro TEST_FORMAT, help=help, verbose=verbose, test=test, no_exit=no_exit
 ;
 if KEYWORD_SET(help) then begin
@@ -115,6 +162,15 @@ cumul_errors=0
 TEST_FORMAT_NEWLINE, cumul_errors, test=test, verbose=verbose
 ;
 TEST_FORMAT_C, cumul_errors, test=test, verbose=verbose
+;
+TEST_FORMAT_LOOP_ERROR, cumul_errors, '("abc")', 1
+; The first pass consumes a value. The repeated group contains only a literal.
+TEST_FORMAT_LOOP_ERROR, cumul_errors, '(I0,("abc"))', [1,2]
+TEST_FORMAT_LOOP_ERROR, cumul_errors, '("abc")', 1, /input
+TEST_FORMAT_LOOP_ERROR, cumul_errors, '(I1,("abc"))', [1,2], /input
+TEST_FORMAT_LOOP_FILE, cumul_errors
+lines = string([1,2,3], format='("v",I0)')
+if ~array_equal(lines, ['v1','v2','v3']) then ERRORS_ADD, cumul_errors, 'Wrong output on format reversion'
 ;
 ; ----------------- final message ----------
 ;

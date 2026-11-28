@@ -21,6 +21,7 @@
 #include "includefirst.hpp"
 #include "datatypes.hpp"
 #include "envt.hpp"
+#include <memory>
 
 #ifdef USE_GEOTIFF
 #   include <xtiffio.h>
@@ -121,31 +122,6 @@ namespace lib
             DType PixelType() const;
        };
 
-        #ifdef USE_GEOTIFF
-        struct GeoKey
-        {
-             GeoKey() = default;
-            ~GeoKey();
-
-            union
-            {
-                int8_t*     b;
-                int16_t*    i;
-                int32_t*    l;
-                uint8_t*    ub;
-                uint16_t*   ui;
-                uint32_t*   ul;
-                float*      f;
-                double*     d;
-                char*       str;
-                void*       ptr;
-            } value             = { 0 };
-
-            tagtype_t   type    = TYPE_UNKNOWN;
-            size_t      count   = 0;
-        };
-        #endif
-
         struct Rectangle
         {
             uint32_t x, y;
@@ -163,33 +139,34 @@ namespace lib
             bool        GetDirectory(tdir_t, Directory&) const;
             uint16_t    DirectoryCount() const;
             uint16_t    FileVersion() const;
-            BaseGDL*    ReadImage(const Directory&, const Rectangle& = { 0 });
+            std::unique_ptr<BaseGDL> ReadImage(const Directory&, const Rectangle& = { 0 });
 
             template<typename... Ts>
             bool GetField(ttag_t tag, Ts&... vars) const
             {
-                return (tiff_ && TIFFGetField(tiff_, tag, &vars...));
+                return (tiff_ && TIFFGetField(tiff_.get(), tag, &vars...));
             }
 
             template<typename T>
             void GetRequiredField(ttag_t tag, T& var) const
             {
                 const TIFFField* field;
-                if(tiff_ && !TIFFGetField(tiff_, tag, &var)) {
-                    if((field = TIFFFieldWithTag(tiff_, tag)))
+                if(tiff_ && !TIFFGetField(tiff_.get(), tag, &var)) {
+                    if((field = TIFFFieldWithTag(tiff_.get(), tag)))
                     throw TIFFFieldName(field); else throw tag;
                 }
             }
 
             #ifdef USE_GEOTIFF
             BaseGDL*    CreateGeoStructOrZero(tdir_t) const;
-            bool        GetGeoKey(geokey_t, GeoKey&) const;
             #endif
 
         private:
-            ::TIFF*             tiff_   = nullptr;
             #ifdef USE_GEOTIFF
-            GTIF*               gtif_   = nullptr;
+            std::unique_ptr<::TIFF, decltype(&XTIFFClose)> tiff_{nullptr, &XTIFFClose};
+            std::unique_ptr<GTIF, decltype(&GTIFFree)> gtif_{nullptr, &GTIFFree};
+            #else
+            std::unique_ptr<::TIFF, decltype(&TIFFClose)> tiff_{nullptr, &TIFFClose};
             #endif
             TIFFErrorHandler    defEH_  = nullptr;
             TIFFErrorHandler    defWH_  = nullptr;

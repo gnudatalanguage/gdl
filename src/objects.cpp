@@ -980,7 +980,8 @@ void InitObjects()
   sigControlC = false;
   debugMode   = 0;
 
-  fileUnits.resize( maxLun); // 0-127 -> 1-128 within GDL for files
+  // Construct the fixed table in place. Live file units cannot be copied or moved.
+  fileUnits = GDLFileListT(maxLun);
 
   // initialize GDL system variables
   SysVar::InitSysVar();

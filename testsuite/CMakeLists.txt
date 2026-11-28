@@ -32,6 +32,10 @@ if(WIN32 AND NOT CYGWIN)
 endif()
 
 string(REGEX MATCHALL "test[_a-zA-Z0-9]+\\.pro" TESTS ${TESTLIST})
+if(WIN32 OR NOT HAVE_EXT_STDIO_FILEBUF_H)
+  # SPAWN, UNIT uses the POSIX pipe implementation and GNU stdio_filebuf.
+  list(REMOVE_ITEM TESTS test_spawn_unit.pro)
+endif()
 foreach(TEST ${TESTS})
   string(REGEX REPLACE "\\.pro$" "" TESTNAME ${TEST})
   add_test(NAME ${TEST} COMMAND ${GDL_BINARY} -quiet -e "if execute('${TESTNAME}') ne 1 then exit, status=1")

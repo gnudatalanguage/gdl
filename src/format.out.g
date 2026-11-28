@@ -25,8 +25,11 @@ header "post_include_cpp" {
 
 header {
 
+#include <algorithm>
 #include <fstream>
 #include <cassert>
+#include <sstream>
+#include <string>
 
 //***test
 #include "print_tree.hpp"
@@ -63,70 +66,71 @@ options {
 {
 public:
     FMTOut( RefFMTNode fmt, std::ostream* os_, EnvT* e_, int parOffset)
-    : antlr::TreeParser(), os(os_), e( e_), nextParIx( parOffset),
+    : antlr::TreeParser(), os(&record), e( e_), nextParIx( parOffset),
 	valIx(0), termFlag(false), nonlFlag(false), nElements(0)
     {
-        std::ostringstream* osLocal;
-std::unique_ptr<std::ostream> osLocalGuard;
-        //if( *os_ == std::cout) // SA: this did not work with win32
-        if( os_->rdbuf() == std::cout.rdbuf())
-            {
-                // e.g. print, 1, f='(A)'
-                osLocal = new std::ostringstream();
-                osLocalGuard.reset( osLocal);
-                os = osLocal;
-            }
-        else
-            {
-                // e.g. print, string(1, f='(A)')
-                os = os_;
-            }
-
         nParam = e->NParam();
 
         NextPar();
     
         GDLStream* j = lib::get_journal();
+        toJournal = j && j->OStream().rdbuf() == os_->rdbuf();
 
-        if( j != NULL && j->OStream().rdbuf() == os->rdbuf()) 
-            (*os) << lib::JOURNALCOMMENT;
+        SizeT previousPar = nextParIx;
+        SizeT previousVal = valIx;
+        format(fmt);
 
-        format( fmt);
-        
-        SizeT nextParIxComp = nextParIx;
-        SizeT valIxComp = valIx;
+        while (actPar) {
+            if (nextParIx == previousPar && valIx == previousVal)
+                throw GDLException("Infinite format loop detected.");
 
-        // format reversion
-        while( actPar != NULL)
-        {
-           (*os) << '\n';
-            
-            if( j != NULL && j->OStream().rdbuf() == os->rdbuf()) 
-                (*os) << lib::JOURNALCOMMENT;
+            previousPar = nextParIx;
+            previousVal = valIx;
+            FinishRecord();
+            format_reversion(reversionAnker);
+        }
 
-            format_reversion( reversionAnker);            
- 
-           if( (nextParIx == nextParIxComp) && (valIx == valIxComp))   
-                throw GDLException("Format syntax Error.");//"Infinite format loop detected.");
-         }
-        
-        os->seekp( 0, std::ios_base::end);
-
-        if( !nonlFlag)
-            {
-                (*os) << '\n';
-            }
-        (*os) << std::flush;
-
-        if( os_->rdbuf() == std::cout.rdbuf()) // SA: see note above
-            {
-                os = os_;
-                (*os) << osLocal->str();
-                (*os) << std::flush;
-            }
+        // A format error must leave the destination at its original position.
+        FinishRecord(!nonlFlag);
+        os_->write(completed.data(), completed.size());
+        os_->flush();
+        if (!*os_ && dynamic_cast<ogzstream*>(os_))
+            throw GDLIOException("Error writing formatted data to compressed file.");
     }
-    
+
 private:
+    // Tab positions are relative to this record, including when output is a journal.
+    std::ostringstream record;
+    // Finished records, written only after the whole format succeeds.
+    std::string completed;
+    bool toJournal = false;
+
+    void FinishRecord(bool newline = true)
+    {
+        if (toJournal)
+            completed += lib::JOURNALCOMMENT;
+        completed += record.str();
+        if (newline)
+            completed += '\n';
+        record.str(std::string{});
+    }
+
+    void TabTo(std::streamoff position)
+    {
+        record.seekp(0, std::ios_base::end);
+        std::streamoff end = record.tellp();
+        if (position <= end) {
+            record.seekp(position);
+            return;
+        }
+        static const std::string spaces(256, ' ');
+        while (end < position) {
+            const auto n = std::min<std::streamoff>(position - end, spaces.size());
+            record.write(spaces.data(), n);
+            end += n;
+        }
+    }
+
     void NextPar()
     {
         valIx = 0;
@@ -274,11 +278,8 @@ q
       | (s:SLASH 
             {
                 // only one newline to journal file
-                GDLStream* j = lib::get_journal();
-                if( j != NULL && j->OStream().rdbuf() == os->rdbuf())
-                    (*os) << '\n' << lib::JOURNALCOMMENT;
-                else
-                    for( int r=s->getRep(); r > 0; r--) (*os) << '\n';
+                for (int r = toJournal ? 1 : s->getRep(); r > 0; --r)
+                    FinishRecord();
             }
         )?
     ;
@@ -304,17 +305,13 @@ f
         }
     | tr:TR 
         { //relative position right
-            int    trVal = tr->getW();
-            for( int i=trVal; i>0; --i) (*os) << " "; //just add blanks.
-//            os->seekp( trVal, std::ios_base::cur);
+            TabTo(static_cast<std::streamoff>(record.tellp()) + tr->getW());
         }
     | t:T
         {  //absolute position
             int    tVal = t->getW();
             if (tVal < 1) throw GDLException("Value must be greater or equal to 1.");
-            SizeT actP  = os->tellp(); 
-            if( tVal > actP) for( int i=0; i<tVal-actP-1; ++i) (*os) << " "; //just add blanks.
-            else os->seekp( tVal-1); //like IDL
+            TabTo(tVal - 1);
         }
     | f_csubcode
     | x
@@ -702,6 +699,6 @@ x
 //                (*os) << " "; //for format "nX"
 ////                os->seekp( tlVal, std::ios_base::cur);
 //            }
-             for( int r=tl->getW(); r > 0; r--) (*os) << ' ';
+             TabTo(static_cast<std::streamoff>(record.tellp()) + tl->getW());
         }
     ;

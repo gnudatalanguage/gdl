@@ -124,11 +124,8 @@ void FMTOut::q(RefFMTNode _t) {
 			_t = _t->getNextSibling();
 			
 			// only one newline to journal file
-			GDLStream* j = lib::get_journal();
-			if( j != NULL && j->OStream().rdbuf() == os->rdbuf())
-			(*os) << '\n' << lib::JOURNALCOMMENT;
-			else
-			for( int r=s->getRep(); r > 0; r--) (*os) << '\n';
+			for (int r = toJournal ? 1 : s->getRep(); r > 0; --r)
+			FinishRecord();
 			
 			break;
 		}
@@ -236,9 +233,7 @@ void FMTOut::f(RefFMTNode _t) {
 		match(antlr::RefAST(_t),TR);
 		_t = _t->getNextSibling();
 		//relative position right
-		int    trVal = tr->getW();
-		for( int i=trVal; i>0; --i) (*os) << " "; //just add blanks.
-		//            os->seekp( trVal, std::ios_base::cur);
+		TabTo(static_cast<std::streamoff>(record.tellp()) + tr->getW());
 		
 		break;
 	}
@@ -250,9 +245,7 @@ void FMTOut::f(RefFMTNode _t) {
 		//absolute position
 		int    tVal = t->getW();
 		if (tVal < 1) throw GDLException("Value must be greater or equal to 1.");
-		SizeT actP  = os->tellp(); 
-		if( tVal > actP) for( int i=0; i<tVal-actP-1; ++i) (*os) << " "; //just add blanks.
-		else os->seekp( tVal-1); //like IDL
+		TabTo(tVal - 1);
 		
 		break;
 	}
@@ -687,7 +680,7 @@ void FMTOut::x(RefFMTNode _t) {
 	//                (*os) << " "; //for format "nX"
 	////                os->seekp( tlVal, std::ios_base::cur);
 	//            }
-	for( int r=tl->getW(); r > 0; r--) (*os) << ' ';
+	TabTo(static_cast<std::streamoff>(record.tellp()) + tl->getW());
 	
 	_retTree = _t;
 }

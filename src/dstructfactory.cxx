@@ -17,15 +17,11 @@
 
 #include "dstructfactory.hxx"
 
-DStructFactory::DStructFactory() :
-    desc_(new DStructDesc("$truct"))
+void DStructFactory::AddTag(const char* name, const BaseGDL& prototype, std::unique_ptr<BaseGDL> value)
 {
-}
-
-DStructFactory::~DStructFactory()
-{
-    for(auto& pair : vals_)
-        delete pair.second;
+    if (!desc_) desc_ = std::make_unique<DStructDesc>("$truct");
+    desc_->AddTag(name, &prototype);
+    vals_[name] = std::move(value);
 }
 
 DStructGDL* DStructFactory::Create()
@@ -33,12 +29,12 @@ DStructGDL* DStructFactory::Create()
     if(vals_.empty())
         return nullptr;
 
-    auto res = new DStructGDL(desc_, dimension());
+    // DStructGDL adopts the initial reference to the anonymous descriptor.
+    auto res = std::make_unique<DStructGDL>(std::move(desc_), dimension());
     for(auto& pair : vals_) {
         res->InitTag(pair.first, *pair.second);
-        delete pair.second;
     }
     vals_.clear();
-    return res;
+    return res.release();
 }
 

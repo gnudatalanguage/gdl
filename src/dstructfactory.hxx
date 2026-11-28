@@ -21,49 +21,42 @@
 #include "includefirst.hpp"
 #include "dstructgdl.hpp"
 #include <map>
+#include <memory>
 
 class DStructFactory
 {
 public:
-     DStructFactory();
-    ~DStructFactory();
-
     template<class T, typename... Vs>
     void Add(const char* name, const Vs&... vals)
     {
         constexpr auto N = sizeof...(Vs);
-        auto proto = new typename T::Traits(dimension(N));
+        typename T::Traits proto{dimension(N)};
         typename T::Ty arr[] = { static_cast<typename T::Ty>(vals)... };
-        desc_->AddTag(name, proto);
-        vals_[name] = (N > 1 ? new T(arr, N) : new T(arr[0]));
-        delete proto;
+        AddTag(name, proto, N > 1 ? std::make_unique<T>(arr, N) : std::make_unique<T>(arr[0]));
     }
 
     template<class T, typename V>
     void AddArr(const char* name, size_t count, const V* vals)
     {
-        auto proto = new typename T::Traits(dimension(count));
+        typename T::Traits proto{dimension(count)};
         typename T::Traits::DataT arr(vals, count);
-        desc_->AddTag(name, proto);
-        vals_[name] = new T(dimension(count), arr);
-        delete proto;
+        AddTag(name, proto, std::make_unique<T>(dimension(count), arr));
     }
 
     template<class T, typename V>
     void AddMat(const char* name, size_t cols, size_t rows, const V* vals)
     {
-        auto proto = new typename T::Traits(dimension(cols, rows));
+        typename T::Traits proto{dimension(cols, rows)};
         typename T::Traits::DataT mat(vals, rows * cols);
-        desc_->AddTag(name, proto);
-        vals_[name] = new T(dimension(cols, rows), mat);
-        delete proto;
+        AddTag(name, proto, std::make_unique<T>(dimension(cols, rows), mat));
     }
 
     DStructGDL* Create(); 
 
 private:
-    DStructDesc* desc_ = nullptr;
-    std::map<const char*, BaseGDL*> vals_;
+    void AddTag(const char* name, const BaseGDL& prototype, std::unique_ptr<BaseGDL> value);
+    std::unique_ptr<DStructDesc> desc_;
+    std::map<std::string, std::unique_ptr<BaseGDL>> vals_;
 };
 
 #endif
